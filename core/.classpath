@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK/BuildEngine-android"/>
+	<classpathentry kind="lib" path="C:/Users/M210/Workspace/BuildEngine/gradle/gdx.jar" sourcepath="C:/Users/M210/workspace/BuildEngine/gradle/gdx-sources.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
