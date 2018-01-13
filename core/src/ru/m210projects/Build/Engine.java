@@ -3144,6 +3144,11 @@ public abstract class Engine {
 		Gdx.input.setCursorCatched(true);
 		Gdx.input.setCursorPosition(xdim / 2, 0);
 	}
+	
+	public void setrand(int seed)
+	{
+		randomseed = seed;
+	}
 
 	public int krand() {
 		randomseed = (randomseed * 27584621) + 1;
