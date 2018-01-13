@@ -20,7 +20,6 @@ public class Compat {
 	public static final int SEEK_CUR = 1;
 	public static final int SEEK_END = 2;
 
-	public static File handle; 
 	private static final int MAXOPENFILES = 64;
 	public static RandomAccessFile[] raf_list = new RandomAccessFile[MAXOPENFILES];
 	
@@ -84,7 +83,7 @@ public class Compat {
 		int var = -1;
 		try {
 			if(opt.equals("r") || opt.equals("R")) {
-				handle = Bcheck(filename, opt);
+				File handle = Bcheck(filename, opt);
 				if(handle != null) {
 					if(opt.equals("R")) 
 						opt = "r";
