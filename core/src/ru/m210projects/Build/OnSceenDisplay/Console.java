@@ -47,11 +47,11 @@ public class Console {
 	public static final int OSD_CTRL        = 0x00000020;
 	public static final int OSD_CAPS        = 0x00000040;
 	
-	public static final int BGTILE = 2051;
-	public static final int BGCTILE = 2046;
-	public static final int BGTILE_SIZEX = 128;
-	public static final int BGTILE_SIZEY = 128;
-	public static final int BORDTILE = 2205;	// BORDER
+	public static int BGTILE = 2051;
+	public static int BGCTILE = 2046;
+	public static int BGTILE_SIZEX = 128;
+	public static int BGTILE_SIZEY = 128;
+	public static int BORDTILE = 2205;	// BORDER
 	public static final int BITSTH = 1+32+8+16;	// high translucency
 	public static final int BITSTL = 1+8+16;	// low translucency
 	public static final int BITS = 8+16+64;		// solid
