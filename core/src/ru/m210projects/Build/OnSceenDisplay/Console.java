@@ -28,11 +28,11 @@ import static ru.m210projects.Build.Strhandler.isdigit;
 
 public class Console {
 	
-	public static final int OSDTEXT_RED      = 7;
-	public static final int OSDTEXT_BLUE     = 10;
-	public static final int OSDTEXT_GOLD     = 9;
-	public static final int OSDTEXT_BROWN    = 2;
-	public static final int OSDTEXT_YELLOW   = 8;
+	public static int OSDTEXT_RED      = 7;
+	public static int OSDTEXT_BLUE     = 10;
+	public static int OSDTEXT_GOLD     = 9;
+	public static int OSDTEXT_BROWN    = 2;
+	public static int OSDTEXT_YELLOW   = 8;
 
 	public static final int MAXLINES = 512;
 
@@ -52,11 +52,11 @@ public class Console {
 	public static int BGTILE_SIZEX = 128;
 	public static int BGTILE_SIZEY = 128;
 	public static int BORDTILE = 2205;	// BORDER
-	public static final int BITSTH = 1+32+8+16;	// high translucency
-	public static final int BITSTL = 1+8+16;	// low translucency
-	public static final int BITS = 8+16+64;		// solid
-	public static final int SHADE = 50;
-	public static final int PALETTE = 5;
+	public static int BITSTH = 1+32+8+16;	// high translucency
+	public static int BITSTL = 1+8+16;	// low translucency
+	public static int BITS = 8+16+64;		// solid
+	public static int SHADE = 50;
+	public static int PALETTE = 5;
 	
 	static OSDFunc func;
 	private static final ByteArrayOutputStream logStream = new ByteArrayOutputStream();
