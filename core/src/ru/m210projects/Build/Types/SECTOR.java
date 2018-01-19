@@ -59,4 +59,36 @@ public class SECTOR {
     	hitag = bb.getShort();
     	extra = bb.getShort();
 	}
+	
+	public byte[] getBytes()
+	{
+		ByteBuffer buffer = ByteBuffer.allocate(sizeof); 
+		buffer.order(ByteOrder.LITTLE_ENDIAN);  
+		
+		buffer.putShort(this.wallptr);
+    	buffer.putShort(this.wallnum);
+    	buffer.putInt(this.ceilingz);
+    	buffer.putInt(this.floorz);
+    	buffer.putShort(this.ceilingstat);
+    	buffer.putShort(this.floorstat);
+    	buffer.putShort(this.ceilingpicnum);
+    	buffer.putShort(this.ceilingheinum);
+    	buffer.put(this.ceilingshade);
+    	buffer.put((byte)this.ceilingpal);
+    	buffer.put((byte)this.ceilingxpanning);
+    	buffer.put((byte)this.ceilingypanning);
+    	buffer.putShort(this.floorpicnum);
+    	buffer.putShort(this.floorheinum);
+    	buffer.put(this.floorshade);
+    	buffer.put((byte)this.floorpal);
+    	buffer.put((byte)this.floorxpanning);
+    	buffer.put((byte)this.floorypanning);
+    	buffer.put((byte)this.visibility);
+    	buffer.put((byte)this.filler);
+    	buffer.putShort(this.lotag);
+    	buffer.putShort(this.hitag);
+    	buffer.putShort(this.extra);
+		
+    	return buffer.array();
+	}
 }

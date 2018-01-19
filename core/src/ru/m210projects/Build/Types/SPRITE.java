@@ -57,6 +57,38 @@ public class SPRITE {
     	extra = bb.getShort();
 	}
 	
+	public byte[] getBytes()
+	{
+		ByteBuffer buffer = ByteBuffer.allocate(sizeof); 
+		buffer.order(ByteOrder.LITTLE_ENDIAN); 
+		
+		buffer.putInt(this.x);
+    	buffer.putInt(this.y);
+    	buffer.putInt(this.z);
+    	buffer.putShort(this.cstat);
+    	buffer.putShort(this.picnum);
+    	buffer.put(this.shade);
+    	buffer.put((byte)this.pal);
+    	buffer.put((byte) this.clipdist);
+    	buffer.put((byte)this.detail);
+    	buffer.put((byte)this.xrepeat);
+    	buffer.put((byte)this.yrepeat);
+    	buffer.put((byte)this.xoffset);
+    	buffer.put((byte)this.yoffset);
+    	buffer.putShort(this.sectnum);
+    	buffer.putShort(this.statnum);
+    	buffer.putShort(this.ang);
+    	buffer.putShort(this.owner);
+    	buffer.putShort(this.xvel);
+    	buffer.putShort(this.yvel);
+    	buffer.putShort(this.zvel);
+    	buffer.putShort(this.lotag);
+    	buffer.putShort(this.hitag);
+    	buffer.putShort(this.extra);
+		
+		return buffer.array();
+	}
+	
 	public String toString()
 	{
 		String out = "x " + x + " \r\n";

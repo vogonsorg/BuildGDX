@@ -71,4 +71,30 @@ public class WALL {
     	hitag = src.hitag;
     	extra = src.extra;
 	}
+	
+	public byte[] getBytes()
+	{
+		ByteBuffer buffer = ByteBuffer.allocate(sizeof); 
+		buffer.order(ByteOrder.LITTLE_ENDIAN);  
+		
+		buffer.putInt(this.x);
+    	buffer.putInt(this.y);
+    	buffer.putShort(this.point2);
+    	buffer.putShort(this.nextwall);
+    	buffer.putShort(this.nextsector);
+    	buffer.putShort(this.cstat);
+    	buffer.putShort(this.picnum);
+    	buffer.putShort(this.overpicnum);
+    	buffer.put(this.shade);
+    	buffer.put((byte)this.pal);
+    	buffer.put((byte)this.xrepeat);
+    	buffer.put((byte)this.yrepeat);
+    	buffer.put((byte)this.xpanning);
+    	buffer.put((byte)this.ypanning);
+    	buffer.putShort(this.lotag);
+    	buffer.putShort(this.hitag);
+    	buffer.putShort(this.extra);
+		
+    	return buffer.array();
+	}
 }

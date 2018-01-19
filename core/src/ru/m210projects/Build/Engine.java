@@ -3145,9 +3145,14 @@ public abstract class Engine {
 		Gdx.input.setCursorPosition(xdim / 2, 0);
 	}
 	
-	public void setrand(int seed)
+	public void setseed(int seed)
 	{
 		randomseed = seed;
+	}
+	
+	public int getseed()
+	{
+		return randomseed;
 	}
 
 	public int krand() {

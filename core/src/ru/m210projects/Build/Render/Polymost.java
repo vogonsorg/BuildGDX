@@ -4229,7 +4229,6 @@ public abstract class Polymost implements Renderer {
 			} else {
 				// If not clipping to startmosts, & auto-scaling on, as a
 				// hard-coded bonus, scale to full screen instead
-
 				sx = (xdim << 15) + scale(normxofs, xdim, 320);
 
 				if ((dastat & 512) != 0)
