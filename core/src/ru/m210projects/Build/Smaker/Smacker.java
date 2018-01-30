@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import ru.m210projects.Build.Smaker.Smk.smk_video;
+import ru.m210projects.Build.Types.LittleEndian;
 
 public class Smacker {
 	
@@ -58,6 +59,9 @@ public class Smacker {
 	static final int SMK_ERROR	= -1;
 	
 	public static final int SMK_VIDEO_TRACK	= 0x80;
+	
+	static final int SMACKER_FLAG_RING_FRAME =	0x01;
+	static final int SMACKER_PAL =	0x01;
 
 	/* PUBLIC FUNCTIONS */
 	/* open an smk (from a generic Source) */
@@ -66,26 +70,15 @@ public class Smacker {
 
 		byte[] buf = new byte[4];
 		fp.get(buf,0, 4);
-		String signature = new String(buf, 0, 3);
-		if(!signature.equals("SMK")) {
-			System.err.println("smacker::smk_open_generic - ERROR: invalid SMKn signature " + signature);
-		} 
+		String signature = new String(buf, 0, 4);
 		
-		/* Read .smk file version */
-		s.video.v = (char) buf[3];
-		if(s.video.v != '2' && s.video.v != '4') {
-			System.err.println("smacker::smk_open_generic - Warning: invalid SMK version %c (expected: 2 or 4) " + s.video.v);
-			if (s.video.v < '4')
-			{
-				s.video.v = '2';
-			}
-			else
-			{
-				s.video.v = '4';
-			}
-		}
+		if(signature.equals("SMK4")) 
+			s.video.v = '4';
+		else if(signature.equals("SMK2"))
+			s.video.v = '2';
+		else System.err.println("smacker::smk_open_generic - ERROR: invalid SMKn signature " + signature);
 		System.out.println("\tProcessing will continue as type " + s.video.v);
-		
+
 		/* width, height, total num frames */
 		s.video.w = fp.getInt();
 		s.video.h  = fp.getInt();
@@ -93,36 +86,23 @@ public class Smacker {
 
 		/* frames per second calculation */
 		int temp_l = fp.getInt();
-		if (temp_l > 0)
-		{
-			/* millisec per frame */
-			s.usf = temp_l * 1000;
-		}
-		else if (temp_l < 0)
-		{
-			/* 10 microsec per frame */
-			s.usf = temp_l * -10;
-		}
-		else
-		{
-			/* defaults to 10 usf (= 100000 microseconds) */
-			s.usf = 100000;
-		}
+		if (temp_l > 0) /* millisec per frame */
+			s.pts_inc = temp_l * 1000;
+		else if (temp_l < 0) /* 10 microsec per frame */
+			s.pts_inc = temp_l * -10;
+		else /* defaults to 10 usf (= 100000 microseconds) */
+			s.pts_inc = 100000;
+		
 		/* Video flags follow.
 		Ring frame is important to libsmacker.
 		Y scale / Y interlace go in the Video flags.
 		The user should scale appropriately. */
-		int temp_u  = fp.getInt();
-		
-		if ((temp_u & 0x01) != 0)
-		{
-			s.ring_frame = 1;
-		}
-		if ((temp_u & 0x02) != 0)
-		{
+		int flags  = fp.getInt();
+		if ((flags & SMACKER_FLAG_RING_FRAME) != 0)
+			s.frames++;
+		if ((flags & 0x02) != 0)
 			s.video.y_scale_mode = SMK_FLAG_Y_DOUBLE;
-		}
-		if ((temp_u & 0x04) != 0)
+		if ((flags & 0x04) != 0)
 		{
 			if (s.video.y_scale_mode == SMK_FLAG_Y_DOUBLE)
 			{
@@ -130,10 +110,11 @@ public class Smacker {
 			}
 			s.video.y_scale_mode = SMK_FLAG_Y_INTERLACE;
 		}
+		
 		/* Max buffer size for each audio track - we don't use
 		but calling application might. */
 		for(int i = 0; i < 7; i++) {
-			fp.getInt();
+			fp.getInt(); //smk->audio[i]
 		}
 		/* Read size of "hufftree chunk" - save for later. */
 
@@ -141,41 +122,45 @@ public class Smacker {
 		
 		/* "unpacked" sizes of each huff tree - we don't use
 		but calling application might. */
-		for (temp_l = 0; temp_l < 4; temp_l ++) {
-			 fp.getInt();
+		for (int i = 0; i < 4; i++) {
+			/*
+			smk->mmap_size = avio_rl32(pb);
+			smk->mclr_size = avio_rl32(pb);
+			smk->full_size = avio_rl32(pb);
+			smk->type_size = avio_rl32(pb);
+			*/
+			fp.getInt();
 		}
 
 		/* read audio rate data */
 		for(int i = 0; i < 7; i++) {
-			temp_u = fp.getInt();
-//			head.audioRate[i]  = fp.smk_read_ul(); FIXME
+			/*
+			smk->rates[i]  = avio_rl24(pb); FIXME
+        	smk->aflags[i] = avio_r8(pb);
+			*/
+			fp.getInt();
+//			head.audioRate[i]  = fp.smk_read_ul(); 
 		}
-		/* Skip over Dummy field */
-		fp.getInt();
+		
+		fp.getInt(); //pad
 		
 		/* FrameSizes and Keyframe marker are stored together. */
-		s.keyframe = new byte[s.frames + s.ring_frame];
-		s.chunk_size = new int[s.frames + s.ring_frame];
-		
-		for (temp_u = 0; temp_u < (s.frames + s.ring_frame); temp_u ++)
+//		s.keyframe = new byte[s.frames];
+		s.frm_size = new int[s.frames];
+		s.frm_flags = new byte[s.frames];
+		for (int i = 0; i < s.frames; i++)
 		{
-			s.chunk_size[temp_u] = fp.getInt();
-
-			/* Set Keyframe */
-			if ((s.chunk_size[temp_u] & 0x01) != 0)
-			{
-				s.keyframe[temp_u] = 1;
-			}
-			/* Bits 1 is used, but the purpose is unknown. */
-			s.chunk_size[temp_u] &= 0xFFFFFFFC;
+			s.frm_size[i] = fp.getInt();
+//			if ((s.frm_size[i] & 0x01) != 0) XXX
+//				s.keyframe[i] = 1; /* Set Keyframe */
+//
+//			/* Bits 1 is used, but the purpose is unknown. */
+//			s.frm_size[i] &= 0xFFFFFFFC;
 		}
 		
 		/* That was easy... Now read FrameTypes! */
-		s.frame_type = new byte[s.frames];
-		for (temp_u = 0; temp_u < (s.frames + s.ring_frame); temp_u ++)
-		{
-			s.frame_type[temp_u] = fp.get();
-		}
+		for (int i = 0; i < s.frames; i++)
+			s.frm_flags[i] = fp.get();
 		
 		/* HuffmanTrees
 		We know the sizes already: read and assemble into
@@ -188,48 +173,23 @@ public class Smacker {
 		smk_bit bs = smk_bs_init(hufftree_chunk, 0, tree_size);
 		
 		/* create some tables */
-		for (temp_u = 0; temp_u < 4; temp_u ++)
-		{
-			s.video.tree[temp_u] = smk_huff_big_safe_build(bs,s.video.tree[temp_u]); //FIXME
-		}
+		for (int i = 0; i < 4; i ++)
+			s.video.tree[i] = smk_huff_big_safe_build(bs, s.video.tree[i]);
 		
 		/* clean up */
 		bs = null;
 		hufftree_chunk = null;
-				
-		/* final processing: depending on ProcessMode, handle what to do with rest of file data */
-		s.mode = process_mode;
-		
+
 		/* Handle the rest of the data.
 		For MODE_MEMORY, read the chunks and store */
-		if (s.mode == SMK_MODE_MEMORY)
-		{
-			s.source.chunk_data = new byte[(s.frames + s.ring_frame)][];
-			for (temp_u = 0; temp_u < (s.frames + s.ring_frame); temp_u ++)
-			{
-				s.source.chunk_data[temp_u] = new byte[s.chunk_size[temp_u]];
-				fp.get(s.source.chunk_data[temp_u],0, s.chunk_size[temp_u]);	
-			}
-		}
-		else
-		{
-			/* MODE_STREAM: don't read anything now, just precompute offsets.
-				use fseek to verify that the file is "complete" 
-			FIXME DISK STREAM
-			smk_malloc(source.file.chunk_offset,(f + ring_frame) * sizeof(unsigned long));
-			for (temp_u = 0; temp_u < (f + ring_frame); temp_u ++)
-			{
-				source.file.chunk_offset[temp_u] = ftell(fp.file);
-				if (fseek(fp.file,chunk_size[temp_u],SEEK_CUR))
-				{
-					fprintf(stderr,"libsmacker::smk_open - ERROR: fseek to frame %lu not OK.\n",temp_u);
-					perror ("\tError reported was");
-					return null;
-				}
-			}
-			*/
-		}
 		
+		s.source.chunk_data = new byte[s.frames][];
+		for (int i = 0; i < s.frames; i ++)
+		{
+			s.source.chunk_data[i] = new byte[s.frm_size[i]];
+			fp.get(s.source.chunk_data[i],0, s.frm_size[i]);	
+		}
+
 		s.video.tframe = new byte[s.video.w * s.video.h];
 		return s;
 	}
@@ -238,14 +198,10 @@ public class Smacker {
 	public static Smk smk_open_memory(ByteBuffer fp)
 	{
 		Smk s = null;
-		if(fp == null)
-			return null;
-		if(fp.capacity() == 0)
-			return null;
+		if(fp == null) return null;
+		if(fp.capacity() == 0) return null;
 		
 		/* set up the read union for Memory mode */
-
-
 		if ((s = smk_open_generic(0,fp,SMK_MODE_MEMORY)) == null)
 		{
 			System.err.println("libsmacker::smk_open_memory(buffer,  " + fp.capacity() + ") - ERROR: Fatal error in smk_open_generic, returning NULL.");
@@ -284,20 +240,16 @@ public class Smacker {
 		return s;
 	}
 
-	
-	
 	/* close out an smk file and clean up memory */
 	public static void smk_close(Smk s)
 	{
-		int u;
-
 		if(s == null)
 			return;
 
 		/* free video sub-components */
 		if (s.video != null)
 		{
-			for (u = 0; u < 4; u ++)
+			for (int u = 0; u < 4; u ++)
 			{
 				s.video.tree[u].t = null;
 				s.video.tree[u] = null;
@@ -308,7 +260,7 @@ public class Smacker {
 		}
 
 		/* free audio sub-components */
-		for (u=0; u<7; u++)
+		for (int u=0; u<7; u++)
 		{
 //			if (s.audio[u] != null)
 			{
@@ -317,39 +269,27 @@ public class Smacker {
 			}
 		}
 
-		s.keyframe = null;
-		s.frame_type = null;
+//		s.keyframe = null;
+		s.frm_flags = null;
 
-		if (s.mode == SMK_MODE_DISK)
+		/* mem-mode */
+		if (s.source.chunk_data != null)
 		{
-			/* disk-mode */
-//			if (s.source.file.fp)
-//			{
-//				fclose(s.source.file.fp);
-//			}
-//			smk_free(s.source.file.chunk_offset);
-		}
-		else
-		{
-			/* mem-mode */
-			if (s.source.chunk_data != null)
+			for (int u=0; u< s.frames; u++)
 			{
-				for (u=0; u<(s.frames + s.ring_frame); u++)
-				{
-					s.source.chunk_data[u] = null;
-				}
-				s.source.chunk_data = null;
+				s.source.chunk_data[u] = null;
 			}
+			s.source.chunk_data = null;
 		}
-		s.chunk_size = null;
+		
+		s.frm_size = null;
 
 		s= null;
 	}
 	
 	/* tell some info about the file */
 	//smk_info_all XXX
-	
-	
+
 	public static int info_w;
 	public static int info_h;
 	public static int info_scale;
@@ -466,9 +406,8 @@ public class Smacker {
 
 		while ( (i < 768) && (size > 0) ) /* looping index into NEW palette */
 		{
-			if ((p[ptr] & 0x80) != 0)
+			if ((p[ptr] & 0x80) != 0) /* skip palette entries */
 			{
-
 				/* Copy (c + 1) color entries of the previous palette
 					to the next entries of the new palette. */
 				k = ((p[ptr] & 0x7F) + 1) * 3;
@@ -491,7 +430,7 @@ public class Smacker {
 				}
 				i += k;
 			}
-			else if ((p[ptr] & 0x40) != 0)
+			else if ((p[ptr] & 0x40) != 0) /* copy with offset */
 			{
 				/* Copy (c + 1) color entries of the previous palette,
 					starting from entry (s)
@@ -530,7 +469,7 @@ public class Smacker {
 				i += k;
 				j += k;
 			}
-			else
+			else /* new entries */
 			{
 				if (size < 3)
 				{
@@ -539,11 +478,10 @@ public class Smacker {
 					s.palette = tpalette;
 					return -1;
 				}
+				/* To be extremely correct we should blow up if (*p) exceeds 0x3F, but I can't be bothered, so just mask it */
 				
 				tpalette[i++] = (byte) palmap[p[ptr] & 0x3F];
 				ptr++; size --;
-				/* To be extremely correct we should blow up if (*p) exceeds 0x3F, but
-					I can't be bothered, so just mask it */
 				tpalette[i++] = (byte) palmap[p[ptr] & 0x3F];
 				ptr++; size --;
 				tpalette[i++] = (byte) palmap[p[ptr] & 0x3F];
@@ -635,7 +573,6 @@ public class Smacker {
 					type = 5;
 				}
 			}
-			
 			
 			for (j = 0; (j < sizetable[blocklen]) && (row < s.h); j ++)
 			{
@@ -762,120 +699,74 @@ public class Smacker {
 	   Preps all the image and audio pointers */
 	public static int smk_render(Smk s)
 	{
-		int i,size, p = 0;
+		int size, p = 0; //nextpos XXX
 		byte[] buffer = null; 
 		byte track;
 
 		/* sanity check */
-		if(s == null) {
+		if(s == null) 
 			return -1;
-		}
-
-		/* Retrieve current chunk_size for this frame. */
-		if ((i = s.chunk_size[s.cur_frame]) == 0)
-		{
-			System.err.println("libsmacker::smk_render(s) - Warning: frame " + s.cur_frame + ": chunk_size is 0.");
-			return -1;
-		}
-
-		if (s.mode == SMK_MODE_DISK)
-		{
-			/* FIXME
-			//Skip to frame in file 
-			if (fseek(s.source.file.fp,s.source.file.chunk_offset[s.cur_frame],SEEK_SET))
-			{
-				System.err.println("libsmacker::smk_render(s) - ERROR: fseek to frame " + s.cur_frame + " (offset " + s.source.file.chunk_offset[s.cur_frame] + ") failed.");
-				System.err.println("\tError reported was");
-				return -1;
-			}
-
-			// In disk-streaming mode: make way for our incoming chunk buffer
-			buffer = new byte[i];
-			// Read into buffer
-			if ( smk_read_file(buffer,s.chunk_size[s.cur_frame],s.source.file.fp) < 0)
-			{
-				System.err.println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + "  (offset "+s.source.file.chunk_offset[s.cur_frame]+ "): smk_read had errors.");
-				if (s.mode == SMK_MODE_DISK) {
-					// Remember that buffer we allocated?  Trash it
-					buffer = null;
-				}
-				return -1;
-			}
-			*/
-		}
-		else
-		{
-			/* Just point buffer at the right place */
-			if (s.source.chunk_data[s.cur_frame] == null)
-			{
-				System.err.println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + " : memory chunk is a NULL pointer.");
-				return -1;
-			}
-			buffer = s.source.chunk_data[s.cur_frame];
-		}
-
 		
-		/* Palette record first */
-		if ((s.frame_type[s.cur_frame] & 0x01) != 0)
+		int frame_size = s.frm_size[s.cur_frame] & (~3);
+
+		/* Retrieve current frm_size for this frame. */
+		if (frame_size == 0)
 		{
-			/* need at least 1 byte to process */
-			if (i == 0)
+			System.err.println("libsmacker::smk_render(s) - Warning: frame " + s.cur_frame + ": frm_size is 0.");
+			return -1;
+		}
+
+		/* Just point buffer at the right place */
+		if (s.source.chunk_data[s.cur_frame] == null)
+		{
+			System.err.println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + " : memory chunk is a NULL pointer.");
+			return -1;
+		}
+		buffer = s.source.chunk_data[s.cur_frame];
+
+		int flags = s.frm_flags[s.cur_frame];
+		/* Palette record first */
+		if ((flags & SMACKER_PAL) != 0)
+		{
+			size = 4 * (buffer[p++] & 0xFF) - 1;
+			if(size + 1 > frame_size)
 			{
 				System.err.println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for a palette rec.");
 				return -1;
 			}
 
-			/* Byte 1 in block, times 4, tells how many
-				subsequent bytes are present */
-			size = 4 * (buffer[p] & 0xFF);
-
-			/* If video rendering enabled, kick this off for decode. */
 			if (s.video.enable != 0)
-			{
-				smk_render_palette(s.video,buffer, p + 1,size - 1);
-			}
+				smk_render_palette(s.video, buffer, p, size);
+			
 			p += size;
-			i -= size;
+			frame_size -= size;
+			frame_size--;
 		}
-
+	
 		/* Unpack audio chunks */
 		for (track = 0; track < 7; track ++)
 		{
-			/* FIXME AUDIO
-			if ((s.frame_type[s.cur_frame] & (0x02 << track)) != 0)
+			if ((flags & (0x02 << track)) != 0)
 			{
-				/* need at least 4 byte to process 
-				if (i < 4)
-				{
-					fprintf(stderr,"libsmacker::smk_render(s) - ERROR: frame %lu: insufficient data for audio[%u] rec.\n",s.cur_frame,track);
+				size = LittleEndian.getInt(buffer, p);
+				if (size == 0 || size + 4 > frame_size) {
+					System.err.println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for audio[" + track + "] rec.");
 					return -1;
-				}
+                }
 
-				/* First 4 bytes in block tell how many
-					subsequent bytes are present 
-				size = (((unsigned int) p[3] << 24) |
-						((unsigned int) p[2] << 16) |
-						((unsigned int) p[1] << 8) |
-						((unsigned int) p[0]));
-
-				/* If audio rendering enabled, kick this off for decode. 
-				if (s.audio[track] != NULL && s.audio[track].enable)
-				{
-					smk_render_audio(s.audio[track],p + 4,size - 4);
-				}
+				/* If audio rendering enabled, kick this off for decode. */
+//				if (s.audio[track] != null && s.audio[track].enable)
+//					smk_render_audio(s.audio[track], p + 4, size - 4);
+				
 				p += size;
-				i -= size;
+				frame_size -= size;
 			}
-			 */
-		}
-		
-		/* Unpack video chunk */
-		if (s.video.enable != 0)
-		{
-			smk_render_video(s.video, buffer, p, i);
 		}
 
-		if (s.mode == SMK_MODE_DISK)
+		if (s.video.enable != 0) 
+			smk_render_video(s.video, buffer, p, frame_size);
+
+		//if (s.mode == SMK_MODE_DISK)
 		{
 			/* Remember that buffer we allocated?  Trash it */
 			buffer = null;
@@ -885,83 +776,68 @@ public class Smacker {
 	}
 	
 	/* rewind to first frame and unpack */
-	public static int smk_first(Smk s)
-	{
-		if(s == null)
-			return -1;
-
-		s.cur_frame = 0;
-		if ( smk_render(s) < 0)
-		{
-			System.err.println("libsmacker::smk_first(s) - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
-			return -1;
-		}
-
-		if (s.frames == 1) return SMK_LAST;
-		return SMK_MORE;
-	}
+//	public static int smk_first(Smk s)
+//	{
+//		if(s == null)
+//			return -1;
+//
+//		s.cur_frame = 0;
+//		if ( smk_render(s) < 0)
+//		{
+//			System.err.println("libsmacker::smk_first(s) - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
+//			return -1;
+//		}
+//
+//		if (s.frames == 1) return SMK_LAST;
+//		return SMK_MORE;
+//	}
 	
 	/* advance to next frame */
-	public static int smk_next(Smk s)
-	{
-		if(s == null)
-			return -1;
-
-		if (s.cur_frame + 1 < (s.frames + s.ring_frame))
-		{
-			s.cur_frame++;
-			if ( smk_render(s) < 0)
-			{
-				System.err.println("libsmacker::smk_next(s) - Warning: frame " + s.cur_frame +": smk_render returned errors.");
-				return -1;
-			}
-			if (s.cur_frame + 1 == (s.frames + s.ring_frame))
-			{
-				return SMK_LAST;
-			}
-			return SMK_MORE;
-		}
-		else if (s.ring_frame != 0)
-		{
-			s.cur_frame = 1;
-			if ( smk_render(s) < 0)
-			{
-				System.err.println("libsmacker::smk_next(s) - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
-				return -1;
-			}
-			if (s.cur_frame + 1 == (s.frames + s.ring_frame))
-			{
-				return SMK_LAST;
-			}
-			return SMK_MORE;
-		}
-		return SMK_DONE;
-	}
+//	public static int smk_next(Smk s)
+//	{
+//		if(s == null)
+//			return -1;
+//
+//		if (s.cur_frame + 1 < s.frames)
+//		{
+//			s.cur_frame++;
+//			if ( smk_render(s) < 0)
+//			{
+//				System.err.println("libsmacker::smk_next(s) - Warning: frame " + s.cur_frame +": smk_render returned errors.");
+//				return -1;
+//			}
+//			if (s.cur_frame + 1 == s.frames)
+//			{
+//				return SMK_LAST;
+//			}
+//			return SMK_MORE;
+//		}
+//		return SMK_DONE;
+//	}
 	
 	/* seek to a keyframe in an smk */
-	public static int smk_seek_keyframe(Smk s, int f)
-	{
-		if(s == null)
-			return -1;
-
-		/* rewind (or fast forward!) exactly to f */
-		s.cur_frame = (int) f;
-
-		/* roll back to previous keyframe in stream, or 0 if no keyframes exist */
-		while (s.cur_frame > 0 && (s.keyframe[s.cur_frame] == 0))
-		{
-			s.cur_frame --;
-		}
-
-		/* render the frame: we're ready */
-		if ( smk_render(s) < 0)
-		{
-			System.err.println("libsmacker::smk_seek_keyframe(s," + f + ") - Warning: frame " + s.cur_frame + ": smk_render returned errors.\n");
-			return -1;
-		}
-
-		return 0;
-	}
+//	public static int smk_seek_keyframe(Smk s, int f)
+//	{
+//		if(s == null)
+//			return -1;
+//		/* rewind (or fast forward!) exactly to f */
+//		s.cur_frame = (int) f;
+//
+//		/* roll back to previous keyframe in stream, or 0 if no keyframes exist */
+//		while (s.cur_frame > 0 && (s.keyframe[s.cur_frame] == 0))
+//		{
+//			s.cur_frame --;
+//		}
+//
+//		/* render the frame: we're ready */
+//		if ( smk_render(s) < 0)
+//		{
+//			System.err.println("libsmacker::smk_seek_keyframe(s," + f + ") - Warning: frame " + s.cur_frame + ": smk_render returned errors.\n");
+//			return -1;
+//		}
+//
+//		return 0;
+//	}
 	
 	/* jump to and render a specific frame */
 	public static int smk_render_frame(Smk s, int f)

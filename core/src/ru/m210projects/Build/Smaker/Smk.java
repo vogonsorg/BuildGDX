@@ -5,16 +5,16 @@ public class Smk {
 	
 	/* meta-info */
 	/* file mode: see flags, smacker.h */
-	int	mode;
+//	int	mode;
 	
 	/* microsec per frame, total frames
 	stored as a double to handle scaling (large positive millisec / frame values may
 	overflow a ul */
-	public double usf;
+	public double pts_inc;
 	
 	public int frames;
 	/* does file contain a ring frame? */
-	short	ring_frame;
+	
 
 	/* Index of current frame */
 	public int	cur_frame;
@@ -30,12 +30,12 @@ public class Smk {
 	
 	/* shared
 	array of "chunk sizes"*/
-	int[]	chunk_size;
+	int[]	frm_size;
 	
 	/* Holds per-frame flags (i.e. 'keyframe') */
-	byte[]	keyframe;
+//	byte[]	keyframe;
 	/* Holds per-frame type mask (e.g. 'audio track 3, 2, and palette swap') */
-	byte[]	frame_type;
+	byte[]	frm_flags;
 	
 	/* pointers to video and audio structures */
 	/* Video data type: enable/disable decode switch,
