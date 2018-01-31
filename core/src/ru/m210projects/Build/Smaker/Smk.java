@@ -5,7 +5,7 @@ public class Smk {
 	
 	/* meta-info */
 	/* file mode: see flags, smacker.h */
-//	int	mode;
+	//	int	mode;
 	
 	/* microsec per frame, total frames
 	stored as a double to handle scaling (large positive millisec / frame values may
@@ -48,8 +48,8 @@ public class Smk {
 		short enable;
 
 		/* video info */
-		int	w;
-		int	h;
+		public int	w;
+		public int	h;
 		/* Y scale mode (constants defined in smacker.h)
 			0: unscaled
 			1: doubled
@@ -72,7 +72,7 @@ public class Smk {
 				tree[i] = new smk_huff_big();
 		}
 	}
-	smk_video video;
+	public smk_video video;
 
 	/* audio structure */
 	//Smk_audio audio[7]; XXX
