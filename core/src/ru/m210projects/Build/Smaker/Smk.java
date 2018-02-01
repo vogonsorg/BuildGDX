@@ -1,53 +1,24 @@
 package ru.m210projects.Build.Smaker;
 
-/* SMACKER DATA STRUCTURES */
 public class Smk {
-	
-	/* meta-info */
-	/* file mode: see flags, smacker.h */
-	//	int	mode;
-	
-	/* microsec per frame, total frames
-	stored as a double to handle scaling (large positive millisec / frame values may
-	overflow a ul */
-	public double pts_inc;
-	
-	public int frames;
-	/* does file contain a ring frame? */
-	
 
-	/* Index of current frame */
+	public double pts_inc;
+	public int frames;
 	public int	cur_frame;
-	
-	/* SOURCE union.
-	Where the data is going to be read from (or be stored),
-	depending on the file mode. */
+
 	class source {
-		//File fp  - DISK MODE
-		byte[][]	chunk_data;
+		byte[][] chunk_data;
 	}
 	source source;
-	
-	/* shared
-	array of "chunk sizes"*/
+
 	int[]	frm_size;
-	
-	/* Holds per-frame flags (i.e. 'keyframe') */
-//	byte[]	keyframe;
-	/* Holds per-frame type mask (e.g. 'audio track 3, 2, and palette swap') */
-	byte[]	frm_flags;
-	
-	/* pointers to video and audio structures */
-	/* Video data type: enable/disable decode switch,
-	video info and flags,
-	pointer to last-decoded-palette */
+	byte[]	frm_flags; //Holds per-frame type mask (e.g. 'audio track 3, 2, and palette swap')
+
 	public class smk_video {
 		byte[] tframe;
 		
-		/* enable/disable decode switch */
 		short enable;
 
-		/* video info */
 		public int	w;
 		public int	h;
 		/* Y scale mode (constants defined in smacker.h)
@@ -56,15 +27,11 @@ public class Smk {
 			2: interlaced */
 		short	y_scale_mode;
 
-		/* version ('2' or '4') */
-		char v;
+		byte version; //version ('2' or '4')
 
-		// Huffman trees 
 		smk_huff_big[] tree = new smk_huff_big[4];
 
-		/* Palette data type: pointer to last-decoded-palette */
-		byte[] palette;
-		/* Last-unpacked frame */
+		public byte[] palette;
 		byte[] frame;
 		
 		public smk_video() {

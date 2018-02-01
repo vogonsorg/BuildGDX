@@ -14,10 +14,12 @@ package ru.m210projects.Build.Smaker;
 import static ru.m210projects.Build.Smaker.Smk_hufftree.smk_huff_big_reset;
 import static ru.m210projects.Build.Smaker.Smk_hufftree.smk_huff_big_safe_build;
 import static ru.m210projects.Build.Smaker.Smk_hufftree.smk_get_code;
+import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Smaker.Smk.smk_video;
 import ru.m210projects.Build.Types.BitStream;
 import ru.m210projects.Build.Types.LittleEndian;
@@ -78,12 +80,11 @@ public class Smacker {
 		String signature = new String(buf, 0, 4);
 		
 		if(signature.equals("SMK4")) 
-			s.video.v = '4';
+			s.video.version = 4;
 		else if(signature.equals("SMK2"))
-			s.video.v = '2';
-		else System.err.println("smacker::smk_open_generic - ERROR: invalid SMKn signature " + signature);
-		System.out.println("\tProcessing will continue as type " + s.video.v);
-
+			s.video.version = 2;
+		else Console.Println("smacker::smk_open_generic - ERROR: invalid SMKn signature " + signature, OSDTEXT_RED);
+	
 		/* width, height, total num frames */
 		s.video.w = fp.getInt();
 		s.video.h  = fp.getInt();
@@ -112,7 +113,7 @@ public class Smacker {
 		{
 			if (s.video.y_scale_mode == SMK_FLAG_Y_DOUBLE)
 			{
-				System.out.println("libsmacker::smk_open_generic - Warning: SMK file specifies both Y-Double AND Y-Interlace.");
+				Console.Println("libsmacker::smk_open_generic - Warning: SMK file specifies both Y-Double AND Y-Interlace.");
 			}
 			s.video.y_scale_mode = SMK_FLAG_Y_INTERLACE;
 		}
@@ -209,7 +210,7 @@ public class Smacker {
 		/* set up the read union for Memory mode */
 		if ((s = smk_open_generic(0,fp,SMK_MODE_MEMORY)) == null)
 		{
-			System.err.println("libsmacker::smk_open_memory(buffer,  " + fp.capacity() + ") - ERROR: Fatal error in smk_open_generic, returning NULL.");
+			Console.Println("libsmacker::smk_open_memory(buffer,  " + fp.capacity() + ") - ERROR: Fatal error in smk_open_generic, returning NULL.", OSDTEXT_RED);
 		}
 
 		return s;
@@ -306,7 +307,7 @@ public class Smacker {
 		
 		if (!w && !h && !y_scale_mode)
 		{
-			System.err.println("libsmacker::smk_info_all(object,w,h,y_scale_mode) - ERROR: Request for info with all-NULL return references");
+			Console.Println("libsmacker::smk_info_all(object,w,h,y_scale_mode) - ERROR: Request for info with all-NULL return references", OSDTEXT_RED);
 			return -1;
 		}
 
@@ -421,7 +422,7 @@ public class Smacker {
 				/* check for overflow condition */
 				if (i + k > 768)
 				{
-					System.out.println("libsmacker::palette_render(s,p,size)- ERROR: overflow, 0x80 attempt to copy " + k + " bytes from " + i);
+					Console.Println("libsmacker::palette_render(s,p,size)- ERROR: overflow, 0x80 attempt to copy " + k + " bytes from " + i, OSDTEXT_RED);
 					s.palette = tpalette;
 					return -1;
 				}
@@ -442,7 +443,7 @@ public class Smacker {
 				if (size < 2)
 				{
 					
-					System.out.println("libsmacker::palette_render(s,p,size) - ERROR: 0x40 ran out of bytes for copy");
+					Console.Println("libsmacker::palette_render(s,p,size) - ERROR: 0x40 ran out of bytes for copy", OSDTEXT_RED);
 					s.palette = tpalette;
 					return -1;
 				}
@@ -457,7 +458,7 @@ public class Smacker {
 
 				if (j + k > 768 || i + k > 768)
 				{
-					System.out.println("libsmacker::palette_render(s,p,size) - ERROR: overflow, 0x40 attempt to copy " + k + " bytes from " + j + " to " + i);
+					Console.Println("libsmacker::palette_render(s,p,size) - ERROR: overflow, 0x40 attempt to copy " + k + " bytes from " + j + " to " + i, OSDTEXT_RED);
 					s.palette = tpalette;
 					return -1;
 				}
@@ -475,8 +476,7 @@ public class Smacker {
 			{
 				if (size < 3)
 				{
-					System.out.println("libsmacker::palette_render - ERROR: 0x3F ran out of bytes for copy, size=" + size);
-					s.palette = null;
+					Console.Println("libsmacker::palette_render - ERROR: 0x3F ran out of bytes for copy, size=" + size, OSDTEXT_RED);
 					s.palette = tpalette;
 					return -1;
 				}
@@ -493,14 +493,12 @@ public class Smacker {
 
 		if (i < 768)
 		{
-			System.out.println("libsmacker::palette_render - ERROR: did not completely fill palette (idx=" + i + ")");
-			s.palette = null;
+			Console.Println("libsmacker::palette_render - ERROR: did not completely fill palette (idx=" + i + ")", OSDTEXT_RED);
 			s.palette = tpalette;
 			return -1;
 		}
 
 		/* free old palette frame if one exists */
-		s.palette = null;
 		s.palette = tpalette;
 
 		return 0;
@@ -568,7 +566,7 @@ public class Smacker {
 	        	break;
 	        case SMK_BLK_FULL:
 	        	int mode = 0;
-	        	if(s.v == '4') { // In case of Smacker v4 we have three modes
+	        	if(s.version == '4') { // In case of Smacker v4 we have three modes
 	        		if (BitStream.getBit() != 0) mode = 1;
 	        		else if (BitStream.getBit() != 0) mode = 2;
 	        	}
@@ -649,11 +647,11 @@ public class Smacker {
 			typedata = (unpack & 0xFF00) >> 8;
 	    
 			// support for v4 full-blocks 
-			if (type == 1 && s.v == '4')
+			if (type == 1 && s.version == '4')
 			{
-				if (BitStream.get_bits1() != 0)
+				if (BitStream.getBit() != 0)
 					type = 4;
-				else if (BitStream.get_bits1() != 0)
+				else if (BitStream.getBit() != 0)
 					type = 5;
 			}
 	
@@ -761,7 +759,6 @@ public class Smacker {
 		}
 		*/
 
-		s.frame = null;
 		s.frame = s.tframe;
 
 		return 0;
@@ -776,24 +773,24 @@ public class Smacker {
 		int size, p = 0;
 		byte[] buffer = null; 
 		byte track;
+		int paletteswap = 0;
 
 		/* sanity check */
-		if(s == null) 
-			return -1;
+		if(s == null)  return -1;
 		
 		int frame_size = s.frm_size[s.cur_frame];
 
 		/* Retrieve current frm_size for this frame. */
 		if (frame_size == 0)
 		{
-			System.err.println("libsmacker::smk_render(s) - Warning: frame " + s.cur_frame + ": frm_size is 0.");
+			Console.Println("libsmacker::smk_render(s) - Warning: frame " + s.cur_frame + ": frm_size is 0.");
 			return -1;
 		}
 
 		/* Just point buffer at the right place */
 		if (s.source.chunk_data[s.cur_frame] == null)
 		{
-			System.err.println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + " : memory chunk is a NULL pointer.");
+			Console.Println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + " : memory chunk is a NULL pointer.", OSDTEXT_RED);
 			return -1;
 		}
 		buffer = s.source.chunk_data[s.cur_frame];
@@ -805,7 +802,7 @@ public class Smacker {
 			size = 4 * (buffer[p++] & 0xFF) - 1;
 			if(size + 1 > frame_size)
 			{
-				System.err.println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for a palette rec.");
+				Console.Println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for a palette rec.", OSDTEXT_RED);
 				return -1;
 			}
 
@@ -815,6 +812,8 @@ public class Smacker {
 			p += size;
 			frame_size -= size;
 			frame_size--;
+			
+			paletteswap |= 1;
 		}
 	
 		/* Unpack audio chunks */
@@ -825,7 +824,7 @@ public class Smacker {
 				size = LittleEndian.getInt(buffer, p);
 
 				if (size == 0 || size + 4 > frame_size) {
-					System.err.println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for audio[" + track + "] rec.");
+					Console.Println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for audio[" + track + "] rec.", OSDTEXT_RED);
 					return -1;
                 }
 
@@ -841,7 +840,7 @@ public class Smacker {
 		if (s.video.enable != 0) 
 			smk_render_video(s.video, buffer, p, frame_size);
 
-		return 0;
+		return paletteswap;
 	}
 	
 	/* rewind to first frame and unpack */
@@ -911,19 +910,18 @@ public class Smacker {
 	/* jump to and render a specific frame */
 	public static int smk_render_frame(Smk s, int f)
 	{
-		if(s == null)
-			return -1;
-	    
-	    /* rewind (or fast forward!) exactly to f */
+		int flags = 0;
+		if(s == null) return -1;
+
 	    s.cur_frame = f;
 
 	    /* render the frame: we're ready */
-	    if ( smk_render(s) < 0)
+	    if ( (flags = smk_render(s)) < 0)
 	    {
-	    	System.err.println("libsmacker::smk_render_frame(s," + f + ") - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
+	    	Console.Println("libsmacker::smk_render_frame(s," + f + ") - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
 	    	return -1;
 	    }
 	    
-	    return 0;
+	    return flags;
 	}
 }
