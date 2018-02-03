@@ -40,13 +40,39 @@ public class Smk {
 		}
 	}
 	public smk_video video;
+	
+	public class smk_audio {
+		/* set if track exists in file */
+		short exists;
+
+		/* enable/disable switch (per track) */
+		short enable;
+
+		/* Info */
+		byte	channels;
+		byte	bitdepth;
+		int rate;
+		int	max_buffer;
+
+		/* compression type
+			0: raw PCM
+			1: SMK DPCM
+			2: Bink (Perceptual), unsupported */
+		byte compress;
+
+		/* pointer to last-decoded-audio-buffer */
+		byte[] buffer;
+		int buffer_size;
+	}
 
 	/* audio structure */
-	//Smk_audio audio[7]; XXX
+	smk_audio audio[] = new smk_audio[7];
 	
 	public Smk()
 	{
 		video = new smk_video();
 		source = new source();
+		for(int i = 0; i < 7; i++)
+			audio[i] = new smk_audio();
 	}
 }

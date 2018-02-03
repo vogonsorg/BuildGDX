@@ -11,9 +11,7 @@
 
 package ru.m210projects.Build.Smaker;
 
-import static ru.m210projects.Build.Smaker.Smk_hufftree.smk_huff_big_reset;
-import static ru.m210projects.Build.Smaker.Smk_hufftree.smk_huff_big_safe_build;
-import static ru.m210projects.Build.Smaker.Smk_hufftree.smk_get_code;
+import static ru.m210projects.Build.Smaker.Smk_hufftree.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import java.nio.ByteBuffer;
@@ -21,6 +19,7 @@ import java.util.Arrays;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Smaker.Smk.smk_video;
+import ru.m210projects.Build.Smaker.Smk.smk_audio;
 import ru.m210projects.Build.Types.BitStream;
 import ru.m210projects.Build.Types.LittleEndian;
 
@@ -120,10 +119,9 @@ public class Smacker {
 
 		/* Max buffer size for each audio track - we don't use
 		but calling application might. */
-		for(int i = 0; i < 7; i++) {
-			
-			fp.getInt(); //smk.audio[i]
-		}
+		for(int i = 0; i < 7; i++) 
+			s.audio[i].max_buffer = fp.getInt();
+		
 		/* Read size of "hufftree chunk" - save for later. */
 
 		int tree_size = fp.getInt();
@@ -141,27 +139,38 @@ public class Smacker {
 
 		/* read audio rate data */
 		for(int i = 0; i < 7; i++) {
-			/*
-			smk.rates[i]  = avio_rl24(pb); FIXME
-        	smk.aflags[i] = avio_r8(pb);
-			*/
-			fp.getInt();
-//			head.audioRate[i]  = fp.smk_read_ul(); 
+			int data = fp.getInt();
+			if ((data & 0x40000000) != 0)
+			{
+				/* Audio track specifies "exists" flag, malloc structure and copy components. */
+				s.audio[i].exists = 1;
+
+				/* and for all audio tracks */
+				s.audio[i].buffer = new byte[s.audio[i].max_buffer];
+				if ((data & 0x80000000) != 0)
+					s.audio[i].compress = 1;
+				
+				s.audio[i].bitdepth = (byte)((data & 0x20000000) != 0 ? 16 : 8);
+				s.audio[i].channels = (byte)((data & 0x10000000) != 0 ? 2 : 1);
+				if ((data & 0x0c000000) != 0)
+				{
+//					fprintf(stderr,"libsmacker::smk_open_generic - Warning: audio track %ld is compressed with Bink (perceptual) Audio Codec: this is currently unsupported by libsmacker\n",i);
+					s.audio[i].compress = 2;
+				}
+				/* Bits 25 & 24 are unused. */
+				s.audio[i].rate = (data & 0x00FFFFFF);
+			}
 		}
 		
 		fp.getInt(); //extra
 
 		/* FrameSizes and Keyframe marker are stored together. */
-//		s.keyframe = new byte[s.frames];
 		s.frm_size = new int[s.frames];
 		s.frm_flags = new byte[s.frames];
 		for (int i = 0; i < s.frames; i++)
 		{
 			s.frm_size[i] = fp.getInt();
-//			if ((s.frm_size[i] & 0x01) != 0) XXX
-//				s.keyframe[i] = 1; /* Set Keyframe */
-//
-//			/* Bits 1 is used, but the purpose is unknown. */
+			/* Bits 1 is used, but the purpose is unknown. */
 			s.frm_size[i] &= 0xFFFFFFFC;
 		}
 		
@@ -215,36 +224,6 @@ public class Smacker {
 
 		return s;
 	}
-	
-	/* open an smk (from a file) */
-	public static Smk smk_open_file(String filename, int mode)
-	{
-		Smk s = null;
-
-		if(filename == null || filename.isEmpty())
-			return null;
-		
-		/*
-		ByteBuffer fp;
-		if ((fp.file = fopen(filename,"rb")) == -1)
-			System.err.println("libsmacker::smk_open_file(" + filename + "," + mode + ") - ERROR: could not open file");
-
-		if ((s = smk_open_generic(1,fp,0,mode)) == null)
-		{
-			System.err.println("libsmacker::smk_open_file(" + filename + "," + mode + ") - ERROR: Fatal error in smk_open_generic, returning NULL.");
-			fclose(fp.file);
-		}
-
-		if (mode == SMK_MODE_MEMORY)
-			fclose(fp.file);
-		*/
-//		else
-//		{
-//			s.source.file.fp = fp.file;
-//		}
-
-		return s;
-	}
 
 	/* close out an smk file and clean up memory */
 	public static void smk_close(Smk s)
@@ -268,14 +247,14 @@ public class Smacker {
 		/* free audio sub-components */
 		for (int u=0; u<7; u++)
 		{
-//			if (s.audio[u] != null)
+			if (s.audio[u] != null)
 			{
-//				smk_free(s.audio[u].buffer);
-//				smk_free(s.audio[u]);
+				s.audio[u].buffer = null;
+				s.audio[u] = null;
 			}
 		}
 
-//		s.keyframe = null;
+
 		s.frm_flags = null;
 
 		/* mem-mode */
@@ -294,7 +273,19 @@ public class Smacker {
 	}
 	
 	/* tell some info about the file */
-	//smk_info_all XXX
+	public static int info_frame;
+	public static int info_frame_count;
+	public static double info_usf;
+	public static int smk_info_all(Smk object)
+	{
+		if(object == null) return -1;
+
+		info_frame = (object.cur_frame % object.frames);
+		info_frame_count = object.frames;
+		info_usf = object.pts_inc;
+
+		return 0;
+	}
 
 	public static int info_w;
 	public static int info_h;
@@ -318,27 +309,55 @@ public class Smacker {
 		return 0;
 	}
 	
-	//smk_info_audio XXX
+	public static int info_track_mask;
+	public static int smk_info_audio(Smk object, byte[] channels, byte[] bitdepth, int[] audio_rate)
+	{
+		if(object == null) return -1;
+
+		if (channels == null && bitdepth == null && audio_rate == null)
+		{
+//			fputs("libsmacker::smk_info_audio(object,track_mask,channels,bitdepth,audio_rate) - ERROR: Request for info with all-NULL return references\n",stderr);
+			return -1;
+		}
+		
+		info_track_mask = ( (object.audio[0].exists) |
+			 ( (object.audio[1].exists) << 1 ) |
+			 ( (object.audio[2].exists) << 2 ) |
+			 ( (object.audio[3].exists) << 3 ) |
+			 ( (object.audio[4].exists) << 4 ) |
+			 ( (object.audio[5].exists) << 5 ) |
+			 ( (object.audio[6].exists) << 6 ) );
+		
+		if (channels != null)
+		{
+			for (int i = 0; i < 7; i ++)
+				channels[i] = object.audio[i].channels;
+		}
+		if (bitdepth != null)
+		{
+			for (int i = 0; i < 7; i ++)
+				bitdepth[i] = object.audio[i].bitdepth;
+		}
+		if (audio_rate != null)
+		{
+			for (int i = 0; i < 7; i ++)
+				audio_rate[i] = object.audio[i].rate;
+		}
+		return 0;
+	}
 	
 	/* Enable-disable switches */
 	public static int smk_enable_all(Smk object, int mask)
 	{
-		int i;
-
-		/* sanity check */
-		if(object == null)
-			return -1;
-		if(object.video == null)
-			return -1;
+		if(object == null) return -1;
+		if(object.video == null) return -1;
 
 		object.video.enable = (short) (mask & 0x80);
 
-		for (i = 0; i < 7; i ++)
+		for (int i = 0; i < 7; i ++)
 		{
-//			if (object.audio[i] != 0)
-//			{ FIXME
-//				object.audio[i].enable = (mask & (0x01 << i));
-//			}
+			if (object.audio[i] != null)
+				object.audio[i].enable = (short) (mask & (0x01 << i));
 		}
 
 		return 0;
@@ -347,16 +366,20 @@ public class Smacker {
 	public static int smk_enable_video(Smk object, short enable)
 	{
 		/* sanity check */
-		if(object == null)
-			return -1;
-		if(object.video == null)
-			return -1;
+		if(object == null) return -1;
+		if(object.video == null) return -1;
 
 		object.video.enable = enable;
 		return 0;
 	}
 	
-	//smk_enable_audio XXX
+	public static int smk_enable_audio(Smk object, int track, int enable)
+	{
+		if(object == null) return -1;
+
+		object.audio[track].enable = (short) enable;
+		return 0;
+	}
 	
 	public static void smk_readpalette(Smk s)
 	{
@@ -387,9 +410,21 @@ public class Smacker {
 		return object.video.frame;
 	}
 	
-	//smk_get_audio XXX
+	public static byte[] smk_get_audio(Smk object, int t)
+	{
+		if(object == null)
+			return null;
+
+		return object.audio[t].buffer;
+	}
 	
-	//smk_get_audio_size XXX
+	public static int smk_get_audio_size(Smk object, int t)
+	{
+		if(object == null)
+			return 0;
+
+		return object.audio[t].buffer_size;
+	}
 	
 	/* Decompresses a palette-frame. */
 	private static byte[] tpalette;
@@ -763,8 +798,144 @@ public class Smacker {
 
 		return 0;
 	}
-	
-	/* Decompress audio track i. XXX */
+
+	static Smk_hufftree[] aud_tree = new Smk_hufftree[4];
+	public static int smk_render_audio(smk_audio s, byte[] p, int offset, int size)
+	{
+		if(s == null)  return -1;
+		
+		if(p == null) {
+			s.buffer = null;
+			return -1;
+		}
+		
+		Arrays.fill(aud_tree, null);
+		
+		if (s.compress == 0)
+		{
+			/* Raw PCM data, update buffer size and malloc */
+			s.buffer_size = size;
+			System.arraycopy(p, 0, s.buffer, 0, size);
+		} else
+		{
+			/* SMACKER DPCM compression */
+			/* need at least 4 bytes to process */
+			if (size < 4)
+			{
+//				fputs("libsmacker::smk_render_audio() - ERROR: need 4 bytes to get unpacked output buffer size.\n",stderr);
+				return -1;
+			}
+			/* chunk is compressed (huff-compressed dpcm), retrieve unpacked buffer size */
+			s.buffer_size = (p[offset + 3] << 24) |
+							(p[offset + 2] << 16) |
+							(p[offset + 1] << 8) |
+							(p[offset + 0]);
+
+			offset += 4;
+			size -= 4;
+			
+			BitStream.init(p, offset, size);
+			
+			byte bit = BitStream.getBit();
+			if (bit == 0)
+			{
+//				fputs("libsmacker::smk_render_audio - ERROR: initial get_bit returned 0\n",stderr);
+				return -1;
+			}
+			
+			bit = BitStream.getBit();
+			if (s.channels != (bit == 1 ? 2 : 1))
+			{
+//				fputs("libsmacker::smk_render - ERROR: mono/stereo mismatch\n",stderr);
+			}
+			bit = BitStream.getBit();
+			if (s.bitdepth != (bit == 1 ? 16 : 8))
+			{
+//				fputs("libsmacker::smk_render - ERROR: 8-/16-bit mismatch\n",stderr);
+			}
+
+			/* build the trees */
+			aud_tree[0] = smk_huff_build();
+			int j = 1;
+			int k = 1;
+			if (s.bitdepth == 16)
+			{
+				aud_tree[1] = smk_huff_build();
+				k = 2;
+			}
+			if (s.channels == 2)
+			{
+				aud_tree[2] = smk_huff_build();
+				j = 2;
+				k = 2;
+				if (s.bitdepth == 16)
+				{
+					aud_tree[3] = smk_huff_build();
+					k = 4;
+				}
+			}
+			/* read initial sound level */
+			int unpack;
+			if (s.channels == 2)
+			{
+				unpack = BitStream.get_bits8();
+				if (s.bitdepth == 16)
+				{
+					s.buffer[1] = (byte) BitStream.get_bits8();
+					s.buffer[1] |= (unpack << 8);
+				}
+				else
+					s.buffer[1] |= unpack;
+			}
+			unpack = BitStream.get_bits8();
+			if (s.bitdepth == 16)
+			{
+				s.buffer[0] = (byte) BitStream.get_bits8();
+				s.buffer[0] |= (unpack << 8);
+			}
+			else
+				s.buffer[0] |= unpack;
+			
+			/* All set: let's read some DATA! */
+			while (k < s.buffer_size)
+			{
+				if (s.bitdepth == 8)
+				{
+					unpack = smk_huff_lookup(aud_tree[0]);
+					s.buffer[j] = (byte)(unpack + s.buffer[j - s.channels]);
+					j++;
+					k++;
+				}
+				else
+				{
+					unpack = smk_huff_lookup(aud_tree[0]);
+					int unpack2 = smk_huff_lookup(aud_tree[1]);
+					LittleEndian.putShort(s.buffer, j, (short) ( ( unpack | (unpack2 << 8) ) + s.buffer[j - s.channels] ) );
+					j++;
+					k+=2;
+				}
+				if (s.channels == 2)
+				{
+					if (s.bitdepth == 8)
+					{
+						unpack = smk_huff_lookup(aud_tree[2]);
+						s.buffer[j] = (byte)(unpack + s.buffer[j - 2]);
+						j++;
+						k++;
+					}
+					else
+					{
+						unpack = smk_huff_lookup(aud_tree[2]);
+						int unpack2 = smk_huff_lookup(aud_tree[1]);
+						LittleEndian.putShort(s.buffer, j, (short) ( ( unpack | (unpack2 << 8) ) + s.buffer[j - 2] ) );
+						j++;
+						k+=2;
+					}
+				}
+			}
+		}
+		return 0;
+	}
 	
 	/* "Renders" (unpacks) the frame at cur_frame
 	   Preps all the image and audio pointers */
@@ -829,9 +1000,8 @@ public class Smacker {
                 }
 
 				/* If audio rendering enabled, kick this off for decode. */
-//				if (s.audio[track] != null && s.audio[track].enable)
-//					smk_render_audio(s.audio[track], p + 4, size - 4);
-				
+				if (s.audio[track] != null && s.audio[track].enable != 0)
+					smk_render_audio(s.audio[track], buffer, p + 4, size - 4);
 				p += size;
 				frame_size -= size;
 			}
@@ -842,6 +1012,19 @@ public class Smacker {
 
 		return paletteswap;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	/* rewind to first frame and unpack */
 //	public static int smk_first(Smk s)
