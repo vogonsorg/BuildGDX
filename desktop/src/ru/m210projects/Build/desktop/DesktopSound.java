@@ -126,7 +126,7 @@ public class DesktopSound implements Sound {
 			loopedSource.remove(source);
 		source.loopInfo.clear();
 		
-		int start = 0, end = 0;
+		int start = 0, end = data.capacity();
 		if(loopstart >= 0 && loopstart < data.capacity()) 
 			start = loopstart;
 		if(loopend < data.capacity()) 
@@ -143,6 +143,7 @@ public class DesktopSound implements Sound {
 			loopedSource.add(source);
 			source.loopInfo.set(data, start, end, AL_FORMAT_MONO8, sampleRate);
 		} else {
+			if(end > 0) data.limit(end);
 			alSourcei(sourceId, AL_LOOPING, AL_TRUE);
 			alSourcei(sourceId, AL_BUFFER,   bufferID );
 		}
