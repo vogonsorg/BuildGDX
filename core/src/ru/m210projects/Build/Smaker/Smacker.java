@@ -316,6 +316,7 @@ public class Smacker {
 
 		if (channels == null && bitdepth == null && audio_rate == null)
 		{
+			Console.Println("error");
 //			fputs("libsmacker::smk_info_audio(object,track_mask,channels,bitdepth,audio_rate) - ERROR: Request for info with all-NULL return references\n",stderr);
 			return -1;
 		}
@@ -808,7 +809,7 @@ public class Smacker {
 			s.buffer = null;
 			return -1;
 		}
-		
+
 		Arrays.fill(aud_tree, null);
 		
 		if (s.compress == 0)
@@ -822,14 +823,15 @@ public class Smacker {
 			/* need at least 4 bytes to process */
 			if (size < 4)
 			{
+				Console.Println("error");
 //				fputs("libsmacker::smk_render_audio() - ERROR: need 4 bytes to get unpacked output buffer size.\n",stderr);
 				return -1;
 			}
 			/* chunk is compressed (huff-compressed dpcm), retrieve unpacked buffer size */
-			s.buffer_size = (p[offset + 3] << 24) |
-							(p[offset + 2] << 16) |
-							(p[offset + 1] << 8) |
-							(p[offset + 0]);
+			s.buffer_size = ((p[offset + 3] & 0xFF) << 24) |
+							((p[offset + 2] & 0xFF) << 16) |
+							((p[offset + 1] & 0xFF) << 8) |
+							((p[offset + 0] & 0xFF) );
 
 			offset += 4;
 			size -= 4;
@@ -839,6 +841,7 @@ public class Smacker {
 			byte bit = BitStream.getBit();
 			if (bit == 0)
 			{
+				Console.Println("error");
 //				fputs("libsmacker::smk_render_audio - ERROR: initial get_bit returned 0\n",stderr);
 				return -1;
 			}
@@ -846,11 +849,13 @@ public class Smacker {
 			bit = BitStream.getBit();
 			if (s.channels != (bit == 1 ? 2 : 1))
 			{
+				Console.Println("error");
 //				fputs("libsmacker::smk_render - ERROR: mono/stereo mismatch\n",stderr);
 			}
 			bit = BitStream.getBit();
 			if (s.bitdepth != (bit == 1 ? 16 : 8))
 			{
+				Console.Println("error");
 //				fputs("libsmacker::smk_render - ERROR: 8-/16-bit mismatch\n",stderr);
 			}
 
@@ -885,7 +890,7 @@ public class Smacker {
 					s.buffer[1] |= (unpack << 8);
 				}
 				else
-					s.buffer[1] |= unpack;
+					s.buffer[0] = (byte) unpack;
 			}
 			unpack = BitStream.get_bits8();
 			if (s.bitdepth == 16)
@@ -894,15 +899,15 @@ public class Smacker {
 				s.buffer[0] |= (unpack << 8);
 			}
 			else
-				s.buffer[0] |= unpack;
-			
+				s.buffer[0] = (byte) unpack;
+
 			/* All set: let's read some DATA! */
 			while (k < s.buffer_size)
 			{
 				if (s.bitdepth == 8)
 				{
 					unpack = smk_huff_lookup(aud_tree[0]);
-					s.buffer[j] = (byte)(unpack + s.buffer[j - s.channels]);
+					s.buffer[j] = (byte)(unpack + s.buffer[j - s.channels] & 0xFF);
 					j++;
 					k++;
 				}
@@ -910,16 +915,17 @@ public class Smacker {
 				{
 					unpack = smk_huff_lookup(aud_tree[0]);
 					int unpack2 = smk_huff_lookup(aud_tree[1]);
-					LittleEndian.putShort(s.buffer, j, (short) ( ( unpack | (unpack2 << 8) ) + s.buffer[j - s.channels] ) );
+					LittleEndian.putShort(s.buffer, j, (short) ( ( unpack | (unpack2 << 8) ) + s.buffer[j - s.channels] & 0xFF ) );
 					j++;
 					k+=2;
 				}
+				
 				if (s.channels == 2)
 				{
 					if (s.bitdepth == 8)
 					{
 						unpack = smk_huff_lookup(aud_tree[2]);
-						s.buffer[j] = (byte)(unpack + s.buffer[j - 2]);
+						s.buffer[j] = (byte)(unpack + s.buffer[j - 2] & 0xFF);
 						j++;
 						k++;
 					}
@@ -927,7 +933,7 @@ public class Smacker {
 					{
 						unpack = smk_huff_lookup(aud_tree[2]);
 						int unpack2 = smk_huff_lookup(aud_tree[1]);
-						LittleEndian.putShort(s.buffer, j, (short) ( ( unpack | (unpack2 << 8) ) + s.buffer[j - 2] ) );
+						LittleEndian.putShort(s.buffer, j, (short) ( ( unpack | (unpack2 << 8) ) + s.buffer[j - 2] & 0xFF ) );
 						j++;
 						k+=2;
 					}
