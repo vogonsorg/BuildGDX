@@ -1,5 +1,8 @@
 package ru.m210projects.Build.Types;
 
+import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.MAXSECTORS;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -37,6 +40,7 @@ public class SPRITE {
     	z = bb.getInt();
     	cstat = bb.getShort();
     	picnum = bb.getShort();
+    	if(picnum >= MAXTILES) picnum = 0;
     	shade = bb.get();
     	pal = (short) (bb.get() & 0xFF);
     	clipdist = bb.get() & 0xFF;
@@ -46,6 +50,7 @@ public class SPRITE {
     	xoffset = bb.get();
     	yoffset = bb.get();
     	sectnum = bb.getShort();
+    	if(sectnum >= MAXSECTORS) sectnum = 0;
     	statnum = bb.getShort();
     	ang = bb.getShort();
     	owner = bb.getShort();

@@ -302,7 +302,7 @@ public abstract class Polymost implements Renderer {
 			wsprinfo[i] = new Wallspriteinfo();
 
 		init();
-		
+
 		OSDCOMMAND R_texture = new OSDCOMMAND( "r_texturemode", "r_texturemode: changes the texture filtering settings", new OSDCVARFUNC() { 
 			@Override
 			public void execute() {

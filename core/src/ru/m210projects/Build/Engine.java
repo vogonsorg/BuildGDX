@@ -2340,10 +2340,8 @@ public abstract class Engine {
 		near.tagsprite = -1;
 		near.taghitdist = 0;
 
-		if (sectnum < 0)
-			return (0);
-		if ((tagsearch < 1) || (tagsearch > 3))
-			return (0);
+		if (sectnum < 0 || (tagsearch & 3) == 0)
+			return 0;
 
 		vx = mulscale(sintable[(ange + 2560) & 2047], neartagrange, 14);
 		xe = xs + vx;

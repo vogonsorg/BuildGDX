@@ -154,8 +154,11 @@ public class TextureCache {
 			doalloc = true;
 		}
 
-		if (doalloc)
-			pth.glpic = new Texture(xsiz, ysiz, Format.RGBA8888);
+		if (doalloc) {
+			try {
+				pth.glpic = new Texture(xsiz, ysiz, Format.RGBA8888);
+			} catch(Exception e) { return null; } //Texture width and height must be powers of two
+		}
 		
 		bindTexture(gl, pth.glpic);
 		fixtransparency(picInfo.pic, tsizx, tsizy, xsiz, ysiz, clamping);
@@ -215,9 +218,9 @@ public class TextureCache {
 		if (doalloc) {
 			byte[] data = kGetBytes(fn, 0);
 			Pixmap pix = new Pixmap(data, 0, data.length);
-			pth.glpic = new Texture(pix, true); 
-			//FIXME Texture width and height must be powers of two: 1280x800 
-			//FIXME Texture width and height must be square when using mipmapping in OpenGL ES 1.x 
+			try {
+				pth.glpic = new Texture(pix, true); 
+			} catch(Exception e) { return null; } //Texture width and height must be powers of two
 		}
 		int tsizx = pth.glpic.getWidth();
 		int tsizy = pth.glpic.getHeight();

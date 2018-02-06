@@ -36,26 +36,6 @@ public class Common {
 			Console.Println("Error: file \"" + fn + "\" does not exist", OSDTEXT_RED);
 			return true;
 		}
-
-//	    int opsm = pathsearchmode;
-//	    String tfn;
-//
-//	    pathsearchmode = 1;
-//	    if (findfrompath(fn, tfn) < 0)
-//	    {
-//	        char buf[BMAX_PATH];
-//
-//	        Bstrcpy(buf,fn);
-//	        kzfindfilestart(buf);
-//	        if (!kzfindfile(buf))
-//	        {
-//	            initprintf("Error: file \"%s\" does not exist\n",fn);
-//	            pathsearchmode = opsm;
-//	            return 1;
-//	        }
-//	    } else Bfree(tfn);
-//	    pathsearchmode = opsm;
-
 	    return false;
 	}
 }

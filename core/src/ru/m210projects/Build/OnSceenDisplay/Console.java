@@ -376,6 +376,11 @@ public class Console {
 	    return (osdflags & OSD_DRAW) != 0;
 	}
 	
+	public static boolean IsInited()
+	{
+		return (osdflags & OSD_INITIALIZED) != 0;
+	}
+	
 	private static void Init()
 	{
 //		osdnumsymbols = osdnumcvars = 0;
@@ -395,7 +400,7 @@ public class Console {
 		RegisterCvar(osdtextshade);
 		RegisterCvar(osdtextpal);
 		
-		RegisterCvar(new OSDCOMMAND("list",
+		RegisterCvar(new OSDCOMMAND("help",
 			"listsymbols: lists all registered functions, cvars and aliases", 
 			new OSDCVARFUNC() {
 			@Override
@@ -712,6 +717,7 @@ public class Console {
 	            }
 	        }
 
+			osdhead = 0;
 	        osdeditlen=0;
 	        osdeditcursor=0;
 	        osdeditwinstart=0;
@@ -787,7 +793,7 @@ public class Console {
 	
 	private static OSDCOMMAND Get(String osdvar)
 	{
-		if(osdvar == null || osdvar.isEmpty())
+		if(osdvar == null || osdvar.isEmpty() || osdvars == null)
 			return null;
 		
 		return osdvars.get(osdvar);

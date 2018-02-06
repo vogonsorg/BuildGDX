@@ -18,6 +18,7 @@ public class Scriptfile {
 	public String filename;
 	public int linenum;
 	public int[] lineoffs;
+	public String path;
 
 	private void skipovertoken() { 
 		while ((textptr < eof) && (textbuf.charAt(textptr)) != 0) textptr++;  

@@ -9,6 +9,7 @@ import static ru.m210projects.Build.Loader.MDSprite.*;
 import static ru.m210projects.Build.Types.Hightile.*;
 import static ru.m210projects.Build.Types.Highmusic.*;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -483,6 +484,9 @@ public class Defs {
 			                            break;
 		                        }
 		                        
+		                        if(script.path != null)
+		                        	skinfn = script.path + File.separator + skinfn;
+		                        
 		                        if (check_file_exist(skinfn))
 		                            break;
 		                        
@@ -667,6 +671,9 @@ public class Defs {
 	                    	Console.Println("Error: skybox: missing " + skyfaces[i] + " filename' near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
 	                    	error = true;
 	                    }
+	                    
+	                    if(script.path != null)
+	                    	sfn[i] = script.path + File.separator + sfn[i];
 	                    	
 	                    if (check_file_exist(sfn[i]))
 	                        error = true;
@@ -793,6 +800,9 @@ public class Defs {
 	                        	Console.Println("Error: missing 'file name' for texture definition near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
 	                            break;
 	                        }
+	                        
+	                        if(script.path != null)
+	                        	tfn = script.path + File.separator + tfn;
 
 	                        if (check_file_exist(tfn))
 	                            break;
@@ -837,6 +847,9 @@ public class Defs {
 	    	        };
 	    	        
 	    	        if ((vfn = script.getstring()) == null) break; //voxel filename
+	    	        if(script.path != null)
+	    	        	vfn = script.path + File.separator + vfn;
+	    	        
 	                if (nextvoxid == MAXVOXELS) { Console.Println("Maximum number of voxels already defined.", OSDTEXT_YELLOW); break; }
 	                if (qloadkvx(nextvoxid, vfn) == -1) { Console.Println("Failure loading voxel file " + vfn, OSDTEXT_RED); break; }
 	                lastvoxid = nextvoxid++;
@@ -911,6 +924,9 @@ public class Defs {
 	                    	t_file = script.getstring(); break;
 	                    }
 	                }
+	                
+	                if(script.path != null)
+	                	t_file = script.path + File.separator + t_file;
 	                addDigitalMusic(t_id, t_file);
 	            }
 	            break;
@@ -918,6 +934,14 @@ public class Defs {
         }
     }
 
+	public static void loaddefinitionsfile(String filename, String path)
+	{
+		Scriptfile script = Scriptfile.scriptfile_fromfile(filename);
+		if (script == null) return;
+		script.path = path;
+		defsparser(script);
+	}
+	
 	public static void loaddefinitionsfile(String filename)
 	{
 		Scriptfile script = Scriptfile.scriptfile_fromfile(filename);
