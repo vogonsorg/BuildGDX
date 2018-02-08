@@ -9,8 +9,8 @@ public interface Sound {
 	public void dispose();
 	public void setVolume(float vol);
 	public void endLooping( Source source );
-	public Source playRaw( ByteBuffer data, int length, int rate, int pitchoffset, int volume, int priority );
-	public Source playLoopedRaw( ByteBuffer data, int length, int loopstart, int loopend, int rate, int pitchoffset, int vol, int priority );
+	public Source playRaw( ByteBuffer data, int length, int rate, int bits, int pitchoffset, int volume, int priority );
+	public Source playLoopedRaw( ByteBuffer data, int length, int loopstart, int loopend, int rate, int bits, int pitchoffset, int vol, int priority );
 	public int stopSound( Source source );
 	public void stopAllSounds();
 	public boolean isLooping(Source source);

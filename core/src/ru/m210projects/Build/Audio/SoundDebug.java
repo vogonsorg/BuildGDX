@@ -35,7 +35,7 @@ public class SoundDebug implements Sound {
 	}
 
 	@Override
-	public Source playRaw(ByteBuffer data, int length, int rate,
+	public Source playRaw(ByteBuffer data, int length, int rate, int bits,
 			int pitchoffset, int volume, int priority) {
 		System.out.println("playRaw() " + volume + " " + priority);
 		return null;
@@ -43,7 +43,7 @@ public class SoundDebug implements Sound {
 
 	@Override
 	public Source playLoopedRaw(ByteBuffer data, int length, int loopstart,
-			int loopend, int rate, int pitchoffset, int vol, int priority) {
+			int loopend, int rate, int bits, int pitchoffset, int vol, int priority) {
 		System.out.println("playLoopedRaw() " + vol + " " + priority);
 		return null;
 	}

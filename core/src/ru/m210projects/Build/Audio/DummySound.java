@@ -31,14 +31,14 @@ public class DummySound implements Sound {
 	}
 
 	@Override
-	public Source playRaw(ByteBuffer data, int length, int rate,
+	public Source playRaw(ByteBuffer data, int length, int rate, int bits,
 			int pitchoffset, int volume, int priority) {
 		return null;
 	}
 
 	@Override
 	public Source playLoopedRaw(ByteBuffer data, int length, int loopstart,
-			int loopend, int rate, int pitchoffset, int vol, int priority) {
+			int loopend, int rate, int bits, int pitchoffset, int vol, int priority) {
 		return null;
 	}
 

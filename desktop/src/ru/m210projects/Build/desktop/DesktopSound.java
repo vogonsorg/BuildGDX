@@ -93,7 +93,7 @@ public class DesktopSound implements Sound {
 	}
 
 	@Override
-	public Source playRaw(ByteBuffer data, int length, int sampleRate, int pitchoffset, int vol, int priority) {
+	public Source playRaw(ByteBuffer data, int length, int sampleRate, int sampleBits, int pitchoffset, int vol, int priority) {
 		if (noDevice) return null;
 		Source source = sourceManager.obtainSource(priority);
 		if (source == null) return null;
@@ -106,7 +106,7 @@ public class DesktopSound implements Sound {
 		alSourcei(sourceId, AL_LOOPING, AL_FALSE);
 		setSourceVolume(source, vol);
 		int bufferID = buffers.get(source.bufferId);
-		alBufferData(bufferID, AL_FORMAT_MONO8, data, sampleRate);
+		alBufferData(bufferID, toALFormat(0, sampleBits), data, sampleRate);
 		alSourcei(sourceId, AL_BUFFER,   bufferID );
 		alSourcePlay(sourceId);
 
@@ -115,7 +115,7 @@ public class DesktopSound implements Sound {
 	
 	@Override
 	public Source playLoopedRaw(ByteBuffer data, int length, int loopstart,
-			int loopend, int sampleRate, int pitchoffset, int vol, int priority) {
+			int loopend, int sampleRate, int sampleBits, int pitchoffset, int vol, int priority) {
 	
 		if (noDevice) return null;
 		Source source = sourceManager.obtainSource(priority);
@@ -136,12 +136,12 @@ public class DesktopSound implements Sound {
 		if(volume > 1.0f) volume = 1.0f;
 		setSourceVolume(source, vol);
 		int bufferID = buffers.get(source.bufferId);
-		alBufferData(bufferID, AL_FORMAT_MONO8, data, sampleRate);
+		alBufferData(bufferID, toALFormat(0, sampleBits), data, sampleRate);
 		if(start > 0) {
 			alSourcei(sourceId, AL_LOOPING, AL_FALSE);
 			alSourceQueueBuffers(source.sourceId, bufferID);
 			loopedSource.add(source);
-			source.loopInfo.set(data, start, end, AL_FORMAT_MONO8, sampleRate);
+			source.loopInfo.set(data, start, end, toALFormat(0, sampleBits), sampleRate);
 		} else {
 			if(end > 0) data.limit(end);
 			alSourcei(sourceId, AL_LOOPING, AL_TRUE);
@@ -153,28 +153,6 @@ public class DesktopSound implements Sound {
 		if(error != AL_NO_ERROR) 
 			Console.Println("playLoopeRaw " + error, OSDTEXT_RED);
 		return source;
-		
-//		if (noDevice) return null;
-//		Source source = sourceManager.obtainSource(priority);
-//		if (source == null) return null;
-//
-//		int sourceId = source.sourceId;
-//
-//		if(loopstart >= 0 && loopstart < data.capacity())
-//			data.position(loopstart);
-//		if(loopend < data.capacity())
-//			data.limit(loopend);
-//		
-//		alSourcei(sourceId, AL_LOOPING, AL_TRUE);
-//		float volume = vol / 255.0f;
-//		if(volume > 1.0f) volume = 1.0f;
-//		setSourceVolume(source, vol);
-//		int bufferID = buffers.get(source.bufferId);
-//		alBufferData(bufferID, AL_FORMAT_MONO8, data, sampleRate);
-//		alSourcei(sourceId, AL_BUFFER,   bufferID );
-//		alSourcePlay(sourceId);
-//		return source;
-
 	}
 
 	@Override
