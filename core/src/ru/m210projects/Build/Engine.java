@@ -1193,7 +1193,7 @@ public abstract class Engine {
 		kRead(fil, buf, 2); numwalls = LittleEndian.getShort(buf);
 		byte[] walls = new byte[WALL.sizeof * numwalls];
 		kRead(fil, walls, walls.length);
-		bb = ByteBuffer.wrap(sectors);
+		bb = ByteBuffer.wrap(walls);
 		byte[] wallReader = new byte[WALL.sizeof];
 		
 		for(int w = 0; w < numwalls; w++) {
@@ -3143,12 +3143,12 @@ public abstract class Engine {
 		Gdx.input.setCursorPosition(xdim / 2, 0);
 	}
 	
-	public void setseed(int seed)
+	public void srand(int seed)
 	{
 		randomseed = seed;
 	}
 	
-	public int getseed()
+	public int getrand()
 	{
 		return randomseed;
 	}
