@@ -18,6 +18,7 @@ import java.util.List;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.ALC10;
+import org.lwjgl.openal.EFX10;
 
 import ru.m210projects.Build.Audio.Sound;
 import ru.m210projects.Build.Audio.Source;
@@ -49,6 +50,9 @@ public class DesktopSound implements Sound {
 	private float musicVolume = 1.0f;
 	private String name = "OpenAL";
 	private List<Source> loopedSource = new ArrayList<Source>();
+	
+	private int alEffectSlot = -1;
+	private int alEffect = -1;
 
 	public DesktopSound()
 	{
@@ -88,6 +92,14 @@ public class DesktopSound implements Sound {
 		Console.Println("\twith max voices: " + maxChannels, OSDTEXT_GOLD);
 		Console.Println("\tOpenAL version: " + alGetString(AL_VERSION), OSDTEXT_GOLD); 	
 		
+		if (!ALC10.alcIsExtensionPresent(AL.getDevice(), EFX10.ALC_EXT_EFX_NAME)) 
+			Console.Println("No ALC_EXT_EFX supported by driver.", OSDTEXT_RED);
+		else {
+			alEffectSlot = EFX10.alGenAuxiliaryEffectSlots();
+			alEffect = EFX10.alGenEffects();
+			
+		}
+
 		loopedSource.clear();
 		return true;
 	}
@@ -104,6 +116,16 @@ public class DesktopSound implements Sound {
 		
 		int sourceId = source.sourceId;
 		alSourcei(sourceId, AL_LOOPING, AL_FALSE);
+
+		
+		
+		EFX10.alEffecti(alEffect, EFX10.AL_EFFECT_TYPE, EFX10.AL_EFFECT_REVERB);
+        EFX10.alEffectf(alEffect, EFX10.AL_REVERB_DECAY_TIME, 2.0f);
+        EFX10.alAuxiliaryEffectSloti(alEffectSlot, EFX10.AL_EFFECTSLOT_EFFECT, alEffect);
+        AL11.alSource3i(sourceId, EFX10.AL_AUXILIARY_SEND_FILTER, alEffectSlot, 0, EFX10.AL_FILTER_NULL);
+        
+        
+        
 		setSourceVolume(source, vol);
 		int bufferID = buffers.get(source.bufferId);
 		alBufferData(bufferID, toALFormat(0, sampleBits), data, sampleRate);

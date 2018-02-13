@@ -7,6 +7,8 @@ import static ru.m210projects.Build.Strhandler.isdigit;
 
 import java.util.Arrays;
 
+import ru.m210projects.Build.Types.MessageCallback;
+
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;

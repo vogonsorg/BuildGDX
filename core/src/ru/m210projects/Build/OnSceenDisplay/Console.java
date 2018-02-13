@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import ru.m210projects.Build.Keymap;
-import ru.m210projects.Build.MessageCallback;
+import ru.m210projects.Build.Types.MessageCallback;
 
 import com.badlogic.gdx.Input.Keys;
 

@@ -1,8 +1,9 @@
-package ru.m210projects.Build;
+package ru.m210projects.Build.Net;
 
 import static ru.m210projects.Build.Engine.MAXPLAYERS;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -22,11 +23,12 @@ public class Mmulti {
 	public static int timeoutcount = 60, resendagaincount = 4, lastsendtime[] = new int[MAXPLAYERS];
 	
 
-//	public static SOCKET mysock;
-	public static int myip, myport = NETPORT, otherport[] = new int[MAXPLAYERS];
+	public static ISocket mysock;
+	public static SocketAddr ip;
+	public static int myport = NETPORT, otherport[] = new int[MAXPLAYERS];
 	public static int snatchport = 0, danetmode = 255, netready = 0;
 	
-	public static String snatchip;
+	public static String snatchip, myip;
 	public static String otherip[] = new String[MAXPLAYERS];
 	
 	
@@ -70,26 +72,62 @@ public class Mmulti {
 	private static int getcrc16 (byte[] buffer, int bufleng)
 	{
 		int j = 0;
-		for(int i = bufleng-1; i >= 0; i--) updatecrc16(j, buffer[i]);
+		for(int i = bufleng-1; i >= 0; i--) j = updatecrc16(j, buffer[i]);
 		return j & 65535;
 	}
 	
-	private static void netinit (int portnum)
+	private static int netinit (int index, int portnum)
 	{
-		//XXX
+		if(index == 0)
+			mysock = new BServer(portnum);
+		else 
+			mysock = new BClient(portnum);	
+		
+		if (mysock == null) return 0;
+		ip = new SocketAddr();
+		
+		ip.port = portnum;
+		ip.address = null;
+		
+		//if (bind(mysock, ip) != SOCKET_ERROR)
+		{
+			myport = portnum;
+			try {
+				myip =  InetAddress.getByName("localhost").getHostAddress();
+				Console.Println("mmulti: This machine's IP is " + myip);
+				return 1;
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
+		}
+		return 0;
 	}
 	
 	private static void netsend (int other, byte[] dabuf, int bufsiz)
 	{
-		//XXX
+		if (otherip[other] == null) return;
+		
+//		ip.address = otherip[other];
+//		ip.port = otherport[other];
+		
+		mysock.sendto(ip, dabuf, bufsiz);
 	}
 	
-	private static int netother;
-	private static int netread (int other, byte[] dabuf, int bufsiz)
+	private static int netread (byte[] dabuf, int bufsiz)
 	{
-		netother = other;
-		//XXX
-		return 0;
+		if ((ip = mysock.recvfrom(dabuf,bufsiz)) == null) 
+			return -1;
+		
+		snatchip = ip.address;
+		snatchport = ip.port;
+		
+		int other = myconnectindex;
+		for(int i = 0; i < MAXPLAYERS; i++) {
+			if (otherip[i] != null && (otherip[i].equals(snatchip)) && (otherport[i] == snatchport))
+				{ other = i; break; }
+		}
+		
+		return other;
 	}
 	
 	private static int htons(int i)
@@ -190,6 +228,7 @@ public class Mmulti {
 	{
 		if (initmultiplayersparms(argv))
 		{
+			Console.Println("Waiting for players...");
 			while (initmultiplayerscycle() != 0);
 		}
 		netready = 1;
@@ -210,87 +249,90 @@ public class Mmulti {
 		
 		danetmode = 255; 
 		int daindex = 0;
-
-		// go looking for the port, if specified
-		for (int i = 0;i < argv.length; i++) {
-			if(argv[i] == null || argv[i].length() < 3 ) continue;
-			
-			if (argv[i].charAt(0) != '-' && argv[i].charAt(0) != '/') continue;
-			if ((argv[i].charAt(1) == 'p' || argv[i].charAt(1) == 'P') && argv[i].charAt(2) != 0) {
-				String port = argv[i].substring(2).trim();
-				int j = Integer.parseInt(port);
-				if (j > 0 && j<65535) portnum = j;
-
-				Console.Println("mmulti: Using port " + portnum);
-			}
-		}
-
-		netinit(portnum);
 		
-		for (int i = 0; i < argv.length; i++) {
-			if(argv[i] == null) continue;
-			
-			if ((argv[i].charAt(0) == '-') || (argv[i].charAt(0) == '/')) {
-				if ((argv[i].charAt(1) == 'N') || (argv[i].charAt(1) == 'n') || (argv[i].charAt(1) == 'I') || (argv[i].charAt(1) == 'i'))
-				{
-					numplayers = 2;
-					if (argv[i].charAt(2) == '0')
+		if(argv != null) {
+			// go looking for the port, if specified
+			for (int i = 0;i < argv.length; i++) {
+				if(argv[i] == null || argv[i].length() < 3 ) continue;
+				
+				if (argv[i].charAt(0) != '-' && argv[i].charAt(0) != '/') continue;
+				if ((argv[i].charAt(1) == 'p' || argv[i].charAt(1) == 'P') && argv[i].charAt(2) != 0) {
+					String port = argv[i].substring(2).trim();
+					int j = Integer.parseInt(port);
+					if (j > 0 && j<65535) portnum = j;
+	
+					Console.Println("mmulti: Using port " + portnum);
+				}
+			}
+
+			for (int i = 0; i < argv.length; i++) {
+				if(argv[i] == null) continue;
+				
+				if ((argv[i].charAt(0) == '-') || (argv[i].charAt(0) == '/')) {
+					if ((argv[i].charAt(1) == 'N') || (argv[i].charAt(1) == 'n') || (argv[i].charAt(1) == 'I') || (argv[i].charAt(1) == 'i'))
 					{
-						danetmode = 0;
-						if (argv[i].length() > 3 && (argv[i].charAt(3) == ':') && (argv[i].charAt(4) >= '0') && (argv[i].charAt(4) <= '9'))
+						numplayers = 2;
+						if (argv[i].charAt(2) == '0')
 						{
-							numplayers = (short) (argv[i].charAt(4)-'0');
-							if (argv[i].length() > 5 && (argv[i].charAt(5) >= '0') && (argv[i].charAt(5) <= '9')) numplayers = (short) (numplayers*10+(argv[i].charAt(5)-'0'));
-							Console.Println("mmulti: "+ numplayers + "-player game");
+							danetmode = 0;
+							if (argv[i].length() > 3 && (argv[i].charAt(3) == ':') && (argv[i].charAt(4) >= '0') && (argv[i].charAt(4) <= '9'))
+							{
+								numplayers = (short) (argv[i].charAt(4)-'0');
+								if (argv[i].length() > 5 && (argv[i].charAt(5) >= '0') && (argv[i].charAt(5) <= '9')) numplayers = (short) (numplayers*10+(argv[i].charAt(5)-'0'));
+								Console.Println("mmulti: "+ numplayers + "-player game");
+							}
+							Console.Println("mmulti: Master-slave mode");
 						}
-						Console.Println("mmulti: Master-slave mode");
+						continue;
+					}
+					else if ((argv[i].charAt(1) == 'P') || (argv[i].charAt(1) == 'p')) continue;
+				}
+				
+				if (isvalidipaddress(argv[i]))
+				{
+					if ((danetmode == 1) && (daindex == myconnectindex)) daindex++;
+					for(int j = 0; j <  argv[i].length() && argv[i].charAt(j) != 0; j++)
+						if (argv[i].charAt(j) == ':') { 
+							String port = argv[i].substring(j+1).trim();
+							otherport[daindex] = htons(Integer.parseInt(port)); 
+							break; 
+						}
+	
+					otherip[daindex] = argv[i];
+					Console.Println("mmulti: Player " + daindex + " at " + argv[i] + ":" + htons(otherport[daindex]));
+					daindex++;
+					continue;
+				}
+				else
+				{
+					int pt = htons(NETPORT);
+					char[] st = argv[i].toCharArray();
+	
+					int pos;
+					for(pos = 0; pos < argv[i].length() && st[pos] != 0; pos++) {
+						if (argv[i].charAt(pos) == ':')
+						{ 
+							pt = htons(Integer.parseInt(argv[i].substring(pos+1))); 
+							break; 
+						}
+					}
+					try {
+						InetAddress addr = InetAddress.getByName(argv[i].substring(0, pos));
+						if ((danetmode == 1) && (daindex == myconnectindex)) daindex++;
+						otherip[daindex] = addr.getHostAddress();
+						otherport[daindex] = pt;
+						Console.Println("mmulti: Player " + daindex + " at " + otherip[daindex] + ":" + htons(pt));
+						daindex++;
+					} catch (Exception e) {
+						Console.Println("mmulti: Failed resolving " + argv[i]);
 					}
 					continue;
 				}
-				else if ((argv[i].charAt(1) == 'P') || (argv[i].charAt(1) == 'p')) continue;
 			}
 			
-			if (isvalidipaddress(argv[i]))
-			{
-				if ((danetmode == 1) && (daindex == myconnectindex)) daindex++;
-				for(int j = 0; j <  argv[i].length() && argv[i].charAt(j) != 0; j++)
-					if (argv[i].charAt(j) == ':') { 
-						String port = argv[i].substring(j+1).trim();
-						otherport[daindex] = htons(Integer.parseInt(port)); 
-						break; 
-					}
-
-				otherip[daindex] = argv[i];
-				Console.Println("mmulti: Player " + daindex + " at " + argv[i] + ":" + htons(otherport[daindex]));
-				daindex++;
-				continue;
-			}
-			else
-			{
-				int pt = htons(NETPORT);
-				char[] st = argv[i].toCharArray();
-
-				int pos;
-				for(pos = 0; pos < argv[i].length() && st[pos] != 0; pos++) {
-					if (argv[i].charAt(pos) == ':')
-					{ 
-						pt = htons(Integer.parseInt(argv[i].substring(pos+1))); 
-						break; 
-					}
-				}
-				try {
-					InetAddress addr = InetAddress.getByName(argv[i].substring(0, pos));
-					if ((danetmode == 1) && (daindex == myconnectindex)) daindex++;
-					otherip[daindex] = addr.getHostAddress();
-					otherport[daindex] = pt;
-					Console.Println("mmulti: Player " + daindex + " at " + otherip[daindex] + ":" + htons(pt));
-					daindex++;
-				} catch (Exception e) {
-					Console.Println("mmulti: Failed resolving " + argv[i]);
-				}
-				continue;
-			}
+			netinit(daindex, portnum);
 		}
+		
 		if ((danetmode == 255) && (daindex != 0)) { numplayers = 2; danetmode = 0; } //an IP w/o /n# defaults to /n0
 		if ((numplayers >= 2) && (daindex != 0) && (danetmode == 0)) myconnectindex = 1;
 		if (daindex > numplayers) numplayers = (short) daindex;
@@ -388,9 +430,8 @@ public class Mmulti {
 			}
 		}
 
-		while (netread(other,pakbuf,pakbuf.length) != 0)
+		while ((other = netread(pakbuf, pakbuf.length)) != -1)
 		{
-			other = netother;
 				//Packet format:
 				//   short crc16ofs;       //offset of crc16
 				//   long icnt0;           //earliest unacked packet
@@ -402,16 +443,16 @@ public class Mmulti {
 				//   }
 				//   unsigned short crc16; //CRC16 of everything except crc16
 			k = 0;
-			crc16ofs = LittleEndian.getShort(pakbuf); k += 2;
+			crc16ofs = LittleEndian.getUShort(pakbuf); k += 2;
 
-			if ((crc16ofs+2 <= pakbuf.length) && (getcrc16(pakbuf,crc16ofs) == LittleEndian.getShort(pakbuf, crc16ofs)))
+			if ((crc16ofs+2 <= pakbuf.length) && (getcrc16(pakbuf,crc16ofs) == LittleEndian.getUShort(pakbuf, crc16ofs)))
 			{
 				ic0 = LittleEndian.getInt(pakbuf, k); k += 4;
 				if (ic0 == -1)
 				{
 						 //Slave sends 0xaa to Master at initmultiplayers() and waits for 0xab response
 						 //Master responds to slave with 0xab whenever it receives a 0xaa - even if during game!
-					if ((pakbuf[k] == 0xAA) && (myconnectindex == connecthead))
+					if (((pakbuf[k]&0xFF) == 0xAA) && (myconnectindex == connecthead))
 					{
 						for(other=1;other<numplayers;other++)
 						{
@@ -435,7 +476,7 @@ public class Mmulti {
 							break;
 						}
 					}
-					else if ((pakbuf[k] == 0xab) && (myconnectindex != connecthead))
+					else if (((pakbuf[k]&0xFF) == 0xAB) && (myconnectindex != connecthead))
 					{
 						if (((pakbuf[k+1] & 0xFF) < (pakbuf[k+2] & 0xFF)) &&
 							 ((pakbuf[k+2] & 0xFF) < MAXPLAYERS))
@@ -462,7 +503,7 @@ public class Mmulti {
 					k += 32;
 					
 					
-					messleng = LittleEndian.getShort(pakbuf, k); k += 2;
+					messleng = LittleEndian.getUShort(pakbuf, k); k += 2;
 					while (messleng != 0)
 					{
 						j = LittleEndian.getInt(pakbuf, k); k += 4;
@@ -474,7 +515,7 @@ public class Mmulti {
 							System.arraycopy(pakbuf, k, pakmem, pakmemi+2, messleng); pakmemi += messleng+2;
 						}
 						k += messleng;
-						messleng = LittleEndian.getShort(pakbuf, k); k += 2;
+						messleng = LittleEndian.getUShort(pakbuf, k); k += 2;
 					}
 				}
 			}
