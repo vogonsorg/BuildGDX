@@ -3,11 +3,8 @@ package ru.m210projects.Build.desktop;
 import static org.lwjgl.openal.AL10.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
-import static ru.m210projects.Build.FileHandle.Compat.*;
+import static ru.m210projects.Build.FileHandle.Cache1D.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -29,6 +26,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.backends.openal.OggInputStream;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.StreamUtils;
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 
 public class DesktopSound implements Sound {
 
@@ -503,11 +501,10 @@ public class DesktopSound implements Sound {
 				music.stop();
 			music = null;
 		}
-	
-		File fil = Bcheck(file, "r");
-		if(fil == null) return false;
 		
-		music = new Ogg.Music(sourceManager, fil);
+		if(!kExist(file, 0)) return false;
+
+		music = new Ogg.Music(sourceManager, kGetBytes(file, 0));
 		music.setVolume(musicVolume);
 		music.setLooping(true);
 		return true;
@@ -558,12 +555,13 @@ abstract class OpenALMusic {
 	private int format, sampleRate;
 	private boolean isLooping, isPlaying;
 	private float renderedSeconds, secondsPerBuffer;
-	protected File file;
+	protected byte[] data;
 	private float musicVolume;
 
-	public OpenALMusic (SourceManager sourceManager, File file) {
+	public OpenALMusic (SourceManager sourceManager, byte[] data) {
 		this.sourceManager = sourceManager;
-		this.file = file;
+		this.data = data;
+		
 	}
 
 	protected void setup (int channels, int sampleRate) {
@@ -691,24 +689,15 @@ abstract class OpenALMusic {
 class Ogg {
 	static public class Music extends OpenALMusic {
 		private OggInputStream input;
-		public Music(SourceManager sourceManager, File file) {
-			super(sourceManager, file);
-			try {
-				input = new OggInputStream(new FileInputStream(file));
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				return;
-			}
+		public Music(SourceManager sourceManager, byte[] data) {
+			super(sourceManager, data);
+			input = new OggInputStream(new ByteInputStream(data, data.length));
 			setup(input.getChannels(), input.getSampleRate());
 		}
 
 		public int read(byte[] buffer) {
 			if (input == null) {
-				try {
-					input = new OggInputStream(new FileInputStream(file));
-				} catch (FileNotFoundException e) {
-					return -1;
-				}
+				input = new OggInputStream(new ByteInputStream(data, data.length));
 				setup(input.getChannels(), input.getSampleRate());
 			}
 			return input.read(buffer);

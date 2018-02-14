@@ -53,8 +53,8 @@ public abstract class Engine {
 	public Music mx;
 	private static KeyInput input;
 	
-	public static float TRANSLUSCENT1 = 0.33f;
-	public static float TRANSLUSCENT2 = 0.66f;
+	public static float TRANSLUSCENT1 = 0.66f;
+	public static float TRANSLUSCENT2 = 0.33f;
 	public static final float MaxDrunkIntensive = 0.1f;
 	
 	public static final int CLIPMASK0 = (((1) << 16) + 1);

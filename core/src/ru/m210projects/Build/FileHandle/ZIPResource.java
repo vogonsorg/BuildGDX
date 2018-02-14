@@ -1,5 +1,6 @@
 package ru.m210projects.Build.FileHandle;
 
+import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
 
@@ -27,7 +28,7 @@ public class ZIPResource extends IResource {
 		public ZRESHANDLE(ZipEntry entry) throws IOException {
 			BufferedInputStream bis = new BufferedInputStream(ZFile.getInputStream(entry));
 			size = (int) entry.getSize();
-			filename = entry.getName();
+			filename = toLowerCase(entry.getName());
 			if(filename.contains("/")) filename = filename.replace("/", File.separator);
 			fileformat = toLowerCase(filename.substring(filename.lastIndexOf('.') + 1));
 			this.fileid = -1;
@@ -36,6 +37,7 @@ public class ZIPResource extends IResource {
 				fileid = fileid.replaceAll("[^0-9]", ""); 
 				this.fileid = Integer.parseInt(fileid);
 			}
+			paktype = ZIP;
 			this.bis = bis;
 		}
 	}

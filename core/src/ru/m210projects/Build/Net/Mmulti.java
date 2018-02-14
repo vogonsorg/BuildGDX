@@ -107,7 +107,7 @@ public class Mmulti {
 	{
 		if (otherip[other] == null) return;
 		
-//		ip.address = otherip[other];
+//		ip.address = otherip[other]; Nullpointer from netread, FIXME
 //		ip.port = otherport[other];
 		
 		mysock.sendto(ip, dabuf, bufsiz);

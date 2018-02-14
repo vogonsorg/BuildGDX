@@ -1,5 +1,6 @@
 ﻿package ru.m210projects.Build.FileHandle;
 
+import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 
 import java.io.File;
@@ -37,6 +38,7 @@ public class RFFResource extends IResource {
 			filename += "." + fileformat;
 			filename = toLowerCase(filename);
 			fileid = LittleEndian.getInt(data, 44);
+			paktype = RFF;
 //			System.out.println(filename + " " + fileformat + " " + fileid);
 		}
 	}

@@ -18,10 +18,10 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class Cache1D {
 	
-	private static final int GRP = 1;
-	private static final int RFF = 2;
-	private static final int ZIP = 4;
-	private static final int EXT = 8;
+	public static final int GRP = 1;
+	public static final int RFF = 2;
+	public static final int ZIP = 4;
+	public static final int EXT = 8;
 	private static final int DYNAMIC = 16;
 	
 	static final int MAXGROUPFILES = 16;

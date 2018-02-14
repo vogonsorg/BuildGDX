@@ -19,6 +19,8 @@ public class Scriptfile {
 	public int linenum;
 	public int[] lineoffs;
 	public String path;
+	
+	public Scriptfile() {} //temp constructor
 
 	private void skipovertoken() { 
 		while ((textptr < eof) && (textbuf.charAt(textptr)) != 0) textptr++;  
@@ -167,6 +169,7 @@ public class Scriptfile {
 
 	        if ((inquote == 0) && ((tx[i] == ' ') || (tx[i] == '\t'))) { ws = 1; continue; } //strip Space/Tab
 	        if ((tx[i] == '/') && (tx[i+1] == '/') && (cs == 0)) cs = 1;
+	        if ((tx[i] == '\\') && (tx[i+1] == '\\') && (cs == 0)) cs = 1;
 	        if ((tx[i] == '/') && (tx[i+1] == '*') && (cs == 0)) { ws = 1; cs = 2; }
 	        if ((tx[i] == '*') && (tx[i+1] == '/') && (cs == 2)) { cs = 0; i++; continue; }
 	        if (cs != 0) continue;

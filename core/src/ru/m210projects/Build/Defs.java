@@ -18,6 +18,9 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 public class Defs {
+	
+	public static final int MAXUSERTRACKS = 64;
+	public static String usertrack[] = new String[MAXUSERTRACKS];
 
 	private static final int T_INCLUDE = 0;
 	private static final int T_DEFINE = 1;
@@ -118,6 +121,7 @@ public class Defs {
 	private static final int T_TEXHITSCANRANGE = 96;
 	private static final int T_ECHO = 97;
 	private static final int T_ROTATE = 98;
+	private static final int T_CDTRACK = 99;
 	
 	private static int lastmodelid = -1, lastvoxid = -1, modelskin = -1, lastmodelskin = -1, seenframe = 0;
 	private static int nextvoxid = 512;

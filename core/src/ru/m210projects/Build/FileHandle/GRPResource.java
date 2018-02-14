@@ -1,5 +1,6 @@
 package ru.m210projects.Build.FileHandle;
 
+import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
 
@@ -25,10 +26,11 @@ public class GRPResource extends IResource {
 		public int pos;
 
 		public GRESHANDLE(byte[] data, int offset) {
-			filename = new String(data, 0, 12);
+			filename = toLowerCase(new String(data, 0, 12));
 			this.fileformat = toLowerCase(filename.substring(filename.lastIndexOf('.') + 1));
 			size = LittleEndian.getInt(data, 12);
 			this.offset = offset;
+			paktype = GRP;
 //			System.out.println(filename+ " " + offset + " size: " +  size);
 		}
 	}

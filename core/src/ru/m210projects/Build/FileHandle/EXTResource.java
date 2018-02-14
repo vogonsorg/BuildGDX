@@ -1,5 +1,6 @@
 package ru.m210projects.Build.FileHandle;
 
+import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
 
@@ -22,6 +23,7 @@ public class EXTResource extends IResource {
 			this.entry = file;
 			this.fileid = fileid;
 			this.fil = -1;
+			this.paktype = EXT;
 		}
 	}
 	

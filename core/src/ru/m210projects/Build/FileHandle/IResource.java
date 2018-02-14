@@ -23,6 +23,7 @@ public abstract class IResource {
 		public byte[] buffer;
 		public ByteBuffer byteBuffer;
 		
+		public int paktype;
 		public String filename;
 		public String fileformat;
 		public int fileid;
