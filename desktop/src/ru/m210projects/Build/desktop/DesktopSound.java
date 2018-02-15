@@ -527,7 +527,13 @@ public class DesktopSound implements Sound {
 		
 		if(!kExist(file, 0)) return false;
 
-		music = new Ogg.Music(sourceManager, kGetBytes(file, 0));
+		try {
+			music = new Ogg.Music(sourceManager, kGetBytes(file, 0));
+		} catch (Exception e) {
+			Console.Println("Can't load ogg file: " + file, OSDTEXT_RED);
+			return false;
+		}
+		
 		music.setVolume(musicVolume);
 		music.setLooping(true);
 		return true;
