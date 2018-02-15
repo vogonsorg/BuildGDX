@@ -128,8 +128,8 @@ public abstract class Engine {
 	public static short[] pskymultiyscale;
 	public static short[] pskymultilist, pskymultibits;
 	public static short[][] pskymultioff;
-	public static int r_parallaxskyclamping = 1; //OSD CVAR
-	public static int r_parallaxskypanning;
+	public static int r_parallaxskyclamping = 1; //OSD CVAR XXX
+	public static int r_parallaxskypanning = 1; //XXX
 	//OUTPUT VALUES
 	public static int floorzsofslope, ceilzsofslope;
 	public static int mirrorx, mirrory, mirrorang;

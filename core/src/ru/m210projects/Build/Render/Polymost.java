@@ -2531,7 +2531,7 @@ public abstract class Polymost implements Renderer {
 
 		double panning = sec.ceilingypanning;
 		if(floor) panning = sec.floorypanning;
-		
+
 		if (r_parallaxskypanning != 0)
 			drawalls_vv[0] += drawalls_dd[0] * panning * ((double) i) / 256.0;
 	
@@ -2552,6 +2552,10 @@ public abstract class Polymost implements Renderer {
 		double oz = 1 / oy;
 
 		int y = ((((int) ((x0 - ghalfx) * oy)) + globalang) >> (11 - dapskybits));
+		
+		panning = sec.ceilingxpanning;
+		if(floor) panning = sec.floorxpanning;
+		
 		double fx = x0;
 		do {
 			globalpicnum = (short) (dapskyoff[y & ((1 << dapskybits) - 1)] + i);
