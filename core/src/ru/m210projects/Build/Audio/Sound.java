@@ -26,6 +26,11 @@ public interface Sound {
 	public void setSystem(int system);
 	public String getName();
 	
+	public int getReverb();
+	public float getReverbDelay();
+	public void setReverb(int enable);
+	public void setReverbDelay(float delay);
+	
 	public void update();
 	public boolean newMusic(String file);
 	public void playMusic();

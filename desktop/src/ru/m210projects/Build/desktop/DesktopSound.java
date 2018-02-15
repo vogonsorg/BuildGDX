@@ -1,6 +1,8 @@
 package ru.m210projects.Build.desktop;
 
 import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.AL11.*;
+import static org.lwjgl.openal.EFX10.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
@@ -13,9 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.lwjgl.openal.AL;
-import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.ALC10;
-import org.lwjgl.openal.EFX10;
 
 import ru.m210projects.Build.Audio.Sound;
 import ru.m210projects.Build.Audio.Source;
@@ -51,6 +51,10 @@ public class DesktopSound implements Sound {
 	
 	private int alEffectSlot = -1;
 	private int alEffect = -1;
+	private boolean alReverbEnable = false;
+	private float alReverbDelay = 0.0f;
+	private float alDefReverbDelay;
+	
 
 	public DesktopSound()
 	{
@@ -89,19 +93,43 @@ public class DesktopSound implements Sound {
 		Console.Println(name + " initialized", OSDTEXT_GOLD);
 		Console.Println("\twith max voices: " + maxChannels, OSDTEXT_GOLD);
 		Console.Println("\tOpenAL version: " + alGetString(AL_VERSION), OSDTEXT_GOLD); 	
-		
-		if (!ALC10.alcIsExtensionPresent(AL.getDevice(), EFX10.ALC_EXT_EFX_NAME)) 
+
+		if (!ALC10.alcIsExtensionPresent(AL.getDevice(), ALC_EXT_EFX_NAME)) 
 			Console.Println("No ALC_EXT_EFX supported by driver.", OSDTEXT_RED);
 		else {
-			alEffectSlot = EFX10.alGenAuxiliaryEffectSlots();
-			alEffect = EFX10.alGenEffects();
+			alEffectSlot = alGenAuxiliaryEffectSlots();
+			alEffect = alGenEffects();
 			
+			alEffecti(alEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+			alDefReverbDelay = alGetEffectf(alEffect, AL_REVERB_DECAY_TIME);
+
+			if(alGetError() == AL_NO_ERROR)
+				Console.Println("ALC_EXT_EFX enabled.");	
+			else Console.Println("ALC_EXT_EFX error!", OSDTEXT_RED);	
 		}
 
 		loopedSource.clear();
 		return true;
 	}
-
+	
+	private void setSourceReverb(int sourceId, boolean enable, float delay)
+	{
+		if(alEffect == -1)
+			return;
+		
+		if(enable)
+		{
+			 alEffectf(alEffect, AL_REVERB_DECAY_TIME, alReverbDelay);
+			 alAuxiliaryEffectSloti(alEffectSlot, AL_EFFECTSLOT_EFFECT, alEffect);
+		     alSource3i(sourceId, AL_AUXILIARY_SEND_FILTER, alEffectSlot, 0, AL_FILTER_NULL);
+		} 
+		else
+		{
+			alAuxiliaryEffectSloti(alEffectSlot, AL_EFFECTSLOT_EFFECT, AL_EFFECT_NULL);
+			alSource3i(sourceId, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+		}
+	}
+	
 	@Override
 	public Source playRaw(ByteBuffer data, int length, int sampleRate, int sampleBits, int pitchoffset, int vol, int priority) {
 		if (noDevice) return null;
@@ -114,16 +142,9 @@ public class DesktopSound implements Sound {
 		
 		int sourceId = source.sourceId;
 		alSourcei(sourceId, AL_LOOPING, AL_FALSE);
+		
+		setSourceReverb(sourceId, alReverbEnable, alReverbDelay);
 
-		
-		
-		EFX10.alEffecti(alEffect, EFX10.AL_EFFECT_TYPE, EFX10.AL_EFFECT_REVERB);
-        EFX10.alEffectf(alEffect, EFX10.AL_REVERB_DECAY_TIME, 2.0f);
-        EFX10.alAuxiliaryEffectSloti(alEffectSlot, EFX10.AL_EFFECTSLOT_EFFECT, alEffect);
-        AL11.alSource3i(sourceId, EFX10.AL_AUXILIARY_SEND_FILTER, alEffectSlot, 0, EFX10.AL_FILTER_NULL);
-        
-        
-        
 		setSourceVolume(source, vol);
 		int bufferID = buffers.get(source.bufferId);
 		alBufferData(bufferID, toALFormat(0, sampleBits), data, sampleRate);
@@ -151,6 +172,8 @@ public class DesktopSound implements Sound {
 			start = loopstart;
 		if(loopend < data.capacity()) 
 			end = loopend;
+		
+		setSourceReverb(sourceId, alReverbEnable, alReverbDelay);
 		
 		float volume = vol / 255.0f;
 		if(volume > 1.0f) volume = 1.0f;
@@ -541,6 +564,39 @@ public class DesktopSound implements Sound {
 		if(music == null) return false;
 		return music.isPlaying();
 	}
+
+	@Override
+	public int getReverb() {
+		return alReverbEnable?1:0;
+	}
+
+	@Override
+	public float getReverbDelay() {
+		return alReverbDelay;
+	}
+
+	@Override
+	public void setReverb(int enable) {
+		alReverbEnable = (enable == 1);
+		alReverbDelay = alDefReverbDelay;
+
+		Iterator<Source> it = sourceManager.iterator();
+	    while(it.hasNext()) {
+	    	Source s = (Source)it.next();
+	    	setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
+	    }
+	}
+
+	@Override
+	public void setReverbDelay(float delay) {
+		alReverbDelay = delay;
+		
+		Iterator<Source> it = sourceManager.iterator();
+	    while(it.hasNext()) {
+	    	Source s = (Source)it.next();
+	    	setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
+	    }
+	}
 }
 
 abstract class OpenALMusic {
@@ -631,7 +687,7 @@ abstract class OpenALMusic {
 
 	public float getPosition() {
 		if (source == null) return 0;
-		return renderedSeconds + alGetSourcef(source.sourceId, AL11.AL_SEC_OFFSET);
+		return renderedSeconds + alGetSourcef(source.sourceId, AL_SEC_OFFSET);
 	}
 	
 	public int getChannels() {

@@ -163,4 +163,24 @@ public class SoundDebug implements Sound {
 	public boolean isPlaying() {
 		return false;
 	}
+	
+	@Override
+	public int getReverb() {
+		return 0;
+	}
+
+	@Override
+	public float getReverbDelay() {
+		return 0;
+	}
+
+	@Override
+	public void setReverb(int enable) {
+
+	}
+
+	@Override
+	public void setReverbDelay(float delay) {
+
+	}
 }
