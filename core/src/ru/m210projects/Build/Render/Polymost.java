@@ -2465,12 +2465,12 @@ public abstract class Polymost implements Renderer {
 		guy = 0;
 		guo = 0;
 		gvx = 0;
-		
+		gvy = 0;
+		gvo = 0;
+
 		int oskyclamphack = skyclamphack;
 		skyclamphack = 0;
 		if(floor) {
-			gvy = gdy; //(double) (tilesizy[globalpicnum] * gdy);
-			gvo = gdo; //(double) (tilesizy[globalpicnum] * gdo);
 			oy = (((double) tilesizy[globalpicnum]) * drawalls_dd[0] - drawalls_vv[0]) / drawalls_vv[1];
 			
 			if ((oy > y0) && (oy > y1)) {
@@ -2498,13 +2498,12 @@ public abstract class Polymost implements Renderer {
 			else 
 				domost((float)x0,(float)y0,(float)x1,(float)y1);
 		}
-		else  {
-			gvy = gdy; //(double) (tilesizy[globalpicnum] * gdy);
-			gvo = gdo; //(double) (tilesizy[globalpicnum] * gdo);
+		else {
 			oy = -drawalls_vv[0] / drawalls_vv[1];
 
-			if ((oy < y0) && (oy < y1))
+			if ((oy < y0) && (oy < y1)) {
 				domost((float)x1,(float)oy,(float)x0,(float)oy);
+			}
 	        else if ((oy < y0) != (oy < y1))
 	        {
 	            /*         cy1        cy0
@@ -2559,7 +2558,8 @@ public abstract class Polymost implements Renderer {
 		double fx = x0;
 		do {
 			globalpicnum = (short) (dapskyoff[y & ((1 << dapskybits) - 1)] + i);
-				guo = gdo * (t * ((double) (globalang - (y << (11 - dapskybits))))
+			
+			guo = gdo * (t * ((double) (globalang - (y << (11 - dapskybits))))
 				/ 2048.0 + (double) ((r_parallaxskypanning != 0) ? panning : 0))
 				- gux * ghalfx;
 			y++;
