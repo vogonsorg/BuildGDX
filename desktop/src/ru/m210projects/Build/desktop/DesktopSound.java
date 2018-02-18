@@ -529,7 +529,7 @@ public class DesktopSound implements Sound {
 
 		try {
 			music = new Ogg.Music(sourceManager, kGetBytes(file, 0));
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Console.Println("Can't load ogg file: " + file, OSDTEXT_RED);
 			return false;
 		}
