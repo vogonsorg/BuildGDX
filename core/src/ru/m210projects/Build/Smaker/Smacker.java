@@ -1,11 +1,11 @@
 /*
-	libsmacker - A C library for decoding .smk Smacker Video files
+	smacker - A C library for decoding .smk Smacker Video files
 	Copyright (C) 2012-2013 Greg Kennedy
 
 	See smacker.h for more information.
 
 	smacker.c
-		Main implementation file of libsmacker.
+		Main implementation file of smacker.
 		Open, close, query, render, advance and seek an smk
 */
 
@@ -82,8 +82,11 @@ public class Smacker {
 			s.video.version = 4;
 		else if(signature.equals("SMK2"))
 			s.video.version = 2;
-		else Console.Println("smacker::smk_open_generic - ERROR: invalid SMKn signature " + signature, OSDTEXT_RED);
-	
+		else {
+			Console.Println("smacker::smk_open_generic - ERROR: invalid SMKn signature " + signature, OSDTEXT_RED);
+			return null;
+		}
+		
 		/* width, height, total num frames */
 		s.video.w = fp.getInt();
 		s.video.h  = fp.getInt();
@@ -99,7 +102,7 @@ public class Smacker {
 			s.pts_inc = 100000;
 		
 		/* Video flags follow.
-		Ring frame is important to libsmacker.
+		Ring frame is important to smacker.
 		Y scale / Y interlace go in the Video flags.
 		The user should scale appropriately. */
 		int flags  = fp.getInt();
@@ -112,7 +115,7 @@ public class Smacker {
 		{
 			if (s.video.y_scale_mode == SMK_FLAG_Y_DOUBLE)
 			{
-				Console.Println("libsmacker::smk_open_generic - Warning: SMK file specifies both Y-Double AND Y-Interlace.");
+				Console.Println("smacker::smk_open_generic - Warning: SMK file specifies both Y-Double AND Y-Interlace.");
 			}
 			s.video.y_scale_mode = SMK_FLAG_Y_INTERLACE;
 		}
@@ -154,7 +157,7 @@ public class Smacker {
 				s.audio[i].channels = (byte)((data & 0x10000000) != 0 ? 2 : 1);
 				if ((data & 0x0c000000) != 0)
 				{
-//					fprintf(stderr,"libsmacker::smk_open_generic - Warning: audio track %ld is compressed with Bink (perceptual) Audio Codec: this is currently unsupported by libsmacker\n",i);
+//					fprintf(stderr,"smacker::smk_open_generic - Warning: audio track %ld is compressed with Bink (perceptual) Audio Codec: this is currently unsupported by smacker\n",i);
 					s.audio[i].compress = 2;
 				}
 				/* Bits 25 & 24 are unused. */
@@ -219,7 +222,7 @@ public class Smacker {
 		/* set up the read union for Memory mode */
 		if ((s = smk_open_generic(0,fp,SMK_MODE_MEMORY)) == null)
 		{
-			Console.Println("libsmacker::smk_open_memory(buffer,  " + fp.capacity() + ") - ERROR: Fatal error in smk_open_generic, returning NULL.", OSDTEXT_RED);
+			Console.Println("smacker::smk_open_memory(buffer,  " + fp.capacity() + ") - ERROR: Fatal error in smk_open_generic, returning NULL.", OSDTEXT_RED);
 		}
 
 		return s;
@@ -298,7 +301,7 @@ public class Smacker {
 		
 		if (!w && !h && !y_scale_mode)
 		{
-			Console.Println("libsmacker::smk_info_all(object,w,h,y_scale_mode) - ERROR: Request for info with all-NULL return references", OSDTEXT_RED);
+			Console.Println("smacker::smk_info_all(object,w,h,y_scale_mode) - ERROR: Request for info with all-NULL return references", OSDTEXT_RED);
 			return -1;
 		}
 
@@ -317,7 +320,7 @@ public class Smacker {
 		if (channels == null && bitdepth == null && audio_rate == null)
 		{
 			Console.Println("error");
-//			fputs("libsmacker::smk_info_audio(object,track_mask,channels,bitdepth,audio_rate) - ERROR: Request for info with all-NULL return references\n",stderr);
+//			fputs("smacker::smk_info_audio(object,track_mask,channels,bitdepth,audio_rate) - ERROR: Request for info with all-NULL return references\n",stderr);
 			return -1;
 		}
 		
@@ -458,7 +461,7 @@ public class Smacker {
 				/* check for overflow condition */
 				if (i + k > 768)
 				{
-					Console.Println("libsmacker::palette_render(s,p,size)- ERROR: overflow, 0x80 attempt to copy " + k + " bytes from " + i, OSDTEXT_RED);
+					Console.Println("smacker::palette_render(s,p,size)- ERROR: overflow, 0x80 attempt to copy " + k + " bytes from " + i, OSDTEXT_RED);
 					s.palette = tpalette;
 					return -1;
 				}
@@ -479,7 +482,7 @@ public class Smacker {
 				if (size < 2)
 				{
 					
-					Console.Println("libsmacker::palette_render(s,p,size) - ERROR: 0x40 ran out of bytes for copy", OSDTEXT_RED);
+					Console.Println("smacker::palette_render(s,p,size) - ERROR: 0x40 ran out of bytes for copy", OSDTEXT_RED);
 					s.palette = tpalette;
 					return -1;
 				}
@@ -494,7 +497,7 @@ public class Smacker {
 
 				if (j + k > 768 || i + k > 768)
 				{
-					Console.Println("libsmacker::palette_render(s,p,size) - ERROR: overflow, 0x40 attempt to copy " + k + " bytes from " + j + " to " + i, OSDTEXT_RED);
+					Console.Println("smacker::palette_render(s,p,size) - ERROR: overflow, 0x40 attempt to copy " + k + " bytes from " + j + " to " + i, OSDTEXT_RED);
 					s.palette = tpalette;
 					return -1;
 				}
@@ -512,7 +515,7 @@ public class Smacker {
 			{
 				if (size < 3)
 				{
-					Console.Println("libsmacker::palette_render - ERROR: 0x3F ran out of bytes for copy, size=" + size, OSDTEXT_RED);
+					Console.Println("smacker::palette_render - ERROR: 0x3F ran out of bytes for copy, size=" + size, OSDTEXT_RED);
 					s.palette = tpalette;
 					return -1;
 				}
@@ -529,7 +532,7 @@ public class Smacker {
 
 		if (i < 768)
 		{
-			Console.Println("libsmacker::palette_render - ERROR: did not completely fill palette (idx=" + i + ")", OSDTEXT_RED);
+			Console.Println("smacker::palette_render - ERROR: did not completely fill palette (idx=" + i + ")", OSDTEXT_RED);
 			s.palette = tpalette;
 			return -1;
 		}
@@ -824,7 +827,7 @@ public class Smacker {
 			if (size < 4)
 			{
 				Console.Println("error");
-//				fputs("libsmacker::smk_render_audio() - ERROR: need 4 bytes to get unpacked output buffer size.\n",stderr);
+//				fputs("smacker::smk_render_audio() - ERROR: need 4 bytes to get unpacked output buffer size.\n",stderr);
 				return -1;
 			}
 			/* chunk is compressed (huff-compressed dpcm), retrieve unpacked buffer size */
@@ -842,7 +845,7 @@ public class Smacker {
 			if (bit == 0)
 			{
 				Console.Println("error");
-//				fputs("libsmacker::smk_render_audio - ERROR: initial get_bit returned 0\n",stderr);
+//				fputs("smacker::smk_render_audio - ERROR: initial get_bit returned 0\n",stderr);
 				return -1;
 			}
 			
@@ -850,13 +853,13 @@ public class Smacker {
 			if (s.channels != (bit == 1 ? 2 : 1))
 			{
 				Console.Println("error");
-//				fputs("libsmacker::smk_render - ERROR: mono/stereo mismatch\n",stderr);
+//				fputs("smacker::smk_render - ERROR: mono/stereo mismatch\n",stderr);
 			}
 			bit = BitStream.getBit();
 			if (s.bitdepth != (bit == 1 ? 16 : 8))
 			{
 				Console.Println("error");
-//				fputs("libsmacker::smk_render - ERROR: 8-/16-bit mismatch\n",stderr);
+//				fputs("smacker::smk_render - ERROR: 8-/16-bit mismatch\n",stderr);
 			}
 
 			/* build the trees */
@@ -960,14 +963,14 @@ public class Smacker {
 		/* Retrieve current frm_size for this frame. */
 		if (frame_size == 0)
 		{
-			Console.Println("libsmacker::smk_render(s) - Warning: frame " + s.cur_frame + ": frm_size is 0.");
+			Console.Println("smacker::smk_render(s) - Warning: frame " + s.cur_frame + ": frm_size is 0.");
 			return -1;
 		}
 
 		/* Just point buffer at the right place */
 		if (s.source.chunk_data[s.cur_frame] == null)
 		{
-			Console.Println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + " : memory chunk is a NULL pointer.", OSDTEXT_RED);
+			Console.Println("smacker::smk_render(s) - ERROR: frame " + s.cur_frame + " : memory chunk is a NULL pointer.", OSDTEXT_RED);
 			return -1;
 		}
 		buffer = s.source.chunk_data[s.cur_frame];
@@ -979,7 +982,7 @@ public class Smacker {
 			size = 4 * (buffer[p++] & 0xFF) - 1;
 			if(size + 1 > frame_size)
 			{
-				Console.Println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for a palette rec.", OSDTEXT_RED);
+				Console.Println("smacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for a palette rec.", OSDTEXT_RED);
 				return -1;
 			}
 
@@ -1001,7 +1004,7 @@ public class Smacker {
 				size = LittleEndian.getInt(buffer, p);
 
 				if (size == 0 || size + 4 > frame_size) {
-					Console.Println("libsmacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for audio[" + track + "] rec.", OSDTEXT_RED);
+					Console.Println("smacker::smk_render(s) - ERROR: frame " + s.cur_frame + ": insufficient data for audio[" + track + "] rec.", OSDTEXT_RED);
 					return -1;
                 }
 
@@ -1041,7 +1044,7 @@ public class Smacker {
 //		s.cur_frame = 0;
 //		if ( smk_render(s) < 0)
 //		{
-//			System.err.println("libsmacker::smk_first(s) - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
+//			System.err.println("smacker::smk_first(s) - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
 //			return -1;
 //		}
 //
@@ -1060,7 +1063,7 @@ public class Smacker {
 //			s.cur_frame++;
 //			if ( smk_render(s) < 0)
 //			{
-//				System.err.println("libsmacker::smk_next(s) - Warning: frame " + s.cur_frame +": smk_render returned errors.");
+//				System.err.println("smacker::smk_next(s) - Warning: frame " + s.cur_frame +": smk_render returned errors.");
 //				return -1;
 //			}
 //			if (s.cur_frame + 1 == s.frames)
@@ -1089,7 +1092,7 @@ public class Smacker {
 //		/* render the frame: we're ready */
 //		if ( smk_render(s) < 0)
 //		{
-//			System.err.println("libsmacker::smk_seek_keyframe(s," + f + ") - Warning: frame " + s.cur_frame + ": smk_render returned errors.\n");
+//			System.err.println("smacker::smk_seek_keyframe(s," + f + ") - Warning: frame " + s.cur_frame + ": smk_render returned errors.\n");
 //			return -1;
 //		}
 //
@@ -1107,7 +1110,7 @@ public class Smacker {
 	    /* render the frame: we're ready */
 	    if ( (flags = smk_render(s)) < 0)
 	    {
-	    	Console.Println("libsmacker::smk_render_frame(s," + f + ") - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
+	    	Console.Println("smacker::smk_render_frame(s," + f + ") - Warning: frame " + s.cur_frame + ": smk_render returned errors.");
 	    	return -1;
 	    }
 	    

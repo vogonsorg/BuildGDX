@@ -1613,7 +1613,9 @@ public abstract class Engine {
 			faketimerhandler();
 		}
 
-		kRead(artfil, waloff[tilenume], dasiz);
+		if(kRead(artfil, waloff[tilenume], dasiz) == -1)
+			return null;
+		
 		faketimerhandler();
 		artfilplc = (int) (tilefileoffs[tilenume] + dasiz);
 

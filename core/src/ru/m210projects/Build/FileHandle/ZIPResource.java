@@ -96,6 +96,7 @@ public class ZIPResource extends IResource {
 		
 		ZRESHANDLE file = files.get(filenum);
 		ByteBuffer buf = bLock(filenum);
+		if(file.pos >= buf.capacity()) return -1;
 		buf.position(file.pos);
 		leng = Math.min(leng, file.size-file.pos);
 		buf.get(buffer, 0, leng);
