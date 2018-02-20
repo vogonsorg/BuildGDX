@@ -128,8 +128,7 @@ public abstract class Engine {
 	public static short[] pskymultiyscale;
 	public static short[] pskymultilist, pskymultibits;
 	public static short[][] pskymultioff;
-	public static int r_parallaxskyclamping = 1; //OSD CVAR XXX
-	public static int r_parallaxskypanning = 0; //XXX
+	
 	//OUTPUT VALUES
 	public static int floorzsofslope, ceilzsofslope;
 	public static int mirrorx, mirrory, mirrorang;
@@ -141,7 +140,7 @@ public abstract class Engine {
 	public static Palette returnpal;
 	public static Hitscan pHitInfo;
 	public static Neartag neartag;
-	public static int r_usenewaspect = 1;
+	
 	public static int fullscreen;
 	public static int paletteloaded = 0;
 	public static int tablesloaded = 0;
@@ -198,8 +197,7 @@ public abstract class Engine {
 
 	private int newaspect_enable = 1;
 	private int setaspect_new_use_dimen;
-//	private int r_screenxy;
-	
+
 	private final char[] artfilename = new char[12];
 //	private int artsize = 0;
 	public int numtilefiles;
@@ -250,15 +248,29 @@ public abstract class Engine {
 	
 	private byte[] transluc;
 
-	
 
-//	private int oxdimen = -1, oviewingrange = -1, oxyaspect = -1;
 	private int g_lastpalettesum;
-
 	private int curbasepal;
 	private int basepalcount;
 	private int basepalreset = 1;
+	
 
+	//Renderer preset XXX
+	public static int r_parallaxskyclamping = 1; //OSD CVAR XXX
+	public static int r_parallaxskypanning = 0; //XXX
+	public static int r_usenewaspect = 1;
+	public static int r_glowmapping = 1;
+	// Vertex Array model drawing cvar
+	public static int r_vertexarrays = 1;
+
+	// Vertex Buffer Objects model drawing cvars
+	public static int r_vbos = 1;
+	public static int r_npotwallmode;
+	// model animation smoothing cvar
+	public static int r_animsmoothing = 1;
+	public static int glanisotropy = 1; // 0 = maximum supported by card
+		
+		
 	//Engine.c
 
 	public long getkensmessagecrc(long b) {
@@ -1038,6 +1050,64 @@ public abstract class Engine {
 					render.gltexinvalidateall(1);
 				}
 			}, 0, 1));
+		
+		OSDCOMMAND R_texture = new OSDCOMMAND( "r_texturemode", "r_texturemode: changes the texture filtering settings", new OSDCVARFUNC() { 
+			@Override
+			public void execute() {
+				int gltexfiltermode = Console.Geti("r_texturemode");
+				if (Console.osd_argc != 2) {
+					Console.Println("Current texturing mode is " + gltexfiltermode);
+					return;
+				}
+				try {
+					int value = Integer.parseInt(osd_argv[1]);
+					if(value >= 2) value = 5; //set to trilinear
+					if(Console.Set("r_texturemode", value)) {
+						render.gltexapplyprops();
+						Console.Println("Texture filtering mode changed to " + value);
+					} else Console.Println("Texture filtering mode out of range");
+				} 
+				catch(Exception e)
+				{
+					Console.Println("r_texturemode: Out of range");
+				}
+				/*
+				if (Console.osd_argc != 2) {
+					Console.Println("Current texturing mode is " + getGlFilter(gltexfiltermode).name);
+					Console.Println("  Vaild modes are:");
+					for (int m = 0; m < getGlFilterCount(); m++)
+						Console.Println("     m" + " - " + getGlFilter(m).name);
+					return;
+				}
+
+				string_t p = new string_t();
+				int m = (int) Bstrtoul(Console.osd_argv[0], p, 10);
+				if (p.var.equals(Console.osd_argv[0])) {
+					// string
+					for (int i = 0; i < getGlFilterCount(); i++) {
+						if (Bstrcasecmp(Console.osd_argv[0], getGlFilter(i).name) == 0)
+							break;
+					}
+					if (m == getGlFilterCount())
+						m = gltexfiltermode; // no change
+				} else {
+					if (m < 0) {
+						m = 0;
+					} else if (m >= getGlFilterCount()) {
+						m = getGlFilterCount() - 1;
+					}
+				}
+
+				gltexfiltermode = m;
+				gltexapplyprops();
+				Console.Println("Texture filtering mode changed to " + getGlFilter(gltexfiltermode).name);
+				*/
+			} });
+		R_texture.setRange(0, 5);
+		Console.RegisterCvar(R_texture);
+		
+		Console.RegisterCvar(new  OSDCOMMAND( "r_detailmapping", "r_detailmapping: enable/disable detail mapping", 1, 0, 1));
+		Console.RegisterCvar(new  OSDCOMMAND( "r_vbocount", "r_vbocount: sets the number of Vertex Buffer Objects to use when drawing models", 64, 0, 256));
 
 		randomseed = 1; //random for voxels
 	}

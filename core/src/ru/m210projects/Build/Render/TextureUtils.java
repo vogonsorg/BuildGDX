@@ -30,7 +30,6 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 
-import ru.m210projects.Build.Types.GLFilter;
 import ru.m210projects.Build.Types.Palette;
 
 import com.badlogic.gdx.graphics.Pixmap.Format;

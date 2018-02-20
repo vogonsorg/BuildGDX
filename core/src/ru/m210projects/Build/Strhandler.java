@@ -200,6 +200,23 @@ public class Strhandler {
 				return len;
 			}
 			
+			public static int Bstrcmp(char[] txt1, int offset1, char[] txt2, int offset2) {
+				int i = 0;
+				if(txt1 == null || txt2 == null)
+					return -1;
+				
+				int len = Math.max(txt1.length - offset1, txt2.length - offset2);
+				while(i < len) {
+					char ch1 = 0, ch2 = 0;
+					if(offset1 + i < txt1.length) ch1 = txt1[offset1 + i];
+					if(offset2 + i < txt2.length) ch2 = txt2[offset2 + i];
+					if(ch1 != ch2)
+						return -1;
+					i++;
+				}
+				return 0;
+			}
+			
 			public static int Bstrcmp(char[] txt1, char[] txt2) {
 				int i = 0;
 				if(txt1 == null || txt2 == null)

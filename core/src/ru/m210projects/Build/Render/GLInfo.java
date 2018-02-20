@@ -1,4 +1,4 @@
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Render;
 
 import static ru.m210projects.Build.Render.GL10.GL_DITHER;
 import static ru.m210projects.Build.Render.GL10.GL_EXTENSIONS;
@@ -15,7 +15,6 @@ import static ru.m210projects.Build.Strhandler.Bstrtoken;
 
 import java.nio.FloatBuffer;
 
-import ru.m210projects.Build.Render.GL10;
 
 import com.badlogic.gdx.utils.BufferUtils;
 

@@ -28,7 +28,6 @@ import java.util.Map;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ImageUtils.PicInfo;
-import ru.m210projects.Build.Types.GLInfo;
 import ru.m210projects.Build.Types.Hicreplctyp;
 import ru.m210projects.Build.Types.Pthtyp;
 

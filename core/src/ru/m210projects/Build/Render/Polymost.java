@@ -108,14 +108,11 @@ import ru.m210projects.Build.Loader.MD3.MD3Surface;
 import ru.m210projects.Build.Loader.MD3.MD3Vertice;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
-import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Types.FadeEffect;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Types.Wallspriteinfo;
-import ru.m210projects.Build.Types.GLInfo;
 import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.Pthtyp;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
@@ -209,22 +206,10 @@ public abstract class Polymost implements Renderer {
 
 	private int shadescale_unbounded = 0;
 
-	// private int r_usenewshading = 1;
-
 	// Detail mapping cvar
 	//private final OSDCVAR r_detailmapping;
 	// Glow mapping cvar
-	private int r_glowmapping = 1;
-
-	// Vertex Array model drawing cvar
-	private int r_vertexarrays = 1;
-
-	// Vertex Buffer Objects model drawing cvars
-	private int r_vbos = 1;
-	private int r_npotwallmode;
-	// model animation smoothing cvar
-	public static int r_animsmoothing = 1;
-
+	
 	// line of sight checks before mddraw()
 	// private int r_modelocclusionchecking = 0;
 
@@ -275,7 +260,6 @@ public abstract class Polymost implements Renderer {
 	// private short[] cullmodel = new short[MAXSPRITES];
 	// private int cullcheckcnt = 0;
 
-	public static int glanisotropy = 1; // 0 = maximum supported by card
 	// private int glusetexcompr = 1;
 	// private int glusetexcache = 2;
 	private int glmultisample, glnvmultisamplehint;
@@ -303,62 +287,6 @@ public abstract class Polymost implements Renderer {
 
 		init();
 
-		OSDCOMMAND R_texture = new OSDCOMMAND( "r_texturemode", "r_texturemode: changes the texture filtering settings", new OSDCVARFUNC() { 
-			@Override
-			public void execute() {
-				int gltexfiltermode = Console.Geti("r_texturemode");
-				if (Console.osd_argc != 2) {
-					Console.Println("Current texturing mode is " + gltexfiltermode);
-					return;
-				}
-				try {
-					int value = Integer.parseInt(osd_argv[1]);
-					if(Console.Set("r_texturemode", value)) {
-						gltexapplyprops();
-						Console.Println("Texture filtering mode changed to " + value);
-					} else Console.Println("Texture filtering mode out of range");
-				} 
-				catch(Exception e)
-				{
-					Console.Println("r_texturemode: Out of range");
-				}
-				/*
-				if (Console.osd_argc != 2) {
-					Console.Println("Current texturing mode is " + getGlFilter(gltexfiltermode).name);
-					Console.Println("  Vaild modes are:");
-					for (int m = 0; m < getGlFilterCount(); m++)
-						Console.Println("     m" + " - " + getGlFilter(m).name);
-					return;
-				}
-
-				string_t p = new string_t();
-				int m = (int) Bstrtoul(Console.osd_argv[0], p, 10);
-				if (p.var.equals(Console.osd_argv[0])) {
-					// string
-					for (int i = 0; i < getGlFilterCount(); i++) {
-						if (Bstrcasecmp(Console.osd_argv[0], getGlFilter(i).name) == 0)
-							break;
-					}
-					if (m == getGlFilterCount())
-						m = gltexfiltermode; // no change
-				} else {
-					if (m < 0) {
-						m = 0;
-					} else if (m >= getGlFilterCount()) {
-						m = getGlFilterCount() - 1;
-					}
-				}
-
-				gltexfiltermode = m;
-				gltexapplyprops();
-				Console.Println("Texture filtering mode changed to " + getGlFilter(gltexfiltermode).name);
-				*/
-			} });
-		R_texture.setRange(0, 5);
-		Console.RegisterCvar(R_texture);
-		
-		Console.RegisterCvar(new  OSDCOMMAND( "r_detailmapping", "r_detailmapping: enable/disable detail mapping", 1, 0, 1));
-		Console.RegisterCvar(new  OSDCOMMAND( "r_vbocount", "r_vbocount: sets the number of Vertex Buffer Objects to use when drawing models", 64, 0, 256));
 		Console.Println(GLInfo.renderer + " " + GLInfo.version + " initialized", OSDTEXT_GOLD);
 	}
 

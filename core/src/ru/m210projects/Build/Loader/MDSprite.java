@@ -17,7 +17,6 @@ import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_MAG_FILTER;
 import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_MIN_FILTER;
 import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_WRAP_S;
 import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_WRAP_T;
-import static ru.m210projects.Build.Render.Polymost.r_animsmoothing;
 import static ru.m210projects.Build.Render.TextureUtils.getGlFilter;
 import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
