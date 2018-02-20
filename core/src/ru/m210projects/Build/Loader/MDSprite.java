@@ -12,12 +12,8 @@ import static ru.m210projects.Build.Render.GL10.GL_ARRAY_BUFFER_ARB;
 import static ru.m210projects.Build.Render.GL10.GL_ELEMENT_ARRAY_BUFFER_ARB;
 import static ru.m210projects.Build.Render.GL10.GL_REPEAT;
 import static ru.m210projects.Build.Render.GL10.GL_STREAM_DRAW_ARB;
-import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_2D;
-import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_MAG_FILTER;
-import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_MIN_FILTER;
-import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_WRAP_S;
-import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_WRAP_T;
-import static ru.m210projects.Build.Render.TextureUtils.getGlFilter;
+import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
+import static ru.m210projects.Build.Render.TextureUtils.setupBoundTextureWrap;
 import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
 import static ru.m210projects.Build.Types.Hightile.HICEFFECTMASK;
@@ -39,6 +35,7 @@ import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GL10;
+import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Hudtyp;
 import ru.m210projects.Build.Types.Spriteext;
@@ -721,13 +718,9 @@ public class MDSprite {
 	    
 		int gltexfiltermode = Console.Geti("r_texturemode");
 
-		gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,getGlFilter(gltexfiltermode).mag);
-		gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,getGlFilter(gltexfiltermode).min);
-//XXX	if (glinfo.maxanisotropy > 1.0)
-//	    	gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,glanisotropy);
-	    gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-	    gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-	    
+		setupBoundTexture(gl, gltexfiltermode, GLInfo.anisotropy());
+		setupBoundTextureWrap(gl, GL_REPEAT);
+
 	    long etime = System.currentTimeMillis()-startticks;
 	    
 	    System.out.println("Load skin: p" + pal +  "-e" + hicfxmask(pal) + " \"" + skinfile + "\"... " + etime + " ms");

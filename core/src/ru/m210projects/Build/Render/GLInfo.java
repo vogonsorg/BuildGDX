@@ -1,5 +1,6 @@
 package ru.m210projects.Build.Render;
 
+import static ru.m210projects.Build.Engine.glanisotropy;
 import static ru.m210projects.Build.Render.GL10.GL_DITHER;
 import static ru.m210projects.Build.Render.GL10.GL_EXTENSIONS;
 import static ru.m210projects.Build.Render.GL10.GL_LINE_SMOOTH_HINT;
@@ -112,4 +113,11 @@ public class GLInfo {
 		}
 	}
 
+	public static int anisotropy() {
+		if (GLInfo.maxanisotropy > 1.0) {
+			if (glanisotropy <= 0 || glanisotropy > GLInfo.maxanisotropy)
+				glanisotropy = (int) GLInfo.maxanisotropy;
+		}
+		return glanisotropy;
+	}
 }

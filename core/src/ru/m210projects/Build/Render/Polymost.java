@@ -81,6 +81,7 @@ import static ru.m210projects.Build.Render.GL10.GL_TRIANGLE_STRIP;
 import static ru.m210projects.Build.Render.GL10.GL_TRUE;
 import static ru.m210projects.Build.Render.GL10.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Render.GL10.GL_VERTEX_ARRAY;
+import static ru.m210projects.Build.Render.GLInfo.*;
 import static ru.m210projects.Build.Render.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.TextureUtils.gloadtex;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
@@ -338,15 +339,7 @@ public abstract class Polymost implements Renderer {
 			}
 		}
 	}
-
-	private int anisotropy() {
-		if (GLInfo.maxanisotropy > 1.0) {
-			if (glanisotropy <= 0 || glanisotropy > GLInfo.maxanisotropy)
-				glanisotropy = (int) GLInfo.maxanisotropy;
-		}
-		return glanisotropy;
-	}
-
+	
 	@Override
 	public void gltexapplyprops() {
 		int gltexfiltermode = Console.Geti("r_texturemode");

@@ -35,6 +35,42 @@ public class GRPResource extends IResource {
 		}
 	}
 	
+	public GRPResource(byte[] data) throws Exception {
+		if(data != null) 
+		{
+			String strbuf = new String(data, 0, 12);
+			if(Bstrcmp(strbuf, "KenSilverman") != 0) 
+				throw new ResourceException("GRP header corrupted");
+			
+			NumFiles = LittleEndian.getInt(data, 12);
+			int HeaderSize = (NumFiles + 1)<<4;
+			
+			if(NumFiles != 0) {
+				byte[] buffer = new byte[NumFiles<<4];
+				System.arraycopy(data, 16, buffer, 0, buffer.length);
+
+				Console.Println("Found " + NumFiles + " files in packed GRP archive", 0);
+
+				int offset = HeaderSize;
+				byte[] buf = new byte[16];
+				for(int i = 0; i < NumFiles; i++) {
+					System.arraycopy(buffer, 16 * i, buf, 0, 16);
+					GRESHANDLE file = new GRESHANDLE(buf, offset);
+					file.buffer = new byte[file.size];
+					System.arraycopy(data, file.offset, file.buffer, 0, file.size);
+					file.paktype = DAT;
+					file.byteBuffer = BufferUtils.newByteBuffer(file.size);
+					file.byteBuffer.put(file.buffer);
+					file.byteBuffer.rewind();
+
+					offset += file.size;
+					files.add(file);
+				}
+			}
+		} else
+			throw new ResourceException("Can't load packed GRP file");
+	}
+	
 	public GRPResource(String FileName) throws Exception {
 		if(FileName != null && !FileName.isEmpty() && (File = Bopen(FileName, "r")) != -1) 
 		{
@@ -141,6 +177,12 @@ public class GRPResource extends IResource {
 		if(filenum < 0) return -1;
 		
 		GRESHANDLE file = files.get(filenum);
+		if(file.paktype == DAT) {
+			leng = Math.min(leng, file.size-file.pos);
+			System.arraycopy(file.buffer, file.pos, buffer, 0, leng);
+			file.pos += leng;
+			return(leng);
+		}
 		int i = file.offset+file.pos;
 		int groupfilpos = Bfpos(File);
 		if (i != groupfilpos) 
@@ -168,7 +210,8 @@ public class GRPResource extends IResource {
         	case SEEK_CUR:
         		file.pos += offset; break;
         }
-        Blseek(File, file.pos, SEEK_SET);
+		if(file.paktype != DAT) 
+			Blseek(File, file.pos, SEEK_SET);
         return file.pos;
 	}
 	
@@ -200,6 +243,8 @@ public class GRPResource extends IResource {
 
 	@Override
 	public int Pos() {
+		if(File == -1)
+			return -1;
 		return Bfpos(File);
 	}
 	
@@ -217,6 +262,9 @@ public class GRPResource extends IResource {
 
 	@Override
 	public void Dispose() {
-		Bclose(File);
+		if(File != -1) {
+			Bclose(File);
+			File = -1;
+		}
 	}
 }

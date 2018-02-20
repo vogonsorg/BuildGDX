@@ -22,7 +22,8 @@ public class Cache1D {
 	public static final int RFF = 2;
 	public static final int ZIP = 4;
 	public static final int EXT = 8;
-	private static final int DYNAMIC = 16;
+	public static final int DAT = 16;
+	private static final int DYNAMIC = 32;
 	
 	static final int MAXGROUPFILES = 16;
 	static final int MAXOPENFILES = 64;
@@ -42,6 +43,39 @@ public class Cache1D {
 			filehan = new int[MAXOPENFILES];
 			Arrays.fill(filehan, -1);
 		}
+	}
+	
+	public static IResource checkgroupfile(byte[] data) throws Exception
+	{
+		if(data != null) {
+			ByteBuffer bb = ByteBuffer.wrap(data, 0, 4);
+	    	bb.order( ByteOrder.LITTLE_ENDIAN);
+	    	int sign = bb.getInt();
+
+	    	switch(sign)
+	    	{
+	    	case grpsign: //KenS
+	    		String strbuf = new String(data, 0, 12);
+				if(Bstrcmp(strbuf, "KenSilverman") == 0) {
+					GRPResource grp = new GRPResource(data);
+					grp.type = GRP;
+					grp.name = "packaged GRP";
+					return grp;
+				}
+	    		break;
+//	    	case zipsign:
+//	    		ZIPResource zip = new ZIPResource(data);
+//	    		zip.name = filename;
+//	    		zip.type = ZIP;
+//	    		return zip;
+	    	case rffsign:
+	    		RFFResource rff = new RFFResource(data);
+	    		rff.name = "packaged RFF";
+	    		rff.type = RFF;
+				return rff;
+	    	}	
+		}
+		return null;
 	}
 	
 	public static IResource checkgroupfile(String filename) throws Exception
@@ -87,6 +121,22 @@ public class Cache1D {
 		if (groupfil.size() >= MAXGROUPFILES) return -1;
 		
 		IResource res = checkgroupfile(filename);
+		if(res != null)
+		{
+			if(!isStatic)
+				res.type |= DYNAMIC;
+			groupfil.add(res);
+			return groupfil.size()-1;
+		}
+
+		return -1;
+	}
+	
+	public static int initgroupfile(byte[] data, boolean isStatic) throws Exception
+	{
+		if (groupfil.size() >= MAXGROUPFILES) return -1;
+
+		IResource res = checkgroupfile(data);
 		if(res != null)
 		{
 			if(!isStatic)

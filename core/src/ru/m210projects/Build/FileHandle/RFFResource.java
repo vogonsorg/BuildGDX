@@ -48,6 +48,71 @@ public class RFFResource extends IResource {
 	private int NumFiles;
 	private List<RRESHANDLE> files = new ArrayList<RRESHANDLE>();
 
+	public RFFResource(byte[] data) throws Exception
+	{
+		if(data != null) {
+			
+			if((char)data[0] != 'R' || (char)data[1] != 'F' || (char)data[2] != 'F' || data[3] != 0x1A) 
+				throw new ResourceException("RFF header corrupted");
+			
+			int pos = 0;
+			int revision = LittleEndian.getInt(data, pos += 4);
+
+			if ( (revision & 0xFF00) == 0x0300 )
+				Crypted = true;
+		    else if ( (revision & 0xFF00) == 0x0200 )
+		    	Crypted = false;
+		    else if( (revision & 0x168f0130) != 0)
+		    	throw new ResourceException("RFF alpha version is not supported!");
+		    else 
+		    	throw new ResourceException("Unknown RFF version: " + Integer.toHexString(revision));
+		    
+			int offFat = LittleEndian.getInt(data, pos += 4);
+			NumFiles = LittleEndian.getInt(data, pos += 4);
+			if(NumFiles != 0) {
+				byte[] buffer = new byte[NumFiles * 48];
+				System.arraycopy(data, offFat, buffer, 0, buffer.length);
+
+				if(Crypted) {
+					if(revision == 0x0300)
+						encrypt(buffer, buffer.length, offFat);
+					else if(revision == 0x0301) {
+						encrypt(buffer, buffer.length, offFat + offFat * (revision & 0xFF));
+					}
+				}
+				
+				Console.Println("Found " + NumFiles + " files in packed RFF archive", 0);
+				byte[] buf = new byte[48];
+				for(int i = 0; i < NumFiles; i++) {
+					System.arraycopy(buffer, 48 * i, buf, 0, 48);
+					RRESHANDLE file = new RRESHANDLE(buf);
+					file.buffer = new byte[file.size];
+					System.arraycopy(data, file.offset, file.buffer, 0, file.size);
+					file.paktype = DAT;
+					if((file.flags & 0x10) != 0) {
+						int size = 256;
+						if(file.size < 256)
+							size = file.size;
+						encrypt(file.buffer, size, 0);
+					}
+					file.byteBuffer = BufferUtils.newByteBuffer(file.size);
+					file.byteBuffer.put(file.buffer);
+					file.byteBuffer.rewind();
+					files.add(file);
+				}
+			}
+			
+			for(int i = 0; i < NumFiles; i++) {
+				RRESHANDLE file = files.get(i);
+				if((file.flags & 4) != 0) //SEQ Files
+					Lock(i);
+				if((file.flags & 8) != 0) 
+					Lock(i);
+			}
+		} else
+			throw new ResourceException("Can't load packed RFF file");
+	}
+	
 	public RFFResource(String FileName) throws Exception
 	{
 		if(FileName != null && !FileName.isEmpty() && (File = Bopen(FileName, "r")) != -1) {
@@ -83,7 +148,7 @@ public class RFFResource extends IResource {
 			
 			if(NumFiles != 0) {
 				byte[] buffer = new byte[NumFiles * 48];
-
+				
 				if(Blseek(File, offFat, SEEK_SET) == -1)
 					System.err.println("r == -1");
 				
@@ -101,8 +166,7 @@ public class RFFResource extends IResource {
 				Console.Println("Found " + NumFiles + " files in " + FileName + " archive", 0);
 				byte[] buf = new byte[48];
 				for(int i = 0; i < NumFiles; i++) {
-					for(int j = 0; j < 48; j++) 
-						buf[j] = buffer[48 * i + j];
+					System.arraycopy(buffer, 48 * i, buf, 0, 48);
 					files.add(new RRESHANDLE(buf));
 				}
 			}
@@ -191,39 +255,6 @@ public class RFFResource extends IResource {
 			return i;
 		}
 		return -1;
-		
-		/*
-		for(int i = 0; i < NumFiles; i++) {
-			RRESHANDLE file = files.get(i);
-			
-			boolean bad = false;
-			String compare = file.filename;
-			int ext = 0;
-			for(int j = 0; j < filename.length(); j++)
-			{
-				if (filename != null && filename.isEmpty()) break;
-				
-				if (toupperlookup[filename.codePointAt(j)] == '.') //extension
-				{
-					if(compare.length() > j) { bad = true; break; }
-
-					compare = file.fileformat;
-					ext = j+1;
-					continue;
-				}
-
-				if ((j-ext) >= compare.length() || toupperlookup[filename.codePointAt(j)] 
-					!= toupperlookup[compare.codePointAt(j-ext)])
-				{ bad = true; break; }
-			}
-			if(bad) continue;
-
-			file.pos = 0;
-			return i;
-		}
-		
-		return -1;
-		*/
 	}
 
 	@Override
@@ -260,6 +291,12 @@ public class RFFResource extends IResource {
 		if(filenum < 0) return -1;
 		
 		RRESHANDLE file = files.get(filenum);
+		if(file.paktype == DAT) {
+			leng = Math.min(leng, file.size-file.pos);
+			System.arraycopy(file.buffer, file.pos, buffer, 0, leng);
+			file.pos += leng;
+			return(leng);
+		}
 		int i = file.offset+file.pos;
 		int groupfilpos = Bfpos(File);
 		if (i != groupfilpos) 
@@ -287,7 +324,8 @@ public class RFFResource extends IResource {
         	case SEEK_CUR:
         		file.pos += offset; break;
         }
-        Blseek(File, file.pos, SEEK_SET);
+		if(file.paktype != DAT) 
+			Blseek(File, file.pos, SEEK_SET);
         return file.pos;
 	}
 	
@@ -318,6 +356,8 @@ public class RFFResource extends IResource {
 	
 	@Override
 	public int Pos() {
+		if(File == -1)
+			return -1;
 		return Bfpos(File);
 	}
 	
@@ -335,7 +375,9 @@ public class RFFResource extends IResource {
 
 	@Override
 	public void Dispose() {
-		Bclose(File);
-		File = -1;
+		if(File != -1) {
+			Bclose(File);
+			File = -1;
+		}
 	}
 }

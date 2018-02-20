@@ -148,15 +148,16 @@ public class TextureCache {
 
 		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha);
 
+		//Realloc for user tiles
 		if (pth.glpic != null && (pth.glpic.getWidth() != xsiz || pth.glpic.getHeight() != ysiz)) {
-			pth.glpic.dispose();
+			pth.glpic.dispose(); 
 			doalloc = true;
 		}
 
 		if (doalloc) {
 			try {
 				pth.glpic = new Texture(xsiz, ysiz, Format.RGBA8888);
-			} catch(Exception e) { return null; } //Texture width and height must be powers of two
+			} catch(Exception e) { return null; } //XXX Why??? Texture width and height must be powers of two
 		}
 		
 		bindTexture(gl, pth.glpic);
@@ -221,20 +222,14 @@ public class TextureCache {
 				pth.glpic = new Texture(pix, true); 
 			} catch(Exception e) { return null; } //Texture width and height must be powers of two
 		}
-		int tsizx = pth.glpic.getWidth();
-		int tsizy = pth.glpic.getHeight();
 		
-		if (GLInfo.texnpot == 0)
-        {
-            for (tsizx=1; tsizx<pth.glpic.getWidth(); tsizx+=tsizx);
-            for (tsizy=1; tsizy<pth.glpic.getHeight(); tsizy+=tsizy);
-        }
-
+		int tsizx = calcSize(pth.glpic.getWidth());
+		int tsizy = calcSize(pth.glpic.getHeight());
+		
 		pth.sizx = (short) tsizx;
 		pth.sizy = (short) tsizy;
 		
 		bindTexture(gl, pth.glpic);
-
 		int gltexfiltermode = Console.Geti("r_texturemode");
 		
 		setupBoundTexture(gl, gltexfiltermode, anisotropy.get());

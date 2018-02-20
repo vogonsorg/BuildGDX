@@ -158,9 +158,9 @@ public class DesktopGL10 extends GL10 {
 		GL11.glClear(mask);
 	}
 	
-//	public void bglGenTextures(int n, IntBuffer textures) {
-//		GL11.glGenTextures(n, textures);
-//	}
+	public void bglGenTextures(IntBuffer textures) {
+		GL11.glGenTextures(textures);
+	}
 	
 	public int bglGetIntegerv(int pname, IntBuffer params) {
 		params.rewind();
