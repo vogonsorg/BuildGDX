@@ -53,7 +53,9 @@ public class EXTResource extends IResource {
 			{
 				if (filename != null && filename.isEmpty()) break;
 				String compare = file.filename;
-				if (j >= compare.length() || toupperlookup[filename.codePointAt(j)] != toupperlookup[compare.codePointAt(j)])
+				if (j >= compare.length() || compare.codePointAt(j) >= toupperlookup.length
+						|| toupperlookup[filename.codePointAt(j)]
+								!= toupperlookup[compare.codePointAt(j)])
 				{ bad = true; break; }
 			}
 			if(bad) continue;

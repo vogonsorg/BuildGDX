@@ -168,7 +168,7 @@ public class Keymap {
 		case DEL:
 			return "Backspace";
 		case GRAVE:
-			return "`";
+			return "GRAVE";
 		case MINUS:
 			return "-";
 		case EQUALS:

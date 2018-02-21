@@ -168,6 +168,8 @@ public class Compat {
 	
 	public static String BfileExtension(String filename)
 	{
+		if(filename == null || filename.isEmpty())
+			return null;
 		return filename.substring(filename.lastIndexOf('.') + 1);
 	}
  	

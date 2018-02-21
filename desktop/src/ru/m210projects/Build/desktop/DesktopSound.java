@@ -7,6 +7,7 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
 
+import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -26,7 +27,6 @@ import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.backends.openal.OggInputStream;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.StreamUtils;
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 
 public class DesktopSound implements Sound {
 
@@ -753,13 +753,13 @@ class Ogg {
 		private OggInputStream input;
 		public Music(SourceManager sourceManager, byte[] data) {
 			super(sourceManager, data);
-			input = new OggInputStream(new ByteInputStream(data, data.length));
+			input = new OggInputStream(new ByteArrayInputStream(data, 0, data.length));
 			setup(input.getChannels(), input.getSampleRate());
 		}
 
 		public int read(byte[] buffer) {
 			if (input == null) {
-				input = new OggInputStream(new ByteInputStream(data, data.length));
+				input = new OggInputStream(new ByteArrayInputStream(data, 0, data.length));
 				setup(input.getChannels(), input.getSampleRate());
 			}
 			return input.read(buffer);

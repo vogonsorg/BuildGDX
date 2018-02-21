@@ -87,7 +87,7 @@ public class Console {
 	static int  osdcols=60;         // width of onscreen display in text columns
 	static int  osdmaxrows=20;      // maximum number of lines which can fit on the screen
 	static int  osdhead=0;          // topmost visible line number
-	public static int  osdkey=Keys.GRAVE;
+	static int[] osdkey = new int[4];
 	static int  keytime=0;
 	static long osdscrtime = 0;
 	static int osdtextscale = 65536;
@@ -384,6 +384,8 @@ public class Console {
 	private static void Init()
 	{
 //		osdnumsymbols = osdnumcvars = 0;
+		
+		osdkey[0] = Keys.GRAVE;
 		osdlines = 1;
 		osdflags |= OSD_INITIALIZED;
 
@@ -481,6 +483,11 @@ public class Console {
 	{
 		return osdtextscale;
 	}
+	
+	public static void setCaptureKey(int sc, int num)
+	{
+		osdkey[num] = sc;
+	}
 
 	private static void showDisplay(int onf)
 	{
@@ -530,18 +537,20 @@ public class Console {
 		if ((osdflags & OSD_INITIALIZED) == 0)
 	        return;
 		
-		if(getInput().keyStatusOnce(osdkey))
-		{
-			osdscroll = -osdscroll;
-            if (osdrowscur == -1)
-                osdscroll = 1;
-            else if (osdrowscur == osdrows)
-                osdscroll = -1;
-            osdrowscur += osdscroll;
-            CaptureInput(osdscroll == 1);
-            osdscrtime = func.getticksfunc();
-            return;
-		}  
+		for(int i = 0; i < 4; i++) {
+			if(getInput().keyStatusOnce(osdkey[i]))
+			{
+				osdscroll = -osdscroll;
+	            if (osdrowscur == -1)
+	                osdscroll = 1;
+	            else if (osdrowscur == osdrows)
+	                osdscroll = -1;
+	            osdrowscur += osdscroll;
+	            CaptureInput(osdscroll == 1);
+	            osdscrtime = func.getticksfunc();
+	            return;
+			}
+		}
 		
 		if ((osdflags & OSD_CAPTURE) == 0)
 			return;
