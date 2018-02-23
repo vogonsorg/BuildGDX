@@ -204,6 +204,9 @@ public class DesktopSound implements Sound {
 		sourceManager.dispose();
 		alDeleteBuffers(buffers);
 		alDeleteBuffers(musicBuffers); 
+		
+		alDeleteEffects(alEffect);
+		alDeleteAuxiliaryEffectSlots(alEffectSlot);
 
 		sourceManager = null;
 		buffers = null;
