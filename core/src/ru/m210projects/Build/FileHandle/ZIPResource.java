@@ -44,7 +44,6 @@ public class ZIPResource extends IResource {
 
 	private int NumFiles;
 	private ZipFile ZFile;
-	public String comment;
 	private List<ZRESHANDLE> files = new ArrayList<ZRESHANDLE>();
 
 	public ZIPResource(String FileName) throws Exception
@@ -60,15 +59,9 @@ public class ZIPResource extends IResource {
 					files.add(new ZRESHANDLE(entry));
 				}
 			}
-			this.comment = ZFile.getComment();
 		}
 	}
-	
-	public String getComment()
-	{
-		return comment;
-	}
-	
+
 	@Override
 	public int Lookup(String filename) {
 		for(int i = NumFiles - 1; i >= 0; i--)
