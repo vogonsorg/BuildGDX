@@ -108,7 +108,14 @@ public class DavidMusicModule implements Music {
 		    transmitter = sequencer.getTransmitter();
 		    transmitter.setReceiver(receiver);
 		    
-		    Console.Println(receiver.getName() + " initialized", OSDTEXT_GOLD);
+		    String name = receiver.getName();
+		    byte[] namedata = new byte[name.length()];
+			//Cyrillic convert
+			for(int c = 0; c < name.length(); c++) 
+				namedata[c] = (byte) name.codePointAt(c);
+			name = new String(namedata, 0, name.length()).trim();
+		    
+		    Console.Println(name + " initialized", OSDTEXT_GOLD);
 		    inited = true;
 		    return true;
 		} catch (Exception e) {
