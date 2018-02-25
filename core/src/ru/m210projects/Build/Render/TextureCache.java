@@ -157,7 +157,7 @@ public class TextureCache {
 		if (doalloc) {
 			try {
 				pth.glpic = new Texture(xsiz, ysiz, Format.RGBA8888);
-			} catch(Exception e) { return null; } //XXX Why??? Texture width and height must be powers of two
+			} catch(Exception e) { return null; }
 		}
 		
 		bindTexture(gl, pth.glpic);
@@ -217,18 +217,33 @@ public class TextureCache {
 
 		if (doalloc) {
 			byte[] data = kGetBytes(fn, 0);
+			if(data == null) return null;
+			
 			Pixmap pix = new Pixmap(data, 0, data.length);
+			
+			int psizx = calcSize(pix.getWidth());
+			int psizy = calcSize(pix.getHeight());
+			
+			pth.sizx = (short) pix.getWidth();
+			pth.sizy = (short) pix.getHeight();
+			
+			//Texture width and height must be powers of two
+			if(psizx != pix.getWidth() || psizy != pix.getHeight())
+			{
+				Pixmap npix = new Pixmap(psizx, psizy, pix.getFormat());
+				npix.drawPixmap(pix, 0, 0);
+				pix.dispose();
+				pix = npix;
+			}
+
 			try {
 				pth.glpic = new Texture(pix, true); 
-			} catch(Exception e) { return null; } //Texture width and height must be powers of two
+			} catch(Exception e) { return null; } 
 		}
-		
-		int tsizx = calcSize(pth.glpic.getWidth());
-		int tsizy = calcSize(pth.glpic.getHeight());
-		
-		pth.sizx = (short) tsizx;
-		pth.sizy = (short) tsizy;
-		
+
+		int tsizx = pth.sizx;
+		int tsizy = pth.sizy;
+
 		bindTexture(gl, pth.glpic);
 		int gltexfiltermode = Console.Geti("r_texturemode");
 		

@@ -22,8 +22,7 @@ import static ru.m210projects.Build.Types.Hightile.hictinting;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import ru.m210projects.Build.Loader.MD2.MD2Frame;
 import ru.m210projects.Build.Loader.MD2.MD2Loader;
@@ -53,7 +52,8 @@ public class MDSprite {
 	public static final int MDANIM_LOOP = 0;
 	public static final int MDANIM_ONESHOT = 1;
 	
-	public static List<Model> models;
+//	public static List<Model> models;
+	public static HashMap<Integer, Model> models;
 	public static Hudtyp[][] hudmem;
 	
 	public static VOXModel[] voxmodels = new VOXModel[MAXVOXELS];
@@ -72,7 +72,7 @@ public class MDSprite {
 	public static void md_freevbos(GL10 gl)
 	{
 	    for (int i = 0; i < models.size(); i++)
-	        if (models.get(i).mdnum == 3)
+	        if (models.get(i) != null && models.get(i).mdnum == 3)
 	        {
 	            MD3Model m = (MD3Model) models.get(i);
 	            if (m.vbos != null)
@@ -197,7 +197,7 @@ public class MDSprite {
 	    int i = 0;
 
 	    if (mdinited == 0) mdinit();
-	    if (models.get(modelid).mdnum < 2) return 0;
+	    if (models.get(modelid) == null || models.get(modelid).mdnum < 2) return 0;
 	    
 	    MDModel m = (MDModel) models.get(modelid);
 
@@ -227,16 +227,18 @@ public class MDSprite {
 	    if(mdinited == 0)
 	    	return;
 	    
-	    for (i=0; i<models.size(); i++)
-	        if (models.get(i).mdnum == 3)
+	    for (i=0; i<models.size(); i++) {
+	    	Model mdl = models.get(i);
+	    	if (mdl != null && mdl.mdnum == 3)
 	        {
-	            MD3Model m = (MD3Model) models.get(i);
+	            MD3Model m = (MD3Model) mdl;
 	            if (m.vbos != null)
 	            {
 //	                Gdx.gl.glDeleteBuffersARB(m.head.numsurfs, m.vbos);
 	                m.vbos = null; //Bfree(m.vbos);
 	            }
 	        }
+	    }
 
 //	    if (allocvbos)
 //	    {
@@ -248,7 +250,7 @@ public class MDSprite {
 	
 	public static void mdinit()
 	{
-		models = new ArrayList<Model>();
+		models = new HashMap<Integer, Model>();
 		hudmem = new Hudtyp[2][MAXTILES];
 		for(int i = 0; i < 2; i++)
 			for(int j = 0; j < MAXTILES; j++)
@@ -299,7 +301,8 @@ public class MDSprite {
 
 	    tilenume=addtileP(modelid,tilenume,pal);
 	    Model m = models.get(modelid);
-
+	    if(m == null) return 0;
+	    
 	    if (m.mdnum == 1)
 	    {
 	        tile2model[tilenume].modelid = modelid;
@@ -353,6 +356,7 @@ public class MDSprite {
 	    if (mdinited == 0) mdinit();
 
 	    Model m = models.get(modelid);
+	    if(m == null) return 0;
 	    m.bscale = scale;
 	    m.shadeoff = shadeoff;
 	    m.zadd = zadd;
@@ -364,15 +368,14 @@ public class MDSprite {
 	
 	public static int md_undefinemodel(int modelid)
 	{
-
 	    if (mdinited == 0) return 0;
 
-	    for (int i=MAXTILES+EXTRATILES-1; i>=0; i--)
-	        if (tile2model[i].modelid == modelid)
+	    for (int i=MAXTILES+EXTRATILES-1; i>=0; i--) {
+	        if (tile2model[i].modelid == modelid) 
 	            tile2model[i].modelid = -1;
+	    }
 
 	    models.remove(modelid);
-
 	    return 0;
 	}
 	
@@ -382,8 +385,11 @@ public class MDSprite {
 
 	    Model vm = mdload(fn); 
 	    if (vm == null) return(-1);
-	    models.add(vm);
-	    vm.modelid = models.size()-1;
+	    int modelid = models.size();
+	    
+	    models.put(modelid, vm);
+//	    models.add(vm);
+	    vm.modelid = modelid;
 
 	    return vm.modelid;
 	}
@@ -573,7 +579,7 @@ public class MDSprite {
 	    if (skinfn == null) return -2;
 	    if (palnum >= MAXPALOOKUPS) return -3;
 
-	    if (models.get(modelid).mdnum < 2) return 0;
+	    if (models.get(modelid) == null || models.get(modelid).mdnum < 2) return 0;
 	    
 	    MDModel m = (MDModel) models.get(modelid);
 	    if (m.mdnum == 2) surfnum = 0;
@@ -659,7 +665,13 @@ public class MDSprite {
 	        {
 	            if (number >= m.numskins)
 	                number = 0;
-	            
+
+	            if(m.mdnum != 2) {
+	            	Console.Println("Couldn't load skin", OSDTEXT_YELLOW);
+	    	    	md_undefinemodel(m.modelid);
+	            	return null;
+	            }
+
 	            MD2Model md = (MD2Model) m;
 
 	            skinfile = md.skinfn + number*64;
@@ -680,7 +692,7 @@ public class MDSprite {
 	    // possibly fetch an already loaded multitexture :_)
 	    if (pal >= (MAXPALOOKUPS - RESERVEDPALS))
 	        for (int i=0; i < models.size(); i++) {
-	        	if(models.get(i).mdnum < 2)
+	        	if(models.get(i) == null || models.get(i).mdnum < 2)
 	        		continue;
 	        	MDModel mi = (MDModel) models.get(i);
 	            for (skzero = mi.skinmap; skzero != null; skzero = skzero.next)
