@@ -5,7 +5,6 @@ import com.badlogic.gdx.backends.android.AndroidApplication;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import ru.m210projects.Build.Types.Message;
-//import ru.m210projects.BuildEngine.android.R;
 
 public class AndroidMessage implements Message {
 	AndroidApplication app;
