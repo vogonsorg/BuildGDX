@@ -5,7 +5,7 @@ import com.badlogic.gdx.backends.android.AndroidApplication;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import ru.m210projects.Build.Types.Message;
-import ru.m210projects.BuildEngine.android.R;
+//import ru.m210projects.BuildEngine.android.R;
 
 public class AndroidMessage implements Message {
 	AndroidApplication app;
@@ -21,7 +21,7 @@ public class AndroidMessage implements Message {
 			public void run() {
 				AlertDialog.Builder bld;
 				bld = new AlertDialog.Builder(app);
-				bld.setIcon(R.drawable.ic_launcher);
+//				bld.setIcon(R.drawable.ic_launcher);
 				bld.setTitle(header);
 				bld.setMessage(text);
 				bld.setPositiveButton("OK", new DialogInterface.OnClickListener() {
