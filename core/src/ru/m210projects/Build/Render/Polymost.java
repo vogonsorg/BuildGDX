@@ -3391,7 +3391,7 @@ public abstract class Polymost implements Renderer {
 			}
 			
 			int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
-			if(dist < 65536L * 65536L) {
+			if(dist < 48000L * 48000L) {
 				if (usevoxels && (tspr.cstat & 48) != 48 && tiletovox[globalpicnum] >= 0 && voxmodels[tiletovox[globalpicnum]] != null) {
 					if (voxdraw(voxmodels[tiletovox[globalpicnum]], tspr, xoff, yoff) != 0)
 						return;
