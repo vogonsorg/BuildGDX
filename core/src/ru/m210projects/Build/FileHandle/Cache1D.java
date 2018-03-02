@@ -306,6 +306,18 @@ public class Cache1D {
 			return groupfil.get(groupnum).Read(filenum, buffer, leng);
 		return(0);
 	}
+	
+	public static int kRead(int handle, int len) {
+		int filenum = filehan[handle];
+		int groupnum = filegrp[handle];
+		
+		if (groupnum == 255) return(Bread(filenum,len));
+		
+		if (groupnum >= 0 && groupnum < groupfil.size())
+			return groupfil.get(groupnum).Read(filenum, len);
+
+		return 0;
+	}
 
 	public static byte[] kGetBytes(int fileId, String type)
 	{

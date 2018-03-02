@@ -192,4 +192,14 @@ public class EXTResource extends IResource {
 	public void Dispose() {
 		files.clear();
 	}
+
+	@Override
+	public int Read(int handle, int leng) {
+		if(handle < 0) return -1;
+
+		ERESHANDLE file = files.get(handle);
+		if(file.fil < 0) return -1;
+		
+		return Bread(file.fil, leng);
+	}
 }

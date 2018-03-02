@@ -18,6 +18,7 @@ public class GRPResource extends IResource {
 	
 	private int File = -1;
 	private int NumFiles;
+	private byte[] readbuf = new byte[4];
 
 	private List<GRESHANDLE> files = new ArrayList<GRESHANDLE>();
 
@@ -193,6 +194,36 @@ public class GRPResource extends IResource {
 	
 		file.pos += leng;
 		return(leng);
+	}
+	
+	@Override
+	public int Read(int filenum, int len) {
+		
+		if(filenum < 0) return -1;
+		
+		GRESHANDLE file = files.get(filenum);
+		if(len >= file.size-file.pos)
+			return 0;
+		
+		if(file.paktype == DAT) 
+			System.arraycopy(file.buffer, file.pos, readbuf, 0, len);
+		else {	
+			int i = file.offset+file.pos;
+			int groupfilpos = Bfpos(File);
+			if (i != groupfilpos) 
+				Blseek(File, i, SEEK_SET);
+			Bread(File,readbuf,len);
+		}
+		file.pos += len;
+		
+		if(len == 1)
+			return readbuf[0] & 0xFF;
+		else if(len == 2) 
+			return LittleEndian.getShort(readbuf);
+		else if(len == 4) 
+			return LittleEndian.getInt(readbuf);
+
+		return 0;
 	}
 	
 	@Override

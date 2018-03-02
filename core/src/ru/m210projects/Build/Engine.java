@@ -1823,39 +1823,39 @@ public abstract class Engine {
 		return (cnt >>> 31);
 	}
 
-	public int getangle(int xvect, int yvect) {
+	public short getangle(int xvect, int yvect) {
 		if (releasedEngine) {
 			if ((xvect | yvect) == 0)
 				return (0);
 			if (xvect == 0)
-				return 512 + ((yvect < 0 ? 1 : 0) << 10);
+				return (short) (512 + ((yvect < 0 ? 1 : 0) << 10));
 			if (yvect == 0)
-				return ((xvect < 0 ? 1 : 0) << 10);
+				return (short) ((xvect < 0 ? 1 : 0) << 10);
 			if (xvect == yvect)
-				return 256 + ((xvect < 0 ? 1 : 0) << 10);
+				return (short) (256 + ((xvect < 0 ? 1 : 0) << 10));
 			if (xvect == -yvect)
-				return 768 + ((xvect > 0 ? 1 : 0) << 10);
+				return (short) (768 + ((xvect > 0 ? 1 : 0) << 10));
 
 			if (klabs(xvect) > klabs(yvect)) {
-				return ((radarang[640 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047;
+				return (short) (((radarang[640 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047);
 			}
-			return ((radarang[640 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10)) & 2047;
+			return (short) (((radarang[640 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10)) & 2047);
 		} else {
 			if ((xvect | yvect) == 0)
 				return (0);
 			if (xvect == 0)
-				return 512 + ((yvect < 0 ? 1 : 0) << 10);
+				return (short) (512 + ((yvect < 0 ? 1 : 0) << 10));
 			if (yvect == 0)
-				return ((xvect < 0 ? 1 : 0) << 10);
+				return (short) ((xvect < 0 ? 1 : 0) << 10);
 			if (xvect == yvect)
-				return 256 + ((xvect < 0 ? 1 : 0) << 10);
+				return (short) (256 + ((xvect < 0 ? 1 : 0) << 10));
 			if (xvect == -yvect)
-				return 768 + ((xvect > 0 ? 1 : 0) << 10);
+				return (short) (768 + ((xvect > 0 ? 1 : 0) << 10));
 
 			if (klabs(xvect) > klabs(yvect)) {
-				return ((radarang[160 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047;
+				return (short) (((radarang[160 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047);
 			}
-			return ((radarang[160 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10)) & 2047;
+			return (short) (((radarang[160 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10)) & 2047);
 		}
 	}
 
@@ -3228,6 +3228,11 @@ public abstract class Engine {
 	public int krand() {
 		randomseed = (randomseed * 27584621) + 1;
 		return (int) ((randomseed&0xFFFFFFFFL) >> 16);
+	}
+	
+	public int rand()
+	{
+		return (int) (Math.random() * 32767);
 	}
 
 	public static int zr_ceilz, zr_ceilhit, zr_florz, zr_florhit;

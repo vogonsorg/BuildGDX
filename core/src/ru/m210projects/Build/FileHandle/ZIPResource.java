@@ -98,6 +98,27 @@ public class ZIPResource extends IResource {
 	}
 	
 	@Override
+	public int Read(int filenum, int len) {
+		if(filenum < 0) return -1;
+		
+		ZRESHANDLE file = files.get(filenum);
+		ByteBuffer buf = bLock(filenum);
+		if(file.pos >= buf.capacity()) return -1;
+		buf.position(file.pos);
+		
+		file.pos += len;
+		
+		if(len == 1)
+			return buf.get() & 0xFF;
+		else if(len == 2) 
+			return buf.getShort();
+		else if(len == 4) 
+			return buf.getInt();
+		
+		return 0;
+	}
+	
+	@Override
 	public byte[] Lock(int handle) {
 		if(handle == -1) return null;
 		ZRESHANDLE file = files.get(handle);

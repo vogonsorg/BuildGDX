@@ -212,6 +212,8 @@ public class Strhandler {
 					if(offset2 + i < txt2.length) ch2 = txt2[offset2 + i];
 					if(ch1 != ch2)
 						return -1;
+					if(ch1 == ch2 && ch1 == 0)
+						return 0;
 					i++;
 				}
 				return 0;
@@ -229,6 +231,8 @@ public class Strhandler {
 					if(i < txt2.length) ch2 = txt2[i];
 					if(ch1 != ch2)
 						return -1;
+					if(ch1 == ch2 && ch1 == 0)
+						return 0;
 					i++;
 				}
 				return 0;

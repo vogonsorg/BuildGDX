@@ -480,6 +480,41 @@ public class DesktopSound implements Sound {
 		}
 	}
 	
+	@Override
+	public int getReverb() {
+		return alReverbEnable?1:0;
+	}
+
+	@Override
+	public float getReverbDelay() {
+		return alReverbDelay;
+	}
+
+	@Override
+	public void setReverb(int enable) {
+		if(!isInited()) return;
+		alReverbEnable = (enable == 1);
+		alReverbDelay = alDefReverbDelay;
+
+		Iterator<Source> it = sourceManager.iterator();
+	    while(it.hasNext()) {
+	    	Source s = (Source)it.next();
+	    	setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
+	    }
+	}
+
+	@Override
+	public void setReverbDelay(float delay) {
+		if(!isInited()) return;
+		alReverbDelay = delay;
+		
+		Iterator<Source> it = sourceManager.iterator();
+	    while(it.hasNext()) {
+	    	Source s = (Source)it.next();
+	    	setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
+	    }
+	}
+	
 	
 	
 	
@@ -572,39 +607,6 @@ public class DesktopSound implements Sound {
 	public boolean isPlaying() {
 		if(music == null) return false;
 		return music.isPlaying();
-	}
-
-	@Override
-	public int getReverb() {
-		return alReverbEnable?1:0;
-	}
-
-	@Override
-	public float getReverbDelay() {
-		return alReverbDelay;
-	}
-
-	@Override
-	public void setReverb(int enable) {
-		alReverbEnable = (enable == 1);
-		alReverbDelay = alDefReverbDelay;
-
-		Iterator<Source> it = sourceManager.iterator();
-	    while(it.hasNext()) {
-	    	Source s = (Source)it.next();
-	    	setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
-	    }
-	}
-
-	@Override
-	public void setReverbDelay(float delay) {
-		alReverbDelay = delay;
-		
-		Iterator<Source> it = sourceManager.iterator();
-	    while(it.hasNext()) {
-	    	Source s = (Source)it.next();
-	    	setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
-	    }
 	}
 }
 

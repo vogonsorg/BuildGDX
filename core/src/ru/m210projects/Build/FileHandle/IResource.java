@@ -7,7 +7,7 @@ public abstract class IResource {
 	
 	public int type;
 	public String name;
-	
+
 	class ResourceException extends Exception
 	{
 		private static final long serialVersionUID = 1L;
@@ -55,6 +55,8 @@ public abstract class IResource {
 	public abstract int Lookup(int fileId, String type);
 	
 	public abstract int Read(int filenum, byte[] buffer, int leng);
+	
+	public abstract int Read(int handle, int len);
 	
 	public abstract byte[] Lock(int filenum);
 	

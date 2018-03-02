@@ -47,7 +47,8 @@ public class RFFResource extends IResource {
 	private boolean Crypted;
 	private int NumFiles;
 	private List<RRESHANDLE> files = new ArrayList<RRESHANDLE>();
-
+	private byte[] readbuf = new byte[4];
+	
 	public RFFResource(byte[] data) throws Exception
 	{
 		if(data != null) {
@@ -307,6 +308,37 @@ public class RFFResource extends IResource {
 	
 		file.pos += leng;
 		return(leng);
+	}
+	
+	@Override
+	public int Read(int filenum, int len) {
+		if(filenum < 0) return -1;
+		
+		RRESHANDLE file = files.get(filenum);
+		if(len >= file.size-file.pos)
+			return 0;
+		
+		if(file.paktype == DAT) 
+			System.arraycopy(file.buffer, file.pos, readbuf, 0, len);
+		else {	
+			int i = file.offset+file.pos;
+			int groupfilpos = Bfpos(File);
+			if (i != groupfilpos) 
+				Blseek(File, i, SEEK_SET);
+			Bread(File,readbuf,len);
+		}
+		file.pos += len;
+		
+		//Decrypt first?
+		
+		if(len == 1)
+			return readbuf[0] & 0xFF;
+		else if(len == 2) 
+			return LittleEndian.getShort(readbuf);
+		else if(len == 4) 
+			return LittleEndian.getInt(readbuf);
+
+		return 0;
 	}
 	
 	@Override
