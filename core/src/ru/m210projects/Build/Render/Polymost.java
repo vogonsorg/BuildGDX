@@ -2,6 +2,7 @@
 
 import static java.lang.Math.*;
 import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Types.Hightile.*;
 import static ru.m210projects.Build.Loader.MDSprite.*;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
@@ -88,7 +89,6 @@ import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
 import static ru.m210projects.Build.Types.Hightile.HICEFFECTMASK;
-import static ru.m210projects.Build.Types.Hightile.hicfindsubst;
 import static ru.m210projects.Build.Types.Hightile.hictinting;
 
 import java.nio.ByteBuffer;
@@ -1760,6 +1760,7 @@ public abstract class Polymost implements Renderer {
 		domostpolymethod = 0;
 	}
 	
+	/*
 	// Are we using the mode that uploads non-power-of-two wall textures like they
 	// render in classic?
 	private boolean isnpotmode()
@@ -1770,9 +1771,10 @@ public abstract class Polymost implements Renderer {
 	        // r_npotwallmode is NYI for hightiles. We require r_hightile off
 	        // because in calc_ypanning(), the repeat would be multiplied by a
 	        // factor even if no modified texture were loaded.
-	        !usehightile &&
-	        r_npotwallmode != 0;
+	        (!usehightile)
+	        && r_npotwallmode != 0;
 	}
+	*/
 	
 	private void calc_ypanning(int refposz, double ryp0, double ryp1,
 			double x0, double x1, short ypan, short yrepeat, boolean dopancor) {
@@ -1782,19 +1784,22 @@ public abstract class Polymost implements Renderer {
 		int i = (1 << (picsiz[globalpicnum] >> 4));
 		if (i < tilesizy[globalpicnum]) i <<= 1;
 
-		if (isnpotmode())
+		//if (isnpotmode())
+		if(GLInfo.texnpot != 0)
 	    {
-	        t *= (float)tilesizy[globalpicnum] / i;
+			if(!dopancor) //texture scaled, it's need to fix
+				t *= (float)tilesizy[globalpicnum] / i;
 	        i = tilesizy[globalpicnum];
-	    } else if (dopancor) {
+	    } else if (dopancor && hicreplc[globalpicnum] != null) {
 			// Carry out panning "correction" to make it look like classic in some
 	        // cases, but failing in the general case.
-			int yoffs = (int) ((i - tilesizy[globalpicnum]) * (255.0f / i));
+			
+	    	int yoffs = (int) ((i - tilesizy[globalpicnum]) * (255.0f / i));
 			if (ypan > 256 - yoffs) 
 				ypan -= yoffs;
 		}
 
-		double fy = (float) ypan * ((float) i) / 256.0;
+		float fy = ypan * i / 256.0f;
 		gvx = (t0 - t1) * t;
 		gvy = (x1 - x0) * t;
 		gvo = -gvx * x0 - gvy * t0 + fy * gdo;
@@ -3472,7 +3477,7 @@ public abstract class Polymost implements Renderer {
 			if ((tsizx & 1) != 0)
 				sx0 += fx * 0.5f;
 			sy0 -= fy * (float) yoff;
-			if ((tsizy & 1) != 0)
+			if ((globalorientation & 128) != 0 && (tsizy & 1) != 0)
 				sy0 += fy * 0.5f;
 
 			fx *= ((float) tsizx);
