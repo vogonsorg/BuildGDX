@@ -1,4 +1,4 @@
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Render.Types;
 
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXTILES;
@@ -8,6 +8,7 @@ import static ru.m210projects.Build.Engine.tilesizx;
 import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Types.Palette;
 
 public class Hightile {
 

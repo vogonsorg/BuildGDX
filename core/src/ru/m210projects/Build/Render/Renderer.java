@@ -3,7 +3,7 @@ package ru.m210projects.Build.Render;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
-import ru.m210projects.Build.Types.FadeEffect;
+import ru.m210projects.Build.Render.Types.FadeEffect;
 
 public interface Renderer {
 	

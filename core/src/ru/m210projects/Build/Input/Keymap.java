@@ -1,4 +1,4 @@
-package ru.m210projects.Build;
+package ru.m210projects.Build.Input;
 
 import static com.badlogic.gdx.Input.Keys.*;
 

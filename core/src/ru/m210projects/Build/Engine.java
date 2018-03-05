@@ -4,8 +4,8 @@ import static java.lang.Math.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
+import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.*;
-import static ru.m210projects.Build.Types.Hightile.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import java.io.File;
@@ -16,13 +16,16 @@ import java.util.HashMap;
 
 import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.Sound;
+import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.DEFOSDFUNC;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
-import ru.m210projects.Build.Render.GL10;
 import ru.m210projects.Build.Render.Renderer;
-import ru.m210projects.Build.Types.FadeEffect;
+import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.Render.Types.Spriteext;
+import ru.m210projects.Build.Render.Types.Spritesmooth;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Message;
@@ -31,8 +34,6 @@ import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Types.Palette;
-import ru.m210projects.Build.Types.Spriteext;
-import ru.m210projects.Build.Types.Spritesmooth;
 import ru.m210projects.Build.Types.Tile2model;
 
 import com.badlogic.gdx.Gdx;

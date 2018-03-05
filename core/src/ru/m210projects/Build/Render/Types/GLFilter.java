@@ -1,5 +1,5 @@
 
-package ru.m210projects.Build.Render;
+package ru.m210projects.Build.Render.Types;
 
 public class GLFilter {
 	public String name;

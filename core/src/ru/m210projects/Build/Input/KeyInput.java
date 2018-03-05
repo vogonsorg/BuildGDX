@@ -1,7 +1,7 @@
-package ru.m210projects.Build;
+package ru.m210projects.Build.Input;
 
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Keymap.*;
+import static ru.m210projects.Build.Input.Keymap.*;
 import static ru.m210projects.Build.Strhandler.isalpha;
 import static ru.m210projects.Build.Strhandler.isdigit;
 

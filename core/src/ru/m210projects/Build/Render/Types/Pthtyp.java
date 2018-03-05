@@ -1,4 +1,5 @@
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Render.Types;
+
 
 import com.badlogic.gdx.graphics.Texture;
 

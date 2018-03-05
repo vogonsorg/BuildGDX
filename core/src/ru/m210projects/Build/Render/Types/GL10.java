@@ -1,4 +1,4 @@
-package ru.m210projects.Build.Render;
+package ru.m210projects.Build.Render.Types;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;

@@ -1,4 +1,6 @@
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Render.Types;
+
+import ru.m210projects.Build.Types.SPRITE;
 
 public class Spriteext {
 	public long mdanimtims;

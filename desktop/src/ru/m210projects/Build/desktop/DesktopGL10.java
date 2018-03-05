@@ -15,7 +15,7 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.NVMultisampleFilterHint;
 
-import ru.m210projects.Build.Render.GL10;
+import ru.m210projects.Build.Render.Types.GL10;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Matrix4;

@@ -1,13 +1,13 @@
 package ru.m210projects.Build;
 
+import static ru.m210projects.Build.Audio.Highmusic.*;
 import static ru.m210projects.Build.Common.T_EOF;
 import static ru.m210projects.Build.Common.T_ERROR;
 import static ru.m210projects.Build.Common.check_file_exist;
 import static ru.m210projects.Build.Common.getatoken;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Loader.MDSprite.*;
-import static ru.m210projects.Build.Types.Hightile.*;
-import static ru.m210projects.Build.Types.Highmusic.*;
+import static ru.m210projects.Build.Render.Types.Hightile.*;
 
 import java.io.File;
 import java.util.HashMap;

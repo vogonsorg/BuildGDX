@@ -1,4 +1,4 @@
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Render.Types;
 
 public class Spritesmooth {
 	public float smoothduration;

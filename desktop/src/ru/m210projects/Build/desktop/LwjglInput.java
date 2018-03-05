@@ -20,7 +20,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.Pool;
 
-import static ru.m210projects.Build.Keymap.*;
+import static ru.m210projects.Build.Input.Keymap.*;
 
 /** An implementation of the {@link Input} interface hooking a LWJGL panel for input.
  * 

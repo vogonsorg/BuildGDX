@@ -1,20 +1,22 @@
 package ru.m210projects.Build.Render;
 
 import static ru.m210projects.Build.Engine.glanisotropy;
-import static ru.m210projects.Build.Render.GL10.GL_DITHER;
-import static ru.m210projects.Build.Render.GL10.GL_EXTENSIONS;
-import static ru.m210projects.Build.Render.GL10.GL_LINE_SMOOTH_HINT;
-import static ru.m210projects.Build.Render.GL10.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
-import static ru.m210projects.Build.Render.GL10.GL_NICEST;
-import static ru.m210projects.Build.Render.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
-import static ru.m210projects.Build.Render.GL10.GL_RENDERER;
-import static ru.m210projects.Build.Render.GL10.GL_SMOOTH;
-import static ru.m210projects.Build.Render.GL10.GL_TEXTURE_2D;
-import static ru.m210projects.Build.Render.GL10.GL_VENDOR;
-import static ru.m210projects.Build.Render.GL10.GL_VERSION;
+import static ru.m210projects.Build.Render.Types.GL10.GL_DITHER;
+import static ru.m210projects.Build.Render.Types.GL10.GL_EXTENSIONS;
+import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+import static ru.m210projects.Build.Render.Types.GL10.GL_NICEST;
+import static ru.m210projects.Build.Render.Types.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
+import static ru.m210projects.Build.Render.Types.GL10.GL_RENDERER;
+import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
+import static ru.m210projects.Build.Render.Types.GL10.GL_VENDOR;
+import static ru.m210projects.Build.Render.Types.GL10.GL_VERSION;
 import static ru.m210projects.Build.Strhandler.Bstrtoken;
 
 import java.nio.FloatBuffer;
+
+import ru.m210projects.Build.Render.Types.GL10;
 
 import com.badlogic.gdx.utils.BufferUtils;
 

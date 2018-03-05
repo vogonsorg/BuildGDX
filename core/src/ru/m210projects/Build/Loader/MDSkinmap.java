@@ -1,6 +1,6 @@
 package ru.m210projects.Build.Loader;
 
-import static ru.m210projects.Build.Types.Hightile.HICEFFECTMASK;
+import static ru.m210projects.Build.Render.Types.Hightile.HICEFFECTMASK;
 
 import com.badlogic.gdx.graphics.Texture;
 

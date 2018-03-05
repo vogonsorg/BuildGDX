@@ -13,15 +13,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import ru.m210projects.Build.Keymap;
+import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.Types.MessageCallback;
 
 import com.badlogic.gdx.Input.Keys;
 
 
-import static ru.m210projects.Build.KeyInput.gdxscantoasc;
-import static ru.m210projects.Build.KeyInput.gdxscantoascwithshift;
-import static ru.m210projects.Build.Keymap.KEY_CAPSLOCK;
+import static ru.m210projects.Build.Input.KeyInput.gdxscantoasc;
+import static ru.m210projects.Build.Input.KeyInput.gdxscantoascwithshift;
+import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
 import static ru.m210projects.Build.Strhandler.Bstrcpy;
 import static ru.m210projects.Build.Strhandler.isdigit;

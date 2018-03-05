@@ -1,7 +1,6 @@
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Render.Types;
 
-import static ru.m210projects.Build.Render.GL10.GL_TRIANGLES;
-import ru.m210projects.Build.Render.GL10;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TRIANGLES;
 
 public abstract class FadeEffect {
 	public int sfactor; 
