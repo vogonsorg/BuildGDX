@@ -412,4 +412,11 @@ public class RFFResource extends IResource {
 			File = -1;
 		}
 	}
+	
+	@Override
+	public int FilePos(int handle) {
+		if(handle < 0) return -1;
+		RRESHANDLE file = files.get(handle);
+		return file.pos;
+	}
 }

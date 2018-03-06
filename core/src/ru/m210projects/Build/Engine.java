@@ -62,8 +62,8 @@ public abstract class Engine {
 	public static final int CLIPMASK1 = (((256) << 16) + 64);
 	public static final int MAXPSKYTILES = 256;
 	public static final int MAXPALOOKUPS = 256;
-	public static final int USERTILES = 256;
-	public static final int MAXTILES = 9216 + USERTILES;
+	public static int USERTILES = 256;
+	public static int MAXTILES = 9216 + USERTILES;
 	public static final int MAXSTATUS = 1024;
 	public static final int DETAILPAL = (MAXPALOOKUPS - 1);
 	public static final int GLOWPAL = (MAXPALOOKUPS - 2);
@@ -76,9 +76,9 @@ public abstract class Engine {
 	public static final int MAXSECTORSV7 = 1024;
 	public static final int MAXWALLSV7 = 8192;
 	public static final int MAXSPRITESV7 = 4096;
-	public static final int MAXSECTORS = MAXSECTORSV7;
-	public static final int MAXWALLS = 9600; //BLOOD MAXWALLS //MAXWALLSV7;
-	public static final int MAXSPRITES = MAXSPRITESV7;
+	public static int MAXSECTORS = MAXSECTORSV7;
+	public static int MAXWALLS = MAXWALLSV7;
+	public static int MAXSPRITES = MAXSPRITESV7;
 	public static final int MAXSPRITESONSCREEN = 1024;
 	public static final int MAXVOXELS = MAXSPRITES;
 	public static final int EXTRATILES = (MAXTILES / 8);

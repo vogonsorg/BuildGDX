@@ -74,6 +74,8 @@ public abstract class IResource {
 	
 	public abstract int Pos();
 	
+	public abstract int FilePos(int handle);
+	
 	public abstract List<RESHANDLE> fList();
 	
 	public abstract void Dispose();

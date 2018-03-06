@@ -231,4 +231,12 @@ public class ZIPResource extends IResource {
 			ZFile.close();
 		} catch (IOException e) {}
 	}
+	
+
+	@Override
+	public int FilePos(int handle) {
+		if(handle < 0) return -1;
+		ZRESHANDLE file = files.get(handle);
+		return file.pos;
+	}
 }

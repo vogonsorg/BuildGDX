@@ -178,8 +178,7 @@ public class Compat {
 		
 		RandomAccessFile fis = raf_list[handle];
 		try {
-			fis.read(buf, 0, len);
-			var = len;
+			var = fis.read(buf, 0, len);
 		} catch (IOException e) {
 			throw new RuntimeException("Couldn't load file " + handle);
 	    } 

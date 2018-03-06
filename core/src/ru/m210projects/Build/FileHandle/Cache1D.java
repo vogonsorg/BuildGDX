@@ -18,6 +18,8 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class Cache1D {
 	
+	private static LZW lzw; //Internal LZW
+	
 	public static final int GRP = 1;
 	public static final int RFF = 2;
 	public static final int ZIP = 4;
@@ -294,6 +296,12 @@ public class Cache1D {
 		}
 		return -1;
 	}
+	
+	public static int kdfRead(byte[] buffer, int dasizeof, int count, int fil)
+	{
+		if(lzw == null) lzw = new LZW();
+		return lzw.kdfread(buffer, dasizeof, count, fil);
+	}
 
 	public static int kRead(int handle, byte[] buffer, int leng)
 	{
@@ -392,14 +400,16 @@ public class Cache1D {
 		filehan[handle] = -1;
 	}
 
+	public static int kTell(int handle)
+	{
+		int groupnum = filegrp[handle];
 
-	
-	
-	
-	
-	
-	
-	
+		if (groupnum == 255) return(Blseek(filehan[handle],0,SEEK_CUR));
+
+		if (groupfil.get(groupnum) != null)
+			return groupfil.get(groupnum).FilePos(handle);
+		return(-1);
+	}
 
 	public static void kfilelist()
 	{

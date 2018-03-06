@@ -202,4 +202,14 @@ public class EXTResource extends IResource {
 		
 		return Bread(file.fil, leng);
 	}
+
+	@Override
+	public int FilePos(int handle) {
+		if(handle < 0) return -1;
+
+		ERESHANDLE file = files.get(handle);
+		if(file.fil < 0) return -1;
+		
+		return(Blseek(file.fil,0,SEEK_CUR));
+	}
 }
