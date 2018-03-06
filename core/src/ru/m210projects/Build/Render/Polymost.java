@@ -5182,7 +5182,7 @@ public abstract class Polymost implements Renderer {
 
 		for (i = spritesortcnt - 1; i >= 0; i--) {
 			tspriteptr[i] = tsprite[i];
-			if(tspriteptr[i].picnum == -1) continue;
+			if(tspriteptr[i].picnum < 0) continue;
 			xs = tspriteptr[i].x - globalposx;
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
@@ -5251,7 +5251,7 @@ public abstract class Polymost implements Renderer {
 			if (j > i + 1) {
 				for (k = i; k < j; k++) {
 					spritesz[k] = tspriteptr[k].z;
-					if(tspriteptr[k].picnum == -1) continue;
+					if(tspriteptr[k].picnum < 0) continue;
 					if ((tspriteptr[k].cstat & 48) != 32) {
 						yoff = ((picanm[tspriteptr[k].picnum] >> 16) & 255) + tspriteptr[k].yoffset;
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
