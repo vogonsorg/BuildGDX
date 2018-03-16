@@ -132,7 +132,8 @@ public abstract class Engine {
 	
 	//OUTPUT VALUES
 	public static int floorzsofslope, ceilzsofslope;
-	public static int mirrorx, mirrory, mirrorang;
+	public static int mirrorx, mirrory;
+	public static float mirrorang;
 	public static int intx;
 	public static int inty;
 	public static int intz;
@@ -1477,9 +1478,6 @@ public abstract class Engine {
 		timerticspersec = tickspersecond;
 		timerlastsample = getticks() * timerticspersec / timerfreq;
 	}
-
-	static float tick = 0;
-	static boolean key = false;
 
 	public void sampletimer() {
 		if (timerfreq == 0)
@@ -3809,7 +3807,7 @@ public abstract class Engine {
 		render.clearview(dacol);
 	}
 
-	public void preparemirror(int dax, int day, int daz, int daang, float dahoriz, int dawall, int dasector) {
+	public void preparemirror(int dax, int day, int daz, float daang, float dahoriz, int dawall, int dasector) {
 		int i, j, x, y, dx, dy;
 
 		x = wall[dawall].x;
@@ -3822,7 +3820,7 @@ public abstract class Engine {
 		i = (((dax - x) * dx + (day - y) * dy) << 1);
 		mirrorx = (x << 1) + scale(dx, i, j) - dax;
 		mirrory = (y << 1) + scale(dy, i, j) - day;
-		mirrorang = (((getangle(dx, dy) << 1) - daang) & 2047);
+		mirrorang = ClampAngle((getangle(dx, dy) << 1) - daang);
 
 		inpreparemirror = true;
 	}
