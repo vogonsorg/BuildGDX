@@ -1,5 +1,9 @@
 package ru.m210projects.Build.OnSceenDisplay;
 
+import static ru.m210projects.Build.Engine.palette;
+import static ru.m210projects.Build.Engine.tilesizx;
+import static ru.m210projects.Build.Engine.tilesizy;
+import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BGCTILE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BGTILE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BGTILE_SIZEX;
@@ -10,8 +14,10 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.BITSTL;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BORDTILE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.PALETTE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.SHADE;
-import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.OnSceenDisplay.Console.osdkey;
 import ru.m210projects.Build.Engine;
+
+import com.badlogic.gdx.Input.Keys;
 
 public class DEFOSDFUNC implements OSDFunc {
 	
@@ -27,6 +33,8 @@ public class DEFOSDFUNC implements OSDFunc {
             int j = (palette[3*i]&0xFF)+(palette[3*i+1]&0xFF)+(palette[3*i+2]&0xFF);
             if (j > k) { k = j; white = i; }
         }
+        
+        osdkey[0] = Keys.GRAVE;
 	}
 
 	@Override

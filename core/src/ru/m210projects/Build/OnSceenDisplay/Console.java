@@ -385,7 +385,6 @@ public class Console {
 	{
 //		osdnumsymbols = osdnumcvars = 0;
 		
-		osdkey[0] = Keys.GRAVE;
 		osdlines = 1;
 		osdflags |= OSD_INITIALIZED;
 

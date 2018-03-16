@@ -2476,7 +2476,7 @@ public abstract class Polymost implements Renderer {
 		oy = viewingrange / (ghalfx * 256.0);
 		double oz = 1 / oy;
 
-		int y = ((((int) ((x0 - ghalfx) * oy)) + globalang) >> (11 - dapskybits));
+		int y = ((int)(((x0-ghalfx)*oy)+globalang)>>(11-dapskybits));
 		
 		panning = sec.ceilingxpanning;
 		if(floor) panning = sec.floorxpanning;
@@ -5457,7 +5457,7 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	public void md3_vox_calcmat_common(SPRITE tspr, Vector3 a0, float f, Matrix4 mat) {
-		float yaw = (globalang & 2047) / (2048.0f / 360.0f) - 90.0f;
+		float yaw = globalang / (2048.0f / 360.0f) - 90.0f;
 		float roll = gtang * 57.3f; //XXX 57.3f WFT
 		float spriteang = ((tspr.ang + spriteext[tspr.owner].angoff + 512) & 2047) / (2048.0f / 360.0f);
 		
@@ -5509,7 +5509,7 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	public void md3_vox_calcmat_common(SPRITE tspr, Vector3 a0) {
-		float yaw = (globalang & 2047) / (2048.0f / 360.0f) - 90.0f;
+		float yaw = globalang / (2048.0f / 360.0f) - 90.0f;
 		float roll = gtang * 57.3f; //XXX 57.3f WTF
 		float spriteang = ((tspr.ang + spriteext[tspr.owner].angoff + 512) & 2047) / (2048.0f / 360.0f);
 

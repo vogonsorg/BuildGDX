@@ -175,9 +175,9 @@ public abstract class Engine {
 	public static int[] tiletovox;
 	public static boolean[] voxrotate;
 	public static int globalposx, globalposy, globalposz; //polymost
-	public static float globalhoriz;
+	public static float globalhoriz, globalang;
 	public static float pitch;
-	public static short globalang, globalcursectnum;
+	public static short globalcursectnum;
 	public static long globalvisibility;
 	public static int globalshade, globalpal, cosglobalang, singlobalang;
 	public static int cosviewingrangeglobalang, sinviewingrangeglobalang;
@@ -1172,7 +1172,7 @@ public abstract class Engine {
 	}
 
 	public int drawrooms(float daposx, float daposy, float daposz,
-			int daang, float dahoriz, int dacursectnum) {
+			float daang, float dahoriz, int dacursectnum) {
 
 		beforedrawrooms = 0;
 		indrawroomsandmasks = 1;
@@ -1180,7 +1180,8 @@ public abstract class Engine {
 		globalposx = (int) daposx;
 		globalposy = (int) daposy;
 		globalposz = (int) daposz;
-		globalang = (short) (daang & 2047);
+
+		globalang = ClampAngle(daang);
 
 		globalhoriz = ((dahoriz - 100) * xdimenscale / viewingrange) + (ydimen >> 1);
 		pitch = (float)(-getangle(160, (int)(dahoriz-100))) / (2048.0f / 360.0f);
@@ -1197,8 +1198,11 @@ public abstract class Engine {
 		globalcursectnum = (short) dacursectnum;
 		totalclocklock = totalclock;
 
-		cosglobalang = sintable[(globalang + 512) & 2047];
-		singlobalang = sintable[globalang & 2047];
+		cosglobalang = (int) CosAngle(globalang);
+		singlobalang = (int) SinAngle(globalang);
+		 
+//		cosglobalang = sintable[(int) (globalang + 512) & 2047];
+//		singlobalang = sintable[(int) globalang & 2047];
 		cosviewingrangeglobalang = mulscale(cosglobalang, viewingrange, 16);
 		sinviewingrangeglobalang = mulscale(singlobalang, viewingrange, 16);
 
