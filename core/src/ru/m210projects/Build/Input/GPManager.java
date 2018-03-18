@@ -63,5 +63,13 @@ public class GPManager {
 		}
 		return false;
 	}
-
+	
+	public float getAxisValue(int aCode) {
+		float value = 0.0f;
+		for(int i = 0; i < gamepads.size; i++) {
+			if((value = gamepads.get(i).getAxisValue(aCode)) != 0.0f)
+				return value;
+		}
+		return 0.0f;
+	}
 }
