@@ -1,47 +1,74 @@
 package ru.m210projects.Build.Input;
 
+import static ru.m210projects.Build.Input.GPManager.MAXBUTTONS;
 import com.badlogic.gdx.controllers.Controller;
-import com.badlogic.gdx.controllers.Controllers;
-import com.badlogic.gdx.utils.Array;
 
-public class Gamepad implements IGamepad {
+public class Gamepad {
 
 	private String controllerName;
-	private Array<Controller> controllers;
+	private boolean[] buttonStatus;
+	private boolean[] hitButton;
+	private Controller controller;
+	private int buttonsNum;
 	
-	public Gamepad()
+	public Gamepad(Controller controller)
 	{
-		controllers = Controllers.getControllers();
-		if(controllers.size > 0)
-			controllerName = controllers.get(0).getName();
+		buttonsNum = MAXBUTTONS;
+		buttonStatus = new boolean[buttonsNum];
+		hitButton = new boolean[buttonsNum];
+		this.controller = controller;
+		controllerName = controller.getName();
 	}
 	
-	@Override
-	public boolean isButtonPressed(int buttonCode) {
-		
-		for(int i = 0; i < controllers.size; i++)
-		{
-			Controller c = controllers.get(i);
-			if(c.getButton(buttonCode)) return true;
-		}
+	public boolean getButton(int buttonCode)
+	{
+		if(buttonCode > 0 && buttonCode < buttonsNum)
+			return buttonStatus[buttonCode];
 		
 		return false;
 	}
 
-	@Override
+	public boolean buttonStatusOnce(int buttonCode)
+	{
+		if(buttonCode > 0 && buttonCode < buttonsNum && buttonStatus[buttonCode]) {
+			buttonStatus[buttonCode] = false;
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean buttonStatus(int buttonCode)
+	{
+		if(buttonCode > 0 && buttonCode < buttonsNum && buttonStatus[buttonCode]) 
+			return true;
+
+		return false;
+	}
+
 	public float getAxisValue(int aCode) {
 		float value = 0.0f;
-		for(int i = 0; i < controllers.size; i++)
-		{
-			Controller c = controllers.get(i);
-			if(Math.abs(value = c.getAxis(aCode)) >= 0.01f) return value;
-		}
+		
+		if(Math.abs(value = controller.getAxis(aCode)) >= 0.01f) return value;
 		
 		return 0.0f;
 	}
 
-	@Override
 	public String getName() {
 		return controllerName;
+	}
+
+	public void buttonHandler() {
+		for(int i = 0; i < buttonsNum; i++)
+		{
+			if (controller.getButton(i)) {
+				if (!hitButton[i]) {
+					buttonStatus[i] = true;
+					hitButton[i] = true;
+				}
+			} else {
+				buttonStatus[i] = false;
+				hitButton[i] = false;
+			}
+		}
 	}
 }
