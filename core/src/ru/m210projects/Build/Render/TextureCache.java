@@ -220,25 +220,23 @@ public class TextureCache {
 		if (doalloc) {
 			byte[] data = kGetBytes(fn, 0);
 			if(data == null) return null;
-			
-			Pixmap pix = new Pixmap(data, 0, data.length);
-			
-			int psizx = calcSize(pix.getWidth());
-			int psizy = calcSize(pix.getHeight());
-			
-			pth.sizx = (short) pix.getWidth();
-			pth.sizy = (short) pix.getHeight();
-			
-			//Texture width and height must be powers of two
-			if(psizx != pix.getWidth() || psizy != pix.getHeight())
-			{
-				Pixmap npix = new Pixmap(psizx, psizy, pix.getFormat());
-				npix.drawPixmap(pix, 0, 0);
-				pix.dispose();
-				pix = npix;
-			}
-
 			try {
+				Pixmap pix = new Pixmap(data, 0, data.length);
+				
+				int psizx = calcSize(pix.getWidth());
+				int psizy = calcSize(pix.getHeight());
+				
+				pth.sizx = (short) pix.getWidth();
+				pth.sizy = (short) pix.getHeight();
+				
+				//Texture width and height must be powers of two
+				if(psizx != pix.getWidth() || psizy != pix.getHeight())
+				{
+					Pixmap npix = new Pixmap(psizx, psizy, pix.getFormat());
+					npix.drawPixmap(pix, 0, 0);
+					pix.dispose();
+					pix = npix;
+				}
 				pth.glpic = new Texture(pix, true); 
 			} catch(Exception e) { return null; } 
 		}

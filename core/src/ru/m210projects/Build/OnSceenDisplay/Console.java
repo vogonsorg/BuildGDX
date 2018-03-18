@@ -342,6 +342,23 @@ public class Console {
 		logfile = -1;
 	}
 	
+	public static void LogData(byte[] data)
+	{
+		if (logfile != -1) {
+	    	Bwrite(logfile, data, data.length);
+	    }
+	    StreamData(data);
+	}
+	
+	public static void StreamData(byte[] data)
+	{
+		try {
+			logStream.write(data);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void LogPrint(String str)
 	{
 	    if (logfile != -1) {
