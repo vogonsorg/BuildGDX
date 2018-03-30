@@ -47,6 +47,7 @@ import com.badlogic.gdx.utils.BufferUtils;
 public abstract class Engine {
 
 	private boolean releasedEngine;
+	public boolean compatibleMode;
 	
 	public Renderer render;
 	private Message message;
@@ -211,8 +212,8 @@ public abstract class Engine {
 	private int artversion;
 //	private int mapversion;
 	private long totalclocklock;
-	private short[] sqrtable;
-	private short[] shlookup;
+	protected short[] sqrtable;
+	protected short[] shlookup;
 	private int hitallsprites = 0;
 	private final int MAXCLIPNUM = 1024;
 	private final int MAXCLIPDIST = 1024;
@@ -336,15 +337,11 @@ public abstract class Engine {
 	public void initksqrt() {
 		int i, j = 1, k = 0;
 		for (i = 0; i < 4096; i++) {
-			if (i >= j) {
-				j <<= 2;
-				k++;
-			}
+			if (i >= j) { j <<= 2; k++; }
 
-			sqrtable[i] = (short) (sqrt(((i << 18) + 131072) << 1));
+			sqrtable[i] = (short)((int)sqrt(((i << 18) + 131072)) << 1);
 			shlookup[i] = (short) ((k << 1) + ((10 - k) << 8));
-			if (i < 256)
-				shlookup[i + 4096] = (short) (((k + 6) << 1) + ((10 - (k + 6)) << 8));
+			if (i < 256) shlookup[i + 4096] = (short) (((k + 6) << 1) + ((10 - (k + 6)) << 8));
 		}
 	}
 
@@ -1863,18 +1860,20 @@ public abstract class Engine {
 	}
 
 	public int ksqrt(int a) {
-		//		int out, value;
-		//		if ( (a & 0xFF000000) != 0 )
-		//			value = shlookup[(a >> 24) + 4096];
-		//		else
-		//			value = shlookup[a >> 12];
-		//		
-		//		out = a >> value;
-		//		out = sqrtable[out];
-		//	
-		//		return out >> SHIBYTE(value);
-
-		return (int) sqrt(a & 0xFFFFFFFFL);
+		if(compatibleMode) {
+			long out = a & 0xFFFFFFFFL;
+			int value;
+			if ( (out & 0xFF000000) != 0 )
+				value = shlookup[(int) ((out >> 24) + 4096)] & 0xFFFF;
+			else
+				value = shlookup[(int) (out >> 12)] & 0xFFFF;
+			
+			out >>= value & 0xff;				
+			out = (out & 0xffff0000) | (sqrtable[(int) out] & 0xFFFF);	
+			out >>= ((value & 0xff00) >> 8);		
+								
+			return (int) out;
+		} else return (int) sqrt(a & 0xFFFFFFFFL);
 	}
 
 	private static int SETSPRITEZ = 0;
@@ -2544,10 +2543,6 @@ public abstract class Engine {
 			dx = (3 * dx) >> 3;
 
 		return dx + dy;
-	}
-
-	public int dist(int dx, int dy, int dz) {
-		return (int) sqrt(dx * dx + dy * dy + (dz << 16) * (dz << 16));
 	}
 
 	public void dragpoint(int pointhighlight, int dax, int day) {
@@ -3868,6 +3863,8 @@ public abstract class Engine {
 		if (i == 0)
 			return (sector[sectnum].ceilingz);
 		j = (int) dmulscale(dx, day - wal.y, -dy, dax - wal.x, 3);
+		if(compatibleMode)
+			return sector[sectnum].ceilingz + (scale(sector[sectnum].ceilingheinum, j, i));
 		return (sector[sectnum].ceilingz + (scale(sector[sectnum].ceilingheinum, j >> 1, i) << 1));
 	}
 
@@ -3881,11 +3878,13 @@ public abstract class Engine {
 
 		wal = wall[sector[sectnum].wallptr];
 		dx = wall[wal.point2].x - wal.x;
-		dy = wall[wal.point2].y - wal.y; //ok
+		dy = wall[wal.point2].y - wal.y;
 		i = (int) (ksqrt(dx * dx + dy * dy) << 5);
 		if (i == 0)
 			return (sector[sectnum].floorz);
 		j = dmulscale(dx, day - wal.y, -dy, dax - wal.x, 3);
+		if(compatibleMode)
+			return sector[sectnum].floorz + (scale(sector[sectnum].floorheinum, j, i));
 		return (sector[sectnum].floorz + (scale(sector[sectnum].floorheinum, j >> 1, i) << 1));
 	}
 
@@ -3908,10 +3907,17 @@ public abstract class Engine {
 				return;
 			j = (int) dmulscale(dx, day - wal.y, -dy, dax - wal.x, 3);
 
-			if ((sec.ceilingstat & 2) != 0)
-				ceilzsofslope += scale(sec.ceilingheinum, j >> 1, i) << 1;
-			if ((sec.floorstat & 2) != 0)
-				floorzsofslope += scale(sec.floorheinum, j >> 1, i) << 1;
+			if(compatibleMode) {
+				if ((sec.ceilingstat & 2) != 0)
+					ceilzsofslope += scale(sec.ceilingheinum, j, i);
+				if ((sec.floorstat & 2) != 0)
+					floorzsofslope += scale(sec.floorheinum, j, i);
+			} else {
+				if ((sec.ceilingstat & 2) != 0)
+					ceilzsofslope += scale(sec.ceilingheinum, j >> 1, i) << 1;
+				if ((sec.floorstat & 2) != 0)
+					floorzsofslope += scale(sec.floorheinum, j >> 1, i) << 1;
+			}
 		}
 	}
 
