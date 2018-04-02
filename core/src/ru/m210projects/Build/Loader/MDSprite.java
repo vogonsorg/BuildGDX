@@ -34,6 +34,7 @@ import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -42,7 +43,6 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile2model;
 
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
@@ -609,11 +609,11 @@ public class MDSprite {
 	    return 0;
 	}
 	
-	public static Texture mdloadskin(GL10 gl, MDModel m, int number, int pal, int surf)
+	public static BTexture mdloadskin(GL10 gl, MDModel m, int number, int pal, int surf)
 	{
 	    String skinfile = null;
-	    Texture texidx = null;
-	    Texture[] texptr = null;
+	    BTexture texidx = null;
+	    BTexture[] texptr = null;
 	    int idptr = -1;
 	    MDSkinmap sk, skzero = null;
 	    long startticks;
@@ -719,7 +719,7 @@ public class MDSprite {
 	    try {
 	    	byte[] data = kGetBytes(skinfile, 0);
 			Pixmap pix = new Pixmap(data, 0, data.length);
-			texidx = new Texture(pix, true); 
+			texidx = new BTexture(pix, true); 
 	    	m.usesalpha = true;
 	    } catch(Exception e) {
 	    	Console.Println("Couldn't load file: " + skinfile, OSDTEXT_YELLOW);

@@ -28,6 +28,7 @@ import java.util.Map;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ImageUtils.PicInfo;
+import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hicreplctyp;
 import ru.m210projects.Build.Render.Types.Pthtyp;
@@ -36,8 +37,6 @@ import ru.m210projects.Build.Render.Types.ValueResolver;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.Texture;
 
 public class TextureCache {
 	
@@ -158,7 +157,7 @@ public class TextureCache {
 
 		if (doalloc) {
 			try {
-				pth.glpic = new Texture(xsiz, ysiz, Format.RGBA8888);
+				pth.glpic = new BTexture();
 			} catch(Exception e) { return null; }
 		}
 		
@@ -237,7 +236,7 @@ public class TextureCache {
 					pix.dispose();
 					pix = npix;
 				}
-				pth.glpic = new Texture(pix, true); 
+				pth.glpic = new BTexture(pix, true); 
 			} catch(Exception e) { return null; } 
 		}
 

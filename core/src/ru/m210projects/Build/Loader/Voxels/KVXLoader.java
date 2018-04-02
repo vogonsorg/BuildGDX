@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import ru.m210projects.Build.Loader.Voxels.VOXModel.voxrect_t;
+import ru.m210projects.Build.Render.Types.BTexture;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -48,7 +48,7 @@ public class KVXLoader {
 	        vm.xsiz = xsiz; vm.ysiz = ysiz; vm.zsiz = zsiz;
 	        vm.xpiv = pivot.x; vm.ypiv = pivot.y; vm.zpiv = pivot.z;
 	        vm.is8bit = 1;
-	        vm.texid = new Texture[MAXPALOOKUPS];
+	        vm.texid = new BTexture[MAXPALOOKUPS];
 	        
 	        vm.verticesBuffer = BufferUtils.newFloatBuffer(vertices.size);
 	        vm.indicesBuffer = BufferUtils.newShortBuffer(indicies.size);

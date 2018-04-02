@@ -15,9 +15,9 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.NVMultisampleFilterHint;
 
+import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GL10;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.BufferUtils;
 
@@ -208,7 +208,7 @@ public class DesktopGL10 extends GL10 {
 		GL11.glAlphaFunc(pname, alpha);
 	}
 	
-	public void bglDeleteTextures(int n, Texture texture) {
+	public void bglDeleteTextures(int n, BTexture texture) {
 		texture.dispose();
 	}
 	
@@ -229,7 +229,7 @@ public class DesktopGL10 extends GL10 {
 		}
 	}
 	
-	public void bglBindTexture(int target, Texture texture) {
+	public void bglBindTexture(int target, BTexture texture) {
 		texture.bind();
 	}
 

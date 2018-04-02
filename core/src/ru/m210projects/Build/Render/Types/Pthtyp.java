@@ -1,11 +1,8 @@
 package ru.m210projects.Build.Render.Types;
 
-
-import com.badlogic.gdx.graphics.Texture;
-
 public class Pthtyp {
 	public static int sizeof = 16; // ?
-	public Texture glpic;
+	public BTexture glpic;
 	public short picnum;
 	public short palnum;
 	public short effects;

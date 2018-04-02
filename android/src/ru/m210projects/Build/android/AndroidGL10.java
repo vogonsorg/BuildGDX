@@ -6,13 +6,13 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
+import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GL10;
 
 import android.opengl.GLES10;
 import android.opengl.GLES11;
 import android.opengl.GLES11Ext;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Matrix4;
 
 public class AndroidGL10 extends GL10 {
@@ -188,7 +188,7 @@ public class AndroidGL10 extends GL10 {
 		GLES11.glAlphaFunc(pname, alpha);
 	}
 	
-	public void bglDeleteTextures(int n, Texture texture) {
+	public void bglDeleteTextures(int n, BTexture texture) {
 		texture.dispose();
 	}
 	
@@ -204,7 +204,7 @@ public class AndroidGL10 extends GL10 {
 		GLES11.glEnable(cap);
 	}
 	
-	public void bglBindTexture(int target, Texture texture) {
+	public void bglBindTexture(int target, BTexture texture) {
 		texture.bind();
 	}
 

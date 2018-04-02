@@ -30,12 +30,11 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 
+import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Types.Palette;
 
-import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class TextureUtils {
@@ -95,7 +94,7 @@ public class TextureUtils {
 		return arr;
 	}
 
-	public static Texture gloadtex(int[] picbuf, int xsiz, int ysiz, int dapal, GL10 gl) {
+	public static BTexture gloadtex(int[] picbuf, int xsiz, int ysiz, int dapal, GL10 gl) {
 		byte[] pic = tmpArray(xsiz, ysiz);
 
 		if (palookup[dapal] == null)
@@ -130,7 +129,7 @@ public class TextureUtils {
 			}
 		}
 
-		Texture rtexid = new Texture(xsiz, ysiz, Format.RGBA8888);
+		BTexture rtexid = new BTexture();
 		bindTexture(gl, rtexid);
 		uploadBoundTexture(gl, true, xsiz, ysiz, GL_RGBA, GL_RGBA, pic, xsiz, ysiz);
 		setupBoundTexture(gl, 0, 0);
@@ -153,11 +152,11 @@ public class TextureUtils {
 		return gltexmaxsize;
 	}
 
-	public static void bindTexture(GL10 gl, Texture tex) {
+	public static void bindTexture(GL10 gl, BTexture tex) {
 		gl.bglBindTexture(GL_TEXTURE_2D, tex);
 	}
 
-	public static void deleteTexture(GL10 gl, Texture tex) {
+	public static void deleteTexture(GL10 gl, BTexture tex) {
 		gl.bglDeleteTextures(GL_TEXTURE_2D, tex);
 	}
 

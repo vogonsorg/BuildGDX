@@ -5,7 +5,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Matrix4;
 
 public abstract class GL10 {
@@ -170,7 +169,7 @@ public abstract class GL10 {
 	
 	public abstract void bglAlphaFunc(int pname, float alpha);
 	
-	public abstract void bglDeleteTextures(int n, Texture texture);
+	public abstract void bglDeleteTextures(int n, BTexture texture);
 	
 	public abstract void bglDeleteTextures(int n, IntBuffer texture);
 	
@@ -180,7 +179,7 @@ public abstract class GL10 {
 	
 	public abstract void bglEnable(int cap);
 	
-	public abstract void bglBindTexture(int target, Texture texture);
+	public abstract void bglBindTexture(int target, BTexture texture);
 	
 	public abstract void bglBindTexture(int target, IntBuffer texture);
 

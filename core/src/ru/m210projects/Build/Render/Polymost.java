@@ -107,6 +107,7 @@ import ru.m210projects.Build.Loader.MD3.MD3Surface;
 import ru.m210projects.Build.Loader.MD3.MD3Vertice;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Pthtyp;
@@ -118,7 +119,6 @@ import ru.m210projects.Build.Types.Wallspriteinfo;
 import ru.m210projects.Build.Types.Palette;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -5744,7 +5744,7 @@ public abstract class Polymost implements Renderer {
 	        }
 	    	m.verticesBuffer.flip();
 
-			Texture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,surfi);
+			BTexture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,surfi);
 	        if (texid != null) {
 
 		        bindTexture(gl, texid);
@@ -6049,7 +6049,7 @@ public abstract class Polymost implements Renderer {
 	    gl.bglColor4f(drawpoly_pc[0],drawpoly_pc[1],drawpoly_pc[2],drawpoly_pc[3]);
 
 	    int rendered = 0;
-		Texture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
+		BTexture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
         if (texid != null)
         {
 	        bindTexture(gl, texid);
