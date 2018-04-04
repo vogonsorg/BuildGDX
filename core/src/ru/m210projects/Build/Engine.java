@@ -45,6 +45,10 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public abstract class Engine {
+	
+	protected class linetype {
+		public int x1, y1, x2, y2;
+	}
 
 	private boolean releasedEngine;
 	public boolean compatibleMode;
@@ -216,20 +220,19 @@ public abstract class Engine {
 	protected short[] shlookup;
 	private int hitallsprites = 0;
 	private final int MAXCLIPNUM = 1024;
-	private final int MAXCLIPDIST = 1024;
+	protected final int MAXCLIPDIST = 1024;
 	
 //	private int[] lookups;
-	private short clipnum;
-	
-	private short editstatus = 0;
+	protected short clipnum;
 
-	private int[] rxi, ryi;
-	private int[] hitwalls;
+	protected int[] rxi;
+	protected int[] ryi;
+	protected int[] hitwalls;
 
-	private linetype[] clipit;
-	private short[] clipsectorlist;
-	private short clipsectnum;
-	private int[] clipobjectval;
+	protected linetype[] clipit;
+	protected short[] clipsectorlist;
+	protected short clipsectnum;
+	protected int[] clipobjectval;
 
 	
 	private final int FASTPALCOLDEPTH = 256;
@@ -2704,7 +2707,7 @@ public abstract class Engine {
 				clipyou = 0;
 				if ((wal.nextsector < 0) || ((wal.cstat & dawalclipmask) != 0)) {
 					clipyou = 1;
-				} else if (editstatus == 0) {
+				} else {
 					int out = rintersect(clipmove_x, clipmove_y, 0, gx, gy, 0, x1, y1, x2, y2);
 					dax = Engine.intx;
 					day = Engine.inty;
@@ -3322,13 +3325,12 @@ public abstract class Engine {
 						continue;
 					sec = sector[k];
 					if(sec == null) continue;
-					if (editstatus == 0) {
-						if (((sec.ceilingstat & 1) == 0) && (z <= sec.ceilingz + (3 << 8)))
-							continue;
-						if (((sec.floorstat & 1) == 0) && (z >= sec.floorz - (3 << 8)))
-							continue;
-					}
-
+					
+					if (((sec.ceilingstat & 1) == 0) && (z <= sec.ceilingz + (3 << 8)))
+						continue;
+					if (((sec.floorstat & 1) == 0) && (z >= sec.floorz - (3 << 8)))
+						continue;
+					
 					for (i = clipsectnum - 1; i >= 0; i--)
 						if (clipsectorlist[i] == k)
 							break;
@@ -4402,8 +4404,4 @@ public abstract class Engine {
     	if(mx != null) mx.setVolume(vol);
 		if(fx != null) fx.volumeMusic(vol);
     }
-}
-
-class linetype {
-	int x1, y1, x2, y2;
 }
