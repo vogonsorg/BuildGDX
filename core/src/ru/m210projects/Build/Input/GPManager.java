@@ -10,6 +10,7 @@ public class GPManager {
 
 //	private Array<Controller> controllers;
 	private Array<Gamepad> gamepads;
+	private float deadZone = 0.01f;
 	
 	public GPManager()
 	{
@@ -29,6 +30,11 @@ public class GPManager {
 	public String getControllerName(int num)
 	{
 		return gamepads.get(num).getName();
+	}
+	
+	public void setDeadZone(float value)
+	{
+		this.deadZone = value;
 	}
 	
 	public boolean getButton(int buttonCode)
@@ -67,7 +73,7 @@ public class GPManager {
 	public float getAxisValue(int aCode) {
 		float value = 0.0f;
 		for(int i = 0; i < gamepads.size; i++) {
-			if((value = gamepads.get(i).getAxisValue(aCode)) != 0.0f)
+			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
 				return value;
 		}
 		return 0.0f;

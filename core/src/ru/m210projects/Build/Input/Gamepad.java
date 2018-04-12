@@ -45,10 +45,10 @@ public class Gamepad {
 		return false;
 	}
 
-	public float getAxisValue(int aCode) {
+	public float getAxisValue(int aCode, float deadZone) {
 		float value = 0.0f;
 		
-		if(Math.abs(value = controller.getAxis(aCode)) >= 0.01f) return value;
+		if(Math.abs(value = controller.getAxis(aCode)) >= deadZone) return value;
 		
 		return 0.0f;
 	}
