@@ -650,12 +650,7 @@ final public class LwjglInput implements Input {
 	}
 
 	@Override
-	public boolean isCursorCatched () {
-		return Mouse.isGrabbed();
-	}
-	
-	@Override
-	public int getDeltaX () {
+	public boolean isCursorCatched() {
 		if(emptyCursor == null)
 		{
 			try {
@@ -663,21 +658,19 @@ final public class LwjglInput implements Input {
 				} catch (LWJGLException e) {
 			}
 		}
-		if (Mouse.isInsideWindow()) {
-			try {
+		
+		try {
+			if (Mouse.isInsideWindow() && Display.isActive()) {
 				Mouse.setNativeCursor(emptyCursor);
-			} 
-			catch (LWJGLException e) {
 			}
-		}
-		if(!Display.isActive()) {
-			try {
-				Mouse.setNativeCursor(defCursor);
-			} catch (LWJGLException e) {
-				e.printStackTrace();
-			}
-			return 0;
-		}
+			else Mouse.setNativeCursor(defCursor);
+		} catch (Exception e) {}
+		
+		return Mouse.isGrabbed();
+	}
+	
+	@Override
+	public int getDeltaX () {
 		return Mouse.getDX();
 	}
 

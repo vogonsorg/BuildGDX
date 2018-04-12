@@ -17,7 +17,8 @@ public class RFFResource extends IResource {
 	
 	/*
 	flags 
-		4 - seq
+		4 - preload
+		8 - prelock
 		16 - crypted
 	*/
 	private class RRESHANDLE extends RESHANDLE {

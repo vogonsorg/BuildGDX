@@ -151,6 +151,10 @@ public class DesktopSound implements Sound {
 		alSourcei(sourceId, AL_BUFFER,   bufferID );
 		alSourcePlay(sourceId);
 
+		int error = alGetError();
+		if(error != AL_NO_ERROR) 
+			Console.Println("playRaw " + error, OSDTEXT_RED);
+
 		return source;
 	}
 	
@@ -248,6 +252,9 @@ public class DesktopSound implements Sound {
 		if (noDevice) return;
 		if(pitch < 0) pitch = 0;
 		alSourcef(source.sourceId, AL_PITCH, pitch);
+		int error = alGetError();
+		if(error != AL_NO_ERROR) 
+			Console.Println("setPitch " + error + " " + pitch, OSDTEXT_RED);
 	}
 	
 	@Override
