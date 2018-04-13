@@ -6,9 +6,10 @@ import com.badlogic.gdx.utils.Array;
 
 public class GPManager {
 	
-	public final static int MAXBUTTONS = 128;
+	public final static int MAXBUTTONS = 64;
+	public final static int MAXPOV = 4;
+	public final static int MAXAXIS = 12;
 
-//	private Array<Controller> controllers;
 	private Array<Gamepad> gamepads;
 	private float deadZone = 0.01f;
 	
@@ -37,6 +38,13 @@ public class GPManager {
 		this.deadZone = value;
 	}
 	
+	public int getButtonCount(int num)
+	{
+		if(getControllers() > 0)
+			return gamepads.get(num).getButtonCount();
+		return 0;
+	}
+	
 	public boolean getButton(int buttonCode)
 	{
 		for(int i = 0; i < gamepads.size; i++) {
@@ -49,7 +57,7 @@ public class GPManager {
 	public void handler()
 	{
 		for(int i = 0; i < gamepads.size; i++)
-			gamepads.get(i).buttonHandler();
+			gamepads.get(i).ButtonHandler();
 	}
 	
 	public boolean buttonStatusOnce(int buttonCode)
