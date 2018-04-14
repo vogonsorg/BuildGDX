@@ -2234,7 +2234,7 @@ public abstract class Polymost implements Renderer {
 
 			for (z = headspritesect[sectnum]; z >= 0; z = nextspritesect[z]) {
 				spr = sprite[z];
-				if ((((spr.cstat & 0x8000) == 0) || (showinvisibility != 0))
+				if ((((spr.cstat & 0x8000) == 0) || showinvisibility)
 						&& (spr.xrepeat > 0) && (spr.yrepeat > 0)) {
 					xs = spr.x - globalposx;
 					ys = spr.y - globalposy;

@@ -22,6 +22,7 @@ public class ButtonMap {
 	public static String buttonName(int num)
 	{
 		if (butNames == null) initializeKeyNames();
+		if(num < 0) return "N/A";
 		return butNames.findKey(num);
 	}
 }

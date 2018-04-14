@@ -99,7 +99,8 @@ public abstract class Engine {
 	public static short pskyoff[], zeropskyoff[], pskybits;
 	public static Spriteext[] spriteext;
 	public static Spritesmooth[] spritesmooth;
-	public static byte parallaxtype, showinvisibility;
+	public static byte parallaxtype;
+	public static boolean showinvisibility;
 	public static int visibility, parallaxvisibility;
 	public static int parallaxyoffs, parallaxyscale;
 	public static byte[][] palookup;
@@ -1008,7 +1009,7 @@ public abstract class Engine {
 		parallaxtype = 2;
 		parallaxyoffs = 0;
 		parallaxyscale = 65536;
-		showinvisibility = 0;
+		showinvisibility = false;
 
 		pskybits = 0;
 		paletteloaded = 0;
