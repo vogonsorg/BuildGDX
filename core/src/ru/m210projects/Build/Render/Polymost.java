@@ -587,6 +587,20 @@ public abstract class Polymost implements Renderer {
 	// method: 0:solid, 1:masked(255 is transparent), 2:transluscent #1,
 	// 3:transluscent #2
 	// +4 means it's a sprite, so wraparound isn't needed
+	
+	private int drawpoly_math(int nn, int i, int j, double ngux, double ngdx, double nguy, double ngdy, double nguo, double ngdo, double var)
+	{
+		double f = -(drawpoly_px[i] * (ngux - ngdx * var) + drawpoly_py[i] * (nguy - ngdy * var) + (nguo - ngdo * var)) /     
+		        ((drawpoly_px[j] - drawpoly_px[i]) * (ngux - ngdx * var) + (drawpoly_py[j] - drawpoly_py[i]) * (nguy - ngdy * var));                       
+		drawpoly_uu[nn] = (drawpoly_px[j] - drawpoly_px[i]) * f + drawpoly_px[i];                                                                         
+		drawpoly_vv[nn] = (drawpoly_py[j] - drawpoly_py[i]) * f + drawpoly_py[i];                                                                          
+		++nn;  
+		
+		return nn;
+	}
+	
+	
+	
 	int pow2xsplit = 0;
 	int skyclamphack = 0;
 	private final double drawpoly_dd[] = new double[16],
@@ -627,6 +641,9 @@ public abstract class Polymost implements Renderer {
 		engine.setgotpic(globalpicnum);
 		tsizx = tilesizx[globalpicnum];
 		tsizy = tilesizy[globalpicnum];
+
+		if((tsizx|tsizy) == 0)
+			return;
 
 		if (palookup[globalpal] == null)
 			globalpal = 0;
@@ -980,60 +997,17 @@ public abstract class Polymost implements Renderer {
 						drawpoly_vv[nn] = drawpoly_py[i];
 						nn++;
 					}
+					
 					if (duj <= dui) {
-						if ((du1 < duj) != (du1 < dui)) {
-							f = -(drawpoly_px[i] * (ngux - ngdx * du1)
-									+ drawpoly_py[i] * (nguy - ngdy * du1) + (nguo - ngdo
-											* du1))
-									/ ((drawpoly_px[j] - drawpoly_px[i])
-											* (ngux - ngdx * du1) + (drawpoly_py[j] - drawpoly_py[i])
-													* (nguy - ngdy * du1));
-							drawpoly_uu[nn] = (drawpoly_px[j] - drawpoly_px[i])
-									* f + drawpoly_px[i];
-							drawpoly_vv[nn] = (drawpoly_py[j] - drawpoly_py[i])
-									* f + drawpoly_py[i];
-							nn++;
-						}
-						if ((du0 < duj) != (du0 < dui)) {
-							f = -(drawpoly_px[i] * (ngux - ngdx * du0)
-									+ drawpoly_py[i] * (nguy - ngdy * du0) + (nguo - ngdo
-											* du0))
-									/ ((drawpoly_px[j] - drawpoly_px[i])
-											* (ngux - ngdx * du0) + (drawpoly_py[j] - drawpoly_py[i])
-													* (nguy - ngdy * du0));
-							drawpoly_uu[nn] = (drawpoly_px[j] - drawpoly_px[i])
-									* f + drawpoly_px[i];
-							drawpoly_vv[nn] = (drawpoly_py[j] - drawpoly_py[i])
-									* f + drawpoly_py[i];
-							nn++;
-						}
+						if ((du1 < duj) != (du1 < dui)) 
+							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
+						if ((du0 < duj) != (du0 < dui)) 
+							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
 					} else {
-						if ((du0 < duj) != (du0 < dui)) {
-							f = -(drawpoly_px[i] * (ngux - ngdx * du0)
-									+ drawpoly_py[i] * (nguy - ngdy * du0) + (nguo - ngdo
-											* du0))
-									/ ((drawpoly_px[j] - drawpoly_px[i])
-											* (ngux - ngdx * du0) + (drawpoly_py[j] - drawpoly_py[i])
-													* (nguy - ngdy * du0));
-							drawpoly_uu[nn] = (drawpoly_px[j] - drawpoly_px[i])
-									* f + drawpoly_px[i];
-							drawpoly_vv[nn] = (drawpoly_py[j] - drawpoly_py[i])
-									* f + drawpoly_py[i];
-							nn++;
-						}
-						if ((du1 < duj) != (du1 < dui)) {
-							f = -(drawpoly_px[i] * (ngux - ngdx * du1)
-									+ drawpoly_py[i] * (nguy - ngdy * du1) + (nguo - ngdo
-											* du1))
-									/ ((drawpoly_px[j] - drawpoly_px[i])
-											* (ngux - ngdx * du1) + (drawpoly_py[j] - drawpoly_py[i])
-													* (nguy - ngdy * du1));
-							drawpoly_uu[nn] = (drawpoly_px[j] - drawpoly_px[i])
-									* f + drawpoly_px[i];
-							drawpoly_vv[nn] = (drawpoly_py[j] - drawpoly_py[i])
-									* f + drawpoly_py[i];
-							nn++;
-						}
+						if ((du0 < duj) != (du0 < dui)) 
+							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
+						if ((du1 < duj) != (du1 < dui)) 
+							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
 					}
 					i = j;
 				} while (i != 0);
@@ -1272,7 +1246,13 @@ public abstract class Polymost implements Renderer {
 		int i, j, k, z, ni, vcnt = 0, scnt, newi;
 
 		boolean dir = (x0 < x1);
-		
+
+		int tsizx = tilesizx[globalpicnum];
+		int tsizy = tilesizy[globalpicnum];
+
+		if((tsizx|tsizy) == 0) 
+			return;
+
 		if (dir) //clip dmost (floor)
 	    {
 	        y0 -= DOMOST_OFFSET;
