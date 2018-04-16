@@ -181,8 +181,9 @@ public abstract class Polymost implements Renderer {
 	private int global_cf_shade, global_cf_pal;
 
 	private float[] alphahackarray = new float[MAXTILES];
-	private float shadescale = 1.0f;
-
+	private float shadescale = 1.1f;
+	private int shadescale_unbounded = 0;
+	
 	private boolean nofog;
 	
 	private int guniqhudid;
@@ -194,18 +195,13 @@ public abstract class Polymost implements Renderer {
 
 	private int lastglpolygonmode = 0; // FUK
 	private int glpolygonmode = 0; // 0:GL_FILL,1:GL_LINE,2:GL_POINT //FUK
-	//private Texture polymosttext;
 	private IntBuffer polymosttext;
 
 	private float curpolygonoffset; // internal polygon offset stack for drawing flat sprites to avoid depth fighting
 
-	//public static int gltexfiltermode = 0;
-
 	// private int hicprecaching = 0;
 
 	public static int drawingskybox = 0;
-
-	private int shadescale_unbounded = 0;
 
 	// Detail mapping cvar
 	//private final OSDCVAR r_detailmapping;
@@ -588,6 +584,13 @@ public abstract class Polymost implements Renderer {
 	// 3:transluscent #2
 	// +4 means it's a sprite, so wraparound isn't needed
 	
+	private float getshadefactor(int shade)
+	{
+		int shadebound = (shadescale_unbounded != 0 || shade>=numshades) ? numshades : numshades-1;
+	    float clamped_shade = min(max(shade*shadescale, 0), shadebound);
+	    return ((float)(numshades-clamped_shade))/(float)numshades;
+	}
+	
 	private int drawpoly_math(int nn, int i, int j, double ngux, double ngdx, double nguy, double ngdy, double nguo, double ngdo, double var)
 	{
 		double f = -(drawpoly_px[i] * (ngux - ngdx * var) + drawpoly_py[i] * (nguy - ngdy * var) + (nguo - ngdo * var)) /     
@@ -598,9 +601,7 @@ public abstract class Polymost implements Renderer {
 		
 		return nn;
 	}
-	
-	
-	
+
 	int pow2xsplit = 0;
 	int skyclamphack = 0;
 	private final double drawpoly_dd[] = new double[16],
@@ -846,7 +847,8 @@ public abstract class Polymost implements Renderer {
             }
         }
         
-		f = ((float) (numshades - min(max(globalshade * shadescale, 0), numshades))) / ((float) numshades);
+		f = getshadefactor(globalshade); 
+
 		if(globalpal == 1) drawpoly_pc[0] = drawpoly_pc[1] = drawpoly_pc[2] = 1; //Blood's pal 1
 		else drawpoly_pc[0] = drawpoly_pc[1] = drawpoly_pc[2] = (float) f;
 		
@@ -1246,12 +1248,6 @@ public abstract class Polymost implements Renderer {
 		int i, j, k, z, ni, vcnt = 0, scnt, newi;
 
 		boolean dir = (x0 < x1);
-
-		int tsizx = tilesizx[globalpicnum];
-		int tsizy = tilesizy[globalpicnum];
-
-		if((tsizx|tsizy) == 0) 
-			return;
 
 		if (dir) //clip dmost (floor)
 	    {
@@ -4570,9 +4566,7 @@ public abstract class Polymost implements Renderer {
 			globalpal = 0;
 
 		Pthtyp pth;
-		float f, a = 0.0f;
-		int shadebound = (shadescale_unbounded != 0 || globalshade >= numshades) ? numshades
-				: numshades - 1;
+		float a = 0.0f;
 
 		globalx1 = mulscale((int) globalx1, xyaspect, 16);
 		globaly2 = mulscale((int) globaly2, xyaspect, 16);
@@ -4599,10 +4593,8 @@ public abstract class Polymost implements Renderer {
 		pth = textureCache.cache(globalpicnum, globalpal, false, true);
 
 		gl.bglBindTexture(GL_TEXTURE_2D, pth.glpic);
-
-		f = (numshades - min(max((globalshade * shadescale), 0), shadebound))
-				/ numshades;
-
+		float f = getshadefactor(globalshade);
+		
 		switch ((globalorientation >> 7) & 3) {
 		case 0:
 		case 1:
