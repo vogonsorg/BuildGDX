@@ -5071,10 +5071,9 @@ public abstract class Polymost implements Renderer {
 //	        (!usemodels /* || md_tilehasmodel(tile, pal) < 0 */)) 
 		if (shade > 0)
 		{
-	    	shade >>= 1;
+	    	//shade >>= 1;
 	    }
 	   
-	        
         float combvis = (float) globalvisibility * ((vis+16) & 0xFF);
         if (combvis == 0)
         {
@@ -5092,7 +5091,7 @@ public abstract class Polymost implements Renderer {
             fogresult = (shade > 0) ? 0 : -(FOGDISTCONST * shade) * combvis;
             fogresult2 = (FOGDISTCONST * (numshades-1-shade)) * combvis;
         }
-       
+
         fogcol.put(fogtable[pal][0]);
 		fogcol.put(fogtable[pal][1]);
 		fogcol.put(fogtable[pal][2]);

@@ -1,5 +1,7 @@
 package ru.m210projects.Build.Input;
 
+import static ru.m210projects.Build.Engine.getInput;
+import static ru.m210projects.Build.Input.Keymap.ANYKEY;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
@@ -101,6 +103,7 @@ public class Gamepad {
 		
 		if(value >= 0.9f) {
 			if(!hitButton[num]) {
+				getInput().setKey(ANYKEY, 1);
 				buttonStatus[num] = true;
 				hitButton[num] = true;
 			}
@@ -111,6 +114,7 @@ public class Gamepad {
 		
 		if(value <= -0.9f) {
 			if(!hitButton[num + 1]) {
+				getInput().setKey(ANYKEY, 1);
 				buttonStatus[num + 1] = true;
 				hitButton[num + 1] = true;
 			}
@@ -133,6 +137,7 @@ public class Gamepad {
 					if(dir == directions[d])
 					{
 						if(!hitButton[num + d]) {
+							getInput().setKey(ANYKEY, 1);
 							buttonStatus[num + d] = true;
 							hitButton[num + d] = true;
 						}
@@ -148,6 +153,7 @@ public class Gamepad {
 					int sbut = (num + 2) + d % 2; //left right
 					if(dir == directions[d + 4])
 					{
+						getInput().setKey(ANYKEY, 1);
 						buttonStatus[fbut] = true;
 						hitButton[fbut] = true;
 						
@@ -172,6 +178,7 @@ public class Gamepad {
 		{
 			if (controller.getButton(i)) {
 				if (!hitButton[i]) {
+					getInput().setKey(ANYKEY, 1);
 					buttonStatus[i] = true;
 					hitButton[i] = true;
 				}
