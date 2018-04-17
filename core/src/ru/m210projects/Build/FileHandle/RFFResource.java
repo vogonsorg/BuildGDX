@@ -2,6 +2,7 @@
 
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
+import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -106,9 +107,9 @@ public class RFFResource extends IResource {
 			
 			for(int i = 0; i < NumFiles; i++) {
 				RRESHANDLE file = files.get(i);
-				if((file.flags & 4) != 0) //SEQ Files
+				if((file.flags & 4) != 0) //preload
 					Lock(i);
-				if((file.flags & 8) != 0) 
+				if((file.flags & 8) != 0) //prelock
 					Lock(i);
 			}
 		} else
@@ -169,17 +170,21 @@ public class RFFResource extends IResource {
 				byte[] buf = new byte[48];
 				for(int i = 0; i < NumFiles; i++) {
 					System.arraycopy(buffer, 48 * i, buf, 0, 48);
-					files.add(new RRESHANDLE(buf));
+					RRESHANDLE res = new RRESHANDLE(buf);
+					if(res.size >= 0)
+						files.add(res);
+					else Console.Println("Error: negative file size! " + res.filename + " size: " + res.size, OSDTEXT_RED);
 				}
 			}
 			
-			for(int i = 0; i < NumFiles; i++) {
+			for(int i = 0; i < files.size(); i++) {
 				RRESHANDLE file = files.get(i);
-				if((file.flags & 4) != 0) //SEQ Files
+				if((file.flags & 4) != 0) //preload
 					Lock(i);
-				if((file.flags & 8) != 0) 
+				if((file.flags & 8) != 0) //prelock
 					Lock(i);
 			}
+			NumFiles = files.size();
 		} else
 			throw new ResourceException("File not found: " + new File(FilePath + FileName).getAbsolutePath());
 	}

@@ -65,51 +65,51 @@ public class DesktopSound implements Sound {
 	public boolean init(int system, int maxChannels) {
 		try {
 			AL.create();
+			noDevice = false;
+			
+			alDistanceModel( AL_NONE );
+			orientation.put(deforientation).flip();
+			sourceManager = new SourceManager(maxChannels);
+			buffers = BufferUtils.newIntBuffer(maxChannels);
+			alGenBuffers(buffers);
+			
+			musicBuffers = BufferUtils.newIntBuffer(musicBufferCount);
+			alGenBuffers(musicBuffers);
+			
+			if (alGetError() != AL_NO_ERROR) 
+				Console.Println("Unabe to allocate audio buffers.", OSDTEXT_RED);
+	
+			resetListener();
+			this.system = system;
+			this.maxChannels = maxChannels;
+	
+			name = ALC10.alcGetString(AL.getDevice(), ALC10.ALC_DEVICE_SPECIFIER);
+			
+			Console.Println(name + " initialized", OSDTEXT_GOLD);
+			Console.Println("\twith max voices: " + maxChannels, OSDTEXT_GOLD);
+			Console.Println("\tOpenAL version: " + alGetString(AL_VERSION), OSDTEXT_GOLD); 	
+	
+			if (!ALC10.alcIsExtensionPresent(AL.getDevice(), ALC_EXT_EFX_NAME)) 
+				Console.Println("No ALC_EXT_EFX supported by driver.", OSDTEXT_RED);
+			else {
+				alEffectSlot = alGenAuxiliaryEffectSlots();
+				alEffect = alGenEffects();
+				
+				alEffecti(alEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+				alDefReverbDelay = alGetEffectf(alEffect, AL_REVERB_DECAY_TIME);
+	
+				if(alGetError() == AL_NO_ERROR)
+					Console.Println("ALC_EXT_EFX enabled.");	
+				else Console.Println("ALC_EXT_EFX error!", OSDTEXT_RED);	
+			}
+	
+			loopedSource.clear();
+			return true;
 		} catch (Exception ex) {
 			Console.Println("Unable to initialize OpenAL! - " + ex.getLocalizedMessage(), OSDTEXT_RED);
 			noDevice = true;
 			return false;
 		}
-		noDevice = false;
-		
-		alDistanceModel( AL_NONE );
-		orientation.put(deforientation).flip();
-		sourceManager = new SourceManager(maxChannels);
-		buffers = BufferUtils.newIntBuffer(maxChannels);
-		alGenBuffers(buffers);
-		
-		musicBuffers = BufferUtils.newIntBuffer(musicBufferCount);
-		alGenBuffers(musicBuffers);
-		
-		if (alGetError() != AL_NO_ERROR) 
-			Console.Println("Unabe to allocate audio buffers.", OSDTEXT_RED);
-
-		resetListener();
-		this.system = system;
-		this.maxChannels = maxChannels;
-		
-		name = ALC10.alcGetString(AL.getDevice(), ALC10.ALC_DEVICE_SPECIFIER);
-		
-		Console.Println(name + " initialized", OSDTEXT_GOLD);
-		Console.Println("\twith max voices: " + maxChannels, OSDTEXT_GOLD);
-		Console.Println("\tOpenAL version: " + alGetString(AL_VERSION), OSDTEXT_GOLD); 	
-
-		if (!ALC10.alcIsExtensionPresent(AL.getDevice(), ALC_EXT_EFX_NAME)) 
-			Console.Println("No ALC_EXT_EFX supported by driver.", OSDTEXT_RED);
-		else {
-			alEffectSlot = alGenAuxiliaryEffectSlots();
-			alEffect = alGenEffects();
-			
-			alEffecti(alEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
-			alDefReverbDelay = alGetEffectf(alEffect, AL_REVERB_DECAY_TIME);
-
-			if(alGetError() == AL_NO_ERROR)
-				Console.Println("ALC_EXT_EFX enabled.");	
-			else Console.Println("ALC_EXT_EFX error!", OSDTEXT_RED);	
-		}
-
-		loopedSource.clear();
-		return true;
 	}
 	
 	private void setSourceReverb(int sourceId, boolean enable, float delay)
