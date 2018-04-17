@@ -60,10 +60,26 @@ public class GPManager {
 			gamepads.get(i).ButtonHandler();
 	}
 	
+	public void resetButtonStatus()
+	{
+		for(int i = 0; i < gamepads.size; i++) {
+			gamepads.get(i).resetButtonStatus();	
+		}
+	}
+	
 	public boolean buttonStatusOnce(int buttonCode)
 	{
 		for(int i = 0; i < gamepads.size; i++) {
 			if(gamepads.get(i).buttonStatusOnce(buttonCode))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean buttonPressed(int buttonCode)
+	{
+		for(int i = 0; i < gamepads.size; i++) {
+			if(gamepads.get(i).buttonPressed(buttonCode))
 				return true;
 		}
 		return false;

@@ -3,6 +3,9 @@ package ru.m210projects.Build.Input;
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Input.Keymap.ANYKEY;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
+
+import java.util.Arrays;
+
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import com.badlogic.gdx.controllers.ControlType;
@@ -52,7 +55,17 @@ public class Gamepad {
 		
 		return false;
 	}
+	
+	public void resetButtonStatus()
+	{
+		Arrays.fill(buttonStatus, false);
+	}
 
+	public boolean buttonPressed(int buttonCode)
+	{
+		return hitButton[buttonCode];
+	}
+	
 	public boolean buttonStatusOnce(int buttonCode)
 	{
 		if(buttonCode >= 0 && buttonCode < allButtonsCount && buttonStatus[buttonCode]) {

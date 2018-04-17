@@ -4999,7 +4999,8 @@ public abstract class Polymost implements Renderer {
 		return 0;
 	}
 
-	public void polymost_precache(int dapicnum, int dapalnum, int datype) {
+	@Override
+	public void precache(int dapicnum, int dapalnum, int datype) {
 		// dapicnum and dapalnum are like you'd expect
 		// datype is 0 for a wall/floor/ceiling and 1 for a sprite
 		// basically this just means walls are repeating

@@ -23,6 +23,8 @@ public interface Renderer {
 	
 	public void preload();
 	
+	public void precache(int dapicnum, int dapalnum, int datype);
+	
 	public void nextpage();
 	
 	public void gltexapplyprops();
