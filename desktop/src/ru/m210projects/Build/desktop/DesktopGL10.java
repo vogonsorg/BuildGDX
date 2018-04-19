@@ -176,6 +176,12 @@ public class DesktopGL10 extends GL10 {
 		GL11.glTexSubImage2D(target, level, internalformat, width, height, border, format, type, pixels);
 	}
 	
+	@Override
+	public void bglCopyTexImage2D(int target, int level, int internalFormat, int x, int y, int width, int height, int border)
+	{
+		GL11.glCopyTexImage2D(target, level, internalFormat, x, y, width, height, border);
+	}
+	
 	public void bglDepthMask(int param) {
 		GL11.glDepthMask(param != GL11.GL_FALSE);
 	}
@@ -361,6 +367,7 @@ public class DesktopGL10 extends GL10 {
 	@Override
 	public void bglCullFace(int mode) {
 		GL11.glCullFace(mode);
+		
 	}
 
 	@Override

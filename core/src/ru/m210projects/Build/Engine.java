@@ -4111,24 +4111,24 @@ public abstract class Engine {
 	}
 
 	private byte[] capture;
-	public byte[] screencapture() {
+	public byte[] screencapture(int width, int heigth) {
 		ByteBuffer frame = BufferUtils.newByteBuffer(xdim * ydim * 3);
 		render.getFrameBuffer(0, 0, xdim, ydim, GL10.GL_RGB, frame);
 
-		int xf = (int) divscale(xdim, 320, 16); // (xdim<<16)/320
-		int yf = (int) divscale(ydim, 200, 16); // (ydim<<16)/200
+		int xf = (int) divscale(xdim, width, 16); // (xdim<<16)/width
+		int yf = (int) divscale(ydim, heigth, 16); // (ydim<<16)/heigth
 
-		if (capture == null)
-			capture = new byte[320 * 200];
+		if (capture == null || capture.length <= width * heigth )
+			capture = new byte[width * heigth];
 
-		for (int y = 0; y < 200; y++) {
-			int base = mulscale(200 - y - 1, yf, 16) * xdim;
-			for (int x = 0; x < 320; x++) {
+		for (int y = 0; y < heigth; y++) {
+			int base = mulscale(heigth - y - 1, yf, 16) * xdim;
+			for (int x = 0; x < width; x++) {
 				int index = 3 * (base + mulscale(x, xf, 16));
 				int r = frame.get(index) & 0xFF;
 				int g = frame.get(index + 1) & 0xFF;
 				int b = frame.get(index + 2) & 0xFF;
-				capture[200 * x + y] = getclosestcol(r, g, b);
+				capture[heigth * x + y] = getclosestcol(r, g, b);
 			}
 		}
 		frame.clear();

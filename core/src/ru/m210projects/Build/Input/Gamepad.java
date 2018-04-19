@@ -63,7 +63,10 @@ public class Gamepad {
 
 	public boolean buttonPressed(int buttonCode)
 	{
-		return hitButton[buttonCode];
+		if(buttonCode >= 0 && buttonCode < allButtonsCount)
+			return hitButton[buttonCode];
+		
+		return false;
 	}
 	
 	public boolean buttonStatusOnce(int buttonCode)

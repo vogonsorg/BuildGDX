@@ -153,6 +153,8 @@ public abstract class GL10 {
 	
 	public abstract void bglTexSubImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, ByteBuffer pixels);
 	
+	public abstract void bglCopyTexImage2D(int target, int level, int internalFormat, int x, int y, int width, int height, int border);
+	
 	public abstract void bglDepthMask(int param);
 	
 	public abstract void bglDepthFunc(int func);

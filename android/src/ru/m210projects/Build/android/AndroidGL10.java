@@ -629,4 +629,11 @@ public class AndroidGL10 extends GL10 {
 		
 	}
 
+	@Override
+	public void bglCopyTexImage2D(int target, int level, int internalFormat,
+			int x, int y, int width, int height, int border) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
