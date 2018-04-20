@@ -24,15 +24,15 @@ public class Gamepad {
 		PovDirection.southWest, //down left
 		PovDirection.southEast, //down rigth
 	};
-
-	private String controllerName;
-	private boolean[] buttonStatus;
-	private boolean[] hitButton;
+	
 	private Controller controller;
-	private int buttonsNum;
-	private int axisNum;
-	private int povNum;
-	private int allButtonsCount;
+	protected String controllerName;
+	protected boolean[] buttonStatus;
+	protected boolean[] hitButton;
+	protected int buttonsNum;
+	protected int axisNum;
+	protected int povNum;
+	protected int allButtonsCount;
 
 	public Gamepad(Controller controller)
 	{
@@ -41,7 +41,7 @@ public class Gamepad {
 		povNum = controller.getControlCount(ControlType.pov);
 		
 		controllerName = controller.getName();
-		Console.Println("Found controller: " + controllerName + " buttons: " + buttonsNum + " axises: " + axisNum + " povs: " + povNum, OSDTEXT_YELLOW);
+		Console.Println("Found controller: \"" + controllerName + "\" [buttons: " + buttonsNum + " axises: " + axisNum + " povs: " + povNum + "]", OSDTEXT_YELLOW);
 		allButtonsCount = buttonsNum + povNum * 4 + 2;
 		buttonStatus = new boolean[allButtonsCount];
 		hitButton = new boolean[allButtonsCount];

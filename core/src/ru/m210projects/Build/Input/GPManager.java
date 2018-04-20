@@ -13,6 +13,8 @@ public class GPManager {
 	private Array<Gamepad> gamepads;
 	private float deadZone = 0.01f;
 	
+	boolean TestGamepad = true;
+	
 	public GPManager()
 	{
 		Array<Controller> controllers = Controllers.getControllers();
@@ -21,6 +23,9 @@ public class GPManager {
 			for(int i = 0; i < controllers.size; i++)
 				gamepads.add(new Gamepad(controllers.get(i)));
 		}
+		
+		if(TestGamepad)
+			gamepads.add(new Gamepad(new TestController()));
 	}
 	
 	public int getControllers()
