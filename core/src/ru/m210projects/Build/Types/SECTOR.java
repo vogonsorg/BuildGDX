@@ -91,4 +91,33 @@ public class SECTOR {
 		
     	return buffer.array();
 	}
+
+	public String toString()
+	{
+		String out = "wallptr " + wallptr + " \r\n";
+		out += "wallnum " + wallnum + " \r\n";
+		out += "ceilingz " + ceilingz + " \r\n";
+		out += "floorz " + floorz + " \r\n";
+		out += "ceilingstat " + ceilingstat + " \r\n";
+		out += "floorstat " + floorstat + " \r\n";
+		out += "ceilingpicnum " + ceilingpicnum + " \r\n";
+		out += "ceilingheinum " + ceilingheinum + " \r\n";
+		out += "ceilingshade " + ceilingshade + " \r\n";
+		out += "ceilingpal " + ceilingpal + " \r\n";
+		out += "ceilingxpanning " + ceilingxpanning + " \r\n";
+		out += "ceilingypanning " + ceilingypanning + " \r\n";
+		out += "floorpicnum " + floorpicnum + " \r\n";
+		out += "floorheinum " + floorheinum + " \r\n";
+		out += "floorshade " + floorshade + " \r\n";
+		out += "floorpal " + floorpal + " \r\n";
+		out += "floorxpanning " + floorxpanning + " \r\n";
+		out += "floorypanning " + floorypanning + " \r\n";
+		out += "visibility " + visibility + " \r\n";
+		out += "filler " + filler + " \r\n";
+		out += "type " + lotag + " \r\n";
+		out += "flags " + hitag + " \r\n";
+		out += "extra " + extra + " \r\n";
+    	
+		return out;
+	}
 }

@@ -13,7 +13,7 @@ public class GPManager {
 	private Array<Gamepad> gamepads;
 	private float deadZone = 0.01f;
 	
-	boolean TestGamepad = true;
+	boolean TestGamepad = false;
 	
 	public GPManager()
 	{

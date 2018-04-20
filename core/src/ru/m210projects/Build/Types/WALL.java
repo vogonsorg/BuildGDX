@@ -97,4 +97,27 @@ public class WALL {
 		
     	return buffer.array();
 	}
+
+	public String toString()
+	{
+		String out = "x " + x + " \r\n";
+		out += "y " + y + " \r\n";
+		out += "point2 " + point2 + " \r\n";
+		out += "nextwall " + nextwall + " \r\n";
+		out += "nextsector " + nextsector + " \r\n";
+		out += "cstat " + cstat + " \r\n";
+		out += "picnum " + picnum + " \r\n";
+		out += "overpicnum " + overpicnum + " \r\n";
+		out += "shade " + shade + " \r\n";
+		out += "pal " + pal + " \r\n";
+		out += "xrepeat " + xrepeat + " \r\n";
+		out += "yrepeat " + yrepeat + " \r\n";
+		out += "xpanning " + xpanning + " \r\n";
+		out += "ypanning " + ypanning + " \r\n";
+		out += "type " + lotag + " \r\n";
+		out += "flags " + hitag + " \r\n";
+		out += "extra " + extra + " \r\n";
+
+		return out;
+	}
 }
