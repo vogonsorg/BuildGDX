@@ -43,6 +43,15 @@ public class GPManager {
 		this.deadZone = value;
 	}
 	
+	public boolean buttonPressed()
+	{
+		for(int i = 0; i < gamepads.size; i++) {
+			if(gamepads.get(i).buttonPressed())
+				return true;
+		}
+		return false;
+	}
+	
 	public int getButtonCount(int num)
 	{
 		if(getControllers() > 0)

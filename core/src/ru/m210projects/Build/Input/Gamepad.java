@@ -33,6 +33,7 @@ public class Gamepad {
 	protected int axisNum;
 	protected int povNum;
 	protected int allButtonsCount;
+	protected boolean buttonPressed = false;
 
 	public Gamepad(Controller controller)
 	{
@@ -46,6 +47,11 @@ public class Gamepad {
 		buttonStatus = new boolean[allButtonsCount];
 		hitButton = new boolean[allButtonsCount];
 		this.controller = controller;
+	}
+	
+	public boolean buttonPressed()
+	{
+		return buttonPressed;
 	}
 	
 	public boolean getButton(int buttonCode)
@@ -118,6 +124,7 @@ public class Gamepad {
 		int num = buttonsNum + (4 * povNum);
 		
 		if(value >= 0.9f) {
+			buttonPressed = true;
 			if(!hitButton[num]) {
 				getInput().setKey(ANYKEY, 1);
 				buttonStatus[num] = true;
@@ -129,6 +136,7 @@ public class Gamepad {
 		}
 		
 		if(value <= -0.9f) {
+			buttonPressed = true;
 			if(!hitButton[num + 1]) {
 				getInput().setKey(ANYKEY, 1);
 				buttonStatus[num + 1] = true;
@@ -152,6 +160,7 @@ public class Gamepad {
 				{
 					if(dir == directions[d])
 					{
+						buttonPressed = true;
 						if(!hitButton[num + d]) {
 							getInput().setKey(ANYKEY, 1);
 							buttonStatus[num + d] = true;
@@ -188,11 +197,13 @@ public class Gamepad {
 	}
 
 	public void ButtonHandler() {
+		buttonPressed = false;
 		DPADHandler();
 		TriggerHandler();
 		for(int i = 0; i < buttonsNum; i++)
 		{
 			if (controller.getButton(i)) {
+				buttonPressed = true;
 				if (!hitButton[i]) {
 					getInput().setKey(ANYKEY, 1);
 					buttonStatus[i] = true;
