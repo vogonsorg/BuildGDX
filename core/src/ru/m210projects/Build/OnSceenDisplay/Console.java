@@ -829,18 +829,19 @@ public class Console {
 		osd_argc = 0;
 		if(text == null || text.isEmpty())
 			return;
-		
+
 		osd_argc++;
 		Arrays.fill(osd_argv, null);
 		String osdvar = text.toLowerCase().trim();
 		osd_argv[osd_argc-1] = osdvar;
     	String var = null;
     	int index = osdvar.indexOf(" ");
-    	if(index != -1) {
-    		var = text.substring(index).trim();
-    		osdvar = text.substring(0, index);
-    		osd_argv[osd_argc-1] = osdvar;
-    		osd_argv[osd_argc++] = var;
+    	while(index != -1) {
+    		var = osdvar.substring(0, index);
+    		osdvar = osdvar.substring(index).trim();
+    		osd_argv[osd_argc-1] = var;
+    		osd_argv[osd_argc++] = osdvar;
+    		index = osdvar.indexOf(" ");
     	}
 	}
 	
@@ -915,7 +916,7 @@ public class Console {
 	private static int Dispatch(String text)
 	{
 		if(osdvars != null) {
-        	TokenizeString(text); //Rewrite XXX
+        	TokenizeString(text); 
         	if(osd_argc >= 1) {
 	        	OSDCOMMAND cvar = Get(osd_argv[0]);
 	        	if(cvar != null)
