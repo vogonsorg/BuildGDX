@@ -119,6 +119,7 @@ import ru.m210projects.Build.Types.Wallspriteinfo;
 import ru.m210projects.Build.Types.Palette;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -281,7 +282,17 @@ public abstract class Polymost implements Renderer {
 		wsprinfo = new Wallspriteinfo[MAXSPRITES];
 		for (int i = 0; i < wsprinfo.length; i++)
 			wsprinfo[i] = new Wallspriteinfo();
-
+		for(int i = 0; i < 16; i++)
+			drawpoly[i] = new Polygon();
+		for(int i = 0; i < 4; i++)
+			domost[i] = new TSurface();
+		for(int i = 0; i < 8; i++) {
+			drot[i] = new TSurface();
+			dmaskwall[i] = new TSurface();
+		}
+		for(int i = 0; i < 6; i++)
+			dsprite[i] = new TSurface();
+		
 		init();
 
 		Console.Println(GLInfo.renderer + " " + GLInfo.version + " initialized", OSDTEXT_GOLD);
@@ -384,10 +395,8 @@ public abstract class Polymost implements Renderer {
 		if (gltexcacnum < 0) {
 			gltexcacnum = 0;
 
-			// Hack for polymost_dorotatesprite calls before 1st
-			// polymost_drawrooms()
+			// Hack for polymost_dorotatesprite calls before 1st polymost_drawrooms()
 			gcosang = gcosang2 = 16384 / 262144.0f;
-
 			gsinang = gsinang2 = 0.0f;
 		} else {
 			textureCache.uninit();
@@ -451,7 +460,7 @@ public abstract class Polymost implements Renderer {
 	{
 	    if (glprojectionhacks != 0)
 	    {
-	        float mul = (float) (gshang * gshang);
+	        float mul = (gshang * gshang);
 	        return 1.05f + mul * mul * mul * mul;
 	    }
 
@@ -477,6 +486,7 @@ public abstract class Polymost implements Renderer {
 				break;
 			}
 		}
+		
 		if (glpolygonmode != 0) // FUK
 		{
 			gl.bglClearColor(1.0, 1.0, 1.0, 0.0);
@@ -516,37 +526,7 @@ public abstract class Polymost implements Renderer {
 
 			if (!nofog) gl.bglEnable(GL_FOG);
 		}
-		
-	}
-	/*
-	public void resizeglcheck() // Ken Build method
-	{
-		for (float[] row: matrix)
-		    Arrays.fill(row, 0.0f);
-
-		// FUK
-		if (lastglpolygonmode != glpolygonmode) {
-			lastglpolygonmode = glpolygonmode;
-			switch (glpolygonmode) {
-			default:
-			case 0:
-				gl.bglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				break;
-			case 1:
-				gl.bglPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-				break;
-			case 2:
-				gl.bglPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-				break;
-			}
-		}
-		if (glpolygonmode != 0) // FUK
-		{
-			gl.bglClearColor(1.0, 1.0, 1.0, 0.0);
-			gl.bglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			gl.bglDisable(GL_TEXTURE_2D);
-		}
-
+		/*
 		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
 			glox1 = windowx1;
 			gloy1 = windowy1;
@@ -567,15 +547,9 @@ public abstract class Polymost implements Renderer {
 		
 			gl.bglLoadMatrixf(matrix);
 			// gluPerspective ( 90, (GLint)width/ (GLint)height, 0.0, 200.0 );
-
-			gl.bglMatrixMode(GL_MODELVIEW);
-			gl.bglLoadIdentity();
-
-			if (!nofog)
-				gl.bglEnable(GL_FOG);
 		}
+		*/
 	}
-	*/
 
 	// (dpx,dpy) specifies an n-sided polygon. The polygon must be a convex
 	// clockwise loop.
@@ -593,10 +567,10 @@ public abstract class Polymost implements Renderer {
 	
 	private int drawpoly_math(int nn, int i, int j, double ngux, double ngdx, double nguy, double ngdy, double nguo, double ngdo, double var)
 	{
-		double f = -(drawpoly_px[i] * (ngux - ngdx * var) + drawpoly_py[i] * (nguy - ngdy * var) + (nguo - ngdo * var)) /     
-		        ((drawpoly_px[j] - drawpoly_px[i]) * (ngux - ngdx * var) + (drawpoly_py[j] - drawpoly_py[i]) * (nguy - ngdy * var));                       
-		drawpoly_uu[nn] = (drawpoly_px[j] - drawpoly_px[i]) * f + drawpoly_px[i];                                                                         
-		drawpoly_vv[nn] = (drawpoly_py[j] - drawpoly_py[i]) * f + drawpoly_py[i];                                                                          
+		double f = -(drawpoly[i].px * (ngux - ngdx * var) + drawpoly[i].py * (nguy - ngdy * var) + (nguo - ngdo * var)) /     
+		        ((drawpoly[j].px - drawpoly[i].px) * (ngux - ngdx * var) + (drawpoly[j].py - drawpoly[i].py) * (nguy - ngdy * var));                       
+		drawpoly[nn].uu = (float) ((drawpoly[j].px - drawpoly[i].px) * f + drawpoly[i].px);                                                                         
+		drawpoly[nn].vv = (float) ((drawpoly[j].py - drawpoly[i].py) * f + drawpoly[i].py);                                                                          
 		++nn;  
 		
 		return nn;
@@ -604,12 +578,11 @@ public abstract class Polymost implements Renderer {
 
 	int pow2xsplit = 0;
 	int skyclamphack = 0;
-	private final double drawpoly_dd[] = new double[16],
-			drawpoly_uu[] = new double[16], drawpoly_vv[] = new double[16],
-			drawpoly_px[] = new double[16], drawpoly_py[] = new double[16];
-	private final float drawpoly_pc[] = new float[4];
-
-	private void drawpoly(float[] dpx, float[] dpy, int n, int method) {
+	
+	private final Polygon drawpoly[] = new Polygon[16];
+	private final Color poly_color = new Color();
+	
+	private void drawpoly(Surface[] dm, int n, int method) {
 		double ngdx = 0.0, ngdy = 0.0, ngdo = 0.0, ngux = 0.0, nguy = 0.0, nguo = 0.0;
 		double ngvx = 0.0, ngvy = 0.0, ngvo = 0.0, dp, up, vp, du0 = 0.0, du1 = 0.0, dui, duj;
 		double f, r, ox, oy, oz, ox2, oy2, oz2, uoffs;
@@ -624,13 +597,12 @@ public abstract class Polymost implements Renderer {
 			return;
 
 		if (n == 3) {
-			if ((dpx[0] - dpx[1]) * (dpy[2] - dpy[1]) >= (dpx[2] - dpx[1])
-					* (dpy[0] - dpy[1]))
+			if ((dm[0].px - dm[1].px) * (dm[2].py - dm[1].py) >= (dm[2].px - dm[1].px) * (dm[0].py - dm[1].py))
 				return; // for triangle
 		} else {
 			f = 0; // f is area of polygon / 2
 			for (i = n - 2, j = n - 1, k = 0; k < n; i = j, j = k, k++)
-				f += (dpx[i] - dpx[k]) * dpy[j];
+				f += (dm[i].px - dm[k].px) * dm[j].py;
 			if (f <= 0)
 				return;
 		}
@@ -661,8 +633,8 @@ public abstract class Polymost implements Renderer {
 		if(dorot)
 		{
 			for (i = 0; i < n; i++) {
-				ox = dpx[i] - ghalfx;
-				oy = dpy[i] - ghoriz;
+				ox = dm[i].px - ghalfx;
+				oy = dm[i].py - ghoriz;
 				oz = ghalfx;
 	
 				// Up/down rotation
@@ -676,26 +648,26 @@ public abstract class Polymost implements Renderer {
 				oz = oz2;
 	
 				r = ghalfx / oz;
-				drawpoly_dd[j] = (dpx[i] * gdx + dpy[i] * gdy + gdo) * r;
-				drawpoly_uu[j] = (dpx[i] * gux + dpy[i] * guy + guo) * r;
-				drawpoly_vv[j] = (dpx[i] * gvx + dpy[i] * gvy + gvo) * r;
+				drawpoly[j].dd = (float) ((dm[i].px * gdx + dm[i].py * gdy + gdo) * r);
+				drawpoly[j].uu = (float) ((dm[i].px * gux + dm[i].py * guy + guo) * r);
+				drawpoly[j].vv = (float) ((dm[i].px * gvx + dm[i].py * gvy + gvo) * r);
 	
-				drawpoly_px[j] = ox * r + ghalfx;
-				drawpoly_py[j] = oy * r + ghoriz;
-				if ((j == 0) || (drawpoly_px[j] != drawpoly_px[j - 1]) || (drawpoly_py[j] != drawpoly_py[j - 1])) j++;
+				drawpoly[j].px = (float) (ox * r + ghalfx);
+				drawpoly[j].py = (float) (oy * r + ghoriz);
+				if ((j == 0) || (drawpoly[j].px != drawpoly[j-1].px) || (drawpoly[j].py != drawpoly[j - 1].py)) j++;
 			}
 		} 
 		else	
 	    {
 	        for (i=0; i<n; i++)
 	        {
-	        	drawpoly_px[j] = dpx[i];
-	        	drawpoly_py[j] = dpy[i];
-	            if ((j==0) || (drawpoly_px[j] != drawpoly_px[j-1]) || (drawpoly_py[j] != drawpoly_py[j-1])) j++;
+	        	drawpoly[j].px = dm[i].px;
+	        	drawpoly[j].py = dm[i].py;
+	            if ((j==0) || (drawpoly[j].px != drawpoly[j - 1].px) || (drawpoly[j].py != drawpoly[j - 1].py)) j++;
 	        }
 	    }
-		while ((j >= 3) && (drawpoly_px[j - 1] == drawpoly_px[0])
-				&& (drawpoly_py[j - 1] == drawpoly_py[0]))
+		while ((j >= 3) && (drawpoly[j - 1].px == drawpoly[0].px)
+				&& (drawpoly[j - 1].py == drawpoly[0].py))
 			j--;
 		if (j < 3)
 			return;
@@ -733,7 +705,7 @@ public abstract class Polymost implements Renderer {
 			gl.bglActiveTextureARB(++texunits);
 
 			gl.bglEnable(GL_TEXTURE_2D);
-			gl.bglBindTexture(GL_TEXTURE_2D, detailpth.glpic);
+			bindTexture(gl,  detailpth.glpic);
 
 			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
@@ -776,7 +748,7 @@ public abstract class Polymost implements Renderer {
 			gl.bglActiveTextureARB(++texunits);
 		
 			gl.bglEnable(GL_TEXTURE_2D);
-			gl.bglBindTexture(GL_TEXTURE_2D, glowpth.glpic);
+			bindTexture(gl,  glowpth.glpic);
 		
 			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
@@ -841,30 +813,30 @@ public abstract class Polymost implements Renderer {
         {
             for (i=n-1; i>=0; i--)
             {
-            	drawpoly_dd[i] = drawpoly_px[i]*gdx + drawpoly_py[i]*gdy + gdo;
-            	drawpoly_uu[i] = drawpoly_px[i]*gux + drawpoly_py[i]*guy + guo;
-            	drawpoly_vv[i] = drawpoly_px[i]*gvx + drawpoly_py[i]*gvy + gvo;
+            	drawpoly[i].dd = (float) (drawpoly[i].px*gdx + drawpoly[i].py*gdy + gdo);
+            	drawpoly[i].uu = (float) (drawpoly[i].px*gux + drawpoly[i].py*guy + guo);
+            	drawpoly[i].vv = (float) (drawpoly[i].px*gvx + drawpoly[i].py*gvy + gvo);
             }
         }
         
 		f = getshadefactor(globalshade); 
 
-		if(globalpal == 1) drawpoly_pc[0] = drawpoly_pc[1] = drawpoly_pc[2] = 1; //Blood's pal 1
-		else drawpoly_pc[0] = drawpoly_pc[1] = drawpoly_pc[2] = (float) f;
+		if(globalpal == 1) poly_color.r = poly_color.g = poly_color.b = 1; //Blood's pal 1
+		else poly_color.r = poly_color.g = poly_color.b = (float) f;
 		
 		switch (method & 3) {
 		default:
 		case 0:
-			drawpoly_pc[3] = 1.0f;
+			poly_color.a = 1.0f;
 			break;
 		case 1:
-			drawpoly_pc[3] = 1.0f;
+			poly_color.a = 1.0f;
 			break;
 		case 2:
-			drawpoly_pc[3] = TRANSLUSCENT1;
+			poly_color.a = TRANSLUSCENT1;
 			break;
 		case 3:
-			drawpoly_pc[3] = TRANSLUSCENT2;
+			poly_color.a = TRANSLUSCENT2;
 			break;
 		}
 
@@ -875,32 +847,32 @@ public abstract class Polymost implements Renderer {
 			if (pth != null && pth.isHighTile()) {
 				if (pth.hicr.palnum != globalpal) {
 					// apply tinting for replaced textures
-					drawpoly_pc[0] *= (float) hictinting[globalpal].r / 255.0;
-					drawpoly_pc[1] *= (float) hictinting[globalpal].g / 255.0;
-					drawpoly_pc[2] *= (float) hictinting[globalpal].b / 255.0;
+					poly_color.r *= (float) hictinting[globalpal].r / 255.0f;
+					poly_color.g *= (float) hictinting[globalpal].g / 255.0f;
+					poly_color.b *= (float) hictinting[globalpal].b / 255.0f;
 				}
 				if (hictinting[MAXPALOOKUPS - 1].r != 255
 						|| hictinting[MAXPALOOKUPS - 1].g != 255
 						|| hictinting[MAXPALOOKUPS - 1].b != 255) {
-					drawpoly_pc[0] *= (float) hictinting[MAXPALOOKUPS - 1].r / 255.0;
-					drawpoly_pc[1] *= (float) hictinting[MAXPALOOKUPS - 1].g / 255.0;
-					drawpoly_pc[2] *= (float) hictinting[MAXPALOOKUPS - 1].b / 255.0;
+					poly_color.r *= (float) hictinting[MAXPALOOKUPS - 1].r / 255.0f;
+					poly_color.g *= (float) hictinting[MAXPALOOKUPS - 1].g / 255.0f;
+					poly_color.b *= (float) hictinting[MAXPALOOKUPS - 1].b / 255.0f;
 				}
 			}
 			// hack: this is for drawing the 8-bit crosshair recolored in
 			// polymost
 			else if ((hictinting[globalpal].f & 8) != 0) {
-				drawpoly_pc[0] *= (float) hictinting[globalpal].r / 255.0;
-				drawpoly_pc[1] *= (float) hictinting[globalpal].g / 255.0;
-				drawpoly_pc[2] *= (float) hictinting[globalpal].b / 255.0;
+				poly_color.r *= (float) hictinting[globalpal].r / 255.0;
+				poly_color.g *= (float) hictinting[globalpal].g / 255.0;
+				poly_color.b *= (float) hictinting[globalpal].b / 255.0;
 			}
 		}
 		if (drunk && (method & 3) == 0) {
 			gl.bglEnable(GL_BLEND);
-			drawpoly_pc[3] = drunkIntensive;
+			poly_color.a = drunkIntensive;
 		}
 
-		gl.bglColor4f(drawpoly_pc[0], drawpoly_pc[1], drawpoly_pc[2], drawpoly_pc[3]);
+		gl.bglColor4f(poly_color.r, poly_color.g, poly_color.b, poly_color.a);
 
 		// Hack for walls&masked walls which use textures that are not a power
 		// of 2
@@ -913,37 +885,37 @@ public abstract class Polymost implements Renderer {
             }
 			else
 			{
-				ox = drawpoly_py[1] - drawpoly_py[2];
-				oy = drawpoly_py[2] - drawpoly_py[0];
-				oz = drawpoly_py[0] - drawpoly_py[1];
-				r = 1.0 / (ox * drawpoly_px[0] + oy * drawpoly_px[1] + oz
-						* drawpoly_px[2]);
-				ngdx = (ox * drawpoly_dd[0] + oy * drawpoly_dd[1] + oz
-						* drawpoly_dd[2])
+				ox = drawpoly[1].py - drawpoly[2].py;
+				oy = drawpoly[2].py - drawpoly[0].py;
+				oz = drawpoly[0].py - drawpoly[1].py;
+				r = 1.0 / (ox * drawpoly[0].px + oy * drawpoly[1].px + oz
+						* drawpoly[2].px);
+				ngdx = (ox * drawpoly[0].dd + oy * drawpoly[1].dd + oz
+						* drawpoly[2].dd)
 						* r;
-				ngux = (ox * drawpoly_uu[0] + oy * drawpoly_uu[1] + oz
-						* drawpoly_uu[2])
+				ngux = (ox * drawpoly[0].uu + oy * drawpoly[1].uu + oz
+						* drawpoly[2].uu)
 						* r;
-				ngvx = (ox * drawpoly_vv[0] + oy * drawpoly_vv[1] + oz
-						* drawpoly_vv[2])
+				ngvx = (ox * drawpoly[0].vv + oy * drawpoly[1].vv + oz
+						* drawpoly[2].vv)
 						* r;
-				ox = drawpoly_px[2] - drawpoly_px[1];
-				oy = drawpoly_px[0] - drawpoly_px[2];
-				oz = drawpoly_px[1] - drawpoly_px[0];
-				ngdy = (ox * drawpoly_dd[0] + oy * drawpoly_dd[1] + oz
-						* drawpoly_dd[2])
+				ox = drawpoly[2].px - drawpoly[1].px;
+				oy = drawpoly[0].px - drawpoly[2].px;
+				oz = drawpoly[1].px - drawpoly[0].px;
+				ngdy = (ox * drawpoly[0].dd + oy * drawpoly[1].dd + oz
+						* drawpoly[2].dd)
 						* r;
-				nguy = (ox * drawpoly_uu[0] + oy * drawpoly_uu[1] + oz
-						* drawpoly_uu[2])
+				nguy = (ox * drawpoly[0].uu + oy * drawpoly[1].uu + oz
+						* drawpoly[2].uu)
 						* r;
-				ngvy = (ox * drawpoly_vv[0] + oy * drawpoly_vv[1] + oz
-						* drawpoly_vv[2])
+				ngvy = (ox * drawpoly[0].vv + oy * drawpoly[1].vv + oz
+						* drawpoly[2].vv)
 						* r;
-				ox = drawpoly_px[0] - .5;
-				oy = drawpoly_py[0] - .5; // .5 centers texture nicely
-				ngdo = drawpoly_dd[0] - ox * ngdx - oy * ngdy;
-				nguo = drawpoly_uu[0] - ox * ngux - oy * nguy;
-				ngvo = drawpoly_vv[0] - ox * ngvx - oy * ngvy;
+				ox = drawpoly[0].px - .5;
+				oy = drawpoly[0].py - .5; // .5 centers texture nicely
+				ngdo = drawpoly[0].dd - ox * ngdx - oy * ngdy;
+				nguo = drawpoly[0].uu - ox * ngux - oy * nguy;
+				ngvo = drawpoly[0].vv - ox * ngvx - oy * ngvy;
 			}
 
 			ngux *= hackscx;
@@ -959,8 +931,11 @@ public abstract class Polymost implements Renderer {
 
 			// Find min&max u coordinates (du0...du1)
 			for (i = 0; i < n; i++) {
-				ox = drawpoly_px[i];
-				oy = drawpoly_py[i];
+				Polygon dpoly = drawpoly[i];
+				
+				ox = dpoly.px;
+				oy = dpoly.py;
+				
 				f = (ox * ngux + oy * nguy + nguo)
 						/ (ox * ngdx + oy * ngdy + ngdo);
 				if (i == 0) {
@@ -983,20 +958,20 @@ public abstract class Polymost implements Renderer {
 
 				i = 0;
 				nn = 0;
-				duj = (drawpoly_px[i] * ngux + drawpoly_py[i] * nguy + nguo)
-						/ (drawpoly_px[i] * ngdx + drawpoly_py[i] * ngdy + ngdo);
+				Polygon dpoly1 = drawpoly[i];
+				duj = (dpoly1.px * ngux + dpoly1.py * nguy + nguo)
+						/ (dpoly1.px * ngdx + dpoly1.py * ngdy + ngdo);
 				do {
 					j = i + 1;
-					if (j == n)
-						j = 0;
-
+					if (j == n) j = 0;
+					Polygon dpoly2 = drawpoly[j];
 					dui = duj;
-					duj = (drawpoly_px[j] * ngux + drawpoly_py[j] * nguy + nguo)
-							/ (drawpoly_px[j] * ngdx + drawpoly_py[j] * ngdy + ngdo);
+					duj = (dpoly2.px * ngux + dpoly2.py * nguy + nguo)
+							/ (dpoly2.px * ngdx + dpoly2.py * ngdy + ngdo);
 
 					if ((du0 <= dui) && (dui <= du1)) {
-						drawpoly_uu[nn] = drawpoly_px[i];
-						drawpoly_vv[nn] = drawpoly_py[i];
+						drawpoly[nn].uu = dpoly1.px;
+						drawpoly[nn].vv = dpoly1.py;
 						nn++;
 					}
 					
@@ -1018,8 +993,9 @@ public abstract class Polymost implements Renderer {
 
 				gl.bglBegin(GL_TRIANGLE_FAN);
 				for (i = 0; i < nn; i++) {
-					ox = drawpoly_uu[i];
-					oy = drawpoly_vv[i];
+					Polygon dpoly = drawpoly[i];
+					ox = dpoly.uu;
+					oy = dpoly.vv;
 					dp = ox * ngdx + oy * ngdy + ngdo;
 					up = ox * ngux + oy * nguy + nguo;
 					vp = ox * ngvx + oy * ngvy + ngvo;
@@ -1041,18 +1017,19 @@ public abstract class Polymost implements Renderer {
 		
 			gl.bglBegin(GL_TRIANGLE_FAN);
 			for (i = 0; i < n; i++) {
-				r = 1.0f / drawpoly_dd[i];
+				Polygon dpoly = drawpoly[i];
+				
+				r = 1.0f / dpoly.dd;
 				if (texunits > GL_TEXTURE0_ARB) {
 					j = GL_TEXTURE0_ARB;
 					while (j <= texunits)
-						gl.bglMultiTexCoord2dARB(j++, drawpoly_uu[i] * r * ox2, drawpoly_vv[i] * r * oy2);
+						gl.bglMultiTexCoord2dARB(j++, dpoly.uu * r * ox2, dpoly.vv * r * oy2);
 				} else
-					gl.bglTexCoord2d(drawpoly_uu[i] * r * ox2, drawpoly_vv[i] * r * oy2);
+					gl.bglTexCoord2d(dpoly.uu * r * ox2, dpoly.vv * r * oy2);
 
-				gl.bglVertex3d((drawpoly_px[i] - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly_py[i]) * r * grhalfxdown10, r * (1.f / 1024.f));
+				gl.bglVertex3d((dpoly.px - ghalfx) * r * grhalfxdown10x, (ghoriz - dpoly.py) * r * grhalfxdown10, r * (1.f / 1024.f));
 			}
 			gl.bglEnd();
-
 			if(showlines) {
 				gl.bglDisable(GL_TEXTURE_2D);
 				int[] p = new int[2];
@@ -1062,8 +1039,8 @@ public abstract class Polymost implements Renderer {
 					p[0] = i-1; p[1] = i;
 					if(i == n) { p[0] = i - 1; p[1] = 0; }
 					for(int l = 0; l < 2; l++) {
-						r = 1.0 / drawpoly_dd[p[l]]; 
-						gl.bglVertex3d((drawpoly_px[p[l]] - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly_py[p[l]]) * r * grhalfxdown10, r* (1.0 / 1024.0));
+						r = 1.0 / drawpoly[p[l]].dd; 
+						gl.bglVertex3d((drawpoly[p[l]].px - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly[p[l]].py) * r * grhalfxdown10, r* (1.0 / 1024.0));
 					}
 				} 
 				gl.bglEnd(); 
@@ -1235,11 +1212,11 @@ public abstract class Polymost implements Renderer {
 		return (0);
 	}
 
-	private final float[] domost_dpx = new float[4],
-			domost_dpy = new float[4];
-	private final float[] domost_spx = new float[4], /*domost_spy = new float[4],*/
-			domost_cy = new float[2], domost_cv = new float[2];
-	private int domost_spt[] = new int[4];
+	
+	
+	private final TSurface[] domost = new TSurface[4];
+	private final float[] domost_cy = new float[2], domost_cv = new float[2];
+
 	private int domostpolymethod = 0;
 	private final float DOMOST_OFFSET = 0.01f;
 
@@ -1287,9 +1264,8 @@ public abstract class Polymost implements Renderer {
 			if ((x0 > nx0) && (x0 < nx1)) {
 				t = (x0 - nx0) * domost_cv[dir?1:0] - (y0 - domost_cy[dir?1:0]) * dx;
 				if (((!dir) && (t < 0)) || ((dir) && (t > 0))) {
-					domost_spx[scnt] = x0;
-//					domost_spy[scnt] = y0;
-					domost_spt[scnt] = -1;
+					domost[scnt].spx = x0;
+					domost[scnt].spt = -1;
 					scnt++;
 				}
 			}
@@ -1302,34 +1278,29 @@ public abstract class Polymost implements Renderer {
 					t = n / d;
 					nx = (x1 - x0) * t + x0;
 					if ((nx > nx0) && (nx < nx1)) {
-						domost_spx[scnt] = nx;
-//						domost_spy[scnt] = (y1 - y0) * t + y0;
-						domost_spt[scnt] = j;
+						domost[scnt].spx = nx;
+						domost[scnt].spt = j;
 						scnt++;
 					}
 				}
 			}
 
 			// Nice hack to avoid full sort later :)
-			if ((scnt >= 2) && (domost_spx[scnt - 1] < domost_spx[scnt - 2])) {
-				f = domost_spx[scnt - 1];
-				domost_spx[scnt - 1] = domost_spx[scnt - 2];
-				domost_spx[scnt - 2] = f;
-//				f = domost_spy[scnt - 1];
-//				domost_spy[scnt - 1] = domost_spy[scnt - 2];
-//				domost_spy[scnt - 2] = f;
-				j = domost_spt[scnt - 1];
-				domost_spt[scnt - 1] = domost_spt[scnt - 2];
-				domost_spt[scnt - 2] = j;
+			if ((scnt >= 2) && (domost[scnt - 1].spx < domost[scnt - 2].spx)) {
+				f = domost[scnt - 1].spx;
+				domost[scnt - 1].spx = domost[scnt - 2].spx;
+				domost[scnt - 2].spx = f;
+				j = domost[scnt - 1].spt;
+				domost[scnt - 1].spt = domost[scnt - 2].spt;
+				domost[scnt - 2].spt = j;
 			}
 
 			// Test if right edge requires split
 			if ((x1 > nx0) && (x1 < nx1)) {
 				t = (x1 - nx0) * domost_cv[dir?1:0] - (y1 - domost_cy[dir?1:0]) * dx;
 				if (((!dir) && (t < 0)) || ((dir) && (t > 0))) {
-					domost_spx[scnt] = x1;
-//					domost_spy[scnt] = y1;
-					domost_spt[scnt] = -1;
+					domost[scnt].spx = x1;
+					domost[scnt].spt = -1;
 					scnt++;
 				}
 			}
@@ -1338,13 +1309,13 @@ public abstract class Polymost implements Renderer {
 			for (z = 0; z <= scnt; z++, i = vcnt) {
 				if (z < scnt) {
 					vcnt = vsinsaft(i);
-					t = (domost_spx[z] - nx0) / dx;
+					t = (domost[z].spx - nx0) / dx;
 					vsp[i].cy[1] = t * domost_cv[0] + domost_cy[0];
 					vsp[i].fy[1] = t * domost_cv[1] + domost_cy[1];
-					vsp[vcnt].x = domost_spx[z];
+					vsp[vcnt].x = domost[z].spx;
 					vsp[vcnt].cy[0] = vsp[i].cy[1];
 					vsp[vcnt].fy[0] = vsp[i].fy[1];
-					vsp[vcnt].tag = domost_spt[z];
+					vsp[vcnt].tag = domost[z].spt;
 				}
 
 				ni = vsp[i].n;
@@ -1382,55 +1353,55 @@ public abstract class Polymost implements Renderer {
 					switch (k) {
 					case 1:
 					case 2: 
-						domost_dpx[0] = dx0;
-						domost_dpy[0] = vsp[i].cy[0];
-						domost_dpx[1] = dx1;
-						domost_dpy[1] = vsp[i].cy[1];
-						domost_dpx[2] = dx0;
-						domost_dpy[2] = ny0;
+						domost[0].px = dx0;
+						domost[0].py = vsp[i].cy[0];
+						domost[1].px = dx1;
+						domost[1].py = vsp[i].cy[1];
+						domost[2].px = dx0;
+						domost[2].py = ny0;
 						vsp[i].cy[0] = ny0;
 						vsp[i].ctag = gtag;
-						drawpoly(domost_dpx, domost_dpy, 3, domostpolymethod);
+						drawpoly(domost, 3, domostpolymethod);
 						break;
 					case 3:
 					case 6:
-						domost_dpx[0] = dx0;
-						domost_dpy[0] = vsp[i].cy[0];
-						domost_dpx[1] = dx1;
-						domost_dpy[1] = vsp[i].cy[1];
-						domost_dpx[2] = dx1;
-						domost_dpy[2] = ny1;
-						drawpoly(domost_dpx, domost_dpy, 3, domostpolymethod);
+						domost[0].px = dx0;
+						domost[0].py = vsp[i].cy[0];
+						domost[1].px = dx1;
+						domost[1].py = vsp[i].cy[1];
+						domost[2].px = dx1;
+						domost[2].py = ny1;
+						drawpoly(domost, 3, domostpolymethod);
 						vsp[i].cy[1] = ny1;
 						vsp[i].ctag = gtag;
 						break;
 					case 4:
 					case 5:
 					case 7:
-						domost_dpx[0] = dx0;
-						domost_dpy[0] = vsp[i].cy[0];
-						domost_dpx[1] = dx1;
-						domost_dpy[1] = vsp[i].cy[1];
-						domost_dpx[2] = dx1;
-						domost_dpy[2] = ny1;
-						domost_dpx[3] = dx0;
-						domost_dpy[3] = ny0;
+						domost[0].px = dx0;
+						domost[0].py = vsp[i].cy[0];
+						domost[1].px = dx1;
+						domost[1].py = vsp[i].cy[1];
+						domost[2].px = dx1;
+						domost[2].py = ny1;
+						domost[3].px = dx0;
+						domost[3].py = ny0;
 						vsp[i].cy[0] = ny0;
 						vsp[i].cy[1] = ny1;
 						vsp[i].ctag = gtag;
-						drawpoly(domost_dpx, domost_dpy, 4, domostpolymethod);
+						drawpoly(domost, 4, domostpolymethod);
 						break;
 					case 8:
-						domost_dpx[0] = dx0;
-						domost_dpy[0] = vsp[i].cy[0];
-						domost_dpx[1] = dx1;
-						domost_dpy[1] = vsp[i].cy[1];
-						domost_dpx[2] = dx1;
-						domost_dpy[2] = vsp[i].fy[1];
-						domost_dpx[3] = dx0;
-						domost_dpy[3] = vsp[i].fy[0];
+						domost[0].px = dx0;
+						domost[0].py = vsp[i].cy[0];
+						domost[1].px = dx1;
+						domost[1].py = vsp[i].cy[1];
+						domost[2].px = dx1;
+						domost[2].py = vsp[i].fy[1];
+						domost[3].px = dx0;
+						domost[3].py = vsp[i].fy[0];
 						vsp[i].ctag = vsp[i].ftag = -1;
-						drawpoly(domost_dpx, domost_dpy, 4, domostpolymethod);
+						drawpoly(domost, 4, domostpolymethod);
 						break;
 					default:
 						break;
@@ -1439,55 +1410,55 @@ public abstract class Polymost implements Renderer {
 					switch (k) {
 					case 7:
 					case 6:
-						domost_dpx[0] = dx0;
-						domost_dpy[0] = ny0;
-						domost_dpx[1] = dx1;
-						domost_dpy[1] = vsp[i].fy[1];
-						domost_dpx[2] = dx0;
-						domost_dpy[2] = vsp[i].fy[0];
+						domost[0].px = dx0;
+						domost[0].py = ny0;
+						domost[1].px = dx1;
+						domost[1].py = vsp[i].fy[1];
+						domost[2].px = dx0;
+						domost[2].py = vsp[i].fy[0];
 						vsp[i].fy[0] = ny0;
 						vsp[i].ftag = gtag;
-						drawpoly(domost_dpx, domost_dpy, 3, domostpolymethod);
+						drawpoly(domost, 3, domostpolymethod);
 						break;
 					case 5:
 					case 2:
-						domost_dpx[0] = dx0;
-						domost_dpy[0] = vsp[i].fy[0];
-						domost_dpx[1] = dx1;
-						domost_dpy[1] = ny1;
-						domost_dpx[2] = dx1;
-						domost_dpy[2] = vsp[i].fy[1];
+						domost[0].px = dx0;
+						domost[0].py = vsp[i].fy[0];
+						domost[1].px = dx1;
+						domost[1].py = ny1;
+						domost[2].px = dx1;
+						domost[2].py = vsp[i].fy[1];
 						vsp[i].fy[1] = ny1;
 						vsp[i].ftag = gtag;
-						drawpoly(domost_dpx, domost_dpy, 3, domostpolymethod);
+						drawpoly(domost, 3, domostpolymethod);
 						break;
 					case 4:
 					case 3:
 					case 1:
-						domost_dpx[0] = dx0;
-						domost_dpy[0] = ny0;
-						domost_dpx[1] = dx1;
-						domost_dpy[1] = ny1;
-						domost_dpx[2] = dx1;
-						domost_dpy[2] = vsp[i].fy[1];
-						domost_dpx[3] = dx0;
-						domost_dpy[3] = vsp[i].fy[0];
+						domost[0].px = dx0;
+						domost[0].py = ny0;
+						domost[1].px = dx1;
+						domost[1].py = ny1;
+						domost[2].px = dx1;
+						domost[2].py = vsp[i].fy[1];
+						domost[3].px = dx0;
+						domost[3].py = vsp[i].fy[0];
 						vsp[i].fy[0] = ny0;
 						vsp[i].fy[1] = ny1;
 						vsp[i].ftag = gtag;
-						drawpoly(domost_dpx, domost_dpy, 4, domostpolymethod);
+						drawpoly(domost, 4, domostpolymethod);
 						break;
 					case 0:
-						domost_dpx[0] = dx0;
-						domost_dpy[0] = vsp[i].cy[0];
-						domost_dpx[1] = dx1;
-						domost_dpy[1] = vsp[i].cy[1];
-						domost_dpx[2] = dx1;
-						domost_dpy[2] = vsp[i].fy[1];
-						domost_dpx[3] = dx0;
-						domost_dpy[3] = vsp[i].fy[0];
+						domost[0].px = dx0;
+						domost[0].py = vsp[i].cy[0];
+						domost[1].px = dx1;
+						domost[1].py = vsp[i].cy[1];
+						domost[2].px = dx1;
+						domost[2].py = vsp[i].fy[1];
+						domost[3].px = dx0;
+						domost[3].py = vsp[i].fy[0];
 						vsp[i].ctag = vsp[i].ftag = -1;
-						drawpoly(domost_dpx, domost_dpy, 4, domostpolymethod);
+						drawpoly(domost, 4, domostpolymethod);
 						break;
 					default:
 						break;
@@ -1536,7 +1507,7 @@ public abstract class Polymost implements Renderer {
 		int i;
 
 		SECTOR sec = sector[sectnum];
-
+		
 		if ((globalorientation & 64) == 0) {
 			nonparallaxed_ft[0] = globalposx;
 			nonparallaxed_ft[1] = globalposy;
@@ -1549,6 +1520,7 @@ public abstract class Polymost implements Renderer {
 			r = 1.0 / sqrt(fx * fx + fy * fy);
 			fx *= r;
 			fy *= r;
+			
 			nonparallaxed_ft[2] = cosglobalang * fx + singlobalang * fy;
 			nonparallaxed_ft[3] = singlobalang * fx - cosglobalang * fy;
 			nonparallaxed_ft[0] = ((double) (globalposx - wall[sec.wallptr].x))
@@ -1560,6 +1532,7 @@ public abstract class Polymost implements Renderer {
 			else
 				globalorientation ^= 16;
 		}
+
 		gdx = 0;
 		gdy = gxyaspect;
 		if ((globalorientation & 2) == 0)
@@ -1615,10 +1588,7 @@ public abstract class Polymost implements Renderer {
 		fy = global_cf_ypanning * ((float) (1 << (picsiz[globalpicnum] >> 4)))
 				/ 256.0;
 		
-		
-		if ((globalorientation & (2 + 64)) == (2 + 64)) // Hack for panning for
-		// slopes w/ relative
-		// alignment
+		if ((globalorientation & (2 + 64)) == (2 + 64)) // Hack for panning for slopes w/ relative alignment
 		{
 			r = global_cf_heinum / 4096.0;
 			r = 1.0 / sqrt(r * r + 1);
@@ -1627,6 +1597,7 @@ public abstract class Polymost implements Renderer {
 			else
 				fx *= r;
 		}
+
 		guy += gdy * fx;
 		guo += gdo * fx;
 		gvy += gdy * fy;
@@ -1659,16 +1630,16 @@ public abstract class Polymost implements Renderer {
 			nonparallaxed_py[0] = cf_y0;
 			nonparallaxed_py[1] = cf_y1;
 			if (floor) 
-				nonparallaxed_py[2] = (engine.getflorzofslope((short) sectnum, (int) ox, (int) oy) - globalposz) * oy2 + ghoriz;
+				nonparallaxed_py[2] = (polymost_getflorzofslope(sectnum, ox, oy) - globalposz) * oy2 + ghoriz;
 			else
-				nonparallaxed_py[2] = (engine.getceilzofslope((short) sectnum,
-						(int) ox, (int) oy) - globalposz) * oy2 + ghoriz;
+				nonparallaxed_py[2] = (polymost_getceilzofslope(sectnum, ox, oy) - globalposz) * oy2 + ghoriz;
 
 			ox = nonparallaxed_py[1] - nonparallaxed_py[2];
 			oy = nonparallaxed_py[2] - nonparallaxed_py[0];
 			oz = nonparallaxed_py[0] - nonparallaxed_py[1];
 			r = 1.0 / (ox * nonparallaxed_px[0] + oy * nonparallaxed_px[1] + oz
 					* nonparallaxed_px[2]);
+			
 			gdx = (ox * nonparallaxed_dd[0] + oy * nonparallaxed_dd[1] + oz
 					* nonparallaxed_dd[2])
 					* r;
@@ -1697,8 +1668,7 @@ public abstract class Polymost implements Renderer {
 			gvo = nonparallaxed_vv[0] - nonparallaxed_px[0] * gvx
 					- nonparallaxed_py[0] * gvy;
 
-			if ((globalorientation & 64) != 0) // Hack for relative alignment on
-			// slopes
+			if ((globalorientation & 64) != 0) // Hack for relative alignment on slopes
 			{
 				r = global_cf_heinum / 4096.0;
 				r = sqrt(r * r + 1);
@@ -1713,14 +1683,13 @@ public abstract class Polymost implements Renderer {
 				}
 			}
 		}
+	
 		domostpolymethod = (globalorientation >> 7) & 3;
 		if (have_floor != 0) {
-			if (globalposz >= engine.getflorzofslope((short) sectnum, globalposx,
-					globalposy))
+			if (globalposz >= polymost_getflorzofslope(sectnum, globalposx, globalposy))
 				domostpolymethod = -1; // Back-face culling
 		} else {
-			if (globalposz <= engine.getceilzofslope((short) sectnum, globalposx,
-					globalposy))
+			if (globalposz <= polymost_getceilzofslope(sectnum, globalposx, globalposy))
 				domostpolymethod = -1; // Back-face culling
 		}
 
@@ -1794,7 +1763,7 @@ public abstract class Polymost implements Renderer {
 		WALL wal, wal2;
 		double x0, x1, cy0, cy1, fy0, fy1, xp0, yp0, xp1, yp1, ryp0, ryp1, nx0, ny0, nx1, ny1;
 		double t, t0, t1, ocy0, ocy1, ofy0, ofy1, oxp0, oyp0;
-		double oguo, ogux, oguy;
+		double oguo, ogux, oguy, fwalxrepeat;
 		int i, x, y, z, wallnum, sectnum, nextsectnum;
 
 		sectnum = thesector[bunchfirst[bunch]];
@@ -1814,14 +1783,15 @@ public abstract class Polymost implements Renderer {
 			calc_and_apply_fog(sec.floorpicnum, sec.floorshade, sec.visibility,  sec.floorpal);
 
 		for (z = bunchfirst[bunch]; z >= 0; z = p2[z]) {
-			
 			// DRAW WALLS SECTION!
-			
+
 			wallnum = thewall[z];
 			wal = wall[wallnum];
 			wal2 = wall[wal.point2];
 			nextsectnum = wal.nextsector;
 			nextsec = nextsectnum >= 0 ? sector[nextsectnum] : null;
+			
+			fwalxrepeat = (double) (wal.xrepeat & 0xFF);
 
 			// Offset&Rotate 3D coordinates to screen 3D space
 			x = wal.x - globalposx;
@@ -1874,12 +1844,12 @@ public abstract class Polymost implements Renderer {
 			ryp0 *= gyxscale;
 			ryp1 *= gyxscale;
 
-			engine.getzsofslope((short) sectnum, (int) nx0, (int) ny0);
-			cy0 = ((float) (ceilzsofslope - globalposz)) * ryp0 + ghoriz;
-			fy0 = ((float) (floorzsofslope - globalposz)) * ryp0 + ghoriz;
-			engine.getzsofslope((short) sectnum, (int) nx1, (int) ny1);
-			cy1 = ((float) (ceilzsofslope - globalposz)) * ryp1 + ghoriz;
-			fy1 = ((float) (floorzsofslope - globalposz)) * ryp1 + ghoriz;
+			polymost_getzsofslope(sectnum, nx0, ny0);
+			cy0 = (dceilzsofslope - globalposz) * ryp0 + ghoriz;
+			fy0 = (dfloorzsofslope - globalposz) * ryp0 + ghoriz;
+			polymost_getzsofslope(sectnum, nx1, ny1);
+			cy1 = (dceilzsofslope - globalposz) * ryp1 + ghoriz;
+			fy1 = (dfloorzsofslope - globalposz) * ryp1 + ghoriz;
 
 			{ //DRAW FLOOR
 				globalpicnum = sec.floorpicnum;
@@ -1895,7 +1865,7 @@ public abstract class Polymost implements Renderer {
 				global_cf_xpanning = sec.floorxpanning;
 				global_cf_ypanning = sec.floorypanning;
 				global_cf_heinum = sec.floorheinum;
-	
+				
 				if ((globalorientation & 1) == 0) {
 					if(!cROR || sectnum != cSector) { 
 						nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
@@ -1936,8 +1906,8 @@ public abstract class Polymost implements Renderer {
 			gdx = (ryp0 - ryp1) * gxyaspect / (x0 - x1);
 			gdy = 0;
 			gdo = ryp0 * gxyaspect - gdx * x0;
-			gux = (t0 * ryp0 - t1 * ryp1) * gxyaspect * (float) (wal.xrepeat & 0xFF) * 8.f / (x0 - x1);
-			guo = t0 * ryp0 * gxyaspect * (float) (wal.xrepeat & 0xFF) * 8.f - gux * x0;
+			gux = (t0 * ryp0 - t1 * ryp1) * gxyaspect * fwalxrepeat * 8.0 / (x0 - x1);
+			guo = t0 * ryp0 * gxyaspect * fwalxrepeat * 8.0 - gux * x0;
 			guo += (float) wal.xpanning * gdo;
 			gux += (float) wal.xpanning * gdx;
 			guy = 0;
@@ -1946,12 +1916,12 @@ public abstract class Polymost implements Renderer {
 			oguo = guo;
 
 			if (nextsectnum >= 0) {
-				engine.getzsofslope((short) nextsectnum, (int) nx0, (int) ny0);
-				ocy0 = ((float) (ceilzsofslope - globalposz)) * ryp0 + ghoriz;
-				ofy0 = ((float) (floorzsofslope - globalposz)) * ryp0 + ghoriz;
-				engine.getzsofslope((short) nextsectnum, (int) nx1, (int) ny1);
-				ocy1 = ((float) (ceilzsofslope - globalposz)) * ryp1 + ghoriz;
-				ofy1 = ((float) (floorzsofslope - globalposz)) * ryp1 + ghoriz;
+				polymost_getzsofslope(nextsectnum, nx0, ny0);
+				ocy0 = (dceilzsofslope - globalposz) * ryp0 + ghoriz;
+				ofy0 = (dfloorzsofslope - globalposz) * ryp0 + ghoriz;
+				polymost_getzsofslope(nextsectnum, nx1, ny1);
+				ocy1 = (dceilzsofslope - globalposz) * ryp1 + ghoriz;
+				ofy1 = (dfloorzsofslope - globalposz) * ryp1 + ghoriz;
 
 				if ((wal.cstat & 48) == 16)
 					maskwall[maskwallcnt++] = (short) z;
@@ -1975,7 +1945,7 @@ public abstract class Polymost implements Renderer {
 
 					if ((wal.cstat & 8) != 0) // xflip
 					{
-						t = (float) ((wal.xrepeat & 0xFF) * 8 + wal.xpanning * 2);
+						t = fwalxrepeat * 8 + wal.xpanning * 2;
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
 						guo = gdo * t - guo;
@@ -2030,7 +2000,7 @@ public abstract class Polymost implements Renderer {
 
 					if ((wal.cstat & 8) != 0) // xflip
 					{
-						t = (float) ((wal.xrepeat & 0xFF) * 8 + drawalls_nwal.xpanning * 2);
+						t = (fwalxrepeat * 8 + drawalls_nwal.xpanning * 2);
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
 						guo = gdo * t - guo;
@@ -2085,7 +2055,7 @@ public abstract class Polymost implements Renderer {
 					
 					if ((wal.cstat & 8) != 0) // xflip
 					{
-						t = (float) ((wal.xrepeat & 0xFF) * 8 + wal.xpanning * 2);
+						t = (fwalxrepeat * 8 + wal.xpanning * 2);
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
 						guo = gdo * t - guo;
@@ -2958,15 +2928,11 @@ public abstract class Polymost implements Renderer {
 			bunchlast[closest] = bunchlast[numbunches];
 		}
 	}
+	
+	private final TSurface[] dmaskwall = new TSurface[8];
 
-	private final float[] drawmaskwall_dpx = new float[8],
-			drawmaskwall_dpy = new float[8],
-			drawmaskwall_dpx2 = new float[8],
-			drawmaskwall_dpy2 = new float[8];
-	private final float[] drawmaskwall_csy = new float[4],
-			drawmaskwall_fsy = new float[4];
-	private final int[] drawmaskwall_cz = new int[4],
-			drawmaskwall_fz = new int[4];
+	private final float[] drawmaskwall_csy = new float[4], drawmaskwall_fsy = new float[4];
+	private final int[] drawmaskwall_cz = new int[4], drawmaskwall_fz = new int[4];
 
 	public void drawmaskwall(int damaskwallcnt) {
 		float x0, x1, sx0, sy0, sx1, sy1, xp0, yp0, xp1, yp1, oxp0, oyp0, ryp0, ryp1;
@@ -3031,20 +2997,20 @@ public abstract class Polymost implements Renderer {
 
 		m0 = (int) ((wal2.x - wal.x) * t0 + wal.x);
 		m1 = (int) ((wal2.y - wal.y) * t0 + wal.y);
-		engine.getzsofslope((short) sectnum, m0, m1);
-		drawmaskwall_cz[0] = ceilzsofslope;
-		drawmaskwall_fz[0] = floorzsofslope;
-		engine.getzsofslope(wal.nextsector, m0, m1);
-		drawmaskwall_cz[1] = ceilzsofslope;
-		drawmaskwall_fz[1] = floorzsofslope;
+		polymost_getzsofslope(sectnum, m0, m1);
+		drawmaskwall_cz[0] = (int)dceilzsofslope;
+		drawmaskwall_fz[0] = (int)dfloorzsofslope;
+		polymost_getzsofslope(wal.nextsector, m0, m1);
+		drawmaskwall_cz[1] = (int)dceilzsofslope;
+		drawmaskwall_fz[1] = (int)dfloorzsofslope;
 		m0 = (int) ((wal2.x - wal.x) * t1 + wal.x);
 		m1 = (int) ((wal2.y - wal.y) * t1 + wal.y);
-		engine.getzsofslope((short) sectnum, m0, m1);
-		drawmaskwall_cz[2] = ceilzsofslope;
-		drawmaskwall_fz[2] = floorzsofslope;
-		engine.getzsofslope(wal.nextsector, m0, m1);
-		drawmaskwall_cz[3] = ceilzsofslope;
-		drawmaskwall_fz[3] = floorzsofslope;
+		polymost_getzsofslope(sectnum, m0, m1);
+		drawmaskwall_cz[2] = (int)dceilzsofslope;
+		drawmaskwall_fz[2] = (int)dfloorzsofslope;
+		polymost_getzsofslope(wal.nextsector, m0, m1);
+		drawmaskwall_cz[3] = (int)dceilzsofslope;
+		drawmaskwall_fz[3] = (int)dfloorzsofslope;
 
 		ryp0 = 1.f / yp0;
 		ryp1 = 1.f / yp1;
@@ -3090,7 +3056,7 @@ public abstract class Polymost implements Renderer {
 
 		method = 1;
 		pow2xsplit = 1;
-		if ((wal.cstat & 128) != 0) { // FIXME
+		if ((wal.cstat & 128) != 0) {
 			if ((wal.cstat & 512) == 0)
 				method = 2;
 			else
@@ -3128,20 +3094,20 @@ public abstract class Polymost implements Renderer {
 		// | /
 		// fsy1/
 
-		drawmaskwall_dpx[0] = x0;
-		drawmaskwall_dpy[0] = drawmaskwall_csy[1];
-		drawmaskwall_dpx[1] = x1;
-		drawmaskwall_dpy[1] = drawmaskwall_csy[3];
-		drawmaskwall_dpx[2] = x1;
-		drawmaskwall_dpy[2] = drawmaskwall_fsy[3];
-		drawmaskwall_dpx[3] = x0;
-		drawmaskwall_dpy[3] = drawmaskwall_fsy[1];
+		dmaskwall[0].px = x0;
+		dmaskwall[0].py = drawmaskwall_csy[1];
+		dmaskwall[1].px = x1;
+		dmaskwall[1].py = drawmaskwall_csy[3];
+		dmaskwall[2].px = x1;
+		dmaskwall[2].py = drawmaskwall_fsy[3];
+		dmaskwall[3].px = x0;
+		dmaskwall[3].py = drawmaskwall_fsy[1];
 		n = 4;
 
 		// Clip to (x0,csy[0])-(x1,csy[2])
 		n2 = 0;
-		t1 = (float) -((drawmaskwall_dpx[0] - x0)
-				* (drawmaskwall_csy[2] - drawmaskwall_csy[0]) - (drawmaskwall_dpy[0] - drawmaskwall_csy[0])
+		t1 = (float) -((dmaskwall[0].px - x0)
+				* (drawmaskwall_csy[2] - drawmaskwall_csy[0]) - (dmaskwall[0].py - drawmaskwall_csy[0])
 						* (x1 - x0));
 		for (i = 0; i < n; i++) {
 			j = i + 1;
@@ -3149,20 +3115,18 @@ public abstract class Polymost implements Renderer {
 				j = 0;
 
 			t0 = t1;
-			t1 = (float) -((drawmaskwall_dpx[j] - x0)
-					* (drawmaskwall_csy[2] - drawmaskwall_csy[0]) - (drawmaskwall_dpy[j] - drawmaskwall_csy[0])
+			t1 = (float) -((dmaskwall[j].px - x0)
+					* (drawmaskwall_csy[2] - drawmaskwall_csy[0]) - (dmaskwall[j].py - drawmaskwall_csy[0])
 							* (x1 - x0));
 			if (t0 >= 0) {
-				drawmaskwall_dpx2[n2] = drawmaskwall_dpx[i];
-				drawmaskwall_dpy2[n2] = drawmaskwall_dpy[i];
+				dmaskwall[n2].px2 = dmaskwall[i].px;
+				dmaskwall[n2].py2 = dmaskwall[i].py;
 				n2++;
 			}
 			if ((t0 >= 0) != (t1 >= 0)) {
 				r = t0 / (t0 - t1);
-				drawmaskwall_dpx2[n2] = (drawmaskwall_dpx[j] - drawmaskwall_dpx[i])
-						* r + drawmaskwall_dpx[i];
-				drawmaskwall_dpy2[n2] = (drawmaskwall_dpy[j] - drawmaskwall_dpy[i])
-						* r + drawmaskwall_dpy[i];
+				dmaskwall[n2].px2 = (dmaskwall[j].px - dmaskwall[i].px) * r + dmaskwall[i].px;
+				dmaskwall[n2].py2 = (dmaskwall[j].py - dmaskwall[i].py) * r + dmaskwall[i].py;
 				n2++;
 			}
 		}
@@ -3171,8 +3135,8 @@ public abstract class Polymost implements Renderer {
 
 		// Clip to (x1,fsy[2])-(x0,fsy[0])
 		n = 0;
-		t1 = (float) -((drawmaskwall_dpx2[0] - x1)
-				* (drawmaskwall_fsy[0] - drawmaskwall_fsy[2]) - (drawmaskwall_dpy2[0] - drawmaskwall_fsy[2])
+		t1 = (float) -((dmaskwall[0].px2 - x1)
+				* (drawmaskwall_fsy[0] - drawmaskwall_fsy[2]) - (dmaskwall[0].py2 - drawmaskwall_fsy[2])
 						* (x0 - x1));
 		for (i = 0; i < n2; i++) {
 			j = i + 1;
@@ -3180,27 +3144,27 @@ public abstract class Polymost implements Renderer {
 				j = 0;
 
 			t0 = t1;
-			t1 = (float) -((drawmaskwall_dpx2[j] - x1)
-					* (drawmaskwall_fsy[0] - drawmaskwall_fsy[2]) - (drawmaskwall_dpy2[j] - drawmaskwall_fsy[2])
+			t1 = (float) -((dmaskwall[j].px2 - x1)
+					* (drawmaskwall_fsy[0] - drawmaskwall_fsy[2]) - (dmaskwall[j].py2 - drawmaskwall_fsy[2])
 							* (x0 - x1));
 			if (t0 >= 0) {
-				drawmaskwall_dpx[n] = drawmaskwall_dpx2[i];
-				drawmaskwall_dpy[n] = drawmaskwall_dpy2[i];
+				dmaskwall[n].px = dmaskwall[i].px2;
+				dmaskwall[n].py = dmaskwall[i].py2;
 				n++;
 			}
 			if ((t0 >= 0) != (t1 >= 0)) {
 				r = t0 / (t0 - t1);
-				drawmaskwall_dpx[n] = (drawmaskwall_dpx2[j] - drawmaskwall_dpx2[i])
-						* r + drawmaskwall_dpx2[i];
-				drawmaskwall_dpy[n] = (drawmaskwall_dpy2[j] - drawmaskwall_dpy2[i])
-						* r + drawmaskwall_dpy2[i];
+				dmaskwall[n].px = (dmaskwall[j].px2 - dmaskwall[i].px2)
+						* r + dmaskwall[i].px2;
+				dmaskwall[n].py = (dmaskwall[j].py2 - dmaskwall[i].py2)
+						* r + dmaskwall[i].py2;
 				n++;
 			}
 		}
 		if (n < 3)
 			return;
 
-		drawpoly(drawmaskwall_dpx, drawmaskwall_dpy, n, method);
+		drawpoly(dmaskwall, n, method);
 		gl.bglDepthRange(0.0, 1.0);
 	}
 
@@ -3289,10 +3253,8 @@ public abstract class Polymost implements Renderer {
 	}
 
 
-	private final float[] drawsprite_px = new float[6],
-			drawsprite_py = new float[6];
-	private final float drawsprite_ft[] = new float[4],
-			drawsprite_px2[] = new float[6], drawsprite_py2[] = new float[6];
+	private final TSurface dsprite[] = new TSurface[6];
+	private final float drawsprite_ft[] = new float[4];
 
 	public void drawsprite(int snum) {
 		float f, c, s, fx, fy, sx0, sy0, sx1, xp0, yp0, xp1, yp1, oxp0, oyp0, ryp0, ryp1;
@@ -3459,33 +3421,33 @@ public abstract class Polymost implements Renderer {
 			fx *= ((float) tsizx);
 			fy *= ((float) tsizy);
 
-			drawsprite_px[0] = drawsprite_px[3] = sx0 - fx * .5f;
-			drawsprite_px[1] = drawsprite_px[2] = sx0 + fx * .5f;
+			dsprite[0].px = dsprite[3].px = sx0 - fx * .5f;
+			dsprite[1].px = dsprite[2].px = sx0 + fx * .5f;
 			if ((globalorientation & 128) == 0) {
-				drawsprite_py[0] = drawsprite_py[1] = sy0 - fy;
-				drawsprite_py[2] = drawsprite_py[3] = sy0;
+				dsprite[0].py = dsprite[1].py = sy0 - fy;
+				dsprite[2].py = dsprite[3].py = sy0;
 			} else {
-				drawsprite_py[0] = drawsprite_py[1] = sy0 - fy * .5f;
-				drawsprite_py[2] = drawsprite_py[3] = sy0 + fy * .5f;
+				dsprite[0].py = dsprite[1].py = sy0 - fy * .5f;
+				dsprite[2].py = dsprite[3].py = sy0 + fy * .5f;
 			}
 
 			gdx = gdy = guy = gvx = 0;
 			gdo = ryp0 * gviewxrange;
 			if ((globalorientation & 4) == 0) {
 				gux = (float) tsizx * gdo
-						/ (drawsprite_px[1] - drawsprite_px[0] + .002);
-				guo = -gux * (drawsprite_px[0] - .001);
+						/ (dsprite[1].px  - dsprite[0].px  + .002);
+				guo = -gux * (dsprite[0].px  - .001);
 			} else {
 				gux = (float) tsizx * gdo
-						/ (drawsprite_px[0] - drawsprite_px[1] - .002);
-				guo = -gux * (drawsprite_px[1] + .001);
+						/ (dsprite[0].px  - dsprite[1].px  - .002);
+				guo = -gux * (dsprite[1].px  + .001);
 			}
 			if ((globalorientation & 8) == 0) {
-				gvy = (float) tsizy * gdo / (drawsprite_py[3] - drawsprite_py[0] + .002);
-				gvo = -gvy * (drawsprite_py[0] - .001);
+				gvy = (float) tsizy * gdo / (dsprite[3].py - dsprite[0].py + .002);
+				gvo = -gvy * (dsprite[0].py - .001);
 			} else {
-				gvy = (float) tsizy * gdo / (drawsprite_py[0] - drawsprite_py[3] - .002);
-				gvo = -gvy * (drawsprite_py[3] + .001);
+				gvy = (float) tsizy * gdo / (dsprite[0].py - dsprite[3].py - .002);
+				gvo = -gvy * (dsprite[3].py + .001);
 			}
 
 			// sprite panning
@@ -3509,21 +3471,21 @@ public abstract class Polymost implements Renderer {
 			if ((sector[tspr.sectnum].ceilingstat & 3) == 0) {
 				sy0 = (float) (((sector[tspr.sectnum].ceilingz - globalposz))
 						* gyxscale * ryp0 + ghoriz);
-				if (drawsprite_py[0] < sy0)
-					drawsprite_py[0] = drawsprite_py[1] = sy0;
+				if (dsprite[0].py < sy0)
+					dsprite[0].py = dsprite[1].py = sy0;
 			}
 			if ((sector[tspr.sectnum].floorstat & 3) == 0) {
 				sy0 = (float) (((sector[tspr.sectnum].floorz - globalposz))
 						* gyxscale * ryp0 + ghoriz);
-				if (drawsprite_py[2] > sy0)
-					drawsprite_py[2] = drawsprite_py[3] = sy0;
+				if (dsprite[2].py > sy0)
+					dsprite[2].py = dsprite[3].py = sy0;
 			}
 
 			tilesizx[globalpicnum] = (short) tsizx;
 			tilesizy[globalpicnum] = (short) tsizy;
 
 			pow2xsplit = 0;
-			drawpoly(drawsprite_px, drawsprite_py, 4, method);
+			drawpoly(dsprite, 4, method);
 
 			srepeat = 0;
 			trepeat = 0;
@@ -3678,20 +3640,20 @@ public abstract class Polymost implements Renderer {
 				sf1 = f;
 			}
 
-			drawsprite_px[0] = sx0;
-			drawsprite_py[0] = sc0;
-			drawsprite_px[1] = sx1;
-			drawsprite_py[1] = sc1;
-			drawsprite_px[2] = sx1;
-			drawsprite_py[2] = sf1;
-			drawsprite_px[3] = sx0;
-			drawsprite_py[3] = sf0;
+			dsprite[0].px  = sx0;
+			dsprite[0].py = sc0;
+			dsprite[1].px  = sx1;
+			dsprite[1].py = sc1;
+			dsprite[2].px  = sx1;
+			dsprite[2].py = sf1;
+			dsprite[3].px  = sx0;
+			dsprite[3].py = sf0;
 
 			tilesizx[globalpicnum] = (short) tsizx;
 			tilesizy[globalpicnum] = (short) tsizy;
 
 			pow2xsplit = 0;
-			drawpoly(drawsprite_px, drawsprite_py, 4, method);
+			drawpoly(dsprite, 4, method);
 
 			srepeat = 0;
 			trepeat = 0;
@@ -3742,39 +3704,39 @@ public abstract class Polymost implements Renderer {
 					sy0 -= c * x1;
 				}
 
-				drawsprite_px[j] = sy0 * gcosang - sx0 * gsinang;
-				drawsprite_py[j] = sx0 * gcosang2 + sy0 * gsinang2;
+				dsprite[j].px = sy0 * gcosang - sx0 * gsinang;
+				dsprite[j].py = sx0 * gcosang2 + sy0 * gsinang2;
 			}
 
 			if (tspr.z < globalposz) // if floor sprite is above you, reverse order of points
 			{
-				f = (float) drawsprite_px[0];
-				drawsprite_px[0] = drawsprite_px[1];
-				drawsprite_px[1] = f;
-				f = (float) drawsprite_py[0];
-				drawsprite_py[0] = drawsprite_py[1];
-				drawsprite_py[1] = f;
-				f = (float) drawsprite_px[2];
-				drawsprite_px[2] = drawsprite_px[3];
-				drawsprite_px[3] = f;
-				f = (float) drawsprite_py[2];
-				drawsprite_py[2] = drawsprite_py[3];
-				drawsprite_py[3] = f;
+				f = (float) dsprite[0].px ;
+				dsprite[0].px  = dsprite[1].px ;
+				dsprite[1].px  = f;
+				f = (float) dsprite[0].py;
+				dsprite[0].py = dsprite[1].py;
+				dsprite[1].py = f;
+				f = (float) dsprite[2].px ;
+				dsprite[2].px  = dsprite[3].px ;
+				dsprite[3].px  = f;
+				f = (float) dsprite[2].py;
+				dsprite[2].py = dsprite[3].py;
+				dsprite[3].py = f;
 			}
 
 			// Clip to SCISDIST plane
 			npoints = 0;
 			for (i = 0; i < 4; i++) {
 				j = ((i + 1) & 3);
-				if (drawsprite_py[i] >= SCISDIST) {
-					drawsprite_px2[npoints] = (float) drawsprite_px[i];
-					drawsprite_py2[npoints] = (float) drawsprite_py[i];
+				if (dsprite[i].py >= SCISDIST) {
+					dsprite[npoints].px2 = dsprite[i].px;
+					dsprite[npoints].py2 = dsprite[i].py;
 					npoints++;
 				}
-				if ((drawsprite_py[i] >= SCISDIST) != (drawsprite_py[j] >= SCISDIST)) {
-					f = (float) ((SCISDIST - drawsprite_py[i]) / (drawsprite_py[j] - drawsprite_py[i]));
-					drawsprite_px2[npoints] = (float) ((drawsprite_px[j] - drawsprite_px[i]) * f + drawsprite_px[i]);
-					drawsprite_py2[npoints] = (float) ((drawsprite_py[j] - drawsprite_py[i]) * f + drawsprite_py[i]);
+				if ((dsprite[i].py >= SCISDIST) != (dsprite[j].py >= SCISDIST)) {
+					f = (float) ((SCISDIST - dsprite[i].py) / (dsprite[j].py - dsprite[i].py));
+					dsprite[npoints].px2 = (float) ((dsprite[j].px - dsprite[i].px) * f + dsprite[i].px);
+					dsprite[npoints].py2 = (float) ((dsprite[j].py - dsprite[i].py) * f + dsprite[i].py);
 					npoints++;
 				}
 			}
@@ -3795,9 +3757,9 @@ public abstract class Polymost implements Renderer {
 
 			f = (float) ((tspr.z - globalposz + fadjust)*gyxscale);
 			for (j = 0; j < npoints; j++) {
-				ryp0 = 1 / drawsprite_py2[j];
-				drawsprite_px[j] = ghalfx * drawsprite_px2[j] * ryp0 + ghalfx;
-				drawsprite_py[j] = f * ryp0 + ghoriz;
+				ryp0 = 1 / dsprite[j].py2;
+				dsprite[j].px = ghalfx * dsprite[j].px2 * ryp0 + ghalfx;
+				dsprite[j].py = f * ryp0 + ghoriz;
 			}
 
 			// gd? Copied from floor rendering code
@@ -3854,7 +3816,7 @@ public abstract class Polymost implements Renderer {
 			tilesizy[globalpicnum] = (short) tsizy;
 
 			pow2xsplit = 0;
-			drawpoly(drawsprite_px, drawsprite_py, npoints, method);
+			drawpoly(dsprite, npoints, method);
 
 			srepeat = 0;
 			trepeat = 0;
@@ -3871,10 +3833,7 @@ public abstract class Polymost implements Renderer {
 			show2dsprite[snum >> 3] |= pow2char[snum & 7];
 	}
 
-	private final float dorot_px[] = new float[8],
-			dorot_py[] = new float[8],
-			dorot_px2[] = new float[8],
-			dorot_py2[] = new float[8];
+	private final TSurface drot[] = new TSurface[8];
 	private final float[][] matrix = new float[4][4];
 	private final SPRITE hudsprite = new SPRITE();
 
@@ -4167,14 +4126,14 @@ public abstract class Polymost implements Renderer {
 		float cx = sx * (1.0f / 65536.f) - xoff * cosang2 + yoff * sinang2;
 		float cy = sy * (1.0f / 65536.f) - xoff * sinang  - yoff * cosang;
 		
-		dorot_px[0] = cx;
-		dorot_py[0] = cy;
-		dorot_px[1] = cx + xsiz * cosang2;
-		dorot_py[1] = cy + xsiz * sinang;
-		dorot_px[3] = cx - ysiz * sinang2;
-		dorot_py[3] = cy + ysiz * cosang;
-		dorot_px[2] = dorot_px[1] + dorot_px[3] - dorot_px[0];
-		dorot_py[2] = dorot_py[1] + dorot_py[3] - dorot_py[0];
+		drot[0].px = cx;
+		drot[0].py = cy;
+		drot[1].px = cx + xsiz * cosang2;
+		drot[1].py = cy + xsiz * sinang;
+		drot[3].px = cx - ysiz * sinang2;
+		drot[3].py = cy + ysiz * cosang;
+		drot[2].px = drot[1].px + drot[3].px - drot[0].px;
+		drot[2].py = drot[1].py + drot[3].py - drot[0].py;
 
 		int n = 4;
 
@@ -4182,24 +4141,24 @@ public abstract class Polymost implements Renderer {
 		gdy = 0;
 		gdo = 1.0;
 
-		d = 1.0f / (dorot_px[0] * (dorot_py[1] - dorot_py[3])
-				+ dorot_px[1]
-				* (dorot_py[3] - dorot_py[0])
-				+ dorot_px[3]
-				* (dorot_py[0] - dorot_py[1]));
+		d = 1.0f / (drot[0].px * (drot[1].py - drot[3].py)
+				+ drot[1].px
+				* (drot[3].py - drot[0].py)
+				+ drot[3].px
+				* (drot[0].py - drot[1].py));
 		
-		gux = (dorot_py[3] - dorot_py[0]) * ((float) xsiz - .0001f) * d;
-		guy = (dorot_px[0] - dorot_px[3]) * ((float) xsiz - .0001f) * d;
-		guo = 0 - dorot_px[0] * gux - dorot_py[0] * guy;
+		gux = (drot[3].py - drot[0].py) * ((float) xsiz - .0001f) * d;
+		guy = (drot[0].px - drot[3].px) * ((float) xsiz - .0001f) * d;
+		guo = 0 - drot[0].px * gux - drot[0].py * guy;
 
 		if ((dastat & 4) == 0) {
-			gvx = (dorot_py[0] - dorot_py[1]) * ((float) ysiz - .0001f) * d;
-			gvy = (dorot_px[1] - dorot_px[0]) * ((float) ysiz - .0001f) * d;
-			gvo = 0 - dorot_px[0] * gvx - dorot_py[0] * gvy;
+			gvx = (drot[0].py - drot[1].py) * ((float) ysiz - .0001f) * d;
+			gvy = (drot[1].px - drot[0].px) * ((float) ysiz - .0001f) * d;
+			gvo = 0 - drot[0].px * gvx - drot[0].py * gvy;
 		} else {
-			gvx = (dorot_py[1] - dorot_py[0]) * ((float) ysiz - .0001f) * d;
-			gvy = (dorot_px[0] - dorot_px[1]) * ((float) ysiz - .0001f) * d;
-			gvo = (float) ysiz - .0001f - dorot_px[0] * gvx - dorot_py[0] * gvy;
+			gvx = (drot[1].py - drot[0].py) * ((float) ysiz - .0001f) * d;
+			gvy = (drot[0].px - drot[1].px) * ((float) ysiz - .0001f) * d;
+			gvo = (float) ysiz - .0001f - drot[0].px * gvx - drot[0].py * gvy;
 		}
 
 		cx2++;
@@ -4212,11 +4171,11 @@ public abstract class Polymost implements Renderer {
 			int zz = z + 1;
 			if (zz == n)
 				zz = 0;
-			x1 = dorot_px[z];
-			x2 = dorot_px[zz] - x1;
+			x1 = drot[z].px;
+			x2 = drot[zz].px - x1;
 			if ((cx1 <= x1) && (x1 <= cx2)) {
-				dorot_px2[nn] = x1;
-				dorot_py2[nn] = dorot_py[z];
+				drot[nn].px2 = x1;
+				drot[nn].py2 = drot[z].py;
 				nn++;
 			}
 			if (x2 <= 0)
@@ -4225,9 +4184,9 @@ public abstract class Polymost implements Renderer {
 				fx = cx1;
 			d = fx - x1;
 			if ((d < x2) != (d < 0)) {
-				dorot_px2[nn] = fx;
-				dorot_py2[nn] = (dorot_py[zz] - dorot_py[z])
-						* d / x2 + dorot_py[z];
+				drot[nn].px2 = fx;
+				drot[nn].py2 = (drot[zz].py - drot[z].py)
+						* d / x2 + drot[z].py;
 				nn++;
 			}
 			if (x2 <= 0)
@@ -4236,9 +4195,9 @@ public abstract class Polymost implements Renderer {
 				fx = cx2;
 			d = fx - x1;
 			if ((d < x2) != (d < 0)) {
-				dorot_px2[nn] = fx;
-				dorot_py2[nn] = (dorot_py[zz] - dorot_py[z])
-						* d / x2 + dorot_py[z];
+				drot[nn].px2 = fx;
+				drot[nn].py2 = (drot[zz].py - drot[z].py)
+						* d / x2 + drot[z].py;
 				nn++;
 			}
 			z = zz;
@@ -4252,11 +4211,11 @@ public abstract class Polymost implements Renderer {
 				int zz = z + 1;
 				if (zz == nn)
 					zz = 0;
-				y1 = dorot_py2[z];
-				y2 = dorot_py2[zz] - y1;
+				y1 = drot[z].py2;
+				y2 = drot[zz].py2 - y1;
 				if ((cy1 <= y1) && (y1 <= cy2)) {
-					dorot_py[n] = y1;
-					dorot_px[n] = dorot_px2[z];
+					drot[n].py = y1;
+					drot[n].px = drot[z].px2;
 					n++;
 				}
 				if (y2 <= 0)
@@ -4265,9 +4224,9 @@ public abstract class Polymost implements Renderer {
 					fy = cy1;
 				d = fy - y1;
 				if ((d < y2) != (d < 0)) {
-					dorot_py[n] = fy;
-					dorot_px[n] = (dorot_px2[zz] - dorot_px2[z])
-							* d / y2 + dorot_px2[z];
+					drot[n].py = fy;
+					drot[n].px = (drot[zz].px2 - drot[z].px2)
+							* d / y2 + drot[z].px2;
 					n++;
 				}
 				if (y2 <= 0)
@@ -4276,9 +4235,9 @@ public abstract class Polymost implements Renderer {
 					fy = cy2;
 				d = fy - y1;
 				if ((d < y2) != (d < 0)) {
-					dorot_py[n] = fy;
-					dorot_px[n] = (dorot_px2[zz] - dorot_px2[z])
-							* d / y2 + dorot_px2[z];
+					drot[n].py = fy;
+					drot[n].px = (drot[zz].px2 - drot[z].px2)
+							* d / y2 + drot[z].px2;
 					n++;
 				}
 				z = zz;
@@ -4288,7 +4247,7 @@ public abstract class Polymost implements Renderer {
 
 			pow2xsplit = 0;
 
-			drawpoly(dorot_px, dorot_py, n, method);
+			drawpoly(drot, n, method);
 			EnableFog();
 		}
 
@@ -4592,7 +4551,7 @@ public abstract class Polymost implements Renderer {
 		gl.bglEnable(GL_TEXTURE_2D);
 		pth = textureCache.cache(globalpicnum, globalpal, false, true);
 
-		gl.bglBindTexture(GL_TEXTURE_2D, pth.glpic);
+		bindTexture(gl,  pth.glpic);
 		float f = getshadefactor(globalshade);
 		
 		switch ((globalorientation >> 7) & 3) {
@@ -4664,7 +4623,7 @@ public abstract class Polymost implements Renderer {
 			usehightile = ousehightile;
 		}
 
-		gl.bglBindTexture(GL_TEXTURE_2D, pth.glpic);
+		bindTexture(gl,  pth.glpic);
 
 		gl.bglDisable(GL_ALPHA_TEST);
 
@@ -5659,19 +5618,19 @@ public abstract class Polymost implements Renderer {
 
         gl.bglEnable(GL_TEXTURE_2D);
 
-		drawpoly_pc[0] = drawpoly_pc[1] = drawpoly_pc[2] = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
+		poly_color.r = poly_color.g = poly_color.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    if ((hictinting[globalpal].f&4) == 0)
 	    {
 	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
 	        {
-	            drawpoly_pc[0] *= (float)hictinting[globalpal].r / 255.0;
-	            drawpoly_pc[1] *= (float)hictinting[globalpal].g / 255.0;
-	            drawpoly_pc[2] *= (float)hictinting[globalpal].b / 255.0;
+	            poly_color.r *= (float)hictinting[globalpal].r / 255.0;
+	            poly_color.g *= (float)hictinting[globalpal].g / 255.0;
+	            poly_color.b *= (float)hictinting[globalpal].b / 255.0;
 	            if (hictinting[MAXPALOOKUPS-1].r != 255 || hictinting[MAXPALOOKUPS-1].g != 255 || hictinting[MAXPALOOKUPS-1].b != 255)
 	            {
-	                drawpoly_pc[0] *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
-	                drawpoly_pc[1] *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
-	                drawpoly_pc[2] *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
+	                poly_color.r *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
+	                poly_color.g *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
+	                poly_color.b *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
 	            }
 	        }
 	        else globalnoeffect=1;
@@ -5679,11 +5638,11 @@ public abstract class Polymost implements Renderer {
 
 	    if ((tspr.cstat&2) != 0) {
 	    	if ((tspr.cstat&512) == 0) {
-				drawpoly_pc[3] = TRANSLUSCENT1;
+				poly_color.a = TRANSLUSCENT1;
 	    	} else { 
-				drawpoly_pc[3] = TRANSLUSCENT2;
+				poly_color.a = TRANSLUSCENT2;
 	    	}
-	    } else drawpoly_pc[3] = 1.0f;
+	    } else poly_color.a = 1.0f;
 	   
 	    if (m.usesalpha) //Sprites with alpha in texture
 	    {
@@ -5697,7 +5656,7 @@ public abstract class Polymost implements Renderer {
 	    else
 	        if ((tspr.cstat&2) != 0) gl.bglEnable(GL_BLEND);
 
-	    gl.bglColor4f(drawpoly_pc[0],drawpoly_pc[1],drawpoly_pc[2],drawpoly_pc[3]);
+	    gl.bglColor4f(poly_color.r,poly_color.g,poly_color.b,poly_color.a);
 
 	    int rendered = 0;
 	    for (int surfi = 0; surfi < m.head.numSurfaces; surfi++)
@@ -5733,7 +5692,7 @@ public abstract class Polymost implements Renderer {
 		            gl.bglActiveTextureARB(++texunits);
 		
 		            gl.bglEnable(GL_TEXTURE_2D);
-		            gl.bglBindTexture(GL_TEXTURE_2D, texid);
+		            bindTexture(gl,  texid);
 		
 		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
@@ -5773,7 +5732,7 @@ public abstract class Polymost implements Renderer {
 		        	gl.bglActiveTextureARB(++texunits);
 		
 		        	gl.bglEnable(GL_TEXTURE_2D);
-		        	gl.bglBindTexture(GL_TEXTURE_2D, texid);
+		        	bindTexture(gl,  texid);
 		
 		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
@@ -5981,19 +5940,19 @@ public abstract class Polymost implements Renderer {
 
         gl.bglEnable(GL_TEXTURE_2D);
 
-		drawpoly_pc[0] = drawpoly_pc[1] = drawpoly_pc[2] = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
+		poly_color.r = poly_color.g = poly_color.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    if ((hictinting[globalpal].f&4) == 0)
 	    {
 	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
 	        {
-	            drawpoly_pc[0] *= (float)hictinting[globalpal].r / 255.0;
-	            drawpoly_pc[1] *= (float)hictinting[globalpal].g / 255.0;
-	            drawpoly_pc[2] *= (float)hictinting[globalpal].b / 255.0;
+	            poly_color.r *= (float)hictinting[globalpal].r / 255.0;
+	            poly_color.g *= (float)hictinting[globalpal].g / 255.0;
+	            poly_color.b *= (float)hictinting[globalpal].b / 255.0;
 	            if (hictinting[MAXPALOOKUPS-1].r != 255 || hictinting[MAXPALOOKUPS-1].g != 255 || hictinting[MAXPALOOKUPS-1].b != 255)
 	            {
-	                drawpoly_pc[0] *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
-	                drawpoly_pc[1] *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
-	                drawpoly_pc[2] *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
+	                poly_color.r *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
+	                poly_color.g *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
+	                poly_color.b *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
 	            }
 	        }
 	        else globalnoeffect=1;
@@ -6001,11 +5960,11 @@ public abstract class Polymost implements Renderer {
 
 	    if ((tspr.cstat&2) != 0) {
 	    	if ((tspr.cstat&512) == 0) {
-				drawpoly_pc[3] = TRANSLUSCENT1;
+				poly_color.a = TRANSLUSCENT1;
 	    	} else { 
-				drawpoly_pc[3] = TRANSLUSCENT2;
+				poly_color.a = TRANSLUSCENT2;
 	    	}
-	    } else drawpoly_pc[3] = 1.0f;
+	    } else poly_color.a = 1.0f;
 	    if (m.usesalpha) //Sprites with alpha in texture
 	    {
 	        float al = 0.0f;
@@ -6018,7 +5977,7 @@ public abstract class Polymost implements Renderer {
 	    else
 	        if ((tspr.cstat&2) != 0) gl.bglEnable(GL_BLEND);
 
-	    gl.bglColor4f(drawpoly_pc[0],drawpoly_pc[1],drawpoly_pc[2],drawpoly_pc[3]);
+	    gl.bglColor4f(poly_color.r,poly_color.g,poly_color.b,poly_color.a);
 
 	    int rendered = 0;
 		BTexture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
@@ -6037,7 +5996,7 @@ public abstract class Polymost implements Renderer {
 	            gl.bglActiveTextureARB(++texunits);
 	
 	            gl.bglEnable(GL_TEXTURE_2D);
-	            gl.bglBindTexture(GL_TEXTURE_2D, texid);
+	            bindTexture(gl,  texid);
 	
 	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
@@ -6077,7 +6036,7 @@ public abstract class Polymost implements Renderer {
 	        	gl.bglActiveTextureARB(++texunits);
 	
 	        	gl.bglEnable(GL_TEXTURE_2D);
-	        	gl.bglBindTexture(GL_TEXTURE_2D, texid);
+	        	bindTexture(gl,  texid);
 	
 	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
@@ -6293,17 +6252,17 @@ public abstract class Polymost implements Renderer {
 
 		gl.bglEnable(GL_TEXTURE_2D);
 
-		drawpoly_pc[0] = drawpoly_pc[1] = drawpoly_pc[2] = ((float) (numshades - min(max((globalshade * shadescale) + m.shadeoff, 0), numshades))) / ((float) numshades);
-		drawpoly_pc[0] *= (float) hictinting[globalpal].r / 255.0f;
-		drawpoly_pc[1] *= (float) hictinting[globalpal].g / 255.0f;
-		drawpoly_pc[2] *= (float) hictinting[globalpal].b / 255.0f;
+		poly_color.r = poly_color.g = poly_color.b = ((float) (numshades - min(max((globalshade * shadescale) + m.shadeoff, 0), numshades))) / ((float) numshades);
+		poly_color.r *= (float) hictinting[globalpal].r / 255.0f;
+		poly_color.g *= (float) hictinting[globalpal].g / 255.0f;
+		poly_color.b *= (float) hictinting[globalpal].b / 255.0f;
 		if ((tspr.cstat & 2) != 0) {
 			if ((tspr.cstat & 512) == 0)
-				drawpoly_pc[3] = TRANSLUSCENT1;
+				poly_color.a = TRANSLUSCENT1;
 			else
-				drawpoly_pc[3] = TRANSLUSCENT2;
+				poly_color.a = TRANSLUSCENT2;
 		} else
-			drawpoly_pc[3] = 1.0f;
+			poly_color.a = 1.0f;
 		if ((tspr.cstat & 2) != 0)
 			gl.bglEnable(GL_BLEND);
 		
@@ -6358,11 +6317,11 @@ public abstract class Polymost implements Renderer {
 		if (m.texid[globalpal] == null)
 			m.texid[globalpal] = gloadtex(m.mytex, m.mytexx, m.mytexy, globalpal, gl);
 		else
-			gl.bglBindTexture(GL_TEXTURE_2D, m.texid[globalpal]);
+			bindTexture(gl,  m.texid[globalpal]);
 		
 		if(r_vertexarrays != 0)
 		{
-			gl.bglColor4f(drawpoly_pc[0], drawpoly_pc[1], drawpoly_pc[2], drawpoly_pc[3]);
+			gl.bglColor4f(poly_color.r, poly_color.g, poly_color.b, poly_color.a);
 			gl.bglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	        gl.bglTexCoordPointer(2, 0, m.uv);
 			gl.bglEnableClientState(GL_VERTEX_ARRAY);
@@ -6375,7 +6334,7 @@ public abstract class Polymost implements Renderer {
 			for (i = 0, fi = 0; i < m.qcnt; i++) {
 				if (i == m.qfacind[fi]) {
 					f = dvoxclut[fi++];
-					gl.bglColor4f(drawpoly_pc[0] * f, drawpoly_pc[1] * f, drawpoly_pc[2] * f, drawpoly_pc[3] * f);
+					gl.bglColor4f(poly_color.r * f, poly_color.g * f, poly_color.b * f, poly_color.a * f);
 				}
 	
 				xx = m.quad[i].v[0].x + m.quad[i].v[2].x;
@@ -6741,6 +6700,60 @@ public abstract class Polymost implements Renderer {
 	public float getdrunk() {
 		return drunkIntensive;
 	}
+	
+	public double polymost_getflorzofslope(int sectnum, double dax, double day) {
+		if(sector[sectnum] == null) return 0;
+		if ((sector[sectnum].floorstat & 2) == 0)
+			return (sector[sectnum].floorz);
+
+		WALL wal = wall[sector[sectnum].wallptr];
+		int dx = wall[wal.point2].x - wal.x;
+		int dy = wall[wal.point2].y - wal.y;
+		long i = (engine.ksqrt(dx * dx + dy * dy) << 5);
+		if (i == 0)
+			return (sector[sectnum].floorz);
+
+		double j = (dx * (day - wal.y) - dy * (dax - wal.x)) / 8;
+		return sector[sectnum].floorz + sector[sectnum].floorheinum * j / i;
+	}
+	
+	public double polymost_getceilzofslope(int sectnum, double dax, double day) {
+		if ((sector[sectnum].ceilingstat & 2) == 0)
+			return (sector[sectnum].ceilingz);
+
+		WALL wal = wall[sector[sectnum].wallptr];
+		int dx = wall[wal.point2].x - wal.x;
+		int dy = wall[wal.point2].y - wal.y;
+		long i = (engine.ksqrt(dx * dx + dy * dy) << 5);
+		if (i == 0)
+			return (sector[sectnum].ceilingz);
+		
+		double j = (dx * (day - wal.y) - dy * (dax - wal.x)) / 8;
+		return sector[sectnum].ceilingz + sector[sectnum].ceilingheinum * j / i;
+	}
+	
+	private static double dceilzsofslope, dfloorzsofslope;
+	public void polymost_getzsofslope(int sectnum, double dax, double day) {
+		SECTOR sec = sector[sectnum];
+		if(sec == null) return;
+		dceilzsofslope = sec.ceilingz;
+		dfloorzsofslope = sec.floorz;
+		if (((sec.ceilingstat | sec.floorstat) & 2) != 0) {
+			WALL wal = wall[sec.wallptr];
+			WALL wal2 = wall[wal.point2];
+			int dx = wal2.x - wal.x;
+			int dy = wal2.y - wal.y;
+			long i = (engine.ksqrt(dx * dx + dy * dy) << 5);
+			if (i == 0)
+				return;
+			double j = (dx * (day - wal.y) - dy * (dax - wal.x)) / 8;
+
+			if ((sec.ceilingstat & 2) != 0)
+				dceilzsofslope += sector[sectnum].ceilingheinum * j / i;
+			if ((sec.floorstat & 2) != 0)
+				dfloorzsofslope += sector[sectnum].floorheinum * j / i;
+		}
+	}
 
 	// private int recheck(int x, int y, int oldx, int j, SPRITE tspr, short datempsectnum) {
 	// updatesectorz(tspr.x + x, tspr.y + y, tspr.z, datempsectnum);
@@ -6797,6 +6810,23 @@ class raster {
 		this.i = src.i;
 	}
 };
+
+class Polygon
+{
+	float dd, uu, vv;
+	float px, py;
+}
+
+class Surface {
+	float px, py;
+}
+
+class TSurface extends Surface
+{
+	float px2, py2;
+	float spx;
+	int spt;
+}
 
 class vsptyp {
 	float x, cy[] = new float[2], fy[] = new float[2];
