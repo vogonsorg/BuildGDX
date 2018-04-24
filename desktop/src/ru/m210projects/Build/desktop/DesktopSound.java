@@ -60,7 +60,7 @@ public class DesktopSound implements Sound {
 	{
 		LwjglNativesLoader.load();
 	}
-	
+
 	@Override
 	public boolean init(int system, int maxChannels) {
 		try {
@@ -84,7 +84,7 @@ public class DesktopSound implements Sound {
 			this.maxChannels = maxChannels;
 	
 			name = ALC10.alcGetString(AL.getDevice(), ALC10.ALC_DEVICE_SPECIFIER);
-			
+
 			Console.Println(name + " initialized", OSDTEXT_GOLD);
 			Console.Println("\twith max voices: " + maxChannels, OSDTEXT_GOLD);
 			Console.Println("\tOpenAL version: " + alGetString(AL_VERSION), OSDTEXT_GOLD); 	
@@ -426,7 +426,7 @@ public class DesktopSound implements Sound {
 		public Source obtainSource(int priority)
 		{
 			for(int i = 0; i < allSources.length; i++) {
-				if(!allSources[i].free && !isPlaying(allSources[i]))
+				if(!allSources[i].free && !isPlaying(allSources[i]) && allSources[i].flags != Source.Locked)
 					freeSource(allSources[i]);
 			}
 			
@@ -533,20 +533,14 @@ public class DesktopSound implements Sound {
 	@Override
 	public void update() {
 		if(noDevice) return;
+		
 		int error = alGetError();
 		if(error != AL_NO_ERROR) 
 			Console.Println("OpenAL Error " + error, OSDTEXT_RED);
 		
 		if(music != null)
 			music.update();
-		
-//		Iterator<Source> it = sourceManager.iterator();
-//	    while(it.hasNext()) {
-//	      Source obj = (Source)it.next();
-//	      System.out.println(isLooping(obj));
-//	    }
-//	    System.out.println();
-	    
+
 		Iterator<Source> i = loopedSource.iterator();
 		while (i.hasNext()) {
 			Source s = i.next();

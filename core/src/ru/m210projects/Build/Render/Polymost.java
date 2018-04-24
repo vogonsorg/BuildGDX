@@ -580,7 +580,7 @@ public abstract class Polymost implements Renderer {
 	int skyclamphack = 0;
 	
 	private final Polygon drawpoly[] = new Polygon[16];
-	private final Color poly_color = new Color();
+	private final Color polyColor = new Color();
 	
 	private void drawpoly(Surface[] dm, int n, int method) {
 		double ngdx = 0.0, ngdy = 0.0, ngdo = 0.0, ngux = 0.0, nguy = 0.0, nguo = 0.0;
@@ -821,22 +821,22 @@ public abstract class Polymost implements Renderer {
         
 		f = getshadefactor(globalshade); 
 
-		if(globalpal == 1) poly_color.r = poly_color.g = poly_color.b = 1; //Blood's pal 1
-		else poly_color.r = poly_color.g = poly_color.b = (float) f;
+		if(globalpal == 1) polyColor.r = polyColor.g = polyColor.b = 1; //Blood's pal 1
+		else polyColor.r = polyColor.g = polyColor.b = (float) f;
 		
 		switch (method & 3) {
 		default:
 		case 0:
-			poly_color.a = 1.0f;
+			polyColor.a = 1.0f;
 			break;
 		case 1:
-			poly_color.a = 1.0f;
+			polyColor.a = 1.0f;
 			break;
 		case 2:
-			poly_color.a = TRANSLUSCENT1;
+			polyColor.a = TRANSLUSCENT1;
 			break;
 		case 3:
-			poly_color.a = TRANSLUSCENT2;
+			polyColor.a = TRANSLUSCENT2;
 			break;
 		}
 
@@ -847,32 +847,32 @@ public abstract class Polymost implements Renderer {
 			if (pth != null && pth.isHighTile()) {
 				if (pth.hicr.palnum != globalpal) {
 					// apply tinting for replaced textures
-					poly_color.r *= (float) hictinting[globalpal].r / 255.0f;
-					poly_color.g *= (float) hictinting[globalpal].g / 255.0f;
-					poly_color.b *= (float) hictinting[globalpal].b / 255.0f;
+					polyColor.r *= (float) hictinting[globalpal].r / 255.0f;
+					polyColor.g *= (float) hictinting[globalpal].g / 255.0f;
+					polyColor.b *= (float) hictinting[globalpal].b / 255.0f;
 				}
 				if (hictinting[MAXPALOOKUPS - 1].r != 255
 						|| hictinting[MAXPALOOKUPS - 1].g != 255
 						|| hictinting[MAXPALOOKUPS - 1].b != 255) {
-					poly_color.r *= (float) hictinting[MAXPALOOKUPS - 1].r / 255.0f;
-					poly_color.g *= (float) hictinting[MAXPALOOKUPS - 1].g / 255.0f;
-					poly_color.b *= (float) hictinting[MAXPALOOKUPS - 1].b / 255.0f;
+					polyColor.r *= (float) hictinting[MAXPALOOKUPS - 1].r / 255.0f;
+					polyColor.g *= (float) hictinting[MAXPALOOKUPS - 1].g / 255.0f;
+					polyColor.b *= (float) hictinting[MAXPALOOKUPS - 1].b / 255.0f;
 				}
 			}
 			// hack: this is for drawing the 8-bit crosshair recolored in
 			// polymost
 			else if ((hictinting[globalpal].f & 8) != 0) {
-				poly_color.r *= (float) hictinting[globalpal].r / 255.0;
-				poly_color.g *= (float) hictinting[globalpal].g / 255.0;
-				poly_color.b *= (float) hictinting[globalpal].b / 255.0;
+				polyColor.r *= (float) hictinting[globalpal].r / 255.0;
+				polyColor.g *= (float) hictinting[globalpal].g / 255.0;
+				polyColor.b *= (float) hictinting[globalpal].b / 255.0;
 			}
 		}
 		if (drunk && (method & 3) == 0) {
 			gl.bglEnable(GL_BLEND);
-			poly_color.a = drunkIntensive;
+			polyColor.a = drunkIntensive;
 		}
 
-		gl.bglColor4f(poly_color.r, poly_color.g, poly_color.b, poly_color.a);
+		gl.bglColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		// Hack for walls&masked walls which use textures that are not a power
 		// of 2
@@ -931,10 +931,8 @@ public abstract class Polymost implements Renderer {
 
 			// Find min&max u coordinates (du0...du1)
 			for (i = 0; i < n; i++) {
-				Polygon dpoly = drawpoly[i];
-				
-				ox = dpoly.px;
-				oy = dpoly.py;
+				ox = drawpoly[i].px;
+				oy = drawpoly[i].py;
 				
 				f = (ox * ngux + oy * nguy + nguo)
 						/ (ox * ngdx + oy * ngdy + ngdo);
@@ -958,20 +956,18 @@ public abstract class Polymost implements Renderer {
 
 				i = 0;
 				nn = 0;
-				Polygon dpoly1 = drawpoly[i];
-				duj = (dpoly1.px * ngux + dpoly1.py * nguy + nguo)
-						/ (dpoly1.px * ngdx + dpoly1.py * ngdy + ngdo);
+				duj = (drawpoly[i].px * ngux + drawpoly[i].py * nguy + nguo)
+						/ (drawpoly[i].px * ngdx + drawpoly[i].py * ngdy + ngdo);
 				do {
 					j = i + 1;
 					if (j == n) j = 0;
-					Polygon dpoly2 = drawpoly[j];
 					dui = duj;
-					duj = (dpoly2.px * ngux + dpoly2.py * nguy + nguo)
-							/ (dpoly2.px * ngdx + dpoly2.py * ngdy + ngdo);
+					duj = (drawpoly[j].px * ngux + drawpoly[j].py * nguy + nguo)
+							/ (drawpoly[j].px * ngdx + drawpoly[j].py * ngdy + ngdo);
 
 					if ((du0 <= dui) && (dui <= du1)) {
-						drawpoly[nn].uu = dpoly1.px;
-						drawpoly[nn].vv = dpoly1.py;
+						drawpoly[nn].uu = drawpoly[i].px;
+						drawpoly[nn].vv = drawpoly[i].py;
 						nn++;
 					}
 					
@@ -5618,19 +5614,19 @@ public abstract class Polymost implements Renderer {
 
         gl.bglEnable(GL_TEXTURE_2D);
 
-		poly_color.r = poly_color.g = poly_color.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
+		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    if ((hictinting[globalpal].f&4) == 0)
 	    {
 	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
 	        {
-	            poly_color.r *= (float)hictinting[globalpal].r / 255.0;
-	            poly_color.g *= (float)hictinting[globalpal].g / 255.0;
-	            poly_color.b *= (float)hictinting[globalpal].b / 255.0;
+	            polyColor.r *= (float)hictinting[globalpal].r / 255.0;
+	            polyColor.g *= (float)hictinting[globalpal].g / 255.0;
+	            polyColor.b *= (float)hictinting[globalpal].b / 255.0;
 	            if (hictinting[MAXPALOOKUPS-1].r != 255 || hictinting[MAXPALOOKUPS-1].g != 255 || hictinting[MAXPALOOKUPS-1].b != 255)
 	            {
-	                poly_color.r *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
-	                poly_color.g *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
-	                poly_color.b *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
+	                polyColor.r *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
+	                polyColor.g *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
+	                polyColor.b *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
 	            }
 	        }
 	        else globalnoeffect=1;
@@ -5638,11 +5634,11 @@ public abstract class Polymost implements Renderer {
 
 	    if ((tspr.cstat&2) != 0) {
 	    	if ((tspr.cstat&512) == 0) {
-				poly_color.a = TRANSLUSCENT1;
+				polyColor.a = TRANSLUSCENT1;
 	    	} else { 
-				poly_color.a = TRANSLUSCENT2;
+				polyColor.a = TRANSLUSCENT2;
 	    	}
-	    } else poly_color.a = 1.0f;
+	    } else polyColor.a = 1.0f;
 	   
 	    if (m.usesalpha) //Sprites with alpha in texture
 	    {
@@ -5656,7 +5652,7 @@ public abstract class Polymost implements Renderer {
 	    else
 	        if ((tspr.cstat&2) != 0) gl.bglEnable(GL_BLEND);
 
-	    gl.bglColor4f(poly_color.r,poly_color.g,poly_color.b,poly_color.a);
+	    gl.bglColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
 
 	    int rendered = 0;
 	    for (int surfi = 0; surfi < m.head.numSurfaces; surfi++)
@@ -5940,19 +5936,19 @@ public abstract class Polymost implements Renderer {
 
         gl.bglEnable(GL_TEXTURE_2D);
 
-		poly_color.r = poly_color.g = poly_color.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
+		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    if ((hictinting[globalpal].f&4) == 0)
 	    {
 	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
 	        {
-	            poly_color.r *= (float)hictinting[globalpal].r / 255.0;
-	            poly_color.g *= (float)hictinting[globalpal].g / 255.0;
-	            poly_color.b *= (float)hictinting[globalpal].b / 255.0;
+	            polyColor.r *= (float)hictinting[globalpal].r / 255.0;
+	            polyColor.g *= (float)hictinting[globalpal].g / 255.0;
+	            polyColor.b *= (float)hictinting[globalpal].b / 255.0;
 	            if (hictinting[MAXPALOOKUPS-1].r != 255 || hictinting[MAXPALOOKUPS-1].g != 255 || hictinting[MAXPALOOKUPS-1].b != 255)
 	            {
-	                poly_color.r *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
-	                poly_color.g *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
-	                poly_color.b *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
+	                polyColor.r *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
+	                polyColor.g *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
+	                polyColor.b *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
 	            }
 	        }
 	        else globalnoeffect=1;
@@ -5960,11 +5956,11 @@ public abstract class Polymost implements Renderer {
 
 	    if ((tspr.cstat&2) != 0) {
 	    	if ((tspr.cstat&512) == 0) {
-				poly_color.a = TRANSLUSCENT1;
+				polyColor.a = TRANSLUSCENT1;
 	    	} else { 
-				poly_color.a = TRANSLUSCENT2;
+				polyColor.a = TRANSLUSCENT2;
 	    	}
-	    } else poly_color.a = 1.0f;
+	    } else polyColor.a = 1.0f;
 	    if (m.usesalpha) //Sprites with alpha in texture
 	    {
 	        float al = 0.0f;
@@ -5977,7 +5973,7 @@ public abstract class Polymost implements Renderer {
 	    else
 	        if ((tspr.cstat&2) != 0) gl.bglEnable(GL_BLEND);
 
-	    gl.bglColor4f(poly_color.r,poly_color.g,poly_color.b,poly_color.a);
+	    gl.bglColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
 
 	    int rendered = 0;
 		BTexture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
@@ -6252,17 +6248,17 @@ public abstract class Polymost implements Renderer {
 
 		gl.bglEnable(GL_TEXTURE_2D);
 
-		poly_color.r = poly_color.g = poly_color.b = ((float) (numshades - min(max((globalshade * shadescale) + m.shadeoff, 0), numshades))) / ((float) numshades);
-		poly_color.r *= (float) hictinting[globalpal].r / 255.0f;
-		poly_color.g *= (float) hictinting[globalpal].g / 255.0f;
-		poly_color.b *= (float) hictinting[globalpal].b / 255.0f;
+		polyColor.r = polyColor.g = polyColor.b = ((float) (numshades - min(max((globalshade * shadescale) + m.shadeoff, 0), numshades))) / ((float) numshades);
+		polyColor.r *= (float) hictinting[globalpal].r / 255.0f;
+		polyColor.g *= (float) hictinting[globalpal].g / 255.0f;
+		polyColor.b *= (float) hictinting[globalpal].b / 255.0f;
 		if ((tspr.cstat & 2) != 0) {
 			if ((tspr.cstat & 512) == 0)
-				poly_color.a = TRANSLUSCENT1;
+				polyColor.a = TRANSLUSCENT1;
 			else
-				poly_color.a = TRANSLUSCENT2;
+				polyColor.a = TRANSLUSCENT2;
 		} else
-			poly_color.a = 1.0f;
+			polyColor.a = 1.0f;
 		if ((tspr.cstat & 2) != 0)
 			gl.bglEnable(GL_BLEND);
 		
@@ -6321,7 +6317,7 @@ public abstract class Polymost implements Renderer {
 		
 		if(r_vertexarrays != 0)
 		{
-			gl.bglColor4f(poly_color.r, poly_color.g, poly_color.b, poly_color.a);
+			gl.bglColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 			gl.bglEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	        gl.bglTexCoordPointer(2, 0, m.uv);
 			gl.bglEnableClientState(GL_VERTEX_ARRAY);
@@ -6334,7 +6330,7 @@ public abstract class Polymost implements Renderer {
 			for (i = 0, fi = 0; i < m.qcnt; i++) {
 				if (i == m.qfacind[fi]) {
 					f = dvoxclut[fi++];
-					gl.bglColor4f(poly_color.r * f, poly_color.g * f, poly_color.b * f, poly_color.a * f);
+					gl.bglColor4f(polyColor.r * f, polyColor.g * f, polyColor.b * f, polyColor.a * f);
 				}
 	
 				xx = m.quad[i].v[0].x + m.quad[i].v[2].x;
