@@ -1,8 +1,10 @@
 package ru.m210projects.Build.Types;
 
 public class MemLog {
+	
+	final static int mb = 1024 * 1024; 
+	
 	public static void log(String id) {
-		int mb = 1024 * 1024; 
 		System.out.println("***** Heap utilization statistics [MB] *****\n on id : " + id);
 		
 		// get Runtime instance
@@ -19,7 +21,6 @@ public class MemLog {
 	}
 	
 	public static void logTotal(String id) {
-		int mb = 1024 * 1024; 
 		System.out.println("***** Heap utilization statistics [MB] *****\n on id : " + id);
 		
 		// get Runtime instance
@@ -42,5 +43,19 @@ public class MemLog {
 		long mem = (instance.totalMemory() - instance.freeMemory()) - startMem;
 		
 		System.out.println(txt + " : " + mem / kb +" kb");
+	}
+	
+	public static int used()
+	{
+		
+		Runtime instance = Runtime.getRuntime();
+		return (int) ((instance.totalMemory() - instance.freeMemory()) / mb);
+	}
+	
+	public static int total()
+	{
+		
+		Runtime instance = Runtime.getRuntime();
+		return (int) (instance.maxMemory() / mb);
 	}
 }
