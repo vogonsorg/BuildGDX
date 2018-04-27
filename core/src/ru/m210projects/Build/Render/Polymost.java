@@ -164,7 +164,7 @@ public abstract class Polymost implements Renderer {
 	protected int asm2;
 
 	protected int[] xb1 = new int[MAXWALLSB];
-	private int[] xb2 = new int[MAXWALLSB];
+	protected int[] xb2 = new int[MAXWALLSB];
 	protected float[] rx1 = new float[MAXWALLSB];
 	protected float[] ry1 = new float[MAXWALLSB];
 	private float[] rx2 = new float[MAXWALLSB];
@@ -223,7 +223,8 @@ public abstract class Polymost implements Renderer {
 	private float fogtable[][] = new float[MAXPALOOKUPS][3];
 
 	private float gyxscale, gxyaspect, gviewxrange, ghalfx, grhalfxdown10,
-			grhalfxdown10x, ghoriz;
+			grhalfxdown10x;
+	private double ghoriz;
 	private float gcosang, gsinang, gcosang2, gsinang2;
 	private float gchang, gshang, gctang, gstang;
 	private float gtang = 0.0f;
@@ -648,12 +649,12 @@ public abstract class Polymost implements Renderer {
 				oz = oz2;
 	
 				r = ghalfx / oz;
-				drawpoly[j].dd = (float) ((dm[i].px * gdx + dm[i].py * gdy + gdo) * r);
-				drawpoly[j].uu = (float) ((dm[i].px * gux + dm[i].py * guy + guo) * r);
-				drawpoly[j].vv = (float) ((dm[i].px * gvx + dm[i].py * gvy + gvo) * r);
+				drawpoly[j].dd = (dm[i].px * gdx + dm[i].py * gdy + gdo) * r;
+				drawpoly[j].uu = (dm[i].px * gux + dm[i].py * guy + guo) * r;
+				drawpoly[j].vv = (dm[i].px * gvx + dm[i].py * gvy + gvo) * r;
 	
-				drawpoly[j].px = (float) (ox * r + ghalfx);
-				drawpoly[j].py = (float) (oy * r + ghoriz);
+				drawpoly[j].px = ox * r + ghalfx;
+				drawpoly[j].py = oy * r + ghoriz;
 				if ((j == 0) || (drawpoly[j].px != drawpoly[j-1].px) || (drawpoly[j].py != drawpoly[j - 1].py)) j++;
 			}
 		} 
@@ -813,9 +814,9 @@ public abstract class Polymost implements Renderer {
         {
             for (i=n-1; i>=0; i--)
             {
-            	drawpoly[i].dd = (float) (drawpoly[i].px*gdx + drawpoly[i].py*gdy + gdo);
-            	drawpoly[i].uu = (float) (drawpoly[i].px*gux + drawpoly[i].py*guy + guo);
-            	drawpoly[i].vv = (float) (drawpoly[i].px*gvx + drawpoly[i].py*gvy + gvo);
+            	drawpoly[i].dd = drawpoly[i].px*gdx + drawpoly[i].py*gdy + gdo;
+            	drawpoly[i].uu = drawpoly[i].px*gux + drawpoly[i].py*guy + guo;
+            	drawpoly[i].vv = drawpoly[i].px*gvx + drawpoly[i].py*gvy + gvo;
             }
         }
         
@@ -862,9 +863,9 @@ public abstract class Polymost implements Renderer {
 			// hack: this is for drawing the 8-bit crosshair recolored in
 			// polymost
 			else if ((hictinting[globalpal].f & 8) != 0) {
-				polyColor.r *= (float) hictinting[globalpal].r / 255.0;
-				polyColor.g *= (float) hictinting[globalpal].g / 255.0;
-				polyColor.b *= (float) hictinting[globalpal].b / 255.0;
+				polyColor.r *= (float) hictinting[globalpal].r / 255.0f;
+				polyColor.g *= (float) hictinting[globalpal].g / 255.0f;
+				polyColor.b *= (float) hictinting[globalpal].b / 255.0f;
 			}
 		}
 		if (drunk && (method & 3) == 0) {
@@ -888,29 +889,16 @@ public abstract class Polymost implements Renderer {
 				ox = drawpoly[1].py - drawpoly[2].py;
 				oy = drawpoly[2].py - drawpoly[0].py;
 				oz = drawpoly[0].py - drawpoly[1].py;
-				r = 1.0 / (ox * drawpoly[0].px + oy * drawpoly[1].px + oz
-						* drawpoly[2].px);
-				ngdx = (ox * drawpoly[0].dd + oy * drawpoly[1].dd + oz
-						* drawpoly[2].dd)
-						* r;
-				ngux = (ox * drawpoly[0].uu + oy * drawpoly[1].uu + oz
-						* drawpoly[2].uu)
-						* r;
-				ngvx = (ox * drawpoly[0].vv + oy * drawpoly[1].vv + oz
-						* drawpoly[2].vv)
-						* r;
+				r = 1.0 / (ox * drawpoly[0].px + oy * drawpoly[1].px + oz * drawpoly[2].px);
+				ngdx = (ox * drawpoly[0].dd + oy * drawpoly[1].dd + oz * drawpoly[2].dd) * r;
+				ngux = (ox * drawpoly[0].uu + oy * drawpoly[1].uu + oz * drawpoly[2].uu) * r;
+				ngvx = (ox * drawpoly[0].vv + oy * drawpoly[1].vv + oz * drawpoly[2].vv) * r;
 				ox = drawpoly[2].px - drawpoly[1].px;
 				oy = drawpoly[0].px - drawpoly[2].px;
 				oz = drawpoly[1].px - drawpoly[0].px;
-				ngdy = (ox * drawpoly[0].dd + oy * drawpoly[1].dd + oz
-						* drawpoly[2].dd)
-						* r;
-				nguy = (ox * drawpoly[0].uu + oy * drawpoly[1].uu + oz
-						* drawpoly[2].uu)
-						* r;
-				ngvy = (ox * drawpoly[0].vv + oy * drawpoly[1].vv + oz
-						* drawpoly[2].vv)
-						* r;
+				ngdy = (ox * drawpoly[0].dd + oy * drawpoly[1].dd + oz * drawpoly[2].dd) * r;
+				nguy = (ox * drawpoly[0].uu + oy * drawpoly[1].uu + oz * drawpoly[2].uu) * r;
+				ngvy = (ox * drawpoly[0].vv + oy * drawpoly[1].vv + oz * drawpoly[2].vv) * r;
 				ox = drawpoly[0].px - .5;
 				oy = drawpoly[0].py - .5; // .5 centers texture nicely
 				ngdo = drawpoly[0].dd - ox * ngdx - oy * ngdy;
@@ -3753,7 +3741,7 @@ public abstract class Polymost implements Renderer {
 
 			f = (float) ((tspr.z - globalposz + fadjust)*gyxscale);
 			for (j = 0; j < npoints; j++) {
-				ryp0 = 1 / dsprite[j].py2;
+				ryp0 = (float) (1.0 / dsprite[j].py2);
 				dsprite[j].px = ghalfx * dsprite[j].px2 * ryp0 + ghalfx;
 				dsprite[j].py = f * ryp0 + ghoriz;
 			}
@@ -3987,7 +3975,7 @@ public abstract class Polymost implements Renderer {
 		grhalfxdown10 = 1.0f / (ghalfx * 1024);
 		ogrhalfxdown10x = grhalfxdown10x;
 		grhalfxdown10x = grhalfxdown10;
-		oghoriz = ghoriz;
+		oghoriz = (float) ghoriz;
 		ghoriz = (ydim >> 1);
 		ogchang = gchang;
 		gchang = 1.0f;
@@ -4137,11 +4125,9 @@ public abstract class Polymost implements Renderer {
 		gdy = 0;
 		gdo = 1.0;
 
-		d = 1.0f / (drot[0].px * (drot[1].py - drot[3].py)
-				+ drot[1].px
-				* (drot[3].py - drot[0].py)
-				+ drot[3].px
-				* (drot[0].py - drot[1].py));
+		d = (float) (1.0 / (drot[0].px * (drot[1].py - drot[3].py) + drot[1].px
+				* (drot[3].py - drot[0].py) + drot[3].px
+				* (drot[0].py - drot[1].py)));
 		
 		gux = (drot[3].py - drot[0].py) * ((float) xsiz - .0001f) * d;
 		guy = (drot[0].px - drot[3].px) * ((float) xsiz - .0001f) * d;
@@ -4167,8 +4153,8 @@ public abstract class Polymost implements Renderer {
 			int zz = z + 1;
 			if (zz == n)
 				zz = 0;
-			x1 = drot[z].px;
-			x2 = drot[zz].px - x1;
+			x1 = (float) drot[z].px;
+			x2 = (float) (drot[zz].px - x1);
 			if ((cx1 <= x1) && (x1 <= cx2)) {
 				drot[nn].px2 = x1;
 				drot[nn].py2 = drot[z].py;
@@ -4207,8 +4193,8 @@ public abstract class Polymost implements Renderer {
 				int zz = z + 1;
 				if (zz == nn)
 					zz = 0;
-				y1 = drot[z].py2;
-				y2 = drot[zz].py2 - y1;
+				y1 = (float) drot[z].py2;
+				y2 = (float) (drot[zz].py2 - y1);
 				if ((cy1 <= y1) && (y1 <= cy2)) {
 					drot[n].py = y1;
 					drot[n].px = drot[z].px2;
@@ -6809,17 +6795,17 @@ class raster {
 
 class Polygon
 {
-	float dd, uu, vv;
-	float px, py;
+	double dd, uu, vv;
+	double px, py;
 }
 
 class Surface {
-	float px, py;
+	double px, py;
 }
 
 class TSurface extends Surface
 {
-	float px2, py2;
+	double px2, py2;
 	float spx;
 	int spt;
 }
