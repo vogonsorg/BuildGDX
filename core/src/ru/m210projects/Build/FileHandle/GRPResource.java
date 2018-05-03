@@ -129,12 +129,8 @@ public class GRPResource extends IResource {
 		return -1;
 	}
 	
-	@Override
-	public byte[] Lock(int filenum)
+	private byte[] getBytes(GRESHANDLE file)
 	{
-		if(filenum == -1) return null;
-		GRESHANDLE file = files.get(filenum);
-		
 		if(file.buffer == null) {
 			file.buffer = new byte[file.size];
 			if(Blseek(File, file.offset, SEEK_SET) == -1) {
@@ -148,27 +144,24 @@ public class GRPResource extends IResource {
 	}
 	
 	@Override
+	public byte[] Lock(int filenum)
+	{
+		if(filenum == -1) return null;
+		GRESHANDLE file = files.get(filenum);
+		return getBytes(file);
+	}
+	
+	@Override
 	public ByteBuffer bLock(int filenum) {
-		
 		if(filenum == -1) return null;
 		
 		GRESHANDLE file = files.get(filenum);
 		if(file.byteBuffer == null) {
-			byte[] tmp = new byte[file.size];
-
-			if(Blseek(File, file.offset, SEEK_SET) == -1) {
-				System.err.println("Error seeking to resource!");
-			}
-			if(Bread(File, tmp, file.size) == -1) {
-				System.err.println("Error loading resource!");
-			}
-			
+			byte[] tmp = getBytes(file);
 			file.byteBuffer = BufferUtils.newByteBuffer(file.size);
 			file.byteBuffer.put(tmp);
-			tmp = null;
 		}
 		file.byteBuffer.rewind();
-		file.byteBuffer.limit(file.size);
 		return file.byteBuffer;
 	}
 	

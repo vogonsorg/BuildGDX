@@ -189,11 +189,8 @@ public class RFFResource extends IResource {
 			throw new ResourceException("File not found: " + new File(FilePath + FileName).getAbsolutePath());
 	}
 
-	@Override
-	public byte[] Lock(int filenum) {
-		if(filenum == -1) return null;
-		
-		RRESHANDLE file = files.get(filenum);
+	private byte[] getBytes(RRESHANDLE file)
+	{
 		if(file.buffer == null) {
 			file.buffer = new byte[file.size];
 
@@ -214,32 +211,23 @@ public class RFFResource extends IResource {
 	}
 	
 	@Override
+	public byte[] Lock(int filenum) {
+		if(filenum == -1) return null;
+		RRESHANDLE file = files.get(filenum);
+		return getBytes(file);
+	}
+	
+	@Override
 	public ByteBuffer bLock(int filenum) {
 		if(filenum == -1) return null;
 		
 		RRESHANDLE file = files.get(filenum);
 		if(file.byteBuffer == null) {
-			byte[] tmp = new byte[file.size];
-
-			if(Blseek(File, file.offset, SEEK_SET) == -1) {
-				System.err.println("Error seeking to resource!");
-			}
-			if(Bread(File, tmp, file.size) == -1) {
-				System.err.println("Error loading resource!");
-			}
-			if((file.flags & 0x10) != 0) {
-				int size = 256;
-				if(file.size < 256)
-					size = file.size;
-				encrypt(tmp, size, 0);
-			}
-			
+			byte[] tmp = getBytes(file);
 			file.byteBuffer = BufferUtils.newByteBuffer(file.size);
 			file.byteBuffer.put(tmp);
-			tmp = null;
 		}
 		file.byteBuffer.rewind();
-		file.byteBuffer.limit(file.size);
 		return file.byteBuffer;
 	}
 	

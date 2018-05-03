@@ -201,8 +201,7 @@ public class TextureCache {
 	        fn = hicr.filename;
 	    }
 		
-		int filh;
-		if ((filh = kOpen(fn, 0)) < 0) 
+		if (!kExist(fn, 0)) 
 	    {
 			Console.Print("hightile: " + fn + "(pic " + dapic + ") not found");
 	        if (facen > 0)
@@ -211,7 +210,6 @@ public class TextureCache {
 	            hicr.ignore = 1;
 	        return null;
 	    }
-	    kClose(filh);
 	    
 	    //int cachefil = polymost_trytexcache(fn, picfillen+(dapalnum<<8), dameth, effect, &cachead, 0);
 	    //if (cachefil >= 0) { ... }
@@ -237,7 +235,13 @@ public class TextureCache {
 					pix = npix;
 				}
 				pth.glpic = new BTexture(pix, true); 
-			} catch(Exception e) { return null; } 
+				pix.dispose();
+			} catch(Exception e) { 
+				if (facen > 0)
+					hicr.skybox.ignore = 1;
+				else
+					hicr.ignore = 1; return null; 
+			} 
 		}
 
 		int tsizx = pth.sizx;
@@ -294,13 +298,13 @@ public class TextureCache {
 	public Pthtyp cache(int dapicnum, int dapalnum, boolean clamping, boolean alpha)
 	{
 		Hicreplctyp si = usehightile ? hicfindsubst(dapicnum,dapalnum,drawingskybox) : null;
-		
+
 		if (si == null)
 	    {
 	        if (drawingskybox != 0 || dapalnum >= (MAXPALOOKUPS - RESERVEDPALS)) return null;
 	        return cache_tryart(dapicnum, dapalnum, clamping, alpha);
 	    }
-		
+
 		/* if palette > 0 && replacement found
 	     *    no effects are applied to the texture
 	     * else if palette > 0 && no replacement found

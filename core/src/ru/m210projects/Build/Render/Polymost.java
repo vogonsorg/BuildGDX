@@ -4954,12 +4954,12 @@ public abstract class Polymost implements Renderer {
 
 		// OSD_Printf("precached %d %d type %d\n", dapicnum, dapalnum, datype);
 		// hicprecaching = 1;
-
 		textureCache.cache(dapicnum, dapalnum, clampingMode((datype & 1) << 2), false);
 		// hicprecaching = 0;
 
 		if (datype == 0 || !usemodels)
 			return;
+		
 		// FIXME:
 		// mid = md_tilehasmodel(dapicnum,dapalnum);
 		// if (mid < 0 || models[mid].mdnum < 2) return;

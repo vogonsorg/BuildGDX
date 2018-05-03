@@ -1,12 +1,7 @@
 package ru.m210projects.Build.Loader;
 
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.kClose;
-import static ru.m210projects.Build.FileHandle.Cache1D.kFileLength;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBuffer;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
-import static ru.m210projects.Build.FileHandle.Cache1D.kOpen;
-import static ru.m210projects.Build.FileHandle.Cache1D.kRead;
+import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTextureWrap;
@@ -705,15 +700,14 @@ public class MDSprite {
 	        }
 
 	    texidx = null;
-	    int filh = -1;
-	    if ((filh = kOpen(skinfile, 0)) < 0)
+	   
+	    if (!kExist(skinfile, 0))
 	    {
 	    	Console.Println("Skin " + skinfile  + " not found.", OSDTEXT_YELLOW);
 	    	md_undefinemodel(m.modelid);
 	        skinfile = null;
 	        return null;
 	    }
-	    kClose(filh);
 
 	    startticks = System.currentTimeMillis();
 	    try {

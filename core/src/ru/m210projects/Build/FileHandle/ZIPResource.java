@@ -15,6 +15,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Types.LittleEndian;
 
 import com.badlogic.gdx.utils.BufferUtils;
 
@@ -88,11 +89,11 @@ public class ZIPResource extends IResource {
 		if(filenum < 0) return -1;
 		
 		ZRESHANDLE file = files.get(filenum);
-		ByteBuffer buf = bLock(filenum);
-		if(file.pos >= buf.capacity()) return -1;
-		buf.position(file.pos);
+		byte[] buf = Lock(filenum);
+		if(file.pos >= buf.length) return -1;
+		int pos = file.pos;
 		leng = Math.min(leng, file.size-file.pos);
-		buf.get(buffer, 0, leng);
+		System.arraycopy(buf, pos, buffer, 0, leng);
 		file.pos += leng;
 		return(leng);
 	}
@@ -102,32 +103,40 @@ public class ZIPResource extends IResource {
 		if(filenum < 0) return -1;
 		
 		ZRESHANDLE file = files.get(filenum);
-		ByteBuffer buf = bLock(filenum);
-		if(file.pos >= buf.capacity()) return -1;
-		buf.position(file.pos);
+		byte[] buf = Lock(filenum);
+		if(file.pos >= buf.length) return -1;
+		int pos = file.pos;
 		
 		file.pos += len;
-		
+
 		if(len == 1)
-			return buf.get() & 0xFF;
+			return buf[pos] & 0xFF;
 		else if(len == 2) 
-			return buf.getShort();
+			return LittleEndian.getShort(buf, pos);
 		else if(len == 4) 
-			return buf.getInt();
+			return LittleEndian.getInt(buf, pos);
 		
 		return 0;
+	}
+	
+	private byte[] getBytes(ZRESHANDLE file)
+	{
+		if(file.buffer == null) {
+			file.buffer = new byte[file.size];
+			try {
+				file.bis.read(file.buffer);
+				file.bis.close();
+				file.bis = null;
+			} catch(Exception e) { e.printStackTrace(); return null; }
+		}
+		return file.buffer;
 	}
 	
 	@Override
 	public byte[] Lock(int handle) {
 		if(handle == -1) return null;
 		ZRESHANDLE file = files.get(handle);
-		if(file.buffer == null) {
-			ByteBuffer bb = bLock(handle);
-			file.buffer = new byte[file.size];
-			bb.get(file.buffer);
-		}
-		return file.buffer;
+		return getBytes(file);
 	}
 	
 	@Override
@@ -135,18 +144,10 @@ public class ZIPResource extends IResource {
 		if(handle == -1) return null;
 		ZRESHANDLE file = files.get(handle);
 		if(file.byteBuffer == null) {
-			try {
-				byte[] tmp = new byte[file.size];
-				file.bis.read(tmp);
-				file.byteBuffer = BufferUtils.newByteBuffer(file.size);
-				file.byteBuffer.put(tmp);
-				file.bis.close();
-				file.bis = null;
-				tmp = null;
-			} catch(Exception e) { e.printStackTrace(); return null; }
+			file.byteBuffer = BufferUtils.newByteBuffer(file.size);
+			file.byteBuffer.put(getBytes(file));
 		}
 		file.byteBuffer.rewind();
-		file.byteBuffer.limit(file.size);
 		return file.byteBuffer;
 	}
 
