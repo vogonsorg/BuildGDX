@@ -230,9 +230,15 @@ public class TextureCache {
 				if(psizx != pix.getWidth() || psizy != pix.getHeight())
 				{
 					Pixmap npix = new Pixmap(psizx, psizy, pix.getFormat());
-					npix.drawPixmap(pix, 0, 0);
+					npix.drawPixmap(pix,
+					        0, 0, pix.getWidth(), pix.getHeight(),
+					        0, 0, psizx, psizy
+					);
 					pix.dispose();
 					pix = npix;
+					
+					pth.sizx = (short) psizx;
+					pth.sizy = (short) psizy;
 				}
 				pth.glpic = new BTexture(pix, true); 
 				pix.dispose();

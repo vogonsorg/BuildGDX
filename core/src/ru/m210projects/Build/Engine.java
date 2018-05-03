@@ -3855,6 +3855,7 @@ public abstract class Engine {
 	}
 
 	public int getceilzofslope(short sectnum, int dax, int day) {
+		if(sectnum == -1 || sector[sectnum] == null) return 0;
 		if ((sector[sectnum].ceilingstat & 2) == 0)
 			return (sector[sectnum].ceilingz);
 
@@ -3874,7 +3875,7 @@ public abstract class Engine {
 	}
 
 	public int getflorzofslope(short sectnum, int dax, int day) {
-		if(sector[sectnum] == null) return 0;
+		if(sectnum == -1 || sector[sectnum] == null) return 0;
 		if ((sector[sectnum].floorstat & 2) == 0)
 			return (sector[sectnum].floorz);
 
@@ -3894,6 +3895,8 @@ public abstract class Engine {
 	}
 
 	public void getzsofslope(short sectnum, int dax, int day) {
+		if(sectnum == -1 || sector[sectnum] == null) return;
+		
 		int dx, dy, i, j;
 		WALL wal, wal2;
 		SECTOR sec;
@@ -4087,6 +4090,8 @@ public abstract class Engine {
 		PixmapIO.writePNG(new FileHandle(pci), capture);
 
 		cache.checkDirectory("<userdir>").addFile(pci);
+		
+		capture.dispose();
 
 		return fn + a + b + c + d + ".png";
 	}

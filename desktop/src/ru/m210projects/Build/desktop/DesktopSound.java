@@ -242,8 +242,8 @@ public class DesktopSound implements Sound {
 	@Override
 	public void setSourceVolume( Source source, int vol ) {
 		if (noDevice) return;
+		if(vol > 255) vol = 255;
 		float volume = (vol * soundVolume) / 255.0f;
-		if(volume > 1.0f) volume = 1.0f;
 		alSourcef(source.sourceId, AL_GAIN, volume);
 	}
 
