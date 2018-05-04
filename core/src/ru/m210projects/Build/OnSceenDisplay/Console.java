@@ -382,6 +382,11 @@ public class Console {
 	{
 		return logStream.toString();
 	}
+	
+	public static byte[] GetData()
+	{
+		return logStream.toByteArray();
+	}
 
 	public static boolean IsMoving()
 	{
