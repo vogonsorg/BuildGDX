@@ -616,9 +616,6 @@ public abstract class Polymost implements Renderer {
 		tsizx = tilesizx[globalpicnum];
 		tsizy = tilesizy[globalpicnum];
 
-		if((tsizx|tsizy) == 0)
-			return;
-
 		if (palookup[globalpal] == null)
 			globalpal = 0;
 
@@ -933,6 +930,9 @@ public abstract class Polymost implements Renderer {
 				else if (f > du1)
 					du1 = f;
 			}
+			
+			if((tsizx|tsizy) == 0)
+				return;
 
 			f = 1.0 / (double) tsizx;
 			ix0 = (int) floor(du0 * f);

@@ -1963,6 +1963,9 @@ public abstract class Engine {
 		int x21, y21, z21, x31, y31, x34, y34, bot, t;
 
 		Arrays.fill(sectbitmap, (byte) 0);
+		
+		if(sect1 < 0 || sect1 >= MAXSECTORS) return 0;
+		if(sect2 < 0 || sect2 >= MAXSECTORS) return 0;
 
 		if ((x1 == x2) && (y1 == y2))
 			return (sect1 == sect2 ? 1 : 0);
@@ -4087,13 +4090,18 @@ public abstract class Engine {
 
 		Pixmap capture = getFrameBufferPixmap(0, 0, xdim, ydim);
 		File pci = new File(FileUserdir + fn + a + b + c + d + ".png");
-		PixmapIO.writePNG(new FileHandle(pci), capture);
-
-		cache.checkDirectory("<userdir>").addFile(pci);
-		
-		capture.dispose();
-
-		return fn + a + b + c + d + ".png";
+		try {
+			PixmapIO.writePNG(new FileHandle(pci), capture);
+	
+			cache.checkDirectory("<userdir>").addFile(pci);
+			
+			capture.dispose();
+	
+			return fn + a + b + c + d + ".png";
+		} 
+		catch(Exception e) {
+			return null;
+		}
 	}
 
 	private Pixmap getFrameBufferPixmap(int x, int y, int w, int h) {

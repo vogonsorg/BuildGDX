@@ -45,6 +45,14 @@ public class Compat {
 			path = path.substring(parent.length());
 		else if (parent.startsWith(path))
 			return null;
+		
+		//Debug XXX
+		String OS = System.getProperty("os.name");
+		if( (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 ) ) {
+			Console.LogPrint(parent + " " + new File(parent).getAbsolutePath());
+			
+			Console.LogPrint(toLowerCase(path));
+		}
 
 		return toLowerCase(path);
 	}
