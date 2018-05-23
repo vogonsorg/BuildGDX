@@ -62,6 +62,8 @@ public abstract class Engine {
 
 	private boolean releasedEngine;
 	public boolean compatibleMode;
+	public static boolean UseBloodPal = false;
+	
 	
 	public Renderer render;
 	private Message message;

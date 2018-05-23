@@ -150,7 +150,7 @@ public abstract class Polymost implements Renderer {
 	private int lastageclock;
 	private boolean drunk;
 	private float drunkIntensive = 1.0f;
-	
+
 	private final int SPREXT_NOTMD = 1;
 	private final int SPREXT_NOMDANIM = 2;
 	private final int SPREXT_AWAY1 = 4;
@@ -830,7 +830,7 @@ public abstract class Polymost implements Renderer {
         
 		f = getshadefactor(globalshade); 
 
-		if(globalpal == 1) polyColor.r = polyColor.g = polyColor.b = 1; //Blood's pal 1
+		if(UseBloodPal && globalpal == 1) polyColor.r = polyColor.g = polyColor.b = 1; //Blood's pal 1
 		else polyColor.r = polyColor.g = polyColor.b = (float) f;
 		
 		switch (method & 3) {
@@ -1953,7 +1953,7 @@ public abstract class Polymost implements Renderer {
 
 					if (!nofog) {
 						int shade = wal.shade;
-						if(globalpal == 1 || sec.floorpal == 1) //Blood's pal 1
+						if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
 							shade = 0;
 						calc_and_apply_fog(wal.picnum, shade, sec.visibility, sec.floorpal);
 					}
@@ -2008,7 +2008,7 @@ public abstract class Polymost implements Renderer {
 
 					if (!nofog) {
 						int shade = drawalls_nwal.shade;
-						if(globalpal == 1 || sec.floorpal == 1) //Blood's pal 1
+						if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
 							shade = 0;
 						calc_and_apply_fog(drawalls_nwal.picnum, shade, sec.visibility, sec.floorpal);
 					}
@@ -2064,7 +2064,7 @@ public abstract class Polymost implements Renderer {
 
 					if (!nofog) {
 						int shade = wal.shade;
-						if(globalpal == 1 || sec.floorpal == 1) //Blood's pal 1
+						if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
 							shade = 0;
 						calc_and_apply_fog(wal.picnum, shade, sec.visibility, sec.floorpal);
 					}
@@ -3060,7 +3060,7 @@ public abstract class Polymost implements Renderer {
 
 		if (!nofog) {
 			int shade = wal.shade;
-			if(globalpal == 1 || sec.floorpal == 1) //Blood's pal 1
+			if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
 				shade = 0;
 			calc_and_apply_fog(wal.picnum, shade, sec.visibility, sec.floorpal);
 		}
@@ -3302,10 +3302,12 @@ public abstract class Polymost implements Renderer {
 		
 		if (!nofog) {
 			int shade = (int) (globalshade / 1.5f);
-			if(tspr.pal == 5 && tspr.shade == 127)
-				shade = 0; //Blood's shadows (for pal 1)
-			if(globalpal == 1 || tspr.pal == 1) //Blood's pal 1
-				shade = 0;
+			if(UseBloodPal) {
+				if(tspr.pal == 5 && tspr.shade == 127)
+					shade = 0; //Blood's shadows (for pal 1)
+				if(globalpal == 1 || tspr.pal == 1) //Blood's pal 1
+					shade = 0;
+			}
 			calc_and_apply_fog(tspr.picnum, shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 		}
 		
@@ -5028,7 +5030,7 @@ public abstract class Polymost implements Renderer {
 	{
 		fogcalc(tile, shade, vis, pal);
 	    gl.bglFogfv(GL_FOG_COLOR, fogcol);
-	    if(pal == 1) //Blood's pal 1
+	    if(UseBloodPal && pal == 1) //Blood's pal 1
 		{
 			fogresult = 0;
 			if(fogresult2 > 2)

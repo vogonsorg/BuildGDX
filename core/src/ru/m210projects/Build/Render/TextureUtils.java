@@ -10,13 +10,7 @@ package ru.m210projects.Build.Render;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.britable;
-import static ru.m210projects.Build.Engine.curbrightness;
-import static ru.m210projects.Build.Engine.curpalette;
-import static ru.m210projects.Build.Engine.gammabrightness;
-import static ru.m210projects.Build.Engine.globalshade;
-import static ru.m210projects.Build.Engine.numshades;
-import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Render.ImageUtils.fixtransparency;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR_MIPMAP_LINEAR;
@@ -114,7 +108,7 @@ public class TextureUtils {
 				int wp = 4 * wpptr;
 
 				int dacol = (int) ((picbuf[wpptr] & 0xFFFFFFFFL) >> 24); // FIXME actually picbuf need to be byte[]
-				if(dapal == 1) //Blood's pal 1
+				if(UseBloodPal && dapal == 1) //Blood's pal 1
 				{
 					int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
 					dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
