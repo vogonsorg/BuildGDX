@@ -6,6 +6,8 @@
 // use since many jumps and whatnot make it harder to write macro-
 // inline versions. I'll eventually convert these to macro-inline
 // equivalents.		--Jonathon
+//
+// This file has been ported to Java and modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
 
 package ru.m210projects.Build;
 

@@ -2,7 +2,7 @@
 // Ken Silverman's official web site: "http://www.advsys.net/ken"
 // See the included license file "BUILDLIC.TXT" for license info.
 //
-// This file has been modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
+// This file has been ported to Java and modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
 
 package ru.m210projects.Build.FileHandle;
 
