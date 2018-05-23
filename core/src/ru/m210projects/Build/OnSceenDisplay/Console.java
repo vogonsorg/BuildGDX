@@ -1,3 +1,9 @@
+// On-screen Display
+// for the Build Engine
+// by Jonathon Fowler (jf@jonof.id.au)
+//
+// This file has been modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
+
 package ru.m210projects.Build.OnSceenDisplay;
 
 import static ru.m210projects.Build.Pragmas.*;

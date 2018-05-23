@@ -1,3 +1,5 @@
+// Copyright (C) EDuke32 developers and contributors
+
 package ru.m210projects.Build.Types;
 
 public class Tile2model {

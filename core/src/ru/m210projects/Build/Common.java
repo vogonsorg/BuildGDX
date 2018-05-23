@@ -1,3 +1,5 @@
+// Copyright (C) EDuke32 developers and contributors
+
 package ru.m210projects.Build;
 
 import static ru.m210projects.Build.FileHandle.Compat.*;

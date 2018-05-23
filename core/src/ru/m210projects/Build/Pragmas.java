@@ -1,3 +1,12 @@
+// Function-wrapped Watcom pragmas
+// by Jonathon Fowler (jonof@edgenetwk.com)
+//
+// These functions represent some of the more longer-winded pragmas
+// from the original pragmas.h wrapped into functions for easier
+// use since many jumps and whatnot make it harder to write macro-
+// inline versions. I'll eventually convert these to macro-inline
+// equivalents.		--Jonathon
+
 package ru.m210projects.Build;
 
 public class Pragmas {
@@ -14,32 +23,4 @@ public class Pragmas {
 	public static long klabs(long a) { if (a < 0) return -a; return a; }
 	public static int ksgn(int a)  { if (a > 0) return 1; if (a < 0) return -1; return 0; }
 	public static int muldiv(long a, long b, long c) { return (int) ((a * b) / c); } 
-	
-	
-	public static float ClampAngle(float angle)
-    {
-        if (angle < 0) angle += 2048f;
-        if (angle >= 2048) angle -= 2048f;
-
-        return ClipRange(angle, 0, 2048);
-    }
-	
-	public static float ClipRange(float value, int min, int max) {
-		if(value < min) value = min;
-		if(value > max) value = max;
-		
-		return value;
-	}
-	
-	public static double SinAngle(float daang)
-	{
-		double rad_ang = daang * Math.PI * (1.f/1024.f);
-		return (Math.sin(rad_ang) * 16384.0);
-	}
-	
-	public static double CosAngle(float daang)
-	{
-		double rad_ang = daang * Math.PI * (1.f/1024.f);
-		return (Math.cos(rad_ang) * 16384.0);
-	}
 }

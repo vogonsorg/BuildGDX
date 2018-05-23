@@ -1,3 +1,10 @@
+/*
+* MDSprite for Polymost
+* by Jonathon Fowler
+* See the included license file "BUILDLIC.TXT" for license info.
+* 
+* Copyright (C) EDuke32 developers and contributors
+*/
 package ru.m210projects.Build.Loader;
 
 import static ru.m210projects.Build.Engine.*;

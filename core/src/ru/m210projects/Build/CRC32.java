@@ -1,3 +1,8 @@
+/*
+ * CRC32 for Build by Jonathon Fowler (jf@jonof.id.au)
+ * See the included license file "BUILDLIC.TXT" for license info.
+ */
+
 package ru.m210projects.Build;
 
 public class CRC32 {

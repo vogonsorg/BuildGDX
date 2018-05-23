@@ -1,3 +1,9 @@
+// "Build Engine & Tools" Copyright (c) 1993-1997 Ken Silverman
+// Ken Silverman's official web site: "http://www.advsys.net/ken"
+// See the included license file "BUILDLIC.TXT" for license info.
+//
+// This file has been modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
+
 package ru.m210projects.Build.FileHandle;
 
 import static ru.m210projects.Build.FileHandle.Cache1D.*;

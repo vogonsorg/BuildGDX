@@ -1,3 +1,9 @@
+/*
+ * 3D models support for Polymost
+ * by Jonathon Fowler
+ * See the included license file "BUILDLIC.TXT" for license info.
+ */
+
 package ru.m210projects.Build.Render.Types;
 
 import ru.m210projects.Build.Types.SPRITE;

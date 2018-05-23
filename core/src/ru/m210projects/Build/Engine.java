@@ -1,9 +1,18 @@
-﻿package ru.m210projects.Build;
+﻿// "Build Engine & Tools" Copyright (c) 1993-1997 Ken Silverman
+// Ken Silverman's official web site: "http://www.advsys.net/ken"
+// See the included license file "BUILDLIC.TXT" for license info.
+//
+// Copyright (C) EDuke32 developers and contributors
+//
+// This file has been modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
+
+package ru.m210projects.Build;
 
 import static java.lang.Math.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
+import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
@@ -334,10 +343,6 @@ public abstract class Engine {
 		return (int) index;
 	}
 
-//	public void drawsprite(int snum) {
-//		render.drawsprite(snum);
-//	}
-
 	public void initksqrt() {
 		int i, j = 1, k = 0;
 		for (i = 0; i < 4096; i++) {
@@ -348,52 +353,6 @@ public abstract class Engine {
 			if (i < 256) shlookup[i + 4096] = (short) (((k + 6) << 1) + ((10 - (k + 6)) << 8));
 		}
 	}
-
-	/*
-	public void dosetaspect()
-	{
-	    int i, j;
-
-	    if (xyaspect != oxyaspect) {
-	        oxyaspect = xyaspect;
-	        j = xyaspect*320;
-	    }
-
-		if (xdimen != oxdimen || viewingrange != oviewingrange) {
-			int xinc;
-
-			int no_radarang2 = 0;
-			oxdimen = xdimen;
-			oviewingrange = viewingrange;
-
-	        xinc = mulscale(viewingrange*320,xdimenrecip, 32);
-	        int x = (640<<16)-mulscale(xinc,xdimen, 1);
-
-	        for (i=0; i<xdimen; i++) {
-	        	if(xdimen > MAXXDIM)
-	        		break;
-	        	
-	            j = (x&65535); int k = (x>>16); x += xinc;
-
-	            if (k < 0 || k >= radarang.length-1)
-	            {
-	                //no_radarang2 = 1;
-	                break;
-	            }
-
-	            if (j != 0)
-	                j = mulscale(radarang[k+1]-radarang[k], j,16);
-	            radarang2[i] = (short)((radarang[k]+j)>>6);
-	        }
-
-	        for (i=1; i<distrecip.length; i++)
-	            distrecip[i] = (int) divscale(xdimen,i,20);
-
-	        nytooclose = xdimen*2100;
-	        nytoofar = 65536*16384-1048576;
-		}
-	}
-	*/
 
 	public void calcbritable() {
 		int i, j;
@@ -1074,37 +1033,6 @@ public abstract class Engine {
 				{
 					Console.Println("r_texturemode: Out of range");
 				}
-				/*
-				if (Console.osd_argc != 2) {
-					Console.Println("Current texturing mode is " + getGlFilter(gltexfiltermode).name);
-					Console.Println("  Vaild modes are:");
-					for (int m = 0; m < getGlFilterCount(); m++)
-						Console.Println("     m" + " - " + getGlFilter(m).name);
-					return;
-				}
-
-				string_t p = new string_t();
-				int m = (int) Bstrtoul(Console.osd_argv[0], p, 10);
-				if (p.var.equals(Console.osd_argv[0])) {
-					// string
-					for (int i = 0; i < getGlFilterCount(); i++) {
-						if (Bstrcasecmp(Console.osd_argv[0], getGlFilter(i).name) == 0)
-							break;
-					}
-					if (m == getGlFilterCount())
-						m = gltexfiltermode; // no change
-				} else {
-					if (m < 0) {
-						m = 0;
-					} else if (m >= getGlFilterCount()) {
-						m = getGlFilterCount() - 1;
-					}
-				}
-
-				gltexfiltermode = m;
-				gltexapplyprops();
-				Console.Println("Texture filtering mode changed to " + getGlFilter(gltexfiltermode).name);
-				*/
 			} });
 		R_texture.setRange(0, 5);
 		Console.RegisterCvar(R_texture);
@@ -1183,33 +1111,21 @@ public abstract class Engine {
 		globalposy = (int) daposy;
 		globalposz = (int) daposz;
 
-		globalang = ClampAngle(daang);
+		globalang = BClampAngle(daang);
 
 		globalhoriz = ((dahoriz - 100) * xdimenscale / viewingrange) + (ydimen >> 1);
 		pitch = (float)(-getangle(160, (int)(dahoriz-100))) / (2048.0f / 360.0f);
-//		globaluclip = (0 - (int) globalhoriz) * xdimscale;
-//		globaldclip = (ydimen - (int) globalhoriz) * xdimscale;
-
-//		i = mulscale(xdimenscale, viewingrangerecip, 16);
-//		globalpisibility = mulscale(parallaxvisibility, i, 16);
 
 		globalvisibility = scale(visibility<<2, xdimen, 1680);
-//		globalhisibility = mulscale((int) globalvisibility, xyaspect, 16);
-//		globalcisibility = mulscale((int) globalhisibility, 320, 8);
 
 		globalcursectnum = (short) dacursectnum;
 		totalclocklock = totalclock;
 
-		cosglobalang = (int) CosAngle(globalang);
-		singlobalang = (int) SinAngle(globalang);
+		cosglobalang = (int) BCosAngle(globalang);
+		singlobalang = (int) BSinAngle(globalang);
 		 
-//		cosglobalang = sintable[(int) (globalang + 512) & 2047];
-//		singlobalang = sintable[(int) globalang & 2047];
 		cosviewingrangeglobalang = mulscale(cosglobalang, viewingrange, 16);
 		sinviewingrangeglobalang = mulscale(singlobalang, viewingrange, 16);
-
-//		if ((xyaspect != oxyaspect) || (xdimen != oxdimen) || (viewingrange != oviewingrange))
-//			dosetaspect();
 
 		Arrays.fill(gotpic, (byte)0);
 		Arrays.fill(gotsector, (byte)0);
@@ -1530,7 +1446,6 @@ public abstract class Engine {
 			kRead(fil, buf, 4);
 			int localtileend = LittleEndian.getInt(buf);
 			int k = localtilestart / (localtileend - localtilestart);
-//			customartfile[k] = filename;
 
 			for (int i = localtilestart; i <= localtileend; i++) {
 				kRead(fil, buf, 2);
@@ -1561,8 +1476,6 @@ public abstract class Engine {
 				setpicsiz(i);
 			}
 			kClose(fil);
-			
-//			usecustomarts = true;
 		}
 	}
 	
@@ -1642,8 +1555,6 @@ public abstract class Engine {
 		artfilnum = -1;
 		artfilplc = 0;
 		
-//		usecustomarts = false;
-
 		return (numtilefiles);
 	}
 
@@ -1670,10 +1581,7 @@ public abstract class Engine {
 			artfilename[6] = (char) (((i / 10) % 10) + 48);
 			artfilename[5] = (char) (((i / 100) % 10) + 48);
 
-//			if(customartfile[i] != null)
-//				artfil = kOpen(customartfile[i], 0);
-//			else
-				artfil = kOpen(new String(artfilename), 0);
+			artfil = kOpen(new String(artfilename), 0);
 
 			faketimerhandler();
 		}
@@ -3529,29 +3437,6 @@ public abstract class Engine {
 			int xd = setaspect_new_use_dimen != 0 ? xdimen : xdim;
 			int yd = setaspect_new_use_dimen != 0 ? ydimen : ydim;
 
-			/*
-			if (fullscreen != 0) {
-				int pixratio;
-
-				x = r_screenxy / 100;
-				y = r_screenxy % 100;
-				if (y == 0 || x == 0) {
-					// Assume square pixel aspect.
-					x = xdim;
-					y = ydim;
-				}
-
-				pixratio = (int) divscale(xd * y, yd * x, 16);
-				yx = (int) divscale(yx, pixratio, 16);
-			} else {
-				//aspect hom
-				//640x480 - 30
-				//1280x1024 - 160
-
-				x = xd;
-				y = yd;
-			}
-			*/
 			x = xd;
 			y = yd;
 
@@ -3607,59 +3492,6 @@ public abstract class Engine {
 		render.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
 	}
 
-	/* public void makepalookup(int palnum, char[] remapbuf, int r, int g, int b, int dastat)
-	 * {
-	 * int i, j, palscale;
-	 * 
-	 * if (paletteloaded == 0) return;
-	 * 
-	 * //Allocate palookup buffer
-	 * if (palookup[palnum] == null)
-	 * palookup[palnum] = new byte[numshades<<8];
-	 * 
-	 * if (dastat == 0) return;
-	 * if ((r|g|b|63) != 63) return;
-	 * 
-	 * if ((r|g|b) == 0)
-	 * {
-	 * for(i=0;i<256;i++)
-	 * {
-	 * for (j=0; j<numshades; j++) {
-	 * palookup[palnum][i + j * 256] = palookup[0][remapbuf[i]&0xFF + j * 256];
-	 * }
-	 * }
-	 * palookupfog[palnum].r = 0;
-	 * palookupfog[palnum].g = 0;
-	 * palookupfog[palnum].b = 0;
-	 * }
-	 * else
-	 * {
-	 * for (i=0; i<numshades; i++)
-	 * {
-	 * palscale = (int)divscale(i,numshades, 16);
-	 * for (j=0; j<256; j++)
-	 * {
-	 * palookup[palnum][i] = (byte) getclosestcol((int)palette[remapbuf[j]&0xFF*3]+mulscale(r-palette[remapbuf[j]&0xFF*3],palscale, 16),
-	 * (int)palette[remapbuf[j]&0xFF*3+1]+mulscale(g-palette[remapbuf[j]&0xFF*3+1],palscale, 16),
-	 * (int)palette[remapbuf[j]&0xFF*3+2]+mulscale(b-palette[remapbuf[j]&0xFF*3+2],palscale, 16));
-	 * }
-	 * }
-	 * palookupfog[palnum].r = r;
-	 * palookupfog[palnum].g = g;
-	 * palookupfog[palnum].b = b;
-	 * }
-	 * }
-	 * 
-	 * 
-	 * public void setbasepaltable(int[][] thebasepaltable, int thebasepalcount)
-	 * {
-	 * if (thebasepalcount >= MAXBASEPALS)
-	 * thebasepalcount = MAXBASEPALS - 1;
-	 * 
-	 * basepaltable = thebasepaltable;
-	 * basepalcount = thebasepalcount;
-	 * } */
-	
 	public void makepalookup(int palnum, byte[] remapbuf, int r, int g, int b, int dastat)
 	{
 		int i, j, palscale;
@@ -3779,25 +3611,6 @@ public abstract class Engine {
 		}
 	}
 
-	/* public void setpalettefade_calc(int offset)
-	 * {
-	 * int i;
-	 * palette_t p;
-	 * 
-	 * for (i=0; i<256; i++)
-	 * {
-	 * p = getpal(i);
-	 * 
-	 * curpalettefaded[i].b =
-	 * p.b + (((palfadergb.b - p.b) * offset) >> 6);
-	 * curpalettefaded[i].g =
-	 * p.g + (((palfadergb.g - p.g) * offset) >> 6);
-	 * curpalettefaded[i].r =
-	 * p.r + (((palfadergb.r - p.r) * offset) >> 6);
-	 * curpalettefaded[i].f = 0;
-	 * }
-	 * } */
-
 	public void setpalettefade(int r, int g, int b, int offset) {
 		palfadergb.r = min(63, r) << 2;
 		palfadergb.g = min(63, g) << 2;
@@ -3823,7 +3636,7 @@ public abstract class Engine {
 		i = (((dax - x) * dx + (day - y) * dy) << 1);
 		mirrorx = (x << 1) + scale(dx, i, j) - dax;
 		mirrory = (y << 1) + scale(dy, i, j) - day;
-		mirrorang = ClampAngle((getangle(dx, dy) << 1) - daang);
+		mirrorang = BClampAngle((getangle(dx, dy) << 1) - daang);
 
 		inpreparemirror = true;
 	}
@@ -4063,8 +3876,6 @@ public abstract class Engine {
 	public void printchar256(int xpos, int ypos, int col, int backcol, char ch, int fontsize) {
 		render.printchar(xpos, ypos, col, backcol, ch, fontsize);
 	}
-	
-	
 
 	public String screencapture(String filename) {
 		int i, fil, a, b, c, d;

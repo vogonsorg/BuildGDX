@@ -1,3 +1,11 @@
+/*
+ * TextureKey by Kirill Klimenko-KLIMaka 
+ * Based on parts of "Polymost" by Ken Silverman
+ * 
+ * Ken Silverman's official web site: http://www.advsys.net/ken
+ * See the included license file "BUILDLIC.TXT" for license info.
+ */
+
 package ru.m210projects.Build.Render;
 
 public abstract class TextureKey {

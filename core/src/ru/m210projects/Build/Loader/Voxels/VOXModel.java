@@ -1,3 +1,9 @@
+// VOXModel by Alexander Makarov-[M210] (m210-2007@mail.ru) based
+// on code originally written by Ken Silverman
+// Ken Silverman's official web site: http://www.advsys.net/ken
+//
+// See the included license file "BUILDLIC.TXT" for license info.
+
 package ru.m210projects.Build.Loader.Voxels;
 
 import java.nio.FloatBuffer;

@@ -1,3 +1,12 @@
+/*
+ * File Tokeniser/Parser/Whatever
+ * by Jonathon Fowler
+ * Remixed completely by Ken Silverman
+ * See the included license file "BUILDLIC.TXT" for license info.
+ * 
+ * This file has been modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
+ */
+
 package ru.m210projects.Build;
 
 import static ru.m210projects.Build.FileHandle.Compat.*;

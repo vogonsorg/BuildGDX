@@ -15,6 +15,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along withMocha Doom.  If not, see <http://www.gnu.org/licenses/>.
+//
+// This file has been modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
 
 package ru.m210projects.Build.desktop;
 
