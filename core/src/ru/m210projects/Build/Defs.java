@@ -4,7 +4,8 @@
  * Remixed substantially by Ken Silverman
  * See the included license file "BUILDLIC.TXT" for license info.
  * 
- * This file has been ported to Java and modified 
+ * This file has been modified
+ * by the EDuke32 team (development@voidpoint.com)
  * by Alexander Makarov-[M210] (m210-2007@mail.ru)
  */
 

@@ -3,11 +3,11 @@
 * by Jonathon Fowler
 * See the included license file "BUILDLIC.TXT" for license info.
 * 
-* Copyright (C) EDuke32 developers and contributors
-* 
-* This file has been ported to Java 
+* This file has been modified
+* by the EDuke32 team (development@voidpoint.com)
 * by Alexander Makarov-[M210] (m210-2007@mail.ru)
 */
+
 package ru.m210projects.Build.Loader;
 
 import static ru.m210projects.Build.Engine.*;
