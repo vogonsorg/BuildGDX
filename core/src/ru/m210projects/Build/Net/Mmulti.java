@@ -234,7 +234,7 @@ public class Mmulti {
 		return 1;
 	}
 		
-	public static void initmultiplayers(String[] argv, int damultioption, int dacomrateoption, int dapriority)
+	public static void initmultiplayers(String[] argv)
 	{
 		if (initmultiplayersparms(argv))
 		{
@@ -282,7 +282,7 @@ public class Mmulti {
 					if ((argv[i].charAt(1) == 'N') || (argv[i].charAt(1) == 'n') || (argv[i].charAt(1) == 'I') || (argv[i].charAt(1) == 'i'))
 					{
 						numplayers = 2;
-						if (argv[i].charAt(2) == '0')
+						if (argv[i].length() > 1 && argv[i].charAt(2) == '0')
 						{
 							danetmode = 0;
 							if (argv[i].length() > 3 && (argv[i].charAt(3) == ':') && (argv[i].charAt(4) >= '0') && (argv[i].charAt(4) <= '9'))

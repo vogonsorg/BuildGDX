@@ -17,6 +17,8 @@
 package ru.m210projects.Build.Net;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -27,8 +29,7 @@ public class BServer extends Listener implements ISocket {
 	Server server;
 	SocketAddr recieve;
 	int id;
-	byte[] lastRecieved;
-	boolean recieved;
+	List<Object> lastRecieved = new ArrayList<Object>();
 
 	public BServer(int port)
 	{
@@ -63,16 +64,17 @@ public class BServer extends Listener implements ISocket {
 	@Override
 	public void received(Connection c, Object p) { 				
 		if(p instanceof byte[]) { 
-			lastRecieved = (byte[]) p;
-			recieved = true;
+			lastRecieved.add(0, p);
 		}
 	}
 
 	@Override
 	public SocketAddr recvfrom(byte[] dabuf, int bufsiz) {
-		if(recieved) {
-			System.arraycopy(lastRecieved, 0, dabuf, 0, bufsiz);
-			recieved = false;
+		int size = lastRecieved.size();
+		if(size > 0) {
+			byte[] resbuf = (byte[]) lastRecieved.get(size - 1);
+			System.arraycopy(resbuf, 0, dabuf, 0, bufsiz);
+			lastRecieved.remove(size - 1);
 			return recieve;
 		} else 
 			return null;
