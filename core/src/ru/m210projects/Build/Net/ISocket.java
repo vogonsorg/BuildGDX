@@ -22,6 +22,5 @@ public interface ISocket extends Disposable {
 
 	public SocketAddr recvfrom (byte[] dabuf, int bufsiz);
 	public void sendto (SocketAddr sockaddr, byte[] dabuf, int bufsiz);
-	public void dispose();
-	
+	public void dispose();	
 }

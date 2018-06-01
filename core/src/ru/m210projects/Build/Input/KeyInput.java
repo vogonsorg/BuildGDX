@@ -75,9 +75,12 @@ public class KeyInput {
 		Arrays.fill(keystatus, (byte)0);
 	}
 	
-	public int handleevents() { //need make as part of Engine XXX
+	public int handleevents() { 
 		if(Gdx.input == null) //not initialized
 			return 0;
+
+		((BInput) Gdx.input).updateRequest();
+		((BInput) Gdx.input).cursorHandler();
 
 		int rv = 0;
 		keyPressed = false;
@@ -116,7 +119,7 @@ public class KeyInput {
 		}
 		
 		//Mouse wheel handler
-		int wheel = (int)Gdx.input.getRoll();
+		int wheel = ((BInput)Gdx.input).getDWheel();
 		if(wheel > 0) {
 			keyPressed = true;
 			if (!hitkey[MOUSE_WHELLUP]) {

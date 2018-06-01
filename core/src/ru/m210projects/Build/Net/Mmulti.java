@@ -13,7 +13,6 @@ package ru.m210projects.Build.Net;
 import static ru.m210projects.Build.Engine.MAXPLAYERS;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -88,46 +87,44 @@ public class Mmulti {
 	
 	private static int netinit (int index, int portnum)
 	{
-		if(index == 0)
-			mysock = new BServer(portnum);
-		else 
-			mysock = new BClient(portnum);	
-		
-		if (mysock == null) return 0;
 		ip = new SocketAddr();
 		
 		ip.port = portnum;
 		ip.address = null;
 		
-		//if (bind(mysock, ip) != SOCKET_ERROR)
-		{
+		try {
+			String hostAddress = InetAddress.getLocalHost().getHostAddress();
+			Console.Println("mmulti: This machine's IP is " + hostAddress);
+			
+			if(index == 0)
+				mysock = new BServer(portnum);
+			else 
+				mysock = new BClient("localhost", portnum);	
+
 			myport = portnum;
-			try {
-				myip =  InetAddress.getByName("localhost").getHostAddress();
-				Console.Println("mmulti: This machine's IP is " + myip);
-				return 1;
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-			}
+			ip.address = myip =  hostAddress;
+			return 1;
+		} catch (Exception e) {
+			return 0;
 		}
-		return 0;
 	}
 	
 	private static void netsend (int other, byte[] dabuf, int bufsiz)
 	{
 		if (otherip[other] == null) return;
-		
-//		ip.address = otherip[other]; Nullpointer from netread, FIXME
-//		ip.port = otherport[other];
-		
+		ip.address = otherip[other]; 
+		ip.port = otherport[other];
+
 		mysock.sendto(ip, dabuf, bufsiz);
 	}
 	
 	private static int netread (byte[] dabuf, int bufsiz)
 	{
-		if ((ip = mysock.recvfrom(dabuf,bufsiz)) == null) 
+		SocketAddr recip;
+		if ((recip = mysock.recvfrom(dabuf,bufsiz)) == null) 
 			return -1;
 		
+		ip = recip;
 		snatchip = ip.address;
 		snatchport = ip.port;
 		
@@ -197,7 +194,7 @@ public class Mmulti {
 	public static int initmultiplayerscycle()
 	{
 		getpacket(null);
-
+		
 		tims = GetTickCount();
 		if (myconnectindex == connecthead)
 		{

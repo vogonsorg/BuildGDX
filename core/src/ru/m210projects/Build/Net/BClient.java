@@ -32,18 +32,18 @@ public class BClient extends Listener implements ISocket {
 	SocketHints hints = new SocketHints();
 	List<Object> lastRecieved = new ArrayList<Object>();
 	
-	public BClient(int port)
+	public BClient(String servAddress, int port) throws Exception
 	{
 		recieve = new SocketAddr();
 		recieve.port = port;
-		recieve.address = "localhost";
-		
+		recieve.address = servAddress;
+
 		client = new Client();
 		client.getKryo().register(byte[].class);
 		client.start(); 
 		while(true) {
 			try {
-				client.connect(5000, recieve.address, recieve.port);
+				client.connect(5000, servAddress, port);
 				break;
 			} catch (IOException e) {} 	
 		}
@@ -54,6 +54,7 @@ public class BClient extends Listener implements ISocket {
 	public void received(Connection c, Object p) { 				
 		if(p instanceof byte[]) { 
 			lastRecieved.add(0, p);
+			//recieve.address = c.getRemoteAddressTCP().getAddress().getHostAddress();
 		}
 	}
 
@@ -62,15 +63,19 @@ public class BClient extends Listener implements ISocket {
 		int size = lastRecieved.size();
 		if(size > 0) {
 			byte[] resbuf = (byte[]) lastRecieved.get(size - 1);
-			System.arraycopy(resbuf, 0, dabuf, 0, bufsiz);
-			lastRecieved.remove(size - 1);
-			return recieve;
-		} else 
-			return null;
+			if(resbuf != null) {
+				if(bufsiz > resbuf.length) bufsiz = resbuf.length;
+				System.arraycopy(resbuf, 0, dabuf, 0, bufsiz);
+				lastRecieved.remove(size - 1);
+				return recieve;
+			}
+		}  	
+		return null;
 	}
 
 	@Override
 	public void sendto(SocketAddr sockaddr, byte[] dabuf, int bufsiz) {
+//		System.err.println("send to " + sockaddr.address);
 		client.sendTCP(dabuf);
 	}
 	

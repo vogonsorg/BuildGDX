@@ -33,6 +33,9 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
+import ru.m210projects.Build.Input.BInput;
+import ru.m210projects.Build.OnSceenDisplay.Console;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
@@ -43,7 +46,7 @@ import static ru.m210projects.Build.Input.Keymap.*;
 /** An implementation of the {@link Input} interface hooking a LWJGL panel for input.
  * 
  * @author mzechner */
-final public class LwjglInput implements Input {
+final public class LwjglInput implements BInput {
 	static public float keyRepeatInitialTime = 0.4f;
 	static public float keyRepeatTime = 0.1f;
 
@@ -172,6 +175,201 @@ final public class LwjglInput implements Input {
 
 	
 
+	
+
+	@Override
+	public void setInputProcessor (InputProcessor processor) {
+		this.processor = processor;
+	}
+
+	@Override
+	public InputProcessor getInputProcessor () {
+		return this.processor;
+	}
+
+	@Override
+	public void vibrate (int milliseconds) {
+	}
+
+	@Override
+	public boolean justTouched () {
+		
+		if(Mouse.isButtonDown(0)) {
+			if(!justTouched) {
+				justTouched = true;
+				return true;
+			}
+		}  
+		
+		justTouched = false;
+		return false;
+	}
+
+	@Override
+	public boolean isButtonPressed (int button) {
+		if(button < Mouse.getButtonCount())
+			return Mouse.isButtonDown(button);
+		return false;
+	}
+
+	@Override
+	public void vibrate (long[] pattern, int repeat) {
+	}
+
+	@Override
+	public void cancelVibrate () {
+	}
+
+	@Override
+	public float getAzimuth () {
+		return 0;
+	}
+
+	@Override
+	public float getPitch () {
+		return 0;
+	}
+
+	@Override
+	public float getRoll () {
+		return Mouse.getDWheel();
+	}
+
+	@Override
+	public boolean isPeripheralAvailable (Peripheral peripheral) {
+		if (peripheral == Peripheral.HardwareKeyboard) return true;
+		return false;
+	}
+
+	@Override
+	public int getRotation () {
+		return 0;
+	}
+
+	@Override
+	public Orientation getNativeOrientation () {
+		return Orientation.Landscape;
+	}
+
+	@Override
+	public void setCursorCatched (boolean catched) {
+		Mouse.setGrabbed(catched);
+	}
+
+	@Override
+	public boolean isCursorCatched() {
+		return Mouse.isGrabbed();
+	}
+	
+	@Override
+	public int getDeltaX () {
+		return Mouse.getDX();
+	}
+
+	@Override
+	public int getDeltaX (int pointer) {
+		if(!Display.isActive()) return 0;
+		if (pointer == 0)
+			return -Mouse.getDX();
+		else
+			return 0;
+	}
+
+	@Override
+	public int getDeltaY () {
+		if(!Display.isActive()) return 0;
+		return -Mouse.getDY();
+	}
+
+	@Override
+	public int getDeltaY (int pointer) {
+		if(!Display.isActive()) return 0;
+		if (pointer == 0)
+			return -Mouse.getDY();
+		else
+			return 0;
+	}
+
+	@Override
+	public void setCursorPosition (int x, int y) {
+		Mouse.setCursorPosition(x, y - 1);
+	}
+
+    @Override
+    public void setCursorImage(Pixmap pixmap, int xHotspot, int yHotspot) {
+    
+    }
+
+    @Override
+	public void setCatchMenuKey (boolean catchMenu) {
+	}
+
+	@Override
+	public long getCurrentEventTime () {
+		return currentEventTimeStamp;
+	}
+
+	@Override
+	public void getRotationMatrix (float[] matrix) {
+		
+	}
+
+	class KeyEvent {
+		static final int KEY_DOWN = 0;
+		static final int KEY_UP = 1;
+		static final int KEY_TYPED = 2;
+
+		long timeStamp;
+		int type;
+		int keyCode;
+		char keyChar;
+	}
+
+	class TouchEvent {
+		static final int TOUCH_DOWN = 0;
+		static final int TOUCH_UP = 1;
+		static final int TOUCH_DRAGGED = 2;
+		static final int TOUCH_SCROLLED = 3;
+		static final int TOUCH_MOVED = 4;
+
+		long timeStamp;
+		int type;
+		int x;
+		int y;
+		int scrollAmount;
+		int button;
+		int pointer;
+	}
+
+	@Override
+	public void getPlaceholderTextInput(TextInputListener listener,
+			String title, String placeholder) {
+	}
+
+	@Override
+	public void updateRequest() {
+		Display.processMessages();
+	}
+	
+	@Override
+	public boolean cursorHandler() {
+		if(emptyCursor == null)
+			try { emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null); } catch (LWJGLException e) {}
+		
+		try {
+			if (Mouse.isInsideWindow() && Display.isActive() && !Console.IsShown()) 
+				Mouse.setNativeCursor(emptyCursor);
+			else Mouse.setNativeCursor(defCursor);
+		} catch (Exception e) {}
+		
+		return false;
+	}
+
+	@Override
+	public int getDWheel() {
+		return Mouse.getDWheel();
+	}
+	
 	public static int getGdxKeyCode (int lwjglKeyCode) {
 		switch (lwjglKeyCode) {
 		case Keyboard.KEY_LBRACKET:
@@ -586,189 +784,5 @@ final public class LwjglInput implements Input {
 		default:
 			return Keyboard.KEY_NONE;
 		}
-	}
-
-	@Override
-	public void setInputProcessor (InputProcessor processor) {
-		this.processor = processor;
-	}
-
-	@Override
-	public InputProcessor getInputProcessor () {
-		return this.processor;
-	}
-
-	@Override
-	public void vibrate (int milliseconds) {
-	}
-
-	@Override
-	public boolean justTouched () {
-		
-		if(Mouse.isButtonDown(0)) {
-			if(!justTouched) {
-				justTouched = true;
-				return true;
-			}
-		}  
-		
-		justTouched = false;
-		return false;
-	}
-
-	@Override
-	public boolean isButtonPressed (int button) {
-		if(button < Mouse.getButtonCount())
-			return Mouse.isButtonDown(button);
-		return false;
-	}
-
-	@Override
-	public void vibrate (long[] pattern, int repeat) {
-	}
-
-	@Override
-	public void cancelVibrate () {
-	}
-
-	@Override
-	public float getAzimuth () {
-		return 0;
-	}
-
-	@Override
-	public float getPitch () {
-		return 0;
-	}
-
-	@Override
-	public float getRoll () {
-		return Mouse.getDWheel();
-	}
-
-	@Override
-	public boolean isPeripheralAvailable (Peripheral peripheral) {
-		if (peripheral == Peripheral.HardwareKeyboard) return true;
-		return false;
-	}
-
-	@Override
-	public int getRotation () {
-		return 0;
-	}
-
-	@Override
-	public Orientation getNativeOrientation () {
-		return Orientation.Landscape;
-	}
-
-	@Override
-	public void setCursorCatched (boolean catched) {
-		Mouse.setGrabbed(catched);
-	}
-
-	@Override
-	public boolean isCursorCatched() {
-		if(emptyCursor == null)
-		{
-			try {
-				emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null);
-				} catch (LWJGLException e) {
-			}
-		}
-		
-		try {
-			if (Mouse.isInsideWindow() && Display.isActive()) {
-				Mouse.setNativeCursor(emptyCursor);
-			}
-			else Mouse.setNativeCursor(defCursor);
-		} catch (Exception e) {}
-		
-		return Mouse.isGrabbed();
-	}
-	
-	@Override
-	public int getDeltaX () {
-		return Mouse.getDX();
-	}
-
-	@Override
-	public int getDeltaX (int pointer) {
-		if(!Display.isActive()) return 0;
-		if (pointer == 0)
-			return -Mouse.getDX();
-		else
-			return 0;
-	}
-
-	@Override
-	public int getDeltaY () {
-		if(!Display.isActive()) return 0;
-		return -Mouse.getDY();
-	}
-
-	@Override
-	public int getDeltaY (int pointer) {
-		if(!Display.isActive()) return 0;
-		if (pointer == 0)
-			return -Mouse.getDY();
-		else
-			return 0;
-	}
-
-	@Override
-	public void setCursorPosition (int x, int y) {
-		Mouse.setCursorPosition(x, y - 1);
-	}
-
-    @Override
-    public void setCursorImage(Pixmap pixmap, int xHotspot, int yHotspot) {
-    
-    }
-
-    @Override
-	public void setCatchMenuKey (boolean catchMenu) {
-	}
-
-	@Override
-	public long getCurrentEventTime () {
-		return currentEventTimeStamp;
-	}
-
-	@Override
-	public void getRotationMatrix (float[] matrix) {
-		
-	}
-
-	class KeyEvent {
-		static final int KEY_DOWN = 0;
-		static final int KEY_UP = 1;
-		static final int KEY_TYPED = 2;
-
-		long timeStamp;
-		int type;
-		int keyCode;
-		char keyChar;
-	}
-
-	class TouchEvent {
-		static final int TOUCH_DOWN = 0;
-		static final int TOUCH_UP = 1;
-		static final int TOUCH_DRAGGED = 2;
-		static final int TOUCH_SCROLLED = 3;
-		static final int TOUCH_MOVED = 4;
-
-		long timeStamp;
-		int type;
-		int x;
-		int y;
-		int scrollAmount;
-		int button;
-		int pointer;
-	}
-
-	@Override
-	public void getPlaceholderTextInput(TextInputListener listener,
-			String title, String placeholder) {
 	}
 }
