@@ -17,10 +17,6 @@
 package ru.m210projects.Build.Net;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.badlogic.gdx.net.SocketHints;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -29,8 +25,9 @@ public class BClient extends Listener implements ISocket {
 	
 	private Client client;
 	SocketAddr recieve;
-	SocketHints hints = new SocketHints();
-	List<Object> lastRecieved = new ArrayList<Object>();
+
+	Object[] list = new Object[256];
+	int head, trail = 0;
 	
 	public BClient(String servAddress, int port) throws Exception
 	{
@@ -53,29 +50,27 @@ public class BClient extends Listener implements ISocket {
 	@Override
 	public void received(Connection c, Object p) { 				
 		if(p instanceof byte[]) { 
-			lastRecieved.add(0, p);
-			//recieve.address = c.getRemoteAddressTCP().getAddress().getHostAddress();
+			list[trail] = p;
+			trail = (trail + 1) & 255;
 		}
 	}
 
 	@Override
 	public SocketAddr recvfrom(byte[] dabuf, int bufsiz) {
-		int size = lastRecieved.size();
-		if(size > 0) {
-			byte[] resbuf = (byte[]) lastRecieved.get(size - 1);
-			if(resbuf != null) {
-				if(bufsiz > resbuf.length) bufsiz = resbuf.length;
-				System.arraycopy(resbuf, 0, dabuf, 0, bufsiz);
-				lastRecieved.remove(size - 1);
-				return recieve;
-			}
-		}  	
+		
+		if(head != trail)
+		{
+			byte[] resbuf = (byte[]) list[head];
+			System.arraycopy(resbuf, 0, dabuf, 0, bufsiz);
+			head = (head + 1) & 255;
+			return recieve;
+		}
+		
 		return null;
 	}
 
 	@Override
 	public void sendto(SocketAddr sockaddr, byte[] dabuf, int bufsiz) {
-//		System.err.println("send to " + sockaddr.address);
 		client.sendTCP(dabuf);
 	}
 	
