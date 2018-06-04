@@ -85,7 +85,7 @@ public class Mmulti {
 		return j & 65535;
 	}
 	
-	private static int netinit (int index, int portnum)
+	private static int netinit (int portnum)
 	{
 		ip = new SocketAddr();
 		
@@ -96,10 +96,10 @@ public class Mmulti {
 			String hostAddress = InetAddress.getLocalHost().getHostAddress();
 			Console.Println("mmulti: This machine's IP is " + hostAddress);
 			
-			if(index == 0)
+			if(myconnectindex == 0)
 				mysock = new BServer(portnum);
 			else 
-				mysock = new BClient("localhost", portnum);	
+				mysock = new BClient(otherip[0], portnum);	
 
 			myport = portnum;
 			ip.address = myip =  hostAddress;
@@ -120,7 +120,7 @@ public class Mmulti {
 	
 	private static int netread (byte[] dabuf, int bufsiz)
 	{
-		SocketAddr recip;
+		SocketAddr recip; //mysock == null XXX
 		if ((recip = mysock.recvfrom(dabuf,bufsiz)) == null) 
 			return -1;
 		
@@ -336,8 +336,6 @@ public class Mmulti {
 					continue;
 				}
 			}
-			
-			netinit(daindex, portnum);
 		}
 		
 		if ((danetmode == 255) && (daindex != 0)) { numplayers = 2; danetmode = 0; } //an IP w/o /n# defaults to /n0
@@ -347,6 +345,8 @@ public class Mmulti {
 		connecthead = 0;
 		for(int i=0; i < numplayers-1; i++) connectpoint2[i] = (short) (i+1);
 		connectpoint2[numplayers-1] = -1;
+		
+		netinit(portnum);
 
 		return (((danetmode == 0) && (numplayers >= 2)) || (numplayers == 2));
 	}
@@ -474,7 +474,7 @@ public class Mmulti {
 								//   unsigned short crc16; //CRC16 of everything except crc16
 							k = 2;
 							LittleEndian.putInt(pakbuf, k, -1); k += 4;
-							pakbuf[k++] = (byte) 0xAB;
+							pakbuf[k++] = (byte)0xAB;
 							pakbuf[k++] = (byte)other;
 							pakbuf[k++] = (byte)numplayers;
 							LittleEndian.putShort(pakbuf, 0, (short)k);

@@ -71,7 +71,7 @@ public class BClient extends Listener implements ISocket {
 
 	@Override
 	public void sendto(SocketAddr sockaddr, byte[] dabuf, int bufsiz) {
-		client.sendTCP(dabuf);
+		client.sendTCP(dabuf); //java.lang.IllegalArgumentException
 	}
 	
 	@Override
