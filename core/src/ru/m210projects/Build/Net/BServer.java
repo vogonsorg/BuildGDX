@@ -27,7 +27,6 @@ public class BServer extends Listener implements ISocket {
 	SocketAddr recieve;
 	int id;
 	
-
 	Object[] list = new Object[256];
 	int head, trail = 0;
 

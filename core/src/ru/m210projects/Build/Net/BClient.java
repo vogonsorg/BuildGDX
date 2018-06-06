@@ -57,7 +57,6 @@ public class BClient extends Listener implements ISocket {
 
 	@Override
 	public SocketAddr recvfrom(byte[] dabuf, int bufsiz) {
-		
 		if(head != trail)
 		{
 			byte[] resbuf = (byte[]) list[head];

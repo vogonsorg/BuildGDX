@@ -120,8 +120,8 @@ public class Mmulti {
 	
 	private static int netread (byte[] dabuf, int bufsiz)
 	{
-		SocketAddr recip; //mysock == null XXX
-		if ((recip = mysock.recvfrom(dabuf,bufsiz)) == null) 
+		SocketAddr recip;
+		if (mysock == null || (recip = mysock.recvfrom(dabuf,bufsiz)) == null) 
 			return -1;
 		
 		ip = recip;
@@ -346,7 +346,10 @@ public class Mmulti {
 		for(int i=0; i < numplayers-1; i++) connectpoint2[i] = (short) (i+1);
 		connectpoint2[numplayers-1] = -1;
 		
-		netinit(portnum);
+		if(netinit(portnum) == 0) {
+			initmultiplayers_reset();
+			return false;
+		}
 
 		return (((danetmode == 0) && (numplayers >= 2)) || (numplayers == 2));
 	}
