@@ -38,6 +38,7 @@ public class BClient extends Listener implements ISocket {
 		client = new Client();
 		client.getKryo().register(byte[].class);
 		client.start(); 
+
 		while(true) {
 			try {
 				client.connect(5000, servAddress, port);

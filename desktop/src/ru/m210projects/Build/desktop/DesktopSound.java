@@ -121,6 +121,9 @@ public class DesktopSound implements Sound {
 					Console.Println("ALC_EXT_EFX enabled.");	
 				else Console.Println("ALC_EXT_EFX error!", OSDTEXT_RED);	
 			}
+			
+//			int num_resamplers = alGetInteger(AL_NUM_RESAMPLERS_SOFT);
+//			int ridx = alGetInteger(SOFTSourceResampler.AL_DEFAULT_RESAMPLER_SOFT);
 	
 			loopedSource.clear();
 			return true;

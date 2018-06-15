@@ -61,7 +61,7 @@ public interface Renderer {
 
 	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
 
-	public void getFrameBuffer(int x, int y, int w, int h, int format, ByteBuffer pixels);
+	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format);
 	
 	public void drawline256(int x1, int y1, int x2, int y2, int col);
 	

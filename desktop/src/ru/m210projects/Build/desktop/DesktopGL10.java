@@ -479,4 +479,24 @@ public class DesktopGL10 extends GL10 {
 	public void bglBindTexture(int target, IntBuffer texture) {
 		GL11.glBindTexture(target, texture.get(0));
 	}
+
+	@Override
+	public void bglFlush() {
+		GL11.glFlush();
+	}
+
+	@Override
+	public void bglFinish() {
+		GL11.glFinish();
+	}
+
+	@Override
+	public void bglReadBuffer(int mode) {
+		GL11.glReadBuffer(mode);
+	}
+	
+	@Override
+	public void bglCopyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) {
+		GL11.glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+	}
 }

@@ -271,4 +271,11 @@ public abstract class GL10 {
 	
 	public abstract void bglDisableClientState(int cap);
 	
+	public abstract void bglFlush();
+	
+	public abstract void bglFinish();
+
+	public abstract void bglReadBuffer(int mode);
+
+	public abstract void bglCopyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height);
 }

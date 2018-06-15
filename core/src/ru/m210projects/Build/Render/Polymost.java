@@ -602,7 +602,7 @@ public abstract class Polymost implements Renderer {
 
 		boolean dorot;
 
-		Pthtyp pth, detailpth = null, glowpth = null;
+		Pthtyp pth = null, detailpth = null, glowpth = null;
 		int texunits = GL_TEXTURE0_ARB;
 
 		if (method == -1)
@@ -613,8 +613,10 @@ public abstract class Polymost implements Renderer {
 				return; // for triangle
 		} else {
 			f = 0; // f is area of polygon / 2
-			for (i = n - 2, j = n - 1, k = 0; k < n; i = j, j = k, k++)
+			for (i = n - 2, j = n - 1, k = 0; k < n; i = j, j = k, k++) {
+				if(i < 0) return;
 				f += (dm[i].px - dm[k].px) * dm[j].py;
+			}
 			if (f <= 0)
 				return;
 		}
@@ -692,7 +694,7 @@ public abstract class Polymost implements Renderer {
 			return;
 
 		bindTexture(gl, pth.glpic);
-
+		
 		if (srepeat != 0)
 			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		if (trepeat != 0)
@@ -4118,7 +4120,6 @@ public abstract class Polymost implements Renderer {
 			cosang2 *= d;
 			sinang2 *= d;
 		}
-		
 
 		float cx = sx * (1.0f / 65536.f) - xoff * cosang2 + yoff * sinang2;
 		float cy = sy * (1.0f / 65536.f) - xoff * sinang  - yoff * cosang;
@@ -6652,12 +6653,21 @@ public abstract class Polymost implements Renderer {
 				spriteext[i].mdanimtims += mdtims - omdtims;
 
 		beforedrawrooms = 1;
+		
+		gl.bglFlush();
 	}
+	
+	private ByteBuffer framebuffer;
 
 	@Override
-	public void getFrameBuffer(int x, int y, int w, int h, int format, ByteBuffer pixels) {
+	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format) {
+		if (framebuffer != null) framebuffer.clear();
+		if (framebuffer == null || framebuffer.capacity() < w * h * 3 )
+			framebuffer = BufferUtils.newByteBuffer(w * h * 3);
+		
 		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
-		gl.glReadPixels(x, y, w, h, format, GL10.GL_UNSIGNED_BYTE, pixels);
+		gl.glReadPixels(x, y, w, h, format, GL10.GL_UNSIGNED_BYTE, framebuffer);
+		return framebuffer;
 	}
 
 	@Override

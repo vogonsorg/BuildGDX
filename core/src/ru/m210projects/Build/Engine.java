@@ -26,6 +26,7 @@ import java.util.HashMap;
 
 import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.Sound;
+import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.DEFOSDFUNC;
@@ -52,7 +53,6 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.BufferUtils;
 
 public abstract class Engine {
 	
@@ -70,9 +70,16 @@ public abstract class Engine {
 	public Music mx;
 	private static KeyInput input;
 	
+	public static boolean offscreenrendering;
+	
 	public static float TRANSLUSCENT1 = 0.66f;
 	public static float TRANSLUSCENT2 = 0.33f;
 	public static final float MaxDrunkIntensive = 0.1f;
+	
+	public static int setviewcnt = 0; // interface layers use this now
+	public static int[] bakwindowx1, bakwindowy1;
+	public static int[] bakwindowx2, bakwindowy2;
+	public static int baktile;
 	
 	public static final int CLIPMASK0 = (((1) << 16) + 1);
 	public static final int CLIPMASK1 = (((256) << 16) + 64);
@@ -256,7 +263,7 @@ public abstract class Engine {
 	private final int FASTPALGRIDSIZ = (FASTPALCOLDEPTH >> FASTPALRIGHTSHIFT);
 	private byte[] colhere;
 	private byte[] colhead;
-	private int[] colnext;
+	private byte[] colnext;
 	private final byte[] coldist = { 0, 1, 2, 3, 4, 3, 2, 1 };
 	private int[] colscan;
 	private int randomseed = 1;
@@ -517,9 +524,9 @@ public abstract class Engine {
 				+ FASTPALGRIDSIZ * FASTPALGRIDSIZ
 				+ FASTPALGRIDSIZ + 1;
 
-		int minrdist = rdist[coldist[r & FASTPALCOLDISTMASK] + FASTPALCOLDEPTH];
-		int mingdist = gdist[coldist[g & FASTPALCOLDISTMASK] + FASTPALCOLDEPTH];
-		int minbdist = bdist[coldist[b & FASTPALCOLDISTMASK] + FASTPALCOLDEPTH];
+		int minrdist = rdist[(coldist[r & FASTPALCOLDISTMASK] & 0xFF) + FASTPALCOLDEPTH];
+		int mingdist = gdist[(coldist[g & FASTPALCOLDISTMASK] & 0xFF) + FASTPALCOLDEPTH];
+		int minbdist = bdist[(coldist[b & FASTPALCOLDISTMASK] & 0xFF) + FASTPALCOLDEPTH];
 
 		mindist = min(minrdist, mingdist);
 		mindist = min(mindist, minbdist) + 1;
@@ -547,7 +554,7 @@ public abstract class Engine {
 
 				mindist = dist;
 				retcol = (byte) i;
-			} while ((i = colnext[i]) >= 0);
+			} while ((i = colnext[i] & 0xFF) >= 0);
 		}
 
 		if (retcol >= 0)
@@ -937,7 +944,7 @@ public abstract class Engine {
 		bdist = new int[FASTPALRGBDIST];
 		colhere = new byte[((FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)) >> 3];
 		colhead = new byte[(FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)];
-		colnext = new int[256];
+		colnext = new byte[256];
 		colscan = new int[27];
 		radarang = new short[1280]; //1024
 //		voxoff = new byte[MAXVOXELS][MAXVOXMIPS][];
@@ -958,6 +965,11 @@ public abstract class Engine {
 		Arrays.fill(show2dwall, (byte)0);
 		Arrays.fill(tiletovox, -1);
 //		Arrays.fill(voxscale, 65536);
+		
+		bakwindowx1 = new int[4]; 
+		bakwindowy1 = new int[4];
+		bakwindowx2 = new int[4]; 
+		bakwindowy2 = new int[4];
 	}
 	
 	public Engine(Message message, boolean releasedEngine) throws Exception {
@@ -3624,6 +3636,39 @@ public abstract class Engine {
 	public void clearview(int dacol) {
 		render.clearview(dacol);
 	}
+	
+	public void setviewtotile(int tilenume, int xsiz, int ysiz)
+	{
+	    //DRAWROOMS TO TILE BACKUP&SET CODE
+	    tilesizx[tilenume] = (short)xsiz; tilesizy[tilenume] = (short)ysiz;
+	    bakwindowx1[setviewcnt] = windowx1; bakwindowy1[setviewcnt] = windowy1;
+	    bakwindowx2[setviewcnt] = windowx2; bakwindowy2[setviewcnt] = windowy2;
+	
+	    if (setviewcnt == 0)
+	        baktile = tilenume;
+	   
+	    offscreenrendering = true;
+	    
+	    setviewcnt++;
+	    setview(0,0,ysiz-1,xsiz-1);
+	    setaspect(65536,65536);
+	}
+	
+	public void setviewback()
+	{
+	    if (setviewcnt <= 0) return;
+	    setviewcnt--;
+
+	    offscreenrendering = (setviewcnt>0);
+	    
+	    if (setviewcnt == 0) {
+	    	waloff[baktile] = getframe(tilesizx[baktile], tilesizy[baktile]);
+	        invalidatetile(baktile,-1,-1);
+	    }
+	    setviewcnt = 0;
+	    setview(bakwindowx1[setviewcnt],bakwindowy1[setviewcnt],
+	            bakwindowx2[setviewcnt],bakwindowy2[setviewcnt]); 
+	}
 
 	public void preparemirror(int dax, int day, int daz, float daang, float dahoriz, int dawall, int dasector) {
 		int i, j, x, y, dx, dy;
@@ -3880,10 +3925,11 @@ public abstract class Engine {
 	}
 
 	public String screencapture(String filename) {
-		int i, fil, a, b, c, d;
+		int a, b, c, d;
 		String fn = Bstrdup(filename);
-		i = Bstrrchr(fn, '.') - 4;
-		fn = fn.substring(0, i);
+		fn = fn.substring(0, Bstrrchr(fn, '.') - 4);
+		
+		DirectoryEntry userdir = cache.checkDirectory("<userdir>");
 
 		int capturecount = 0;
 		do { // JBF 2004022: So we don't overwrite existing screenshots
@@ -3895,69 +3941,72 @@ public abstract class Engine {
 			c = ((capturecount / 10) % 10);
 			d = (capturecount % 10);
 
-			if ((fil = Bopen(FileUserdir + fn + a + b + c + d + ".png", "R")) == -1)
+			if(userdir.checkFile(fn + a + b + c + d + ".png") == null)
 				break;
-			Bclose(fil);
 			capturecount++;
 		} while (true);
-
-		Pixmap capture = getFrameBufferPixmap(0, 0, xdim, ydim);
-		File pci = new File(FileUserdir + fn + a + b + c + d + ".png");
+		
+		int w = xdim, h = ydim;
+		ByteBuffer frame = render.getframebuffer(0, 0, w, h, GL10.GL_RGB);
+		Pixmap capture = new Pixmap(w, h, Format.RGB888);
+		ByteBuffer pixels = capture.getPixels();
+		
+		final int numBytes = w * h * 3;
+		byte[] lines = new byte[numBytes];
+		final int numBytesPerLine = w * 3;
+		for (int i = 0; i < h; i++) {
+			frame.position((h - i - 1) * numBytesPerLine);
+			frame.get(lines, i * numBytesPerLine, numBytesPerLine);
+		}
+		pixels.put(lines);
+		
+		File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
 		try {
 			PixmapIO.writePNG(new FileHandle(pci), capture);
-	
-			cache.checkDirectory("<userdir>").addFile(pci);
-			
+			userdir.addFile(pci);
 			capture.dispose();
-	
 			return fn + a + b + c + d + ".png";
 		} 
 		catch(Exception e) {
 			return null;
 		}
 	}
-
-	private Pixmap getFrameBufferPixmap(int x, int y, int w, int h) {
-
-		final Pixmap pixmap = new Pixmap(w, h, Format.RGB888);
-		ByteBuffer pixels = pixmap.getPixels();
-		render.getFrameBuffer(x, y, w, h, GL10.GL_RGB, pixels);
-
-		final int numBytes = w * h * 3;
-		byte[] lines = new byte[numBytes];
-		final int numBytesPerLine = w * 3;
-		for (int i = 0; i < h; i++) {
-			pixels.position((h - i - 1) * numBytesPerLine);
-			pixels.get(lines, i * numBytesPerLine, numBytesPerLine);
-		}
-		pixels.clear();
-		pixels.put(lines);
-
-		return pixmap;
-	}
-
+	
 	private byte[] capture;
 	public byte[] screencapture(int width, int heigth) {
-		ByteBuffer frame = BufferUtils.newByteBuffer(xdim * ydim * 3);
-		render.getFrameBuffer(0, 0, xdim, ydim, GL10.GL_RGB, frame);
-
-		int xf = (int) divscale(xdim, width, 16); // (xdim<<16)/width
-		int yf = (int) divscale(ydim, heigth, 16); // (ydim<<16)/heigth
-
-		if (capture == null || capture.length <= width * heigth )
+		if (capture == null || capture.length < width * heigth ) 
 			capture = new byte[width * heigth];
+		ByteBuffer frame = render.getframebuffer(0, 0, xdim, ydim, GL10.GL_RGB);
 
-		for (int y = 0; y < heigth; y++) {
-			int base = mulscale(heigth - y - 1, yf, 16) * xdim;
-			for (int x = 0; x < width; x++) {
-				int index = 3 * (base + mulscale(x, xf, 16));
-				int r = frame.get(index) & 0xFF;
-				int g = frame.get(index + 1) & 0xFF;
-				int b = frame.get(index + 2) & 0xFF;
+		long xf = divscale(xdim, width, 16);
+		long yf = divscale(ydim, heigth, 16);
+
+		int base, r, g, b;
+		for (int x, y = 0; y < heigth; y++) {
+			base = mulscale(heigth - y - 1, yf, 16) * xdim;
+			for (x = 0; x < width; x++) {
+				frame.position(3 * (base + mulscale(x, xf, 16)));
+				r = frame.get() & 0xFF;
+				g = frame.get() & 0xFF;
+				b = frame.get() & 0xFF;
 				capture[heigth * x + y] = getclosestcol(r, g, b);
 			}
 		}
-		frame.clear();
+		return capture;
+	}
+	
+	public byte[] getframe(int width, int heigth) {
+		if (capture == null || capture.length < width * heigth ) 
+			capture = new byte[width * heigth];
+		ByteBuffer frame = render.getframebuffer(0, ydim - heigth, width, heigth, GL10.GL_RGB);
+		int r, g, b;
+		for(int i = 0; i < width * heigth; i++)
+		{
+			r = frame.get() & 0xFF;
+			g = frame.get() & 0xFF;
+			b = frame.get() & 0xFF;
+			capture[i] = getclosestcol(r, g, b);
+		}
 		return capture;
 	}
 
