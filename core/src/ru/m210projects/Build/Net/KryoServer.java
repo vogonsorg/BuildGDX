@@ -21,7 +21,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 
-public class BServer extends Listener implements ISocket {
+public class KryoServer extends Listener implements ISocket {
 
 	private Server server;
 	SocketAddr recieve;
@@ -30,7 +30,7 @@ public class BServer extends Listener implements ISocket {
 	Object[] list = new Object[256];
 	int head, trail = 0;
 
-	public BServer(int port) throws Exception
+	public KryoServer(int port) throws Exception
 	{
 		recieve = new SocketAddr();
 		recieve.port = port;

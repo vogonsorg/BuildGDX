@@ -97,9 +97,9 @@ public class Mmulti {
 			Console.Println("mmulti: This machine's IP is " + hostAddress);
 			
 			if(myconnectindex == 0)
-				mysock = new BServer(portnum);
+				mysock = new GdxServer(portnum);
 			else 
-				mysock = new BClient(otherip[0], portnum);	
+				mysock = new GdxClient(otherip[0], portnum);	
 
 			myport = portnum;
 			ip.address = myip =  hostAddress;
@@ -241,7 +241,16 @@ public class Mmulti {
 		netready = 1;
 	}
 	
-	
+	public static void initnetwork()
+	{
+		initmultiplayers_reset();
+		connecthead = 0;
+		for(int i=0; i < numplayers-1; i++) connectpoint2[i] = (short) (i+1);
+		connectpoint2[numplayers-1] = -1;
+		
+		numplayers = 1;
+	}
+
 	// Multiplayer command line summary. Assume myconnectindex always = 0 for 192.168.1.2
 	//
 	// (mast/slav) 2 player:               		3 player:
