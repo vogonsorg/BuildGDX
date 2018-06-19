@@ -31,8 +31,8 @@ public class GdxServer implements ISocket {
 		try {
 			int i = fromclient.getInputStream().available();
 			if(i > 0) {
-				if(i < bufsiz) bufsiz = i;
 				fromclient.getInputStream().read(dabuf, 0, bufsiz);
+				fromclient.getInputStream().skip(i - bufsiz);
 				return recieve;
 			}
 		} catch (IOException e) {
@@ -44,7 +44,7 @@ public class GdxServer implements ISocket {
 	@Override
 	public void sendto(SocketAddr sockaddr, byte[] dabuf, int bufsiz) {
 		try {
-			fromclient.getOutputStream().write(dabuf, 0, 256); //XXX
+			fromclient.getOutputStream().write(dabuf, 0, bufsiz);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -54,5 +54,4 @@ public class GdxServer implements ISocket {
 	public void dispose() {
 		
 	}
-
 }

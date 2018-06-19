@@ -19,7 +19,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
 
 public class Mmulti {
-	
+
 	public static final int NETPORT = 0x5bd9;
 	public static final int MAXPAKSIZ = 256;
 	public static final int PAKRATE = 40;
@@ -52,9 +52,9 @@ public class Mmulti {
 	public static char syncstate;
 	public static long tims, lastsendtims[] = new long[MAXPLAYERS];
 	
-	private static long GetTickCount()
+	private static int GetTickCount()
 	{
-		return System.currentTimeMillis();
+		return (int) System.currentTimeMillis();
 	}
 	
 	private static int[] crctab16 = new int[256];
@@ -105,6 +105,7 @@ public class Mmulti {
 			ip.address = myip =  hostAddress;
 			return 1;
 		} catch (Exception e) {
+			e.printStackTrace();
 			return 0;
 		}
 	}
@@ -282,7 +283,7 @@ public class Mmulti {
 			}
 
 			for (int i = 0; i < argv.length; i++) {
-				if(argv[i] == null) continue;
+				if(argv[i] == null || argv[i].isEmpty()) continue;
 				
 				if ((argv[i].charAt(0) == '-') || (argv[i].charAt(0) == '/')) {
 					if ((argv[i].charAt(1) == 'N') || (argv[i].charAt(1) == 'n') || (argv[i].charAt(1) == 'I') || (argv[i].charAt(1) == 'i'))
@@ -382,7 +383,6 @@ public class Mmulti {
 			//   }
 			//   unsigned short crc16; //CRC16 of everything except crc16
 
-
 		tims = GetTickCount();
 		if (tims < lastsendtims[other]) lastsendtims[other] = tims;
 		if (tims < lastsendtims[other]+1000/PAKRATE) return;
@@ -403,17 +403,16 @@ public class Mmulti {
 			int j = LittleEndian.getShort(pakmem, opak[other][i&(FIFSIZ-1)]);
 			if (j == 0) continue; //packet already acked
 			if (k+6+j+4 > pakbuf.length) break;
-
-			LittleEndian.putShort(pakbuf, k, (short) j); k += 2;
+			LittleEndian.putUShort(pakbuf, k, j); k += 2;
 			LittleEndian.putInt(pakbuf, k, i); k += 4;
-
-			
 			System.arraycopy(pakmem, opak[other][i&(FIFSIZ-1)]+2, pakbuf, k, j); k += j;
 		}
-		LittleEndian.putShort(pakbuf, k, (short) 0); k += 2;
-		LittleEndian.putShort(pakbuf, 0, (short) k);
-		LittleEndian.putShort(pakbuf, k, (short) getcrc16(pakbuf,k)); k += 2;
+		LittleEndian.putUShort(pakbuf, k, 0); k += 2;
+		LittleEndian.putUShort(pakbuf, 0, k);
+		LittleEndian.putUShort(pakbuf, k, getcrc16(pakbuf,k)); k += 2;
 
+//		System.err.printf("Send: "); for(int i=0;i<k;i++) System.err.printf("%02x ",pakbuf[i]); System.err.printf("\n");
+		
 		netsend(other,pakbuf,k);
 	}
 	
@@ -424,12 +423,12 @@ public class Mmulti {
 		if (pakmemi+messleng+2 > pakmem.length) pakmemi = 1;
 		opak[other][ocnt1[other]&(FIFSIZ-1)] = pakmemi;
 		LittleEndian.putShort(pakmem, pakmemi, (short) messleng);
-
 		System.arraycopy(bufptr, 0, pakmem, pakmemi+2, messleng);
-
 		pakmemi += messleng+2;
 		ocnt1[other]++;
 
+		//System.err.printf("Send: "); for(int i=0;i<messleng;i++) System.err.printf("%02x ",bufptr[i]); System.err.printf("\n");
+		
 		dosendpackets(other);
 	}
 	
@@ -463,6 +462,7 @@ public class Mmulti {
 				//   unsigned short crc16; //CRC16 of everything except crc16
 			k = 0;
 			crc16ofs = LittleEndian.getUShort(pakbuf); k += 2;
+			//System.err.printf("Recv: "); for(int i=0;i<crc16ofs+2;i++) System.err.printf("%02x ",pakbuf[i]); System.err.printf("\n");
 
 			if ((crc16ofs+2 <= pakbuf.length) && (getcrc16(pakbuf,crc16ofs) == LittleEndian.getUShort(pakbuf, crc16ofs)))
 			{
@@ -489,8 +489,8 @@ public class Mmulti {
 							pakbuf[k++] = (byte)0xAB;
 							pakbuf[k++] = (byte)other;
 							pakbuf[k++] = (byte)numplayers;
-							LittleEndian.putShort(pakbuf, 0, (short)k);
-							LittleEndian.putShort(pakbuf, k, (short)getcrc16(pakbuf,k)); k += 2;
+							LittleEndian.putUShort(pakbuf, 0, k);
+							LittleEndian.putUShort(pakbuf, k, getcrc16(pakbuf,k)); k += 2;
 							netsend(other,pakbuf,k);
 							break;
 						}
@@ -500,8 +500,8 @@ public class Mmulti {
 						if (((pakbuf[k+1] & 0xFF) < (pakbuf[k+2] & 0xFF)) &&
 							 ((pakbuf[k+2] & 0xFF) < MAXPLAYERS))
 						{
-							myconnectindex = pakbuf[k+1];
-							numplayers = pakbuf[k+2];
+							myconnectindex = (short) (pakbuf[k+1] & 0xFF);
+							numplayers = (short) (pakbuf[k+2] & 0xFF);
 
 							connecthead = 0;
 							for(int i=0;i<numplayers-1;i++) connectpoint2[i] = (short) (i+1);
@@ -520,8 +520,7 @@ public class Mmulti {
 						if ((pakbuf[((i-ic0)>>3)+k]&(1<<((i-ic0)&7))) != 0)
 							opak[other][i&(FIFSIZ-1)] = 0;
 					k += 32;
-					
-					
+
 					messleng = LittleEndian.getUShort(pakbuf, k); k += 2;
 					while (messleng != 0)
 					{
@@ -552,6 +551,7 @@ public class Mmulti {
 					messleng = LittleEndian.getShort(pakmem, j);
 					System.arraycopy(pakmem, j+2, bufptr, 0, messleng);
 					otherpacket = i; ipak[i][icnt0[i]&(FIFSIZ-1)] = 0; icnt0[i]++;
+//					System.err.printf("Recv: "); for(i=0;i<messleng;i++) System.err.printf("%02x ",bufptr[i]); System.err.printf("\n");
 					return(messleng);
 				}
 			}
