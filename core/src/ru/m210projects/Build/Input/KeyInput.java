@@ -248,7 +248,7 @@ public class KeyInput {
     	return 0;
 	}
 	
-	public boolean putMessage(MessageCallback callback, boolean cursor)
+	public int putMessage(MessageCallback callback, boolean cursor)
 	{
 		int ch, keystate;
     	while (keyfifoplc != keyfifoend) {
@@ -264,7 +264,7 @@ public class KeyInput {
 	    		lockeybuf[locmessagelen]= '_';
 	    	} else lockeybuf[locmessagelen] = 0;
     	}
-    	return false;
+    	return 0;
 	}
 	
 	

@@ -533,7 +533,7 @@ public class Console {
 	
 	private static final MessageCallback osdcallback = new MessageCallback() {
 		@Override
-		public boolean run(int ch) {
+		public int run(int ch) {
 			if (osdeditlen < OSD_EDITLENGTH && ch < 128) {
 				if((osdflags & OSD_SHIFT) != 0)
 					ch=gdxscantoascwithshift[ch];
@@ -555,7 +555,7 @@ public class Console {
                 	 }
                 }
         	}
-			return false;
+			return 0;
 		}
 	};
 	static boolean lastmatch;

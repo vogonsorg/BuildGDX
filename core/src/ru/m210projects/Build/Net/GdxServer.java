@@ -52,6 +52,6 @@ public class GdxServer implements ISocket {
 
 	@Override
 	public void dispose() {
-		
+		server.dispose();
 	}
 }

@@ -49,7 +49,7 @@ public class GdxClient implements ISocket {
 	
 	@Override
 	public void dispose() {
-		
+		socket.dispose();
 	}
 
 }
