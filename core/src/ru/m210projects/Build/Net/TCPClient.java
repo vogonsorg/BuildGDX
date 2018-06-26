@@ -7,10 +7,10 @@ import com.badlogic.gdx.Net.Protocol;
 import com.badlogic.gdx.net.Socket;
 import com.badlogic.gdx.net.SocketHints;
 
-public class GdxClient implements ISocket {
+public class TCPClient implements ISocket {
 	private Socket socket;
 
-	public GdxClient(String servAddress, int port) throws Exception
+	public TCPClient(String servAddress, int port) throws Exception
 	{
 		socket = Gdx.net.newClientSocket(Protocol.TCP, servAddress, port, new SocketHints());
 	}
@@ -31,7 +31,7 @@ public class GdxClient implements ISocket {
 	}
 
 	@Override
-	public void sendto(Socket sockaddr, byte[] dabuf, int bufsiz) {
+	public void sendto(Object address, byte[] dabuf, int bufsiz) {
 		try {
 			socket.getOutputStream().write(dabuf, 0, bufsiz);
 		} catch (IOException e) {

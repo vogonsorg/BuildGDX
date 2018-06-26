@@ -14,13 +14,13 @@ import com.badlogic.gdx.Net.Protocol;
 import com.badlogic.gdx.net.ServerSocket;
 import com.badlogic.gdx.net.Socket;
 
-public class GdxServer implements ISocket {
+public class TCPServer implements ISocket {
 	private ServerSocket server;
 	private List<Socket> clist;
 	private int port;
 	private boolean useUPnP;
 	
-	public GdxServer(final int numplayers, final int port, final boolean useUPnP) throws Exception
+	public TCPServer(final int numplayers, final int port, final boolean useUPnP) throws Exception
 	{
 		this.port = port;
 		this.useUPnP = useUPnP;
@@ -97,8 +97,9 @@ public class GdxServer implements ISocket {
 	}
 
 	@Override
-	public void sendto(Socket sockaddr, byte[] dabuf, int bufsiz) {
+	public void sendto(Object address, byte[] dabuf, int bufsiz) {
 		try {
+			Socket sockaddr = (Socket) address;
 			sockaddr.getOutputStream().write(dabuf, 0, bufsiz);
 		} catch (IOException e) {
 			e.printStackTrace();
