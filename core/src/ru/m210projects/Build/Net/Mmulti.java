@@ -117,8 +117,8 @@ public class Mmulti {
         if (UPnP.isUPnPAvailable()) { 
         	if(UPnP.isMappedUDP(portnum) || UPnP.openPortUDP(portnum)) {
         		inet.uPnPPort = portnum;
-        		 inet.extip = getExternalIp();
-        		 return true;
+        		inet.extip = getExternalIp();
+        		return true;
         	}
         }
 		return false;
@@ -221,7 +221,9 @@ public class Mmulti {
 			int i;
 			for(i = numplayers-1;i>0;i--)
 				if(othersocket[i] == null) break;
+			
 			inet.message = "Waiting for other players [" + inet.plready + " / " + numplayers + "]";
+			
 			if (i == 0) {
 				inet.netready = 1;
 				return 0;
@@ -349,7 +351,7 @@ public class Mmulti {
 					inet.serverip = argv[i];
 					inet.port = portnum;
 					othersocket[daindex] = new InetSocketAddress(argv[i], portnum);
-					Console.Println("mmulti: Player " + daindex + " at " + argv[i]);
+					Console.Println("mmulti: Player " + daindex + " at " + argv[i] + ":" + portnum);
 					daindex++;
 					continue;
 				}
