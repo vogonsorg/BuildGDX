@@ -652,4 +652,28 @@ public class AndroidGL10 extends GL10 {
 		
 	}
 
+	@Override
+	public void bglFlush() {
+		GLES11.glFlush();
+		
+	}
+
+	@Override
+	public void bglFinish() {
+		GLES11.glFinish();
+	}
+
+	@Override
+	public void bglReadBuffer(int mode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void bglCopyTexSubImage2D(int target, int level, int xoffset,
+			int yoffset, int x, int y, int width, int height) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

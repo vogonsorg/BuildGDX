@@ -38,17 +38,14 @@ public class DirectoryEntry {
 		this.files = new HashMap<String, FileEntry>();
 		this.subDirectory = new HashMap<String, DirectoryEntry>();
 		this.name = name;
-		String mainpath = FilePath;
-		if(name == "<userdir>")
-			mainpath = FileUserdir;
 		if(Path != null)
-			this.relativePath = Compat.getRelativePath(Path, mainpath);
+			this.relativePath = getRelativePath(Path);
 		this.absolutePath = Path;
 	}
 	
 	public void addFile(File file)
 	{
-		files.put(toLowerCase(file.getName()), new FileEntry(file, this, Compat.getRelativePath(file.getAbsolutePath(), FilePath)));
+		files.put(toLowerCase(file.getName()), new FileEntry(file, this, getRelativePath(file.getAbsolutePath())));
 	}
 	
 	public DirectoryEntry addDirectory(String name, String relPath)
@@ -176,5 +173,14 @@ public class DirectoryEntry {
 	public boolean isInited()
 	{
 		return inited;
+	}
+	
+	private String getRelativePath(String path)
+	{
+		String mainpath = FilePath;
+		if(name == "<userdir>")
+			mainpath = FileUserdir;
+
+		return Compat.getRelativePath(path, mainpath);
 	}
 }

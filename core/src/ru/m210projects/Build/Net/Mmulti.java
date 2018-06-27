@@ -11,14 +11,22 @@
 package ru.m210projects.Build.Net;
 
 import static ru.m210projects.Build.Engine.MAXPLAYERS;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.Arrays;
 
 import ru.m210projects.Build.Net.WaifUPnp.UPnP;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 
 public class Mmulti {
 
@@ -31,11 +39,9 @@ public class Mmulti {
 	//ENGINE CONTROLLED MULTIPLAYER VARIABLES:
 	public static short numplayers, myconnectindex;
 	public static short connecthead, connectpoint2[] = new short[MAXPLAYERS];   //Player linked list variables (indeces, not connection numbers)
-	public static int timeoutcount = 60, resendagaincount = 4, lastsendtime[] = new int[MAXPLAYERS];
-	
 
 	public static ISocket mysock;
-	public static int danetmode = 255, netready = 0;
+	public static int danetmode = 255;
 
 	public static Object othersocket[] = new Object[MAXPLAYERS];
 	public static Object snatsocket;
@@ -50,8 +56,8 @@ public class Mmulti {
 	//MULTI.OBJ sync state variables
 	public static char syncstate;
 	public static long tims, lastsendtims[] = new long[MAXPLAYERS];
-	public static boolean useUPnP;
-	public static int uPnPPort = -1;
+	
+	public static NetInfo inet = new NetInfo();
 	
 	private static int GetTickCount()
 	{
@@ -89,37 +95,41 @@ public class Mmulti {
 	private static int netinit (int numplayers, int portnum)
 	{
 		try {
-			if(myconnectindex == 0)
+			String hostAddress = inet.myip = InetAddress.getLocalHost().getHostAddress();
+			if(myconnectindex == 0) {
 				mysock = new UDPServer(portnum);
 				//mysock = new TCPServer(numplayers, portnum, false);
+				inet.useUPnP = initupnp(portnum);
+			}
 			else mysock = new UDPSocket(portnum);	
 				//mysock = new TCPClient(((InetSocketAddress)othersocket[connecthead]).getHostString(), portnum);
-			
-			uPnPPort = -1;
-			if(useUPnP)
-			{
-		        if (UPnP.isUPnPAvailable()) { 
-		        	if(UPnP.isMappedUDP(portnum) || UPnP.openPortUDP(portnum)) 
-		        		 uPnPPort = portnum;
-		        	 else useUPnP = false;
-		        } else useUPnP = false;
-			}
-			
-			String hostAddress = InetAddress.getLocalHost().getHostAddress();
 			Console.Println("mmulti: This machine's IP is " + hostAddress);
 			return 1;
 		} catch (Exception e) {
-			e.printStackTrace();
+			Console.Println(e.getMessage(), OSDTEXT_RED);
 			return 0;
 		}
 	}
 	
+	public static boolean initupnp(int portnum)
+	{
+		inet.uPnPPort = -1;
+        if (UPnP.isUPnPAvailable()) { 
+        	if(UPnP.isMappedUDP(portnum) || UPnP.openPortUDP(portnum)) {
+        		inet.uPnPPort = portnum;
+        		 inet.extip = getExternalIp();
+        		 return true;
+        	}
+        }
+		return false;
+	}
+	
 	public static void uninitmultiplayer()
 	{
-		if(useUPnP) {
-			UPnP.closePortUDP(uPnPPort);
-			uPnPPort = -1;
-			useUPnP = false;
+		if(inet.useUPnP) {
+			UPnP.closePortUDP(inet.uPnPPort);
+			inet.uPnPPort = -1;
+			inet.useUPnP = false;
 		}
 		
 		if(mysock != null)
@@ -131,7 +141,6 @@ public class Mmulti {
 		
 		numplayers = 1;
 		danetmode = 255; 
-		netready = 0;
 		pakmemi = 1;
 	}
 	
@@ -150,7 +159,9 @@ public class Mmulti {
 		snatsocket = recip;
 		int other = myconnectindex;
 		for(int i = 0; i < MAXPLAYERS; i++) {
-			if(snatsocket.equals(othersocket[i]))
+			if(snatsocket.equals(othersocket[i]) 
+					&& ((InetSocketAddress)snatsocket).getPort()
+					== ((InetSocketAddress)othersocket[i]).getPort())
 				{ other = i; break; }
 		}
 		
@@ -184,6 +195,7 @@ public class Mmulti {
 	
 	private static void initmultiplayers_reset()
 	{
+		inet.clear();
 		initcrc16();
 		Arrays.fill(icnt0, 0);
 		Arrays.fill(ocnt0, 0);
@@ -209,14 +221,16 @@ public class Mmulti {
 			int i;
 			for(i = numplayers-1;i>0;i--)
 				if(othersocket[i] == null) break;
+			inet.message = "Waiting for other players [" + inet.plready + " / " + numplayers + "]";
 			if (i == 0) {
-				netready = 1;
+				inet.netready = 1;
 				return 0;
 			}
 		}
 		else
 		{
-			if (netready != 0) return 0;
+			inet.message = "Trying to connect to " + inet.serverip + ":" + inet.port;
+			if (inet.netready != 0) return 0;
 			if (tims < lastsendtims[connecthead]) lastsendtims[connecthead] = tims;
 			if (tims >= lastsendtims[connecthead]+250) //1000/PAKRATE)
 			{
@@ -237,17 +251,38 @@ public class Mmulti {
 
 		return 1;
 	}
-		
-	public static void initmultiplayers(String[] argv) throws Exception
+	
+	//use with inet.waiting() and inet.netready
+	public static void initmultiplayers(final String[] argv, final int timeout)
 	{
-		if (initmultiplayersparms(argv))
+		inet.waitThread = new Thread(new Runnable() 
 		{
-			Console.Println("Waiting for players...");
-			while (initmultiplayerscycle() != 0);
-		}
-		netready = 1;
+			public void run()
+			{
+				try { 
+					inet.message = "Initializing...";
+					if (initmultiplayersparms(argv))
+					{
+						Console.Println("Waiting for players...");
+						long starttime = System.currentTimeMillis();
+						while (initmultiplayerscycle() != 0) {
+							long time = System.currentTimeMillis() - starttime;
+							if (timeout != 0 && time > timeout) 
+								throw new Exception("Connect timeout!");
+							if(Gdx.input != null && Gdx.input.isKeyPressed(Keys.ESCAPE))
+								throw new Exception("Connect canceled");
+						}
+						inet.netready = 1;
+					}
+				} catch (Exception e) {
+					inet.message = e.getMessage();
+					uninitmultiplayer();
+				}
+			}
+		});
+		inet.waitThread.start();
 	}
-
+	
 	// Multiplayer command line summary. Assume myconnectindex always = 0 for 192.168.1.2
 	//
 	// (mast/slav) 2 player:               		3 player:
@@ -300,7 +335,7 @@ public class Mmulti {
 					}
 					else if ((argv[i].charAt(1) == 'P') || (argv[i].charAt(1) == 'p')) continue;
 				}
-				
+
 				if (isvalidipaddress(argv[i]))
 				{
 					if ((danetmode == 1) && (daindex == myconnectindex)) daindex++;
@@ -311,8 +346,10 @@ public class Mmulti {
 							break; 
 						}
 
+					inet.serverip = argv[i];
+					inet.port = portnum;
 					othersocket[daindex] = new InetSocketAddress(argv[i], portnum);
-					Console.Println("mmulti: Player " + daindex + " at " + argv[i] + ":" + portnum);
+					Console.Println("mmulti: Player " + daindex + " at " + argv[i]);
 					daindex++;
 					continue;
 				}
@@ -332,9 +369,11 @@ public class Mmulti {
 					try {
 						InetAddress addr = InetAddress.getByName(argv[i].substring(0, pos));
 						if ((danetmode == 1) && (daindex == myconnectindex)) daindex++;
+						inet.serverip = addr.getHostName();
 						othersocket[daindex] = new InetSocketAddress(addr.getHostAddress(), pt);
 						portnum = pt;
-						Console.Println("mmulti: Player " + daindex + " at " + othersocket[daindex] + ":" + pt);
+						inet.port = portnum;
+						Console.Println("mmulti: Player " + daindex + " at " + othersocket[daindex]);
 						daindex++;
 					} catch (Exception e) {
 						Console.Println("mmulti: Failed resolving " + argv[i]);
@@ -435,7 +474,7 @@ public class Mmulti {
 
 		if (numplayers < 2) return(0);
 
-		if (netready != 0)
+		if (inet.netready != 0)
 		{
 			for(int i=connecthead;i>=0;i=connectpoint2[i])
 			{
@@ -468,15 +507,19 @@ public class Mmulti {
 				ic0 = LittleEndian.getInt(pakbuf, k); k += 4;
 				if (ic0 == -1)
 				{
-						 //Slave sends 0xaa to Master at initmultiplayers() and waits for 0xab response
-						 //Master responds to slave with 0xab whenever it receives a 0xaa - even if during game!
+					//Slave sends 0xaa to Master at initmultiplayers() and waits for 0xab response
+					//Master responds to slave with 0xab whenever it receives a 0xaa - even if during game!
 					if (((pakbuf[k]&0xFF) == 0xAA) && (myconnectindex == connecthead))
 					{
 						for(other=1;other<numplayers;other++)
 						{
-								//Only send to others asking for a response
-							//if ((otherip[other] != null) && ((!otherip[other].equals(snatchip)) || (otherport[other] != snatchport))) continue;
-							if(othersocket[other] != null && !othersocket[other].equals(snatsocket)) continue;
+							//Only send to others asking for a response
+							if(othersocket[other] != null 
+									&& (!othersocket[other].equals(snatsocket) ||
+										((InetSocketAddress)snatsocket).getPort()
+										!= ((InetSocketAddress)othersocket[other]).getPort()))
+									continue;
+							
 							othersocket[other] = snatsocket;
 
 								//   short crc16ofs;       //offset of crc16
@@ -491,6 +534,7 @@ public class Mmulti {
 							LittleEndian.putUShort(pakbuf, 0, k);
 							LittleEndian.putUShort(pakbuf, k, getcrc16(pakbuf,k)); k += 2;
 							netsend(other,pakbuf,k);
+							inet.plready++;
 							break;
 						}
 					}
@@ -507,7 +551,7 @@ public class Mmulti {
 							connectpoint2[numplayers-1] = -1;
 
 							othersocket[connecthead] = snatsocket;
-							netready = 1;
+							inet.netready = 1;
 						}
 					}
 				}
@@ -537,7 +581,7 @@ public class Mmulti {
 			}
 		}
 
-			//Return next valid packet from any player
+		//Return next valid packet from any player
 		if (bufptr == null) return(0);
 		for(int i=connecthead;i>=0;i=connectpoint2[i])
 		{
@@ -558,4 +602,23 @@ public class Mmulti {
 
 		return(0);
 	}
+	
+	private static String getExternalIp() {
+		BufferedReader in = null;
+		try {
+        	URL whatismyip = new URL("http://checkip.amazonaws.com");
+            in = new BufferedReader(new InputStreamReader(
+                    whatismyip.openStream()));
+            String ip = in.readLine();
+            return ip;
+        } catch (IOException e) {} 
+		finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (Exception e) {}
+            }
+        }
+		return null;
+    }
 }

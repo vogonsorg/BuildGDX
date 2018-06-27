@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import ru.m210projects.Build.Input.BInput;
-import ru.m210projects.Build.Net.WaifUPnp.UPnP;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -33,13 +32,9 @@ import com.badlogic.gdx.net.Socket;
 public class TCPServer implements ISocket {
 	private ServerSocket server;
 	private List<Socket> clist;
-	private int port;
-	private boolean useUPnP;
-	
-	public TCPServer(final int numplayers, final int port, final boolean useUPnP) throws Exception
+
+	public TCPServer(final int numplayers, final int port) throws Exception
 	{
-		this.port = port;
-		this.useUPnP = useUPnP;
 		server = Gdx.net.newServerSocket(Protocol.TCP, port, null);
 		System.out.println("Waiting for a client...");
 		
@@ -48,21 +43,6 @@ public class TCPServer implements ISocket {
 		{
 			public void run()
 			{
-				if(useUPnP) {
-					System.out.println("Attempting UPnP port forwarding...");
-			        if (UPnP.isUPnPAvailable()) { //is UPnP available?
-			            if (UPnP.isMappedTCP(port)) { //is the port already mapped?
-			                System.out.println("UPnP port forwarding not enabled: port is already mapped");
-			            } else if (UPnP.openPortTCP(port)) { //try to map port
-			                System.out.println("UPnP port forwarding enabled");
-			            } else {
-			                System.out.println("UPnP port forwarding failed");
-			            }
-			        } else {
-			            System.out.println("UPnP is not available");
-			        }
-				}
-				
 				while(!Thread.currentThread().isInterrupted() && clist.size() < numplayers - 1)
 				{
 					try {
@@ -126,7 +106,5 @@ public class TCPServer implements ISocket {
 	public void dispose() {
 		server.dispose();
 		clist.clear();
-		if(useUPnP)
-			UPnP.closePortTCP(port);
 	}
 }
