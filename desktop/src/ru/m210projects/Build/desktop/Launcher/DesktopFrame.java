@@ -65,8 +65,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.PlainDocument;
 
-import org.lwjgl.opengl.Display;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
@@ -157,7 +155,7 @@ public class DesktopFrame {
 		panel.setLayout(null);
 		panel.setPreferredSize(new Dimension(400, 330));
 
-		ImagePanel img = new ImagePanel(Title);
+		final ImagePanel logo = new ImagePanel(Title);
 		
 		final Font font = new Font(Font.DIALOG, Font.PLAIN, 12);
 		pathButton = new JButton("...");
@@ -172,10 +170,8 @@ public class DesktopFrame {
 		frmPropFrame.getContentPane().setLayout(new BorderLayout(0, 0));
 		frmPropFrame.getContentPane().add(panel, BorderLayout.CENTER);
 		
-		img.setBounds(10, 11, 380, 100);
-		img.revalidate();
-		img.repaint();
-		panel.add(img);
+		logo.setBounds(10, 11, 380, 100);
+		panel.add(logo);
 		startButton = new JButton();
 		startButton.setFont(font);
 		startButton.addActionListener(new ActionListener() {
@@ -223,8 +219,15 @@ public class DesktopFrame {
 		});
 
 		startButtonStatus(checkResources(path, resources) != -1, appname, resources[0]);
-		
-		while(!img.isLoaded());
+
+		new Thread(new Runnable() 
+		{
+			public void run()
+			{
+				while(!logo.isLoaded());
+				logo.repaint(); //draw logo after load
+			}
+		}).start();
 
 		frmPropFrame.setResizable(false);
 		frmPropFrame.pack();
@@ -593,7 +596,7 @@ public class DesktopFrame {
 	    		
 	    		if(cfg.borderless)
 	    			System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
-	    		//System.setProperty("org.lwjgl.opengl.Display.allowSoftwareOpenGL", "true");
+//	    		System.setProperty("org.lwjgl.opengl.Display.allowSoftwareOpenGL", "true");
 	    		
 	    		if(cfg.checkVersion)
 	    		{
@@ -609,7 +612,7 @@ public class DesktopFrame {
 				portableCFG = null; 
 				Gdx.input = new LwjglInput();
 				logUpdate.stop();
-				while(!Display.isCreated()); //Don't close frame while game display not created
+				//while(!Display.isCreated()); //Don't close frame while game display not created
 				frmPropFrame.dispose();
 	        }
 	    }).start();

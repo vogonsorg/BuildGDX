@@ -36,7 +36,7 @@ public class DesktopMessage implements Message {
 	@Override
 	public boolean show(String header, String message, boolean send) {
 		if(send) {
-			int dialogResult = JOptionPane.showConfirmDialog (null, message + "\n\rDo you want to send a log file to developers?", header,JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
+			int dialogResult = JOptionPane.showOptionDialog (frame, message + "\n\rDo you want to send a log file to developers?", header,JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
 			if(dialogResult == JOptionPane.YES_OPTION)
 				return true;
 			return false;
