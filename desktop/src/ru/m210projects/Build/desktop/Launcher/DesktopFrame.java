@@ -65,6 +65,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.PlainDocument;
 
+import org.lwjgl.opengl.Display;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
@@ -612,7 +614,7 @@ public class DesktopFrame {
 				portableCFG = null; 
 				Gdx.input = new LwjglInput();
 				logUpdate.stop();
-				//while(!Display.isCreated()); //Don't close frame while game display not created
+				while(!Display.isCreated()); //Don't close frame while game display not created
 				frmPropFrame.dispose();
 	        }
 	    }).start();

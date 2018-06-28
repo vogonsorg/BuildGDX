@@ -16,6 +16,9 @@
 
 package ru.m210projects.Build.desktop;
 
+import java.awt.Toolkit;
+import java.net.URL;
+
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -24,11 +27,14 @@ import ru.m210projects.Build.Types.Message;
 
 public class DesktopMessage implements Message {
 	JOptionPane frame;
+	URL icon;
 
-	public DesktopMessage()
+	public DesktopMessage(URL icon)
 	{
 		try {
+			this.icon = icon;
 			frame = new JOptionPane();
+			frame.setMessageType(JOptionPane.ERROR_MESSAGE);
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {}
 	}
@@ -36,20 +42,38 @@ public class DesktopMessage implements Message {
 	@Override
 	public boolean show(String header, String message, boolean send) {
 		if(send) {
-			int dialogResult = JOptionPane.showOptionDialog (frame, message + "\n\rDo you want to send a log file to developers?", header,JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
-			if(dialogResult == JOptionPane.YES_OPTION)
-				return true;
+			if(frame != null) {
+				frame.setMessage(message);
+				frame.setOptionType(JOptionPane.YES_NO_OPTION);
+				JDialog dialog = frame.createDialog(header);
+				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
+				frame.setBackground(dialog.getBackground());
+				
+				dialog.setAlwaysOnTop(true);
+		        dialog.setVisible(true);
+		        dialog.dispose();
+		        
+		        Object selectedValue = frame.getValue();
+		        if (selectedValue instanceof Integer) {
+		        	if(((Integer)selectedValue).intValue() == JOptionPane.YES_OPTION)
+						return true;
+	            }
+			}
+
 			return false;
 		} 
 		else
 		{
 			if(frame != null) {
 				frame.setMessage(message);
-				frame.setMessageType(JOptionPane.ERROR_MESSAGE);
-				JDialog dlog = frame.createDialog(null, header);
+				frame.setOptionType(JOptionPane.DEFAULT_OPTION);
+				final JDialog dlog = frame.createDialog(header);
+				dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
 				frame.setBackground(dlog.getBackground());
+				
 				dlog.setAlwaysOnTop(true);
 				dlog.setVisible(true);
+				dlog.dispose();
 			}
 			return false;
 		}
