@@ -608,7 +608,7 @@ public class Mmulti {
 	private static String getExternalIp() {
 		BufferedReader in = null;
 		try {
-        	URL whatismyip = new URL("http://checkip.amazonaws.com");
+        	URL whatismyip = new URL("http://myip.dnsomatic.com"); //	http://checkip.amazonaws.com	 http://icanhazip.com
             in = new BufferedReader(new InputStreamReader(
                     whatismyip.openStream()));
             String ip = in.readLine();

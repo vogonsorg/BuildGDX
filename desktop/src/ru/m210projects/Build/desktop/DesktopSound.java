@@ -42,6 +42,7 @@ import ru.m210projects.Build.Audio.Source;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.desktop.DesktopSound.SourceManager;
 
+import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.backends.openal.OggInputStream;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -78,6 +79,7 @@ public class DesktopSound implements Sound {
 	public DesktopSound()
 	{
 		LwjglNativesLoader.load();
+		LwjglApplicationConfiguration.disableAudio = true; //Disable Gdx Audio
 	}
 
 	@Override
