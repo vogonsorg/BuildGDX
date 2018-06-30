@@ -1696,7 +1696,7 @@ public abstract class Polymost implements Renderer {
 		pow2xsplit = 0;
 		if (have_floor != 0)
 			domost(x0, cf_y0, x1, cf_y1); // flor
-		else
+		else if(!fROR)
 			domost(x1, cf_y1, x0, cf_y0); // ceil
 
 		domostpolymethod = 0;
@@ -1766,16 +1766,12 @@ public abstract class Polymost implements Renderer {
 		sectnum = thesector[bunchfirst[bunch]];
 		sec = sector[sectnum];
 		
-		int fSector = -1, cSector = -1;
+		int cSector = -1;
 		
 		if((sector[globalcursectnum].floorstat & 1024) != 0)
 			if(globalcursectnum != sectnum)
 				cSector = sectnum;
-		
-		if((sector[globalcursectnum].ceilingstat & 1024) != 0)
-			if(globalcursectnum != sectnum)
-				fSector = sectnum;
-		
+
 		if (!nofog)
 			calc_and_apply_fog(sec.floorpicnum, sec.floorshade, sec.visibility,  sec.floorpal);
 
@@ -1890,11 +1886,9 @@ public abstract class Polymost implements Renderer {
 				global_cf_heinum = sec.ceilingheinum;
 	
 				if ((globalorientation & 1) == 0) {
-					if(!fROR || sectnum != fSector) {
-						nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
-							(float) x0, (float) x1, (float) cy0, (float) cy1, 0,
-							sectnum, false);
-					}
+					nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
+						(float) x0, (float) x1, (float) cy0, (float) cy1, 0,
+						sectnum, false);
 				} else if ((nextsectnum < 0) || ((sector[nextsectnum].ceilingstat & 1) == 0))
 					drawbackground(sectnum, x0, x1, cy0, cy1, false);
 				
@@ -2750,7 +2744,7 @@ public abstract class Polymost implements Renderer {
 		gl.bglDisable(GL_BLEND);
 		gl.bglEnable(GL_TEXTURE_2D);
 		gl.bglEnable(GL_DEPTH_TEST);
-
+		
 //		Пока что лучший результат
 //		gl.bglDepthFunc(GL10.GL_ALWAYS); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
 //		gl.bglPolygonOffset(0, 0);
@@ -2865,7 +2859,7 @@ public abstract class Polymost implements Renderer {
 		}
 		else {
 			i = globalcursectnum;
-			globalcursectnum = engine.updatesector(globalposx, globalposy, globalcursectnum);
+			globalcursectnum = engine.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
 			if (globalcursectnum < 0)
 				globalcursectnum = (short) i;
 		}

@@ -713,14 +713,14 @@ public class DesktopFrame {
 	private String getDirPath()
 	{
 		String path = System.getProperty("user.dir") + File.separator;
-		
 		String OS = System.getProperty("os.name");
 		if( (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 ) ) {
-			String parent = new File(System.getProperty("java.class.path")).getParentFile().getAbsolutePath();
-			if(parent != null)
-				path = parent + File.separator;
+			Console.LogPrint("Debug user.dir: " + path);
+			String parent = System.getProperty("java.class.path");
+			if(parent != null) 
+				path = new File(parent).getAbsolutePath() + File.separator;
 
-			Console.LogPrint("Debug filepath: " + path); //XXX
+			Console.LogPrint("Debug parentpath: " + path); //XXX
 		}
 		
 		return path;
