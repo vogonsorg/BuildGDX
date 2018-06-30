@@ -270,9 +270,9 @@ public class Mmulti {
 						while (initmultiplayerscycle() != 0) {
 							long time = System.currentTimeMillis() - starttime;
 							if (timeout != 0 && time > timeout) 
-								throw new Exception("Connect timeout!");
+								throw new Exception("Connection timed out!");
 							if(Gdx.input != null && Gdx.input.isKeyPressed(Keys.ESCAPE))
-								throw new Exception("Connect canceled");
+								throw new Exception("Connection cancelled");
 						}
 						inet.netready = 1;
 					}
