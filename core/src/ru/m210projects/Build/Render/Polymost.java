@@ -1694,9 +1694,9 @@ public abstract class Polymost implements Renderer {
 			calc_and_apply_fog(globalpicnum, global_cf_shade, sec.visibility,  global_cf_pal);
 
 		pow2xsplit = 0;
-		if (have_floor != 0)
+		if (have_floor != 0) 
 			domost(x0, cf_y0, x1, cf_y1); // flor
-		else if(!fROR)
+		else 
 			domost(x1, cf_y1, x0, cf_y0); // ceil
 
 		domostpolymethod = 0;
@@ -1749,8 +1749,7 @@ public abstract class Polymost implements Renderer {
 		gvy += fy * gdy;
 	}
 
-	boolean fROR = false, cROR = false;
-	
+	private boolean fROR = false, cROR = false;
 	private final double drawalls_dd[] = new double[3],
 			drawalls_vv[] = new double[3], drawalls_ft[] = new double[4];
 	private WALL drawalls_nwal = new WALL();
@@ -1765,12 +1764,6 @@ public abstract class Polymost implements Renderer {
 
 		sectnum = thesector[bunchfirst[bunch]];
 		sec = sector[sectnum];
-		
-		int cSector = -1;
-		
-		if((sector[globalcursectnum].floorstat & 1024) != 0)
-			if(globalcursectnum != sectnum)
-				cSector = sectnum;
 
 		if (!nofog)
 			calc_and_apply_fog(sec.floorpicnum, sec.floorshade, sec.visibility,  sec.floorpal);
@@ -1860,7 +1853,7 @@ public abstract class Polymost implements Renderer {
 				global_cf_heinum = sec.floorheinum;
 				
 				if ((globalorientation & 1) == 0) {
-					if(!cROR || sectnum != cSector) { 
+					if(!cROR) { 
 						nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
 							(float) x0, (float) x1, (float) fy0, (float) fy1, 1,
 							sectnum, true);
@@ -1886,9 +1879,11 @@ public abstract class Polymost implements Renderer {
 				global_cf_heinum = sec.ceilingheinum;
 	
 				if ((globalorientation & 1) == 0) {
-					nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
-						(float) x0, (float) x1, (float) cy0, (float) cy1, 0,
-						sectnum, false);
+					if(!fROR) { 
+						nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
+							(float) x0, (float) x1, (float) cy0, (float) cy1, 0,
+							sectnum, false);
+					}
 				} else if ((nextsectnum < 0) || ((sector[nextsectnum].ceilingstat & 1) == 0))
 					drawbackground(sectnum, x0, x1, cy0, cy1, false);
 				
@@ -2852,6 +2847,7 @@ public abstract class Polymost implements Renderer {
 		cROR = false; fROR = false; //I think it's a bad method, temporary solution I hope.
 		if (globalcursectnum >= MAXSECTORS) {
 			globalcursectnum -= MAXSECTORS;
+
 			if((sector[globalcursectnum].floorstat & 1024) != 0)
 				cROR = true;
 			if((sector[globalcursectnum].ceilingstat & 1024) != 0)
