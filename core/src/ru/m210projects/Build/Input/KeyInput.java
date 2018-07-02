@@ -231,7 +231,10 @@ public class KeyInput {
 					return 1;
 				}
 				if (locmessagelen < (maxsize-1) && ch < 128) {
-                    ch=gdxscantoasc[ch];
+                    if(specialSymbols && Gdx.input.isKeyPressed(Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Keys.SHIFT_RIGHT))
+                    	ch=gdxscantoascwithshift[ch];
+                    else ch=gdxscantoasc[ch];
+                    
                     if (ch != 0) {
                     	if (specialSymbols || (!specialSymbols && (isalpha((char)ch) || isdigit((char)ch) || ch == ' '))) {
                     		lockeybuf[locmessagelen++]=(char)ch;
