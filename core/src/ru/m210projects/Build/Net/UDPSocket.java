@@ -19,6 +19,7 @@ package ru.m210projects.Build.Net;
 import static ru.m210projects.Build.Net.Mmulti.*;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
@@ -32,6 +33,8 @@ public class UDPSocket implements ISocket {
 	{
 		sock = DatagramChannel.open();
 		sock.configureBlocking(false);
+		sock.setOption(StandardSocketOptions.SO_RCVBUF, MAXPAKSIZ);
+		sock.setOption(StandardSocketOptions.SO_SNDBUF, MAXPAKSIZ);
 		this.port = port;
 	}
 	

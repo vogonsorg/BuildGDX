@@ -14,6 +14,7 @@ import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Gameutils.*;
+import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
@@ -1076,6 +1077,8 @@ public abstract class Engine {
 			fx.dispose();
 		if(mx != null)
 			mx.dispose();
+		
+		uninitmultiplayer();
 	}
 
 	public void initspritelists()

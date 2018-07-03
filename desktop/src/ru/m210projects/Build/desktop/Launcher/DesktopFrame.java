@@ -649,7 +649,7 @@ public class DesktopFrame {
 	
 		if(newver != null) {
 			showMessage("Please update!", "New version available: " + newver);
-		} else Console.Println("You are using the last version");
+		} else Console.Println("You are using the latest version");
 		
 		return newver;
 	}

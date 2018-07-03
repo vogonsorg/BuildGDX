@@ -52,6 +52,8 @@ public class Mmulti {
 	
 	public static byte pakmem[] = new byte[4194304];
 	public static int pakmemi = 1;
+	
+	public static long netping = 0;
 
 	//MULTI.OBJ sync state variables
 	public static char syncstate;
@@ -422,7 +424,7 @@ public class Mmulti {
 
 		tims = GetTickCount();
 		if (tims < lastsendtims[other]) lastsendtims[other] = tims;
-		if (tims < lastsendtims[other]+1000/PAKRATE) return;
+		//if (tims < lastsendtims[other]+1000/PAKRATE) return;
 		lastsendtims[other] = tims;
 
 		int k = 2;
