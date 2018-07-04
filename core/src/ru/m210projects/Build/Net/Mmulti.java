@@ -35,10 +35,10 @@ public class Mmulti {
 	public static final int PAKRATE = 40;
 	
 	public static byte[] pakbuf = new byte[MAXPAKSIZ];
-	public static final int SIMMIS = 128;
-	public static final int SIMLAG = 10;
-	public static int[] simlagcnt = new int[MAXPLAYERS];
-	public static byte[][][] simlagfif = new byte[MAXPLAYERS][SIMLAG+1][MAXPAKSIZ+2];
+//	public static final int SIMMIS = 0;
+//	public static final int SIMLAG = 0;
+//	public static int[] simlagcnt = new int[MAXPLAYERS];
+//	public static byte[][][] simlagfif = new byte[MAXPLAYERS][SIMLAG+1][MAXPAKSIZ+2];
 	
 	//ENGINE CONTROLLED MULTIPLAYER VARIABLES:
 	public static short numplayers, myconnectindex;
@@ -162,12 +162,12 @@ public class Mmulti {
 		if (mysock == null || (recip = mysock.recvfrom(dabuf,bufsiz)) == null) 
 			return -1;
 		
-		if(SIMMIS > 0) {
-			if ((Math.random() * 255) < SIMMIS) {
+//		if(SIMMIS > 0) {
+//			if ((Math.random() * 255) < SIMMIS) {
 //				System.err.println("Miss");
-				return(0);
-			}
-		}
+//				return(0);
+//			}
+//		}
 			
 		snatsocket = recip;
 		int other = myconnectindex;
@@ -178,17 +178,17 @@ public class Mmulti {
 				{ other = i; break; }
 		}
 		
-		if(SIMLAG > 0) {
-			int i = simlagcnt[other]%(SIMLAG+1);
-			
-			LittleEndian.putShort(simlagfif[other][i], 0, (short)bufsiz);
-			System.arraycopy(dabuf, 0, simlagfif[other][i], 2, bufsiz);
-			simlagcnt[other]++; 
-			if (simlagcnt[other] < SIMLAG+1) return(0);
-			i = simlagcnt[other]%(SIMLAG+1);
-			bufsiz = LittleEndian.getShort(simlagfif[other][i]); 
-			System.arraycopy(simlagfif[other][i], 2, dabuf, 0, bufsiz);
-		}
+//		if(SIMLAG > 0) {
+//			int i = simlagcnt[other]%(SIMLAG+1);
+//			
+//			LittleEndian.putShort(simlagfif[other][i], 0, (short)bufsiz);
+//			System.arraycopy(dabuf, 0, simlagfif[other][i], 2, bufsiz);
+//			simlagcnt[other]++; 
+//			if (simlagcnt[other] < SIMLAG+1) return(0);
+//			i = simlagcnt[other]%(SIMLAG+1);
+//			bufsiz = LittleEndian.getShort(simlagfif[other][i]); 
+//			System.arraycopy(simlagfif[other][i], 2, dabuf, 0, bufsiz);
+//		}
 		
 		return other;
 	}
@@ -233,7 +233,7 @@ public class Mmulti {
 			lastsendtims[i] = lastsendtims[0];
 		numplayers = 1; myconnectindex = 0;
 		
-		Arrays.fill(simlagcnt, 0);
+//		Arrays.fill(simlagcnt, 0);
 
 		Arrays.fill(othersocket, null);
 	}
