@@ -1879,7 +1879,7 @@ public abstract class Polymost implements Renderer {
 				global_cf_heinum = sec.ceilingheinum;
 	
 				if ((globalorientation & 1) == 0) {
-					if(!fROR) { 
+					if(!fROR) {
 						nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
 							(float) x0, (float) x1, (float) cy0, (float) cy1, 0,
 							sectnum, false);
@@ -2207,10 +2207,10 @@ public abstract class Polymost implements Renderer {
 				nextsectnum = wal.nextsector; // Scan close sectors
 
 				if ((nextsectnum >= 0)
-						/*&& ((wal.cstat & 32) == 0)*/
+						&& ((wal.cstat & 32) == 0)
 						&& sectorbordercnt < sectorborder.length
 						&& ((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)) {
-					d = (double) x1 * (double) y2 - (double) x2 * (double) y1;
+					d = x1 * y2 - x2 * y1;
 					xp1 = (double) (x2 - x1);
 					yp1 = (double) (y2 - y1);
 					if (d * d <= (xp1 * xp1 + yp1 * yp1) * (SCISDIST * SCISDIST * 260.0))
