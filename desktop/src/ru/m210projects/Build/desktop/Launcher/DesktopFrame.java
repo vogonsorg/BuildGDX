@@ -91,6 +91,7 @@ public class DesktopFrame {
 	private JTextField fpsnum;
 	private JCheckBox vsync;
 	private JCheckBox borderless;
+	private JCheckBox chckbxUpdate;
 	private JCheckBox chckbxAlwaysShowThis;
 	private JCheckBox autoloadcheckBox;
 	private JComboBox<String> midiDeviceList;
@@ -278,9 +279,20 @@ public class DesktopFrame {
 		textField.setBounds(18, 12, 297, 20);
 		main.add(textField);
 		
+		chckbxUpdate = new JCheckBox("Check for updates");
+		chckbxUpdate.setFont(font);
+		chckbxUpdate.setBounds(18, 70, 280, 23);
+		chckbxUpdate.setSelected(cfg.checkVersion);
+		chckbxUpdate.addItemListener(new ItemListener() {
+		    public void itemStateChanged(ItemEvent e) {
+		    	cfg.checkVersion = e.getStateChange() == 1;
+		    }
+		});
+		main.add(chckbxUpdate);
+		
 		chckbxAlwaysShowThis = new JCheckBox("Always show this window at startup");
 		chckbxAlwaysShowThis.setFont(font);
-		chckbxAlwaysShowThis.setBounds(18, 85, 280, 23);
+		chckbxAlwaysShowThis.setBounds(18, 90, 280, 23);
 		chckbxAlwaysShowThis.setSelected(cfg.startup);
 		chckbxAlwaysShowThis.addItemListener(new ItemListener() {
 		    public void itemStateChanged(ItemEvent e) {
@@ -292,7 +304,7 @@ public class DesktopFrame {
 		autoloadcheckBox = new JCheckBox("Enable \"autoload\" folder");
 		autoloadcheckBox.setSelected(cfg.autoloadFolder);
 		autoloadcheckBox.setFont(font);
-		autoloadcheckBox.setBounds(18, 111, 280, 23);
+		autoloadcheckBox.setBounds(18, 110, 280, 23);
 		autoloadcheckBox.addItemListener(new ItemListener() {
 		    public void itemStateChanged(ItemEvent e) {
 		    	cfg.autoloadFolder = e.getStateChange() == 1;

@@ -75,8 +75,7 @@ public abstract class Engine {
 	
 	public static float TRANSLUSCENT1 = 0.66f;
 	public static float TRANSLUSCENT2 = 0.33f;
-	public static final float MaxDrunkIntensive = 0.1f;
-	
+
 	public static int setviewcnt = 0; // interface layers use this now
 	public static int[] bakwindowx1, bakwindowy1;
 	public static int[] bakwindowx2, bakwindowy2;

@@ -16,8 +16,6 @@ public class NetInfo {
 	{
 		myip = extip = serverip = message = null;
 		port = netready = 0;
-		useUPnP = false;
-		uPnPPort = -1;
 		plready = 1;
 	}
 	

@@ -290,6 +290,7 @@ public class Mmulti {
 			{
 				try { 
 					inet.message = "Initializing...";
+					inet.plready = 1;
 					if (initmultiplayersparms(argv))
 					{
 						Console.Println("Waiting for players...");

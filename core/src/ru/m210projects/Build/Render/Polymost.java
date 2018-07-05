@@ -226,6 +226,11 @@ public abstract class Polymost implements Renderer {
 	// is medium quality a good default?
 //	private int r_downsize = 1; // FIXME Actually does not work
 //	private int r_downsizevar = -1;
+	
+	BTexture frameTexture;
+	private int framew;
+	private int frameh;
+	private int framesize;
 
 	private float fogresult;
 	private float fogresult2;
@@ -877,10 +882,6 @@ public abstract class Polymost implements Renderer {
 				polyColor.g *= (float) hictinting[globalpal].g / 255.0f;
 				polyColor.b *= (float) hictinting[globalpal].b / 255.0f;
 			}
-		}
-		if (drunk && (method & 3) == 0) {
-			gl.bglEnable(GL_BLEND);
-			polyColor.a = drunkIntensive;
 		}
 
 		gl.bglColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
@@ -2837,6 +2838,7 @@ public abstract class Polymost implements Renderer {
 			drawrooms_sx[i] = drawrooms_px2[i] * r + ghalfx;
 			drawrooms_sy[i] = drawrooms_py2[i] * r + ghoriz;
 		}
+		
 		initmosts(drawrooms_sx, drawrooms_sy, n2);
 
 		numscans = numbunches = 0;
@@ -5287,6 +5289,71 @@ public abstract class Polymost implements Renderer {
 			lastcullcheck = (totalclock + CULL_DELAY);
 
 		indrawroomsandmasks = 0;
+		
+		if(drunk)
+		{
+			if(frameTexture == null || framew != xdim || frameh != ydim)
+			{
+				if(frameTexture != null) frameTexture.dispose();
+				frameTexture = new BTexture();
+				gl.bglBindTexture(GL_TEXTURE_2D, frameTexture);
+				gl.bglTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, xdim, ydim, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
+				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				framew = xdim;
+				frameh = ydim;
+				for (framesize = 1; framesize < Math.max(framew, frameh); framesize *= 2);
+			}
+			
+			gl.bglReadBuffer(GL_BACK);
+			gl.bglBindTexture(GL_TEXTURE_2D, frameTexture);
+			gl.bglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framesize, framesize);
+
+
+			gl.bglDisable(GL_DEPTH_TEST);
+			gl.bglDisable(GL_ALPHA_TEST);
+			gl.bglEnable(GL_TEXTURE_2D);
+			gl.bglBindTexture(GL_TEXTURE_2D, frameTexture);
+
+		
+			gl.bglMatrixMode(GL_PROJECTION);
+			gl.bglPushMatrix();
+			gl.bglLoadIdentity();
+			
+			float tilt = (drunkIntensive * 360) / 2048f;
+			tilt = min(max(tilt, -4.5f), 4.5f);
+
+			gl.bglRotatef(tilt, 0, 0, 1.0f);
+			
+			gl.bglMatrixMode(GL_MODELVIEW);
+			gl.bglPushMatrix();
+			gl.bglLoadIdentity();
+
+			gl.bglColor4f(1, 1, 1, 0.5f);
+			gl.bglBegin(GL10.GL_TRIANGLE_FAN);
+			gl.bglTexCoord2f(0, 0);
+			gl.bglVertex2f( -0.95f, -1.0f );
+			 
+			gl.bglTexCoord2f(0, 1);
+			gl.bglVertex2f( -0.95f, 1.0f );
+			 
+			gl.bglTexCoord2f(1, 1);
+			gl.bglVertex2f( 0.95f, 1.0f );
+			 
+			gl.bglTexCoord2f(1, 0);
+			gl.bglVertex2f( 0.95f, -1.0f);
+			gl.bglEnd();
+			
+
+			gl.bglMatrixMode(GL_MODELVIEW);
+			gl.bglPopMatrix();
+			gl.bglMatrixMode(GL_PROJECTION);
+			gl.bglPopMatrix();
+			
+			gl.bglEnable(GL_DEPTH_TEST);
+			gl.bglEnable(GL_ALPHA_TEST);
+			gl.bglDisable(GL_TEXTURE_2D);
+		}
 	}
 
 	@Override
@@ -6628,7 +6695,6 @@ public abstract class Polymost implements Renderer {
 	@Override
 	public void nextpage() {
 		int i;
-
 		engine.faketimerhandler();
 
 		if ((totalclock >= lastageclock + CACHEAGETIME) || (totalclock < lastageclock)) {
@@ -6643,7 +6709,6 @@ public abstract class Polymost implements Renderer {
 				spriteext[i].mdanimtims += mdtims - omdtims;
 
 		beforedrawrooms = 1;
-		
 		gl.bglFlush();
 	}
 	
@@ -6679,14 +6744,11 @@ public abstract class Polymost implements Renderer {
 
 	@Override
 	public void setdrunk(float intensive) {
-		if(intensive == 0.0f) {
+		if(intensive == 0) {
 			drunk = false;
-			drunkIntensive = 1.0f;
-		}
-		else {
+			drunkIntensive = 0;
+		} else {
 			drunk = true;
-			if(intensive < MaxDrunkIntensive)
-				intensive = MaxDrunkIntensive;
 			drunkIntensive = intensive;
 		}
 	}
