@@ -5297,12 +5297,11 @@ public abstract class Polymost implements Renderer {
 				if(frameTexture != null) frameTexture.dispose();
 				frameTexture = new BTexture();
 				gl.bglBindTexture(GL_TEXTURE_2D, frameTexture);
-				gl.bglTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, xdim, ydim, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
+				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
+				gl.bglTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
 				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				framew = xdim;
-				frameh = ydim;
-				for (framesize = 1; framesize < Math.max(framew, frameh); framesize *= 2);
+				framew = xdim; frameh = ydim;
 			}
 			
 			gl.bglReadBuffer(GL_BACK);
@@ -5323,25 +5322,29 @@ public abstract class Polymost implements Renderer {
 			float tilt = (drunkIntensive * 360) / 2048f;
 			tilt = min(max(tilt, -4.5f), 4.5f);
 
+			gl.bglScalef(0.95f, 1, 1);
 			gl.bglRotatef(tilt, 0, 0, 1.0f);
 			
 			gl.bglMatrixMode(GL_MODELVIEW);
 			gl.bglPushMatrix();
 			gl.bglLoadIdentity();
+			
+			float u = (float)xdim / framesize;
+			float v = (float)ydim / framesize;
 
 			gl.bglColor4f(1, 1, 1, 0.5f);
 			gl.bglBegin(GL10.GL_TRIANGLE_FAN);
 			gl.bglTexCoord2f(0, 0);
-			gl.bglVertex2f( -0.95f, -1.0f );
+			gl.bglVertex2f( -1f, -1f );
 			 
-			gl.bglTexCoord2f(0, 1);
-			gl.bglVertex2f( -0.95f, 1.0f );
+			gl.bglTexCoord2f(0, v);
+			gl.bglVertex2f( -1f, 1f );
 			 
-			gl.bglTexCoord2f(1, 1);
-			gl.bglVertex2f( 0.95f, 1.0f );
+			gl.bglTexCoord2f(u, v);
+			gl.bglVertex2f(1f, 1f );
 			 
-			gl.bglTexCoord2f(1, 0);
-			gl.bglVertex2f( 0.95f, -1.0f);
+			gl.bglTexCoord2f(u, 0);
+			gl.bglVertex2f( 1f, -1f);
 			gl.bglEnd();
 			
 
