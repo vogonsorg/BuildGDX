@@ -29,6 +29,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 
 public class Mmulti {
+	
+	public static final byte kPacketTick = (byte) 0xAC;
 
 	public static final int NETPORT = 0x5bd9;
 	public static final int MAXPAKSIZ = 256;
@@ -255,11 +257,26 @@ public class Mmulti {
 				inet.netready = 1;
 				return 0;
 			}
+			
+			if (tims < lastsendtims[connecthead]) lastsendtims[connecthead] = tims;
+			if (tims >= lastsendtims[connecthead]+1000)
+			{
+				lastsendtims[connecthead] = tims;
+				for(i=connecthead;i>=0;i=connectpoint2[i])
+					if (i != myconnectindex) {
+						pakbuf[0] = kPacketTick;
+						pakbuf[1] = (byte) inet.plready;
+						sendpacket(i,pakbuf,2);
+					}
+			}
 		}
 		else
 		{
 			inet.message = "Trying to connect to " + inet.serverip + ":" + inet.port;
-			if (inet.netready != 0) return 0;
+			if (inet.netready != 0) {
+				inet.message = "Connected! Waiting for other players...";
+				return 0;
+			}
 			if (tims < lastsendtims[connecthead]) lastsendtims[connecthead] = tims;
 			if (tims >= lastsendtims[connecthead]+250) //1000/PAKRATE)
 			{
@@ -476,7 +493,7 @@ public class Mmulti {
 		LittleEndian.putUShort(pakbuf, 0, k);
 		LittleEndian.putUShort(pakbuf, k, getcrc16(pakbuf,k)); k += 2;
 
-//		System.err.printf("Send: "); for(int i=0;i<k;i++) System.err.printf("%02x ",pakbuf[i]); System.err.printf("\n");
+//		{ System.err.printf("Send: "); for(int i=0;i<k;i++) System.err.printf("%02x ",pakbuf[i]); System.err.printf("\n"); }
 		
 		netsend(other,pakbuf,k);
 	}
@@ -492,7 +509,7 @@ public class Mmulti {
 		pakmemi += messleng+2;
 		ocnt1[other]++;
 
-		//System.err.printf("Send: "); for(int i=0;i<messleng;i++) System.err.printf("%02x ",bufptr[i]); System.err.printf("\n");
+//		System.err.printf("Send: "); for(int i=0;i<messleng;i++) System.err.printf("%02x ",bufptr[i]); System.err.printf("\n");
 		
 		dosendpackets(other);
 	}
@@ -528,9 +545,9 @@ public class Mmulti {
 			k = 0;
 			crc16ofs = LittleEndian.getUShort(pakbuf); k += 2;
 			if(crc16ofs == 0) return 0; //recieved part of lost packet
-			
+
 //			if (crc16ofs+2 <= pakbuf.length)
-//			System.err.printf("Recv: "); for(int i=0;i<crc16ofs+2;i++) System.err.printf("%02x ",pakbuf[i]); System.err.printf("\n");
+//			{	System.err.printf("Recv: "); for(int i=0;i<crc16ofs+2;i++) System.err.printf("%02x ",pakbuf[i]); System.err.printf("\n"); }
 
 			if ((crc16ofs+2 <= pakbuf.length) && (getcrc16(pakbuf,crc16ofs) == LittleEndian.getUShort(pakbuf, crc16ofs)))
 			{
@@ -550,6 +567,9 @@ public class Mmulti {
 										!= ((InetSocketAddress)othersocket[other]).getPort()))
 									continue;
 							
+							if(othersocket[other] == null)
+								inet.plready++;
+							
 							othersocket[other] = snatsocket;
 
 								//   short crc16ofs;       //offset of crc16
@@ -564,7 +584,6 @@ public class Mmulti {
 							LittleEndian.putUShort(pakbuf, 0, k);
 							LittleEndian.putUShort(pakbuf, k, getcrc16(pakbuf,k)); k += 2;
 							netsend(other,pakbuf,k);
-							inet.plready++;
 							break;
 						}
 					}

@@ -12,6 +12,8 @@ public class NetInfo {
 	public boolean useUPnP;
 	public int uPnPPort = -1;
 	
+	private String lastMessage;
+	
 	public void clear()
 	{
 		myip = extip = serverip = message = null;
@@ -22,5 +24,12 @@ public class NetInfo {
 	public boolean waiting()
 	{
 		return waitThread.isAlive();
+	}
+	
+	public boolean IsNewMessage()
+	{
+		boolean out = !message.equals(lastMessage);
+		lastMessage = message;
+		return out;
 	}
 }
