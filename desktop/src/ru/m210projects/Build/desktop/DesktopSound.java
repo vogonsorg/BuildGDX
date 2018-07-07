@@ -450,7 +450,7 @@ public class DesktopSound implements Sound {
 		public Source obtainSource(int priority)
 		{
 			for(int i = 0; i < allSources.length; i++) {
-				if(!allSources[i].free && !isPlaying(allSources[i]) && allSources[i].flags != Source.Locked)
+				if(allSources[i] != null && !allSources[i].free && !isPlaying(allSources[i]) && allSources[i].flags != Source.Locked)
 					freeSource(allSources[i]);
 			}
 			

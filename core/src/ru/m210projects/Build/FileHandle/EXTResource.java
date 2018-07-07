@@ -70,7 +70,7 @@ public class EXTResource extends IResource {
 				if (filename != null && filename.isEmpty()) break;
 				String compare = file.filename;
 				if (j >= compare.length() || compare.codePointAt(j) >= toupperlookup.length
-						|| toupperlookup[filename.codePointAt(j)]
+						|| toupperlookup[filename.codePointAt(j)] //filename.codePointAt(j) == 8204 -invisible symbols? XXX
 								!= toupperlookup[compare.codePointAt(j)])
 				{ bad = true; break; }
 			}
