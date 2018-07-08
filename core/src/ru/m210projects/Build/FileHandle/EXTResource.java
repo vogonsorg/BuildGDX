@@ -69,10 +69,8 @@ public class EXTResource extends IResource {
 			{
 				if (filename != null && filename.isEmpty()) break;
 				String compare = file.filename;
-				if (j >= compare.length() || compare.codePointAt(j) >= toupperlookup.length
-						|| toupperlookup[filename.codePointAt(j)] //filename.codePointAt(j) == 8204 -invisible symbols? XXX
-								!= toupperlookup[compare.codePointAt(j)])
-				{ bad = true; break; }
+				if (Compare(filename, compare, j))
+					{ bad = true; break; }
 			}
 			if(bad) continue;
 
@@ -82,6 +80,8 @@ public class EXTResource extends IResource {
 		
 		return -1;
 	}
+	
+	
 
 	@Override
 	public int Lookup(int fileId, String type) {

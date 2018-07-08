@@ -2286,13 +2286,15 @@ public abstract class Polymost implements Renderer {
 
 		// multi-psky stuff
 		for (int i = 0; i < pskynummultis; i++) {
-			if (globalpicnum == pskymultilist[i]) {
+			if ( i < MAXPSKYMULTIS && globalpicnum == pskymultilist[i]) {
 				dapskybits = pskymultibits[i];
 				dapskyoff = pskymultioff[i];
 				break;
 			}
 		}
 
+		if(dapskybits < 0) dapskybits = 0;
+		
 		// Use clamping for tiled sky textures
 		for (int i = (1 << dapskybits) - 1; i > 0; i--)
 			if (dapskyoff[i] != dapskyoff[i - 1]) {

@@ -106,7 +106,7 @@ public abstract class Engine {
 	public static final int MAXVOXELS = MAXSPRITES;
 	public static final int EXTRATILES = (MAXTILES / 8);
 	public static final int MAXUNIQHUDID = 256; //Extra slots so HUD models can store animation state without messing game sprites
-	private static final int MAXPSKYMULTIS = 8;
+	public static final int MAXPSKYMULTIS = 8;
 	public static final int MAXPLAYERS = 16;
 	public static final int MAXXDIM = 4096;
 	public static final int MAXYDIM = 3072;

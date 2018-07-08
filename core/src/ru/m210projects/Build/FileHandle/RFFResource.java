@@ -257,8 +257,8 @@ public class RFFResource extends IResource {
 			{
 				if (filename != null && filename.isEmpty()) break;
 				String compare = files.get(i).filename;
-				if (j >= compare.length() || compare.codePointAt(j) >= toupperlookup.length || toupperlookup[filename.codePointAt(j)] != toupperlookup[compare.codePointAt(j)])
-				{ bad = true; break; }
+				if (Compare(filename, compare, j))
+					{ bad = true; break; }
 			}
 			if(bad) continue;
 
