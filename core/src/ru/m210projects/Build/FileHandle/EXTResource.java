@@ -52,6 +52,7 @@ public class EXTResource extends IResource {
 		FileEntry entry = cache.checkFile(filename);
 		if(entry != null)
 		{
+			lookup.put(entry.getName(), files.size());
 			files.add(new ERESHANDLE(entry, fileid));
 			return true;
 		}
@@ -60,23 +61,32 @@ public class EXTResource extends IResource {
 
 	@Override
 	public int Lookup(String filename) {
-		
-		for(int i = 0; i < files.size(); i++) {
-			ERESHANDLE file = files.get(i);
-			
-			boolean bad = false;
-			for(int j = 0; j < filename.length(); j++)
-			{
-				if (filename != null && filename.isEmpty()) break;
-				String compare = file.filename;
-				if (Compare(filename, compare, j))
-					{ bad = true; break; }
+		if (filename != null && !filename.isEmpty()) {
+			Integer out = lookup.get(toLowerCase(filename));
+			if(out != null) {
+				int i = out.intValue();
+				ERESHANDLE file = files.get(i);
+				file.fil = Bopen(file.entry.getPath(), "r");
+				return i;
 			}
-			if(bad) continue;
-
-			file.fil = Bopen(file.entry.getPath(), "r");
-			return i;
 		}
+		
+//		for(int i = 0; i < files.size(); i++) {
+//			ERESHANDLE file = files.get(i);
+//			
+//			boolean bad = false;
+//			for(int j = 0; j < filename.length(); j++)
+//			{
+//				if (filename != null && filename.isEmpty()) break;
+//				String compare = file.filename;
+//				if (Compare(filename, compare, j))
+//					{ bad = true; break; }
+//			}
+//			if(bad) continue;
+//
+//			file.fil = Bopen(file.entry.getPath(), "r");
+//			return i;
+//		}
 		
 		return -1;
 	}

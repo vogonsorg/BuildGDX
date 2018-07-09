@@ -17,12 +17,15 @@
 package ru.m210projects.Build.FileHandle;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
 
 public abstract class IResource {
 	
 	public int type;
 	public String name;
+	
+	public HashMap<String, Integer> lookup = new HashMap<String, Integer>();
 
 	class ResourceException extends Exception
 	{
@@ -68,20 +71,20 @@ public abstract class IResource {
 	
 	public boolean Compare(String filename, String compare, int j)
 	{
-		int c = compare.codePointAt(j);
-		int f = filename.codePointAt(j);
-		
-		if(f >= toupperlookup.length) {
-			if(f == c)
-				return false;
-			
-			return true;
-		}
+//		int c = compare.codePointAt(j);
+//		int f = filename.codePointAt(j);
+//		
+//		if(f >= toupperlookup.length) {
+//			if(f == c)
+//				return false;
+//			
+//			return true;
+//		}
 		
 		return j >= compare.length() 
-				|| c >= toupperlookup.length
-				|| toupperlookup[f]
-				!= toupperlookup[c];
+				|| compare.codePointAt(j) >= toupperlookup.length
+				|| toupperlookup[filename.codePointAt(j)]
+				!= toupperlookup[compare.codePointAt(j)];
 	}
 	
 	public abstract int Lookup(String filename);

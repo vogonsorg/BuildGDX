@@ -71,6 +71,7 @@ public class GRPResource extends IResource {
 					file.byteBuffer.rewind();
 
 					offset += file.size;
+					lookup.put(file.filename, files.size());
 					files.add(file);
 				}
 			}
@@ -108,6 +109,7 @@ public class GRPResource extends IResource {
 					
 					GRESHANDLE file = new GRESHANDLE(buf, offset);
 					offset += file.size;
+					lookup.put(file.filename, files.size());
 					files.add(file);
 				}
 			}
@@ -117,21 +119,30 @@ public class GRPResource extends IResource {
 	
 	@Override
 	public int Lookup(String filename) {
-		for(int i = NumFiles - 1; i >= 0; i--)
-		{
-			boolean bad = false;
-			for(int j = 0; j < filename.length(); j++)
-			{
-				if (filename != null && filename.isEmpty()) break;
-				String compare = files.get(i).filename;
-				if (Compare(filename, compare, j))
-					{ bad = true; break; }
+		if (filename != null && !filename.isEmpty()) {
+			Integer out = lookup.get(toLowerCase(filename));
+			if(out != null) {
+				int i = out.intValue();
+				files.get(i).pos = 0;
+				return i;
 			}
-			if(bad) continue;
-
-			files.get(i).pos = 0;
-			return i;
 		}
+		
+//		for(int i = NumFiles - 1; i >= 0; i--)
+//		{
+//			boolean bad = false;
+//			for(int j = 0; j < filename.length(); j++)
+//			{
+//				if (filename != null && filename.isEmpty()) break;
+//				String compare = files.get(i).filename;
+//				if (Compare(filename, compare, j))
+//					{ bad = true; break; }
+//			}
+//			if(bad) continue;
+//
+//			files.get(i).pos = 0;
+//			return i;
+//		}
 		return -1;
 	}
 	

@@ -5301,8 +5301,8 @@ public abstract class Polymost implements Renderer {
 				gl.bglBindTexture(GL_TEXTURE_2D, frameTexture);
 				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
 				gl.bglTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
-				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				framew = xdim; frameh = ydim;
 			}
 			
@@ -5322,11 +5322,11 @@ public abstract class Polymost implements Renderer {
 			gl.bglLoadIdentity();
 			
 			float tilt = (drunkIntensive * 360) / 2048f;
-			tilt = min(max(tilt, -4.5f), 4.5f);
+			tilt = min(max(tilt, -MAXDRUNKANGLE), MAXDRUNKANGLE);
 
 			gl.bglScalef(0.95f, 1, 1);
 			gl.bglRotatef(tilt, 0, 0, 1.0f);
-			
+
 			gl.bglMatrixMode(GL_MODELVIEW);
 			gl.bglPushMatrix();
 			gl.bglLoadIdentity();

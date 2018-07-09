@@ -11,7 +11,6 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -21,6 +20,7 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.FileHandle.IResource.RESHANDLE;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Types.LittleEndian;
 
 public class Cache1D {
 	
@@ -31,7 +31,9 @@ public class Cache1D {
 	public static final int ZIP = 4;
 	public static final int EXT = 8;
 	public static final int DAT = 16;
+	
 	private static final int DYNAMIC = 32;
+	private static final int REMOVABLE = 64;
 	
 	static final int MAXGROUPFILES = 16;
 	static final int MAXOPENFILES = 64;
@@ -56,10 +58,7 @@ public class Cache1D {
 	public static IResource checkgroupfile(byte[] data) throws Exception
 	{
 		if(data != null) {
-			ByteBuffer bb = ByteBuffer.wrap(data, 0, 4);
-	    	bb.order( ByteOrder.LITTLE_ENDIAN);
-	    	int sign = bb.getInt();
-
+	    	int sign = LittleEndian.getInt(data);
 	    	switch(sign)
 	    	{
 	    	case grpsign: //KenS
@@ -92,10 +91,8 @@ public class Cache1D {
 		if(handle != -1) {
 			byte[] buf = new byte[12];
 			Bread(handle, buf, buf.length);
-			
-			ByteBuffer bb = ByteBuffer.wrap(buf, 0, 4);
-	    	bb.order( ByteOrder.LITTLE_ENDIAN);
-	    	int sign = bb.getInt();
+
+	    	int sign = LittleEndian.getInt(buf);
 	    	Bclose(handle);
 
 	    	switch(sign)
@@ -124,15 +121,13 @@ public class Cache1D {
 		return null;
 	}
 	
-	public static int initgroupfile(String filename, boolean isStatic) throws Exception
+	public static int initgroupfile(String filename) throws Exception
 	{
 		if (groupfil.size() >= MAXGROUPFILES) return -1;
 		
 		IResource res = checkgroupfile(filename);
 		if(res != null)
 		{
-			if(!isStatic)
-				res.type |= DYNAMIC;
 			groupfil.add(res);
 			return groupfil.size()-1;
 		}
@@ -140,15 +135,27 @@ public class Cache1D {
 		return -1;
 	}
 	
-	public static int initgroupfile(byte[] data, boolean isStatic) throws Exception
+	public static void setgroupflags(int groupnum, boolean dynamic, boolean removable)
+	{
+		if(groupnum < 0) return;
+		
+		IResource res = groupfil.get(groupnum);
+		if(removable)
+			res.type |= REMOVABLE;
+		else res.type &= ~REMOVABLE;
+		
+		if(dynamic)
+			res.type |= DYNAMIC;
+		else res.type &= ~DYNAMIC;
+	}
+	
+	public static int initgroupfile(byte[] data) throws Exception
 	{
 		if (groupfil.size() >= MAXGROUPFILES) return -1;
 
 		IResource res = checkgroupfile(data);
 		if(res != null)
 		{
-			if(!isStatic)
-				res.type |= DYNAMIC;
 			groupfil.add(res);
 			return groupfil.size()-1;
 		}
@@ -165,7 +172,7 @@ public class Cache1D {
 		group.name = name;
 		group.type = EXT;
 		if(dynamic)
-			group.type |= DYNAMIC;
+			group.type |= ( DYNAMIC | REMOVABLE );
 		groupfil.add(group);
 		
 		return groupfil.size()-1;
@@ -187,12 +194,26 @@ public class Cache1D {
 	{
 		for (Iterator<IResource> iterator = groupfil.iterator(); iterator.hasNext();) {
 			IResource group = iterator.next();
-			if ((group.type & DYNAMIC) != 0) {
+			if ((group.type & ( DYNAMIC | REMOVABLE ) ) == ( DYNAMIC | REMOVABLE ) ) {
 				System.err.println("remove dynamic group: " + group.name);
 				group.Dispose();
 				iterator.remove();
 			}
 		}
+	}
+	
+	public static int uninitgroupfile(String filename)
+	{
+		for (Iterator<IResource> iterator = groupfil.iterator(); iterator.hasNext();) {
+			IResource group = iterator.next();
+			if (group.name.equals(filename)) {
+				group.Dispose();
+				iterator.remove();
+				return  1;
+			}
+		}
+		
+		return 0;
 	}
 	
 	public static List<RESHANDLE> kDynamicList()
@@ -265,21 +286,21 @@ public class Cache1D {
 			}
 		}
 		
-		//Search in dynamic group first
-		for(k=groupfil.size()-1;k>=0;k--)
-		{
-			IResource group = groupfil.get(k);
-			if ((group.type & DYNAMIC) != 0) {
-				if((i = group.Lookup(filename)) != -1)
-				{
-					filegrp[newhandle] = k;
-					filehan[newhandle] = i;
-					return newhandle;
+		if (searchfirst == 0) {
+			//Search in dynamic group first
+			for(k=groupfil.size()-1;k>=0;k--)
+			{
+				IResource group = groupfil.get(k);
+				if ((group.type & DYNAMIC) != 0) {
+					if((i = group.Lookup(filename)) != -1)
+					{
+						filegrp[newhandle] = k;
+						filehan[newhandle] = i;
+						return newhandle;
+					}
 				}
 			}
-		}
-
-		if (searchfirst == 0) {
+			
 			if ((fil = Bopen(filename, "r")) != -1)
 			{
 				filegrp[newhandle] = 255;

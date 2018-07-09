@@ -73,7 +73,8 @@ public class ZIPResource extends IResource {
 				Console.Println("Found " + NumFiles + " files in " + FileName + " archive", 0);
 				for(int i = 0; i < NumFiles; i++) {
 					ZipEntry entry = zfilelist.get(i);
-					files.add(new ZRESHANDLE(entry));
+					ZRESHANDLE res = new ZRESHANDLE(entry);
+					files.add(res);
 				}
 			}
 		}

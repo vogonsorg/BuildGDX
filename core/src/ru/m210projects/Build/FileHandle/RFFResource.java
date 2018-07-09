@@ -117,6 +117,7 @@ public class RFFResource extends IResource {
 					file.byteBuffer = BufferUtils.newByteBuffer(file.size);
 					file.byteBuffer.put(file.buffer);
 					file.byteBuffer.rewind();
+					lookup.put(file.filename, files.size());
 					files.add(file);
 				}
 			}
@@ -187,8 +188,10 @@ public class RFFResource extends IResource {
 				for(int i = 0; i < NumFiles; i++) {
 					System.arraycopy(buffer, 48 * i, buf, 0, 48);
 					RRESHANDLE res = new RRESHANDLE(buf);
-					if(res.size >= 0)
+					if(res.size >= 0) {
+						lookup.put(res.filename, files.size());
 						files.add(res);
+					}
 					else Console.Println("Error: negative file size! " + res.filename + " size: " + res.size, OSDTEXT_RED);
 				}
 			}
@@ -249,22 +252,31 @@ public class RFFResource extends IResource {
 	
 	@Override
 	public int Lookup(String filename) {
-		
-		for(int i = NumFiles - 1; i >= 0; i--)
-		{
-			boolean bad = false;
-			for(int j = 0; j < filename.length(); j++)
-			{
-				if (filename != null && filename.isEmpty()) break;
-				String compare = files.get(i).filename;
-				if (Compare(filename, compare, j))
-					{ bad = true; break; }
+		if (filename != null && !filename.isEmpty()) {
+			Integer out = lookup.get(toLowerCase(filename));
+			if(out != null) {
+				int i = out.intValue();
+				files.get(i).pos = 0;
+				return i;
 			}
-			if(bad) continue;
-
-			files.get(i).pos = 0;
-			return i;
 		}
+	
+//		for(int i = NumFiles - 1; i >= 0; i--)
+//		{
+//			boolean bad = false;
+//			for(int j = 0; j < filename.length(); j++)
+//			{
+//				if (filename != null && filename.isEmpty()) break;
+//				String compare = files.get(i).filename;
+//				if (Compare(filename, compare, j))
+//					{ bad = true; break; }
+//			}
+//			if(bad) continue;
+//
+//			files.get(i).pos = 0;
+//			return i;
+//			
+//		}
 		return -1;
 	}
 
