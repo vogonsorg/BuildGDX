@@ -36,7 +36,7 @@ public class Mmulti {
 	public static final int MAXPAKSIZ = 256;
 	public static final int PAKRATE = 40;
 	
-	public static byte[] pakbuf = new byte[MAXPAKSIZ];
+	private static byte[] pakbuf = new byte[MAXPAKSIZ];
 //	public static final int SIMMIS = 0;
 //	public static final int SIMLAG = 0;
 //	public static int[] simlagcnt = new int[MAXPLAYERS];

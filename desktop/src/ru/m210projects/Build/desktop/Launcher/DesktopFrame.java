@@ -156,7 +156,7 @@ public class DesktopFrame {
 		frmPropFrame = new JFrame();
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
-		panel.setPreferredSize(new Dimension(400, 330));
+		panel.setPreferredSize(new Dimension(400, 337)); //window size for pack()
 
 		final ImagePanel logo = new ImagePanel(Title);
 		
@@ -187,7 +187,7 @@ public class DesktopFrame {
 				launchPort(apptitle, cfg);
 			}
 		});
-		startButton.setBounds(10, 297, 380, 23);
+		startButton.setBounds(10, 304, 380, 23);
 		panel.add(startButton);
 		panel.getRootPane().setDefaultButton(startButton); 
 		
@@ -200,7 +200,7 @@ public class DesktopFrame {
 		initMainTab(main, font, FrameIcon, resources); //54ms
 		
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(10, 122, 380, 168);
+		tabbedPane.setBounds(10, 122, 380, 175);
 		tabbedPane.setFont(font);
 		panel.add(tabbedPane);
 		tabbedPane.addTab("Main", main);
