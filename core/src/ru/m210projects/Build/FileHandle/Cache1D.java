@@ -128,6 +128,8 @@ public class Cache1D {
 		IResource res = checkgroupfile(filename);
 		if(res != null)
 		{
+			if(res.NumFiles != 0)
+				Console.Println("Found " + res.NumFiles + " files in " + filename + " archive", 0);
 			groupfil.add(res);
 			return groupfil.size()-1;
 		}
@@ -178,16 +180,14 @@ public class Cache1D {
 		return groupfil.size()-1;
 	}
 	
-	public static boolean kGroupAdd(int groupnum, String filename, int fileid)
+	public static boolean kGroupAdd(int groupnum, String filename, byte[] data, int fileid)
 	{
-		if(groupnum < 0 || filename == null || filename.isEmpty()) return false;
+		if(groupnum < 0) return false;
 		IResource group = groupfil.get(groupnum);
-		if((group.type & EXT) != 0)
-		{
-			EXTResource ext = (EXTResource) group;
-			return ext.addResource(filename, fileid);
-		}
-		return false;
+		if(group != null) 
+			return group.addResource(filename, data, fileid);
+		
+		return true;
 	}
 
 	public static void kDynamicClear()

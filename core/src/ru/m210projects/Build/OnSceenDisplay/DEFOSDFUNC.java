@@ -103,27 +103,31 @@ public class DEFOSDFUNC implements OSDFunc {
 						65536, 0, BGTILE, SHADE, PALETTE, bits, 0,
 						0, xdim, daydim);
 
-		xsiz = tilesizx[BGCTILE];
-		ysiz = tilesizy[BGCTILE];
+		if(BGCTILE != -1) {
+			xsiz = tilesizx[BGCTILE];
+			ysiz = tilesizy[BGCTILE];
+	
+			if (xsiz > 0 && ysiz > 0)
+			{
+				engine.rotatesprite((xdim - xsiz) << 15,
+						(daydim - ysiz) << 16, 65536, 0, BGCTILE,
+						SHADE - 32, PALETTE, BITSTL, 0, 0, xdim, daydim);
+			}
+		}
 
-		if (xsiz <= 0 || ysiz <= 0)
-			return;
-
-		engine.rotatesprite((xdim - xsiz) << 15,
-				(daydim - ysiz) << 16, 65536, 0, BGCTILE,
-				SHADE - 32, PALETTE, BITSTL, 0, 0, xdim, daydim);
-
-		xsiz = tilesizy[BORDTILE];
-		if (xsiz <= 0)
-			return;
-
-		tx2 = xdim / xsiz;
-		ysiz = tilesizx[BORDTILE];
-
-		for (x = tx2; x >= 0; x--)
-			engine.rotatesprite(x * xsiz << 16, (daydim - 1) << 16,
-					65536, 0, BORDTILE, SHADE + 12, PALETTE, BITS,
-					0, 0, xdim, daydim + 1);
+		if(BORDTILE != -1) {
+			xsiz = tilesizy[BORDTILE];
+			if (xsiz > 0)
+			{
+				tx2 = xdim / xsiz;
+				ysiz = tilesizx[BORDTILE];
+		
+				for (x = tx2; x >= 0; x--)
+					engine.rotatesprite(x * xsiz << 16, (daydim - 1) << 16,
+							65536, 0, BORDTILE, SHADE + 12, PALETTE, BITS,
+							0, 0, xdim, daydim + 1);
+			}
+		}
 	}
 
 	@Override

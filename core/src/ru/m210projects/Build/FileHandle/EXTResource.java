@@ -41,23 +41,17 @@ public class EXTResource extends IResource {
 			this.fil = -1;
 			this.paktype = EXT;
 		}
+
+		@Override
+		public byte[] getBytes() {
+			int leng = Bfilelength(fil);
+			byte[] buffer = new byte[leng];
+			Bread(fil,buffer,leng);
+			return buffer;
+		}
 	}
 	
 	private List<ERESHANDLE> files = new ArrayList<ERESHANDLE>();
-
-	public boolean addResource(String filename, int fileid)
-	{
-		if(filename == null) return false;
-		
-		FileEntry entry = cache.checkFile(filename);
-		if(entry != null)
-		{
-			lookup.put(entry.getName(), files.size());
-			files.add(new ERESHANDLE(entry, fileid));
-			return true;
-		}
-		return false;
-	}
 
 	@Override
 	public int Lookup(String filename) {
@@ -125,14 +119,9 @@ public class EXTResource extends IResource {
 	@Override
 	public byte[] Lock(int handle) {
 		if(handle < 0) return null;
-		
 		ERESHANDLE file = files.get(handle);
-		if(file.fil < 0) return null;
-		
-		int leng = Bfilelength(file.fil);
-		byte[] buffer = new byte[leng];
-		Bread(file.fil,buffer,leng);
-		return buffer;
+		if(file == null || file.fil < 0) return null;
+		return file.getBytes();
 	}
 
 	@Override
@@ -140,14 +129,10 @@ public class EXTResource extends IResource {
 		if(handle < 0) return null;
 		
 		ERESHANDLE file = files.get(handle);
-		if(file.fil < 0) return null;
+		if(file == null || file.fil < 0) return null;
 		
-		ByteBuffer byteBuffer = null;
-		int leng = Bfilelength(file.fil);
-		byte[] buffer = new byte[leng];
-		Bread(file.fil,buffer,leng);
-		
-		byteBuffer = BufferUtils.newByteBuffer(leng);
+		byte[] buffer = file.getBytes();
+		ByteBuffer byteBuffer = BufferUtils.newByteBuffer(buffer.length);
 		byteBuffer.put(buffer);
 		byteBuffer.rewind();
 		
@@ -237,5 +222,19 @@ public class EXTResource extends IResource {
 		if(file.fil < 0) return -1;
 		
 		return(Blseek(file.fil,0,SEEK_CUR));
+	}
+
+	@Override
+	public boolean addResource(String filename, byte[] data, int fileid) {
+		if(filename == null) return false;
+		
+		FileEntry entry = cache.checkFile(filename);
+		if(entry != null)
+		{
+			lookup.put(entry.getName(), files.size());
+			files.add(new ERESHANDLE(entry, fileid));
+			return true;
+		}
+		return false;
 	}
 }

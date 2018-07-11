@@ -24,6 +24,7 @@ public abstract class IResource {
 	
 	public int type;
 	public String name;
+	public int NumFiles;
 	
 	public HashMap<String, Integer> lookup = new HashMap<String, Integer>();
 
@@ -37,9 +38,9 @@ public abstract class IResource {
 		}
 	}
 	
-	public class RESHANDLE
+	public abstract class RESHANDLE
 	{
-		public byte[] buffer;
+		protected byte[] buffer;
 		public ByteBuffer byteBuffer;
 		
 		public int paktype;
@@ -47,6 +48,8 @@ public abstract class IResource {
 		public String fileformat;
 		public int fileid;
 		public int size;
+		
+		public abstract byte[] getBytes();
 	}
 	
 	private char[] toupperlookup =
@@ -117,6 +120,7 @@ public abstract class IResource {
 	
 	public abstract void Dispose();
 	
+	public abstract boolean addResource(String filename, byte[] data, int fileid);
 }
 
 

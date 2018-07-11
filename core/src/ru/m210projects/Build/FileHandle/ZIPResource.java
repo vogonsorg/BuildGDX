@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
 
 import com.badlogic.gdx.utils.BufferUtils;
@@ -41,6 +40,15 @@ public class ZIPResource extends IResource {
 	{
 		public BufferedInputStream bis;
 		public int pos;
+		
+		public ZRESHANDLE(String filename, int fileid, byte[] data) { 
+			this.filename = filename;
+			this.fileformat = BfileExtension(filename);
+			this.fileid = fileid;
+			this.buffer = data;
+			this.size = data.length;
+			this.paktype = ZIP;
+		}
 
 		public ZRESHANDLE(ZipEntry entry) throws IOException {
 			BufferedInputStream bis = new BufferedInputStream(ZFile.getInputStream(entry));
@@ -57,9 +65,21 @@ public class ZIPResource extends IResource {
 			paktype = ZIP;
 			this.bis = bis;
 		}
+
+		@Override
+		public byte[] getBytes() {
+			if(buffer == null) {
+				buffer = new byte[size];
+				try {
+					bis.read(buffer);
+					bis.close();
+					bis = null;
+				} catch(Exception e) { e.printStackTrace(); return null; }
+			}
+			return buffer;
+		}
 	}
 
-	private int NumFiles;
 	private ZipFile ZFile;
 	private List<ZRESHANDLE> files = new ArrayList<ZRESHANDLE>();
 
@@ -70,7 +90,6 @@ public class ZIPResource extends IResource {
 			ArrayList<ZipEntry> zfilelist = new ArrayList<ZipEntry>(Collections.list(ZFile.entries()));
 			NumFiles = zfilelist.size();
 			if(NumFiles != 0) {
-				Console.Println("Found " + NumFiles + " files in " + FileName + " archive", 0);
 				for(int i = 0; i < NumFiles; i++) {
 					ZipEntry entry = zfilelist.get(i);
 					ZRESHANDLE res = new ZRESHANDLE(entry);
@@ -135,25 +154,13 @@ public class ZIPResource extends IResource {
 		
 		return 0;
 	}
-	
-	private byte[] getBytes(ZRESHANDLE file)
-	{
-		if(file.buffer == null) {
-			file.buffer = new byte[file.size];
-			try {
-				file.bis.read(file.buffer);
-				file.bis.close();
-				file.bis = null;
-			} catch(Exception e) { e.printStackTrace(); return null; }
-		}
-		return file.buffer;
-	}
-	
+
 	@Override
 	public byte[] Lock(int handle) {
 		if(handle == -1) return null;
 		ZRESHANDLE file = files.get(handle);
-		return getBytes(file);
+		if(file == null) return null;
+		return file.getBytes();
 	}
 	
 	@Override
@@ -162,7 +169,7 @@ public class ZIPResource extends IResource {
 		ZRESHANDLE file = files.get(handle);
 		if(file.byteBuffer == null) {
 			file.byteBuffer = BufferUtils.newByteBuffer(file.size);
-			file.byteBuffer.put(getBytes(file));
+			file.byteBuffer.put(file.getBytes());
 		}
 		file.byteBuffer.rewind();
 		return file.byteBuffer;
@@ -256,5 +263,16 @@ public class ZIPResource extends IResource {
 		if(handle < 0) return -1;
 		ZRESHANDLE file = files.get(handle);
 		return file.pos;
+	}
+
+	@Override
+	public boolean addResource(String filename, byte[] buf, int fileid) {
+		if(filename == null || buf == null) return false;
+		lookup.put(filename, files.size());
+		ZRESHANDLE file = new ZRESHANDLE(filename, fileid, buf);
+		files.add(file);
+		NumFiles++;
+		
+		return true;
 	}
 }

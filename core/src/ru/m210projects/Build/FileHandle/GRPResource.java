@@ -23,7 +23,6 @@ import ru.m210projects.Build.Types.LittleEndian;
 public class GRPResource extends IResource {
 	
 	private int File = -1;
-	private int NumFiles;
 	private byte[] readbuf = new byte[4];
 
 	private List<GRESHANDLE> files = new ArrayList<GRESHANDLE>();
@@ -31,6 +30,15 @@ public class GRPResource extends IResource {
 	private class GRESHANDLE extends RESHANDLE {
 		public int offset;
 		public int pos;
+		
+		public GRESHANDLE(String filename, int fileid, byte[] data) { 
+			this.filename = filename;
+			this.fileformat = BfileExtension(filename);
+			this.fileid = fileid;
+			this.buffer = data;
+			this.size = data.length;
+			this.paktype = DAT;
+		}
 
 		public GRESHANDLE(byte[] data, int offset) {
 			filename = toLowerCase(new String(data, 0, 12));
@@ -39,6 +47,20 @@ public class GRPResource extends IResource {
 			this.offset = offset;
 			paktype = GRP;
 //			System.out.println(filename+ " " + offset + " size: " +  size);
+		}
+
+		@Override
+		public byte[] getBytes() {
+			if(buffer == null) {
+				buffer = new byte[size];
+				if(Blseek(File, offset, SEEK_SET) == -1) {
+					System.err.println("Error seeking to resource!");
+				}
+				if(Bread(File, buffer, size) == -1) {
+					System.err.println("Error loading resource!");
+				}
+			}
+			return buffer;
 		}
 	}
 	
@@ -55,8 +77,6 @@ public class GRPResource extends IResource {
 			if(NumFiles != 0) {
 				byte[] buffer = new byte[NumFiles<<4];
 				System.arraycopy(data, 16, buffer, 0, buffer.length);
-
-				Console.Println("Found " + NumFiles + " files in packed GRP archive", 0);
 
 				int offset = HeaderSize;
 				byte[] buf = new byte[16];
@@ -145,27 +165,14 @@ public class GRPResource extends IResource {
 //		}
 		return -1;
 	}
-	
-	private byte[] getBytes(GRESHANDLE file)
-	{
-		if(file.buffer == null) {
-			file.buffer = new byte[file.size];
-			if(Blseek(File, file.offset, SEEK_SET) == -1) {
-				System.err.println("Error seeking to resource!");
-			}
-			if(Bread(File, file.buffer, file.size) == -1) {
-				System.err.println("Error loading resource!");
-			}
-		}
-		return file.buffer;
-	}
-	
+
 	@Override
 	public byte[] Lock(int filenum)
 	{
 		if(filenum == -1) return null;
 		GRESHANDLE file = files.get(filenum);
-		return getBytes(file);
+		if(file == null) return null;
+		return file.getBytes();
 	}
 	
 	@Override
@@ -174,7 +181,7 @@ public class GRPResource extends IResource {
 		
 		GRESHANDLE file = files.get(filenum);
 		if(file.byteBuffer == null) {
-			byte[] tmp = getBytes(file);
+			byte[] tmp = file.getBytes();
 			file.byteBuffer = BufferUtils.newByteBuffer(file.size);
 			file.byteBuffer.put(tmp);
 		}
@@ -266,7 +273,21 @@ public class GRPResource extends IResource {
 
 	@Override
 	public int Lookup(int fileId, String type) {
-//		Console.Println("GRP.Lookup(fileId, type): Not supported operation!", OSDTEXT_RED);
+		if(type == null) {
+			System.err.println("type == null");
+			return -1;
+		}
+
+		type =  toLowerCase(type);
+		for(int i = 0; i < NumFiles; i++) {
+			GRESHANDLE file = files.get(i);
+			if(type.equals(file.fileformat)) {
+				if(fileId == file.fileid)  {
+					file.pos = 0;
+					return i;
+				}
+			} 
+		}
 		return -1;
 	}
 
@@ -314,5 +335,16 @@ public class GRPResource extends IResource {
 		if(handle < 0) return -1;
 		GRESHANDLE file = files.get(handle);
 		return file.pos;
+	}
+
+	@Override
+	public boolean addResource(String filename, byte[] buf, int fileid) {
+		if(filename == null || buf == null) return false;
+		lookup.put(filename, files.size());
+		GRESHANDLE file = new GRESHANDLE(filename, fileid, buf);
+		files.add(file);
+		NumFiles++;
+		
+		return true;
 	}
 }

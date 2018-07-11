@@ -43,6 +43,15 @@ public class RFFResource extends IResource {
 //		public int modified;
 		public int flags;
 		public int pos;
+		
+		public RRESHANDLE(String filename, int fileid, byte[] data) { 
+			this.filename = filename;
+			this.fileformat = BfileExtension(filename);
+			this.fileid = fileid;
+			this.buffer = data;
+			this.size = data.length;
+			this.paktype = DAT;
+		}
 
 		public RRESHANDLE(byte[] data) {
 			offset = LittleEndian.getInt(data, 16); 
@@ -59,11 +68,31 @@ public class RFFResource extends IResource {
 			paktype = RFF;
 //			System.out.println(filename + " " + fileformat + " " + fileid);
 		}
+
+		@Override
+		public byte[] getBytes() {
+			if(buffer == null) {
+				buffer = new byte[size];
+
+				if(Blseek(File, offset, SEEK_SET) == -1) {
+					System.err.println("Error seeking to resource!");
+				}
+				if(Bread(File, buffer, size) == -1) {
+					System.err.println("Error loading resource!");
+				}
+				if((flags & 0x10) != 0) {
+					int siz = 256;
+					if(size < 256)
+						siz = size;
+					encrypt(buffer, siz, 0);
+				}
+			}
+			return buffer;
+		}
 	}
 
 	private int File = -1;
 	private boolean Crypted;
-	private int NumFiles;
 	private List<RRESHANDLE> files = new ArrayList<RRESHANDLE>();
 	private byte[] readbuf = new byte[4];
 	
@@ -77,11 +106,11 @@ public class RFFResource extends IResource {
 			int pos = 0;
 			int revision = LittleEndian.getInt(data, pos += 4);
 
-			if ( (revision & 0xFF00) == 0x0300 )
+			if ( (revision & 0xFFF00000) == 0 && (revision & 0xFF00) == 0x0300 )
 				Crypted = true;
-		    else if ( (revision & 0xFF00) == 0x0200 )
+		    else if ( (revision & 0xFFF00000) == 0 && (revision & 0xFF00) == 0x0200 )
 		    	Crypted = false;
-		    else if( (revision & 0x168f0130) != 0)
+		    else if( revision == 0x168f0130)
 		    	throw new ResourceException("RFF alpha version is not supported!");
 		    else 
 		    	throw new ResourceException("Unknown RFF version: " + Integer.toHexString(revision));
@@ -154,11 +183,11 @@ public class RFFResource extends IResource {
 			//share111 - 769
 			//alpha - 378470704
 
-			if ( (revision & 0xFF00) == 0x0300 )
+			if ( (revision & 0xFFF00000) == 0 && (revision & 0xFF00) == 0x0300 )
 				Crypted = true;
-		    else if ( (revision & 0xFF00) == 0x0200 )
+		    else if ( (revision & 0xFFF00000) == 0 && (revision & 0xFF00) == 0x0200 )
 		    	Crypted = false;
-		    else if( (revision & 0x168f0130) != 0)
+		    else if( revision == 0x168f0130)
 		    	throw new ResourceException("RFF alpha version is not supported!");
 		    else 
 		    	throw new ResourceException("Unknown RFF version: " + Integer.toHexString(revision));
@@ -183,7 +212,6 @@ public class RFFResource extends IResource {
 					}
 				}
 				
-				Console.Println("Found " + NumFiles + " files in " + FileName + " archive", 0);
 				byte[] buf = new byte[48];
 				for(int i = 0; i < NumFiles; i++) {
 					System.arraycopy(buffer, 48 * i, buf, 0, 48);
@@ -208,32 +236,12 @@ public class RFFResource extends IResource {
 			throw new ResourceException("File not found: " + new File(FilePath + FileName).getAbsolutePath());
 	}
 
-	private byte[] getBytes(RRESHANDLE file)
-	{
-		if(file.buffer == null) {
-			file.buffer = new byte[file.size];
-
-			if(Blseek(File, file.offset, SEEK_SET) == -1) {
-				System.err.println("Error seeking to resource!");
-			}
-			if(Bread(File, file.buffer, file.size) == -1) {
-				System.err.println("Error loading resource!");
-			}
-			if((file.flags & 0x10) != 0) {
-				int size = 256;
-				if(file.size < 256)
-					size = file.size;
-				encrypt(file.buffer, size, 0);
-			}
-		}
-		return file.buffer;
-	}
-	
 	@Override
 	public byte[] Lock(int filenum) {
 		if(filenum == -1) return null;
 		RRESHANDLE file = files.get(filenum);
-		return getBytes(file);
+		if(file == null) return null;
+		return file.getBytes();
 	}
 	
 	@Override
@@ -242,7 +250,7 @@ public class RFFResource extends IResource {
 		
 		RRESHANDLE file = files.get(filenum);
 		if(file.byteBuffer == null) {
-			byte[] tmp = getBytes(file);
+			byte[] tmp = file.getBytes();
 			file.byteBuffer = BufferUtils.newByteBuffer(file.size);
 			file.byteBuffer.put(tmp);
 		}
@@ -440,5 +448,16 @@ public class RFFResource extends IResource {
 		if(handle < 0) return -1;
 		RRESHANDLE file = files.get(handle);
 		return file.pos;
+	}
+
+	@Override
+	public boolean addResource(String filename, byte[] buf, int fileid) {
+		if(filename == null || buf == null) return false;
+		lookup.put(filename, files.size());
+		RRESHANDLE file = new RRESHANDLE(filename, fileid, buf);
+		files.add(file);
+		NumFiles++;
+		
+		return true;
 	}
 }
