@@ -42,11 +42,13 @@ public class GRPResource extends IResource {
 
 		public GRESHANDLE(byte[] data, int offset) {
 			filename = toLowerCase(new String(data, 0, 12));
+			int eos = filename.indexOf(0);
+			if(eos != -1) filename = filename.substring(0, eos);
 			this.fileformat = toLowerCase(filename.substring(filename.lastIndexOf('.') + 1));
 			size = LittleEndian.getInt(data, 12);
 			this.offset = offset;
 			paktype = GRP;
-//			System.out.println(filename+ " " + offset + " size: " +  size);
+//			System.out.println(filename + " " + offset + " size: " +  size + " " + filename.indexOf(0));
 		}
 
 		@Override

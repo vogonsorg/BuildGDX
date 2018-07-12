@@ -558,6 +558,19 @@ public class Console {
 			return 0;
 		}
 	};
+	
+	public static void show()
+	{
+		osdscroll = -osdscroll;
+        if (osdrowscur == -1)
+            osdscroll = 1;
+        else if (osdrowscur == osdrows)
+            osdscroll = -1;
+        osdrowscur += osdscroll;
+        CaptureInput(osdscroll == 1);
+        osdscrtime = func.getticksfunc();
+	}
+	
 	static boolean lastmatch;
 	static int tabc;
 	public static void HandleScanCode()
@@ -568,14 +581,7 @@ public class Console {
 		for(int i = 0; i < 4; i++) {
 			if(getInput().keyStatusOnce(osdkey[i]))
 			{
-				osdscroll = -osdscroll;
-	            if (osdrowscur == -1)
-	                osdscroll = 1;
-	            else if (osdrowscur == osdrows)
-	                osdscroll = -1;
-	            osdrowscur += osdscroll;
-	            CaptureInput(osdscroll == 1);
-	            osdscrtime = func.getticksfunc();
+				show();
 	            return;
 			}
 		}
