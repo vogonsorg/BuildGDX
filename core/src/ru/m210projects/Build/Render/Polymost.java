@@ -22,7 +22,7 @@ import static ru.m210projects.Build.Render.GLInfo.*;
 import static ru.m210projects.Build.Render.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.TextureUtils.gloadtex;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA;
+import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_BACK;
 import static ru.m210projects.Build.Render.Types.GL10.GL_BLEND;
@@ -57,7 +57,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINES;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODULATE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE_FILTER_HINT_NV;
 import static ru.m210projects.Build.Render.Types.GL10.GL_NEAREST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_NICEST;
@@ -73,7 +73,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
 import static ru.m210projects.Build.Render.Types.GL10.GL_QUADS;
 import static ru.m210projects.Build.Render.Types.GL10.GL_REPEAT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_REPLACE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_ALPHA_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE1_RGB_ARB;
@@ -81,7 +81,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE2_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SRC_ALPHA;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SRC_COLOR;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
@@ -357,7 +357,7 @@ public abstract class Polymost implements Renderer {
 
 			for (int j = 0; j < MAXPALOOKUPS; j++) {
 				if (v.texid[j] != null) {
-					gl.bglDeleteTextures(1, v.texid[j]);
+					gl.glDeleteTexture(v.texid[j]);
 					v.texid[j] = null;
 				}
 			}
@@ -393,7 +393,6 @@ public abstract class Polymost implements Renderer {
 				}
 			}
 		}
-
 	}
 
 	public int gltexcacnum = -1;
@@ -422,7 +421,7 @@ public abstract class Polymost implements Renderer {
 
 		if (polymosttext != null) {
 			//polymosttext.dispose();
-			gl.bglDeleteTextures(1, polymosttext);
+			gl.glDeleteTextures(1, polymosttext);
 		}
 		polymosttext = null;
 		freevbos();
@@ -437,21 +436,21 @@ public abstract class Polymost implements Renderer {
 		GLInfo.init(gl);
 
 		if (Bstrcmp(GLInfo.vendor, "NVIDIA Corporation") == 0) {
-			gl.bglHint(GL_FOG_HINT, GL_NICEST);
+			gl.glHint(GL_FOG_HINT, GL_NICEST);
 		} else {
-			gl.bglHint(GL_FOG_HINT, GL_DONT_CARE);
+			gl.glHint(GL_FOG_HINT, GL_DONT_CARE);
 		}
-		gl.bglFogi(GL_FOG_MODE, GL_LINEAR); // GL_EXP
+		gl.glFogi(GL_FOG_MODE, GL_LINEAR); // GL_EXP
 
-		gl.bglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
 		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 		if (glmultisample > 0 && GLInfo.multisample != 0) {
 			if (GLInfo.nvmultisamplehint != 0)
-				gl.bglHint(GL_MULTISAMPLE_FILTER_HINT_NV,
+				gl.glHint(GL_MULTISAMPLE_FILTER_HINT_NV,
 						glnvmultisamplehint != 0 ? GL_NICEST : GL_FASTEST);
-			gl.bglEnable(GL_MULTISAMPLE_ARB);
+			gl.glEnable(GL_MULTISAMPLE);
 		}
 		
 		if((GLInfo.multitex == 0 || GLInfo.envcombine == 0)) {
@@ -493,22 +492,22 @@ public abstract class Polymost implements Renderer {
 			switch (glpolygonmode) {
 			default:
 			case 0:
-				gl.bglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				gl.glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				break;
 			case 1:
-				gl.bglPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				gl.glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 				break;
 			case 2:
-				gl.bglPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+				gl.glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 				break;
 			}
 		}
 		
 		if (glpolygonmode != 0) // FUK
 		{
-			gl.bglClearColor(1.0, 1.0, 1.0, 0.0);
-			gl.bglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			gl.bglDisable(GL_TEXTURE_2D);
+			gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+			gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			gl.glDisable(GL_TEXTURE_2D);
 		}
 		
 		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
@@ -521,9 +520,9 @@ public abstract class Polymost implements Renderer {
 	        glox1 = windowx1; gloy1 = windowy1;
 			glox2 = windowx2; gloy2 = windowy2;
 
-			gl.bglViewport(windowx1-(fovcorrect/2), ydim - (windowy2 + 1), ourxdimen+fovcorrect, windowy2 - windowy1 + 1);
+			gl.glViewport(windowx1-(fovcorrect/2), ydim - (windowy2 + 1), ourxdimen+fovcorrect, windowy2 - windowy1 + 1);
 
-			gl.bglMatrixMode(GL_PROJECTION);
+			gl.glMatrixMode(GL_PROJECTION);
 
 			for (float[] row: matrix)
 			    Arrays.fill(row, 0.0f);
@@ -536,12 +535,12 @@ public abstract class Polymost implements Renderer {
 			matrix[2][3] = ydimen * ratio;
 			matrix[3][2] = -1.0f;
 		
-			gl.bglLoadMatrixf(matrix);
+			gl.glLoadMatrixf(matrix);
 			
-			gl.bglMatrixMode(GL_MODELVIEW);
-			gl.bglLoadIdentity();
+			gl.glMatrixMode(GL_MODELVIEW);
+			gl.glLoadIdentity();
 
-			if (!nofog) gl.bglEnable(GL_FOG);
+			if (!nofog) gl.glEnable(GL_FOG);
 		}
 		/*
 		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
@@ -550,9 +549,9 @@ public abstract class Polymost implements Renderer {
 			glox2 = windowx2;
 			gloy2 = windowy2;
 
-			gl.bglViewport(windowx1, ydim - (windowy2 + 1), windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
+			gl.glViewport(windowx1, ydim - (windowy2 + 1), windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
 
-			gl.bglMatrixMode(GL_PROJECTION);
+			gl.glMatrixMode(GL_PROJECTION);
 
 			matrix[0][0] = ydimen;
 			matrix[0][2] = 1.0f;
@@ -562,7 +561,7 @@ public abstract class Polymost implements Renderer {
 			matrix[2][3] = ydimen;
 			matrix[3][2] = -1.0f;
 		
-			gl.bglLoadMatrixf(matrix);
+			gl.glLoadMatrixf(matrix);
 			// gluPerspective ( 90, (GLint)width/ (GLint)height, 0.0, 200.0 );
 		}
 		*/
@@ -608,7 +607,7 @@ public abstract class Polymost implements Renderer {
 		boolean dorot;
 
 		Pthtyp pth = null, detailpth = null, glowpth = null;
-		int texunits = GL_TEXTURE0_ARB;
+		int texunits = GL_TEXTURE0;
 
 		if (method == -1)
 			return;
@@ -701,16 +700,16 @@ public abstract class Polymost implements Renderer {
 		bindTexture(gl, pth.glpic);
 		
 		if (srepeat != 0)
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		if (trepeat != 0)
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		// texture scale by parkar request
 		if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f)) && drawingskybox == 0) {
-			gl.bglMatrixMode(GL_TEXTURE);
-			gl.bglLoadIdentity();
-			gl.bglScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
-			gl.bglMatrixMode(GL_MODELVIEW);
+			gl.glMatrixMode(GL_TEXTURE);
+			gl.glLoadIdentity();
+			gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
+			gl.glMatrixMode(GL_MODELVIEW);
 		}
 
 		// detail texture
@@ -718,42 +717,42 @@ public abstract class Polymost implements Renderer {
 			detailpth = textureCache.cache(globalpicnum, DETAILPAL, clampingMode(method), alphaMode(method));
 
 		if (GLInfo.multisample != 0 && detailpth != null && detailpth.hicr != null && (detailpth.hicr.palnum == DETAILPAL)) {
-			gl.bglActiveTextureARB(++texunits);
+			gl.glActiveTexture(++texunits);
 
-			gl.bglEnable(GL_TEXTURE_2D);
+			gl.glEnable(GL_TEXTURE_2D);
 			bindTexture(gl,  detailpth.glpic);
 
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
 
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
 
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
 
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
 
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, 2.0f);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
 
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 			f = detailpth != null ? detailpth.hicr.xscale : 1.0;
 
-			gl.bglMatrixMode(GL_TEXTURE);
-			gl.bglLoadIdentity();
+			gl.glMatrixMode(GL_TEXTURE);
+			gl.glLoadIdentity();
 
 			if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f)))
-				gl.bglScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
+				gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
 
 			if (detailpth != null && detailpth.hicr != null && ((detailpth.hicr.xscale != 1.0f)
 					|| (detailpth.hicr.yscale != 1.0f)))
-				gl.bglScalef(detailpth.hicr.xscale, detailpth.hicr.yscale, 1.0f);
+				gl.glScalef(detailpth.hicr.xscale, detailpth.hicr.yscale, 1.0f);
 
-			gl.bglMatrixMode(GL_MODELVIEW);
+			gl.glMatrixMode(GL_MODELVIEW);
 		}
 		
 		if (r_glowmapping != 0 && usehightile && drawingskybox == 0 && hicfindsubst(globalpicnum, GLOWPAL, 0) != null)
@@ -761,29 +760,29 @@ public abstract class Polymost implements Renderer {
 		
 		if (GLInfo.multisample != 0 && glowpth != null && glowpth.hicr != null && (glowpth.hicr.palnum == GLOWPAL))
 		{
-			gl.bglActiveTextureARB(++texunits);
+			gl.glActiveTexture(++texunits);
 		
-			gl.bglEnable(GL_TEXTURE_2D);
+			gl.glEnable(GL_TEXTURE_2D);
 			bindTexture(gl,  glowpth.glpic);
 		
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
 		
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
 		
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
 		
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
 		
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-			gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
+			gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
 		
-			gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-			gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+			gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+			gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 		}
 
 		if (pth != null && pth.isHighTile()) {
@@ -809,8 +808,8 @@ public abstract class Polymost implements Renderer {
 		}
 
 		if (((method & 3) == 0)) {
-			gl.bglDisable(GL_BLEND);
-			gl.bglDisable(GL_ALPHA_TEST); // alpha_test
+			gl.glDisable(GL_BLEND);
+			gl.glDisable(GL_ALPHA_TEST); // alpha_test
 		} else {
 			float al = 0.0f; // PLAG : default alphacut was 0.32 before goodalpha
 			if (pth != null && pth.hicr != null && pth.hicr.alphacut >= 0.0)
@@ -820,9 +819,9 @@ public abstract class Polymost implements Renderer {
 			if (waloff[globalpicnum] == null)
 				al = 0.0f; // invalid textures ignore the alpha cutoff settings
 
-			gl.bglAlphaFunc(GL_GREATER, al);
-			gl.bglEnable(GL_BLEND);
-			gl.bglEnable(GL_ALPHA_TEST);
+			gl.glAlphaFunc(GL_GREATER, al);
+			gl.glEnable(GL_BLEND);
+			gl.glEnable(GL_ALPHA_TEST);
 		}
 
         if (!dorot)
@@ -884,7 +883,7 @@ public abstract class Polymost implements Renderer {
 			}
 		}
 
-		gl.bglColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		// Hack for walls&masked walls which use textures that are not a power
 		// of 2
@@ -989,7 +988,7 @@ public abstract class Polymost implements Renderer {
 				if (nn < 3)
 					continue;
 
-				gl.bglBegin(GL_TRIANGLE_FAN);
+				gl.glBegin(GL_TRIANGLE_FAN);
 				for (i = 0; i < nn; i++) {
 					Polygon dpoly = drawpoly[i];
 					ox = dpoly.uu;
@@ -998,73 +997,73 @@ public abstract class Polymost implements Renderer {
 					up = ox * ngux + oy * nguy + nguo;
 					vp = ox * ngvx + oy * ngvy + ngvo;
 					r = 1.0 / dp;
-					if (texunits > GL_TEXTURE0_ARB) {
-						j = GL_TEXTURE0_ARB;
+					if (texunits > GL_TEXTURE0) {
+						j = GL_TEXTURE0;
 						while (j <= texunits)
-							gl.bglMultiTexCoord2dARB(j++, (up * r - du0 + uoffs) * ox2, vp * r * oy2);
+							gl.glMultiTexCoord2d(j++, (up * r - du0 + uoffs) * ox2, vp * r * oy2);
 					} else
-						gl.bglTexCoord2d((up * r - du0 + uoffs) * ox2, vp * r * oy2);
-					gl.bglVertex3d((ox - ghalfx) * r * grhalfxdown10x,
+						gl.glTexCoord2d((up * r - du0 + uoffs) * ox2, vp * r * oy2);
+					gl.glVertex3d((ox - ghalfx) * r * grhalfxdown10x,
 							(ghoriz - oy) * r * grhalfxdown10, r * (1.0 / 1024.0));
 				}
-				gl.bglEnd();
+				gl.glEnd();
 			}
 		} else {
 			ox2 *= hackscx;
 			oy2 *= hackscy;
 		
-			gl.bglBegin(GL_TRIANGLE_FAN);
+			gl.glBegin(GL_TRIANGLE_FAN);
 			for (i = 0; i < n; i++) {
 				Polygon dpoly = drawpoly[i];
 				
 				r = 1.0f / dpoly.dd;
-				if (texunits > GL_TEXTURE0_ARB) {
-					j = GL_TEXTURE0_ARB;
+				if (texunits > GL_TEXTURE0) {
+					j = GL_TEXTURE0;
 					while (j <= texunits)
-						gl.bglMultiTexCoord2dARB(j++, dpoly.uu * r * ox2, dpoly.vv * r * oy2);
+						gl.glMultiTexCoord2d(j++, dpoly.uu * r * ox2, dpoly.vv * r * oy2);
 				} else
-					gl.bglTexCoord2d(dpoly.uu * r * ox2, dpoly.vv * r * oy2);
+					gl.glTexCoord2d(dpoly.uu * r * ox2, dpoly.vv * r * oy2);
 
-				gl.bglVertex3d((dpoly.px - ghalfx) * r * grhalfxdown10x, (ghoriz - dpoly.py) * r * grhalfxdown10, r * (1.f / 1024.f));
+				gl.glVertex3d((dpoly.px - ghalfx) * r * grhalfxdown10x, (ghoriz - dpoly.py) * r * grhalfxdown10, r * (1.f / 1024.f));
 			}
-			gl.bglEnd();
+			gl.glEnd();
 			if(showlines) {
-				gl.bglDisable(GL_TEXTURE_2D);
+				gl.glDisable(GL_TEXTURE_2D);
 				int[] p = new int[2];
-				gl.bglColor4f(1, 1, 1, 1);
-				gl.bglBegin(GL_LINES); 
+				gl.glColor4f(1, 1, 1, 1);
+				gl.glBegin(GL_LINES); 
 				for (i = 1; i <= n; i++) { 
 					p[0] = i-1; p[1] = i;
 					if(i == n) { p[0] = i - 1; p[1] = 0; }
 					for(int l = 0; l < 2; l++) {
 						r = 1.0 / drawpoly[p[l]].dd; 
-						gl.bglVertex3d((drawpoly[p[l]].px - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly[p[l]].py) * r * grhalfxdown10, r* (1.0 / 1024.0));
+						gl.glVertex3d((drawpoly[p[l]].px - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly[p[l]].py) * r * grhalfxdown10, r* (1.0 / 1024.0));
 					}
 				} 
-				gl.bglEnd(); 
-				gl.bglEnable(GL_TEXTURE_2D);
+				gl.glEnd(); 
+				gl.glEnable(GL_TEXTURE_2D);
 			}
 		}
 
 		if(GLInfo.multisample != 0) {
-			while (texunits >= GL_TEXTURE0_ARB) {
-				gl.bglActiveTextureARB(texunits);
-				gl.bglMatrixMode(GL_TEXTURE);
-				gl.bglLoadIdentity();
-				gl.bglMatrixMode(GL_MODELVIEW);
-				if (texunits > GL_TEXTURE0_ARB) {
-					gl.bglTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, 1.0f);
-					gl.bglDisable(GL_TEXTURE_2D);
+			while (texunits >= GL_TEXTURE0) {
+				gl.glActiveTexture(texunits);
+				gl.glMatrixMode(GL_TEXTURE);
+				gl.glLoadIdentity();
+				gl.glMatrixMode(GL_MODELVIEW);
+				if (texunits > GL_TEXTURE0) {
+					gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
+					gl.glDisable(GL_TEXTURE_2D);
 				}
 				texunits--;
 			}
 		}
 
 		if (srepeat != 0)
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
 					GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 		if (trepeat != 0)
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
 					GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 	}
 
@@ -2738,19 +2737,19 @@ public abstract class Polymost implements Renderer {
 		double ox, oy, oz, ox2, oy2, oz2, r;
 
 		resizeglcheck();
-		gl.bglClear(GL_DEPTH_BUFFER_BIT);
-		gl.bglDisable(GL_BLEND);
-		gl.bglEnable(GL_TEXTURE_2D);
-		gl.bglEnable(GL_DEPTH_TEST);
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glDisable(GL_BLEND);
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_DEPTH_TEST);
 		
 //		Пока что лучший результат
-//		gl.bglDepthFunc(GL10.GL_ALWAYS); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
-//		gl.bglPolygonOffset(0, 0);
+//		gl.glDepthFunc(GL10.GL_ALWAYS); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
+//		gl.glPolygonOffset(0, 0);
 		
 
-//		gl.bglDepthRange(0.0001, 1.0); // <- this is more widely supported than glPolygonOffset
-		gl.bglDepthFunc(GL_LEQUAL); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
-		gl.bglDepthRange(0.0, 1.0); //<- this is more widely supported than glPolygonOffset
+//		gl.glDepthRange(0.0001, 1.0); // <- this is more widely supported than glPolygonOffset
+		gl.glDepthFunc(GL_LEQUAL); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
+		gl.glDepthRange(0.0, 1.0); //<- this is more widely supported than glPolygonOffset
 
 		// Polymost supports true look up/down :) Here, we convert horizon to angle.
 		// gchang&gshang are cos&sin of this angle (respectively)
@@ -2934,7 +2933,7 @@ public abstract class Polymost implements Renderer {
 		SECTOR sec, nsec;
 		WALL wal, wal2;
 		
-		gl.bglDepthRange(0.0, 0.99999);
+		gl.glDepthRange(0.0, 0.99999);
 
 		// cullcheckcnt = 0;
 
@@ -3156,7 +3155,7 @@ public abstract class Polymost implements Renderer {
 			return;
 
 		drawpoly(dmaskwall, n, method);
-		gl.bglDepthRange(0.0, 1.0);
+		gl.glDepthRange(0.0, 1.0);
 	}
 
 //	private static int findwall_dist;
@@ -3346,12 +3345,12 @@ public abstract class Polymost implements Renderer {
 //		if ((((tspr.cstat&2) != 0) || (textureCache.gltexmayhavealpha(tspr.picnum,tspr.pal))))
 //	    {
 //	        curpolygonoffset += 0.01f;
-//	        gl.bglPolygonOffset(-curpolygonoffset, -curpolygonoffset);
+//	        gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
 //	    }
 		
 //		if ((tspr.cstat & 32) != 0) {
 //			curpolygonoffset += 0.01f;
-//		    gl.bglPolygonOffset(-curpolygonoffset, -curpolygonoffset);
+//		    gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
 //		}
 
 		if ((spriteext[tspr.owner].flags & SPREXT_AWAY1) != 0) {
@@ -3488,7 +3487,7 @@ public abstract class Polymost implements Renderer {
 		case 1: // Wall sprite
 
 			curpolygonoffset += 0.01f;
-	        gl.bglPolygonOffset(-curpolygonoffset, -curpolygonoffset);
+	        gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
 	        
 			// Project 3D to 2D
 			if ((globalorientation & 4) != 0)
@@ -3651,7 +3650,7 @@ public abstract class Polymost implements Renderer {
 			srepeat = 0;
 			trepeat = 0;
 			
-			gl.bglPolygonOffset(0,0);
+			gl.glPolygonOffset(0,0);
 
 			break;
 		
@@ -3922,15 +3921,15 @@ public abstract class Polymost implements Renderer {
 	            hudsprite.cstat = (short) globalorientation;
 
 	            if ((dastat&10) == 2)
-	                gl.bglViewport(windowx1,ydim-(windowy2+1),windowx2-windowx1+1,windowy2-windowy1+1);
+	                gl.glViewport(windowx1,ydim-(windowy2+1),windowx2-windowx1+1,windowy2-windowy1+1);
 	            else
 	            {
-	                gl.bglViewport(0,0,xdim,ydim);
+	                gl.glViewport(0,0,xdim,ydim);
 	                glox1 = -1; //Force fullscreen (glox1=-1 forces it to restore)
 	            }
 
 	           
-                gl.bglMatrixMode(GL_PROJECTION);
+                gl.glMatrixMode(GL_PROJECTION);
               
                 if ((dastat&10) == 2)
                 {
@@ -3941,20 +3940,20 @@ public abstract class Polymost implements Renderer {
                     matrix[3][2] = -1.0f;
                 }
                 else { matrix[0][0] = matrix[2][3] = 1.0f; matrix[1][1] = ((float)xdim)/((float)ydim); matrix[2][2] = 1.0001f; matrix[3][2] = 1-matrix[2][2]; }
-                gl.bglLoadMatrixf(matrix);
-                gl.bglMatrixMode(GL_MODELVIEW);
-                gl.bglLoadIdentity();
+                gl.glLoadMatrixf(matrix);
+                gl.glMatrixMode(GL_MODELVIEW);
+                gl.glLoadIdentity();
 	            
 
 	            if ((hudmem[(dastat&4)>>2][picnum].flags&8) != 0) //NODEPTH flag
-	                gl.bglDisable(GL_DEPTH_TEST);
+	                gl.glDisable(GL_DEPTH_TEST);
 	            else
 	            {
-	                gl.bglEnable(GL_DEPTH_TEST);
-	                gl.bglClear(GL_DEPTH_BUFFER_BIT);
+	                gl.glEnable(GL_DEPTH_TEST);
+	                gl.glClear(GL_DEPTH_BUFFER_BIT);
 	            }
 
-	            gl.bglDisable(GL_FOG);
+	            gl.glDisable(GL_FOG);
 	            mddraw(hudsprite, 0, 0);
 
 	            EnableFog();
@@ -3995,24 +3994,24 @@ public abstract class Polymost implements Renderer {
 		ogstang = gstang;
 		gstang = 0.0f;
 
-		gl.bglViewport(0, 0, xdim, ydim);
+		gl.glViewport(0, 0, xdim, ydim);
 		glox1 = -1; // Force fullscreen (glox1=-1 forces it to restore)
-		gl.bglMatrixMode(GL_PROJECTION);
+		gl.glMatrixMode(GL_PROJECTION);
 
 		matrix[0][0] = matrix[2][3] = 1.0f;
 		matrix[1][1] = xdim / ((float) ydim);
 		matrix[2][2] = 1.0001f;
 		matrix[3][2] = 1 - matrix[2][2];
 
-		gl.bglPushMatrix();
-		gl.bglLoadMatrixf(matrix);
-		gl.bglMatrixMode(GL_MODELVIEW);
-		gl.bglPushMatrix();
-		gl.bglLoadIdentity();
+		gl.glPushMatrix();
+		gl.glLoadMatrixf(matrix);
+		gl.glMatrixMode(GL_MODELVIEW);
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
 
-		gl.bglDisable(GL_DEPTH_TEST);
-		gl.bglDisable(GL_ALPHA_TEST);
-		gl.bglEnable(GL_TEXTURE_2D);
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glEnable(GL_TEXTURE_2D);
 
 		method = 0;
 		if ((dastat & 64) == 0) {
@@ -4233,7 +4232,7 @@ public abstract class Polymost implements Renderer {
 				z = zz;
 			} while (z != 0);
 			
-			gl.bglDisable(GL_FOG);
+			gl.glDisable(GL_FOG);
 
 			pow2xsplit = 0;
 
@@ -4241,10 +4240,10 @@ public abstract class Polymost implements Renderer {
 			EnableFog();
 		}
 
-		gl.bglMatrixMode(GL_PROJECTION);
-		gl.bglPopMatrix();
-		gl.bglMatrixMode(GL_MODELVIEW);
-		gl.bglPopMatrix();
+		gl.glMatrixMode(GL_PROJECTION);
+		gl.glPopMatrix();
+		gl.glMatrixMode(GL_MODELVIEW);
+		gl.glPopMatrix();
 
 		globalpicnum = (short) ogpicnum;
 		globalshade = ogshade;
@@ -4262,7 +4261,7 @@ public abstract class Polymost implements Renderer {
 	private void EnableFog()
 	{
 		if (!nofog)
-			gl.bglEnable(GL_FOG);
+			gl.glEnable(GL_FOG);
 	}
 
 	private final float[] trapextx = new float[2], drawtrap_px = new float[4],
@@ -4294,15 +4293,15 @@ public abstract class Polymost implements Renderer {
 			n = 4;
 		}
 
-		gl.bglBegin(GL_TRIANGLE_FAN);
+		gl.glBegin(GL_TRIANGLE_FAN);
 		for (i = 0; i < n; i++) {
 			drawtrap_px[i] = min(max(drawtrap_px[i], trapextx[0]), trapextx[1]);
-			gl.bglTexCoord2f(
+			gl.glTexCoord2f(
 					(float) (drawtrap_px[i] * gux + drawtrap_py[i] * guy + guo),
 					(float) (drawtrap_px[i] * gvx + drawtrap_py[i] * gvy + gvo));
-			gl.bglVertex2f(drawtrap_px[i], drawtrap_py[i]);
+			gl.glVertex2f(drawtrap_px[i], drawtrap_py[i]);
 		}
-		gl.bglEnd();
+		gl.glEnd();
 	}
 
 	private int allocpoints = 0, slist[], npoint2[];
@@ -4371,14 +4370,14 @@ public abstract class Polymost implements Renderer {
 
 		if (z != 3) // Simple polygon... early out
 		{
-			gl.bglBegin(GL_TRIANGLE_FAN);
+			gl.glBegin(GL_TRIANGLE_FAN);
 			for (i = 0; i < npoints; i++) {
 				j = slist[i];
-				gl.bglTexCoord2f((float) (px[j] * gux + py[j] * guy + guo),
+				gl.glTexCoord2f((float) (px[j] * gux + py[j] * guy + guo),
 						(float) (px[j] * gvx + py[j] * gvy + gvo));
-				gl.bglVertex2f(px[j], py[j]);
+				gl.glVertex2f(px[j], py[j]);
 			}
-			gl.bglEnd();
+			gl.glEnd();
 			return;
 		}
 
@@ -4534,12 +4533,12 @@ public abstract class Polymost implements Renderer {
 			ry1[i] = ry1[i] / 4096.0f;
 		}
 		
-		gl.bglDisable(GL_FOG);
+		gl.glDisable(GL_FOG);
 
 		if (gloy1 != -1)
 			setpolymost2dview(); // disables blending, texturing, and depth testing
-		gl.bglEnable(GL_ALPHA_TEST);
-		gl.bglEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_ALPHA_TEST);
+		gl.glEnable(GL_TEXTURE_2D);
 		pth = textureCache.cache(globalpicnum, globalpal, false, true);
 
 		bindTexture(gl,  pth.glpic);
@@ -4549,19 +4548,19 @@ public abstract class Polymost implements Renderer {
 		case 0:
 		case 1:
 			a = 1.0f;
-			gl.bglDisable(GL_BLEND);
+			gl.glDisable(GL_BLEND);
 			break;
 		case 2:
 			a = TRANSLUSCENT1;
-			gl.bglEnable(GL_BLEND);
+			gl.glEnable(GL_BLEND);
 			break;
 		case 3:
 			a = TRANSLUSCENT2;
-			gl.bglEnable(GL_BLEND);
+			gl.glEnable(GL_BLEND);
 			break;
 		}
 
-		gl.bglColor4f(f, f, f, a);
+		gl.glColor4f(f, f, f, a);
 
 		tessectrap(rx1, ry1, xb1, npoints); // vertices + textures
 		
@@ -4616,7 +4615,7 @@ public abstract class Polymost implements Renderer {
 
 		bindTexture(gl,  pth.glpic);
 
-		gl.bglDisable(GL_ALPHA_TEST);
+		gl.glDisable(GL_ALPHA_TEST);
 
 		if (tilezoom != 0) {
 			if (scx > scy)
@@ -4626,40 +4625,40 @@ public abstract class Polymost implements Renderer {
 		}
 
 		if (pth == null || pth.hasAlpha()) {
-			gl.bglDisable(GL_TEXTURE_2D);
-			gl.bglBegin(GL_TRIANGLE_FAN);
+			gl.glDisable(GL_TEXTURE_2D);
+			gl.glBegin(GL_TRIANGLE_FAN);
 			if (gammabrightness != 0)
-				gl.bglColor4f((float) curpalette[255].r / 255.0f,
+				gl.glColor4f((float) curpalette[255].r / 255.0f,
 						(float) curpalette[255].g / 255.0f,
 						(float) curpalette[255].b / 255.0f, 1.0f);
 			else
-				gl.bglColor4f(
+				gl.glColor4f(
 						(float) britable[curbrightness][curpalette[255].r] / 255.0f,
 						(float) britable[curbrightness][curpalette[255].g] / 255.0f,
 						(float) britable[curbrightness][curpalette[255].b] / 255.0f,
 						1.0f);
-			gl.bglVertex2f((float) tilex, (float) tiley);
-			gl.bglVertex2f((float) tilex + (scx * ratio), (float) tiley);
-			gl.bglVertex2f((float) tilex + (scx * ratio), (float) tiley
+			gl.glVertex2f((float) tilex, (float) tiley);
+			gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley);
+			gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley
 					+ (scy * ratio));
-			gl.bglVertex2f((float) tilex, (float) tiley + (scy * ratio));
-			gl.bglEnd();
+			gl.glVertex2f((float) tilex, (float) tiley + (scy * ratio));
+			gl.glEnd();
 		}
 
-		gl.bglColor4f(1, 1, 1, 1);
-		gl.bglEnable(GL_TEXTURE_2D);
-		gl.bglEnable(GL_BLEND);
-		gl.bglBegin(GL_TRIANGLE_FAN);
-		gl.bglTexCoord2f(0, 0);
-		gl.bglVertex2f((float) tilex, (float) tiley);
-		gl.bglTexCoord2f(xdimepad, 0);
-		gl.bglVertex2f((float) tilex + (scx * ratio), (float) tiley);
-		gl.bglTexCoord2f(xdimepad, ydimepad);
-		gl.bglVertex2f((float) tilex + (scx * ratio), (float) tiley
+		gl.glColor4f(1, 1, 1, 1);
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_BLEND);
+		gl.glBegin(GL_TRIANGLE_FAN);
+		gl.glTexCoord2f(0, 0);
+		gl.glVertex2f((float) tilex, (float) tiley);
+		gl.glTexCoord2f(xdimepad, 0);
+		gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley);
+		gl.glTexCoord2f(xdimepad, ydimepad);
+		gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley
 				+ (scy * ratio));
-		gl.bglTexCoord2f(0, ydimepad);
-		gl.bglVertex2f((float) tilex, (float) tiley + (scy * ratio));
-		gl.bglEnd();
+		gl.glTexCoord2f(0, ydimepad);
+		gl.glVertex2f((float) tilex, (float) tiley + (scy * ratio));
+		gl.glEnd();
 
 		return (0);
 	}
@@ -4669,18 +4668,18 @@ public abstract class Polymost implements Renderer {
 	@Override
 	public void palfade(HashMap<String, FadeEffect> fades) {
 
-		gl.bglMatrixMode(GL_PROJECTION);
-		gl.bglPushMatrix();
-		gl.bglLoadIdentity();
-		gl.bglMatrixMode(GL_MODELVIEW);
-		gl.bglPushMatrix();
-		gl.bglLoadIdentity();
+		gl.glMatrixMode(GL_PROJECTION);
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+		gl.glMatrixMode(GL_MODELVIEW);
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
 
-		gl.bglDisable(GL_DEPTH_TEST);
-		gl.bglDisable(GL_ALPHA_TEST);
-		gl.bglDisable(GL_TEXTURE_2D);
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDisable(GL_TEXTURE_2D);
 
-		gl.bglEnable(GL_BLEND);
+		gl.glEnable(GL_BLEND);
 
 		palfadergb.draw(gl);
 		if(fades != null)
@@ -4692,12 +4691,12 @@ public abstract class Polymost implements Renderer {
 		    }
 		}
 
-		gl.bglMatrixMode(GL_MODELVIEW);
-		gl.bglPopMatrix();
-		gl.bglMatrixMode(GL_PROJECTION);
-		gl.bglPopMatrix();
+		gl.glMatrixMode(GL_MODELVIEW);
+		gl.glPopMatrix();
+		gl.glMatrixMode(GL_PROJECTION);
+		gl.glPopMatrix();
 		
-		gl.bglBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	
 	@Override
@@ -4740,50 +4739,50 @@ public abstract class Polymost implements Renderer {
 			fbuf.put(tbuf);
 			fbuf.rewind();
 
-			gl.bglBindTexture(GL_TEXTURE_2D, polymosttext);
-			gl.bglTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 256, 128, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
+			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 256, 128, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 			fbuf.clear(); // Bfree(tbuf);
 			fbuf = null;
 			tbuf = null;
 		} else
-			gl.bglBindTexture(GL_TEXTURE_2D, polymosttext);
+			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
 
 		setpolymost2dview(); // disables blending, texturing, and depth testing
-		gl.bglDisable(GL_ALPHA_TEST);
-		gl.bglDepthMask(GL_FALSE); // disable writing to the z-buffer
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
 
 		if (backcol >= 0) {
-			gl.bglColor4ub((byte) curpalette[backcol].r,
+			gl.glColor4ub((byte) curpalette[backcol].r,
 					(byte) curpalette[backcol].g, (byte) curpalette[backcol].b,
 					(byte) 255);
-			gl.bglBegin(GL_QUADS);
-			gl.bglVertex2i(xpos, ypos);
-			gl.bglVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
+			gl.glBegin(GL_QUADS);
+			gl.glVertex2i(xpos, ypos);
+			gl.glVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
 			int x = xpos + (1 << (3 - fontsize));
 			int y = ypos + (fontsize != 0 ? 6 : 8);
-			gl.bglVertex2i(x, y);
-			gl.bglVertex2i(xpos + (1 << (3 - fontsize)), ypos);
-			gl.bglEnd();
+			gl.glVertex2i(x, y);
+			gl.glVertex2i(xpos + (1 << (3 - fontsize)), ypos);
+			gl.glEnd();
 		}
 
-		gl.bglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		gl.glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		gl.bglDisable(GL_FOG);
+		gl.glDisable(GL_FOG);
 		 
-		gl.bglEnable(GL_TEXTURE_2D);
-		gl.bglEnable(GL_BLEND);
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_BLEND);
 		if(curpalette[col] == null)
-			gl.bglColor4ub(255, 255, 255, 255);
+			gl.glColor4ub(255, 255, 255, 255);
 		else
-			gl.bglColor4ub(curpalette[col].r, curpalette[col].g, curpalette[col].b, 255);
+			gl.glColor4ub(curpalette[col].r, curpalette[col].g, curpalette[col].b, 255);
 
 		txc = (float) (fontsize != 0 ? (4.0 / 256.0) : (8.0 / 256.0));
 		tyc = (float) (fontsize != 0 ? (6.0 / 128.0) : (8.0 / 128.0));
 
-		gl.bglBegin(GL_QUADS);
+		gl.glBegin(GL_QUADS);
 	
 		tx = (float) ((ch % 32) / 32.0);
 		ty = (float) (((ch / 32) + (fontsize * 8)) / 16.0);
@@ -4791,21 +4790,21 @@ public abstract class Polymost implements Renderer {
 		int x = xpos + (8 >> fontsize);
 		int y = ypos + (fontsize != 0 ? 6 : 8);
 
-		gl.bglTexCoord2f(tx, ty); // 0
-		gl.bglVertex2i(xpos, ypos);
+		gl.glTexCoord2f(tx, ty); // 0
+		gl.glVertex2i(xpos, ypos);
 
-		gl.bglTexCoord2f(tx + txc, ty); // 1
-		gl.bglVertex2i(x, ypos);
+		gl.glTexCoord2f(tx + txc, ty); // 1
+		gl.glVertex2i(x, ypos);
 
-		gl.bglTexCoord2f(tx + txc, ty + tyc); // 2
-		gl.bglVertex2i(x, y);
+		gl.glTexCoord2f(tx + txc, ty + tyc); // 2
+		gl.glVertex2i(x, y);
 
-		gl.bglTexCoord2f(tx, ty + tyc); // 3
-		gl.bglVertex2i(xpos, y);
+		gl.glTexCoord2f(tx, ty + tyc); // 3
+		gl.glVertex2i(xpos, y);
 
-		gl.bglEnd();
+		gl.glEnd();
 
-		gl.bglDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
 
 		EnableFog();
 
@@ -4855,54 +4854,54 @@ public abstract class Polymost implements Renderer {
 			fbuf.put(tbuf);
 			fbuf.rewind();
 
-			gl.bglBindTexture(GL_TEXTURE_2D, polymosttext);
-			gl.bglTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 256, 128, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
+			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 256, 128, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 			fbuf.clear(); // Bfree(tbuf);
 			fbuf = null;
 			tbuf = null;
 		} else
-			gl.bglBindTexture(GL_TEXTURE_2D, polymosttext);
+			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
 
 		setpolymost2dview(); // disables blending, texturing, and depth testing
-		gl.bglDisable(GL_ALPHA_TEST);
-		gl.bglDepthMask(GL_FALSE); // disable writing to the z-buffer
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
 
 		if (backcol >= 0) {
-			gl.bglColor4ub((byte) curpalette[backcol].r,
+			gl.glColor4ub((byte) curpalette[backcol].r,
 					(byte) curpalette[backcol].g, (byte) curpalette[backcol].b,
 					(byte) 255);
 			c = Bstrlen(text);
 
-			gl.bglBegin(GL_QUADS);
-			gl.bglVertex2i(xpos, ypos);
-			gl.bglVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
+			gl.glBegin(GL_QUADS);
+			gl.glVertex2i(xpos, ypos);
+			gl.glVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
 			int x = xpos + (c << (3 - fontsize));
 			int y = ypos + (fontsize != 0 ? 6 : 8);
-			gl.bglVertex2i(x, y);
-			gl.bglVertex2i(xpos + (c << (3 - fontsize)), ypos);
-			gl.bglEnd();
+			gl.glVertex2i(x, y);
+			gl.glVertex2i(xpos + (c << (3 - fontsize)), ypos);
+			gl.glEnd();
 		}
 
-//		gl.bglPushAttrib(GL_POLYGON_BIT); // we want to have readable text in FIXME decreasing fps?
+//		gl.glPushAttrib(GL_POLYGON_BIT); // we want to have readable text in FIXME decreasing fps?
 		// wireframe mode, too
-		gl.bglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		gl.glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		gl.bglDisable(GL_FOG);
+		gl.glDisable(GL_FOG);
 		 
-		gl.bglEnable(GL_TEXTURE_2D);
-		gl.bglEnable(GL_BLEND);
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_BLEND);
 		if(curpalette[col] == null)
-			gl.bglColor4ub(255, 255, 255, 255);
+			gl.glColor4ub(255, 255, 255, 255);
 		else
-			gl.bglColor4ub(curpalette[col].r, curpalette[col].g, curpalette[col].b, 255);
+			gl.glColor4ub(curpalette[col].r, curpalette[col].g, curpalette[col].b, 255);
 
 		txc = (float) (fontsize != 0 ? (4.0 / 256.0) : (8.0 / 256.0));
 		tyc = (float) (fontsize != 0 ? (6.0 / 128.0) : (8.0 / 128.0));
 
-		gl.bglBegin(GL_QUADS);
+		gl.glBegin(GL_QUADS);
 
 		c = 0;
 		while (c < text.length && text[c] != '\0') {
@@ -4923,26 +4922,26 @@ public abstract class Polymost implements Renderer {
 			int x = xpos + (8 >> fontsize);
 			int y = ypos + (fontsize != 0 ? 6 : 8);
 
-			gl.bglTexCoord2f(tx, ty); // 0
-			gl.bglVertex2i(xpos, ypos + yoffs);
+			gl.glTexCoord2f(tx, ty); // 0
+			gl.glVertex2i(xpos, ypos + yoffs);
 
-			gl.bglTexCoord2f(tx + txc, ty); // 1
-			gl.bglVertex2i(x, ypos + yoffs);
+			gl.glTexCoord2f(tx + txc, ty); // 1
+			gl.glVertex2i(x, ypos + yoffs);
 
-			gl.bglTexCoord2f(tx + txc, ty + tyc); // 2
-			gl.bglVertex2i(x, y + yoffs);
+			gl.glTexCoord2f(tx + txc, ty + tyc); // 2
+			gl.glVertex2i(x, y + yoffs);
 
-			gl.bglTexCoord2f(tx, ty + tyc); // 3
-			gl.bglVertex2i(xpos, y + yoffs);
+			gl.glTexCoord2f(tx, ty + tyc); // 3
+			gl.glVertex2i(xpos, y + yoffs);
 
 			xpos += (8 >> fontsize);
 			c++;
 		}
 
-		gl.bglEnd();
+		gl.glEnd();
 
-		gl.bglDepthMask(GL_TRUE); // re-enable writing to the z-buffer
-//		gl.bglPopAttrib();
+		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+//		gl.glPopAttrib();
 		
 		EnableFog();
 
@@ -5025,40 +5024,40 @@ public abstract class Polymost implements Renderer {
 	private void calc_and_apply_fog(int tile, int shade, int vis, int pal)
 	{
 		fogcalc(tile, shade, vis, pal);
-	    gl.bglFogfv(GL_FOG_COLOR, fogcol);
+	    gl.glFogfv(GL_FOG_COLOR, fogcol);
 	    if(UseBloodPal && pal == 1) //Blood's pal 1
 		{
 			fogresult = 0;
 			if(fogresult2 > 2)
 				fogresult2 = 2;
 		}
-	    gl.bglFogf(GL_FOG_START, fogresult);
-	    gl.bglFogf(GL_FOG_END, fogresult2);
+	    gl.glFogf(GL_FOG_START, fogresult);
+	    gl.glFogf(GL_FOG_END, fogresult2);
 	}
 	
 	private void calc_and_apply_skyfog(int tile, int shade, int vis, int pal)
 	{
 		fogcalc(tile, shade, vis, pal);
-	    gl.bglFogfv(GL_FOG_COLOR, fogcol);	
-	    gl.bglFogf(GL_FOG_START, (float)FULLVIS_BEGIN);
-	    gl.bglFogf(GL_FOG_END, (float)FULLVIS_END);
+	    gl.glFogfv(GL_FOG_COLOR, fogcol);	
+	    gl.glFogf(GL_FOG_START, (float)FULLVIS_BEGIN);
+	    gl.glFogf(GL_FOG_END, (float)FULLVIS_END);
 	}
 
 	public void setpolymost2dview() {
 		if (gloy1 != -1) {
-			gl.bglViewport(0, 0, xdim, ydim);
-			gl.bglMatrixMode(GL_PROJECTION);
-			gl.bglLoadIdentity();
-			gl.bglOrtho(0, xdim, ydim, 0, -1, 1);
-			gl.bglMatrixMode(GL_MODELVIEW);
-			gl.bglLoadIdentity();
+			gl.glViewport(0, 0, xdim, ydim);
+			gl.glMatrixMode(GL_PROJECTION);
+			gl.glLoadIdentity();
+			gl.glOrthof(0, xdim, ydim, 0, -1, 1);
+			gl.glMatrixMode(GL_MODELVIEW);
+			gl.glLoadIdentity();
 		}
 
 		gloy1 = -1;
 
-		gl.bglDisable(GL_DEPTH_TEST);
-		gl.bglDisable(GL_TEXTURE_2D);
-		gl.bglDisable(GL_BLEND);
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDisable(GL_TEXTURE_2D);
+		gl.glDisable(GL_BLEND);
 	}
 
 	public static void equation(Vector3 ret, float x1, float y1, float x2, float y2)
@@ -5241,7 +5240,7 @@ public abstract class Polymost implements Renderer {
 		drawmasks_pos.x = (float) globalposx;
 		drawmasks_pos.y = (float) globalposy;
 		
-		gl.bglEnable(GL10.GL_POLYGON_OFFSET_FILL);
+		gl.glEnable(GL10.GL_POLYGON_OFFSET_FILL);
 
 		while (maskwallcnt != 0) {
 
@@ -5283,8 +5282,8 @@ public abstract class Polymost implements Renderer {
 			}
 		}
 		
-		gl.bglDisable(GL10.GL_POLYGON_OFFSET_FILL);
-		gl.bglPolygonOffset(0, 0);
+		gl.glDisable(GL10.GL_POLYGON_OFFSET_FILL);
+		gl.glPolygonOffset(0, 0);
 		
 		if (totalclock < lastcullcheck - CULL_DELAY)
 			lastcullcheck = totalclock;
@@ -5299,66 +5298,66 @@ public abstract class Polymost implements Renderer {
 			{
 				if(frameTexture != null) frameTexture.dispose();
 				frameTexture = new BTexture();
-				gl.bglBindTexture(GL_TEXTURE_2D, frameTexture);
+				gl.glBindTexture(frameTexture);
 				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
-				gl.bglTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
-				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
+				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				framew = xdim; frameh = ydim;
 			}
 			
-			gl.bglReadBuffer(GL_BACK);
-			gl.bglBindTexture(GL_TEXTURE_2D, frameTexture);
-			gl.bglCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framesize, framesize);
+			gl.glReadBuffer(GL_BACK);
+			gl.glBindTexture(frameTexture);
+			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framesize, framesize);
 
 
-			gl.bglDisable(GL_DEPTH_TEST);
-			gl.bglDisable(GL_ALPHA_TEST);
-			gl.bglEnable(GL_TEXTURE_2D);
-			gl.bglBindTexture(GL_TEXTURE_2D, frameTexture);
+			gl.glDisable(GL_DEPTH_TEST);
+			gl.glDisable(GL_ALPHA_TEST);
+			gl.glEnable(GL_TEXTURE_2D);
+			gl.glBindTexture(frameTexture);
 
 		
-			gl.bglMatrixMode(GL_PROJECTION);
-			gl.bglPushMatrix();
-			gl.bglLoadIdentity();
+			gl.glMatrixMode(GL_PROJECTION);
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
 			
 			float tilt = (drunkIntensive * 360) / 2048f;
 			tilt = min(max(tilt, -MAXDRUNKANGLE), MAXDRUNKANGLE);
 
-			gl.bglScalef(0.95f, 1, 1);
-			gl.bglRotatef(tilt, 0, 0, 1.0f);
+			gl.glScalef(0.95f, 1, 1);
+			gl.glRotatef(tilt, 0, 0, 1.0f);
 
-			gl.bglMatrixMode(GL_MODELVIEW);
-			gl.bglPushMatrix();
-			gl.bglLoadIdentity();
+			gl.glMatrixMode(GL_MODELVIEW);
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
 			
 			float u = (float)xdim / framesize;
 			float v = (float)ydim / framesize;
 
-			gl.bglColor4f(1, 1, 1, 0.5f);
-			gl.bglBegin(GL10.GL_TRIANGLE_FAN);
-			gl.bglTexCoord2f(0, 0);
-			gl.bglVertex2f( -1f, -1f );
+			gl.glColor4f(1, 1, 1, 0.5f);
+			gl.glBegin(GL10.GL_TRIANGLE_FAN);
+			gl.glTexCoord2f(0, 0);
+			gl.glVertex2f( -1f, -1f );
 			 
-			gl.bglTexCoord2f(0, v);
-			gl.bglVertex2f( -1f, 1f );
+			gl.glTexCoord2f(0, v);
+			gl.glVertex2f( -1f, 1f );
 			 
-			gl.bglTexCoord2f(u, v);
-			gl.bglVertex2f(1f, 1f );
+			gl.glTexCoord2f(u, v);
+			gl.glVertex2f(1f, 1f );
 			 
-			gl.bglTexCoord2f(u, 0);
-			gl.bglVertex2f( 1f, -1f);
-			gl.bglEnd();
+			gl.glTexCoord2f(u, 0);
+			gl.glVertex2f( 1f, -1f);
+			gl.glEnd();
 			
 
-			gl.bglMatrixMode(GL_MODELVIEW);
-			gl.bglPopMatrix();
-			gl.bglMatrixMode(GL_PROJECTION);
-			gl.bglPopMatrix();
+			gl.glMatrixMode(GL_MODELVIEW);
+			gl.glPopMatrix();
+			gl.glMatrixMode(GL_PROJECTION);
+			gl.glPopMatrix();
 			
-			gl.bglEnable(GL_DEPTH_TEST);
-			gl.bglEnable(GL_ALPHA_TEST);
-			gl.bglDisable(GL_TEXTURE_2D);
+			gl.glEnable(GL_DEPTH_TEST);
+			gl.glEnable(GL_ALPHA_TEST);
+			gl.glDisable(GL_TEXTURE_2D);
 		}
 	}
 
@@ -5387,15 +5386,15 @@ public abstract class Polymost implements Renderer {
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
 		col = palookup[0][col] & 0xFF;
 		
-		gl.bglDisable(GL_FOG);
+		gl.glDisable(GL_FOG);
 
 		setpolymost2dview(); // JBF 20040205: more efficient setup
 
-		gl.bglBegin(GL_LINES);
-		gl.bglColor4ub((byte) curpalette[col].r, (byte) curpalette[col].g, (byte) curpalette[col].b, (byte) 255);
-		gl.bglVertex2f((float) x1 / 4096.0f, (float) y1 / 4096.0f);
-		gl.bglVertex2f((float) x2 / 4096.0f, (float) y2 / 4096.0f);
-		gl.bglEnd();
+		gl.glBegin(GL_LINES);
+		gl.glColor4ub((byte) curpalette[col].r, (byte) curpalette[col].g, (byte) curpalette[col].b, (byte) 255);
+		gl.glVertex2f((float) x1 / 4096.0f, (float) y1 / 4096.0f);
+		gl.glVertex2f((float) x2 / 4096.0f, (float) y2 / 4096.0f);
+		gl.glEnd();
 		
 		EnableFog();
 	}
@@ -5503,13 +5502,13 @@ public abstract class Polymost implements Renderer {
 		float roll = gtang * 57.3f; //XXX 57.3f WTF
 		float spriteang = ((tspr.ang + spriteext[tspr.owner].angoff + 512) & 2047) / (2048.0f / 360.0f);
 
-		gl.bglLoadIdentity();
-		gl.bglRotatef(roll, 0, 0, -1);
-		gl.bglRotatef(pitch, -1, 0, 0);
-		gl.bglRotatef(yaw, 0, -1, 0);
-		gl.bglScalef(-1 / 16f, 1.0f, 1 / 16f);
-		gl.bglTranslatef(a0.y, a0.z, a0.x);
-		gl.bglRotatef(spriteang, 0.0f, -1.0f, 0.0f);
+		gl.glLoadIdentity();
+		gl.glRotatef(roll, 0, 0, -1);
+		gl.glRotatef(pitch, -1, 0, 0);
+		gl.glRotatef(yaw, 0, -1, 0);
+		gl.glScalef(-1 / 16f, 1.0f, 1 / 16f);
+		gl.glTranslatef(a0.y, a0.z, a0.x);
+		gl.glRotatef(spriteang, 0.0f, -1.0f, 0.0f);
 	}
 	
 	public int mddraw(SPRITE tspr, int xoff, int yoff)
@@ -5520,21 +5519,21 @@ public abstract class Polymost implements Renderer {
 //	        indexvbos = Brealloc(indexvbos, sizeof(GLuint) * r_vbocount);
 //	        vertvbos = Brealloc(vertvbos, sizeof(GLuint) * r_vbocount);
 //
-//	        bglGenBuffersARB(r_vbocount - allocvbos, &(indexvbos[allocvbos]));
-//	        bglGenBuffersARB(r_vbocount - allocvbos, &(vertvbos[allocvbos]));
+//	        glGenBuffersARB(r_vbocount - allocvbos, &(indexvbos[allocvbos]));
+//	        glGenBuffersARB(r_vbocount - allocvbos, &(vertvbos[allocvbos]));
 //
 //	        i = allocvbos;
 //	        while (i < r_vbocount)
 //	        {
-//	            bglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexvbos[i]);
-//	            bglBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, maxmodeltris * 3 * sizeof(uint16_t), NULL, GL_STREAM_DRAW_ARB);
-//	            bglBindBufferARB(GL_ARRAY_BUFFER_ARB, vertvbos[i]);
-//	            bglBufferDataARB(GL_ARRAY_BUFFER_ARB, maxmodelverts * sizeof(point3d), NULL, GL_STREAM_DRAW_ARB);
+//	            glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexvbos[i]);
+//	            glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, maxmodeltris * 3 * sizeof(uint16_t), NULL, GL_STREAM_DRAW_ARB);
+//	            glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertvbos[i]);
+//	            glBufferDataARB(GL_ARRAY_BUFFER_ARB, maxmodelverts * sizeof(point3d), NULL, GL_STREAM_DRAW_ARB);
 //	            i++;
 //	        }
 //
-//	        bglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,0);
-//	        bglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+//	        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB,0);
+//	        glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 //
 //	        allocvbos = r_vbocount;
 //	    }
@@ -5666,16 +5665,16 @@ public abstract class Polymost implements Renderer {
 		matrix[0][3] = matrix[1][3] = matrix[2][3] = 0.f;
 		matrix[3][3] = 1.f;
 
-		gl.bglMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
-		gl.bglLoadMatrixf(matrix);
-		gl.bglRotatef(-90, 0.0f, 1.0f, 0.0f);
+		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
+		gl.glLoadMatrixf(matrix);
+		gl.glRotatef(-90, 0.0f, 1.0f, 0.0f);
 
-//        gl.bglPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
-        if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.bglFrontFace(GL_CW); else gl.bglFrontFace(GL_CCW);
-        gl.bglEnable(GL_CULL_FACE);
-        gl.bglCullFace(GL_BACK);
+//        gl.glPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
+        if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.glFrontFace(GL_CW); else gl.glFrontFace(GL_CCW);
+        gl.glEnable(GL_CULL_FACE);
+        gl.glCullFace(GL_BACK);
 
-        gl.bglEnable(GL_TEXTURE_2D);
+        gl.glEnable(GL_TEXTURE_2D);
 
 		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    if ((hictinting[globalpal].f&4) == 0)
@@ -5708,14 +5707,14 @@ public abstract class Polymost implements Renderer {
 	        float al = 0.0f;
 	        if (alphahackarray[globalpicnum] != 0)
 	            al=alphahackarray[globalpicnum];
-	        gl.bglEnable(GL_BLEND);
-	        gl.bglEnable(GL_ALPHA_TEST);
-	        gl.bglAlphaFunc(GL_GREATER,al);
+	        gl.glEnable(GL_BLEND);
+	        gl.glEnable(GL_ALPHA_TEST);
+	        gl.glAlphaFunc(GL_GREATER,al);
 	    }
 	    else
-	        if ((tspr.cstat&2) != 0) gl.bglEnable(GL_BLEND);
+	        if ((tspr.cstat&2) != 0) gl.glEnable(GL_BLEND);
 
-	    gl.bglColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
+	    gl.glColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
 
 	    int rendered = 0;
 	    for (int surfi = 0; surfi < m.head.numSurfaces; surfi++)
@@ -5744,41 +5743,41 @@ public abstract class Polymost implements Renderer {
 		        else
 		        	texid = null;
 		        
-		        int texunits = GL_TEXTURE0_ARB;
+		        int texunits = GL_TEXTURE0;
 		        
 		        if (texid != null)
 		        {
-		            gl.bglActiveTextureARB(++texunits);
+		            gl.glActiveTexture(++texunits);
 		
-		            gl.bglEnable(GL_TEXTURE_2D);
+		            gl.glEnable(GL_TEXTURE_2D);
 		            bindTexture(gl,  texid);
 		
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
 		
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
 		
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
 		
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
 		
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, 2.0f);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
 		
-		            gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-		            gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+		            gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+		            gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 		
 		            for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next)
 		                if (sk.palette == DETAILPAL && sk.skinnum == tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum && sk.surfnum == surfi)
 		                    f = sk.param;
 		
-		            gl.bglMatrixMode(GL_TEXTURE);
-		            gl.bglLoadIdentity();
-		            gl.bglScalef(f, f, 1.0f);
-		            gl.bglMatrixMode(GL_MODELVIEW);
+		            gl.glMatrixMode(GL_TEXTURE);
+		            gl.glLoadIdentity();
+		            gl.glScalef(f, f, 1.0f);
+		            gl.glMatrixMode(GL_MODELVIEW);
 		        }
 		        
 		        if (r_glowmapping != 0)
@@ -5788,29 +5787,29 @@ public abstract class Polymost implements Renderer {
 		        
 		        if (texid != null)
 		        {
-		        	gl.bglActiveTextureARB(++texunits);
+		        	gl.glActiveTexture(++texunits);
 		
-		        	gl.bglEnable(GL_TEXTURE_2D);
+		        	gl.glEnable(GL_TEXTURE_2D);
 		        	bindTexture(gl,  texid);
 		
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
 		
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
 		
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
 		
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
 		
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-		        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
+		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
 		
-		        	gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-		        	gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+		        	gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+		        	gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 		        }
 	
 		        if(r_vertexarrays != 0)
@@ -5821,66 +5820,66 @@ public abstract class Polymost implements Renderer {
 		        			 m.indicesBuffer.put((short) s.tris[i][j]);
 		        	m.indicesBuffer.flip();
 		        	
-		        	int l = GL_TEXTURE0_ARB;
+		        	int l = GL_TEXTURE0;
 	                do
 	                {
-	                    gl.bglClientActiveTextureARB(l++);
-	                    gl.bglEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	                    gl.bglTexCoordPointer(2, 0, s.uv);
+	                    gl.glClientActiveTexture(l++);
+	                    gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	                    gl.glTexCoordPointer(2, GL_FLOAT, 0, s.uv);
 	                } while (l <= texunits);
 	                
-	                gl.bglEnableClientState(GL_VERTEX_ARRAY);
-	                gl.bglVertexPointer(3, 0, m.verticesBuffer);
-	                gl.bglDrawElements(GL_TRIANGLES, m.indicesBuffer);
+	                gl.glEnableClientState(GL_VERTEX_ARRAY);
+	                gl.glVertexPointer(3, GL_FLOAT, 0, m.verticesBuffer);
+	                gl.glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_SHORT, m.indicesBuffer);
 		        }
 		        else
 		        {
-			        gl.bglBegin(GL_TRIANGLES);
+			        gl.glBegin(GL_TRIANGLES);
 		            for (int i = s.numtris - 1; i >= 0; i--)
 		                for (int j = 0; j < 3; j++)
 		                {
 		                    int k = s.tris[i][j];
-		                    if (texunits > GL_TEXTURE0_ARB)
+		                    if (texunits > GL_TEXTURE0)
 		                    {
-		                        int l = GL_TEXTURE0_ARB;
+		                        int l = GL_TEXTURE0;
 		                        while (l <= texunits)
-		                            gl.bglMultiTexCoord2dARB(l++, s.uv.get(2*k), s.uv.get(2*k+1));
+		                            gl.glMultiTexCoord2d(l++, s.uv.get(2*k), s.uv.get(2*k+1));
 		                    }
 		                    else
-		                        gl.bglTexCoord2f(s.uv.get(2 * k), s.uv.get(2 * k + 1));
+		                        gl.glTexCoord2f(s.uv.get(2 * k), s.uv.get(2 * k + 1));
 
 		                    float x = m.verticesBuffer.get(3 * k);
 		                    float y = m.verticesBuffer.get(3 * k + 1);
 		                    float z = m.verticesBuffer.get(3 * k + 2);
 
-		                    gl.bglVertex3d(x, y, z);
+		                    gl.glVertex3d(x, y, z);
 		                }
-		            gl.bglEnd();
+		            gl.glEnd();
 		        }
 	
-		        while (texunits > GL_TEXTURE0_ARB)
+		        while (texunits > GL_TEXTURE0)
 		        {
-		        	gl.bglMatrixMode(GL_TEXTURE);
-		            gl.bglLoadIdentity();
-		            gl.bglMatrixMode(GL_MODELVIEW);
-		            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, 1.0f);
-		            gl.bglDisable(GL_TEXTURE_2D);
+		        	gl.glMatrixMode(GL_TEXTURE);
+		            gl.glLoadIdentity();
+		            gl.glMatrixMode(GL_MODELVIEW);
+		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
+		            gl.glDisable(GL_TEXTURE_2D);
 		            if (r_vertexarrays != 0)
 		            {
-		                gl.bglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		                gl.bglClientActiveTextureARB(texunits - 1);
+		                gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		                gl.glClientActiveTexture(texunits - 1);
 		            }
-		            gl.bglActiveTextureARB(--texunits);
+		            gl.glActiveTexture(--texunits);
 		        }
-		        if (r_vertexarrays != 0) gl.bglDisableClientState(GL_VERTEX_ARRAY);
+		        if (r_vertexarrays != 0) gl.glDisableClientState(GL_VERTEX_ARRAY);
 		        rendered = 1;
 		    } else break;
 	    }
 
-    	if (m.usesalpha) gl.bglDisable(GL_ALPHA_TEST);
-    	gl.bglDisable(GL_CULL_FACE);
-//    	gl.bglPopAttrib();
-        gl.bglLoadIdentity();
+    	if (m.usesalpha) gl.glDisable(GL_ALPHA_TEST);
+    	gl.glDisable(GL_CULL_FACE);
+//    	gl.glPopAttrib();
+        gl.glLoadIdentity();
 
         globalnoeffect=0;
 		return rendered;
@@ -5988,16 +5987,16 @@ public abstract class Polymost implements Renderer {
 		matrix[0][3] = matrix[1][3] = matrix[2][3] = 0.f;
 		matrix[3][3] = 1.f;
 
-		gl.bglMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
-		gl.bglLoadMatrixf(matrix);
-		gl.bglRotatef(-90, 0.0f, 1.0f, 0.0f);
+		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
+		gl.glLoadMatrixf(matrix);
+		gl.glRotatef(-90, 0.0f, 1.0f, 0.0f);
 
-//        gl.bglPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
-        if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.bglFrontFace(GL_CW); else gl.bglFrontFace(GL_CCW);
-        gl.bglEnable(GL_CULL_FACE);
-        gl.bglCullFace(GL_FRONT);
+//        gl.glPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
+        if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.glFrontFace(GL_CW); else gl.glFrontFace(GL_CCW);
+        gl.glEnable(GL_CULL_FACE);
+        gl.glCullFace(GL_FRONT);
 
-        gl.bglEnable(GL_TEXTURE_2D);
+        gl.glEnable(GL_TEXTURE_2D);
 
 		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    if ((hictinting[globalpal].f&4) == 0)
@@ -6029,14 +6028,14 @@ public abstract class Polymost implements Renderer {
 	        float al = 0.0f;
 	        if (alphahackarray[globalpicnum] != 0)
 	            al=alphahackarray[globalpicnum];
-	        gl.bglEnable(GL_BLEND);
-	        gl.bglEnable(GL_ALPHA_TEST);
-	        gl.bglAlphaFunc(GL_GREATER,al);
+	        gl.glEnable(GL_BLEND);
+	        gl.glEnable(GL_ALPHA_TEST);
+	        gl.glAlphaFunc(GL_GREATER,al);
 	    }
 	    else
-	        if ((tspr.cstat&2) != 0) gl.bglEnable(GL_BLEND);
+	        if ((tspr.cstat&2) != 0) gl.glEnable(GL_BLEND);
 
-	    gl.bglColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
+	    gl.glColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
 
 	    int rendered = 0;
 		BTexture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
@@ -6048,41 +6047,41 @@ public abstract class Polymost implements Renderer {
 	        else
 	        	texid = null;
 	        
-	        int texunits = GL_TEXTURE0_ARB;
+	        int texunits = GL_TEXTURE0;
 	        
 	        if (texid != null)
 	        {
-	            gl.bglActiveTextureARB(++texunits);
+	            gl.glActiveTexture(++texunits);
 	
-	            gl.bglEnable(GL_TEXTURE_2D);
+	            gl.glEnable(GL_TEXTURE_2D);
 	            bindTexture(gl,  texid);
 	
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
 	
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
 	
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
 	
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
 	
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, 2.0f);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
 	
-	            gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-	            gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+	            gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+	            gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 	
 	            for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next)
 	                if (sk.palette == DETAILPAL && sk.skinnum == tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum && sk.surfnum == 0)
 	                    f = sk.param;
 	
-	            gl.bglMatrixMode(GL_TEXTURE);
-	            gl.bglLoadIdentity();
-	            gl.bglScalef(f, f, 1.0f);
-	            gl.bglMatrixMode(GL_MODELVIEW);
+	            gl.glMatrixMode(GL_TEXTURE);
+	            gl.glLoadIdentity();
+	            gl.glScalef(f, f, 1.0f);
+	            gl.glMatrixMode(GL_MODELVIEW);
 	        }
 	        
 	        if (r_glowmapping != 0)
@@ -6092,29 +6091,29 @@ public abstract class Polymost implements Renderer {
 	        
 	        if (texid != null)
 	        {
-	        	gl.bglActiveTextureARB(++texunits);
+	        	gl.glActiveTexture(++texunits);
 	
-	        	gl.bglEnable(GL_TEXTURE_2D);
+	        	gl.glEnable(GL_TEXTURE_2D);
 	        	bindTexture(gl,  texid);
 	
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
 	
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
 	
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
 	
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
 	
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-	        	gl.bglTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
+	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
 	
-	        	gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-	        	gl.bglTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+	        	gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+	        	gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 	        }
 
 	        if(r_vertexarrays != 0)
@@ -6144,25 +6143,25 @@ public abstract class Polymost implements Renderer {
 //         			m.verticesBuffer.put(y);
 //	            }
 	         	
-	        	int l = GL_TEXTURE0_ARB;
+	        	int l = GL_TEXTURE0;
                 do
                 {
-                    gl.bglClientActiveTextureARB(l++);
-                    gl.bglEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                    gl.bglTexCoordPointer(2, 0, m.uv);
+                    gl.glClientActiveTexture(l++);
+                    gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    gl.glTexCoordPointer(2, GL_FLOAT, 0, m.uv);
                 } while (l <= texunits);
                 
-                gl.bglEnableClientState(GL_VERTEX_ARRAY);
-                gl.bglVertexPointer(3, 0, m.verticesBuffer);
-                gl.bglDrawElements(GL_TRIANGLES, m.indicesBuffer);
+                gl.glEnableClientState(GL_VERTEX_ARRAY);
+                gl.glVertexPointer(3, GL_FLOAT, 0, m.verticesBuffer);
+                gl.glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_SHORT, m.indicesBuffer);
 	        }
 	        else
 	        {
 		    	int c = 0, cmd;
 		    	while((cmd = m.glcmds[c++]) != 0)
 		    	{
-		    		if(cmd < 0) { gl.bglBegin(GL_TRIANGLE_FAN); cmd = -cmd; }
-		    		else gl.bglBegin(GL_TRIANGLE_STRIP);
+		    		if(cmd < 0) { gl.glBegin(GL_TRIANGLE_FAN); cmd = -cmd; }
+		    		else gl.glBegin(GL_TRIANGLE_STRIP);
 		    			
 		    		for( /*nothing*/; cmd > 0; cmd--, c += 3)
 		    		{
@@ -6173,13 +6172,13 @@ public abstract class Polymost implements Renderer {
 		    			float y = cframe.vertices[m.glcmds[c + 2]][1]*m0y + nframe.vertices[m.glcmds[c + 2]][1]*m1y;
 		    			float z = cframe.vertices[m.glcmds[c + 2]][2]*m0z + nframe.vertices[m.glcmds[c + 2]][2]*m1z;
 		
-		    			gl.bglTexCoord2d(s, t);
-		    			gl.bglVertex3d(x, z, y);
+		    			gl.glTexCoord2d(s, t);
+		    			gl.glVertex3d(x, z, y);
 		    		}
-		    		gl.bglEnd();
+		    		gl.glEnd();
 		    	}
 
-//		    	gl.bglBegin(GL_TRIANGLES);
+//		    	gl.glBegin(GL_TRIANGLES);
 //		    	for( int i = 0; i < m.tris.length; i++)
 //		    	{
 //		    		for( int j = 0; j < 3; j++)
@@ -6190,35 +6189,35 @@ public abstract class Polymost implements Renderer {
 //		    			float z = cframe.vertices[vIdx][2]*m0z + nframe.vertices[vIdx][2]*m1z;
 //		
 //		    			int tIdx = m.tris[i].texCoords[j];
-//		    			gl.bglTexCoord2d(m.uv.get(2 * tIdx), m.uv.get(2 * tIdx + 1)); //uv rewrited for drawelements
-//		    			gl.bglVertex3d(x, z, y);
+//		    			gl.glTexCoord2d(m.uv.get(2 * tIdx), m.uv.get(2 * tIdx + 1)); //uv rewrited for drawelements
+//		    			gl.glVertex3d(x, z, y);
 //		    		}
 //		    	}
-//		    	gl.bglEnd();
+//		    	gl.glEnd();
 	        }
 
 
-	    	while (texunits > GL_TEXTURE0_ARB)
+	    	while (texunits > GL_TEXTURE0)
 	        {
-	        	gl.bglMatrixMode(GL_TEXTURE);
-	            gl.bglLoadIdentity();
-	            gl.bglMatrixMode(GL_MODELVIEW);
-	            gl.bglTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_ARB, 1.0f);
-	            gl.bglDisable(GL_TEXTURE_2D);
+	        	gl.glMatrixMode(GL_TEXTURE);
+	            gl.glLoadIdentity();
+	            gl.glMatrixMode(GL_MODELVIEW);
+	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
+	            gl.glDisable(GL_TEXTURE_2D);
 	            if (r_vertexarrays != 0)
 	            {
-	                gl.bglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	                gl.bglClientActiveTextureARB(texunits - 1);
+	                gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	                gl.glClientActiveTexture(texunits - 1);
 	            }
-	            gl.bglActiveTextureARB(--texunits);
+	            gl.glActiveTexture(--texunits);
 	        }
 	    	rendered = 1;
         }
     	
-    	if (m.usesalpha) gl.bglDisable(GL_ALPHA_TEST);
-    	gl.bglDisable(GL_CULL_FACE);
-//    	gl.bglPopAttrib();
-        gl.bglLoadIdentity();
+    	if (m.usesalpha) gl.glDisable(GL_ALPHA_TEST);
+    	gl.glDisable(GL_CULL_FACE);
+//    	gl.glPopAttrib();
+        gl.glLoadIdentity();
 
         globalnoeffect=0;
 		return rendered;
@@ -6303,13 +6302,13 @@ public abstract class Polymost implements Renderer {
 		if(yflip) dvoxm0.z *= -1;
 		modela0.z = (((float) (k0 - globalposz)) / -16384.0f + modela0.z) * g;
 
-//		gl.bglPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
-		if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.bglFrontFace(GL_CW); else gl.bglFrontFace(GL_CCW);
+//		gl.glPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
+		if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.glFrontFace(GL_CW); else gl.glFrontFace(GL_CCW);
 
-		gl.bglEnable(GL_CULL_FACE);
-		gl.bglCullFace(GL_BACK);
+		gl.glEnable(GL_CULL_FACE);
+		gl.glCullFace(GL_BACK);
 
-		gl.bglEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_TEXTURE_2D);
 
 		polyColor.r = polyColor.g = polyColor.b = ((float) (numshades - min(max((globalshade * shadescale) + m.shadeoff, 0), numshades))) / ((float) numshades);
 		polyColor.r *= (float) hictinting[globalpal].r / 255.0f;
@@ -6323,10 +6322,10 @@ public abstract class Polymost implements Renderer {
 		} else
 			polyColor.a = 1.0f;
 		if ((tspr.cstat & 2) != 0)
-			gl.bglEnable(GL_BLEND);
+			gl.glEnable(GL_BLEND);
 		
 		
-		gl.bglMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
+		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
 		
 		boolean newmatrix = false;
 		
@@ -6351,20 +6350,20 @@ public abstract class Polymost implements Renderer {
 		if(!newmatrix) {
 			matrix[0][3] = matrix[1][3] = matrix[2][3] = 0.f;
 			matrix[3][3] = 1.f;
-			gl.bglLoadMatrixf(matrix);
+			gl.glLoadMatrixf(matrix);
 		}
 		
 		// transform to Build coords
 		if ((tspr.cstat & 48) == 32) {
-			gl.bglScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
-			gl.bglRotatef(90, 1.0f, 0.0f, 0.0f);
-			gl.bglTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
-			gl.bglRotatef(90, -1.0f, 0.0f, 0.0f);
-			gl.bglTranslatef(0, -m.ypiv, -m.zpiv);
+			gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
+			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
+			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
+			gl.glRotatef(90, -1.0f, 0.0f, 0.0f);
+			gl.glTranslatef(0, -m.ypiv, -m.zpiv);
 		} else {
-			gl.bglScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
-			gl.bglRotatef(90, 1.0f, 0.0f, 0.0f);
-			gl.bglTranslatef(-m.xpiv, -m.ypiv, -(m.zpiv + m.zsiz * 0.5f));
+			gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
+			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
+			gl.glTranslatef(-m.xpiv, -m.ypiv, -(m.zpiv + m.zsiz * 0.5f));
 		}
 
 		ru = 1.f / ((float) m.mytexx);
@@ -6380,20 +6379,20 @@ public abstract class Polymost implements Renderer {
 		
 		if(r_vertexarrays != 0)
 		{
-			gl.bglColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-			gl.bglEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	        gl.bglTexCoordPointer(2, 0, m.uv);
-			gl.bglEnableClientState(GL_VERTEX_ARRAY);
-	        gl.bglVertexPointer(3, 0, m.verticesBuffer);
-	        gl.bglDrawElements(GL_QUADS, m.indicesBuffer);
+			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	        gl.glTexCoordPointer(2, GL_FLOAT, 0, m.uv);
+			gl.glEnableClientState(GL_VERTEX_ARRAY);
+	        gl.glVertexPointer(3, GL_FLOAT, 0, m.verticesBuffer);
+	        gl.glDrawElements(GL_QUADS, 0, GL_UNSIGNED_SHORT, m.indicesBuffer);
 		} 
 		else
 		{
-			gl.bglBegin(GL_QUADS);
+			gl.glBegin(GL_QUADS);
 			for (i = 0, fi = 0; i < m.qcnt; i++) {
 				if (i == m.qfacind[fi]) {
 					f = dvoxclut[fi++];
-					gl.bglColor4f(polyColor.r * f, polyColor.g * f, polyColor.b * f, polyColor.a * f);
+					gl.glColor4f(polyColor.r * f, polyColor.g * f, polyColor.b * f, polyColor.a * f);
 				}
 	
 				xx = m.quad[i].v[0].x + m.quad[i].v[2].x;
@@ -6401,20 +6400,20 @@ public abstract class Polymost implements Renderer {
 				zz = m.quad[i].v[0].z + m.quad[i].v[2].z;
 	
 				for (j = 0; j < 4; j++) {
-					gl.bglTexCoord2d((m.quad[i].v[j].u) * ru, (m.quad[i].v[j].v) * rv);
+					gl.glTexCoord2d((m.quad[i].v[j].u) * ru, (m.quad[i].v[j].v) * rv);
 					dvoxfp.x = ((float) m.quad[i].v[j].x) - dvoxphack[(xx > (m.quad[i].v[j].x * 2)) ? 1 : 0] + dvoxphack[(xx < (m.quad[i].v[j].x * 2)) ? 1 : 0];
 					dvoxfp.y = ((float) m.quad[i].v[j].y) - dvoxphack[(yy > (m.quad[i].v[j].y * 2)) ? 1 : 0] + dvoxphack[(yy < (m.quad[i].v[j].y * 2)) ? 1 : 0];
 					dvoxfp.z = ((float) m.quad[i].v[j].z) - dvoxphack[(zz > (m.quad[i].v[j].z * 2)) ? 1 : 0] + dvoxphack[(zz < (m.quad[i].v[j].z * 2)) ? 1 : 0];
-					gl.bglVertex3d(dvoxfp.x, dvoxfp.y, dvoxfp.z);
+					gl.glVertex3d(dvoxfp.x, dvoxfp.y, dvoxfp.z);
 				}
 			}
-			gl.bglEnd();
+			gl.glEnd();
 		}
 	
 		// ------------
-		gl.bglDisable(GL_CULL_FACE);
-//		gl.bglPopAttrib();
-		gl.bglLoadIdentity();
+		gl.glDisable(GL_CULL_FACE);
+//		gl.glPopAttrib();
+		gl.glLoadIdentity();
 
 		return 1;
 	}
@@ -6686,16 +6685,16 @@ public abstract class Polymost implements Renderer {
 	public void clearview(int dacol) {
 		Palette p = engine.getpal(dacol);
 		if (p == null) {
-			gl.bglClearColor(dacol / 255.0, dacol / 255.0, dacol / 255.0, 1);
-			gl.bglClear(GL_COLOR_BUFFER_BIT);
+			gl.glClearColor(dacol / 255.0f, dacol / 255.0f, dacol / 255.0f, 1);
+			gl.glClear(GL_COLOR_BUFFER_BIT);
 			
 			return;
 		}
-		gl.bglClearColor(((float) p.r) / 255.0,
-				((float) p.g) / 255.0,
-				((float) p.b) / 255.0,
+		gl.glClearColor(((float) p.r) / 255.0f,
+				((float) p.g) / 255.0f,
+				((float) p.b) / 255.0f,
 				0);
-		gl.bglClear(GL_COLOR_BUFFER_BIT);
+		gl.glClear(GL_COLOR_BUFFER_BIT);
 	}
 
 	@Override
@@ -6715,7 +6714,7 @@ public abstract class Polymost implements Renderer {
 				spriteext[i].mdanimtims += mdtims - omdtims;
 
 		beforedrawrooms = 1;
-		gl.bglFlush();
+		gl.glFlush();
 	}
 	
 	private ByteBuffer framebuffer;

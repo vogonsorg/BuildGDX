@@ -32,14 +32,15 @@ public abstract class FadeEffect {
 	public abstract void update(int intensive);
 
 	public void draw(GL10 gl) {
-		gl.bglBlendFunc(sfactor, dfactor);
-		gl.bglColor4ub(r, g, b, a);
+		
+		gl.glBlendFunc(sfactor, dfactor);
+		gl.glColor4ub(r, g, b, a);
 
-		gl.bglBegin(GL_TRIANGLES);
-		gl.bglVertex2f(-2.5f, 1.f);
-		gl.bglVertex2f(2.5f, 1.f);
-		gl.bglVertex2f(.0f, -2.5f);
-		gl.bglEnd();
+		gl.glBegin(GL_TRIANGLES);
+		gl.glVertex2f(-2.5f, 1.f);
+		gl.glVertex2f(2.5f, 1.f);
+		gl.glVertex2f(.0f, -2.5f);
+		gl.glEnd();
 	}
 }
 

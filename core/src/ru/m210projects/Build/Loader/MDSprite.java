@@ -15,10 +15,7 @@ import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTextureWrap;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ARRAY_BUFFER_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ELEMENT_ARRAY_BUFFER_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_REPEAT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_STREAM_DRAW_ARB;
 import static ru.m210projects.Build.Render.Types.Hightile.HICEFFECTMASK;
 import static ru.m210projects.Build.Render.Types.Hightile.hictinting;
 import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
@@ -76,24 +73,24 @@ public class MDSprite {
 	
 	public static void md_freevbos(GL10 gl)
 	{
-	    for (int i = 0; i < models.size(); i++)
-	        if (models.get(i) != null && models.get(i).mdnum == 3)
-	        {
-	            MD3Model m = (MD3Model) models.get(i);
-	            if (m.vbos != null)
-	            {
-	                //            OSD_Printf("freeing model %d vbo\n",i);
-	                gl.bglDeleteBuffersARB(m.vbos);
-	                m.vbos = null;
-	            }
-	        }
-
-	    if (allocvbos != 0)
-	    {
-	        gl.bglDeleteBuffersARB(indexvbos);
-	        gl.bglDeleteBuffersARB(vertvbos);
-	        allocvbos = 0;
-	    }
+//	    for (int i = 0; i < models.size(); i++)
+//	        if (models.get(i) != null && models.get(i).mdnum == 3)
+//	        {
+//	            MD3Model m = (MD3Model) models.get(i);
+//	            if (m.vbos != null)
+//	            {
+//	                //            OSD_Printf("freeing model %d vbo\n",i);
+//	                gl.glDeleteBuffers(m.vbos);
+//	                m.vbos = null;
+//	            }
+//	        }
+//
+//	    if (allocvbos != 0)
+//	    {
+//	        gl.glDeleteBuffers(indexvbos);
+//	        gl.glDeleteBuffers(vertvbos);
+//	        allocvbos = 0;
+//	    }
 	}
 	
 	public static int qloadkvx(int voxindex, String filename)
@@ -137,17 +134,17 @@ public class MDSprite {
 	// VBO generation and allocation
 	public static void mdloadvbos(MD3Model m, GL10 gl)
 	{
-	    m.vbos = BufferUtils.newIntBuffer(m.head.numSurfaces);
-	    gl.bglGenBuffersARB(m.vbos);
-
-	    int i = 0;
-	    while (i < m.head.numSurfaces)
-	    {
-	    	gl.bglBindBufferARB(GL_ARRAY_BUFFER_ARB, m.vbos.get(i));
-//XXX	    	gl.bglBufferDataARB(GL_ARRAY_BUFFER_ARB, m.surfaces[i].uv, GL_STATIC_DRAW_ARB);
-	        i++;
-	    }
-	    gl.bglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+//	    m.vbos = BufferUtils.newIntBuffer(m.head.numSurfaces);
+//	    gl.glGenBuffers(m.vbos);
+//
+//	    int i = 0;
+//	    while (i < m.head.numSurfaces)
+//	    {
+//	    	gl.bglBindBuffer(GL_ARRAY_BUFFER_ARB, m.vbos.get(i));
+////XXX	    	gl.bglBufferDataARB(GL_ARRAY_BUFFER_ARB, m.surfaces[i].uv, GL_STATIC_DRAW_ARB);
+//	        i++;
+//	    }
+//	    gl.bglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	}
 	
 	public static void md_allocvbos(GL10 gl)
@@ -158,25 +155,25 @@ public class MDSprite {
 
 	    if (r_vbocount != allocvbos)
 	    {
-	    	indexvbos.position(allocvbos);
-	        gl.bglGenBuffersARB(indexvbos);
-	        vertvbos.position(allocvbos);
-	        gl.bglGenBuffersARB(vertvbos);
-
-	        int i = allocvbos;
-	        while (i < r_vbocount)
-	        {
-	            gl.bglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indexvbos.get(i)); //maxmodeltris * 3 XXX
-	            gl.bglBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, null, GL_STREAM_DRAW_ARB);
-	            gl.bglBindBufferARB(GL_ARRAY_BUFFER_ARB, vertvbos.get(i)); //maxmodelverts
-	            gl.bglBufferDataARB(GL_ARRAY_BUFFER_ARB, null, GL_STREAM_DRAW_ARB);
-	            i++;
-	        }
-
-	        gl.bglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-	        gl.bglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-
-	        allocvbos = r_vbocount;
+//	    	indexvbos.position(allocvbos);
+//	        gl.glGenBuffersARB(indexvbos);
+//	        vertvbos.position(allocvbos);
+//	        gl.glGenBuffersARB(vertvbos);
+//
+//	        int i = allocvbos;
+//	        while (i < r_vbocount)
+//	        {
+//	            gl.bglBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, indexvbos.get(i)); //maxmodeltris * 3 XXX
+//	            gl.bglBufferData(GL_ELEMENT_ARRAY_BUFFER_ARB, null, GL_STREAM_DRAW_ARB);
+//	            gl.bglBindBuffer(GL_ARRAY_BUFFER_ARB, vertvbos.get(i)); //maxmodelverts
+//	            gl.bglBufferData(GL_ARRAY_BUFFER_ARB, null, GL_STREAM_DRAW_ARB);
+//	            i++;
+//	        }
+//
+//	        gl.bglBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+//	        gl.bglBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
+//
+//	        allocvbos = r_vbocount;
 	    }
 	}
 	

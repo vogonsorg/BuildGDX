@@ -1,3 +1,8 @@
+package ru.m210projects.Build.desktop.extension;
+
+import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
+import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
+
 /*******************************************************************************
  * Copyright 2011 See AUTHORS file.
  * 
@@ -16,15 +21,12 @@
  * This file has been modified by Alexander Makarov-[M210] (m210-2007@mail.ru)
  ******************************************************************************/
 
-package ru.m210projects.Build.desktop;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-
-import com.badlogic.gdx.graphics.Pixmap;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
@@ -33,20 +35,17 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
-import ru.m210projects.Build.Input.BInput;
-import ru.m210projects.Build.OnSceenDisplay.Console;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.Pool;
 
-import static ru.m210projects.Build.Input.Keymap.*;
+import ru.m210projects.Build.Input.BInput;
 
 /** An implementation of the {@link Input} interface hooking a LWJGL panel for input.
  * 
  * @author mzechner */
-final public class LwjglInput implements BInput {
+final public class DeskInput implements BInput {
 	static public float keyRepeatInitialTime = 0.4f;
 	static public float keyRepeatTime = 0.1f;
 
@@ -71,7 +70,7 @@ final public class LwjglInput implements BInput {
 		}
 	};
 
-	public LwjglInput () {
+	public DeskInput () {
 		Keyboard.enableRepeatEvents(false);
 		Mouse.setClipMouseCoordinatesToWindow(false);
 	}
@@ -86,28 +85,6 @@ final public class LwjglInput implements BInput {
 
 	public float getAccelerometerZ () {
 		return 0;
-	}
-
-	public void getTextInput (final TextInputListener listener, final String title, final String text) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run () {
-				final String output = JOptionPane.showInputDialog(null, title, text);
-				if (output != null)
-					Gdx.app.postRunnable(new Runnable() {
-						@Override
-						public void run () {
-							listener.input(output);
-						}
-					});
-				else
-					Gdx.app.postRunnable(new Runnable() {
-						@Override
-						public void run () {
-							listener.canceled();
-						}
-					});
-			}
-		});
 	}
 
 	public int getX () {
@@ -232,7 +209,7 @@ final public class LwjglInput implements BInput {
 
 	@Override
 	public float getRoll () {
-		return Mouse.getDWheel();
+		return 0;
 	}
 
 	@Override
@@ -296,11 +273,6 @@ final public class LwjglInput implements BInput {
 	}
 
     @Override
-    public void setCursorImage(Pixmap pixmap, int xHotspot, int yHotspot) {
-    
-    }
-
-    @Override
 	public void setCatchMenuKey (boolean catchMenu) {
 	}
 
@@ -342,11 +314,6 @@ final public class LwjglInput implements BInput {
 	}
 
 	@Override
-	public void getPlaceholderTextInput(TextInputListener listener,
-			String title, String placeholder) {
-	}
-
-	@Override
 	public void updateRequest() {
 		Display.processMessages();
 	}
@@ -357,7 +324,7 @@ final public class LwjglInput implements BInput {
 			try { emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null); } catch (LWJGLException e) {}
 		
 		try {
-			if (Mouse.isInsideWindow() && Display.isActive() && !Console.IsShown()) 
+			if (Mouse.isInsideWindow() && Display.isActive()) 
 				Mouse.setNativeCursor(emptyCursor);
 			else Mouse.setNativeCursor(defCursor);
 		} catch (Exception e) {}
@@ -368,6 +335,10 @@ final public class LwjglInput implements BInput {
 	@Override
 	public int getDWheel() {
 		return Mouse.getDWheel();
+	}
+	
+	public void update () {
+		
 	}
 	
 	public static int getGdxKeyCode (int lwjglKeyCode) {
@@ -784,5 +755,61 @@ final public class LwjglInput implements BInput {
 		default:
 			return Keyboard.KEY_NONE;
 		}
+	}
+
+	@Override
+	public float getGyroscopeX() {
+		
+		return 0;
+	}
+
+	@Override
+	public float getGyroscopeY() {
+		
+		return 0;
+	}
+
+	@Override
+	public float getGyroscopeZ() {
+		
+		return 0;
+	}
+
+	@Override
+	public boolean isKeyJustPressed(int key) {
+		return false;
+	}
+
+	@Override
+	public void getTextInput(final TextInputListener listener, final String title, final String text, String hint) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run () {
+				final String output = JOptionPane.showInputDialog(null, title, text);
+				if (output != null)
+					Gdx.app.postRunnable(new Runnable() {
+						@Override
+						public void run () {
+							listener.input(output);
+						}
+					});
+				else
+					Gdx.app.postRunnable(new Runnable() {
+						@Override
+						public void run () {
+							listener.canceled();
+						}
+					});
+			}
+		});
+	}
+
+	@Override
+	public boolean isCatchBackKey() {
+		return false;
+	}
+
+	@Override
+	public boolean isCatchMenuKey() {
+		return false;
 	}
 }

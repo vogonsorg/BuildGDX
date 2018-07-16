@@ -141,7 +141,7 @@ public class TextureUtils {
 	private static int getTextureMaxSize(GL10 gl) {
 		if (gltexmaxsize <= 0) {
 			IntBuffer buffer = BufferUtils.newIntBuffer(16); // FIXME 16?
-			gl.bglGetIntegerv(GL_MAX_TEXTURE_SIZE, buffer);
+			gl.glGetIntegerv(GL_MAX_TEXTURE_SIZE, buffer);
 			int i = buffer.get(0);
 			if (i == 0) {
 				gltexmaxsize = 6; // 2^6 = 64 == default GL max texture size
@@ -155,20 +155,20 @@ public class TextureUtils {
 	}
 
 	public static void bindTexture(GL10 gl, BTexture tex) {
-		gl.bglBindTexture(GL_TEXTURE_2D, tex);
+		gl.glBindTexture(tex);
 	}
 
 	public static void deleteTexture(GL10 gl, BTexture tex) {
-		gl.bglDeleteTextures(GL_TEXTURE_2D, tex);
+		gl.glDeleteTexture(tex);
 	}
 
 	public static void uploadBoundTexture(GL10 gl, boolean doalloc, int xsiz, int ysiz, int intexfmt, int texfmt, byte[] pic, int tsizx, int tsizy) {
 		int mipLevel = calcMipLevel(xsiz, ysiz, getTextureMaxSize(gl));
 		if (mipLevel == 0) {
 			if (doalloc) {
-				gl.bglTexImage2D(GL_TEXTURE_2D, 0, intexfmt, xsiz, ysiz, 0, texfmt, GL_UNSIGNED_BYTE, wrap(pic, xsiz * ysiz)); // loading 1st time
+				gl.glTexImage2D(GL_TEXTURE_2D, 0, intexfmt, xsiz, ysiz, 0, texfmt, GL_UNSIGNED_BYTE, wrap(pic, xsiz * ysiz)); // loading 1st time
 			} else {
-				gl.bglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, xsiz, ysiz, texfmt, GL_UNSIGNED_BYTE, wrap(pic, xsiz * ysiz)); // overwrite old texture
+				gl.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, xsiz, ysiz, texfmt, GL_UNSIGNED_BYTE, wrap(pic, xsiz * ysiz)); // overwrite old texture
 			}
 		} else {
 			System.err.println("Uploading non-zero mipmap level textures is unimplemented");
@@ -265,9 +265,9 @@ public class TextureUtils {
 	        if (j >= mipLevel)
 	        {
 	        	if (doalloc) {
-					gl.bglTexImage2D(GL_TEXTURE_2D, j - mipLevel, intexfmt, x3, y3, 0, texfmt, GL_UNSIGNED_BYTE, wrap(pic, x3 * y3)); // loading 1st time
+					gl.glTexImage2D(GL_TEXTURE_2D, j - mipLevel, intexfmt, x3, y3, 0, texfmt, GL_UNSIGNED_BYTE, wrap(pic, x3 * y3)); // loading 1st time
 				} else {
-					gl.bglTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, texfmt, GL_UNSIGNED_BYTE, wrap(pic, x3 * y3)); // overwrite old texture
+					gl.glTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, texfmt, GL_UNSIGNED_BYTE, wrap(pic, x3 * y3)); // overwrite old texture
 				}
 	        }
 	        x2 = x3; y2 = y3;
@@ -284,15 +284,15 @@ public class TextureUtils {
 
 	public static void setupBoundTexture(GL10 gl, int filterMode, int anisotropy) {
 		GLFilter filter = getGlFilter(filterMode);
-		gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag);
-		gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min);
 		if (anisotropy >= 1) { // 1 if you want to disable anisotropy
-			gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}
 	}
 
 	public static void setupBoundTextureWrap(GL10 gl, int wrap) {
-		gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-		gl.bglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
 	}
 }

@@ -19,12 +19,11 @@ package ru.m210projects.Build.Input;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.controllers.ControlType;
-import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.ControllerListener;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.math.Vector3;
 
-public class TestController implements Controller {
+public class TestController implements BController {
 
 	@Override
 	public boolean getButton(int butName) {

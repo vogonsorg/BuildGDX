@@ -4217,9 +4217,8 @@ public abstract class Engine {
 	public boolean showMessage(String header, String text, boolean send)
 	{
 		if(message == null) return false;
-		//Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		if(Gdx.graphics != null)
-			Gdx.graphics.setDisplayMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false);
+			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		return message.show(header, text, send);
 	}
 	

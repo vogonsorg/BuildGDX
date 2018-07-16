@@ -56,17 +56,17 @@ public class GLInfo {
 	public static int hack_nofog;
 
 	public static void init(GL10 gl) {
-		gl.bglEnable(GL_TEXTURE_2D);
-		gl.bglShadeModel(GL_SMOOTH); // GL_FLAT
-		gl.bglClearColor(0, 0, 0, 0.5); // Black Background
-		gl.bglHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
-		gl.bglHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-		gl.bglDisable(GL_DITHER);
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glShadeModel(GL_SMOOTH); // GL_FLAT
+		gl.glClearColor(0, 0, 0, 0.5f); // Black Background
+		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
+		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+		gl.glDisable(GL_DITHER);
 
-		GLInfo.vendor = gl.bglGetString(GL_VENDOR);
-		GLInfo.renderer = gl.bglGetString(GL_RENDERER);
-		GLInfo.version = gl.bglGetString(GL_VERSION);
-		GLInfo.extensions = gl.bglGetString(GL_EXTENSIONS);
+		GLInfo.vendor = gl.glGetString(GL_VENDOR);
+		GLInfo.renderer = gl.glGetString(GL_RENDERER);
+		GLInfo.version = gl.glGetString(GL_VERSION);
+		GLInfo.extensions = gl.glGetString(GL_EXTENSIONS);
 
 		GLInfo.maxanisotropy = 1.0f;
 		GLInfo.bgra = 0;
@@ -84,7 +84,7 @@ public class GLInfo {
 			if (p2.compareToIgnoreCase("GL_EXT_texture_filter_anisotropic") == 0) {
 				// supports anisotropy. get the maximum anisotropy level
 				FloatBuffer buf = BufferUtils.newFloatBuffer(16);
-				gl.bglGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, buf);
+				gl.glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, buf);
 				GLInfo.maxanisotropy = buf.get();
 			} else if (p2.compareToIgnoreCase("GL_EXT_texture_edge_clamp") == 0 ||
 					p2.compareToIgnoreCase("GL_SGIS_texture_edge_clamp") == 0) {

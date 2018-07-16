@@ -67,14 +67,11 @@ import javax.swing.text.PlainDocument;
 
 import org.lwjgl.opengl.Display;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics.DisplayMode;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.BConfig;
 import ru.m210projects.Build.desktop.DavidMusicModule;
-import ru.m210projects.Build.desktop.LwjglInput;
+import ru.m210projects.Build.desktop.extension.DeskApplicationConfiguration;
 
 public class DesktopFrame {
 	
@@ -369,7 +366,7 @@ public class DesktopFrame {
 	private void initSettingsTab(JPanel settings, Font font)
 	{
 		if(!settingsCreated) {
-			initVideoModes(LwjglApplicationConfiguration.getDisplayModes(), LwjglApplicationConfiguration.getDesktopDisplayMode());
+			initVideoModes(DeskApplicationConfiguration.getDisplayModes(), DeskApplicationConfiguration.getDesktopDisplayMode());
 			
 			JLabel sounddrv = new JLabel("Sound: ");
 			sounddrv.setFont(font);
@@ -594,9 +591,9 @@ public class DesktopFrame {
 	        {
 	        	String apptitle = title;
 	        	if(!settingsInited)
-	        		initVideoModes(LwjglApplicationConfiguration.getDisplayModes(), LwjglApplicationConfiguration.getDesktopDisplayMode());
+	        		initVideoModes(DeskApplicationConfiguration.getDisplayModes(), DeskApplicationConfiguration.getDesktopDisplayMode());
 	        	
-	        	LwjglApplicationConfiguration lwjglConfig = new LwjglApplicationConfiguration();
+	        	DeskApplicationConfiguration lwjglConfig = new DeskApplicationConfiguration();
 	    		lwjglConfig.fullscreen = setFullscreen(cfg.ScreenWidth, cfg.ScreenHeight, cfg.fullscreen == 1);
 	    		lwjglConfig.width = (cfg.ScreenWidth);
 	    		lwjglConfig.height = (cfg.ScreenHeight);
@@ -606,7 +603,6 @@ public class DesktopFrame {
 	    		lwjglConfig.backgroundFPS = cfg.fpslimit;
 	    		lwjglConfig.foregroundFPS = cfg.fpslimit;
 	    		lwjglConfig.vSyncEnabled = cfg.gVSync;
-	    		lwjglConfig.useGL20 = true;
 	    		
 	    		if(cfg.borderless)
 	    			System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
@@ -624,7 +620,7 @@ public class DesktopFrame {
 	        	cLaunch.run(lwjglConfig, midiDevice, cfg);
 
 				portableCFG = null; 
-				Gdx.input = new LwjglInput();
+
 				logUpdate.stop();
 				while(!Display.isCreated()); //Don't close frame while game display not created
 				frmPropFrame.dispose();

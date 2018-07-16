@@ -16,9 +16,8 @@
 
 package ru.m210projects.Build.desktop.Launcher;
 
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-
 import ru.m210projects.Build.Types.BConfig;
+import ru.m210projects.Build.desktop.extension.DeskApplicationConfiguration;
 
 public abstract class LaunchCallback {
 	
@@ -31,7 +30,7 @@ public abstract class LaunchCallback {
 		this.verfile = verfile;
 	}
 	
-	public abstract void run(LwjglApplicationConfiguration lwjglConfig, int MidiDevice, BConfig cfg);
+	public abstract void run(DeskApplicationConfiguration lwjglConfig, int MidiDevice, BConfig cfg);
 	
 	public abstract BConfig buildConfig(String path, String cfgname);
 }

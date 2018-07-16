@@ -22,7 +22,6 @@ import java.util.Map;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.TextureData;
@@ -34,13 +33,11 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
 
 public class BTexture extends GLTexture {
 
-	
 	TextureData data;
 	final static Map<Application, Array<BTexture>> managedTextures = new HashMap<Application, Array<BTexture>>();
 	
 	public BTexture (Pixmap pixmap, boolean useMipMaps) {
-		super(GL10.GL_TEXTURE_2D, createGLHandle());
-		
+		super(GL_TEXTURE_2D, Gdx.gl.glGenTexture());
 		data = new PixmapTextureData(pixmap, null, useMipMaps, false);
 		load(data);
 		if (data.isManaged()) addManagedTexture(Gdx.app, this);
