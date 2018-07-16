@@ -700,6 +700,11 @@ public class DesktopFrame {
 
 	private int checkResources(String path, String[] resources)
 	{
+		if(resources.length < 2) {
+			showMessage("Resource length error!", "Resource array should have a title and at least one resource file");
+			return -1;
+		}
+		
 		File directory = new File(path);
 		
 		File[] fList = directory.listFiles();

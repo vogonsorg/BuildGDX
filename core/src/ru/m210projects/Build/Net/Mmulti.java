@@ -467,7 +467,7 @@ public class Mmulti {
 
 		tims = GetTickCount();
 		if (tims < lastsendtims[other]) lastsendtims[other] = tims;
-		//if (tims < lastsendtims[other]+1000/PAKRATE) return;
+		if (tims < lastsendtims[other]+1000/PAKRATE) return;
 		lastsendtims[other] = tims;
 
 		int k = 2;

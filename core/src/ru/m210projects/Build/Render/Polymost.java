@@ -4335,11 +4335,12 @@ public abstract class Polymost implements Renderer {
 			if ((point2[i] < i) && (i < numpoints - 1))
 				z = 3;
 
-			if (j < 0)
-				continue;
+			if (j < 0) continue;
 			k = npoint2[j];
+			if (k < 0) continue;
 
-			m0 = (px[j] - px[i]) * (py[k] - py[j]);
+			m0 = (px[j] - px[i])
+					* (py[k] - py[j]);
 			m1 = (py[j] - py[i]) * (px[k] - px[j]);
 			if (m0 < m1) {
 				z |= 1;

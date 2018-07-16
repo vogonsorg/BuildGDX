@@ -252,6 +252,7 @@ public class Console {
 	        if(text.charAt(chp) == '^')
     		{
     			String number = "";
+    			if(chp+1 >= text.length()) continue;
     			char num1 = text.charAt(chp+1);
     			if(isdigit(num1))
     			{
