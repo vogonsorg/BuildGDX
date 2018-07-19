@@ -77,8 +77,8 @@ public class ALSource extends Source {
 
 	@Override
 	public void setVolume(float volume) {
-		volume *= drv.getVolume();
 		volume = Math.min(Math.max(volume, 0.0f), 1.0f);
+		volume *= drv.getVolume();
 		alSourcef(sourceId, AL_GAIN, volume);
 		
 		int error = alGetError();

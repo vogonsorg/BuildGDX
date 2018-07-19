@@ -192,8 +192,7 @@ public class ALSoundDrv implements Sound {
 	@Override
 	public void setVolume(float vol) {
 		if (noDevice) return;
-		
-		this.soundVolume = vol;
+		this.soundVolume = Math.min(Math.max(vol, 0.0f), 1.0f);
 	}
 	
 	@Override
