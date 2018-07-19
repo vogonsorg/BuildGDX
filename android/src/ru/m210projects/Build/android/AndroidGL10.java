@@ -1142,4 +1142,10 @@ public class AndroidGL10 extends GL10 {
 		GLES11.glDepthRangef((float)near_val, (float)far_val);
 	}
 
+	@Override
+	public void glGetTexImage(int target, int level, int format, int type, Buffer pixels) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

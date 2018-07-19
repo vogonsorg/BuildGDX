@@ -97,6 +97,8 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 		return tempFloat;
 	}
 	
+	public abstract void glGetTexImage(int target, int level, int format, int type, Buffer pixels);
+	
 	public abstract void glDepthMask(int param);
 	
 	public abstract void glDepthRange(double near_val, double far_val);

@@ -989,4 +989,18 @@ public class DeskGL10 extends GL10 {
 	public void glDepthMask(int param) {
 		GL11.glDepthMask(param != GL11.GL_FALSE);
 	}
+
+	@Override
+	public void glGetTexImage(int target, int level, int format, int type, Buffer pixels) {
+		if (pixels instanceof ByteBuffer)
+			GL11.glGetTexImage(target, level, format, type, (ByteBuffer)pixels);
+		else if (pixels instanceof IntBuffer)
+			GL11.glGetTexImage(target, level, format, type, (IntBuffer)pixels);
+		else if (pixels instanceof FloatBuffer)
+			GL11.glGetTexImage(target, level, format, type, (FloatBuffer)pixels);
+		else if (pixels instanceof DoubleBuffer)
+			GL11.glGetTexImage(target, level, format, type, (DoubleBuffer)pixels);
+		else if (pixels instanceof ShortBuffer) 
+			GL11.glGetTexImage(target, level, format, type, (ShortBuffer)pixels);
+	}
 }
