@@ -174,8 +174,6 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	public abstract void glViewport (int x, int y, int width, int height);
 
 	public abstract void glDeleteTextures (int n, int[] textures, int offset);
-	
-	public abstract void glDeleteTexture (BTexture texture);
 
 	public abstract void glFogfv (int pname, float[] params, int offset);
 
@@ -237,8 +235,6 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 
 	public abstract void glBindTexture(int target, IntBuffer texture);
 	
-	public abstract void glBindTexture(BTexture texture);
-
 	public abstract void glLoadMatrixf(float[][] m);
 
 	public abstract void glLoadMatrix(Matrix4 m);

@@ -25,8 +25,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import ru.m210projects.Build.Audio.Music;
-import ru.m210projects.Build.Audio.Sound;
+import ru.m210projects.Build.Audio.BAudio;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -49,6 +48,8 @@ import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.Tile2model;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
@@ -67,8 +68,9 @@ public abstract class Engine {
 	
 	public Renderer render;
 	private Message message;
-	public Sound fx;
-	public Music mx;
+//	public Sound fx;
+//	public Music mx;
+	private BAudio audio;
 	private static KeyInput input;
 	
 	public static boolean offscreenrendering;
@@ -973,9 +975,11 @@ public abstract class Engine {
 		bakwindowy2 = new int[4];
 	}
 	
-	public Engine(Message message, boolean releasedEngine) throws Exception {
+	public Engine(Message message, BAudio audio, boolean releasedEngine) throws Exception {
 		this.releasedEngine = releasedEngine;
 		this.message = message;
+		if(audio == null) new Exception("BAudio == null!");
+		this.audio = audio;
 		InitArrays();
 
 		loadtables();
@@ -1073,10 +1077,8 @@ public abstract class Engine {
 				palookup[i] = null;
 		if(message != null)
 			message.dispose();
-		if(fx != null)
-			fx.dispose();
-		if(mx != null)
-			mx.dispose();
+		
+		audio.dispose();
 		
 		uninitmultiplayer();
 	}
@@ -1369,13 +1371,13 @@ public abstract class Engine {
 	// JBF: davidoption now functions as a windowed-mode flag (0 == windowed, 1 == fullscreen)
 //	public byte videomodereset;
 
-	public int setgamemode(int davidoption, int daxdim, int daydim) {
+	public boolean setgamemode(int davidoption, int daxdim, int daydim) {
 		daxdim = max(320, daxdim);
 		daydim = max(200, daydim);
 
 		if (/*(videomodereset == 0) &&*/
 				(davidoption == fullscreen) && (xdim == daxdim) && (ydim == daydim))
-			return (0);
+			return true;
 
 		//	    g_lastpalettesum = 0;
 
@@ -1400,8 +1402,33 @@ public abstract class Engine {
 
 		render.uninit();
 		render.init();
+		
+		if(Gdx.app.getType() == ApplicationType.Android) {
+			daxdim = Gdx.graphics.getWidth();
+			daydim = Gdx.graphics.getHeight();
+			Gdx.graphics.setWindowedMode(daxdim, daydim);
+			return true;
+		}
+		
+		if(davidoption == 1)
+		{
+			DisplayMode m = null;
+			for(DisplayMode mode: Gdx.graphics.getDisplayModes()) {
+				if(Gdx.graphics.getDisplayMode().refreshRate == mode.refreshRate)
+				{
+					if(mode.width == daxdim && mode.height == daydim)
+						m = mode;
+				}
+			}
+			
+			if(m == null) {
+				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not support", OSDTEXT_YELLOW);
+				Gdx.graphics.setWindowedMode(daxdim, daydim);
+				return false;
+			} else Gdx.graphics.setFullscreenMode(m);
+		} else Gdx.graphics.setWindowedMode(daxdim, daydim);
 
-		return (0);
+		return true;
 	}
 
 	public void inittimer(int tickspersecond) {
@@ -2330,8 +2357,7 @@ public abstract class Engine {
 	public void nextpage() {
 		Console.draw();
 		render.nextpage();
-		if(fx != null)
-			fx.update();
+		audio.update();
 	}
 
 	public int neartag(int xs, int ys, int zs, short sectnum, short ange, Neartag near, int neartagrange, int tagsearch) {
@@ -4041,24 +4067,6 @@ public abstract class Engine {
 	{
 		return render;
 	}
-	
-	public void setsounddrv(Sound fx) {
-		if(fx == null) return;
-		if(this.fx != null) {
-			this.fx.stopAllSounds();	
-			this.fx.dispose();
-		}
-		this.fx = fx;
-	}
-	
-	public void setmusicdrv(Music mx) {
-		if(mx == null) return;
-		if(this.mx != null) {
-			this.mx.stop();
-			this.mx.dispose();
-		}
-		this.mx = mx;
-	}
 
 	public void invalidatetile(int tilenume, int pal, int how) {
 
@@ -4278,10 +4286,9 @@ public abstract class Engine {
 		}
 		LastMS = ms;
     }
-    
-    public void musicVolume(int vol)
+
+    public BAudio getAudio()
     {
-    	if(mx != null) mx.setVolume(vol);
-		if(fx != null) fx.volumeMusic(vol);
+    	return audio;
     }
 }

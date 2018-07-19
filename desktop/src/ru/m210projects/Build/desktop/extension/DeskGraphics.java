@@ -424,7 +424,7 @@ public class DeskGraphics implements Graphics {
 			return false;
 		}
 	}
-
+	
 	/** Kindly stolen from http://lwjgl.org/wiki/index.php?title=LWJGL_Basics_5_(Fullscreen), not perfect but will do. */
 	@Override
 	public boolean setWindowedMode (int width, int height) {
@@ -434,45 +434,13 @@ public class DeskGraphics implements Graphics {
 
 		try {
 			org.lwjgl.opengl.DisplayMode targetDisplayMode = null;
-			boolean fullscreen = false;
+			
+			targetDisplayMode = new org.lwjgl.opengl.DisplayMode(width, height);
 
-			if (fullscreen) {
-				org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-				int freq = 0;
-
-				for (int i = 0; i < modes.length; i++) {
-					org.lwjgl.opengl.DisplayMode current = modes[i];
-
-					if ((current.getWidth() == width) && (current.getHeight() == height)) {
-						if ((targetDisplayMode == null) || (current.getFrequency() >= freq)) {
-							if ((targetDisplayMode == null) || (current.getBitsPerPixel() > targetDisplayMode.getBitsPerPixel())) {
-								targetDisplayMode = current;
-								freq = targetDisplayMode.getFrequency();
-							}
-						}
-
-						// if we've found a match for bpp and frequence against the
-						// original display mode then it's probably best to go for this one
-						// since it's most likely compatible with the monitor
-						if ((current.getBitsPerPixel() == Display.getDesktopDisplayMode().getBitsPerPixel())
-							&& (current.getFrequency() == Display.getDesktopDisplayMode().getFrequency())) {
-							targetDisplayMode = current;
-							break;
-						}
-					}
-				}
-			} else {
-				targetDisplayMode = new org.lwjgl.opengl.DisplayMode(width, height);
-			}
-
-			if (targetDisplayMode == null) {
-				return false;
-			}
-
-			boolean resizable = !fullscreen && config.resizable;
+			boolean resizable = config.resizable;
 
 			Display.setDisplayMode(targetDisplayMode);
-			Display.setFullscreen(fullscreen);
+			Display.setFullscreen(false);
 			// Workaround for bug in LWJGL whereby resizable state is lost on DisplayMode change
 			if (resizable == Display.isResizable()) {
 				Display.setResizable(!resizable);

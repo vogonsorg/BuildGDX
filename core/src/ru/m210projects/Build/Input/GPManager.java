@@ -36,8 +36,9 @@ public class GPManager {
 		Array<Controller> controllers = Controllers.getControllers();
 		gamepads = new Array<Gamepad>();
 		if(controllers.size > 0) {
-			for(int i = 0; i < controllers.size; i++)
-				gamepads.add(new Gamepad((BController)controllers.get(i)));
+			for(int i = 0; i < controllers.size; i++) {
+				gamepads.add(new Gamepad(controllers.get(i)));
+			}
 		}
 		
 		if(TestGamepad)

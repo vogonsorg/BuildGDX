@@ -19,83 +19,8 @@ import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.GLInfo.*;
-import static ru.m210projects.Build.Render.TextureUtils.bindTexture;
-import static ru.m210projects.Build.Render.TextureUtils.gloadtex;
-import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
+import static ru.m210projects.Build.Render.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_BACK;
-import static ru.m210projects.Build.Render.Types.GL10.GL_BLEND;
-import static ru.m210projects.Build.Render.Types.GL10.GL_CCW;
-import static ru.m210projects.Build.Render.Types.GL10.GL_CLAMP;
-import static ru.m210projects.Build.Render.Types.GL10.GL_CLAMP_TO_EDGE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COLOR_BUFFER_BIT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_CULL_FACE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_CW;
-import static ru.m210projects.Build.Render.Types.GL10.GL_DEPTH_BUFFER_BIT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_DEPTH_TEST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_DONT_CARE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FALSE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FASTEST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FILL;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG_COLOR;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG_END;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG_HINT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG_MODE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG_START;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FRONT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FRONT_AND_BACK;
-import static ru.m210projects.Build.Render.Types.GL10.GL_GREATER;
-import static ru.m210projects.Build.Render.Types.GL10.GL_INTERPOLATE_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LEQUAL;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LINE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LINES;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MODULATE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE_FILTER_HINT_NV;
-import static ru.m210projects.Build.Render.Types.GL10.GL_NEAREST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_NICEST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ONE_MINUS_SRC_ALPHA;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND1_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND2_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PACK_ALIGNMENT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_POINT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PREVIOUS_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
-import static ru.m210projects.Build.Render.Types.GL10.GL_QUADS;
-import static ru.m210projects.Build.Render.Types.GL10.GL_REPEAT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_REPLACE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE1_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE2_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SRC_ALPHA;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SRC_COLOR;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV_MODE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_MAG_FILTER;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_MIN_FILTER;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_WRAP_S;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_WRAP_T;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TRIANGLES;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TRIANGLE_FAN;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TRIANGLE_STRIP;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TRUE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_UNSIGNED_BYTE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
 import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
@@ -293,7 +218,7 @@ public abstract class Polymost implements Renderer {
 	public Polymost(Engine engine, GL10 gl) {
 		this.gl = gl;
 		this.engine = engine;
-		this.textureCache = createTextureCache(gl);
+		this.textureCache = createTextureCache();
 		for (int i = 0; i < VSPMAX; i++)
 			vsp[i] = new vsptyp();
 		wsprinfo = new Wallspriteinfo[MAXSPRITES];
@@ -315,8 +240,8 @@ public abstract class Polymost implements Renderer {
 		Console.Println(GLInfo.renderer + " " + GLInfo.version + " initialized", OSDTEXT_GOLD);
 	}
 
-	private TextureCache createTextureCache(GL10 gl) {
-		return new TextureCache(gl, new ValueResolver<Integer>() {
+	private TextureCache createTextureCache() {
+		return new TextureCache(new ValueResolver<Integer>() {
 			@Override
 			public Integer get() {
 				return anisotropy();
@@ -357,7 +282,7 @@ public abstract class Polymost implements Renderer {
 
 			for (int j = 0; j < MAXPALOOKUPS; j++) {
 				if (v.texid[j] != null) {
-					gl.glDeleteTexture(v.texid[j]);
+					deleteTexture(v.texid[j]);
 					v.texid[j] = null;
 				}
 			}
@@ -380,16 +305,16 @@ public abstract class Polymost implements Renderer {
 			for (int j = 0; j < m.numskins * (HICEFFECTMASK + 1); j++) { 
 				if (m.texid[j] == null)
 					continue;
-				bindTexture(gl, m.texid[j]);
-				setupBoundTexture(gl, gltexfiltermode, anisotropy());
+				bindTexture(m.texid[j]);
+				setupBoundTexture(gltexfiltermode, anisotropy());
 			}
 
 			for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next) {
 				for (int j = 0; j < (HICEFFECTMASK + 1); j++) {
 					if (sk.texid[j] == null)
 						continue;
-					bindTexture(gl, sk.texid[j]);
-					setupBoundTexture(gl, gltexfiltermode, anisotropy());
+					bindTexture(sk.texid[j]);
+					setupBoundTexture(gltexfiltermode, anisotropy());
 				}
 			}
 		}
@@ -697,7 +622,7 @@ public abstract class Polymost implements Renderer {
 		if(pth == null) //hires texture not found
 			return;
 
-		bindTexture(gl, pth.glpic);
+		bindTexture(pth.glpic);
 		
 		if (srepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -720,7 +645,7 @@ public abstract class Polymost implements Renderer {
 			gl.glActiveTexture(++texunits);
 
 			gl.glEnable(GL_TEXTURE_2D);
-			bindTexture(gl,  detailpth.glpic);
+			bindTexture(detailpth.glpic);
 
 			gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 			gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
@@ -763,7 +688,7 @@ public abstract class Polymost implements Renderer {
 			gl.glActiveTexture(++texunits);
 		
 			gl.glEnable(GL_TEXTURE_2D);
-			bindTexture(gl,  glowpth.glpic);
+			bindTexture(glowpth.glpic);
 		
 			gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 			gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
@@ -4541,7 +4466,7 @@ public abstract class Polymost implements Renderer {
 		gl.glEnable(GL_TEXTURE_2D);
 		pth = textureCache.cache(globalpicnum, globalpal, false, true);
 
-		bindTexture(gl,  pth.glpic);
+		bindTexture(pth.glpic);
 		float f = getshadefactor(globalshade);
 		
 		switch ((globalorientation >> 7) & 3) {
@@ -4613,7 +4538,7 @@ public abstract class Polymost implements Renderer {
 			usehightile = ousehightile;
 		}
 
-		bindTexture(gl,  pth.glpic);
+		bindTexture(pth.glpic);
 
 		gl.glDisable(GL_ALPHA_TEST);
 
@@ -5298,7 +5223,7 @@ public abstract class Polymost implements Renderer {
 			{
 				if(frameTexture != null) frameTexture.dispose();
 				frameTexture = new BTexture();
-				gl.glBindTexture(frameTexture);
+				bindTexture(frameTexture);
 				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
 				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
 				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -5307,14 +5232,14 @@ public abstract class Polymost implements Renderer {
 			}
 			
 			gl.glReadBuffer(GL_BACK);
-			gl.glBindTexture(frameTexture);
+			bindTexture(frameTexture);
 			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framesize, framesize);
 
 
 			gl.glDisable(GL_DEPTH_TEST);
 			gl.glDisable(GL_ALPHA_TEST);
 			gl.glEnable(GL_TEXTURE_2D);
-			gl.glBindTexture(frameTexture);
+			bindTexture(frameTexture);
 
 		
 			gl.glMatrixMode(GL_PROJECTION);
@@ -5733,13 +5658,13 @@ public abstract class Polymost implements Renderer {
 	        }
 	    	m.verticesBuffer.flip();
 
-			BTexture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,surfi);
+			BTexture texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,surfi);
 	        if (texid != null) {
 
-		        bindTexture(gl, texid);
+		        bindTexture(texid);
 		        
 		        if ( Console.Geti("r_detailmapping") != 0 )
-		        	texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,surfi);
+		        	texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,surfi);
 		        else
 		        	texid = null;
 		        
@@ -5750,7 +5675,7 @@ public abstract class Polymost implements Renderer {
 		            gl.glActiveTexture(++texunits);
 		
 		            gl.glEnable(GL_TEXTURE_2D);
-		            bindTexture(gl,  texid);
+		            bindTexture(texid);
 		
 		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 		            gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
@@ -5781,7 +5706,7 @@ public abstract class Polymost implements Renderer {
 		        }
 		        
 		        if (r_glowmapping != 0)
-		        	texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,surfi);
+		        	texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,surfi);
 		        else
 		        	texid = null;
 		        
@@ -5790,7 +5715,7 @@ public abstract class Polymost implements Renderer {
 		        	gl.glActiveTexture(++texunits);
 		
 		        	gl.glEnable(GL_TEXTURE_2D);
-		        	bindTexture(gl,  texid);
+		        	bindTexture(texid);
 		
 		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 		        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
@@ -6038,12 +5963,12 @@ public abstract class Polymost implements Renderer {
 	    gl.glColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
 
 	    int rendered = 0;
-		BTexture texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
+		BTexture texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
         if (texid != null)
         {
-	        bindTexture(gl, texid);
+	        bindTexture(texid);
 	        if (Console.Geti("r_detailmapping") != 0)
-	        	texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,0);
+	        	texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,0);
 	        else
 	        	texid = null;
 	        
@@ -6054,7 +5979,7 @@ public abstract class Polymost implements Renderer {
 	            gl.glActiveTexture(++texunits);
 	
 	            gl.glEnable(GL_TEXTURE_2D);
-	            bindTexture(gl,  texid);
+	            bindTexture(texid);
 	
 	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 	            gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
@@ -6085,7 +6010,7 @@ public abstract class Polymost implements Renderer {
 	        }
 	        
 	        if (r_glowmapping != 0)
-	        	texid = mdloadskin(gl, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,0);
+	        	texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,0);
 	        else
 	        	texid = null;
 	        
@@ -6094,7 +6019,7 @@ public abstract class Polymost implements Renderer {
 	        	gl.glActiveTexture(++texunits);
 	
 	        	gl.glEnable(GL_TEXTURE_2D);
-	        	bindTexture(gl,  texid);
+	        	bindTexture(texid);
 	
 	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
 	        	gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
@@ -6373,9 +6298,9 @@ public abstract class Polymost implements Renderer {
 		dvoxphack[1] = 1.f / 256.f;
 
 		if (m.texid[globalpal] == null)
-			m.texid[globalpal] = gloadtex(m.mytex, m.mytexx, m.mytexy, globalpal, gl);
+			m.texid[globalpal] = gloadtex(m.mytex, m.mytexx, m.mytexy, globalpal);
 		else
-			bindTexture(gl,  m.texid[globalpal]);
+			bindTexture(m.texid[globalpal]);
 		
 		if(r_vertexarrays != 0)
 		{

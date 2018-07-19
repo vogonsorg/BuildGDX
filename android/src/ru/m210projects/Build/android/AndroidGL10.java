@@ -1,272 +1,184 @@
-// This file is part of BuildGDX.
-// Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
-//
-// BuildGDX is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// BuildGDX is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
-
 package ru.m210projects.Build.android;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import ru.m210projects.Build.Render.Types.BTexture;
-import ru.m210projects.Build.Render.Types.GL10;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import android.opengl.GLES10;
 import android.opengl.GLES11;
-import android.opengl.GLES11Ext;
-
-import com.badlogic.gdx.math.Matrix4;
+import ru.m210projects.Build.Render.Types.GL10;
 
 public class AndroidGL10 extends GL10 {
-	
-	public AndroidGL10()
-	{
-		GL_LESS = GLES10.GL_LESS;
-		GL_GREATER = GLES10.GL_GREATER;
-		GL_TEXTURE = GLES10.GL_TEXTURE;
-		GL_TEXTURE_2D = GLES10.GL_TEXTURE_2D;
-		GL_BLEND = GLES10.GL_BLEND;
-		GL_DEPTH_TEST = GLES10.GL_DEPTH_TEST;
-		GL_TRIANGLE_FAN = GLES10.GL_TRIANGLE_FAN;
-		GL_NICEST = GLES10.GL_NICEST;
-		GL_FASTEST = GLES10.GL_FASTEST;
-		GL_TEXTURE_WRAP_S = GLES10.GL_TEXTURE_WRAP_S;
-		GL_TEXTURE_WRAP_T = GLES10.GL_TEXTURE_WRAP_T;
-		GL_CLAMP_TO_EDGE = GLES11.GL_CLAMP_TO_EDGE;
-		GL_SRC_ALPHA = GLES10.GL_SRC_ALPHA;
-		GL_ONE_MINUS_SRC_ALPHA = GLES10.GL_ONE_MINUS_SRC_ALPHA;
-		GL_TEXTURE_MAG_FILTER = GLES10.GL_TEXTURE_MAG_FILTER;
-		GL_TEXTURE_MIN_FILTER = GLES10.GL_TEXTURE_MIN_FILTER;
-		GL_TEXTURE_MAX_ANISOTROPY_EXT = GLES11Ext.GL_TEXTURE_MAX_ANISOTROPY_EXT;
-		GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT = GLES11Ext.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
-		GL_COLOR_BUFFER_BIT = GLES10.GL_COLOR_BUFFER_BIT;
-		GL_DEPTH_BUFFER_BIT = GLES10.GL_DEPTH_BUFFER_BIT;
-		GL_REPEAT = GLES10.GL_REPEAT;
-		GL_MAX_TEXTURE_SIZE = GLES10.GL_MAX_TEXTURE_SIZE;
-		GL_UNSIGNED_BYTE = GLES10.GL_UNSIGNED_BYTE;
-		GL_RGBA = GLES10.GL_RGBA;
-		GL_RGB = GLES10.GL_RGB;
-		GL_NEAREST = GLES10.GL_NEAREST;
-		GL_ALPHA = GLES10.GL_ALPHA;
-		GL_FALSE = GLES10.GL_FALSE;
-		GL_TRUE = GLES10.GL_TRUE;
-		GL_FRONT_AND_BACK = GLES10.GL_FRONT_AND_BACK;
-		GL_ALWAYS = GLES10.GL_ALWAYS;
-		GL_LEQUAL = GLES10.GL_LEQUAL;
-		GL_LINE_STRIP = GLES10.GL_LINE_STRIP;
-		GL_LINES = GLES10.GL_LINES;
-		GL_TRIANGLES = GLES10.GL_TRIANGLES;
-		GL_SMOOTH = GLES10.GL_SMOOTH;
-		GL_POINTS = GLES10.GL_POINTS;
-		GL_LINEAR = GLES10.GL_LINEAR;
-		GL_NEAREST_MIPMAP_NEAREST = GLES10.GL_NEAREST_MIPMAP_NEAREST;
-		GL_LINEAR_MIPMAP_NEAREST = GLES10.GL_LINEAR_MIPMAP_NEAREST;
-		GL_NEAREST_MIPMAP_LINEAR = GLES10.GL_NEAREST_MIPMAP_LINEAR;
-		GL_LINEAR_MIPMAP_LINEAR = GLES10.GL_LINEAR_MIPMAP_LINEAR;
-		GL_ONE = GLES10.GL_ONE;
-		GL_DEST_COLOR = GLES10.GL_DST_COLOR;
-		GL_POLYGON_OFFSET_FILL = GLES10.GL_POLYGON_OFFSET_FILL;
-		GL_FOG_HINT = GLES10.GL_FOG_HINT;
-		GL_DONT_CARE = GLES10.GL_DONT_CARE;
-		GL_FOG_MODE = GLES10.GL_FOG_MODE;
-		GL_EXP = GLES10.GL_EXP;
-		GL_EXP2 = GLES10.GL_EXP2;
-		GL_FOG_DENSITY = GLES10.GL_FOG_DENSITY;
-		GL_FOG_COLOR = GLES10.GL_FOG_COLOR;
-		GL_TEXTURE0_ARB = GLES10.GL_TEXTURE0;
-		GL_TEXTURE_ENV = GLES10.GL_TEXTURE_ENV;
-		GL_RGB_SCALE_ARB = GLES11.GL_RGB_SCALE;
-		GL_MULTISAMPLE_ARB = GLES10.GL_MULTISAMPLE;
-		GL_MULTISAMPLE_FILTER_HINT_NV = 0; //GLES10.GL_MULTISAMPLE_FILTER_HINT_NV;
-		GL_CLAMP = 0; //GLES11.GL_CLAMP;
-		GL_PROJECTION = GLES10.GL_PROJECTION; 
-		GL_MODELVIEW = GLES10.GL_MODELVIEW; 
-		GL_FOG = GLES10.GL_FOG;
-		GL_ALPHA_TEST = GLES10.GL_ALPHA_TEST;
-		GL_POLYGON_BIT = 8; //GLES10.GL_POLYGON_BIT;
-		GL_FILL = 0; //GLES11.GL_FILL;
-		GL_LINE = GLES11.GL_LINES;
-		GL_POINT = GLES11.GL_POINTS;
-		GL_PERSPECTIVE_CORRECTION_HINT = GLES10.GL_PERSPECTIVE_CORRECTION_HINT;
-		GL_LINE_SMOOTH_HINT = GLES10.GL_LINE_SMOOTH_HINT;
-		GL_DITHER = GLES10.GL_DITHER;
-		GL_VENDOR = GLES10.GL_VENDOR;
-		GL_RENDERER = GLES10.GL_RENDERER;
-		GL_VERSION = GLES10.GL_VERSION;
-		GL_EXTENSIONS = GLES10.GL_EXTENSIONS;
-		GL_COMBINE_ARB = 34160;
-		GL_TEXTURE_ENV_MODE = GLES11.GL_TEXTURE_ENV_MODE;
-		GL_COMBINE_RGB_ARB = 34161;
-		GL_MODULATE = GLES11.GL_MODULATE;
-		GL_SOURCE0_RGB_ARB = 0; //GLES10Ext.GL_SOURCE0_RGB_ARB;
-		GL_OPERAND0_RGB_ARB = 0; //GLES10Ext.GL_SOURCE0_RGB_ARB;
-		GL_SRC_COLOR = GLES10.GL_SRC_COLOR;
-		GL_SOURCE1_RGB_ARB = 0; //GLES10Ext.GL_SOURCE1_RGB_ARB;
-		GL_OPERAND1_RGB_ARB = 0; //GLES10Ext.GL_OPERAND1_RGB_ARB;
-		GL_COMBINE_ALPHA_ARB = 0; //GLES10Ext.GL_COMBINE_ALPHA_ARB;
-		GL_REPLACE = GLES10.GL_REPLACE;
-		GL_SOURCE0_ALPHA_ARB = 0; //GLES10Ext.GL_SOURCE0_ALPHA_ARB;
-		GL_PREVIOUS_ARB = 0; //GLES10Ext.GL_PREVIOUS_ARB;
-		GL_OPERAND0_ALPHA_ARB = 0; //GLES10Ext.GL_OPERAND0_ALPHA_ARB;
-		GL_QUADS = 0; //GLES10.GL_QUADS;
-		GL_PACK_ALIGNMENT = GLES10.GL_PACK_ALIGNMENT;
-		GL_FRONT = GLES10.GL_FRONT;
-		GL_INTERPOLATE_ARB = 0; //GLES10.GL_INTERPOLATE_ARB;
-		GL_SOURCE2_RGB_ARB = 0; //GLES10.GL_SOURCE2_RGB_ARB;
-		GL_OPERAND2_RGB_ARB = 0; //GLES10.GL_OPERAND2_RGB_ARB;
-		GL_VERTEX_ARRAY = GLES10.GL_VERTEX_ARRAY;
-		GL_FOG_START = GLES10.GL_FOG_START;
-		GL_FOG_END = GLES10.GL_FOG_END;
-	}
-	
-	public void bglGetFloatv(int pname, FloatBuffer params) {
+
+	@Override
+	public void glGetFloatv(int pname, FloatBuffer params) {
 		GLES11.glGetFloatv(pname, params);
 	}
 	
-	public String bglGetString(int name) {
+	@Override
+	public String glGetString(int name) {
 		return GLES11.glGetString(name);
 	}
-	public void bglShadeModel(int mode) {
+	
+	@Override
+	public void glShadeModel(int mode) {
 		GLES11.glShadeModel(mode);
 	}
 	
-	public void bglColorMask(boolean red, boolean green, boolean blue, boolean alpha) {
+	@Override
+	public void glColorMask(boolean red, boolean green, boolean blue, boolean alpha) {
 		GLES11.glColorMask(red, green, blue, alpha);
 	}
-	
-	public void bglClearColor(double red, double green, double blue, double alpha) {
-		GLES11.glClearColor((float)red, (float)green, (float)blue, (float)alpha);
-	}
-	
-	public void bglClear(int mask) {
+
+	@Override
+	public void glClear(int mask) {
 		GLES11.glClear(mask);
 	}
 	
-//	public void bglGenTextures(int n, IntBuffer textures) {
-//		Gdx.GLES10.glGenTextures(n, textures);
-//	}
-	
-	public int bglGetIntegerv(int pname, IntBuffer params) {
-		params.rewind();
-        GLES11.glGetIntegerv(pname, params);
-        return params.get();
+	@Override
+	public void glGenTextures(int n, IntBuffer textures) {
+		GLES10.glGenTextures(n, textures);
 	}
 	
-	public void bglTexImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, ByteBuffer pixels) {
-		GLES11.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+	@Override
+	public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, Buffer pixels) {
+		if (pixels == null)
+			GLES11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ByteBuffer)null);
+		else if (pixels instanceof ByteBuffer)
+			GLES11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ByteBuffer)pixels);
+		else if (pixels instanceof ShortBuffer)
+			GLES11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (ShortBuffer)pixels);
+		else if (pixels instanceof IntBuffer)
+			GLES11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (IntBuffer)pixels);
+		else if (pixels instanceof FloatBuffer)
+			GLES11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (FloatBuffer)pixels);
+		else if (pixels instanceof DoubleBuffer)
+			GLES11.glTexImage2D(target, level, internalformat, width, height, border, format, type, (DoubleBuffer)pixels);
+		else
+			throw new GdxRuntimeException("Can't use " + pixels.getClass().getName()
+				+ " with this method. Use ByteBuffer, ShortBuffer, IntBuffer, FloatBuffer or DoubleBuffer instead. Blame LWJGL");
 	}
 	
-	public void bglTexSubImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, ByteBuffer pixels) {
-		GLES11.glTexSubImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+	@Override
+	public void glTexSubImage2D (int target, int level, int xoffset, int yoffset, int width, int height, int format, int type,
+		Buffer pixels) {
+		if (pixels instanceof ByteBuffer)
+			GLES11.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, (ByteBuffer)pixels);
+		else if (pixels instanceof ShortBuffer)
+			GLES11.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, (ShortBuffer)pixels);
+		else if (pixels instanceof IntBuffer)
+			GLES11.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, (IntBuffer)pixels);
+		else if (pixels instanceof FloatBuffer)
+			GLES11.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, (FloatBuffer)pixels);
+		else if (pixels instanceof DoubleBuffer)
+			GLES11.glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, (DoubleBuffer)pixels);
+		else
+			throw new GdxRuntimeException("Can't use " + pixels.getClass().getName()
+				+ " with this method. Use ByteBuffer, ShortBuffer, IntBuffer, FloatBuffer or DoubleBuffer instead. Blame LWJGL");
 	}
-	
-	public void bglDepthMask(int param) {
-		GLES11.glDepthMask(param != GL_FALSE);
-	}
-	
-	public void bglDepthFunc(int func) {
+
+	@Override
+	public void glDepthFunc(int func) {
 		GLES11.glDepthFunc(func);
 	}
-	
-	public void bglDepthRange(double near_val, double far_val) {
-		GLES11.glDepthRangef((float)near_val, (float)far_val);
-	}
-	
-	public void bglFogi(int pname, int params) {
+
+	@Override
+	public void glFogi(int pname, int params) {
 		GLES11.glFogf(pname, params);
 	}
 	
-	public void bglFogf(int pname, float params) {
+	@Override
+	public void glFogf(int pname, float params) {
 		GLES11.glFogf(pname, params);
 	}
-	public void bglFogfv(int pname, float[] params) {
-		GLES11.glFogfv(pname, params, 0);
-	}
-	public void bglScalef(float x, float y, float z) {
+
+	@Override
+	public void glScalef(float x, float y, float z) {
 		GLES11.glScalef(x, y, z);
 	}
 	
-	public void bglAlphaFunc(int pname, float alpha) { 
+	@Override
+	public void glAlphaFunc(int pname, float alpha) { 
 		GLES11.glAlphaFunc(pname, alpha);
 	}
-	
-	public void bglDeleteTextures(int n, BTexture texture) {
-		texture.dispose();
-	}
-	
-	public void bglBlendFunc(int sfactor, int dfactor) {
+
+	@Override
+	public void glBlendFunc(int sfactor, int dfactor) {
 		GLES11.glBlendFunc(sfactor, dfactor);
 	}
 	
-	public void bglTexParameteri(int target, int pname, int param) {
+	@Override
+	public void glTexParameteri(int target, int pname, int param) {
 		GLES11.glTexParameteri(target, pname, param);
 	}
 	
-	public void bglEnable(int cap) {
+	@Override
+	public void glEnable(int cap) {
 		GLES11.glEnable(cap);
 	}
-	
-	public void bglBindTexture(int target, BTexture texture) {
-		texture.bind();
-	}
 
-	public void bglDisable(int cap) {
+	@Override
+	public void glDisable(int cap) {
 		GLES11.glDisable(cap);
 	}
 	
-	public void bglHint(int target, int mode) {
+	@Override
+	public void glHint(int target, int mode) {
 		GLES11.glHint(target, mode);
 		
 	}
 	
-	public void bglColor4f(float r, float g, float b, float a) {
+	@Override
+	public void glColor4f(float r, float g, float b, float a) {
 		GLES11.glColor4f(r, g, b, a);
 	}
 	
-	public void bglViewport(int x, int y, int width, int height) {
+	@Override
+	public void glViewport(int x, int y, int width, int height) {
 		GLES11.glViewport(x, y, width, height);
 	}
 	
-	public void bglPushMatrix() {
+	@Override
+	public void glPushMatrix() {
 		GLES11.glPushMatrix();
 	}
 	
-	public void bglPopMatrix() {
+	@Override
+	public void glPopMatrix() {
 		GLES11.glPopMatrix();
 	}
 	
-	public void bglPolygonOffset(float factor, float units) {
+	@Override
+	public void glPolygonOffset(float factor, float units) {
 		GLES11.glPolygonOffset(factor, units);
 	}
 	
-	public void bglPolygonMode(int face, int mode) {
+	@Override
+	public void glPolygonMode(int face, int mode) {
 		//GLES11.glPolygonMode(face, mode);
 	}
 
-	public void bglLoadIdentity() { 
+	@Override
+	public void glLoadIdentity() { 
 		GLES11.glLoadIdentity();
 	}
 	
-	public void bglMatrixMode(int mode) {
+	@Override
+	public void glMatrixMode(int mode) {
 		GLES11.glMatrixMode(mode);
 	}
 	
+	
 	private static final FloatBuffer matrixBuffer = ByteBuffer.allocateDirect(16*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-	public void bglLoadMatrixf(float[][] m) { 
+	@Override
+	public void glLoadMatrixf(float[][] m) { 
 		matrixBuffer.clear();
 		for(int i = 0; i < m.length; i++) {
 			for(int j = 0; j < m[i].length; j++) {
@@ -277,74 +189,78 @@ public class AndroidGL10 extends GL10 {
 		GLES11.glLoadMatrixf(matrixBuffer);
 	}
 	
-	public void bglLoadMatrix(Matrix4 m) { 
+	@Override
+	public void glLoadMatrix(Matrix4 m) { 
 		matrixBuffer.clear();
 		matrixBuffer.put(m.getValues());
 		matrixBuffer.rewind();
 		GLES11.glLoadMatrixf(matrixBuffer);
 	}
 	
-	public void bglTexEnvf(int type, int pname, float param) {
+	@Override
+	public void glTexEnvf(int type, int pname, float param) {
 		GLES11.glTexEnvf(type, pname, param);
 	}
 
-	public void bglOrtho(int left, int right, int bottom, int top, int zNear, int zFar) {
-		GLES11.glOrthof(left, right, bottom, top, zNear, zFar);
-	}
-	
-	public void bglBegin(int type) {
+	@Override
+	public void glBegin(int type) {
 		begin(type);
 	}
 	
-	public void bglEnd() {
+	@Override
+	public void glEnd() {
 		end();
 	}
 	
-	public void bglVertex2i(int x, int y) { 
-		bglVertex3d(x, y ,0);
+	@Override
+	public void glVertex2i(int x, int y) { 
+		glVertex3d(x, y ,0);
 	}
 	
-	public void bglVertex2f(float x, float y) { 
-		bglVertex3d(x, y ,0);
+	@Override
+	public void glVertex2f(float x, float y) { 
+		glVertex3d(x, y ,0);
 	}
 	
-	public void bglVertex3d(double x, double y, double z) {
+	@Override
+	public void glVertex3d(double x, double y, double z) {
 		vertex((float)x, (float)y, (float)z);
 	}
 	
-	public void bglTexCoord2f(float s, float t) { 
+	@Override
+	public void glTexCoord2f(float s, float t) { 
 		texCoord(s,t);
 		
 	}
 	
-	public void bglTexCoord2d(double s, double t) {
+	@Override
+	public void glTexCoord2d(double s, double t) {
 		texCoord((float)s,(float)t);
 	}
 
-	public void bglColor4ub(int red, int green, int blue, int alpha) {
+	@Override
+	public void glColor4ub(int red, int green, int blue, int alpha) {
 		GLES11.glColor4f((red&0xFF)/255f, (green&0xFF)/255f, (blue&0xFF)/255f, (alpha&0xFF)/255f);
 	}
 	
-	public void bglPopAttrib() {
+	@Override
+	public void glPopAttrib() {
 //		GLES11.glPopAttrib();
 	}
 	
-	public void bglPushAttrib(int mask) {
+	@Override
+	public void glPushAttrib(int mask) {
 //		GLES11.glPushAttrib(mask);
 	}
 	
-	public void bglMultiTexCoord2dARB(int target, double s, double t) {
+	@Override
+	public void glMultiTexCoord2d(int target, double s, double t) {
 //		GL13.glMultiTexCoord2d(target, s, t);
 	}
 	
-	public void bglActiveTextureARB(int texture) {
+	@Override
+	public void glActiveTexture(int texture) {
 //		GL13.glActiveTexture(texture);
-	}
-	
-	public void bglGetError(String name, int var) {
-		int error = GLES10.glGetError();
-		if(error != 0)
-			System.out.println(name + " " + error + " " + var);
 	}
 	
 	
@@ -543,137 +459,687 @@ public class AndroidGL10 extends GL10 {
 	}
 
 	@Override
-	public void glReadPixels(int x, int y, int width, int height, int format,
-			int type, ByteBuffer pixels) {
-		GLES11.glReadPixels(x, y, width, height, format, type, pixels);
-	}
-
-	@Override
-	public void bglFrontFace(int mode) {
+	public void glFrontFace(int mode) {
 		GLES11.glFrontFace(mode);
 	}
 
 	@Override
-	public void bglCullFace(int mode) {
+	public void glCullFace(int mode) {
 		GLES11.glCullFace(mode);
 	}
 
 	@Override
-	public void bglFogfv(int pname, FloatBuffer params) {
+	public void glFogfv(int pname, FloatBuffer params) {
 		GLES11.glFogfv(pname, params);
 	}
 
 	@Override
-	public void bglEnableClientState(int cap) {
+	public void glEnableClientState(int cap) {
 		GLES11.glEnableClientState(cap);
 	}
 
 	@Override
-	public void bglVertexPointer(int size, int stride, FloatBuffer pointer) {
-		GLES11.glVertexPointer(size, 0, stride, pointer);
-	}
-
-	@Override
-	public void bglDrawElements(int mode, ShortBuffer indices) {
-		GLES11.glDrawElements(mode, 0, 0, indices);
-	}
-
-	@Override
-	public void bglTexCoordPointer(int size, int stride, FloatBuffer pointer) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void bglDrawElements(int mode, IntBuffer indices) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void bglDeleteTextures(int n, IntBuffer texture) {
+	public void glDeleteTextures(int n, IntBuffer texture) {
 		GLES11.glDeleteTextures(n, texture);
 	}
 
 	@Override
-	public void bglBindTexture(int target, IntBuffer texture) {
+	public void glBindTexture(int target, IntBuffer texture) {
 		GLES11.glBindTexture(target, texture.get(0));
 	}
 
 	@Override
-	public void bglRotatef(float angle, float x, float y, float z) {
+	public void glRotatef(float angle, float x, float y, float z) {
 		GLES11.glRotatef(angle, x, y, z);
 	}
 
 	@Override
-	public void bglTranslatef(float x, float y, float z) {
+	public void glTranslatef(float x, float y, float z) {
 		GLES11.glTranslatef(x, y, z);
 	}
 
 	@Override
-	public void bglDeleteBuffersARB(IntBuffer buffers) {
-		// TODO Auto-generated method stub
+	public void glDisableClientState(int cap) {
 		
 	}
 
 	@Override
-	public void bglGenBuffersARB(IntBuffer buffers) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void bglBindBufferARB(int target, int buffer) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void bglBufferDataARB(int target, IntBuffer data, int usage) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void bglClientActiveTextureARB(int texture) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void bglDisableClientState(int cap) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void bglCopyTexImage2D(int target, int level, int internalFormat,
-			int x, int y, int width, int height, int border) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void bglFlush() {
+	public void glFlush() {
 		GLES11.glFlush();
 		
 	}
 
 	@Override
-	public void bglFinish() {
+	public void glFinish() {
 		GLES11.glFinish();
 	}
 
 	@Override
-	public void bglReadBuffer(int mode) {
+	public void glBindBuffer(int arg0, int arg1) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void bglCopyTexSubImage2D(int target, int level, int xoffset,
-			int yoffset, int x, int y, int width, int height) {
+	public void glBindFramebuffer(int arg0, int arg1) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void glBindRenderbuffer(int arg0, int arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glBindTexture (int target, int texture) {
+		GLES11.glBindTexture(target, texture);
+	}
+
+	@Override
+	public void glBlendColor(float arg0, float arg1, float arg2, float arg3) {
+		
+	}
+
+	@Override
+	public void glBlendEquation(int arg0) {
+		
+	}
+
+	@Override
+	public void glBlendFuncSeparate(int arg0, int arg1, int arg2, int arg3) {
+		
+	}
+
+	@Override
+	public void glBufferData(int arg0, int arg1, Buffer arg2, int arg3) {
+		
+	}
+
+	@Override
+	public void glBufferSubData(int arg0, int arg1, int arg2, Buffer arg3) {
+		
+	}
+
+	@Override
+	public int glCheckFramebufferStatus(int arg0) {
+		
+		return 0;
+	}
+
+	@Override
+	public void glClearColor(float red, float green, float blue, float alpha) {
+		GLES11.glClearColor(red, green, blue, alpha);
+	}
+
+	@Override
+	public void glClearDepthf(float depth) {
+		GLES11.glClearDepthf(depth);
+	}
+
+	@Override
+	public void glClearStencil(int s) {
+		GLES11.glClearStencil(s);
+	}
+
+	@Override
+	public void glCompressedTexImage2D(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, Buffer arg7) {
+	}
+
+	@Override
+	public void glCompressedTexSubImage2D(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
+			int arg7, Buffer arg8) {
+
+	}
+
+	@Override
+	public void glCopyTexImage2D(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7) {
+
+	}
+
+	@Override
+	public void glCopyTexSubImage2D(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7) {
+
+	}
+
+	@Override
+	public void glDeleteBuffer(int arg0) {
+	
+	}
+
+	@Override
+	public void glDeleteBuffers(int arg0, IntBuffer arg1) {
+		
+	}
+
+	@Override
+	public void glDeleteFramebuffer(int arg0) {
+		
+	}
+
+	@Override
+	public void glDeleteFramebuffers(int arg0, IntBuffer arg1) {
+		
+	}
+
+	@Override
+	public void glDeleteRenderbuffer(int arg0) {
+		
+	}
+
+	@Override
+	public void glDeleteRenderbuffers(int arg0, IntBuffer arg1) {
+		
+	}
+
+	@Override
+	public void glDeleteTexture(int texture) {
+		
+	}
+
+	@Override
+	public void glDepthMask(boolean flag) {
+		GLES11.glDepthMask(flag);
+	}
+
+	@Override
+	public void glDepthRangef(float near_val, float far_val) {
+		GLES11.glDepthRangef(near_val, far_val);
+	}
+
+	@Override
+	public void glDrawArrays(int arg0, int arg1, int arg2) {
+		
+	}
+
+	@Override
+	public void glDrawElements(int arg0, int arg1, int arg2, Buffer arg3) {
+		
+	}
+
+	@Override
+	public void glDrawElements(int arg0, int arg1, int arg2, int arg3) {
+		
+	}
+
+	@Override
+	public void glFramebufferRenderbuffer(int arg0, int arg1, int arg2, int arg3) {
+		
+	}
+
+	@Override
+	public void glFramebufferTexture2D(int arg0, int arg1, int arg2, int arg3, int arg4) {
+		
+	}
+
+	@Override
+	public int glGenBuffer() {
+
+		return 0;
+	}
+
+	@Override
+	public void glGenBuffers(int arg0, IntBuffer arg1) {
+		
+	}
+
+	@Override
+	public int glGenFramebuffer() {
+		
+		return 0;
+	}
+
+	@Override
+	public void glGenFramebuffers(int arg0, IntBuffer arg1) {
+		
+	}
+
+	@Override
+	public int glGenRenderbuffer() {
+		
+		return 0;
+	}
+
+	@Override
+	public void glGenRenderbuffers(int arg0, IntBuffer arg1) {
+		
+	}
+
+	@Override
+	public int glGenTexture() {
+//		return GLES11.glGenTextures(arg0, arg1);
+		return 0;
+	}
+
+	@Override
+	public void glGenerateMipmap(int arg0) {
+		
+	}
+
+	@Override
+	public void glGetBooleanv(int arg0, Buffer arg1) {
+//		GLES11.glGetBooleanv(arg0, arg1);
+	}
+
+	@Override
+	public void glGetBufferParameteriv(int arg0, int arg1, IntBuffer arg2) {
+		
+	}
+
+	@Override
+	public int glGetError() {
+		return GLES10.glGetError();
+	}
+
+	@Override
+	public void glGetFramebufferAttachmentParameteriv(int arg0, int arg1, int arg2, IntBuffer arg3) {
+		
+	}
+
+	@Override
+	public void glGetIntegerv(int pname, IntBuffer params) {
+		params.rewind();
+        GLES11.glGetIntegerv(pname, params);
+	}
+
+	@Override
+	public void glGetRenderbufferParameteriv(int arg0, int arg1, IntBuffer arg2) {
+		
+	}
+
+	@Override
+	public void glGetTexParameterfv(int arg0, int arg1, FloatBuffer arg2) {
+		
+	}
+
+	@Override
+	public void glGetTexParameteriv(int arg0, int arg1, IntBuffer arg2) {
+		
+	}
+
+	@Override
+	public void glGetVertexAttribPointerv(int arg0, int arg1, Buffer arg2) {
+		
+	}
+
+	@Override
+	public boolean glIsBuffer(int arg0) {
+
+		return false;
+	}
+
+	@Override
+	public boolean glIsEnabled(int arg0) {
+
+		return false;
+	}
+
+	@Override
+	public boolean glIsFramebuffer(int arg0) {
+
+		return false;
+	}
+
+	@Override
+	public boolean glIsRenderbuffer(int arg0) {
+
+		return false;
+	}
+
+	@Override
+	public boolean glIsTexture(int arg0) {
+
+		return false;
+	}
+
+	@Override
+	public void glLineWidth(float arg0) {
+		
+	}
+
+	@Override
+	public void glReadPixels(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, Buffer arg6) {
+		
+	}
+
+	@Override
+	public void glRenderbufferStorage(int arg0, int arg1, int arg2, int arg3) {
+		
+	}
+
+	@Override
+	public void glSampleCoverage(float arg0, boolean arg1) {
+		
+	}
+
+	@Override
+	public void glScissor(int arg0, int arg1, int arg2, int arg3) {
+		
+	}
+
+	@Override
+	public void glShaderBinary(int arg0, IntBuffer arg1, int arg2, Buffer arg3, int arg4) {
+		
+	}
+
+	@Override
+	public void glStencilFunc(int arg0, int arg1, int arg2) {
+		
+	}
+
+	@Override
+	public void glStencilMask(int arg0) {
+		
+	}
+
+	@Override
+	public void glStencilOp(int arg0, int arg1, int arg2) {
+		
+	}
+
+	@Override
+	public void glTexParameterf(int arg0, int arg1, float arg2) {
+		
+	}
+
+	@Override
+	public void glTexParameterfv(int arg0, int arg1, FloatBuffer arg2) {
+		
+	}
+
+	@Override
+	public void glTexParameteriv(int arg0, int arg1, IntBuffer arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glClientActiveTexture(int texture) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glColorPointer(int size, int type, int stride, Buffer pointer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glFrustumf(float left, float right, float bottom, float top, float zNear, float zFar) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glLightModelf(int pname, float param) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glLightModelfv(int pname, FloatBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glLightf(int light, int pname, float param) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glLightfv(int light, int pname, FloatBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glLoadMatrixf(FloatBuffer m) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glLogicOp(int opcode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glMaterialf(int face, int pname, float param) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glMaterialfv(int face, int pname, FloatBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glMultMatrixf(FloatBuffer m) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glMultiTexCoord4f(int target, float s, float t, float r, float q) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glNormal3f(float nx, float ny, float nz) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glNormalPointer(int type, int stride, Buffer pointer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glOrthof(float left, float right, float bottom, float top, float zNear, float zFar) {
+		GLES11.glOrthof(left, right, bottom, top, zNear, zFar);
+	}
+
+	@Override
+	public void glPointSize(float size) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexCoordPointer(int size, int type, int stride, Buffer pointer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexEnvfv(int target, int pname, FloatBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glVertexPointer(int size, int type, int stride, Buffer pointer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glDeleteTextures(int n, int[] textures, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glFogfv(int pname, float[] params, int offset) {
+		GLES11.glFogfv(pname, params, offset);
+	}
+
+	@Override
+	public void glGenTextures(int n, int[] textures, int offset) {
+		GLES11.glGenTextures(n, textures, offset);
+	}
+
+	@Override
+	public void glGetIntegerv(int pname, int[] params, int offset) {
+		GLES11.glGetIntegerv(pname, params, offset);
+	}
+
+	@Override
+	public void glLightModelfv(int pname, float[] params, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glLightfv(int light, int pname, float[] params, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glLoadMatrixf(float[] m, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glMaterialfv(int face, int pname, float[] params, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glMultMatrixf(float[] m, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexEnvfv(int target, int pname, float[] params, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glDeleteBuffers(int n, int[] buffers, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glGenBuffers(int n, int[] buffers, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glGetLightfv(int light, int pname, FloatBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glGetMaterialfv(int face, int pname, FloatBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glGetTexEnviv(int env, int pname, IntBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glPointParameterf(int pname, float param) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glPointParameterfv(int pname, FloatBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexEnvi(int target, int pname, int param) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexEnviv(int target, int pname, int[] params, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexEnviv(int target, int pname, IntBuffer params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexParameterfv(int target, int pname, float[] params, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexParameteriv(int target, int pname, int[] params, int offset) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glColorPointer(int size, int type, int stride, int pointer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glNormalPointer(int type, int stride, int pointer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glTexCoordPointer(int size, int type, int stride, int pointer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glVertexPointer(int size, int type, int stride, int pointer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glReadBuffer(int mode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void glDepthMask(int param) {
+		GLES11.glDepthMask(param != GL_FALSE);
+	}
+
+	@Override
+	public void glDepthRange(double near_val, double far_val) {
+		GLES11.glDepthRangef((float)near_val, (float)far_val);
 	}
 
 }

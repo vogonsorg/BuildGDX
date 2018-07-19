@@ -15,21 +15,25 @@
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package ru.m210projects.Build.Audio;
+package ru.m210projects.Build.Audio.BMusic;
 
-public interface Music {
-	public void open(String name);
-	public int open(byte[] data);
-	public void close();
-	public void stop();
-	public void play(boolean looping);
-	public void pause();
-	public void resume();
-	public void setVolume(int volume);
-	public void dispose();
-	public boolean init();
-	public boolean isInited();
-	public boolean isPlaying();
-	public String getName();
+import static ru.m210projects.Build.FileHandle.Compat.*;
+
+import java.util.HashMap;
+
+public class Highmusic {
+	public static HashMap<String, String> midToMusic = new HashMap<String, String>();
 	
+	public static void addDigitalMusic(String midi, String digital)
+	{
+		midToMusic.put(toLowerCase(midi), toLowerCase(digital));
+	}
+	
+	public static String checkDigitalMusic(String midi)
+	{
+		if(midi != null)
+			return midToMusic.get(toLowerCase(midi));
+		
+		return null;
+	}
 }

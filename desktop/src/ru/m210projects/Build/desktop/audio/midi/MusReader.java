@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along withMocha Doom.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.desktop;
+package ru.m210projects.Build.desktop.audio.midi;
 
 import java.io.DataInputStream;
 import java.io.IOException;

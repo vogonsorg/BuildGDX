@@ -17,7 +17,9 @@
 
 package ru.m210projects.Build.Audio;
 
-public class Source implements Comparable<Source> {
+import java.nio.ByteBuffer;
+
+public abstract class Source implements Comparable<Source> {
 	
 	public static final int Locked = 1;
 	
@@ -25,10 +27,12 @@ public class Source implements Comparable<Source> {
 	public int sourceId;
 	public int priority;
 	public boolean free;
-	public int type;
 	public int flags;
-	public int channel;
 	
+	public int format;
+	public int rate;
+	public ByteBuffer data;
+
 	public LoopInfo loopInfo;
 	
 	public Source(int bufferId, int sourceId, int priority)
@@ -37,7 +41,6 @@ public class Source implements Comparable<Source> {
 		this.sourceId = sourceId;
 		this.priority = priority;
 		this.free = true;
-		this.channel = -1;
 		loopInfo = new LoopInfo();
 	}
 
@@ -47,4 +50,20 @@ public class Source implements Comparable<Source> {
 		if(source.free) return 1;
 		return (this.priority - source.priority);
 	}
+	
+	public abstract void play(float volume);
+	public abstract void stop();
+	public abstract void pause();
+	public abstract void resume();
+	public abstract int  dispose();
+	public abstract void setLooping(boolean loop, int loopstart, int loopend);
+	public abstract void setPosition(float x, float y, float z);
+	public abstract void setVolume( float volume );
+	public abstract void setPitch( float pitch );
+	public abstract void setGlobal(int num);
+	public abstract void setPriority(int priority);
+	
+	public abstract boolean isActive();	
+	public abstract boolean isLooping();
+	public abstract boolean isPlaying();
 }

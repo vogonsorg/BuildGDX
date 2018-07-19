@@ -11,7 +11,7 @@
 
 package ru.m210projects.Build;
 
-import static ru.m210projects.Build.Audio.Highmusic.*;
+import static ru.m210projects.Build.Audio.BMusic.Highmusic.*;
 import static ru.m210projects.Build.Common.T_EOF;
 import static ru.m210projects.Build.Common.T_ERROR;
 import static ru.m210projects.Build.Common.check_file_exist;

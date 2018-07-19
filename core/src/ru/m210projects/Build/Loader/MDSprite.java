@@ -15,7 +15,7 @@ import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTextureWrap;
-import static ru.m210projects.Build.Render.Types.GL10.GL_REPEAT;
+import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Render.Types.Hightile.HICEFFECTMASK;
 import static ru.m210projects.Build.Render.Types.Hightile.hictinting;
 import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
@@ -37,13 +37,13 @@ import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Types.BTexture;
-import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Render.Types.Spritesmooth;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile2model;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.utils.BufferUtils;
 
@@ -71,26 +71,26 @@ public class MDSprite {
 	public static IntBuffer vertvbos;
 	public static IntBuffer indexvbos;
 	
-	public static void md_freevbos(GL10 gl)
+	public static void md_freevbos()
 	{
-//	    for (int i = 0; i < models.size(); i++)
-//	        if (models.get(i) != null && models.get(i).mdnum == 3)
-//	        {
-//	            MD3Model m = (MD3Model) models.get(i);
-//	            if (m.vbos != null)
-//	            {
-//	                //            OSD_Printf("freeing model %d vbo\n",i);
-//	                gl.glDeleteBuffers(m.vbos);
-//	                m.vbos = null;
-//	            }
-//	        }
-//
-//	    if (allocvbos != 0)
-//	    {
-//	        gl.glDeleteBuffers(indexvbos);
-//	        gl.glDeleteBuffers(vertvbos);
-//	        allocvbos = 0;
-//	    }
+	    for (int i = 0; i < models.size(); i++)
+	        if (models.get(i) != null && models.get(i).mdnum == 3)
+	        {
+	            MD3Model m = (MD3Model) models.get(i);
+	            if (m.vbos != null)
+	            {
+	                //            OSD_Printf("freeing model %d vbo\n",i);
+	                Gdx.gl.glDeleteBuffers(0, m.vbos);
+	                m.vbos = null;
+	            }
+	        }
+
+	    if (allocvbos != 0)
+	    {
+	    	Gdx.gl.glDeleteBuffers(0, indexvbos);
+	    	Gdx.gl.glDeleteBuffers(0, vertvbos);
+	        allocvbos = 0;
+	    }
 	}
 	
 	public static int qloadkvx(int voxindex, String filename)
@@ -132,22 +132,22 @@ public class MDSprite {
 	}
 	
 	// VBO generation and allocation
-	public static void mdloadvbos(MD3Model m, GL10 gl)
+	public static void mdloadvbos(MD3Model m)
 	{
-//	    m.vbos = BufferUtils.newIntBuffer(m.head.numSurfaces);
-//	    gl.glGenBuffers(m.vbos);
-//
-//	    int i = 0;
-//	    while (i < m.head.numSurfaces)
-//	    {
-//	    	gl.bglBindBuffer(GL_ARRAY_BUFFER_ARB, m.vbos.get(i));
-////XXX	    	gl.bglBufferDataARB(GL_ARRAY_BUFFER_ARB, m.surfaces[i].uv, GL_STATIC_DRAW_ARB);
-//	        i++;
-//	    }
-//	    gl.bglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+	    m.vbos = BufferUtils.newIntBuffer(m.head.numSurfaces);
+	    Gdx.gl.glGenBuffers(0, m.vbos);
+
+	    int i = 0;
+	    while (i < m.head.numSurfaces)
+	    {
+	    	 Gdx.gl.glBindBuffer(GL_ARRAY_BUFFER, m.vbos.get(i));
+	    	 Gdx.gl.glBufferData(GL_ARRAY_BUFFER, 0, m.surfaces[i].uv, GL_STATIC_DRAW);
+	    	 i++;
+	    }
+	    Gdx.gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	
-	public static void md_allocvbos(GL10 gl)
+	public static void md_allocvbos()
 	{
 		int r_vbocount = Console.Geti("r_vbocount");
 	    indexvbos = BufferUtils.newIntBuffer(r_vbocount);
@@ -155,25 +155,25 @@ public class MDSprite {
 
 	    if (r_vbocount != allocvbos)
 	    {
-//	    	indexvbos.position(allocvbos);
-//	        gl.glGenBuffersARB(indexvbos);
-//	        vertvbos.position(allocvbos);
-//	        gl.glGenBuffersARB(vertvbos);
-//
-//	        int i = allocvbos;
-//	        while (i < r_vbocount)
-//	        {
-//	            gl.bglBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, indexvbos.get(i)); //maxmodeltris * 3 XXX
-//	            gl.bglBufferData(GL_ELEMENT_ARRAY_BUFFER_ARB, null, GL_STREAM_DRAW_ARB);
-//	            gl.bglBindBuffer(GL_ARRAY_BUFFER_ARB, vertvbos.get(i)); //maxmodelverts
-//	            gl.bglBufferData(GL_ARRAY_BUFFER_ARB, null, GL_STREAM_DRAW_ARB);
-//	            i++;
-//	        }
-//
-//	        gl.bglBindBuffer(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-//	        gl.bglBindBuffer(GL_ARRAY_BUFFER_ARB, 0);
-//
-//	        allocvbos = r_vbocount;
+	    	indexvbos.position(allocvbos);
+	        Gdx.gl.glGenBuffers(0, indexvbos);
+	        vertvbos.position(allocvbos);
+	        Gdx.gl.glGenBuffers(0, vertvbos);
+
+	        int i = allocvbos;
+	        while (i < r_vbocount)
+	        {
+	        	Gdx.gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexvbos.get(i)); //maxmodeltris * 3 XXX
+	        	Gdx.gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexvbos.capacity(), null, GL_STREAM_DRAW);
+	        	Gdx.gl.glBindBuffer(GL_ARRAY_BUFFER, vertvbos.get(i)); //maxmodelverts
+	        	Gdx.gl.glBufferData(GL_ARRAY_BUFFER, vertvbos.capacity(), null, GL_STREAM_DRAW);
+	            i++;
+	        }
+
+	        Gdx.gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	        Gdx.gl.glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	        allocvbos = r_vbocount;
 	    }
 	}
 	
@@ -611,7 +611,7 @@ public class MDSprite {
 	    return 0;
 	}
 	
-	public static BTexture mdloadskin(GL10 gl, MDModel m, int number, int pal, int surf)
+	public static BTexture mdloadskin(MDModel m, int number, int pal, int surf)
 	{
 	    String skinfile = null;
 	    BTexture texidx = null;
@@ -731,8 +731,8 @@ public class MDSprite {
 	    
 		int gltexfiltermode = Console.Geti("r_texturemode");
 
-		setupBoundTexture(gl, gltexfiltermode, GLInfo.anisotropy());
-		setupBoundTextureWrap(gl, GL_REPEAT);
+		setupBoundTexture(gltexfiltermode, GLInfo.anisotropy());
+		setupBoundTextureWrap(GL_REPEAT);
 
 	    long etime = System.currentTimeMillis()-startticks;
 	    

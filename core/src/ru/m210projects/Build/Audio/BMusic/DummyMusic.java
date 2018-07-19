@@ -15,44 +15,16 @@
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package ru.m210projects.Build.Audio;
+package ru.m210projects.Build.Audio.BMusic;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
+
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class DummyMusic implements Music {
 
 	@Override
-	public void open(String name) {
-	}
-
-	@Override
-	public int open(byte[] data) {
-		return 0;
-	}
-
-	@Override
-	public void close() {
-	}
-
-	@Override
-	public void stop() {
-	}
-
-	@Override
-	public void play(boolean looping) {
-	}
-
-	@Override
-	public void pause() {
-	}
-
-	@Override
-	public void resume() {
-	}
-
-	@Override
-	public void setVolume(int volume) {
+	public void setVolume(float volume) {
 	}
 
 	@Override
@@ -76,7 +48,17 @@ public class DummyMusic implements Music {
 	}
 
 	@Override
-	public boolean isPlaying() {
-		return false;
+	public MusicSource newMusic(byte[] data) {
+		
+		return null;
+	}
+
+	@Override
+	public MusicSource newMusic(String name) {
+		return null;
+	}
+
+	@Override
+	public void update() {
 	}
 }

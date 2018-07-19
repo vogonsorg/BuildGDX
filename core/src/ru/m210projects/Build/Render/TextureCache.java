@@ -37,7 +37,6 @@ import java.util.Map;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ImageUtils.PicInfo;
 import ru.m210projects.Build.Render.Types.BTexture;
-import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hicreplctyp;
 import ru.m210projects.Build.Render.Types.Pthtyp;
 import ru.m210projects.Build.Render.Types.ValueResolver;
@@ -82,15 +81,13 @@ public class TextureCache {
 	}
 	*/
 
-	private final GL10 gl;
 	private final ValueResolver<Integer> anisotropy;
 
 	private final Map<TextureKey, Pthtyp> cache = new HashMap<TextureKey, Pthtyp>();
 
     private final MutableTextureKey mutableTextureKey = new MutableTextureKey(); // <----- reusable mutable key
 
-	public TextureCache(GL10 gl, ValueResolver<Integer> anisotropy) {
-		this.gl = gl;
+	public TextureCache(ValueResolver<Integer> anisotropy) {
 		this.anisotropy = anisotropy;
 	}
 
@@ -169,18 +166,18 @@ public class TextureCache {
 			} catch(Exception e) { return null; }
 		}
 		
-		bindTexture(gl, pth.glpic);
+		bindTexture(pth.glpic);
 		fixtransparency(picInfo.pic, tsizx, tsizy, xsiz, ysiz, clamping);
 		int intexfmt = picInfo.hasalpha ? GL_RGBA : GL_RGB;
 
 		if (Gdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
 
-		uploadBoundTexture(gl, doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic, tsizx, tsizy);
+		uploadBoundTexture(doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic, tsizx, tsizy);
 		int gltexfiltermode = Console.Geti("r_texturemode");
-		setupBoundTexture(gl, gltexfiltermode, anisotropy.get());
+		setupBoundTexture(gltexfiltermode, anisotropy.get());
 		int wrap = !clamping ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP;
-		setupBoundTextureWrap(gl, wrap);
+		setupBoundTextureWrap(wrap);
 
 		pth.picnum = (short) dapic;
 		pth.palnum = (short) dapal;
@@ -261,12 +258,12 @@ public class TextureCache {
 		int tsizx = pth.sizx;
 		int tsizy = pth.sizy;
 
-		bindTexture(gl, pth.glpic);
+		bindTexture(pth.glpic);
 		int gltexfiltermode = Console.Geti("r_texturemode");
 		
-		setupBoundTexture(gl, gltexfiltermode, anisotropy.get());
+		setupBoundTexture(gltexfiltermode, anisotropy.get());
 		int wrap = !clamping ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP;
-		setupBoundTextureWrap(gl, wrap);
+		setupBoundTextureWrap(wrap);
 
 		pth.picnum = (short) dapic;
 		pth.palnum = (short) dapal;
@@ -354,8 +351,8 @@ public class TextureCache {
 
 	public void updateSettings(int gltexfiltermode) {
 		for (Pthtyp pth : cache.values()) {
-			bindTexture(gl, pth.glpic);
-			setupBoundTexture(gl, gltexfiltermode, anisotropy.get());
+			bindTexture(pth.glpic);
+			setupBoundTexture(gltexfiltermode, anisotropy.get());
 		}
 	}
 

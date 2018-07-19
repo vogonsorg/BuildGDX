@@ -70,7 +70,7 @@ import org.lwjgl.opengl.Display;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.BConfig;
-import ru.m210projects.Build.desktop.DavidMusicModule;
+import ru.m210projects.Build.desktop.audio.midi.DavidMusicModule;
 import ru.m210projects.Build.desktop.extension.DeskApplicationConfiguration;
 
 public class DesktopFrame {

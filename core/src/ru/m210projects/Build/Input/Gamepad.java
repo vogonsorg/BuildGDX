@@ -51,7 +51,7 @@ public class Gamepad {
 	protected int allButtonsCount;
 	protected boolean buttonPressed = false;
 
-	public Gamepad(BController controller)
+	public Gamepad(Controller controller)
 	{
 		buttonsNum = controller.getControlCount(ControlType.button);
 		axisNum = controller.getControlCount(ControlType.axis);

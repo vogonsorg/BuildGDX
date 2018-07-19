@@ -1,6 +1,5 @@
 package ru.m210projects.Build.desktop.extension;
 
-
 import java.awt.Canvas;
 import java.io.File;
 

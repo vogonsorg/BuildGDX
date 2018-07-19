@@ -18,7 +18,6 @@ import org.lwjgl.opengl.GL15;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
-import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GL10;
 
 public class DeskGL10 extends GL10 {
@@ -979,16 +978,6 @@ public class DeskGL10 extends GL10 {
 	@Override
 	public void glReadBuffer(int mode) {
 		GL11.glReadBuffer(mode);
-	}
-
-	@Override
-	public void glDeleteTexture(BTexture texture) {
-		texture.dispose();
-	}
-
-	@Override
-	public void glBindTexture(BTexture texture) {
-		texture.bind();
 	}
 
 	@Override
