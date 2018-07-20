@@ -124,6 +124,7 @@ public class BAudio implements Disposable {
 
 	public Source newSound(ByteBuffer data, int rate, int bits, int priority)
 	{
+		if(priority == 0) priority = 1;
 		return fx.newSound(data, rate, bits, priority);
 	}
 	
