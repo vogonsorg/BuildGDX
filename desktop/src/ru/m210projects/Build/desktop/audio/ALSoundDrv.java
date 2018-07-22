@@ -434,6 +434,11 @@ public class ALSoundDrv implements Sound {
 	public Music getDigitalMusic() {
 		return mus;
 	}
+
+	@Override
+	public boolean isAvailable(int priority) {
+		return sourceManager.element().priority < priority || !sourceManager.element().isPlaying();
+	}
 }
 
 

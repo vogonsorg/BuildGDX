@@ -8,7 +8,6 @@ package ru.m210projects.Build.FileHandle;
 
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
-import static ru.m210projects.Build.Strhandler.Bstrcmp;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -63,7 +62,7 @@ public class Cache1D {
 	    	{
 	    	case grpsign: //KenS
 	    		String strbuf = new String(data, 0, 12);
-				if(Bstrcmp(strbuf, "KenSilverman") == 0) {
+				if(strbuf.compareTo("KenSilverman") == 0) {
 					GRPResource grp = new GRPResource(data);
 					grp.type = GRP;
 					grp.name = "packaged GRP";
@@ -99,7 +98,7 @@ public class Cache1D {
 	    	{
 	    	case grpsign: //KenS
 	    		String strbuf = new String(buf, 0, 12);
-				if(Bstrcmp(strbuf, "KenSilverman") == 0) {
+				if(strbuf.compareTo("KenSilverman") == 0) {
 					GRPResource grp = new GRPResource(filename);
 					grp.type = GRP;
 					grp.name = filename;

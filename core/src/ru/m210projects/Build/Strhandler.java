@@ -19,6 +19,40 @@ package ru.m210projects.Build;
 public class Strhandler {
 	//String handler
 	
+	public static int buildString(char[] buffer, int boffset, String... text)
+	{
+		int pos = boffset;
+		for(int i = 0; i < text.length && pos < buffer.length; i++)
+		{
+			if(text[i] != null) {
+				text[i].getChars(0, text[i].length(), buffer, pos);
+				pos += text[i].length();
+			}
+		}
+		if(pos< buffer.length)
+			buffer[pos] = 0;
+		
+		return pos;
+	}
+	
+	public static int buildString(char[] buffer, int boffset, String text, int number)
+	{
+		int pos = boffset;
+		text.getChars(0, text.length(), buffer, pos);
+		pos += text.length();
+		
+		int lnum = Bitoa(number, tmp_buffer);
+		System.arraycopy(tmp_buffer, 0, buffer, pos, lnum);
+		
+		pos += lnum;
+		buffer[pos++] = ' ';
+
+		if(pos < buffer.length)
+			buffer[pos] = 0;
+		
+		return pos;
+	}
+	
 		static char[] tmp_buffer = new char[80];
 		public static int Bsprintf(char[] b, int slen, int num, int align) {
 			Bitoa(num, tmp_buffer);
@@ -37,10 +71,6 @@ public class Strhandler {
 			return slen;
 		}
 		
-			public static String Bstrdup(String src) {
-				return new String(src);
-			}
-			
 			public static String Bstrtoken(String s, char delim, String ptrptr, int chop)
 			{
 				String p, start = null;
@@ -158,10 +188,6 @@ public class Strhandler {
 				return i;
 			}
 
-			public static char Btoupper(char ch) {
-				return Character.toUpperCase(ch);
-			}
-
 			public static int Bstrtol(String val, Object tmp, int arg) {
 				return Integer.parseInt(val, arg);
 			}
@@ -186,15 +212,6 @@ public class Strhandler {
 				return offset + c;
 			}
 			
-//			public static char[] Bstrcat(char[] dest, char[] src) {
-//				int len = Bstrlen(dest);
-//				int i = 0;
-//				while(src[i] != '\0') {
-//					dest[len++] = src[i];
-//				}
-//				return dest;
-//			}
-			
 			public static int Bstrcpy(char[] dest, String src) {
 				int i = 0;
 				while(i < src.length()) {
@@ -214,6 +231,12 @@ public class Strhandler {
 				if(len < dest.length)
 					dest[len] = '\0';
 				return len;
+			}
+			
+			public static int Bstrcmp(String txt1, String txt2) {
+				if(txt1 == null || txt2 == null)
+					return -1;
+				return txt1.compareTo(txt2);
 			}
 			
 			public static int Bstrcmp(char[] txt1, int offset1, char[] txt2, int offset2) {
@@ -252,13 +275,7 @@ public class Strhandler {
 					i++;
 				}
 				return 0;
-			}
-			
-			public static int Bstrcmp(String txt1, String txt2) {
-				if(txt1 == null || txt2 == null)
-					return -1;
-				return txt1.compareTo(txt2);
-			}
+			}		
 			
 			public static boolean isdigit(char ch) { 
 				return ch>='0' && ch<='9'; 
@@ -267,12 +284,7 @@ public class Strhandler {
 			public static boolean isalpha(char ch) {
 				return Character.isLetter(ch);
 			}
-			
-			public static int Bstrlen(String src) {
-				
-				return src.length();
-			}
-			
+
 			public static int Bstrlen(char[] src) {
 				int len = 0;
 				while(len < src.length && src[len] != '\0') {
@@ -280,9 +292,4 @@ public class Strhandler {
 				}
 				return len;
 			}
-			
-		public static char[] Bcstr(String text)
-		{
-			return text.toCharArray();
-		}
 }

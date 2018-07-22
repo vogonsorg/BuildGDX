@@ -22,7 +22,6 @@ import static ru.m210projects.Build.Render.GLInfo.*;
 import static ru.m210projects.Build.Render.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Render.Types.Hightile.*;
-import static ru.m210projects.Build.Strhandler.Bstrcmp;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
 
 import java.nio.ByteBuffer;
@@ -360,7 +359,7 @@ public abstract class Polymost implements Renderer {
 	public void init() {
 		GLInfo.init(gl);
 
-		if (Bstrcmp(GLInfo.vendor, "NVIDIA Corporation") == 0) {
+		if (GLInfo.vendor.compareTo("NVIDIA Corporation") == 0) {
 			gl.glHint(GL_FOG_HINT, GL_NICEST);
 		} else {
 			gl.glHint(GL_FOG_HINT, GL_DONT_CARE);

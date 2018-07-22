@@ -3953,9 +3953,9 @@ public abstract class Engine {
 		render.printchar(xpos, ypos, col, backcol, ch, fontsize);
 	}
 
-	public String screencapture(String filename) {
+	public String screencapture(String fn) {
 		int a, b, c, d;
-		String fn = Bstrdup(filename);
+
 		fn = fn.substring(0, Bstrrchr(fn, '.') - 4);
 		
 		DirectoryEntry userdir = cache.checkDirectory("<userdir>");

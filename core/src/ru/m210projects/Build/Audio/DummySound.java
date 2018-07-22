@@ -97,4 +97,9 @@ public class DummySound implements Sound {
 	public Music getDigitalMusic() {
 		return null;
 	}
+
+	@Override
+	public boolean isAvailable(int priority) {
+		return true;
+	}
 }

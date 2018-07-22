@@ -8,7 +8,6 @@ package ru.m210projects.Build.FileHandle;
 
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
-import static ru.m210projects.Build.Strhandler.Bstrcmp;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -70,7 +69,7 @@ public class GRPResource extends IResource {
 		if(data != null) 
 		{
 			String strbuf = new String(data, 0, 12);
-			if(Bstrcmp(strbuf, "KenSilverman") != 0) 
+			if(strbuf.compareTo("KenSilverman") != 0) 
 				throw new ResourceException("GRP header corrupted");
 			
 			NumFiles = LittleEndian.getInt(data, 12);
@@ -110,7 +109,7 @@ public class GRPResource extends IResource {
 			byte[] buf = new byte[16];
 			Bread(File, buf, 16);
 			String strbuf = new String(buf, 0, 12);
-			if(Bstrcmp(strbuf, "KenSilverman") != 0) {
+			if(strbuf.compareTo("KenSilverman") != 0) {
 				throw new ResourceException("GRP header corrupted");
 			}
 			
