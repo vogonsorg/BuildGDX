@@ -4252,8 +4252,6 @@ public abstract class Engine {
 	private int LastSec = 0;
 	private long LastMS = 0; //getticks();
     
-	private final char[] fpsout = new char[8];
-    private final char[] tickout = new char[8];
     private final char[] fpsbuffer = new char[15];
 
     public void printfps() {
@@ -4264,16 +4262,12 @@ public abstract class Engine {
     	long howlong = ms - LastMS;
     	
     	if(howlong > 9999) howlong = 9999;
-		if (howlong >= 0 && howlong < 9999) {
+		if (howlong >= 0 && howlong <= 9999) {
 			int thisSec = (int)(ms / 1000);
-			Bitoa((int)howlong, tickout);
-			Bitoa(LastCount, fpsout);
-			int chars = 0;
-
-			chars = Bstrcpy(fpsbuffer, tickout, 0);
-			chars = Bstrcat(fpsbuffer, "ms ");
-			chars = Bstrcpy(fpsbuffer, fpsout, chars);
-			chars = Bstrcat(fpsbuffer, "fps");
+			
+			int chars = Bitoa((int)howlong, fpsbuffer);
+			chars = buildString(fpsbuffer, chars, "ms ", LastCount);
+			chars = buildString(fpsbuffer, chars, "fps");
 
 			printext256(windowx2 - (chars << (3)), windowy1 + 1, 31, -1, fpsbuffer, 0);
 

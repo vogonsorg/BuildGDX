@@ -45,8 +45,6 @@ public class Strhandler {
 		System.arraycopy(tmp_buffer, 0, buffer, pos, lnum);
 		
 		pos += lnum;
-		buffer[pos++] = ' ';
-
 		if(pos < buffer.length)
 			buffer[pos] = 0;
 		
