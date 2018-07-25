@@ -29,7 +29,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -57,7 +56,9 @@ final public class DeskInput implements BInput {
 	Cursor emptyCursor;
 	Cursor defCursor = Mouse.getNativeCursor();
 	boolean justTouched;
-
+	
+	private int oldX, oldY;
+	
 	Pool<KeyEvent> usedKeyEvents = new Pool<KeyEvent>(16, 1000) {
 		protected KeyEvent newObject () {
 			return new KeyEvent();
@@ -73,6 +74,9 @@ final public class DeskInput implements BInput {
 	public DeskInput () {
 		Keyboard.enableRepeatEvents(false);
 		Mouse.setClipMouseCoordinatesToWindow(false);
+
+		oldX = Mouse.getX();
+		oldY = Mouse.getY();
 	}
 
 	public float getAccelerometerX () {
@@ -237,32 +241,36 @@ final public class DeskInput implements BInput {
 	public boolean isCursorCatched() {
 		return Mouse.isGrabbed();
 	}
+
 	
 	@Override
 	public int getDeltaX () {
-		return Mouse.getDX();
+		if(!Display.isActive()) return 0;
+		int dx = Mouse.getX() - oldX;
+		oldX = Mouse.getX();
+		return dx;
+	}
+	
+	@Override
+	public int getDeltaY () {
+		if(!Display.isActive()) return 0;
+		int dy = Mouse.getY() - oldY;
+		oldY = Mouse.getY();
+		return -dy;
 	}
 
 	@Override
 	public int getDeltaX (int pointer) {
-		if(!Display.isActive()) return 0;
 		if (pointer == 0)
-			return -Mouse.getDX();
+			return getDeltaX();
 		else
 			return 0;
 	}
 
 	@Override
-	public int getDeltaY () {
-		if(!Display.isActive()) return 0;
-		return -Mouse.getDY();
-	}
-
-	@Override
 	public int getDeltaY (int pointer) {
-		if(!Display.isActive()) return 0;
 		if (pointer == 0)
-			return -Mouse.getDY();
+			return getDeltaY();
 		else
 			return 0;
 	}
@@ -320,11 +328,11 @@ final public class DeskInput implements BInput {
 	
 	@Override
 	public boolean cursorHandler() {
-		if(emptyCursor == null)
-			try { emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null); } catch (LWJGLException e) {}
-		
 		try {
-			if (Mouse.isInsideWindow() && Display.isActive()) 
+			if(emptyCursor == null)
+				emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null);
+			
+			if (emptyCursor != null && Mouse.isInsideWindow() && Display.isActive()) 
 				Mouse.setNativeCursor(emptyCursor);
 			else Mouse.setNativeCursor(defCursor);
 		} catch (Exception e) {}
