@@ -17,9 +17,11 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.BGTILE_SIZEY;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BITS;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BITSTH;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BITSTL;
+import static ru.m210projects.Build.OnSceenDisplay.Console.BORDERANG;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BORDTILE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.PALETTE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.SHADE;
+
 import ru.m210projects.Build.Engine;
 
 public class DEFOSDFUNC implements OSDFunc {
@@ -120,11 +122,10 @@ public class DEFOSDFUNC implements OSDFunc {
 			if (xsiz > 0)
 			{
 				tx2 = xdim / xsiz;
-				ysiz = tilesizx[BORDTILE];
-		
+
 				for (x = tx2; x >= 0; x--)
 					engine.rotatesprite(x * xsiz << 16, (daydim - 1) << 16,
-							65536, 0, BORDTILE, SHADE + 12, PALETTE, BITS,
+							65536, BORDERANG, BORDTILE, SHADE + 12, PALETTE, BITS,
 							0, 0, xdim, daydim + 1);
 			}
 		}

@@ -35,12 +35,15 @@ import static ru.m210projects.Build.Strhandler.isdigit;
 
 public class Console {
 	
-	public static int OSDTEXT_RED      = 7;
-	public static int OSDTEXT_BLUE     = 10;
-	public static int OSDTEXT_GOLD     = 9;
-	public static int OSDTEXT_BROWN    = 2;
-	public static int OSDTEXT_YELLOW   = 8;
-
+	public static int OSDTEXT_RED      = -2;
+	public static int OSDTEXT_BLUE     = -1;
+	public static int OSDTEXT_GREEN    = -1;
+	public static int OSDTEXT_YELLOW   = -1;
+	public static int OSDTEXT_BROWN    = -1;
+	public static int OSDTEXT_GOLD     = -1;
+	public static int OSDTEXT_WHITE    = -1;
+	public static int OSDTEXT_GREY    = -1;
+	
 	public static final int MAXLINES = 512;
 
 	public static final int OSD_EDITLENGTH = 511;
@@ -62,6 +65,7 @@ public class Console {
 	public static int BITSTH = 1+32+8+16;	// high translucency
 	public static int BITSTL = 1+8+16;	// low translucency
 	public static int BITS = 8+16+64;		// solid
+	public static int BORDERANG = 0;
 	public static int SHADE = 50;
 	public static int PALETTE = 5;
 	
@@ -218,7 +222,7 @@ public class Console {
 		
 		if ((osdflags & OSD_INITIALIZED) == 0)
 	        Init();
-		
+
 		if(pal == OSDTEXT_RED)
 			System.err.println(text);
 		else System.out.println(text);

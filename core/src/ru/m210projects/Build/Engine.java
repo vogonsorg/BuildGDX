@@ -482,7 +482,7 @@ public abstract class Engine {
 		int fil;
 		if (paletteloaded != 0) return;
 		
-		Console.Println("Loading palettes", 0);
+		Console.Println("Loading palettes");
 		if ((fil = kOpen("palette.dat", 0)) == -1) 
 			throw new Exception("Failed to load \"palette.dat\"!");
 	
@@ -505,9 +505,9 @@ public abstract class Engine {
 			transluc = new byte[65536];
 
 		globalpal = 0;
-		Console.Println("Loading gamma correcion tables", 0);
+		Console.Println("Loading gamma correcion tables");
 		kRead(fil, palookup[globalpal], numshades<<8);
-		Console.Println("Loading translucency table", 0);
+		Console.Println("Loading translucency table");
 		kRead(fil,transluc, 65536);
 
 		kClose(fil);

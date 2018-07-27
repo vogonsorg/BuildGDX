@@ -129,7 +129,7 @@ public class Cache1D {
 		if(res != null)
 		{
 			if(res.NumFiles != 0)
-				Console.Println("Found " + res.NumFiles + " files in " + filename + " archive", 0);
+				Console.Println("Found " + res.NumFiles + " files in " + filename + " archive");
 			groupfil.add(res);
 			return groupfil.size()-1;
 		}
@@ -271,7 +271,7 @@ public class Cache1D {
 		return false;
 	}
 
-	public static int kOpen(String filename, int searchfirst)
+	public synchronized static int kOpen(String filename, int searchfirst)
 	{
 		int i, k, fil, newhandle;
 		
@@ -416,7 +416,7 @@ public class Cache1D {
 		return -1;
 	}
 	
-	public static void kClose(int handle) {
+	public synchronized static void kClose(int handle) {
 		if (handle < 0) return;
 		int groupnum = filegrp[handle];
 		if (groupnum == 255) 

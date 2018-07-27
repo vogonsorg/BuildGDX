@@ -16,7 +16,6 @@ import java.util.List;
 
 import com.badlogic.gdx.utils.BufferUtils;
 
-import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
 
 public class GRPResource extends IResource {
@@ -120,8 +119,6 @@ public class GRPResource extends IResource {
 				byte[] buffer = new byte[NumFiles<<4];
 				if(Bread(File, buffer, buffer.length) == -1) 
 					throw new ResourceException("GRP dictionary corrupted");
-				
-				Console.Println("Found " + NumFiles + " files in " + FileName + " archive", 0);
 
 				int offset = HeaderSize;
 				for(int i = 0; i < NumFiles; i++) {
