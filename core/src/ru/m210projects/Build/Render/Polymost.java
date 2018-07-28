@@ -2012,10 +2012,11 @@ public abstract class Polymost implements Renderer {
 			return (-1);
 
 		if (x1b1 >= x1b2) {
-			for (i = b2f; dxb2[i] <= x1b1; i = p2[i]);
+			for (i = b2f; dxb2[i] <= x1b1 && p2[i] != -1; i = p2[i]);
 			return (wallfront(b1f, i));
 		}
-		for (i = b1f; dxb2[i] <= x1b2; i = p2[i]);
+
+		for (i = b1f; dxb2[i] <= x1b2 && p2[i] != -1; i = p2[i]);
 		return (wallfront(i, b2f));
 	}
 
@@ -2865,8 +2866,11 @@ public abstract class Polymost implements Renderer {
 		wal = wall[thewall[z]];
 		wal2 = wall[wal.point2];
 		sectnum = thesector[z];
+		
+		if(sectnum == -1 || wal.nextsector == -1) 
+			return;
+		
 		sec = sector[sectnum];
-
 		nsec = sector[wal.nextsector];
 		
 		globalpicnum = wal.overpicnum;
