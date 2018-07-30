@@ -51,6 +51,22 @@ public class Strhandler {
 		return pos;
 	}
 	
+	public static int buildString(char[] buffer, int boffset, String text, int number, int symbols)
+	{
+		int pos = boffset;
+		text.getChars(0, text.length(), buffer, pos);
+		pos += text.length();
+		
+		int lnum = Bitoa(number, tmp_buffer, symbols);
+		System.arraycopy(tmp_buffer, 0, buffer, pos, lnum);
+		
+		pos += lnum;
+		if(pos < buffer.length)
+			buffer[pos] = 0;
+		
+		return pos;
+	}
+	
 		static char[] tmp_buffer = new char[80];
 		public static int Bsprintf(char[] b, int slen, int num, int align) {
 			Bitoa(num, tmp_buffer);

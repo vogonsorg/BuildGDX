@@ -151,11 +151,6 @@ public abstract class Engine {
 	public static int windowx1, windowy1, windowx2, windowy2;
 	public static int xdim, ydim;
 	public static int yxaspect, viewingrange;
-	// new multi-psky -- up to MAXPSKYMULTIS
-	public static short pskynummultis;
-	public static short[] pskymultiyscale;
-	public static short[] pskymultilist, pskymultibits;
-	public static short[][] pskymultioff;
 	
 	//OUTPUT VALUES
 	public static int floorzsofslope, ceilzsofslope;
@@ -917,10 +912,7 @@ public abstract class Engine {
 		nextspritestat = new short[MAXSPRITES];
 		gotpic = new byte[(MAXTILES + 7) >> 3];
 		gotsector = new byte[(MAXSECTORS + 7) >> 3];
-		pskymultiyscale = new short[MAXPSKYMULTIS];
-		pskymultilist = new short[MAXPSKYMULTIS]; 
-		pskymultibits = new short[MAXPSKYMULTIS];
-		pskymultioff = new short[MAXPSKYMULTIS][MAXPSKYTILES];
+
 		returnpal = new Palette();
 		pHitInfo = new Hitscan();
 		neartag = new Neartag();
