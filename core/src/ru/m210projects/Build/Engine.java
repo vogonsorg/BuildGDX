@@ -252,13 +252,14 @@ public abstract class Engine {
 	protected int[] clipobjectval;
 
 	
-	private final int FASTPALCOLDEPTH = 256;
-	private final int FASTPALRIGHTSHIFT = 3;
-	private final int FASTPALRGBDIST = (FASTPALCOLDEPTH * 2 + 1);
-	private final int FASTPALCOLDIST = (1 << FASTPALRIGHTSHIFT);
-	private final int FASTPALCOLDISTMASK = (FASTPALCOLDIST - 1);
+//	private final int FASTPALCOLDEPTH = 256;
+//	private final int FASTPALRIGHTSHIFT = 3;
+//	private final int FASTPALRGBDIST = (FASTPALCOLDEPTH * 2 + 1);
+//	private final int FASTPALCOLDIST = (1 << FASTPALRIGHTSHIFT);
+//	private final int FASTPALCOLDISTMASK = (FASTPALCOLDIST - 1);
 	private int[] rdist, gdist, bdist;
-	private final int FASTPALGRIDSIZ = (FASTPALCOLDEPTH >> FASTPALRIGHTSHIFT);
+	private final int FASTPALGRIDSIZ = 8;
+	
 	private byte[] colhere;
 	private byte[] colhead;
 	private byte[] colnext;
@@ -448,16 +449,16 @@ public abstract class Engine {
 			int r = palette[pal1] & 0xFF;
 			int g = palette[pal1 + 1] & 0xFF;
 			int b = palette[pal1 + 2] & 0xFF;
-			j = (r >> FASTPALRIGHTSHIFT) * FASTPALGRIDSIZ * FASTPALGRIDSIZ
-					+ (g >> FASTPALRIGHTSHIFT) * FASTPALGRIDSIZ
-					+ (b >> FASTPALRIGHTSHIFT)
+			j = (r >> 3) * FASTPALGRIDSIZ * FASTPALGRIDSIZ
+					+ (g >> 3) * FASTPALGRIDSIZ
+					+ (b >> 3)
 					+ FASTPALGRIDSIZ * FASTPALGRIDSIZ
 					+ FASTPALGRIDSIZ + 1;
 
 			if ((colhere[j >> 3] & pow2char[j & 7]) != 0)
 				colnext[i] = colhead[j];
-			else
-				colnext[i] = -1;
+			else colnext[i] = -1;
+			
 			colhead[j] = (byte) i;
 			colhere[j >> 3] |= pow2char[j & 7];
 		}
@@ -513,66 +514,68 @@ public abstract class Engine {
 	}
 
 	public byte getclosestcol(int r, int g, int b) {
-		int i, j, k, dist, mindist;
+		int i, k, dist;
 		byte retcol;
 		int pal1;
+		
+		r >>= 2;
+		g >>= 2;
+		b >>= 2;
 
-		j = (r >> FASTPALRIGHTSHIFT) * FASTPALGRIDSIZ * FASTPALGRIDSIZ
-				+ (g >> FASTPALRIGHTSHIFT) * FASTPALGRIDSIZ + (b >> FASTPALRIGHTSHIFT)
-				+ FASTPALGRIDSIZ * FASTPALGRIDSIZ
-				+ FASTPALGRIDSIZ + 1;
+		int j = (r>>3)*FASTPALGRIDSIZ*FASTPALGRIDSIZ+(g>>3)*FASTPALGRIDSIZ+(b>>3)+FASTPALGRIDSIZ*FASTPALGRIDSIZ+FASTPALGRIDSIZ+1;
+		int mindist = min(rdist[(coldist[r&7] & 0xFF)+64+8],gdist[(coldist[g&7] & 0xFF)+64+8]);
+		mindist = min(mindist,bdist[(coldist[b&7] & 0xFF)+64+8]);
+		mindist++;
 
-		int minrdist = rdist[(coldist[r & FASTPALCOLDISTMASK] & 0xFF) + FASTPALCOLDEPTH];
-		int mingdist = gdist[(coldist[g & FASTPALCOLDISTMASK] & 0xFF) + FASTPALCOLDEPTH];
-		int minbdist = bdist[(coldist[b & FASTPALCOLDISTMASK] & 0xFF) + FASTPALCOLDEPTH];
-
-		mindist = min(minrdist, mingdist);
-		mindist = min(mindist, minbdist) + 1;
-
-		r = FASTPALCOLDEPTH - r;
-		g = FASTPALCOLDEPTH - g;
-		b = FASTPALCOLDEPTH - b;
-
+		r = 64-r; g = 64-g; b = 64-b;
+		
 		retcol = -1;
-		for (k = 26; k >= 0; k--) {
-			i = colscan[k] + j;
-
+		for(k=26;k>=0;k--)
+		{
+			i = colscan[k] + j; 
 			if ((colhere[i >> 3] & pow2char[i & 7]) == 0)
 				continue;
-
+			
 			i = colhead[i] & 0xFF;
-			do {
+			do
+			{
 				pal1 = i * 3;
-				if ((dist = gdist[(palette[pal1 + 1] & 0xFF) + g]) >= mindist)
-					continue;
-				if ((dist += rdist[(palette[pal1] & 0xFF) + r]) >= mindist)
-					continue;
-				if ((dist += bdist[(palette[pal1 + 2] & 0xFF) + b]) >= mindist)
-					continue;
-
-				mindist = dist;
-				retcol = (byte) i;
-			} while ((i = colnext[i] & 0xFF) >= 0);
+				dist = gdist[(palette[pal1 + 1] & 0xFF)+g];
+				if (dist < mindist)
+				{
+					dist += rdist[(palette[pal1] & 0xFF)+r];
+					if (dist < mindist)
+					{
+						dist += bdist[(palette[pal1 + 2] & 0xFF)+b];
+						if (dist < mindist) { mindist = dist; retcol = (byte)i; }
+					}
+				}
+				i = colnext[i];
+			} while (i >= 0);
 		}
-
-		if (retcol >= 0)
+		if (retcol >= 0) 
 			return retcol;
 
 		mindist = 0x7fffffff;
-
-		for (i = 0; i < 255; ++i) {
+		for(i=255;i>=0;i--,pal1-=3)
+		{
 			pal1 = i * 3;
-			if ((dist = gdist[(palette[pal1 + 1] & 0xFF) + g]) >= mindist)
-				continue;
-			if ((dist += rdist[(palette[pal1] & 0xFF) + r]) >= mindist)
-				continue;
-			if ((dist += bdist[(palette[pal1 + 2] & 0xFF) + b]) >= mindist)
+			dist = gdist[(palette[pal1 + 1] & 0xFF) + g]; 
+			if (dist >= mindist) 
 				continue;
 
-			mindist = dist;
+			dist += rdist[(palette[pal1] & 0xFF) + r]; 
+			if (dist >= mindist) 
+				continue;
+			
+			dist += bdist[(palette[pal1 + 2] & 0xFF) + b]; 
+			if (dist >= mindist) 
+				continue;
+			
+			mindist = dist; 
 			retcol = (byte) i;
 		}
-
+		
 		return retcol;
 	}
 
@@ -934,9 +937,9 @@ public abstract class Engine {
 		clipit = new linetype[MAXCLIPNUM];
 		clipsectorlist = new short[MAXCLIPNUM];
 		clipobjectval = new int[MAXCLIPNUM];
-		rdist = new int[FASTPALRGBDIST]; 
-		gdist = new int[FASTPALRGBDIST]; 
-		bdist = new int[FASTPALRGBDIST];
+		rdist = new int[129]; 
+		gdist = new int[129]; 
+		bdist = new int[129];
 		colhere = new byte[((FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)) >> 3];
 		colhead = new byte[(FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)];
 		colnext = new byte[256];
@@ -4021,13 +4024,15 @@ public abstract class Engine {
 			capture = new byte[width * heigth];
 		ByteBuffer frame = render.getframebuffer(0, ydim - heigth, width, heigth, GL10.GL_RGB);
 		int r, g, b;
-		for(int i = 0; i < width * heigth; i++)
-		{
-			r = frame.get() & 0xFF;
-			g = frame.get() & 0xFF;
-			b = frame.get() & 0xFF;
-			capture[i] = getclosestcol(r, g, b);
+		for (int x, y = heigth - 1; y >= 0; y--) {
+			for (x = 0; x < width; x++) {
+				r = frame.get() & 0xFF;
+				g = frame.get() & 0xFF;
+				b = frame.get() & 0xFF;
+				capture[heigth * x + y] = getclosestcol(r, g, b);
+			}
 		}
+		
 		return capture;
 	}
 
