@@ -173,6 +173,10 @@ public class ALSoundDrv implements Sound {
 			orientation.rewind();
 			alListener ( AL_ORIENTATION, orientation );
 		} else alListener (AL_POSITION, NULLVECTOR);
+		
+		int error = alGetError();
+		if(error != AL_NO_ERROR) 
+			Console.Println("OpenAL Error setListener " + error, OSDTEXT_RED);
 	}
 
 	@Override
@@ -212,13 +216,23 @@ public class ALSoundDrv implements Sound {
 		source.setVolume(0.0f);
 
 		int format = toALFormat(0, bits);
+		if(format == -1) {
+			Console.Println("OpenAL Error wrong bits: " + bits, OSDTEXT_RED);
+			source.dispose();
+			return null;
+		}
+		
 		source.format = format;
 		source.rate = rate;
 		source.data = data;
-		
+
 		int bufferID = buffers.get(source.bufferId);
 		alBufferData(bufferID, format, data, rate);
 		alSourcei(sourceId, AL_BUFFER,   bufferID );
+		
+		int error = alGetError();
+		if(error != AL_NO_ERROR) 
+			Console.Println("OpenAL Error newSound " + error, OSDTEXT_RED);
 		
 		return source;
 	}
@@ -301,6 +315,10 @@ public class ALSoundDrv implements Sound {
 			alAuxiliaryEffectSloti(alEffectSlot, AL_EFFECTSLOT_EFFECT, AL_EFFECT_NULL);
 			alSource3i(sourceId, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
 		}
+		
+		int error = alGetError();
+		if(error != AL_NO_ERROR) 
+			Console.Println("OpenAL Error setSourceReverb " + error, OSDTEXT_RED);
 	}
 	
 	protected class SourceManager extends java.util.PriorityQueue<Source>
