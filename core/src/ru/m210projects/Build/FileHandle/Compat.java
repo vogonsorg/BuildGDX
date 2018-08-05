@@ -204,7 +204,9 @@ public class Compat {
 			var = fis.read(buf, 0, len);
 		} catch (IOException e) {
 			throw new RuntimeException("Couldn't load file " + handle);
-	    } 
+	    } catch (IndexOutOfBoundsException e) {
+	    	return -1;
+	    }
 		return var;
 	}
 	
@@ -227,7 +229,9 @@ public class Compat {
 		
 		} catch (IOException e) {
 			throw new RuntimeException("Couldn't load file " + handle);
-	    } 
+	    } catch (IndexOutOfBoundsException e) {
+	    	return -1;
+	    }
 		return var;
 	}
 	

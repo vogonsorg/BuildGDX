@@ -3654,6 +3654,7 @@ public abstract class Engine {
 		palfadergb.g = min(63, g) << 2;
 		palfadergb.b = min(63, b) << 2;
 		palfadergb.a = (min(63, offset) << 2);
+		
 		//setpalettefade_calc(offset);
 	}
 

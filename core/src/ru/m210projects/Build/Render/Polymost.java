@@ -4597,6 +4597,7 @@ public abstract class Polymost implements Renderer {
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDisable(GL_ALPHA_TEST);
 		gl.glDisable(GL_TEXTURE_2D);
+		gl.glDisable(GL_FOG);
 
 		gl.glEnable(GL_BLEND);
 
