@@ -1175,6 +1175,13 @@ public abstract class Engine {
 		if(mapversion == 6) 
 			return loadoldboard(fil, daposx, daposy, daposz, daang, dacursectnum);
 		
+		if(mapversion != 7)
+		{
+			Console.Println("Invalid map version!");
+			kClose(fil);
+			return(-1);
+		}
+		
 		initspritelists();
 			
 		Arrays.fill(show2dsector, (byte)0);
