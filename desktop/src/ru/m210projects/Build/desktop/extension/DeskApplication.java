@@ -110,7 +110,7 @@ public class DeskApplication implements Application {
 	}
 
 	private void initialize () {
-		mainLoopThread = new Thread("LWJGL Application") {
+		mainLoopThread = new Thread("BuildEngine Application") {
 			@Override
 			public void run () {
 				graphics.setVSync(graphics.config.vSyncEnabled);
@@ -119,6 +119,10 @@ public class DeskApplication implements Application {
 				} catch (Throwable t) {
 					if (audio != null) audio.dispose();
 					Gdx.input.setCursorCatched(false);
+					if(listener != null) {
+						listener.pause();
+						listener.dispose();
+					}
 					if (t instanceof RuntimeException)
 						throw (RuntimeException)t;
 					else

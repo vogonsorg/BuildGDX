@@ -268,16 +268,7 @@ public abstract class Engine {
 	private int randomseed = 1;
 
 	private short[] radarang;
-
-	
 	private byte[] transluc;
-
-
-	private int g_lastpalettesum;
-	private int curbasepal;
-	private int basepalcount;
-	private int basepalreset = 1;
-	
 
 	//Renderer preset XXX
 	public static int r_parallaxskyclamping = 1; //OSD CVAR XXX
@@ -1398,7 +1389,7 @@ public abstract class Engine {
 
 		setview(0, 0, xdim - 1, ydim - 1);
 		clearview(0);
-		setbrightness(curbrightness, 0, 0);
+		setbrightness(curbrightness, palette, 0);
 		
 		Console.ResizeDisplay(daxdim, daydim);
 
@@ -3172,7 +3163,6 @@ public abstract class Engine {
 	//	public boolean buttonPressed;
 	public void initmouse() {
 		Gdx.input.setCursorCatched(true);
-		Gdx.input.setCursorPosition(xdim / 2, 0);
 	}
 	
 	public void srand(int seed)
@@ -3587,58 +3577,31 @@ public abstract class Engine {
 	//  8: don't gltexinvalidate8()
 	// 16: don't reset palfade*
 
-	public void setbrightness(int dabrightness, int dapalid, int flags) {
-		if (dapalid >= basepalcount)
-			dapalid = 0;
-		int paldidchange = (curbasepal != dapalid || basepalreset != 0) ? 1 : 0;
-		curbasepal = dapalid;
-		basepalreset = 0;
-
-		byte[] dapal = palette; //basepaltable[curbasepal];
-
-		if ((flags & 4) == 0) 
-			curbrightness = min(max((int) dabrightness, 0), 15);
-
-		int nohwgamma = 0; //setgamma(); SDL FIXME
+	public void setbrightness(int dabrightness, byte[] dapal, int flags) {
+		
+		if ((flags&4) == 0)
+			curbrightness = min(max(dabrightness,0),15);
 
 		for (int i = 0; i < 256; i++) {
 			if (curpalette[i] == null)
 				curpalette[i] = new Palette();
 
 			// save palette without any brightness adjustment
-			curpalette[i].r = dapal[i * 3 + 0] << 2;
-			curpalette[i].g = dapal[i * 3 + 1] << 2;
-			curpalette[i].b = dapal[i * 3 + 2] << 2;
+			curpalette[i].r = (dapal[i * 3 + 0] & 0xFF) << 2;
+			curpalette[i].g = (dapal[i * 3 + 1] & 0xFF) << 2;
+			curpalette[i].b = (dapal[i * 3 + 2] & 0xFF) << 2;
 			curpalette[i].f = 0;
 		}
 
-		int lastpalettesum = 0;
-		int newpalettesum = 0; //crc32once(curpalettefaded, sizeof(curpalettefaded));
+//		copybufbyte(curpalette, curpalettefaded, curpalette.length);
+//		if ((flags&1) == 0)
+//			setpalette(0,256,(char*)tempbuf);
 
-		int palsumdidchange = (newpalettesum != lastpalettesum) ? 1 : 0;
+		if ((flags & 2) != 0) 
+			render.gltexinvalidateall(0);
 
-		if (palsumdidchange != 0 || newpalettesum != g_lastpalettesum) {
-			//if ((flags&1) == 0) setpalette(0,256); SDL FIXME
-		}
-
-		g_lastpalettesum = lastpalettesum = newpalettesum;
-		
-
-		// Only reset the textures if the corresponding preserve flags are clear and
-		// either (a) the new palette is different to the last, or (b) the brightness
-		// changed and we couldn't set it using hardware gamma.
-
-		// no-HW-gamma OpenGL platforms will exhibit bad performance with
-		// simultaneous basepal and tint changes?
-		int doinvalidate = (paldidchange != 0 || (palsumdidchange != 0 && nohwgamma != 0)) ? 1 : 0;
-
-		if (doinvalidate != 0)
-			render.gltexinvalidateall(flags);
-
-		if ((flags & 16) == 0) {
-			palfadergb.r = palfadergb.g = palfadergb.b = 0;
-			palfadergb.a = 0;
-		}
+		palfadergb.r = palfadergb.g = palfadergb.b = 0;
+		palfadergb.a = 0;
 	}
 
 	public Palette getpal(int col) {
