@@ -11,7 +11,6 @@ package ru.m210projects.Build.Render;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Render.ImageUtils.fixtransparency;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR_MIPMAP_LINEAR;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR_MIPMAP_NEAREST;
@@ -37,6 +36,7 @@ import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Types.Palette;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class TextureUtils {
@@ -122,10 +122,10 @@ public class TextureUtils {
 					pic[wp + 2] = (byte) (color.b);
 					pic[wp + 3] = (byte) 0xFF;
 				} else {
-					int[] bightness = britable[curbrightness];
-					pic[wp + 0] = (byte) bightness[color.r];
-					pic[wp + 1] = (byte) bightness[color.g];
-					pic[wp + 2] = (byte) bightness[color.b];
+					byte[] bightness = britable[curbrightness];
+					pic[wp + 0] = bightness[color.r];
+					pic[wp + 1] = bightness[color.g];
+					pic[wp + 2] = bightness[color.b];
 					pic[wp + 3] = (byte) 0xFF;
 				}
 			}
@@ -173,8 +173,21 @@ public class TextureUtils {
 		} else {
 			System.err.println("Uploading non-zero mipmap level textures is unimplemented");
 		}
-		
+
 		//Build 2D Mipmaps
+		if (Gdx.graphics.supportsExtension("GL_ARB_framebuffer_object") 
+				|| Gdx.graphics.supportsExtension("GL_EXT_framebuffer_object") 
+				|| Gdx.gl30 != null 
+				|| Gdx.app.getType() == ApplicationType.Android 
+				|| Gdx.app.getType() == ApplicationType.WebGL
+				|| Gdx.app.getType() == ApplicationType.iOS)
+			Gdx.gl.glGenerateMipmap(GL_TEXTURE_2D);
+		else
+			generateMipMapCPU(doalloc, mipLevel, xsiz, ysiz, intexfmt, texfmt, pic);
+	}
+	
+	private static void generateMipMapCPU(boolean doalloc, int mipLevel, int xsiz, int ysiz, int intexfmt, int texfmt, byte[] pic)
+	{
 		int x2 = xsiz; 
 		int y2 = ysiz;
 		int r, g, b, a, k;
@@ -260,8 +273,6 @@ public class TextureUtils {
 	            }
 	        }
 	        
-	        if (tsizx >= 0) 
-	        	fixtransparency(pic,(tsizx+(1<<j)-1)>>j,(tsizy+(1<<j)-1)>>j,x3,y3, false); //dameth FIXME
 	        if (j >= mipLevel)
 	        {
 	        	if (doalloc) {

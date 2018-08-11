@@ -168,7 +168,7 @@ public abstract class Engine {
 	public static int fullscreen;
 	public static int paletteloaded = 0;
 	public static int tablesloaded = 0;
-	public static int[][] britable; // JBF 20040207: full 8bit precision
+	public static byte[][] britable; // JBF 20040207: full 8bit precision
 	public static int curbrightness = 0;
 	public static int gammabrightness = 0; //FIXME newer changes
 //	public static boolean usecustomarts;
@@ -251,12 +251,6 @@ public abstract class Engine {
 	protected short clipsectnum;
 	protected int[] clipobjectval;
 
-	
-//	private final int FASTPALCOLDEPTH = 256;
-//	private final int FASTPALRIGHTSHIFT = 3;
-//	private final int FASTPALRGBDIST = (FASTPALCOLDEPTH * 2 + 1);
-//	private final int FASTPALCOLDIST = (1 << FASTPALRIGHTSHIFT);
-//	private final int FASTPALCOLDISTMASK = (FASTPALCOLDIST - 1);
 	private int[] rdist, gdist, bdist;
 	private final int FASTPALGRIDSIZ = 8;
 	
@@ -359,8 +353,9 @@ public abstract class Engine {
 		for (i = 0; i < 16; i++) {
 			a = 8 / (i + 8);
 			b = 255 / pow(255, a);
-			for (j = 0; j < 256; j++) // JBF 20040207: full 8bit precision
-				britable[i][j] = (int) (pow(j, a) * b);
+			for (j = 0; j < 256; j++) {// JBF 20040207: full 8bit precision
+				britable[i][j] = (byte) (pow(j, a) * b);
+			}
 		}
 	}
 
@@ -910,7 +905,7 @@ public abstract class Engine {
 		returnpal = new Palette();
 		pHitInfo = new Hitscan();
 		neartag = new Neartag();
-		britable = new int[16][256];
+		britable = new byte[16][256];
 		picsiz = new int[MAXTILES];
 		tilefilenum = new int[MAXTILES];
 		tilefileoffs = new int[MAXTILES];

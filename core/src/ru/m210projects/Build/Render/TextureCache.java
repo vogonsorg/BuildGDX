@@ -15,7 +15,6 @@ import static ru.m210projects.Build.Engine.tilesizx;
 import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.waloff;
 import static ru.m210projects.Build.Engine.usehightile;
-import static ru.m210projects.Build.Render.ImageUtils.fixtransparency;
 import static ru.m210projects.Build.Render.ImageUtils.loadPic;
 import static ru.m210projects.Build.Render.Polymost.drawingskybox;
 import static ru.m210projects.Build.Render.TextureUtils.bindTexture;
@@ -167,7 +166,6 @@ public class TextureCache {
 		}
 		
 		bindTexture(pth.glpic);
-		fixtransparency(picInfo.pic, tsizx, tsizy, xsiz, ysiz, clamping);
 		int intexfmt = picInfo.hasalpha ? GL_RGBA : GL_RGB;
 
 		if (Gdx.app.getType() == ApplicationType.Android)

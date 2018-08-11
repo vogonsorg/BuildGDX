@@ -81,18 +81,22 @@ public class ImageUtils {
 						pic[wp + 1] = (byte) (color.g);
 						pic[wp + 2] = (byte) (color.b);
 					} else {
-						int[] brighttable = britable[curbrightness];
-						pic[wp + 0] = (byte) brighttable[color.r];
-						pic[wp + 1] = (byte) brighttable[color.g];
-						pic[wp + 2] = (byte) brighttable[color.b];
+						byte[] brighttable = britable[curbrightness];
+						pic[wp + 0] = brighttable[color.r];
+						pic[wp + 1] = brighttable[color.g];
+						pic[wp + 2] = brighttable[color.b];
 					}
 				}
 			}
 		}
+		
+		if(hasalpha)
+			fixtransparency(pic, tsizx, tsizy, xsiz, ysiz, clamped);
+		
 		return new PicInfo(pic, hasalpha);
 	}
 
-	public static void fixtransparency(byte[] dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
+	private static void fixtransparency(byte[] dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
 		int dox = daxsiz2 - 1;
 		int doy = daysiz2 - 1;
 		if (clamping) {
