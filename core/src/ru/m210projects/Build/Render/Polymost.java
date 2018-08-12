@@ -54,6 +54,7 @@ import ru.m210projects.Build.Types.Wallspriteinfo;
 import ru.m210projects.Build.Types.Palette;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -214,8 +215,8 @@ public abstract class Polymost implements Renderer {
 	
 	private boolean showlines = false;
 
-	public Polymost(Engine engine, GL10 gl) {
-		this.gl = gl;
+	public Polymost(Engine engine) {
+		this.gl = (GL10) Gdx.gl;
 		this.engine = engine;
 		this.textureCache = createTextureCache();
 		for (int i = 0; i < VSPMAX; i++)
@@ -3165,7 +3166,7 @@ public abstract class Polymost implements Renderer {
 	private final TSurface dsprite[] = new TSurface[6];
 	private final float drawsprite_ft[] = new float[4];
 
-	public void drawsprite(int snum) {
+	private void drawsprite(int snum) {
 		float f, c, s, fx, fy, sx0, sy0, sx1, xp0, yp0, xp1, yp1, oxp0, oyp0, ryp0, ryp1;
 		float x0, y0, x1, y1, sc0, sf0, sc1, sf1, xv, yv, t0, t1;
 		int i, j, spritenum, xoff = 0, yoff = 0, method, npoints;
@@ -6735,6 +6736,12 @@ public abstract class Polymost implements Renderer {
 			if ((sec.floorstat & 2) != 0)
 				dfloorzsofslope += sector[sectnum].floorheinum * j / i;
 		}
+	}
+	
+
+	@Override
+	public String getname() {
+		return "Polymost";
 	}
 
 	// private int recheck(int x, int y, int oldx, int j, SPRITE tspr, short datempsectnum) {

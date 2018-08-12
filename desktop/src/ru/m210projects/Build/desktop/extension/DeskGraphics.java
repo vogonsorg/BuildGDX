@@ -14,7 +14,6 @@ import org.lwjgl.opengl.PixelFormat;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglCursor;
 import com.badlogic.gdx.graphics.Cursor.SystemCursor;
@@ -28,9 +27,10 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.SharedLibraryLoader;
 
 import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.Types.BGraphics;
 
 
-public class DeskGraphics implements Graphics {
+public class DeskGraphics implements BGraphics {
 
 	/** The suppored OpenGL extensions */
 	static Array<String> extensions;
@@ -611,4 +611,26 @@ public class DeskGraphics implements Graphics {
 		}
 	}
 
+	@Override
+	public boolean setDisplayConfiguration(float gamma, float brightness, float contrast) {
+		try {
+			/*
+			 * 1, 0, 1 - default
+			 * gamma: 0.3 - 2
+			 * brightness: -0.5 - 0.5
+			 * contrast: 0 - 2
+			 */
+		
+			Display.setDisplayConfiguration(gamma, brightness, contrast);
+			return true;
+		} catch (Exception e) {}
+		
+		return false;
+	}
+
+	@Override
+	public void setMaxFramerate(int fps) {
+		config.foregroundFPS = fps;
+		config.backgroundFPS = fps;
+	}
 }

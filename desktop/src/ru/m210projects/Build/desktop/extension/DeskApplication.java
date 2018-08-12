@@ -2,7 +2,6 @@ package ru.m210projects.Build.desktop.extension;
 
 import java.awt.Canvas;
 import java.io.File;
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 
@@ -294,7 +293,8 @@ public class DeskApplication implements Application {
 
 	@Override
 	public int getVersion () {
-		return 0;
+		System.out.println("LWJGL2 version " + org.lwjgl.Sys.getVersion());
+		return 161;
 	}
 
 	public void stop () {

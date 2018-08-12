@@ -27,8 +27,6 @@ public interface Renderer {
 	
 	public void uninit();
 	
-	public void drawsprite(int snum);
-	
 	public void drawmasks();
 	
 	public void drawrooms();
@@ -48,6 +46,8 @@ public interface Renderer {
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum,
 			int dashade, int dapalnum, int dastat,
             int cx1, int cy1, int cx2, int cy2);
+	
+	public String getname();
 	
 	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 	
