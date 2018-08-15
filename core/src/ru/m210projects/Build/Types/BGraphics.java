@@ -7,5 +7,7 @@ public interface BGraphics extends Graphics {
 	public boolean setDisplayConfiguration(float gamma, float brightness, float contrast);
 	
 	public void setMaxFramerate(int fps);
+	
+	public void setDefaultDisplayConfiguration();
 
 }

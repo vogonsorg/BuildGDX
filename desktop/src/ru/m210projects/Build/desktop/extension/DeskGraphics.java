@@ -620,7 +620,6 @@ public class DeskGraphics implements BGraphics {
 			 * brightness: -0.5 - 0.5
 			 * contrast: 0 - 2
 			 */
-		
 			Display.setDisplayConfiguration(gamma, brightness, contrast);
 			return true;
 		} catch (Exception e) {}
@@ -632,5 +631,10 @@ public class DeskGraphics implements BGraphics {
 	public void setMaxFramerate(int fps) {
 		config.foregroundFPS = fps;
 		config.backgroundFPS = fps;
+	}
+
+	@Override
+	public void setDefaultDisplayConfiguration() {
+		setDisplayConfiguration(1.0f, 0.0f, 1.0f);
 	}
 }

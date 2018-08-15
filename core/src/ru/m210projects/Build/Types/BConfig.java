@@ -35,5 +35,9 @@ public abstract class BConfig {
 	public int middrv = 1;
 	public String midiSynth;
 	
+	public float gamma = 1;
+	public float brightness = 0;
+	public float contrast = 1;
+	
 	public abstract void saveConfig(String path);
 }
