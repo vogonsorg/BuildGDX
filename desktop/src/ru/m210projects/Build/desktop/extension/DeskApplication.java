@@ -207,7 +207,7 @@ public class DeskApplication implements Application {
 			// If one of the runnables set running to false, for example after an exit().
 			if (!running) break;
 
-			input.update();
+			
 			shouldRender |= graphics.shouldRender();
 
 			if (audio != null) audio.update();
@@ -215,6 +215,7 @@ public class DeskApplication implements Application {
 			if (!isActive && graphics.config.backgroundFPS == -1) shouldRender = false;
 			int frameRate = isActive ? graphics.config.foregroundFPS : graphics.config.backgroundFPS;
 			if (shouldRender) {
+				input.update();
 				graphics.updateTime();
 				graphics.frameId++;
 				listener.render();
