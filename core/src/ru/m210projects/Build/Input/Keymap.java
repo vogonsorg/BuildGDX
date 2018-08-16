@@ -39,6 +39,7 @@ public class Keymap {
 	
 	public static final int KEY_PAUSE = 0xED;
 	public static final int KEY_CAPSLOCK = 0xEE;
+	public static final int KEY_SCROLLOCK = 0xEF;
 
 	public static String toString (int libgdx_keycode) {
 		if(libgdx_keycode < 0 || libgdx_keycode > 255)
@@ -49,6 +50,8 @@ public class Keymap {
 			return "N/A";
 		case KEY_CAPSLOCK:
 			return "Caps Lock";
+		case KEY_SCROLLOCK:
+			return "Scroll Lock";
 		case SOFT_LEFT:
 			return "Soft Left";
 		case SOFT_RIGHT:

@@ -4204,6 +4204,8 @@ public abstract class Engine {
 
 		input.handleevents();
 		Console.HandleScanCode();
+		
+		sampletimer();
 	}
 
 	public void initkeys() {

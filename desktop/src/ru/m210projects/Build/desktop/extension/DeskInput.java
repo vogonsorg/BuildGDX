@@ -1,5 +1,6 @@
 package ru.m210projects.Build.desktop.extension;
 
+import static ru.m210projects.Build.Input.Keymap.KEY_SCROLLOCK;
 import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
 
@@ -564,10 +565,12 @@ final public class DeskInput implements BInput {
 
 	public static int getLwjglKeyCode (int gdxKeyCode) {
 		switch (gdxKeyCode) {
-		case KEY_PAUSE: //gdxBlood key
+		case KEY_PAUSE:
 			return Keyboard.KEY_PAUSE;
-		case KEY_CAPSLOCK: //gdxBlood key
+		case KEY_CAPSLOCK:
 			return Keyboard.KEY_CAPITAL;
+		case KEY_SCROLLOCK:
+			return Keyboard.KEY_SCROLL;
 		case Input.Keys.APOSTROPHE:
 			return Keyboard.KEY_APOSTROPHE;
 		case Input.Keys.LEFT_BRACKET:
