@@ -329,6 +329,12 @@ public class Cache1D {
 		if(lzw == null) lzw = new LZW();
 		return lzw.kdfread(buffer, dasizeof, count, fil);
 	}
+	
+	public static void kdfWrite(byte[] buffer, int dasizeof, int count, int fil)
+	{
+		if(lzw == null) lzw = new LZW();
+		lzw.kdfwrite(buffer, dasizeof, count, fil);
+	}
 
 	public static int kRead(int handle, byte[] buffer, int leng)
 	{
