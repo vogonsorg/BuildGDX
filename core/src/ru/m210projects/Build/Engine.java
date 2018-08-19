@@ -1402,11 +1402,10 @@ public abstract class Engine {
 		{
 			DisplayMode m = null;
 			for(DisplayMode mode: Gdx.graphics.getDisplayModes()) {
-				if(Gdx.graphics.getDisplayMode().refreshRate == mode.refreshRate)
-				{
-					if(mode.width == daxdim && mode.height == daydim)
+				if(mode.width == daxdim && mode.height == daydim)
+					if(m == null || m.refreshRate < Gdx.graphics.getDisplayMode().refreshRate) {
 						m = mode;
-				}
+					}
 			}
 			
 			if(m == null) {
