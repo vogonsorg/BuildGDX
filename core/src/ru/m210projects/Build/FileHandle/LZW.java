@@ -34,7 +34,6 @@ public class LZW {
 	public void kdfwrite(byte[] buffer, int dasizeof, int count, int fil)
 	{
 		if (dasizeof > LZWSIZE) { count *= dasizeof; dasizeof = 1; }
-		
 		System.arraycopy(buffer, 0, lzwbuf4, 0, dasizeof);
 		int k = dasizeof;
 		
@@ -43,7 +42,6 @@ public class LZW {
 		{
 			leng = lzwcompress(lzwbuf4,k,lzwbuf5); 
 			k = 0; 
-			
 			Bwrite(fil, leng, 2);
 			Bwrite(fil, lzwbuf5, leng);
 		}
@@ -83,7 +81,7 @@ public class LZW {
 		k += dasizeof;
 
 		int ptr = 0;
-		for(int i = 1;i < count; i++)
+		for(int i = 1; i < count; i++)
 		{
 			if (k >= kgoal)
 			{
@@ -102,8 +100,8 @@ public class LZW {
 	private int lzwcompress(byte[] lzwinbuf, int uncompleng, byte[] lzwoutbuf)
 	{
 		for(int i=255;i>=0;i--) { lzwbuf1[i] = (byte) i; lzwbuf3[i] = (short) ((i+1)&255); }
-		Arrays.fill(lzwbuf2, 0, 256, (short)0xffff);
-		Arrays.fill(lzwoutbuf,0,((uncompleng+15)+3)>>2,(byte)0);
+		Arrays.fill(lzwbuf2, 0, 256, (short)-1);
+		Arrays.fill(lzwoutbuf,0,((uncompleng+15)+3),(byte)0);
 
 		short addrcnt = 256; int bytecnt1 = 0; int bitcnt = (4<<3);
 		int numbits = 8; int oneupnumbits = (1<<8);
@@ -131,7 +129,7 @@ public class LZW {
 			lzwbuf3[addrcnt] = -1;
 
 			int intptr = LittleEndian.getInt(lzwoutbuf, bitcnt>>3);
-			LittleEndian.putInt(lzwoutbuf, bitcnt>>3, intptr | (addr<<(bitcnt&7)) & 0xFFFF);
+			LittleEndian.putInt(lzwoutbuf, bitcnt>>3, intptr | (addr<<(bitcnt&7)));
 			bitcnt += numbits;
 			if ((addr&((oneupnumbits>>1)-1)) > ((addrcnt-1)&((oneupnumbits>>1)-1)))
 				bitcnt--;
@@ -141,8 +139,7 @@ public class LZW {
 		} while ((bytecnt1 < uncompleng) && (bitcnt < (uncompleng<<3)));
 
 		int intptr = LittleEndian.getInt(lzwoutbuf, bitcnt>>3);
-		LittleEndian.putInt(lzwoutbuf, bitcnt>>3, intptr | (addr<<(bitcnt&7)) & 0xFFFF);
-
+		LittleEndian.putInt(lzwoutbuf, bitcnt>>3, intptr | (addr<<(bitcnt&7)));
 		bitcnt += numbits;
 		if ((addr&((oneupnumbits>>1)-1)) > ((addrcnt-1)&((oneupnumbits>>1)-1)))
 			bitcnt--;
@@ -157,9 +154,8 @@ public class LZW {
 		LittleEndian.putShort(lzwoutbuf, 2, (short) 0);
 		for(int i=0;i<uncompleng;i++) 
 			lzwoutbuf[i+4] = lzwinbuf[i];
-		
-		return(uncompleng+4);
 
+		return(uncompleng+4);
 	}
 	
 	private int lzwuncompress(byte[] lzwinbuf, int compleng, byte[] lzwoutbuf)
@@ -168,11 +164,14 @@ public class LZW {
 		inbuf.order( ByteOrder.LITTLE_ENDIAN);
 		
 		int strtot = inbuf.getShort(2);
+		
+		inbuf.position(4);
 		if (strtot == 0)
 		{
-			inbuf.get(lzwoutbuf, 4, ((compleng-4)+3)>>2);
+			inbuf.get(lzwoutbuf, 0, (compleng-4)+3);
 			return inbuf.getShort(0); //uncompleng
 		}
+		
 		for(int i=255;i>=0;i--) { lzwbuf2[i] = (short) i; lzwbuf3[i] = (short) i; }
 		int currstr = 256, bitcnt = (4<<3), outbytecnt = 0;
 		int numbits = 8, oneupnumbits = (1<<8), intptr, dat, leng;

@@ -114,8 +114,9 @@ public class Compat {
 				} else return -1;
 			} else {
 				if(opt.equals("rw")) {
-					raf = new RandomAccessFile(FilePath + filename, opt);
-					cache.addFile(new File(filename));
+					String fpath = FilePath + filename;
+					raf = new RandomAccessFile(fpath, opt);
+					cache.addFile(new File(fpath));
 				} 
 				else if(opt.equals("RW"))
 				{
