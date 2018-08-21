@@ -324,13 +324,13 @@ public class Cache1D {
 		return -1;
 	}
 	
-	public static int kdfRead(byte[] buffer, int dasizeof, int count, int fil)
+	public static int kdfRead(byte[] buffer, int dasizeof, int count, int fil) throws Exception
 	{
 		if(lzw == null) lzw = new LZW();
 		return lzw.kdfread(buffer, dasizeof, count, fil);
 	}
 	
-	public static void kdfWrite(byte[] buffer, int dasizeof, int count, int fil)
+	public static void dfWrite(byte[] buffer, int dasizeof, int count, int fil) throws Exception
 	{
 		if(lzw == null) lzw = new LZW();
 		lzw.kdfwrite(buffer, dasizeof, count, fil);

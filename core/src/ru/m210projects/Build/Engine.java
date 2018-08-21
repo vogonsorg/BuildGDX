@@ -1821,7 +1821,7 @@ public abstract class Engine {
 		} else return (int) sqrt(a & 0xFFFFFFFFL);
 	}
 
-	private static int SETSPRITEZ = 0;
+	protected static int SETSPRITEZ = 0;
 	public short setsprite(int spritenum, int newx, int newy, int newz)
 	{
 		short tempsectnum;
@@ -3154,11 +3154,6 @@ public abstract class Engine {
 		rotatepoint.y = dmulscale(y, dacos, x, dasin, 14) + ypivot;
 	}
 
-	//	public boolean buttonPressed;
-	public void initmouse() {
-		Gdx.input.setCursorCatched(true);
-	}
-	
 	public void srand(int seed)
 	{
 		randomseed = seed;
