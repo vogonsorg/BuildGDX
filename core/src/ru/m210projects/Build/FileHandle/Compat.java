@@ -72,12 +72,29 @@ public class Compat {
 		return toLowerCase(path);
 	}
 	
+	public static String bCorrectPath(String path)
+	{
+		if(path != null) {
+			if(!File.separator.equals("\\") && path.contains("\\"))
+				path = path.replace("\\", File.separator);
+			else if(!File.separator.equals("/") && path.contains("/"))
+				path = path.replace("/", File.separator);
+		}
+		
+		return path;
+	}
+	
 	public static String getFilename(String path)
 	{
 		if(path != null) {
 			int index = path.lastIndexOf("\\");
 			if(index != -1)
 				path = path.substring(index + 1);
+			else {
+				index = path.lastIndexOf("/");
+				if(index != -1)
+					path = path.substring(index + 1);
+			}
 		}
 		
 		return path;
