@@ -22,6 +22,7 @@ package ru.m210projects.Build.desktop.audio;
 import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.openal.AL11.*;
 import static org.lwjgl.openal.EFX10.*;
+import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
@@ -34,6 +35,7 @@ import java.util.List;
 
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC10;
+
 
 import ru.m210projects.Build.Audio.Sound;
 import ru.m210projects.Build.Audio.Source;
@@ -270,7 +272,8 @@ public class ALSoundDrv implements Sound {
 	@Override
 	public void setReverbDelay(float delay) {
 		if(!isInited()) return;
-		alReverbDelay = delay;
+		
+		alReverbDelay = BClipRange(delay, 0.0f, 10.0f);
 		
 		Iterator<Source> it = sourceManager.iterator();
 	    while(it.hasNext()) {

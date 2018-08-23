@@ -17,6 +17,7 @@
 package ru.m210projects.Build;
 
 public class Gameutils {
+	
 	public static float BClampAngle(float angle)
     {
         if (angle < 0) angle += 2048f;
@@ -25,20 +26,56 @@ public class Gameutils {
         return BClipRange(angle, 0, 2048);
     }
 	
-	public static float BClipRange(float value, int min, int max) {
+	public static float BClipRange(float value, float min, float max) {
 		if(value < min) value = min;
 		if(value > max) value = max;
 		
 		return value;
 	}
 	
-	public static double BSinAngle(float daang)
+	public static int BClipRange(int value, int min, int max) {
+		if(value < min) value = min;
+		if(value > max) value = max;
+		
+		return value;
+	}
+	
+	public static int BClipLow(int value, int min) {
+		if(value < min)
+			value = min;
+		
+		return value;
+	}
+	
+	public static int BClipHigh(int value, int max) {
+		if(value > max)
+			value = max;
+		
+		return value;
+	}
+
+	
+	public static float BClipLow(float value, int min) {
+		if(value < min)
+			value = min;
+		
+		return value;
+	}
+	
+	public static float BClipHigh(float value, int max) {
+		if(value > max)
+			value = max;
+		
+		return value;
+	}
+	
+	public static double BSinAngle(double daang)
 	{
 		double rad_ang = daang * Math.PI * (1.0/1024.0);
 		return (Math.sin(rad_ang) * 16384.0);
 	}
 	
-	public static double BCosAngle(float daang)
+	public static double BCosAngle(double daang)
 	{
 		double rad_ang = daang * Math.PI * (1.0/1024.0);
 		return (Math.cos(rad_ang) * 16384.0);
