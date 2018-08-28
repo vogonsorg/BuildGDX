@@ -132,6 +132,15 @@ public class SPRITE {
 		return out;
 	}
 	
+	public void reset()
+	{
+		reset((byte)0);
+		this.clipdist = 32;
+		this.xrepeat = this.yrepeat = 32;
+		this.owner = -1;
+		this.extra = -1;
+	}
+	
 	public void reset(byte var) {
 		this.x = var;
 		this.y = var;

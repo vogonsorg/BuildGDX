@@ -2093,7 +2093,8 @@ public abstract class Polymost implements Renderer {
 			for (z = headspritesect[sectnum]; z >= 0; z = nextspritesect[z]) {
 				spr = sprite[z];
 				if ((((spr.cstat & 0x8000) == 0) || showinvisibility)
-						&& (spr.xrepeat > 0) && (spr.yrepeat > 0)) {
+						&& (spr.xrepeat > 0) && (spr.yrepeat > 0) &&
+						  (spritesortcnt < MAXSPRITESONSCREEN)) {
 					xs = spr.x - globalposx;
 					ys = spr.y - globalposy;
 					if (((spr.cstat & 48) != 0)
@@ -2102,8 +2103,13 @@ public abstract class Polymost implements Renderer {
 						if ((spr.cstat & (64 + 48)) != (64 + 16)
 								|| dmulscale(sintable[(spr.ang + 512) & 2047],
 										-xs, sintable[spr.ang & 2047], -ys, 6) > 0)
-							if (engine.addtsprite(z) != 0)
-								break;
+						{
+							if (tsprite[spritesortcnt] == null)
+								tsprite[spritesortcnt] = new SPRITE();
+							tsprite[spritesortcnt].set(sprite[z]);
+
+							tsprite[spritesortcnt++].owner = (short) z;
+						}
 					}
 				}
 			}
@@ -5211,8 +5217,6 @@ public abstract class Polymost implements Renderer {
 		if (totalclock >= lastcullcheck + CULL_DELAY)
 			lastcullcheck = (totalclock + CULL_DELAY);
 
-		indrawroomsandmasks = 0;
-		
 		if(drunk)
 		{
 			if(frameTexture == null || framew != xdim || frameh != ydim)
@@ -6604,7 +6608,7 @@ public abstract class Polymost implements Renderer {
 
 	@Override
 	public void clearview(int dacol) {
-		Palette p = engine.getpal(dacol);
+		Palette p = curpalette[dacol];
 		if (p == null) {
 			gl.glClearColor(dacol / 255.0f, dacol / 255.0f, dacol / 255.0f, 1);
 			gl.glClear(GL_COLOR_BUFFER_BIT);
