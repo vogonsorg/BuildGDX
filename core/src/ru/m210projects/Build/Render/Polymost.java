@@ -2194,14 +2194,17 @@ public abstract class Polymost implements Renderer {
 				}
 			}
 
-			for (z = numscansbefore; z < numscans; z++)
+			for (z = numscansbefore; z < numscans; z++) {
+				if(z >= MAXWALLSB || p2[z] >= MAXWALLSB) continue;
 				if ((wall[thewall[z]].point2 != thewall[p2[z]])
 						|| (dxb2[z] > dxb1[p2[z]])) {
 					bunchfirst[numbunches++] = p2[z];
 					p2[z] = -1;
 				}
+			}
 
 			for (z = bunchfrst; z < numbunches; z++) {
+				if(p2[z] >= MAXWALLSB) continue;
 				for (zz = bunchfirst[z]; p2[zz] >= 0; zz = p2[zz]);
 				bunchlast[z] = (short) zz;
 			}
@@ -2216,7 +2219,6 @@ public abstract class Polymost implements Renderer {
 		int dapskybits = pskybits;
 
 		if(dapskybits < 0) dapskybits = 0;
-		
 		// Use clamping for tiled sky textures
 		for (int i = (1 << dapskybits) - 1; i > 0; i--)
 			if (dapskyoff[i] != dapskyoff[i - 1]) {
@@ -2225,14 +2227,11 @@ public abstract class Polymost implements Renderer {
 			}
 
 		SECTOR sec = sector[sectnum];
-		
-		drawalls_dd[0] = (float) xdimen * .0000001; // Adjust sky depth based on screen size!
-		t = (double) ((1 << (picsiz[globalpicnum] & 15)) << dapskybits);
-		drawalls_vv[1] = drawalls_dd[0]
-				* ((double) xdimscale * (double) viewingrange)
-				/ (65536.0 * 65536.0);
+		drawalls_dd[0] = xdimen * .0000001; // Adjust sky depth based on screen size!
+		t = tilesizx[globalpicnum] << dapskybits; //(1 << (picsiz[globalpicnum] & 15)) << dapskybits;
+		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * viewingrange) / (65536.0 * 65536.0);
 		drawalls_vv[0] = drawalls_dd[0]
-				* ((double) ((tilesizy[globalpicnum] >> 1) + parallaxyoffs))
+				* ((tilesizy[globalpicnum] >> 1) + parallaxyoffs)
 				- drawalls_vv[1] * ghoriz;
 		int i = (1 << (picsiz[globalpicnum] >> 4));
 		if (i != tilesizy[globalpicnum])
@@ -2315,7 +2314,7 @@ public abstract class Polymost implements Renderer {
 		if(floor) panning = sec.floorypanning;
 
 		if (r_parallaxskypanning != 0)
-			drawalls_vv[0] += drawalls_dd[0] * panning * ((double) i) / 256.0;
+			drawalls_vv[0] += drawalls_dd[0] * panning * i / 256.0;
 	
 		gdx = 0;
 		gdy = 0;

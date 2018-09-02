@@ -258,7 +258,7 @@ public abstract class Engine {
 	private int[] colscan;
 	private int randomseed = 1;
 
-	private short[] radarang;
+	public static short[] radarang;
 	private byte[] transluc;
 
 	//Renderer preset XXX
