@@ -27,8 +27,7 @@ public class Software implements Renderer {
 	private int xres, yres;
 
 	private int numpages; //XXX
-	//bytesperline = 644
-	public int bytesperline = 640, frameoffset; //XXX
+	public int bytesperline, frameoffset;
 	
 	private int guniqhudid;
 	
@@ -125,16 +124,16 @@ public class Software implements Renderer {
 	public Software(Engine engine)
 	{
 		this.engine = engine;
-		this.xres = 640;
-		this.yres = 500;
-		display = new JDisplay(xres, yres, "Software");
-		frameplace = new byte[xres * yres];
-		
 		a = new Ac(this);
 	}
 	
 	@Override
 	public void init() {
+		this.xres = xdim;
+		this.yres = ydim;
+		display = new JDisplay(xres, yres, "Software");
+		frameplace = new byte[xres * yres];
+		bytesperline = xres;
 		
 		int j = ydim*4*4;
 		
@@ -2576,6 +2575,7 @@ public class Software implements Renderer {
 
 	@Override
 	public void clearview(int dacol) {
+		if(display == null) return;
 		Palette p = curpalette[dacol];
 		if(p == null) {
 			display.getCanvas().clearview(0);

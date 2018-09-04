@@ -124,7 +124,7 @@ public class Ac {
 			for(;cnt>=0;cnt--)
 			{
 				int index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
-				if(index < 0 || index >= gbuf.length) continue;
+				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
 				
 				int ch = gbuf[index] & 0xFF;
 				int dacol = palookup[gpal][ch + gshade] & 0xFF;
@@ -138,7 +138,7 @@ public class Ac {
 			for(;cnt>=0;cnt--)
 			{
 				int index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
-				if(index < 0 || index >= gbuf.length) continue;
+				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
 				
 				int ch = gbuf[index] & 0xFF;
 				int dacol = palookup[gpal][ch + gshade] & 0xFF;
@@ -181,7 +181,7 @@ public class Ac {
 			for(cntup16>>=16;cntup16>0;cntup16--)
 			{
 				int index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
-				if(index < 0 || index >= gbuf.length) continue;
+				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
 				int ch = gbuf[index] & 0xFF;
 				int dacol = palookup[gpal][ch + gshade] & 0xFF;
 				if (ch != 255) r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
@@ -195,6 +195,7 @@ public class Ac {
 			for(cntup16>>=16;cntup16>0;cntup16--)
 			{
 				int index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
+				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
 				int ch = gbuf[index] & 0xFF;
 				int dacol = palookup[gpal][ch + gshade] & 0xFF;
 				if (ch != 255) r.frameplace[p] = gtrans[+((r.frameplace[p]&0xFF)<<8)+dacol];
@@ -274,7 +275,7 @@ public class Ac {
 			for(;cnt>1;cnt--)
 			{
 				int index = bufoffs + (bx>>16)*glogy+(by>>16);
-				if(index < 0 || index >= gbuf.length) continue;
+				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
 				
 				int col = gbuf[index] & 0xFF;
 				if(col != 255) {
@@ -291,7 +292,7 @@ public class Ac {
 			for(;cnt>1;cnt--)
 			{
 				int index = bufoffs + (bx>>16)*glogy+(by>>16);
-				if(index < 0 || index >= gbuf.length) continue;
+				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
 				int ch = gbuf[index] & 0xFF;
 				int dacol = palookup[gpal][ch + gshade] & 0xFF;
 				if (ch != 255) r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];

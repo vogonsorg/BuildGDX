@@ -10,15 +10,12 @@ public class JDisplay
 	
 	public JDisplay(int width, int height, String title)
 	{
-		//Set the canvas's preferred, minimum, and maximum size to prevent
-		//unintentional resizing.
 		Dimension size = new Dimension(width, height);
 		canvas = new JCanvas(width, height);
 		canvas.setPreferredSize(size);
 		canvas.setMinimumSize(size);
 		canvas.setMaximumSize(size);
 
-		//Create a JFrame designed specifically to show this Display.
 		m_frame = new JFrame();
 		m_frame.add(canvas);
 		m_frame.pack();
@@ -26,7 +23,6 @@ public class JDisplay
 		m_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		m_frame.setLocationRelativeTo(null);
 		m_frame.setTitle(title);
-		m_frame.setSize(width, height);
 		m_frame.setVisible(true);
 
 		canvas.setFocusable(true);
