@@ -198,7 +198,7 @@ public abstract class Engine {
 	public static float globalhoriz, globalang;
 	public static float pitch;
 	public static short globalcursectnum;
-	public static long globalvisibility;
+	public static int globalvisibility;
 	public static int globalshade, globalpal, cosglobalang, singlobalang;
 	public static int cosviewingrangeglobalang, sinviewingrangeglobalang;
 	public static int beforedrawrooms = 1;
@@ -259,7 +259,7 @@ public abstract class Engine {
 	private int randomseed = 1;
 
 	public static short[] radarang;
-	private byte[] transluc;
+	public static byte[] transluc;
 
 	//Renderer preset XXX
 	public static int r_parallaxskyclamping = 1; //OSD CVAR XXX
@@ -284,7 +284,7 @@ public abstract class Engine {
 	    return(min(max(dashade+(davis>>8),0),numshades-1));
 	}
 
-	public int animateoffs(short tilenum, int nInfo) { //jfBuild + gdxBuild
+	public int animateoffs(int tilenum, int nInfo) { //jfBuild + gdxBuild
 		long clock, index = 0;
 
 		int speed = (picanm[tilenum] >> 24) & 15; //picanm[nTile].speed
@@ -3809,6 +3809,9 @@ public abstract class Engine {
 
 	public String screencapture(String fn) { //jfBuild + gdxBuild
 		int a, b, c, d;
+		
+		if(render.getname().equals("Classic"))
+			return null;
 
 		fn = fn.substring(0, Bstrrchr(fn, '.') - 4);
 		
@@ -3859,6 +3862,9 @@ public abstract class Engine {
 	public byte[] screencapture(int width, int heigth) { //gdxBuild
 		if (capture == null || capture.length < width * heigth ) 
 			capture = new byte[width * heigth];
+
+		if(render.getname().equals("Classic"))
+			return null;
 		ByteBuffer frame = render.getframebuffer(0, 0, xdim, ydim, GL10.GL_RGB);
 
 		long xf = divscale(xdim, width, 16);
