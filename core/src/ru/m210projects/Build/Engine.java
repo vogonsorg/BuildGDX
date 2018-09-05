@@ -4121,39 +4121,18 @@ public abstract class Engine {
 	public void initkeys() { //gdxBuild
 		input = new KeyInput();
 	}
-	
-	private int FrameCount = 0;
-	private int LastCount = 0;
-	private int LastSec = 0;
-	private long LastMS = 0; //getticks();
-    
+
     private final char[] fpsbuffer = new char[15];
-
-    public void printfps() { //eduke32
-		// adapted from ZDoom because I like it better than what we had
-		// applicable ZDoom code available under GPL from csDoom
-
-    	long ms = getticks();
-    	long howlong = ms - LastMS;
-    	
-    	if(howlong > 9999) howlong = 9999;
-		if (howlong >= 0 && howlong <= 9999) {
-			int thisSec = (int)(ms / 1000);
-			
-			int chars = Bitoa((int)howlong, fpsbuffer);
-			chars = buildString(fpsbuffer, chars, "ms ", LastCount);
+    public void printfps() { 
+    	int fps = Gdx.graphics.getFramesPerSecond();
+    	int rate = (int)(Gdx.graphics.getDeltaTime() * 1000);
+    	if(fps <= 9999 && rate <= 9999) {
+	    	int chars = Bitoa(rate, fpsbuffer);
+			chars = buildString(fpsbuffer, chars, "ms ", fps);
 			chars = buildString(fpsbuffer, chars, "fps");
-
+			
 			printext256(windowx2 - (chars << (3)), windowy1 + 1, 31, -1, fpsbuffer, 0);
-
-			if ((thisSec - LastSec) != 0) {
-				LastCount = FrameCount / (thisSec - LastSec);
-				LastSec = thisSec;
-				FrameCount = 0;
-			}
-			FrameCount++;
-		}
-		LastMS = ms;
+    	}
     }
 
     public BAudio getAudio() //gdxBuild
