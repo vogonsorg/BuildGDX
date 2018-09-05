@@ -3474,9 +3474,9 @@ public abstract class Engine {
 	            palscale = (int) divscale(i,numshades, 16);
 	            for (j=0; j<256; j++)
 	            {
-	                palookup[palnum][i] = (byte) getclosestcol((int)palette[remapbuf[j]&0xFF*3]+mulscale(r-palette[remapbuf[j]&0xFF*3],palscale, 16),
-	                                        (int)palette[remapbuf[j]&0xFF*3+1]+mulscale(g-palette[remapbuf[j]&0xFF*3+1],palscale, 16),
-	                                        (int)palette[remapbuf[j]&0xFF*3+2]+mulscale(b-palette[remapbuf[j]&0xFF*3+2],palscale, 16));
+	                palookup[palnum][i] = (byte) getclosestcol((palette[remapbuf[j]&0xFF*3]&0xFF)+mulscale(r-palette[remapbuf[j]&0xFF*3]&0xFF,palscale, 16),
+	                                        (palette[remapbuf[j]&0xFF*3+1]&0xFF)+mulscale(g-palette[remapbuf[j]&0xFF*3+1]&0xFF,palscale, 16),
+	                                        (palette[remapbuf[j]&0xFF*3+2]&0xFF)+mulscale(b-palette[remapbuf[j]&0xFF*3+2]&0xFF,palscale, 16));
 	            }
 	        }
 			palookupfog[palnum][0] = (byte) r;
