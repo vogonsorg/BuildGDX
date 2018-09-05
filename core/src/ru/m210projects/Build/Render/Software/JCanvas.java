@@ -30,12 +30,6 @@ public class JCanvas extends JPanel {
 		return raster;
 	}
 	
-	public void DrawPixel(int x, int y, int color)
-	{
-		int index = x + y * display.getWidth();
-		raster[index] = color;
-	}
-	
 	public void clearview(int col)
 	{
 		Arrays.fill(raster, col);

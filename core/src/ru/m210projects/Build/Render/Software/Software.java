@@ -1553,6 +1553,7 @@ public class Software implements Renderer {
 					}
 				
 				Model m = voxoff[vtilenum][0];
+				if(m == null) break;
 				if (m.scale == 65536)
 				{
 					nyrepeat = ((tspr.yrepeat)<<16);

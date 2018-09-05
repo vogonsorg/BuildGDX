@@ -9,6 +9,7 @@ public class Ac {
 	private Software r;
 	private Engine engine;
 	
+	private int index, ch;
 	private int transmode = 0;
 	private int gbxinc, gbyinc, glogx, glogy;
 	private int gpal, gshade;
@@ -39,10 +40,9 @@ public class Ac {
 		if (skiploadincs == 0) { gbxinc = asm1; gbyinc = asm2; }
 		for(;cnt>=0;cnt--)
 		{
-			int index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
+			index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
 			if(index < 0 || index >= gbuf.length) continue;
-			int col = gbuf[index] & 0xFF;
-			r.frameplace[p] = palookup[ghlinepal][col + paloffs];
+			r.frameplace[p] = palookup[ghlinepal][(gbuf[index] & 0xFF) + paloffs];
 			bx -= gbxinc;
 			by -= gbyinc;
 			p--;
@@ -60,16 +60,16 @@ public class Ac {
 	{
 		int bz = asm3; 
 		int bzinc = (asm1>>3);
+		long u, v;
 		for(;cnt>0;cnt--)
 		{
 			i = r.krecipasm(bz>>6); bz += bzinc;
-			long u = bx+r.globalx3*i;
-			long v = by+r.globaly3*i;
+			u = bx+r.globalx3*i;
+			v = by+r.globaly3*i;
 
-			int index = (int) ((((u & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((v & 0xFFFFFFFFL)>>(32-glogy)));
+			index = (int) ((((u & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((v & 0xFFFFFFFFL)>>(32-glogy)));
 			if(index < 0 || index >= gbuf.length) continue;
-			int ch = gbuf[index] & 0xFF;
-			r.frameplace[p] = (byte) (r.slopalookup[slopaloffs] + ch);
+			r.frameplace[p] = (byte) (r.slopalookup[slopaloffs] + (gbuf[index] & 0xFF));
 			slopaloffs--;
 			p += gpinc;
 		}
@@ -79,7 +79,6 @@ public class Ac {
 	public void setupvlineasm(int neglogy) { glogy = neglogy; }
 	public void vlineasm1(int vinc, int pal, int shade, int cnt, long vplc, byte[] bufplc, int bufoffs, int p)
 	{
-		int index, col;
 		gbuf = bufplc;
 		gpal = pal;
 		gshade = shade;
@@ -88,8 +87,7 @@ public class Ac {
 		{
 			index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
 			if(index < 0 || index >= gbuf.length) continue;
-			col = gbuf[index] & 0xFF;
-			r.frameplace[p] = palookup[gpal][col + gshade];
+			r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
 			p += bpl;
 			vplc += vinc;
 		}
@@ -104,9 +102,9 @@ public class Ac {
 
 		for(;cnt>=0;cnt--)
 		{
-			int index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
+			index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
 			if(index < 0 || index >= gbuf.length) continue;
-			int ch = gbuf[index] & 0xFF;
+			ch = gbuf[index] & 0xFF;
 			if (ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
 			p += bpl;
 			vplc += vinc;
@@ -116,19 +114,23 @@ public class Ac {
 	public void setuptvlineasm(int neglogy) { glogy = neglogy; }
 	public void tvlineasm1(int vinc, int pal, int shade, int cnt, long vplc, byte[] bufplc, int bufoffs, int p)
 	{
+		int dacol;
+		
 		gbuf = bufplc;
 		gpal = pal;
 		gshade = shade;
+		
 		if (transmode != 0)
 		{
 			for(;cnt>=0;cnt--)
 			{
-				int index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
+				index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
 				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				
-				int ch = gbuf[index] & 0xFF;
-				int dacol = palookup[gpal][ch + gshade] & 0xFF;
-				if (ch != 255) r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+				ch = gbuf[index] & 0xFF;
+				if (ch != 255) {
+					dacol = palookup[gpal][ch + gshade] & 0xFF;
+					r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+				}
 				p += bpl;
 				vplc += vinc;
 			}
@@ -137,12 +139,13 @@ public class Ac {
 		{
 			for(;cnt>=0;cnt--)
 			{
-				int index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
+				index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
 				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				
-				int ch = gbuf[index] & 0xFF;
-				int dacol = palookup[gpal][ch + gshade] & 0xFF;
-				if (ch != 255) r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+				ch = gbuf[index] & 0xFF;
+				if (ch != 255) {
+					dacol = palookup[gpal][ch + gshade] & 0xFF;
+					r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+				}
 				p += bpl;
 				vplc += vinc;
 			}
@@ -158,9 +161,9 @@ public class Ac {
 		gshade = hlineshade;
 		for(cntup16>>=16;cntup16>0;cntup16--)
 		{
-			int index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
+			index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
 			if(index < 0 || index >= gbuf.length) continue;
-			int ch = gbuf[index] & 0xFF;
+			ch = gbuf[index] & 0xFF;
 			if (ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
 
 			bx += asm1;
@@ -172,6 +175,8 @@ public class Ac {
 	public void tsethlineshift(int logx, int logy) { glogx = logx; glogy = logy; }
 	public void thline(byte[] bufplc, long bx, int cntup16, int junk, long by, int p)
 	{
+		int dacol;
+		
 		gbuf = bufplc;
 		gpal = hlinepal;
 		gshade = hlineshade;
@@ -180,11 +185,13 @@ public class Ac {
 		{
 			for(cntup16>>=16;cntup16>0;cntup16--)
 			{
-				int index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
+				index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
 				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				int ch = gbuf[index] & 0xFF;
-				int dacol = palookup[gpal][ch + gshade] & 0xFF;
-				if (ch != 255) r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+				ch = gbuf[index] & 0xFF;
+				if (ch != 255) {
+					dacol = palookup[gpal][ch + gshade] & 0xFF;
+					r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+				}
 				bx += asm1;
 				by += asm2;
 				p++;
@@ -194,11 +201,13 @@ public class Ac {
 		{
 			for(cntup16>>=16;cntup16>0;cntup16--)
 			{
-				int index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
+				index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
 				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				int ch = gbuf[index] & 0xFF;
-				int dacol = palookup[gpal][ch + gshade] & 0xFF;
-				if (ch != 255) r.frameplace[p] = gtrans[+((r.frameplace[p]&0xFF)<<8)+dacol];
+				ch = gbuf[index] & 0xFF;
+				if (ch != 255) {
+					dacol = palookup[gpal][ch + gshade] & 0xFF;
+					r.frameplace[p] = gtrans[+((r.frameplace[p]&0xFF)<<8)+dacol];
+				}
 				bx += asm1;
 				by += asm2;
 				p++;
@@ -221,10 +230,9 @@ public class Ac {
 		gbuf = bufplc;
 		for(;cnt>1;cnt--)
 		{
-			int index = bufoffs + (bx>>16)*glogy+(by>>16);
+			index = bufoffs + (bx>>16)*glogy+(by>>16);
 			if(index < 0 || index >= gbuf.length) continue;
-			int col = gbuf[index] & 0xFF;
-			r.frameplace[p] = palookup[gpal][col + gshade];
+			r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
 			
 			bx += gbxinc;
 			by += gbyinc;
@@ -247,10 +255,10 @@ public class Ac {
 		gbuf = bufplc;
 		for(;cnt>1;cnt--)
 		{
-			int index = bufoffs + (bx>>16)*glogy+(by>>16);
+			index = bufoffs + (bx>>16)*glogy+(by>>16);
 			if(index < 0 || index >= gbuf.length) continue;
-			int col = gbuf[index] & 0xFF;
-			if(col != 255) r.frameplace[p] = palookup[gpal][col + gshade];
+			ch = gbuf[index] & 0xFF;
+			if(ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
 
 			bx += gbxinc;
 			by += gbyinc;
@@ -269,18 +277,19 @@ public class Ac {
 	
 	public void tspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p)
 	{
+		int dacol;
 		gbuf = bufplc;
 		if (transmode != 0)
 		{
 			for(;cnt>1;cnt--)
 			{
-				int index = bufoffs + (bx>>16)*glogy+(by>>16);
+				index = bufoffs + (bx>>16)*glogy+(by>>16);
 				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
 				
-				int col = gbuf[index] & 0xFF;
-				if(col != 255) {
-					int dacol = palookup[gpal][col + gshade] & 0xFF;
-					if (col != 255) r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+				ch = gbuf[index] & 0xFF;
+				if(ch != 255) {
+					dacol = palookup[gpal][ch + gshade] & 0xFF;
+					r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
 				} 
 				bx += gbxinc;
 				by += gbyinc;
@@ -291,11 +300,13 @@ public class Ac {
 		{
 			for(;cnt>1;cnt--)
 			{
-				int index = bufoffs + (bx>>16)*glogy+(by>>16);
+				index = bufoffs + (bx>>16)*glogy+(by>>16);
 				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				int ch = gbuf[index] & 0xFF;
-				int dacol = palookup[gpal][ch + gshade] & 0xFF;
-				if (ch != 255) r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+				ch = gbuf[index] & 0xFF;
+				if (ch != 255) {
+					dacol = palookup[gpal][ch + gshade] & 0xFF;
+					r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+				}
 				bx += gbxinc;
 				by += gbyinc;
 				p += bpl;
