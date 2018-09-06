@@ -18,7 +18,7 @@ import ru.m210projects.Build.Types.LittleEndian;
 
 public class LZW {
 	
-	private final int LZWSIZE = 16384;
+	private final int LZWSIZE = 16385;
 	private byte[] lzwbuf1, lzwbuf4, lzwbuf5;
 	private short[] lzwbuf2, lzwbuf3;
 	
