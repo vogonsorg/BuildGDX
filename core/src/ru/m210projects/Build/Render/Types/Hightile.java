@@ -66,9 +66,7 @@ public class Hightile {
 	{
 	    for (int i=0; i<MAXPALOOKUPS; i++)  	// all tints should be 100%
 	    {
-	    	hictinting[i] = new Palette();
-	        hictinting[i].r = hictinting[i].g = hictinting[i].b = 0xff;
-	        hictinting[i].f = 0;
+	    	hictinting[i] = new Palette(0xff, 0xff, 0xff, 0);
 	    }
 
 	    if (hicfirstinit)

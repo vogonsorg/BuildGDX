@@ -1,3 +1,13 @@
+/*
+ * Software renderer code originally written by Ken Silverman
+ * Ken Silverman's official web site: "http://www.advsys.net/ken"
+ * See the included license file "BUILDLIC.TXT" for license info.
+ *
+ * This file has been modified from Ken Silverman's original release
+ * by Jonathon Fowler (jf@jonof.id.au)
+ * by Alexander Makarov-[M210] (m210-2007@mail.ru)
+ */
+
 package ru.m210projects.Build.Render.Software;
 
 import static ru.m210projects.Build.Engine.*;
@@ -11,7 +21,6 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.FadeEffect;
-import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
@@ -55,13 +64,13 @@ public class Software implements Renderer {
 	protected short globalpicnum, globalshiftval;
 	public int globalorientation, globvis, globalyscale;
 	public int globalxpanning, globalypanning;
-	public long globalx1, globaly1, globalx2, globaly2;
+	public int globalx1, globaly1, globalx2, globaly2;
 	public int globalx;
 	public int globaly;
 	public int globalx3, globaly3;
 	public int globalzd, globalzx, globalz;
-	protected char globalxshift;
-	protected char globalyshift;
+	protected byte globalxshift;
+	protected byte globalyshift;
 	
 	public byte[] globalbufplc;
 	public int globalpalwritten;
@@ -1242,14 +1251,14 @@ public class Software implements Renderer {
 				dax = rzi[z1]-rzi[z]; day = rxi[z1]-rxi[z];
 				bot = dmulscale(dax,dax,day,day,8);
 				if (((klabs(dax)>>13) >= bot) || ((klabs(day)>>13) >= bot)) return;
-				globalx1 = divscale(dax,bot,18);
-				globalx2 = divscale(day,bot,18);
+				globalx1 = (int)divscale(dax,bot,18);
+				globalx2 = (int)divscale(day,bot,18);
 
 				dax = rzi[z2]-rzi[z]; day = rxi[z2]-rxi[z];
 				bot = dmulscale(dax,dax,day,day,8);
 				if (((klabs(dax)>>13) >= bot) || ((klabs(day)>>13) >= bot)) return;
-				globaly1 = divscale(dax,bot,18);
-				globaly2 = divscale(day,bot,18);
+				globaly1 = (int)divscale(dax,bot,18);
+				globaly2 = (int)divscale(day,bot,18);
 
 					//Calculate globals for hline texture mapping function
 				globalxpanning = (rxi[z]<<12);
@@ -1830,7 +1839,7 @@ public class Software implements Renderer {
 			if (!ynice) bufplce *= tsizy; else bufplce <<= tsizy;
 
 			int vince = swal[x]*globalyscale;
-			long vplce = globalzd + vince*(y1ve-(int)globalhoriz+1);
+			int vplce = globalzd + vince*(y1ve-(int)globalhoriz+1);
 
 			a.mvlineasm1(vince,globalpal,shade,y2ve-y1ve-1,vplce,waloff[globalpicnum],bufplce,x+frameoffset+ylookup[y1ve]);
 		}
@@ -1877,7 +1886,7 @@ public class Software implements Renderer {
 			if (!ynice) bufplce *= tsizy; else bufplce <<= tsizy;
 
 			int vince = swal[x]*globalyscale;
-			long vplce = globalzd + vince*(y1ve-(int)globalhoriz+1);
+			int vplce = globalzd + vince*(y1ve-(int)globalhoriz+1);
 
 			a.vlineasm1(vince,fpalookup,shade,y2ve-y1ve-1,vplce,waloff[globalpicnum],bufplce,x+frameoffset+ylookup[y1ve]);
 		}
@@ -1935,20 +1944,20 @@ public class Software implements Renderer {
 			i = dmulscale(oy,cosglobalang,-ox,singlobalang,14);
 			j = dmulscale(ox,cosglobalang,oy,singlobalang,14);
 			ox = i; oy = j;
-			globalxpanning = (int) (globalx1*ox - globaly1*oy);
-			globalypanning = (int) (globaly2*ox + globalx2*oy);
+			globalxpanning = (globalx1*ox - globaly1*oy);
+			globalypanning = (globaly2*ox + globalx2*oy);
 		}
 		globalx2 = mulscale(globalx2,viewingrangerecip,16);
 		globaly1 = mulscale(globaly1,viewingrangerecip,16);
-		globalxshift = (char) (8-(picsiz[globalpicnum]&15));
-		globalyshift = (char) (8-(picsiz[globalpicnum]>>4));
+		globalxshift = (byte) (8-(picsiz[globalpicnum]&15));
+		globalyshift = (byte) (8-(picsiz[globalpicnum]>>4));
 		if ((globalorientation&8) != 0) { globalxshift++; globalyshift++; }
 
 		if ((globalorientation&0x4) > 0)
 		{
 			i = globalxpanning; globalxpanning = globalypanning; globalypanning = i;
-			long tmp = globalx2; globalx2 = -globaly1; globaly1 = -tmp;
-			tmp = globalx1; globalx1 = globaly2; globaly2 = tmp;
+			i = globalx2; globalx2 = -globaly1; globaly1 = -i;
+			i = globalx1; globalx1 = globaly2; globaly2 = i;
 		}
 		if ((globalorientation&0x10) > 0) { globalx1 = -globalx1; globaly1 = -globaly1; globalxpanning = -globalxpanning; }
 		if ((globalorientation&0x20) > 0) { globalx2 = -globalx2; globaly2 = -globaly2; globalypanning = -globalypanning; }
@@ -2326,8 +2335,8 @@ public class Software implements Renderer {
 		if ((globalorientation&0x4) != 0)
 		{
 			i = globalx; globalx = -globaly; globaly = -i;
-			long tmp = globalx1; globalx1 = globaly1; globaly1 = tmp;
-			tmp = globalx2; globalx2 = -globaly2; globaly2 = -tmp;
+			i = globalx1; globalx1 = globaly1; globaly1 = i;
+			i = globalx2; globalx2 = -globaly2; globaly2 = -i;
 		}
 		if ((globalorientation&0x10) != 0) { globalx1 = -globalx1; globalx2 = -globalx2; globalx = -globalx; }
 		if ((globalorientation&0x20) != 0) { globaly1 = -globaly1; globaly2 = -globaly2; globaly = -globaly; }
@@ -2458,20 +2467,20 @@ public class Software implements Renderer {
 			i = dmulscale(oy,cosglobalang,-ox,singlobalang,14);
 			j = dmulscale(ox,cosglobalang,oy,singlobalang,14);
 			ox = i; oy = j;
-			globalxpanning = (int) (globalx1*ox - globaly1*oy);
-			globalypanning = (int) (globaly2*ox + globalx2*oy);
+			globalxpanning = (globalx1*ox - globaly1*oy);
+			globalypanning = (globaly2*ox + globalx2*oy);
 		}
 		globalx2 = mulscale(globalx2,viewingrangerecip,16);
 		globaly1 = mulscale(globaly1,viewingrangerecip,16);
-		globalxshift = (char) (8-(picsiz[globalpicnum]&15));
-		globalyshift = (char) (8-(picsiz[globalpicnum]>>4));
+		globalxshift = (byte) (8-(picsiz[globalpicnum]&15));
+		globalyshift = (byte) (8-(picsiz[globalpicnum]>>4));
 		if ((globalorientation&8) != 0) { globalxshift++; globalyshift++; }
 
 		if ((globalorientation&0x4) > 0)
 		{
 			i = globalxpanning; globalxpanning = globalypanning; globalypanning = i;
-			long tmp = globalx2; globalx2 = -globaly1; globaly1 = -tmp;
-			tmp = globalx1; globalx1 = globaly2; globaly2 = tmp;
+			i = globalx2; globalx2 = -globaly1; globaly1 = -i;
+			i = globalx1; globalx1 = globaly2; globaly2 = i;
 		}
 		if ((globalorientation&0x10) > 0) { globalx1 = -globalx1; globaly1 = -globaly1; globalxpanning = -globalxpanning; }
 		if ((globalorientation&0x20) > 0) { globalx2 = -globalx2; globaly2 = -globaly2; globalypanning = -globalypanning; }
@@ -2576,28 +2585,14 @@ public class Software implements Renderer {
 
 	@Override
 	public void clearview(int dacol) {
-		if(display == null) return;
-		Palette p = curpalette[dacol];
-		if(p == null) {
-			display.getCanvas().clearview(0);
-			return;
-		}
-
-		int color = p.b + (p.g << 8) + (p.r << 16);
-		display.getCanvas().clearview(color);
+		if(frameplace != null)
+			Arrays.fill(frameplace, (byte) dacol);
 	}
 
 	@Override
 	public void nextpage() {
-		for(int i = 0; i < frameplace.length; i++)
-		{
-			int index = frameplace[i] & 0xFF;
-			Palette color = curpalette[index];
-			
-			display.getCanvas().getFrameBuffer()[i] = color.b + (color.g << 8) + (color.r << 16);
-		}
-		
-		display.getCanvas().update();
+		System.arraycopy(frameplace, 0, getCanvas().getFrame(), 0, frameplace.length);
+		getCanvas().update();
 	}
 
 	@Override
@@ -3053,7 +3048,7 @@ public class Software implements Renderer {
 	public void preload() {}
 	public void precache(int dapicnum, int dapalnum, int datype) {}
 	public void gltexapplyprops() {}
-	public void gltexinvalidateall(int flags) {}
+	public void gltexinvalidateall(int flags) { getCanvas().changepalette(curpalette); }
 	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {}
 	
 	private void scansector(short sectnum)
@@ -3516,6 +3511,11 @@ public class Software implements Renderer {
 		}
 		a.thline(globalbufplc,globaly1*r+globalxpanning-a.asm1*(xr-xl),(xr-xl)<<16,0,
 			globalx2*r+globalypanning-a.asm2*(xr-xl),ylookup[yp]+xl);
+	}
+	
+	public JCanvas getCanvas()
+	{
+		return display.getCanvas();
 	}
 
 }

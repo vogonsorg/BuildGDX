@@ -21,7 +21,8 @@ public class Palette {
 	public int g;
 	public int b;
 	public int f;
-	
+	public int rgb;
+
 	public Palette() { }
 	
 	public Palette(int r, int g, int b, int f)
@@ -30,8 +31,18 @@ public class Palette {
 		this.g = g;
 		this.b = b;
 		this.f = f;
-		
+		this.rgb = b + (g << 8) + (r << 16);
 	}
+
+	public void update(int r, int g, int b, int f)
+	{
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.f = f;
+		this.rgb = b + (g << 8) + (r << 16);
+	}
+	
 	public int[] array;
 	
 	public int[] toArray() {

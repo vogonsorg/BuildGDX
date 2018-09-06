@@ -51,7 +51,6 @@ import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Types.Wallspriteinfo;
-import ru.m210projects.Build.Types.Palette;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import com.badlogic.gdx.Gdx;
@@ -4553,14 +4552,14 @@ public abstract class Polymost implements Renderer {
 			gl.glDisable(GL_TEXTURE_2D);
 			gl.glBegin(GL_TRIANGLE_FAN);
 			if (gammabrightness != 0)
-				gl.glColor4f((float) curpalette[255].r / 255.0f,
-						(float) curpalette[255].g / 255.0f,
-						(float) curpalette[255].b / 255.0f, 1.0f);
+				gl.glColor4f((float) (curpalette[765]&0xFF) / 255.0f,
+						(float) (curpalette[766]&0xFF) / 255.0f,
+						(float) (curpalette[767]&0xFF) / 255.0f, 1.0f);
 			else
 				gl.glColor4f(
-						(float) britable[curbrightness][curpalette[255].r] / 255.0f,
-						(float) britable[curbrightness][curpalette[255].g] / 255.0f,
-						(float) britable[curbrightness][curpalette[255].b] / 255.0f,
+						(float) britable[curbrightness][curpalette[765]&0xFF] / 255.0f,
+						(float) britable[curbrightness][curpalette[766]&0xFF] / 255.0f,
+						(float) britable[curbrightness][curpalette[767]&0xFF] / 255.0f,
 						1.0f);
 			gl.glVertex2f((float) tilex, (float) tiley);
 			gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley);
@@ -4681,9 +4680,9 @@ public abstract class Polymost implements Renderer {
 		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
 
 		if (backcol >= 0) {
-			gl.glColor4ub((byte) curpalette[backcol].r,
-					(byte) curpalette[backcol].g, (byte) curpalette[backcol].b,
-					(byte) 255);
+			gl.glColor4ub(curpalette[3*backcol]&0xFF,
+					curpalette[3*backcol+1]&0xFF, curpalette[3*backcol+2]&0xFF,
+					255);
 			gl.glBegin(GL_QUADS);
 			gl.glVertex2i(xpos, ypos);
 			gl.glVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
@@ -4700,10 +4699,7 @@ public abstract class Polymost implements Renderer {
 		 
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
-		if(curpalette[col] == null)
-			gl.glColor4ub(255, 255, 255, 255);
-		else
-			gl.glColor4ub(curpalette[col].r, curpalette[col].g, curpalette[col].b, 255);
+		gl.glColor4ub(curpalette[3*col]&0xFF, curpalette[3*col+1]&0xFF, curpalette[3*col+2]&0xFF, 255);
 
 		txc = (float) (fontsize != 0 ? (4.0 / 256.0) : (8.0 / 256.0));
 		tyc = (float) (fontsize != 0 ? (6.0 / 128.0) : (8.0 / 128.0));
@@ -4796,9 +4792,9 @@ public abstract class Polymost implements Renderer {
 		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
 
 		if (backcol >= 0) {
-			gl.glColor4ub((byte) curpalette[backcol].r,
-					(byte) curpalette[backcol].g, (byte) curpalette[backcol].b,
-					(byte) 255);
+			gl.glColor4ub(curpalette[3*backcol]&0xFF,
+					curpalette[3*backcol+1]&0xFF, curpalette[3*backcol+2]&0xFF,
+					255);
 			c = Bstrlen(text);
 
 			gl.glBegin(GL_QUADS);
@@ -4819,10 +4815,7 @@ public abstract class Polymost implements Renderer {
 		 
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
-		if(curpalette[col] == null)
-			gl.glColor4ub(255, 255, 255, 255);
-		else
-			gl.glColor4ub(curpalette[col].r, curpalette[col].g, curpalette[col].b, 255);
+		gl.glColor4ub(curpalette[3*col]&0xFF, curpalette[3*col+1]&0xFF, curpalette[3*col+2]&0xFF, 255);
 
 		txc = (float) (fontsize != 0 ? (4.0 / 256.0) : (8.0 / 256.0));
 		tyc = (float) (fontsize != 0 ? (6.0 / 128.0) : (8.0 / 128.0));
@@ -5315,7 +5308,7 @@ public abstract class Polymost implements Renderer {
 		setpolymost2dview(); // JBF 20040205: more efficient setup
 
 		gl.glBegin(GL_LINES);
-		gl.glColor4ub((byte) curpalette[col].r, (byte) curpalette[col].g, (byte) curpalette[col].b, (byte) 255);
+		gl.glColor4ub(curpalette[3*col]&0xFF, curpalette[3*col+1]&0xFF, curpalette[3*col+2]&0xFF, 255);
 		gl.glVertex2f((float) x1 / 4096.0f, (float) y1 / 4096.0f);
 		gl.glVertex2f((float) x2 / 4096.0f, (float) y2 / 4096.0f);
 		gl.glEnd();
@@ -6607,16 +6600,9 @@ public abstract class Polymost implements Renderer {
 
 	@Override
 	public void clearview(int dacol) {
-		Palette p = curpalette[dacol];
-		if (p == null) {
-			gl.glClearColor(dacol / 255.0f, dacol / 255.0f, dacol / 255.0f, 1);
-			gl.glClear(GL_COLOR_BUFFER_BIT);
-			
-			return;
-		}
-		gl.glClearColor(((float) p.r) / 255.0f,
-				((float) p.g) / 255.0f,
-				((float) p.b) / 255.0f,
+		gl.glClearColor(((float) (curpalette[3*dacol]&0xFF)) / 255.0f,
+				((float) (curpalette[3*dacol+1]&0xFF)) / 255.0f,
+				((float) (curpalette[3*dacol+2]&0xFF)) / 255.0f,
 				0);
 		gl.glClear(GL_COLOR_BUFFER_BIT);
 	}

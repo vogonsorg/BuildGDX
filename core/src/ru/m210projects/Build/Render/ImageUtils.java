@@ -16,7 +16,6 @@ import static ru.m210projects.Build.Engine.gammabrightness;
 import static ru.m210projects.Build.Engine.globalshade;
 import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Render.TextureUtils.tmpArray;
-import ru.m210projects.Build.Types.Palette;
 
 public class ImageUtils {
 
@@ -75,16 +74,15 @@ public class ImageUtils {
 						dacol = palookup[dapal][dacol] & 0xFF;
 					}
 
-					Palette color = curpalette[dacol];
 					if (gammabrightness != 0) {
-						pic[wp + 0] = (byte) (color.r);
-						pic[wp + 1] = (byte) (color.g);
-						pic[wp + 2] = (byte) (color.b);
+						pic[wp + 0] = curpalette[3 * dacol];
+						pic[wp + 1] = curpalette[3 * dacol + 1];
+						pic[wp + 2] = curpalette[3 * dacol + 2];
 					} else {
 						byte[] brighttable = britable[curbrightness];
-						pic[wp + 0] = brighttable[color.r];
-						pic[wp + 1] = brighttable[color.g];
-						pic[wp + 2] = brighttable[color.b];
+						pic[wp + 0] = brighttable[curpalette[3 * dacol]&0xFF];
+						pic[wp + 1] = brighttable[curpalette[3 * dacol + 1]&0xFF];
+						pic[wp + 2] = brighttable[curpalette[3 * dacol + 2]&0xFF];
 					}
 				}
 			}

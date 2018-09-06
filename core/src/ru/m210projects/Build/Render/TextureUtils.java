@@ -33,7 +33,6 @@ import java.util.Arrays;
 
 import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GLFilter;
-import ru.m210projects.Build.Types.Palette;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
@@ -115,17 +114,16 @@ public class TextureUtils {
 				} else
 					dacol = palookup[dapal][dacol] & 0xFF; 
 
-				Palette color = curpalette[dacol];
 				if (gammabrightness != 0) {
-					pic[wp + 0] = (byte) (color.r);
-					pic[wp + 1] = (byte) (color.g);
-					pic[wp + 2] = (byte) (color.b);
+					pic[wp + 0] = curpalette[3*dacol];
+					pic[wp + 1] = curpalette[3*dacol+1];
+					pic[wp + 2] = curpalette[3*dacol+2];
 					pic[wp + 3] = (byte) 0xFF;
 				} else {
 					byte[] bightness = britable[curbrightness];
-					pic[wp + 0] = bightness[color.r];
-					pic[wp + 1] = bightness[color.g];
-					pic[wp + 2] = bightness[color.b];
+					pic[wp + 0] = bightness[curpalette[3*dacol]&0xFF];
+					pic[wp + 1] = bightness[curpalette[3*dacol+1]&0xFF];
+					pic[wp + 2] = bightness[curpalette[3*dacol+2]&0xFF];
 					pic[wp + 3] = (byte) 0xFF;
 				}
 			}

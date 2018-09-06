@@ -1,3 +1,15 @@
+// A.ASM replacement using C
+// Mainly by Ken Silverman, with things melded with my port by
+// Jonathon Fowler (jonof@edgenetwork.org)
+//
+// "Build Engine & Tools" Copyright (c) 1993-1997 Ken Silverman
+// Ken Silverman's official web site: "http://www.advsys.net/ken"
+// See the included license file "BUILDLIC.TXT" for license info.
+//
+// This file has been modified from Ken Silverman's original release
+// by Alexander Makarov-[M210] (m210-2007@mail.ru)
+
+
 package ru.m210projects.Build.Render.Software;
 
 import static ru.m210projects.Build.Engine.*;
@@ -35,19 +47,21 @@ public class Ac {
 	{ glogx = logx; glogy = logy; gbuf = bufplc; }
 	public void setpalookupaddress(int paladdr) { ghlinepal = paladdr; }
 	public void setuphlineasm4(int bxinc, int byinc) { gbxinc = bxinc; gbyinc = byinc; }
-	public void hlineasm4(int cnt, int skiploadincs, int paloffs, long by, long bx, int p)
+	public void hlineasm4(int cnt, int skiploadincs, int paloffs, int by, int bx, int p)
 	{
 		if (skiploadincs == 0) { gbxinc = asm1; gbyinc = asm2; }
-		for(;cnt>=0;cnt--)
-		{
-			index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
-			if(index < 0 || index >= gbuf.length) continue;
-			r.frameplace[p] = palookup[ghlinepal][(gbuf[index] & 0xFF) + paloffs];
-			bx -= gbxinc;
-			by -= gbyinc;
-			p--;
-		}
+		try {
+			for(;cnt>=0;cnt--)
+			{
+				index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
+				r.frameplace[p] = palookup[ghlinepal][(gbuf[index] & 0xFF) + paloffs];
+				bx -= gbxinc;
+				by -= gbyinc;
+				p--;
+			}
+		} catch (Throwable e) {}
 	}
+		
 	
 	//Sloped ceiling/floor vertical line functions
 	public void setupslopevlin(int logylogx, byte[] bufplc, int pinc)
@@ -56,163 +70,164 @@ public class Ac {
 		gbuf = bufplc; gpinc = pinc;
 	}
 	
-	public void slopevlin(int p, int i, int slopaloffs, int cnt, long bx, long by)
+	public void slopevlin(int p, int i, int slopaloffs, int cnt, int bx, int by)
 	{
 		int bz = asm3; 
 		int bzinc = (asm1>>3);
-		long u, v;
-		for(;cnt>0;cnt--)
-		{
-			i = r.krecipasm(bz>>6); bz += bzinc;
-			u = bx+r.globalx3*i;
-			v = by+r.globaly3*i;
-
-			index = (int) ((((u & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((v & 0xFFFFFFFFL)>>(32-glogy)));
-			if(index < 0 || index >= gbuf.length) continue;
-			r.frameplace[p] = (byte) (r.slopalookup[slopaloffs] + (gbuf[index] & 0xFF));
-			slopaloffs--;
-			p += gpinc;
-		}
+		int u, v;
+		try {
+			for(;cnt>0;cnt--)
+			{
+				i = r.krecipasm(bz>>6); bz += bzinc;
+				u = bx+r.globalx3*i;
+				v = by+r.globaly3*i;
+	
+				index = ((u>>>(32-glogx))<<glogy)+(v>>>(32-glogy));
+				r.frameplace[p] = (byte) (r.slopalookup[slopaloffs] + (gbuf[index] & 0xFF));
+				slopaloffs--;
+				p += gpinc;
+			}
+		} catch (Throwable e) {}
 	}
 	
 	//Wall,face sprite/wall sprite vertical line functions
 	public void setupvlineasm(int neglogy) { glogy = neglogy; }
-	public void vlineasm1(int vinc, int pal, int shade, int cnt, long vplc, byte[] bufplc, int bufoffs, int p)
+	public void vlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p)
 	{
 		gbuf = bufplc;
 		gpal = pal;
 		gshade = shade;
-
-		for(;cnt>=0;cnt--)
-		{
-			index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
-			if(index < 0 || index >= gbuf.length) continue;
-			r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
-			p += bpl;
-			vplc += vinc;
-		}
+		try {
+			for(;cnt>=0;cnt--)
+			{
+				index = bufoffs + (vplc >>> glogy);
+				r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
+				p += bpl;
+				vplc += vinc;
+			}
+		} catch (Throwable e) {}
 	}
 	
 	public void setupmvlineasm(int neglogy) { glogy = neglogy; }
-	public void mvlineasm1(int vinc, int pal, int shade, int cnt, long vplc, byte[] bufplc, int bufoffs, int p)
+	public void mvlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p)
 	{
 		gbuf = bufplc;
 		gpal = pal;
 		gshade = shade;
 
-		for(;cnt>=0;cnt--)
-		{
-			index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
-			if(index < 0 || index >= gbuf.length) continue;
-			ch = gbuf[index] & 0xFF;
-			if (ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
-			p += bpl;
-			vplc += vinc;
-		}
+		try {
+			for(;cnt>=0;cnt--)
+			{
+				index = bufoffs + (vplc >>> glogy);
+				ch = gbuf[index] & 0xFF;
+				if (ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
+				p += bpl;
+				vplc += vinc;
+			}
+		} catch (Throwable e) {}
 	}
 
 	public void setuptvlineasm(int neglogy) { glogy = neglogy; }
-	public void tvlineasm1(int vinc, int pal, int shade, int cnt, long vplc, byte[] bufplc, int bufoffs, int p)
+	public void tvlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p)
 	{
 		int dacol;
 		
 		gbuf = bufplc;
 		gpal = pal;
 		gshade = shade;
-		
-		if (transmode != 0)
-		{
-			for(;cnt>=0;cnt--)
+		try {
+			if (transmode != 0)
 			{
-				index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
-				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				ch = gbuf[index] & 0xFF;
-				if (ch != 255) {
-					dacol = palookup[gpal][ch + gshade] & 0xFF;
-					r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+				for(;cnt>=0;cnt--)
+				{
+					index = bufoffs + (vplc >>> glogy);
+					ch = gbuf[index] & 0xFF;
+					if (ch != 255) {
+						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+					}
+					p += bpl;
+					vplc += vinc;
 				}
-				p += bpl;
-				vplc += vinc;
 			}
-		}
-		else
-		{
-			for(;cnt>=0;cnt--)
+			else
 			{
-				index = (int) (bufoffs + ((vplc & 0xFFFFFFFFL) >> glogy));
-				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				ch = gbuf[index] & 0xFF;
-				if (ch != 255) {
-					dacol = palookup[gpal][ch + gshade] & 0xFF;
-					r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+				for(;cnt>=0;cnt--)
+				{
+					index = bufoffs + (vplc >>> glogy);
+					ch = gbuf[index] & 0xFF;
+					if (ch != 255) {
+						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+					}
+					p += bpl;
+					vplc += vinc;
 				}
-				p += bpl;
-				vplc += vinc;
 			}
-		}
+		} catch (Throwable e) {}
 	}
 	
 	//Floor sprite horizontal line functions
 	public void msethlineshift(int logx, int logy) { glogx = logx; glogy = logy; }
-	public void mhline(byte[] bufplc, long bx, int cntup16, int junk, long by, int p)
+	public void mhline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p)
 	{
 		gbuf = bufplc;
 		gpal = hlinepal;
 		gshade = hlineshade;
-		for(cntup16>>=16;cntup16>0;cntup16--)
-		{
-			index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
-			if(index < 0 || index >= gbuf.length) continue;
-			ch = gbuf[index] & 0xFF;
-			if (ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
-
-			bx += asm1;
-			by += asm2;
-			p++;
-		}
+		try {
+			for(cntup16>>=16;cntup16>0;cntup16--)
+			{
+				index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
+				ch = gbuf[index] & 0xFF;
+				if (ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
+	
+				bx += asm1;
+				by += asm2;
+				p++;
+			}
+		} catch (Throwable e) {}
 	}
 	
 	public void tsethlineshift(int logx, int logy) { glogx = logx; glogy = logy; }
-	public void thline(byte[] bufplc, long bx, int cntup16, int junk, long by, int p)
+	public void thline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p)
 	{
 		int dacol;
 		
 		gbuf = bufplc;
 		gpal = hlinepal;
 		gshade = hlineshade;
-		
-		if (transmode != 0)
-		{
-			for(cntup16>>=16;cntup16>0;cntup16--)
+		try {
+			if (transmode != 0)
 			{
-				index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
-				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				ch = gbuf[index] & 0xFF;
-				if (ch != 255) {
-					dacol = palookup[gpal][ch + gshade] & 0xFF;
-					r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+				for(cntup16>>=16;cntup16>0;cntup16--)
+				{
+					index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
+					ch = gbuf[index] & 0xFF;
+					if (ch != 255) {
+						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+					}
+					bx += asm1;
+					by += asm2;
+					p++;
 				}
-				bx += asm1;
-				by += asm2;
-				p++;
 			}
-		}
-		else
-		{
-			for(cntup16>>=16;cntup16>0;cntup16--)
+			else
 			{
-				index = (int) ((((bx & 0xFFFFFFFFL)>>(32-glogx))<<glogy)+((by & 0xFFFFFFFFL)>>(32-glogy)));
-				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				ch = gbuf[index] & 0xFF;
-				if (ch != 255) {
-					dacol = palookup[gpal][ch + gshade] & 0xFF;
-					r.frameplace[p] = gtrans[+((r.frameplace[p]&0xFF)<<8)+dacol];
+				for(cntup16>>=16;cntup16>0;cntup16--)
+				{
+					index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
+					ch = gbuf[index] & 0xFF;
+					if (ch != 255) {
+						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						r.frameplace[p] = gtrans[+((r.frameplace[p]&0xFF)<<8)+dacol];
+					}
+					bx += asm1;
+					by += asm2;
+					p++;
 				}
-				bx += asm1;
-				by += asm2;
-				p++;
 			}
-		}
+		} catch (Throwable e) {}
 	}
 	
 	//Rotatesprite vertical line functions
@@ -228,16 +243,17 @@ public class Ac {
 	public void spritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p)
 	{
 		gbuf = bufplc;
-		for(;cnt>1;cnt--)
-		{
-			index = bufoffs + (bx>>16)*glogy+(by>>16);
-			if(index < 0 || index >= gbuf.length) continue;
-			r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
-			
-			bx += gbxinc;
-			by += gbyinc;
-			p += bpl;
-		}
+		try {
+			for(;cnt>1;cnt--)
+			{
+				index = bufoffs + (bx>>>16)*glogy+(by>>>16);
+				r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
+				
+				bx += gbxinc;
+				by += gbyinc;
+				p += bpl;
+			}
+		} catch (Throwable e) {}
 	}
 	
 	//Rotatesprite vertical line functions
@@ -253,17 +269,18 @@ public class Ac {
 	public void mspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p)
 	{
 		gbuf = bufplc;
-		for(;cnt>1;cnt--)
-		{
-			index = bufoffs + (bx>>16)*glogy+(by>>16);
-			if(index < 0 || index >= gbuf.length) continue;
-			ch = gbuf[index] & 0xFF;
-			if(ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
-
-			bx += gbxinc;
-			by += gbyinc;
-			p += bpl;
-		}
+		try {
+			for(;cnt>1;cnt--)
+			{
+				index = bufoffs + (bx>>>16)*glogy+(by>>>16);
+				ch = gbuf[index] & 0xFF;
+				if(ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
+	
+				bx += gbxinc;
+				by += gbyinc;
+				p += bpl;
+			}
+		} catch (Throwable e) {}
 	}
 	
 	public void tsetupspritevline(int pal, int shade, int bxinc, int byinc, int ysiz)
@@ -279,39 +296,38 @@ public class Ac {
 	{
 		int dacol;
 		gbuf = bufplc;
-		if (transmode != 0)
-		{
-			for(;cnt>1;cnt--)
+		try {
+			if (transmode != 0)
 			{
-				index = bufoffs + (bx>>16)*glogy+(by>>16);
-				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				
-				ch = gbuf[index] & 0xFF;
-				if(ch != 255) {
-					dacol = palookup[gpal][ch + gshade] & 0xFF;
-					r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
-				} 
-				bx += gbxinc;
-				by += gbyinc;
-				p += bpl;
-			}
-		}
-		else
-		{
-			for(;cnt>1;cnt--)
-			{
-				index = bufoffs + (bx>>16)*glogy+(by>>16);
-				if(index < 0 || index >= gbuf.length || gtrans == null) continue;
-				ch = gbuf[index] & 0xFF;
-				if (ch != 255) {
-					dacol = palookup[gpal][ch + gshade] & 0xFF;
-					r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+				for(;cnt>1;cnt--)
+				{
+					index = bufoffs + (bx>>>16)*glogy+(by>>>16);
+					ch = gbuf[index] & 0xFF;
+					if(ch != 255) {
+						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+					} 
+					bx += gbxinc;
+					by += gbyinc;
+					p += bpl;
 				}
-				bx += gbxinc;
-				by += gbyinc;
-				p += bpl;
 			}
-		}
+			else
+			{
+				for(;cnt>1;cnt--)
+				{
+					index = bufoffs + (bx>>>16)*glogy+(by>>>16);
+					ch = gbuf[index] & 0xFF;
+					if (ch != 255) {
+						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+					}
+					bx += gbxinc;
+					by += gbyinc;
+					p += bpl;
+				}
+			}
+		} catch (Throwable e) {}
 	}
 	
 	public void setupdrawslab (int dabpl, int pal, int shade)
@@ -322,20 +338,18 @@ public class Ac {
 		while (dy > 0)
 		{
 			for(x=0;x<dx;x++) 
-				r.frameplace[p+x] = palookup[gpal][((v>>16)+vptr) + gshade];
+				r.frameplace[p+x] = palookup[gpal][((v>>>16)+vptr) + gshade];
 			p += bpl; v += vi; dy--;
 		}
 	}
 	
 	public void hline(int xr, int yp) 
 	{
-		int xl = r.lastx[yp]; if (xl > xr) return;
+		if (r.lastx[yp] > xr) return;
 		int rr = r.lookups[r.horizlookup2+(int) (yp-globalhoriz+r.horizycent)];
-		asm1 = (int) (r.globalx1*rr);
-		asm2 = (int) (r.globaly2*rr);
-		int s = (engine.getpalookup(mulscale(rr,r.globvis,16),globalshade)<<8);
-		
-		hlineasm4(xr-xl,0,s,r.globalx2*rr+r.globalypanning,r.globaly1*rr+r.globalxpanning, r.ylookup[yp]+xr);
+		asm1 = (r.globalx1*rr);
+		asm2 = (r.globaly2*rr);
+		hlineasm4(xr-r.lastx[yp],0,engine.getpalookup(mulscale(rr,r.globvis,16),globalshade)<<8,r.globalx2*rr+r.globalypanning,r.globaly1*rr+r.globalxpanning, r.ylookup[yp]+xr);
 	}	
 }
 	

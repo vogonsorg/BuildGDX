@@ -44,7 +44,6 @@ import ru.m210projects.Build.Types.Neartag;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
-import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.Tile2model;
 
 import com.badlogic.gdx.Gdx;
@@ -184,7 +183,8 @@ public abstract class Engine {
 		16777216, 33554432, 67108864, 134217728,
 		268435456, 536870912, 1073741824, 2147483647,
 	};
-	public static Palette[] curpalette;
+
+	public static byte[] curpalette;
 	public static FadeEffect palfadergb;
 
 	public static Tile2model[] tile2model;
@@ -855,7 +855,7 @@ public abstract class Engine {
 		tilefileoffs = new int[MAXTILES];
 		sqrtable = new short[4096];
 		shlookup = new short[4096 + 256];
-		curpalette = new Palette[256];
+		curpalette = new byte[768];
 		palfadergb = new FadeEffect(GL10.GL_ONE_MINUS_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA) {
 			@Override
 			public void update(int intensive) {}
@@ -3497,17 +3497,9 @@ public abstract class Engine {
 		if ((flags&4) == 0)
 			curbrightness = min(max(dabrightness,0),15);
 
-		for (int i = 0; i < 256; i++) {
-			if (curpalette[i] == null)
-				curpalette[i] = new Palette();
-
-			// save palette without any brightness adjustment
-			curpalette[i].r = (dapal[i * 3 + 0] & 0xFF) << 2;
-			curpalette[i].g = (dapal[i * 3 + 1] & 0xFF) << 2;
-			curpalette[i].b = (dapal[i * 3 + 2] & 0xFF) << 2;
-			curpalette[i].f = 0;
-		}
-
+		for (int i = 0; i < 768; i++) 
+			curpalette[i] = (byte) ((dapal[i]& 0xFF) << 2);
+		
 //		copybufbyte(curpalette, curpalettefaded, curpalette.length);
 //		if ((flags&1) == 0)
 //			setpalette(0,256,(char*)tempbuf);
