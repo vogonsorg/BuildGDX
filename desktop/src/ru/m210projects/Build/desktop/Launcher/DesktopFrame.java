@@ -63,7 +63,6 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.text.PlainDocument;
 
 import org.lwjgl.opengl.Display;
 
@@ -84,9 +83,6 @@ public class DesktopFrame {
 	private JLabel label;
 	private JComboBox<String> comboBox;
 	private JCheckBox fullscr;
-	private JLabel label_1;
-	private JTextField fpsnum;
-	private JCheckBox vsync;
 	private JCheckBox borderless;
 	private JCheckBox chckbxUpdate;
 	private JCheckBox chckbxAlwaysShowThis;
@@ -176,10 +172,6 @@ public class DesktopFrame {
 		startButton.setFont(font);
 		startButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				int fps = cfg.fpslimit;
-				if(fpsnum != null && !fpsnum.getText().isEmpty())
-					fps = Integer.parseInt(fpsnum.getText());
-				cfg.fpslimit = fps;
 				FilePath = path;
 				launchPort(apptitle, cfg);
 			}
@@ -353,8 +345,6 @@ public class DesktopFrame {
 		    	cfg.userfolder = e.getStateChange() == 1;
 		    	autoloadcheckBox.setSelected(cfg.autoloadFolder);
 		    	chckbxAlwaysShowThis.setSelected(cfg.startup);
-		    	if(fpsnum != null)
-		    		fpsnum.setText(Integer.toString(cfg.fpslimit));
 		    	settingsInited = false;
 		    }
 		});
@@ -424,32 +414,10 @@ public class DesktopFrame {
 				}
 			});
 			settings.add(comboBox);
-	
-			label_1 = new JLabel("Fps limit:");
-			label_1.setFont(font);
-			label_1.setBounds(10, 102, 90, 14);
-			settings.add(label_1);
-			
-			fpsnum = new JTextField();
-			fpsnum.setFont(font);
-			fpsnum.setBounds(91, 99, 34, 20);
-			PlainDocument doc = (PlainDocument) fpsnum.getDocument();
-			doc.setDocumentFilter(new DigitFilter());
-			settings.add(fpsnum);
-	
-			vsync = new JCheckBox("Use vsync");
-			vsync.setFont(font);
-			vsync.setBounds(135, 98, 100, 23);
-			vsync.addItemListener(new ItemListener() {
-			    public void itemStateChanged(ItemEvent e) {
-			    	cfg.gVSync = e.getStateChange() == 1;
-			    }
-			});
-			settings.add(vsync);
-			
+
 			borderless = new JCheckBox("Borderless mode");
 			borderless.setFont(font);
-			borderless.setBounds(232, 99, 140, 23);
+			borderless.setBounds(10, 102, 140, 23);
 			borderless.addItemListener(new ItemListener() {
 			    public void itemStateChanged(ItemEvent e) {
 			    	cfg.borderless = e.getStateChange() == 1;
@@ -485,8 +453,6 @@ public class DesktopFrame {
 			return;
 		
 		fullscr.setSelected(cfg.fullscreen == 1);
-		fpsnum.setText(Integer.toString(cfg.fpslimit));
-		vsync.setSelected(cfg.gVSync);
 		borderless.setSelected(cfg.borderless);
 		initMidiDevice(cfg.midiSynth);
 
