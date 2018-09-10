@@ -13,6 +13,8 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+// Music part of this file has been modified from 
+// Nathan Sweet's LibGDX OpenALMusic by Alexander Makarov-[M210]
 
 package ru.m210projects.Build.desktop.audio;
 
@@ -162,28 +164,12 @@ abstract class OpenALMusic {
 	private float renderedSeconds, secondsPerBuffer;
 	protected byte[] data;
 	private float musicVolume;
-
+	private IntBuffer musicBuffers;
+	
 	public OpenALMusic (SourceManager sourceManager, IntBuffer ALbuffers, byte[] data) {
 		this.sourceManager = sourceManager;
 		this.data = data;
-		
-		if (source == null) {
-			source = sourceManager.obtainSource(Integer.MAX_VALUE);
-			if (source == null) return;
-			alSourcei(source.sourceId, AL_LOOPING, AL_FALSE);
-			setVolume(musicVolume);
-			source.flags |= Source.Locked;
-			for (int i = 0; i < ALbuffers.capacity(); i++) {
-				int bufferID = ALbuffers.get(i);
-				if (!fill(bufferID)) break;
-				alSourceQueueBuffers(source.sourceId, bufferID);
-			}
-			if (alGetError() != AL_NO_ERROR) {
-				stop();
-				return;
-			}
-		}
-		
+		this.musicBuffers = ALbuffers;
 	}
 
 	protected void setup (int channels, int sampleRate) {
@@ -193,6 +179,23 @@ abstract class OpenALMusic {
 	}
 
 	public void play() {
+		if (source == null) {
+			source = sourceManager.obtainSource(Integer.MAX_VALUE);
+			if (source == null) return;
+			alSourcei(source.sourceId, AL_LOOPING, AL_FALSE);
+			setVolume(musicVolume);
+			source.flags |= Source.Locked;
+			for (int i = 0; i < musicBuffers.capacity(); i++) {
+				int bufferID = musicBuffers.get(i);
+				if (!fill(bufferID)) break;
+				renderedSeconds = 0;
+				alSourceQueueBuffers(source.sourceId, bufferID);
+			}
+			if (alGetError() != AL_NO_ERROR) {
+				stop();
+				return;
+			}
+		}
 		alSourcePlay(source.sourceId);
 		isPlaying = true;
 	}
@@ -257,15 +260,14 @@ abstract class OpenALMusic {
 			if (bufferID == AL_INVALID_VALUE) break;
 			renderedSeconds += secondsPerBuffer;
 			if (end) continue;
-			if (fill(bufferID))
+			if (fill(bufferID)) 
 				alSourceQueueBuffers(source.sourceId, bufferID);
-			else
-				end = true;
+			else end = true;
 		}
 		if (end && alGetSourcei(source.sourceId, AL_BUFFERS_QUEUED) == 0) {
 			stop();
 		}
-
+		
 		// A buffer underflow will cause the source to stop.
 		if (isPlaying && alGetSourcei(source.sourceId, AL_SOURCE_STATE) != AL_PLAYING) alSourcePlay(source.sourceId);
 	}

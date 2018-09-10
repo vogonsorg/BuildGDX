@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 //
-// Music part of this file has been modified from 
-// Nathan Sweet's LibGDX OpenALMusic by Alexander Makarov-[M210]
 
 package ru.m210projects.Build.desktop.audio;
 
