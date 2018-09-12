@@ -228,6 +228,10 @@ public class Compat {
 		return var;
 	}
 	
+	private static byte[] tmpbyte = new byte[1];
+	private static byte[] tmpshort = new byte[2];
+	private static byte[] tmpint = new byte[4];
+	
 	public static int Bread(int handle, int len) {
 		int var = -1;
 		RandomAccessFile fis = raf_list[handle];
@@ -235,14 +239,13 @@ public class Compat {
 			if(len == 1)
 				return fis.readByte() & 0xFF;
 			else if(len == 2) {
-				byte[] buf = new byte[2];
-				fis.read(buf, 0, len);
-				return LittleEndian.getShort(buf);
+				fis.read(tmpshort, 0, len);
+				return LittleEndian.getShort(tmpshort);
 			}
 			else if(len == 4) {
-				byte[] buf = new byte[4];
-				fis.read(buf, 0, len);
-				return LittleEndian.getInt(buf);
+				
+				fis.read(tmpint, 0, len);
+				return LittleEndian.getInt(tmpint);
 			}
 		
 		} catch (IOException e) {
@@ -273,9 +276,8 @@ public class Compat {
 		byte[] buffer = new byte[len];
 		
 		try {
-			for(int i = 0; i < len && i < buf.length; i++) {
+			for(int i = 0; i < len && i < buf.length; i++) 
 				buffer[i] = (byte) buf[i];
-			}
 			fis.write(buffer);
 			var = len;
 		} catch (IOException e) {
@@ -292,15 +294,15 @@ public class Compat {
 		
 		try {           
 			if(len == 1) {
-				buf = new byte[1];
+				buf = tmpbyte;
 				buf[0] = (byte) data;
 			} 
 			else if(len == 2) {
-				buf = new byte[2];
+				buf = tmpshort;
 				LittleEndian.putShort(buf, 0, (short) data);
 			}
 			else if(len == 4) {
-				buf = new byte[4];
+				buf = tmpint;
 				LittleEndian.putInt(buf, 0, data);
 			}
 

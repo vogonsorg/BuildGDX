@@ -81,11 +81,10 @@ public class WALL {
     	extra = src.extra;
 	}
 	
+	private ByteBuffer buffer = ByteBuffer.allocate(sizeof); 
 	public byte[] getBytes()
 	{
-		ByteBuffer buffer = ByteBuffer.allocate(sizeof); 
-		buffer.order(ByteOrder.LITTLE_ENDIAN);  
-		
+		buffer.clear();
 		buffer.putInt(this.x);
     	buffer.putInt(this.y);
     	buffer.putShort(this.point2);

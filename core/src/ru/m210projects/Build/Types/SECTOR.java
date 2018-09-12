@@ -69,10 +69,10 @@ public class SECTOR {
     	extra = bb.getShort();
 	}
 	
+	private ByteBuffer buffer = ByteBuffer.allocate(sizeof); 
 	public byte[] getBytes()
 	{
-		ByteBuffer buffer = ByteBuffer.allocate(sizeof); 
-		buffer.order(ByteOrder.LITTLE_ENDIAN);  
+		buffer.clear();
 		
 		buffer.putShort(this.wallptr);
     	buffer.putShort(this.wallnum);

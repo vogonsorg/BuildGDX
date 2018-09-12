@@ -228,7 +228,7 @@ public abstract class Engine {
 	private int[] tilefilenum;
 	private int[] tilefileoffs;
 	private int artversion;
-//	private int mapversion;
+	private int mapversion;
 	private long totalclocklock;
 	protected short[] sqrtable;
 	protected short[] shlookup;
@@ -276,6 +276,7 @@ public abstract class Engine {
 	public static int r_animsmoothing = 1;
 	public static int glanisotropy = 1; // 0 = maximum supported by card
 		
+	public static Board map;
 		
 	//Engine.c
 
@@ -1093,7 +1094,6 @@ public abstract class Engine {
 		render.drawoverheadmap(cposx, cposy, czoom, cang);
 	}
 
-	public int mapversion;
 	public int loadboard(String filename, int[] daposx, int[] daposy, int[] daposz, //jfBuild + gdxBuild
 			short[] daang, short[] dacursectnum) {
 		int fil, i;
