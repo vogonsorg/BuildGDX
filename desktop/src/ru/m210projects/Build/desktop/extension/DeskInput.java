@@ -94,11 +94,13 @@ final public class DeskInput implements BInput {
 
 	public int getX () {
 		if(!Display.isActive()) return 0;
+		if(!Mouse.isCreated()) return 0;
 		return Mouse.getX();
 	}
 
 	public int getY () {
 		if(!Display.isActive()) return 0;
+		if(!Mouse.isCreated()) return 0;
 		return Gdx.graphics.getHeight() - 1 - Mouse.getY();
 	}
 
@@ -111,6 +113,7 @@ final public class DeskInput implements BInput {
 	}
 
 	public boolean isTouched () {
+		if(!Mouse.isCreated()) return false;
 		for(int i = 0; i < Mouse.getButtonCount(); i++) {
 			if(Mouse.isButtonDown(i))
 				return true;
@@ -175,6 +178,8 @@ final public class DeskInput implements BInput {
 
 	@Override
 	public boolean justTouched () {
+		justTouched = false;
+		if(!Mouse.isCreated()) return false;
 		
 		if(Mouse.isButtonDown(0)) {
 			if(!justTouched) {
@@ -183,12 +188,14 @@ final public class DeskInput implements BInput {
 			}
 		}  
 		
-		justTouched = false;
+		
 		return false;
 	}
 
 	@Override
 	public boolean isButtonPressed (int button) {
+		if(!Mouse.isCreated()) return false;
+		
 		if(button < Mouse.getButtonCount())
 			return Mouse.isButtonDown(button);
 		return false;
@@ -247,6 +254,8 @@ final public class DeskInput implements BInput {
 	@Override
 	public int getDeltaX () {
 		if(!Display.isActive()) return 0;
+		if(!Mouse.isCreated()) return 0;
+		
 		int dx = Mouse.getX() - oldX;
 		oldX = Mouse.getX();
 		return dx;
@@ -255,6 +264,8 @@ final public class DeskInput implements BInput {
 	@Override
 	public int getDeltaY () {
 		if(!Display.isActive()) return 0;
+		if(!Mouse.isCreated()) return 0;
+		
 		int dy = Mouse.getY() - oldY;
 		oldY = Mouse.getY();
 		return -dy;
