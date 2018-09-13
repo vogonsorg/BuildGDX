@@ -14,7 +14,6 @@ import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.kClose;
 import static ru.m210projects.Build.FileHandle.Cache1D.kOpen;
 import static ru.m210projects.Build.FileHandle.Cache1D.kRead;
-import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 
 import java.nio.ByteBuffer;
@@ -27,13 +26,8 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
 
 public class Board {
-	
-	public static final byte CEIL = 0;
-	public static final byte FLOOR = 1;
-	
-	private final Engine eng;
-	protected int SETSPRITEZ = 0;
 
+	private final Engine eng;
 	protected final int mapversion;
 	protected int numsectors, numwalls, numsprites;
 
@@ -45,11 +39,10 @@ public class Board {
 	protected final WALL[] wall;
 	protected final SPRITE[] sprite;
 
-	protected int daposx, daposy, daposz;
-	protected short daang, dacursectnum;
+	public int daposx, daposy, daposz;
+	public short daang, dacursectnum;
 	protected final String name;
-	
-	private final int[] zofslope;
+
 	private final ByteBuffer buffer;
 
 	//////////INITIALIZATION FUNCTIONS //////////
@@ -81,7 +74,7 @@ public class Board {
 		nextspritestat[MAXSPRITES-1] = -1;
 	}
 	
-	public Board(Engine engine, String filename) throws Exception {
+	protected Board(Engine engine, String filename) throws Exception {
 		this.eng = engine;
 		
 		int fil = kOpen(filename, 0);
@@ -111,18 +104,18 @@ public class Board {
 			kClose(fil);
 			throw new Exception("Invalid map version!");
 		}
+
 		kClose(fil);
-		
+
 		int size = 144 + 20 + 2 + (numwalls * WALL.sizeof) + 
 		2 + (numsectors * SECTOR.sizeof) + 
 		2 + (MAXSPRITES * SPRITE.sizeof) + 
-		2 * (MAXSECTORS + 1) + 2 * (MAXSTATUS + 1) + 8 * MAXSPRITES;
+		2 * (MAXSECTORS + 1) + 2 * (MAXSTATUS + 1) + 8 * MAXSPRITES; //MAXV7 = 520366 
 		
 		buffer = ByteBuffer.allocate(size); 
-		zofslope = new int[2];
 	}
 	
-	public Board(Engine engine, byte[] buf) throws Exception {
+	protected Board(Engine engine, byte[] buf) throws Exception {
 		this.eng = engine;
 		
 		sector = new SECTOR[MAXSECTORS];
@@ -183,7 +176,6 @@ public class Board {
 		2 * (MAXSECTORS + 1) + 2 * (MAXSTATUS + 1) + 8 * MAXSPRITES;
 		
 		buffer = ByteBuffer.allocate(size); 
-		zofslope = new int[2];
 	}
 	
 	protected void loadv6(int fil)
@@ -304,9 +296,6 @@ public class Board {
 
 		for(int i=0;i<numsprites;i++) 
 			insertsprite(sprite[i].sectnum, sprite[i].statnum);
-
-		//Must be after loading sectors, etc!
-		dacursectnum = updatesector(daposx, daposy, dacursectnum);
 	}
 	
 	protected void loadv7(int fil)
@@ -351,14 +340,11 @@ public class Board {
 
 		for(int i=0;i<numsprites;i++) 
 			insertsprite(sprite[i].sectnum, sprite[i].statnum);
-
-		//Must be after loading sectors, etc!
-		dacursectnum = updatesector(daposx, daposy, dacursectnum);
 	}
 	
 	//////////SPRITE LIST MANIPULATION FUNCTIONS //////////
 	
-	public int insertspritesect(short sectnum)
+	public short insertspritesect(short sectnum)
 	{
 		if ((sectnum >= MAXSECTORS) || (headspritesect[MAXSECTORS] == -1))
 			return(-1);  //list full
@@ -380,7 +366,7 @@ public class Board {
 		return(blanktouse);
 	}
 	
-	public int insertspritestat(short newstatnum)
+	public short insertspritestat(short newstatnum)
 	{
 		if ((newstatnum >= MAXSTATUS) || (headspritestat[MAXSTATUS] == -1))
 			return(-1);  //list full
@@ -402,7 +388,7 @@ public class Board {
 		return(blanktouse);
 	}
 	
-	public int insertsprite(short sectnum, short statnum)
+	public short insertsprite(short sectnum, short statnum)
 	{
 		insertspritestat(statnum);
 		return(insertspritesect(sectnum));
@@ -473,24 +459,6 @@ public class Board {
 		sprite[spritenum].statnum = MAXSTATUS;
 		return true;
 	}
-	
-	public boolean setsprite(short spritenum, int newx, int newy, int newz) 
-	{
-		sprite[spritenum].x = newx;
-		sprite[spritenum].y = newy;
-		sprite[spritenum].z = newz;
-
-		short tempsectnum = sprite[spritenum].sectnum;
-		if(SETSPRITEZ == 1)
-			tempsectnum = updatesectorz(newx,newy,newz,tempsectnum);
-		else
-			tempsectnum = updatesector(newx,newy,tempsectnum);
-		if (tempsectnum < 0) return false;
-		if (tempsectnum != sprite[spritenum].sectnum)
-			changespritesect(spritenum,tempsectnum);
-
-		return true;
-	}
 
 	//////////WALL LIST MANIPULATION FUNCTIONS //////////
 	
@@ -521,6 +489,23 @@ public class Board {
 			}
 			cnt--;
 		} while ((tempshort != pointhighlight) && (cnt > 0));
+	}
+	
+	protected int lastwall(int point) {
+		int i, j, cnt;
+
+		if ((point > 0) && (wall[point - 1].point2 == point))
+			return (point - 1);
+		i = point;
+		cnt = MAXWALLS;
+		do {
+			j = wall[i].point2;
+			if (j == point)
+				return (i);
+			i = j;
+			cnt--;
+		} while (cnt > 0);
+		return (point);
 	}
 
 	public void setfirstwall(short sectnum, short newfirstwall) {
@@ -589,6 +574,35 @@ public class Board {
 			if (wall[i].nextwall >= 0)
 				wall[wall[i].nextwall].nextwall = i;
 	}
+
+	private int loopnumofsector(short sectnum, short wallnum) { 
+		int numloops = 0;
+		int startwall = sector[sectnum].wallptr;
+		int endwall = startwall + sector[sectnum].wallnum;
+		for (int i = startwall; i < endwall; i++) {
+			if (i == wallnum)
+				return (numloops);
+			if (wall[i].point2 < i)
+				numloops++;
+		}
+		return (-1);
+	}
+	
+	public void flipwalls(int numwalls, int newnumwalls) {
+		int i, j, nume, tempint;
+
+		nume = newnumwalls - numwalls;
+
+		for (i = numwalls; i < numwalls + (nume >> 1); i++) {
+			j = numwalls + newnumwalls - i - 1;
+			tempint = wall[i].x;
+			wall[i].x = wall[j].x;
+			wall[j].x = tempint;
+			tempint = wall[i].y;
+			wall[i].y = wall[j].y;
+			wall[j].y = tempint;
+		}
+	}
 	
 	//////////SECTOR LIST MANIPULATION FUNCTIONS //////////
 
@@ -622,250 +636,7 @@ public class Board {
 		else
 			sector[dasect].floorstat |= 2;
 	}
-	
-	//////////MAP MANIPULATION FUNCTIONS //////////
 
-	public short updatesector(int x, int y, short sectnum) {
-		if (inside(x, y, sectnum) == 1)
-			return sectnum;
-
-		if ((sectnum >= 0) && (sectnum < numsectors)) {
-			short wallid = sector[sectnum].wallptr, i;
-			int j = sector[sectnum].wallnum;
-			if(wallid < 0) return -1;
-			do {
-				if(wallid >= MAXWALLS) break;
-				WALL wal = wall[wallid];
-				if(wal == null) { wallid++; j--; continue; }
-				i = wal.nextsector;
-				if (i >= 0)
-					if (inside(x, y, i) == 1) {
-						return i;
-					}
-				wallid++;
-				j--;
-			} while (j != 0);
-		}
-
-		for (short i = (short) (numsectors - 1); i >= 0; i--)
-			if (inside(x, y, i) == 1) {
-				return i;
-			}
-
-		return -1;
-	}
-
-	public short updatesectorz(int x, int y, int z, short sectnum) {
-		getzsofslope(sectnum, x, y, zofslope);
-		if ((z >= zofslope[CEIL]) && (z <= zofslope[FLOOR]))
-			if (inside(x, y, sectnum) != 0)
-				return sectnum;
-
-		if ((sectnum >= 0) && (sectnum < numsectors)) {
-			if(sector[sectnum] == null) return -1;
-			short wallid = sector[sectnum].wallptr, i;
-			int j = sector[sectnum].wallnum;
-			do {
-				if(wallid >= MAXWALLS) break;
-				WALL wal = wall[wallid];
-				if(wal == null) { wallid++; j--; continue; }
-				i = wal.nextsector;
-				if (i >= 0) {
-					getzsofslope(i, x, y, zofslope);
-					if ((z >= zofslope[CEIL]) && (z <= zofslope[FLOOR]))
-						if (inside(x, y, i) == 1) {
-							return i;
-						}
-				}
-				wallid++;
-				j--;
-			} while (j != 0);
-		}
-
-		for (short i = (short) (numsectors - 1); i >= 0; i--) {
-			getzsofslope( i, x, y, zofslope);
-			if ((z >= zofslope[CEIL]) && (z <= zofslope[FLOOR]))
-				if (inside(x, y, i) == 1) {
-					return i;
-				}
-		}
-
-		return -1;
-	}
-	
-	public int lastwall(int point) {
-		if ((point > 0) && (wall[point - 1].point2 == point))
-			return (point - 1);
-		
-		int i = point, j;
-		int cnt = MAXWALLS;
-		do {
-			j = wall[i].point2;
-			if (j == point)
-				return (i);
-			i = j;
-			cnt--;
-		} while (cnt > 0);
-		return (point);
-	}
-	
-	public int sectorofwall(short theline) { 
-		if ((theline < 0) || (theline >= numwalls))
-			return (-1);
-		
-		int i = wall[theline].nextwall;
-		if (i >= 0)
-			return (wall[i].nextsector);
-
-		int gap = (numsectors >> 1);
-		i = gap;
-		while (gap > 1) {
-			gap >>= 1;
-			if (sector[i].wallptr < theline)
-				i += gap;
-			else
-				i -= gap;
-		}
-		while (sector[i].wallptr > theline)
-			i--;
-		while (sector[i].wallptr + sector[i].wallnum <= theline)
-			i++;
-		return (i);
-	}
-	
-	public int loopnumofsector(short sectnum, short wallnum) { 
-		int numloops = 0;
-		int startwall = sector[sectnum].wallptr;
-		int endwall = startwall + sector[sectnum].wallnum;
-		for (int i = startwall; i < endwall; i++) {
-			if (i == wallnum)
-				return (numloops);
-			if (wall[i].point2 < i)
-				numloops++;
-		}
-		return (-1);
-	}
-
-	public int inside(int x, int y, short sectnum) {
-		if ((sectnum < 0) || (sectnum >= numsectors))
-			return (-1);
-
-		int cnt = 0;
-		int wallid = sector[sectnum].wallptr;
-		if(wallid < 0) return -1;
-		int i = sector[sectnum].wallnum;
-		int x1, y1, x2, y2;
-		
-		do {
-			WALL wal = wall[wallid];
-			if (wal == null || wal.point2 < 0 || wall[wal.point2] == null)
-				return -1;
-			y1 = wal.y - y;
-			y2 = wall[wal.point2].y - y;
-
-			if ((y1 ^ y2) < 0) {
-				x1 = wal.x - x;
-				x2 = wall[wal.point2].x - x;
-				if ((x1 ^ x2) >= 0)
-					cnt ^= x1;
-				else
-					cnt ^= (x1 * y2 - x2 * y1) ^ y2;
-			}
-			wallid++;
-			i--;
-		} while (i != 0);
-
-		return (cnt >>> 31);
-	}
-
-	public int getceilzofslope(short sectnum, int dax, int day) { 
-		if(sectnum == -1 || sector[sectnum] == null) return 0;
-		if ((sector[sectnum].ceilingstat & 2) == 0)
-			return (sector[sectnum].ceilingz);
-
-		WALL wal = wall[sector[sectnum].wallptr];
-		int dx = wall[wal.point2].x - wal.x;
-		int dy = wall[wal.point2].y - wal.y;
-		int i = (eng.ksqrt(dx * dx + dy * dy) << 5);
-		if (i == 0) return (sector[sectnum].ceilingz);
-		long j = dmulscale(dx, day - wal.y, -dy, dax - wal.x, 3);
-		
-		return sector[sectnum].ceilingz + (scale(sector[sectnum].ceilingheinum, j, i));
-	}
-
-	public int getflorzofslope(short sectnum, int dax, int day) { 
-		if(sectnum == -1 || sector[sectnum] == null) return 0;
-		if ((sector[sectnum].floorstat & 2) == 0)
-			return (sector[sectnum].floorz);
-
-		WALL wal = wall[sector[sectnum].wallptr];
-		int dx = wall[wal.point2].x - wal.x;
-		int dy = wall[wal.point2].y - wal.y;
-		int i = eng.ksqrt(dx * dx + dy * dy) << 5;
-		if (i == 0) return (sector[sectnum].floorz);
-		long j = dmulscale(dx, day - wal.y, -dy, dax - wal.x, 3);
-		return sector[sectnum].floorz + (scale(sector[sectnum].floorheinum, j, i));
-	}
-
-	public void getzsofslope(short sectnum, int dax, int day, int[] outz) {
-		if(sectnum == -1 || sector[sectnum] == null) 
-			return;
-
-		SECTOR sec = sector[sectnum];
-		if(sec == null) return;
-		outz[CEIL] = sec.ceilingz;
-		outz[FLOOR] = sec.floorz;
-		if (((sec.ceilingstat | sec.floorstat) & 2) != 0) {
-			WALL wal = wall[sec.wallptr];
-			WALL wal2 = wall[wal.point2];
-			int dx = wal2.x - wal.x;
-			int dy = wal2.y - wal.y;
-			int i = (eng.ksqrt(dx * dx + dy * dy) << 5);
-			if (i == 0) return;
-			long j = dmulscale(dx, day - wal.y, -dy, dax - wal.x, 3);
-
-			if ((sec.ceilingstat & 2) != 0)
-				outz[CEIL] += scale(sec.ceilingheinum, j, i);
-			if ((sec.floorstat & 2) != 0)
-				outz[FLOOR] += scale(sec.floorheinum, j, i);
-		}
-	}
-	
-	public SPRITE getsprite(int num)
-	{
-		return sprite[num];
-	}
-	
-	public SECTOR getsector(int num)
-	{
-		return sector[num];
-	}
-	
-	public WALL getwall(int num)
-	{
-		return wall[num];
-	}
-	
-	public short headspritesect(short sectnum)
-	{
-		return headspritesect[sectnum];
-	}
-	
-	public short headspritestat(short statnum)
-	{
-		return headspritestat[statnum];
-	}
-	
-	public short nextspritesect(short spritenum)
-	{
-		return nextspritesect[spritenum];
-	}
-	
-	public short nextspritestat(short spritenum)
-	{
-		return nextspritestat[spritenum];
-	}
-	
 	public byte[] getBytes()
 	{
 		buffer.clear();

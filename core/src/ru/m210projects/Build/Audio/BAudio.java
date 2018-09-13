@@ -79,7 +79,7 @@ public class BAudio implements Disposable {
 				fx.setVolume(volume);
 			break;
 		case MUSICDRV:
-			if(fx.getDigitalMusic().isInited()) 
+			if(fx.getDigitalMusic() != null && fx.getDigitalMusic().isInited()) 
 				fx.getDigitalMusic().setVolume(volume);
 			if(mx.isInited()) 
 				mx.setVolume(volume);
@@ -131,7 +131,7 @@ public class BAudio implements Disposable {
 	public MusicSource newMusic(int type, String file) {
 		if(type == MIDITYPE && mx.isInited()) 
 			return mx.newMusic(file);
-		if(type == DIGITYPE && fx.getDigitalMusic().isInited())
+		if(type == DIGITYPE && fx.getDigitalMusic() != null && fx.getDigitalMusic().isInited())
 			return fx.getDigitalMusic().newMusic(file);
 		
 		return null;
@@ -140,7 +140,7 @@ public class BAudio implements Disposable {
 	public MusicSource newMusic(int type, byte[] data) {
 		if(type == MIDITYPE && mx.isInited()) 
 			return mx.newMusic(data);
-		if(type == DIGITYPE && fx.getDigitalMusic().isInited())
+		if(type == DIGITYPE && fx.getDigitalMusic() != null && fx.getDigitalMusic().isInited())
 			return fx.getDigitalMusic().newMusic(data);
 		
 		return null;

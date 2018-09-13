@@ -52,22 +52,26 @@ public class ALSource extends Source {
 
 	@Override
 	public int dispose() {
+		if(!drv.isInited()) return -1;
 		drv.sourceManager.stopSound(this);
 		return sourceId;
 	}
 
 	@Override
 	public boolean isLooping() {
+		if(!drv.isInited()) return false;
 		return alGetSourcei(sourceId, AL_LOOPING) == AL_TRUE;
 	}
 
 	@Override
 	public boolean isPlaying() {
+		if(!drv.isInited()) return false;
 		return alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PLAYING;
 	}
 
 	@Override
 	public void setPosition(float x, float y, float z) {
+		if(!drv.isInited()) return;
 		alSource3f(sourceId, AL_POSITION, x, y, z);
 		
 		int error = alGetError();
@@ -77,6 +81,7 @@ public class ALSource extends Source {
 
 	@Override
 	public void setVolume(float volume) {
+		if(!drv.isInited()) return;
 		volume = Math.min(Math.max(volume, 0.0f), 1.0f);
 		volume *= drv.getVolume();
 		alSourcef(sourceId, AL_GAIN, volume);
@@ -88,6 +93,7 @@ public class ALSource extends Source {
 
 	@Override
 	public void setPitch(float pitch) {
+		if(!drv.isInited()) return;
 		pitch = Math.min(Math.max(pitch, 0.0f), 1.0f);
 		alSourcef(sourceId, AL_PITCH, pitch);
 		
@@ -98,6 +104,7 @@ public class ALSource extends Source {
 
 	@Override
 	public void setGlobal(int num) {
+		if(!drv.isInited()) return;
 		alSourcei(sourceId, AL_SOURCE_RELATIVE,  num);
 		
 		int error = alGetError();
@@ -112,11 +119,13 @@ public class ALSource extends Source {
 
 	@Override
 	public boolean isActive() {
+		if(!drv.isInited()) return false;
 		return isPlaying() && priority != 0 && !free;
 	}
 
 	@Override
 	public void setLooping(boolean loop, int loopstart, int loopend) {
+		if(!drv.isInited()) return;
 		if(!loop)
 		{
 			alSourcei(sourceId, AL_LOOPING, AL_FALSE);
@@ -149,6 +158,7 @@ public class ALSource extends Source {
 
 	@Override
 	public void play(float volume) {
+		if(!drv.isInited()) return;
 		setVolume(volume);
 		alSourcePlay(sourceId);
 		
@@ -159,16 +169,19 @@ public class ALSource extends Source {
 
 	@Override
 	public void stop() {
+		if(!drv.isInited()) return;
 		alSourceStop(sourceId);
 	}
 
 	@Override
 	public void pause() {
+		if(!drv.isInited()) return;
 		alSourcePause(sourceId);
 	}
 
 	@Override
 	public void resume() {
+		if(!drv.isInited()) return;
 		if(alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PAUSED)
 			alSourcePlay(sourceId);
 	}

@@ -33,7 +33,7 @@ public class DummySound implements Sound {
 
 	@Override
 	public boolean isInited() {
-		return false;
+		return true;
 	}
 
 	@Override

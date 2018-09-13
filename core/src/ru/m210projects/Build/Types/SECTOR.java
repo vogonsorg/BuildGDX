@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class SECTOR {
-	public static int sizeof = 40;
+	public static final int sizeof = 40;
 
 	public short wallptr, wallnum; //4
 	public int ceilingz, floorz; //8
@@ -69,9 +69,13 @@ public class SECTOR {
     	extra = bb.getShort();
 	}
 	
-	private ByteBuffer buffer = ByteBuffer.allocate(sizeof); 
+	private ByteBuffer buffer;
 	public byte[] getBytes()
 	{
+		if(buffer == null) {
+			buffer = ByteBuffer.allocate(sizeof); 
+			buffer.order( ByteOrder.LITTLE_ENDIAN);
+		}
 		buffer.clear();
 		
 		buffer.putShort(this.wallptr);

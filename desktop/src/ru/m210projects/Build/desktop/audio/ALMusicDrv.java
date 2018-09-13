@@ -84,7 +84,7 @@ public class ALMusicDrv implements Music {
 		}
 		
 		try {
-			music = new ALMusicSource(new Ogg.Music(drv.sourceManager, musicBuffers, data));
+			music = new ALMusicSource(new Ogg.Music(drv, musicBuffers, data));
 		} catch (Throwable e) {
 			Console.Println("Can't load ogg file", OSDTEXT_RED);
 			return null;
@@ -165,9 +165,11 @@ abstract class OpenALMusic {
 	protected byte[] data;
 	private float musicVolume;
 	private IntBuffer musicBuffers;
+	private ALSoundDrv drv;
 	
-	public OpenALMusic (SourceManager sourceManager, IntBuffer ALbuffers, byte[] data) {
-		this.sourceManager = sourceManager;
+	public OpenALMusic (ALSoundDrv drv, IntBuffer ALbuffers, byte[] data) {
+		this.drv = drv;
+		this.sourceManager = drv.sourceManager;
 		this.data = data;
 		this.musicBuffers = ALbuffers;
 	}
@@ -204,14 +206,17 @@ abstract class OpenALMusic {
 		if (source == null) return;
 		reset();
 		source.flags &= ~Source.Locked;
-		sourceManager.stopSound(source);
+		if(drv.isInited())
+			sourceManager.stopSound(source);
+		else if(source.flags != Source.Locked) 
+			sourceManager.freeSource(source);
 		source = null;
 		renderedSeconds = 0;
 		isPlaying = false;
 	}
 
 	public void pause() {
-		if (source != null) alSourcePause(source.sourceId);
+		if (source != null && drv.isInited()) alSourcePause(source.sourceId);
 		isPlaying = false;
 	}
 
@@ -230,7 +235,7 @@ abstract class OpenALMusic {
 
 	public void setVolume(float volume) {
 		this.musicVolume = volume;
-		if (source != null) 
+		if (source != null && drv.isInited()) 
 			alSourcef(source.sourceId, AL_GAIN, volume);
 	}
 
@@ -239,7 +244,7 @@ abstract class OpenALMusic {
 	}
 
 	public float getPosition() {
-		if (source == null) return 0;
+		if (source == null || !drv.isInited()) return 0;
 		return renderedSeconds + alGetSourcef(source.sourceId, AL_SEC_OFFSET);
 	}
 	
@@ -252,7 +257,7 @@ abstract class OpenALMusic {
 	}
 
 	public void update() {
-		if (source == null) return;
+		if (source == null || !drv.isInited()) return;
 		boolean end = false;
 		int buffers = alGetSourcei(source.sourceId, AL_BUFFERS_PROCESSED);
 		while (buffers-- > 0) {
@@ -297,8 +302,8 @@ abstract class OpenALMusic {
 class Ogg {
 	static public class Music extends OpenALMusic {
 		private OggInputStream input;
-		public Music(SourceManager sourceManager, IntBuffer ALbuffers, byte[] data) {
-			super(sourceManager, ALbuffers, data);
+		public Music(ALSoundDrv drv, IntBuffer ALbuffers, byte[] data) {
+			super(drv, ALbuffers, data);
 			input = new OggInputStream(new ByteArrayInputStream(data, 0, data.length));
 			setup(input.getChannels(), input.getSampleRate());
 		}

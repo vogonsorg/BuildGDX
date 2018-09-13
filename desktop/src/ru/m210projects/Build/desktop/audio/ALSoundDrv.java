@@ -368,6 +368,7 @@ public class ALSoundDrv implements Sound {
 					freeSource(allSources[i]);
 			}
 			
+//			System.out.println("obtainSource()");
 //			Iterator<Source> it = this.iterator();
 //		    while(it.hasNext()) {
 //		      Source obj = (Source)it.next();
@@ -393,7 +394,6 @@ public class ALSoundDrv implements Sound {
 			} else 
 				return null;
 		}
-
 
 		public int stopSound(Source source) {
 			if(source.flags == Source.Locked) 
@@ -456,6 +456,7 @@ public class ALSoundDrv implements Sound {
 
 	@Override
 	public boolean isAvailable(int priority) {
+		if(noDevice) return false;
 		return sourceManager.element().priority < priority || !sourceManager.element().isPlaying();
 	}
 }
