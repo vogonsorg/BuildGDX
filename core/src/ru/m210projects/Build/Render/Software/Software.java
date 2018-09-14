@@ -124,6 +124,7 @@ public class Software implements Renderer {
 
 	private final int MAXVOXMIPS = 5;
 	Model[][] voxoff = new Model[MAXVOXELS][MAXVOXMIPS];
+	private int[] zofslope = new int[2];
 	
 //	private final int MAXXSIZ = 256;	
 //	private int[] ggxinc = new int[MAXXSIZ+1], ggyinc = new int[MAXXSIZ+1];
@@ -369,9 +370,9 @@ public class Software implements Renderer {
 		
 		globparaceilclip = 1;
 		globparaflorclip = 1;
-		engine.getzsofslope(globalcursectnum,globalposx,globalposy);
-		int cz = ceilzsofslope;
-		int fz = floorzsofslope;
+		engine.getzsofslope(globalcursectnum,globalposx,globalposy, zofslope);
+		int cz = zofslope[CEIL];
+		int fz = zofslope[FLOOR];
 		if (globalposz < cz) globparaceilclip = 0;
 		if (globalposz > fz) globparaflorclip = 0;
 
@@ -502,16 +503,16 @@ public class Software implements Renderer {
 			if (nextsectnum >= 0)
 			{
 				nextsec = sector[nextsectnum];
-				engine.getzsofslope(sectnum,wal.x,wal.y);
-				cz[0] = ceilzsofslope; fz[0] = floorzsofslope;
-				engine.getzsofslope(sectnum,wall[wal.point2].x,wall[wal.point2].y);
-				cz[1] = ceilzsofslope; fz[1] = floorzsofslope;
-				engine.getzsofslope(nextsectnum,wal.x,wal.y);
-				cz[2] = ceilzsofslope; fz[2] = floorzsofslope;
-				engine.getzsofslope(nextsectnum,wall[wal.point2].x,wall[wal.point2].y);
-				cz[3] = ceilzsofslope; fz[3] = floorzsofslope;
-				engine.getzsofslope(nextsectnum,globalposx,globalposy);
-				cz[4] = ceilzsofslope; fz[4] = floorzsofslope;
+				engine.getzsofslope(sectnum,wal.x,wal.y, zofslope);
+				cz[0] = zofslope[CEIL]; fz[0] = zofslope[FLOOR];
+				engine.getzsofslope(sectnum,wall[wal.point2].x,wall[wal.point2].y, zofslope);
+				cz[1] = zofslope[CEIL]; fz[1] = zofslope[FLOOR];
+				engine.getzsofslope(nextsectnum,wal.x,wal.y, zofslope);
+				cz[2] = zofslope[CEIL]; fz[2] = zofslope[FLOOR];
+				engine.getzsofslope(nextsectnum,wall[wal.point2].x,wall[wal.point2].y, zofslope);
+				cz[3] = zofslope[CEIL]; fz[3] = zofslope[FLOOR];
+				engine.getzsofslope(nextsectnum,globalposx,globalposy, zofslope);
+				cz[4] = zofslope[CEIL]; fz[4] = zofslope[FLOOR];
 
 				if ((wal.cstat&48) == 16) maskwall[maskwallcnt++] = z;
 

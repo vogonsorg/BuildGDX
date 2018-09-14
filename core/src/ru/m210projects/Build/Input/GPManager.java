@@ -33,13 +33,15 @@ public class GPManager {
 	
 	public GPManager()
 	{
-		Array<Controller> controllers = Controllers.getControllers();
-		gamepads = new Array<Gamepad>();
-		if(controllers.size > 0) {
-			for(int i = 0; i < controllers.size; i++) {
-				gamepads.add(new Gamepad(controllers.get(i)));
+		try {
+			gamepads = new Array<Gamepad>();
+			Array<Controller> controllers = Controllers.getControllers();
+			if(controllers.size > 0) {
+				for(int i = 0; i < controllers.size; i++) {
+					gamepads.add(new Gamepad(controllers.get(i)));
+				}
 			}
-		}
+		} catch (Exception e) { }
 		
 		if(TestGamepad)
 			gamepads.add(new Gamepad(new TestController()));

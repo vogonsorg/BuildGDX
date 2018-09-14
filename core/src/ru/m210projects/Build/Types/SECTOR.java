@@ -69,6 +69,33 @@ public class SECTOR {
     	extra = bb.getShort();
 	}
 	
+	public void set(SECTOR src)
+	{
+		wallptr = src.wallptr;
+    	wallnum = src.wallnum;
+    	ceilingz = src.ceilingz;
+    	floorz = src.floorz;
+    	ceilingstat = src.ceilingstat;
+    	floorstat = src.floorstat;
+    	ceilingpicnum = src.ceilingpicnum;
+    	ceilingheinum = src.ceilingheinum;
+    	ceilingshade = src.ceilingshade;
+    	ceilingpal = src.ceilingpal;
+    	ceilingxpanning = src.ceilingxpanning;
+    	ceilingypanning = src.ceilingypanning;
+    	floorpicnum = src.floorpicnum;
+    	floorheinum = src.floorheinum;
+    	floorshade = src.floorshade;
+    	floorpal = src.floorpal;
+    	floorxpanning = src.floorxpanning;
+    	floorypanning = src.floorypanning;
+    	visibility = src.visibility;
+    	filler = src.filler;
+      	lotag = src.lotag;
+    	hitag = src.hitag;
+    	extra = src.extra;
+	}
+	
 	private ByteBuffer buffer;
 	public byte[] getBytes()
 	{
