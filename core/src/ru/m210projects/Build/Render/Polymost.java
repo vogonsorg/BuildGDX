@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.World;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
 import ru.m210projects.Build.Loader.Model;
@@ -176,7 +175,7 @@ public abstract class Polymost implements Renderer {
 	private double gvy;
 	private double gdo, gdx, gdy;
 	
-	private short[] sectorborder = new short[256];
+	private int[] sectorborder = new int[256];
 	private double[] dxb1 = new double[MAXWALLSB],
 			dxb2 = new double[MAXWALLSB];
 	private byte[] ptempbuf = new byte[MAXWALLSB << 1];
@@ -206,8 +205,7 @@ public abstract class Polymost implements Renderer {
 	// private int glwidescreen = 0, glprojectionhacks = 1;
 
 	private final TextureCache textureCache;
-	protected final World world;
-
+	
 	private int[] h_xsize = new int[MAXTILES], h_ysize = new int[MAXTILES];
 	private byte[] h_xoffs = new byte[MAXTILES], h_yoffs = new byte[MAXTILES];
 
@@ -217,7 +215,6 @@ public abstract class Polymost implements Renderer {
 	private boolean showlines = false;
 
 	public Polymost(Engine engine) {
-		this.world = engine.getWorld();
 		this.gl = (GL10) Gdx.gl;
 		this.engine = engine;
 		this.textureCache = createTextureCache();
@@ -1430,7 +1427,7 @@ public abstract class Polymost implements Renderer {
 		double fx, fy, ox, oy, oz, ox2, oy2, r;
 		int i;
 
-		SECTOR sec = world.getsector(sectnum);
+		SECTOR sec = sector[sectnum];
 		
 		if ((globalorientation & 64) == 0) {
 			nonparallaxed_ft[0] = globalposx;
@@ -1439,18 +1436,18 @@ public abstract class Polymost implements Renderer {
 			nonparallaxed_ft[3] = singlobalang;
 		} else {
 			// relative alignment
-			fx = (double) (world.getwall(world.getwall(sec.wallptr).point2).x - world.getwall(sec.wallptr).x);
-			fy = (double) (world.getwall(world.getwall(sec.wallptr).point2).y - world.getwall(sec.wallptr).y);
+			fx = (double) (wall[wall[sec.wallptr].point2].x - wall[sec.wallptr].x);
+			fy = (double) (wall[wall[sec.wallptr].point2].y - wall[sec.wallptr].y);
 			r = 1.0 / sqrt(fx * fx + fy * fy);
 			fx *= r;
 			fy *= r;
 			
 			nonparallaxed_ft[2] = cosglobalang * fx + singlobalang * fy;
 			nonparallaxed_ft[3] = singlobalang * fx - cosglobalang * fy;
-			nonparallaxed_ft[0] = ((double) (globalposx - world.getwall(sec.wallptr).x))
-					* fx + ((double) (globalposy - world.getwall(sec.wallptr).y)) * fy;
-			nonparallaxed_ft[1] = ((double) (globalposy - world.getwall(sec.wallptr).y))
-					* fx - ((double) (globalposx - world.getwall(sec.wallptr).x)) * fy;
+			nonparallaxed_ft[0] = ((double) (globalposx - wall[sec.wallptr].x))
+					* fx + ((double) (globalposy - wall[sec.wallptr].y)) * fy;
+			nonparallaxed_ft[1] = ((double) (globalposy - wall[sec.wallptr].y))
+					* fx - ((double) (globalposx - wall[sec.wallptr].x)) * fy;
 			if ((globalorientation & 4) == 0)
 				globalorientation ^= 32;
 			else
@@ -1687,11 +1684,10 @@ public abstract class Polymost implements Renderer {
 		double x0, x1, cy0, cy1, fy0, fy1, xp0, yp0, xp1, yp1, ryp0, ryp1, nx0, ny0, nx1, ny1;
 		double t, t0, t1, ocy0, ocy1, ofy0, ofy1, oxp0, oyp0;
 		double oguo, ogux, oguy, fwalxrepeat;
-		int i, x, y, z, wallnum;
-		short sectnum, nextsectnum;
+		int i, x, y, z, wallnum, sectnum, nextsectnum;
 
 		sectnum = thesector[bunchfirst[bunch]];
-		sec = world.getsector(sectnum);
+		sec = sector[sectnum];
 
 		if (!nofog)
 			calc_and_apply_fog(sec.floorpicnum, sec.floorshade, sec.visibility,  sec.floorpal);
@@ -1700,10 +1696,10 @@ public abstract class Polymost implements Renderer {
 			// DRAW WALLS SECTION!
 
 			wallnum = thewall[z];
-			wal = world.getwall(wallnum);
-			wal2 = world.getwall(wal.point2);
+			wal = wall[wallnum];
+			wal2 = wall[wal.point2];
 			nextsectnum = wal.nextsector;
-			nextsec = nextsectnum >= 0 ? world.getsector(nextsectnum) : null;
+			nextsec = nextsectnum >= 0 ? sector[nextsectnum] : null;
 			
 			fwalxrepeat = (double) (wal.xrepeat & 0xFF);
 
@@ -1786,7 +1782,7 @@ public abstract class Polymost implements Renderer {
 							(float) x0, (float) x1, (float) fy0, (float) fy1, 1,
 							sectnum, true);
 					}
-				} else if ((nextsectnum < 0) || ((world.getsector(nextsectnum).floorstat & 1) == 0)) 
+				} else if ((nextsectnum < 0) || ((sector[nextsectnum].floorstat & 1) == 0)) 
 					drawbackground(sectnum, x0, x1, fy0, fy1, true);
 				
 			} //END DRAW FLOOR
@@ -1812,7 +1808,7 @@ public abstract class Polymost implements Renderer {
 							(float) x0, (float) x1, (float) cy0, (float) cy1, 0,
 							sectnum, false);
 					}
-				} else if ((nextsectnum < 0) || ((world.getsector(nextsectnum).ceilingstat & 1) == 0))
+				} else if ((nextsectnum < 0) || ((sector[nextsectnum].ceilingstat & 1) == 0))
 					drawbackground(sectnum, x0, x1, cy0, cy1, false);
 				
 			} //END DRAW CEILING
@@ -1841,7 +1837,7 @@ public abstract class Polymost implements Renderer {
 					maskwall[maskwallcnt++] = (short) z;
 
 				if (((cy0 < ocy0) || (cy1 < ocy1))
-						&& (((sec.ceilingstat & world.getsector(nextsectnum).ceilingstat) & 1)) == 0) {
+						&& (((sec.ceilingstat & sector[nextsectnum].ceilingstat) & 1)) == 0) {
 					globalpicnum = wal.picnum;
 					globalshade = wal.shade;
 					globalpal = (int) (wal.pal & 0xFF);
@@ -1850,7 +1846,7 @@ public abstract class Polymost implements Renderer {
 								wallnum + 16384);
 
 					if ((wal.cstat & 4) == 0)
-						i = world.getsector(nextsectnum).ceilingz;
+						i = sector[nextsectnum].ceilingz;
 					else
 						i = sec.ceilingz;
 
@@ -1886,11 +1882,11 @@ public abstract class Polymost implements Renderer {
 					}
 				}
 				if (((ofy0 < fy0) || (ofy1 < fy1))
-						&& (((sec.floorstat & world.getsector(nextsectnum).floorstat) & 1)) == 0) {
+						&& (((sec.floorstat & sector[nextsectnum].floorstat) & 1)) == 0) {
 					if ((wal.cstat & 2) == 0) {
 						drawalls_nwal.set(wal);
 					} else {
-						drawalls_nwal.set(world.getwall(wal.nextwall));
+						drawalls_nwal.set(wall[wal.nextwall]);
 						guo += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdo;
 						gux += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdx;
 						guy += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdy;
@@ -1903,7 +1899,7 @@ public abstract class Polymost implements Renderer {
 								wallnum + 16384);
 
 					if ((drawalls_nwal.cstat & 4) == 0)
-						i = world.getsector(nextsectnum).floorz;
+						i = sector[nextsectnum].floorz;
 					else
 						i = sec.ceilingz;
 
@@ -2028,16 +2024,16 @@ public abstract class Polymost implements Renderer {
 		WALL wal;
 		int x11, y11, x21, y21, x12, y12, x22, y22, dx, dy, t1, t2;
 
-		wal = world.getwall(thewall[l1]);
+		wal = wall[thewall[l1]];
 		x11 = wal.x;
 		y11 = wal.y;
-		wal = world.getwall(wal.point2);
+		wal = wall[wal.point2];
 		x21 = wal.x;
 		y21 = wal.y;
-		wal = world.getwall(thewall[l2]);
+		wal = wall[thewall[l2]];
 		x12 = wal.x;
 		y12 = wal.y;
-		wal = world.getwall(wal.point2);
+		wal = wall[wal.point2];
 		x22 = wal.x;
 		y22 = wal.y;
 
@@ -2075,27 +2071,26 @@ public abstract class Polymost implements Renderer {
 		return (-2);
 	}
 
-	private void polymost_scansector(short sectnum) {
+	private void polymost_scansector(int sectnum) {
 		double d, xp1, yp1, xp2, yp2;
 		WALL wal, wal2;
 		SPRITE spr;
-		int zz, numscansbefore, scanfirst, bunchfrst;
+		int z, zz, startwall, endwall, numscansbefore, scanfirst, bunchfrst, nextsectnum;
 		int xs, ys, x1, y1, x2, y2;
-		short nextsectnum, startwall, endwall;
 
 		if (sectnum < 0)
 			return;
 
 		if (automapping == 1)
-			world.show2dsector[sectnum >> 3] |= pow2char[sectnum & 7];
+			show2dsector[sectnum >> 3] |= pow2char[sectnum & 7];
 
 		sectorborder[0] = sectnum;
 		int sectorbordercnt = 1;
 		do {
 			sectnum = sectorborder[--sectorbordercnt];
 
-			for (short z = world.headspritesect(sectnum); z >= 0; z = world.nextspritesect(z)) {
-				spr = world.getsprite(z);
+			for (z = headspritesect[sectnum]; z >= 0; z = nextspritesect[z]) {
+				spr = sprite[z];
 				if ((((spr.cstat & 0x8000) == 0) || showinvisibility)
 						&& (spr.xrepeat > 0) && (spr.yrepeat > 0) &&
 						  (spritesortcnt < MAXSPRITESONSCREEN)) {
@@ -2110,9 +2105,9 @@ public abstract class Polymost implements Renderer {
 						{
 							if (tsprite[spritesortcnt] == null)
 								tsprite[spritesortcnt] = new SPRITE();
-							tsprite[spritesortcnt].set(world.getsprite(z));
+							tsprite[spritesortcnt].set(sprite[z]);
 
-							tsprite[spritesortcnt++].owner = z;
+							tsprite[spritesortcnt++].owner = (short) z;
 						}
 					}
 				}
@@ -2123,17 +2118,17 @@ public abstract class Polymost implements Renderer {
 			bunchfrst = numbunches;
 			numscansbefore = numscans;
 
-			if(world.getsector(sectnum) == null) continue;
-			startwall = world.getsector(sectnum).wallptr;
-			endwall = (short) (world.getsector(sectnum).wallnum + startwall);
+			if(sector[sectnum] == null) continue;
+			startwall = sector[sectnum].wallptr;
+			endwall = sector[sectnum].wallnum + startwall;
 			scanfirst = numscans;
 			xp2 = 0;
 			yp2 = 0;
 			if(startwall < 0 || endwall < 0) continue;
-			for (short z = startwall; z < endwall; z++) {
-				wal = world.getwall(z);
+			for (z = startwall; z < endwall; z++) {
+				wal = wall[z];
 				if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) continue;
-				wal2 = world.getwall(wal.point2);
+				wal2 = wall[wal.point2];
 				if(wal2 == null) continue;
 				x1 = wal.x - globalposx;
 				y1 = wal.y - globalposy;
@@ -2156,7 +2151,7 @@ public abstract class Polymost implements Renderer {
 					}
 				}
 
-				if ((z == startwall) || (world.getwall(z - 1).point2 != z)) {
+				if ((z == startwall) || (wall[z - 1].point2 != z)) {
 					xp1 = ((double) y1 * (double) cosglobalang - (double) x1
 							* (double) singlobalang) / 64.0;
 					yp1 = ((double) x1 * (double) cosviewingrangeglobalang + (double) y1
@@ -2192,22 +2187,22 @@ public abstract class Polymost implements Renderer {
 						}
 					}
 
-				if ((world.getwall(z).point2 < z) && (scanfirst < numscans)) {
+				if ((wall[z].point2 < z) && (scanfirst < numscans)) {
 					p2[numscans - 1] = (short) scanfirst;
 					scanfirst = numscans;
 				}
 			}
 
-			for (int z = numscansbefore; z < numscans; z++) {
+			for (z = numscansbefore; z < numscans; z++) {
 				if(z >= MAXWALLSB || p2[z] >= MAXWALLSB) continue;
-				if ((world.getwall(thewall[z]).point2 != thewall[p2[z]])
+				if ((wall[thewall[z]].point2 != thewall[p2[z]])
 						|| (dxb2[z] > dxb1[p2[z]])) {
 					bunchfirst[numbunches++] = p2[z];
 					p2[z] = -1;
 				}
 			}
 
-			for (int z = bunchfrst; z < numbunches; z++) {
+			for (z = bunchfrst; z < numbunches; z++) {
 				if(p2[z] >= MAXWALLSB) continue;
 				for (zz = bunchfirst[z]; p2[zz] >= 0; zz = p2[zz]);
 				bunchlast[z] = (short) zz;
@@ -2230,7 +2225,7 @@ public abstract class Polymost implements Renderer {
 				break;
 			}
 
-		SECTOR sec = world.getsector(sectnum);
+		SECTOR sec = sector[sectnum];
 		drawalls_dd[0] = xdimen * .0000001; // Adjust sky depth based on screen size!
 		t = tilesizx[globalpicnum] << dapskybits; //(1 << (picsiz[globalpicnum] & 15)) << dapskybits;
 		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * viewingrange) / (65536.0 * 65536.0);
@@ -2627,7 +2622,7 @@ public abstract class Polymost implements Renderer {
 	private void drawbackground(int sectnum, double x0, double x1, double y0, double y1, boolean floor) {
 		// Parallaxing sky... hacked for Ken's mountain texture;
 
-		SECTOR sec = world.getsector(sectnum);
+		SECTOR sec = sector[sectnum];
 		int picnum = sec.floorpicnum;
 		int shade = sec.floorshade;
 		int pal = sec.floorpal;
@@ -2777,14 +2772,14 @@ public abstract class Polymost implements Renderer {
 		if (globalcursectnum >= MAXSECTORS) {
 			globalcursectnum -= MAXSECTORS;
 
-			if((world.getsector(globalcursectnum).floorstat & 1024) != 0)
+			if((sector[globalcursectnum].floorstat & 1024) != 0)
 				cROR = true;
-			if((world.getsector(globalcursectnum).ceilingstat & 1024) != 0)
+			if((sector[globalcursectnum].ceilingstat & 1024) != 0)
 				fROR = true;
 		}
 		else {
 			i = globalcursectnum;
-			globalcursectnum = world.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
+			globalcursectnum = engine.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
 			if (globalcursectnum < 0)
 				globalcursectnum = (short) i;
 		}
@@ -2864,15 +2859,15 @@ public abstract class Polymost implements Renderer {
 		// cullcheckcnt = 0;
 
 		z = maskwall[damaskwallcnt];
-		wal = world.getwall(thewall[z]);
-		wal2 = world.getwall(wal.point2);
+		wal = wall[thewall[z]];
+		wal2 = wall[wal.point2];
 		sectnum = thesector[z];
 		
 		if(sectnum == -1 || wal.nextsector == -1) 
 			return;
 		
-		sec = world.getsector(sectnum);
-		nsec = world.getsector(wal.nextsector);
+		sec = sector[sectnum];
+		nsec = sector[wal.nextsector];
 		
 		globalpicnum = wal.overpicnum;
 		if (globalpicnum >= MAXTILES)
@@ -3117,8 +3112,8 @@ public abstract class Polymost implements Renderer {
 
 	private int getclosestpointonwall(int posx, int posy, int dawall, Vector2 n)
 	{
-		WALL w = world.getwall(dawall);
-	    WALL p2 = world.getwall(world.getwall(dawall).point2);
+		WALL w = wall[dawall];
+	    WALL p2 = wall[wall[dawall].point2];
 	    int dx = p2.x - w.x;
 	    int dy = p2.y - w.y;
 		
@@ -3232,7 +3227,7 @@ public abstract class Polymost implements Renderer {
 				if(globalpal == 1 || tspr.pal == 1) //Blood's pal 1
 					shade = 0;
 			}
-			calc_and_apply_fog(tspr.picnum, shade, world.getsector(tspr.sectnum).visibility, world.getsector(tspr.sectnum).floorpal);
+			calc_and_apply_fog(tspr.picnum, shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 		}
 		
 		posx = tspr.x;
@@ -3389,14 +3384,14 @@ public abstract class Polymost implements Renderer {
 
 			// Clip sprites to ceilings/floors when no parallaxing and not
 			// sloped
-			if ((world.getsector(tspr.sectnum).ceilingstat & 3) == 0) {
-				sy0 = (float) (((world.getsector(tspr.sectnum).ceilingz - globalposz))
+			if ((sector[tspr.sectnum].ceilingstat & 3) == 0) {
+				sy0 = (float) (((sector[tspr.sectnum].ceilingz - globalposz))
 						* gyxscale * ryp0 + ghoriz);
 				if (dsprite[0].py < sy0)
 					dsprite[0].py = dsprite[1].py = sy0;
 			}
-			if ((world.getsector(tspr.sectnum).floorstat & 3) == 0) {
-				sy0 = (float) (((world.getsector(tspr.sectnum).floorz - globalposz))
+			if ((sector[tspr.sectnum].floorstat & 3) == 0) {
+				sy0 = (float) (((sector[tspr.sectnum].floorz - globalposz))
 						* gyxscale * ryp0 + ghoriz);
 				if (dsprite[2].py > sy0)
 					dsprite[2].py = dsprite[3].py = sy0;
@@ -3529,20 +3524,20 @@ public abstract class Polymost implements Renderer {
 			}
 
 			// Clip sprites to ceilings/floors when no parallaxing
-			if (tspr.sectnum != -1 && (world.getsector(tspr.sectnum).ceilingstat & 1) == 0) {
+			if (tspr.sectnum != -1 && (sector[tspr.sectnum].ceilingstat & 1) == 0) {
 				f = ((float) tspr.yrepeat) * (float) tsizy * 4;
-				if (world.getsector(tspr.sectnum).ceilingz > tspr.z - f) {
-					sc0 = (float) (((world.getsector(tspr.sectnum).ceilingz - globalposz))
+				if (sector[tspr.sectnum].ceilingz > tspr.z - f) {
+					sc0 = (float) (((sector[tspr.sectnum].ceilingz - globalposz))
 							* ryp0 + ghoriz);
-					sc1 = (float) (((world.getsector(tspr.sectnum).ceilingz - globalposz))
+					sc1 = (float) (((sector[tspr.sectnum].ceilingz - globalposz))
 							* ryp1 + ghoriz);
 				}
 			}
-			if (tspr.sectnum != -1 && (world.getsector(tspr.sectnum).floorstat & 1) == 0) {
-				if (world.getsector(tspr.sectnum).floorz < tspr.z) {
-					sf0 = (float) (((world.getsector(tspr.sectnum).floorz - globalposz))
+			if (tspr.sectnum != -1 && (sector[tspr.sectnum].floorstat & 1) == 0) {
+				if (sector[tspr.sectnum].floorz < tspr.z) {
+					sf0 = (float) (((sector[tspr.sectnum].floorz - globalposz))
 							* ryp0 + ghoriz);
-					sf1 = (float) (((world.getsector(tspr.sectnum).floorz - globalposz))
+					sf1 = (float) (((sector[tspr.sectnum].floorz - globalposz))
 							* ryp1 + ghoriz);
 				}
 			}
@@ -3593,7 +3588,7 @@ public abstract class Polymost implements Renderer {
 			if ((globalorientation & 8) > 0)
 				yoff = -yoff;
 			
-			if ((tspr.z - world.getsector(tspr.sectnum).ceilingz) < (world.getsector(tspr.sectnum).floorz - tspr.z))
+			if ((tspr.z - sector[tspr.sectnum].ceilingz) < (sector[tspr.sectnum].floorz - tspr.z))
 				tspr.z += (tspr.owner & 31);
 			else
 				tspr.z -= (tspr.owner & 31);
@@ -3666,7 +3661,7 @@ public abstract class Polymost implements Renderer {
 				return;
 
 			// Project rotated 3D points to screen
-			SECTOR sec = world.getsector(tspr.sectnum);
+			SECTOR sec = sector[tspr.sectnum];
 			float fadjust = 0;
 
              // unfortunately, offsetting by only 1 isn't enough on most Android devices
@@ -3751,7 +3746,7 @@ public abstract class Polymost implements Renderer {
 		tilesizy[globalpicnum] = (short) oldsizy;
 
 		if (automapping == 1)
-			world.show2dsprite[snum >> 3] |= pow2char[snum & 7];
+			show2dsprite[snum >> 3] |= pow2char[snum & 7];
 	}
 
 	private final TSurface drot[] = new TSurface[8];
@@ -5170,10 +5165,10 @@ public abstract class Polymost implements Renderer {
 
 			maskwallcnt--;
 
-			drawmasks_dot.x = (float) world.getwall(thewall[maskwall[maskwallcnt]]).x;
-			drawmasks_dot.y = (float) world.getwall(thewall[maskwall[maskwallcnt]]).y;
-			drawmasks_dot2.x = (float) world.getwall(world.getwall(thewall[maskwall[maskwallcnt]]).point2).x;
-			drawmasks_dot2.y = (float) world.getwall(world.getwall(thewall[maskwall[maskwallcnt]]).point2).y;
+			drawmasks_dot.x = (float) wall[thewall[maskwall[maskwallcnt]]].x;
+			drawmasks_dot.y = (float) wall[thewall[maskwall[maskwallcnt]]].y;
+			drawmasks_dot2.x = (float) wall[wall[thewall[maskwall[maskwallcnt]]].point2].x;
+			drawmasks_dot2.y = (float) wall[wall[thewall[maskwall[maskwallcnt]]].point2].y;
 
 			equation(drawmasks_maskeq, drawmasks_dot.x, drawmasks_dot.y, drawmasks_dot2.x, drawmasks_dot2.y);
             equation(drawmasks_p1eq, drawmasks_pos.x, drawmasks_pos.y, drawmasks_dot.x, drawmasks_dot.y);
@@ -5468,7 +5463,7 @@ public abstract class Polymost implements Renderer {
 //	        allocmodelverts = maxmodelverts;
 //	    }
 
-		Model vm = models.get(tile2model[Ptile2tile(tspr.picnum,(tspr.owner >= MAXSPRITES) ? tspr.pal : world.getsprite(tspr.owner).pal)].modelid);
+		Model vm = models.get(tile2model[Ptile2tile(tspr.picnum,(tspr.owner >= MAXSPRITES) ? tspr.pal : sprite[tspr.owner].pal)].modelid);
 
 		if(vm == null) return 0;
 		
@@ -5480,7 +5475,7 @@ public abstract class Polymost implements Renderer {
 
 	private int md3draw(MD3Model m, SPRITE tspr, int xoff, int yoff)
 	{
-		int lpal = (tspr.owner >= MAXSPRITES) ? tspr.pal : world.getsprite(tspr.owner).pal;
+		int lpal = (tspr.owner >= MAXSPRITES) ? tspr.pal : sprite[tspr.owner].pal;
     	
 //		if (r_vbos != 0 && (m.vbos == null))
 //	        mdloadvbos(m, gl);
@@ -5601,7 +5596,7 @@ public abstract class Polymost implements Renderer {
 		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    if ((hictinting[globalpal].f&4) == 0)
 	    {
-	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && world.getsector(world.getsprite(tspr.owner).sectnum).floorpal!=0))
+	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
 	        {
 	            polyColor.r *= (float)hictinting[globalpal].r / 255.0;
 	            polyColor.g *= (float)hictinting[globalpal].g / 255.0;
@@ -5809,7 +5804,7 @@ public abstract class Polymost implements Renderer {
 	
 	private int md2draw(MD2Model m, SPRITE tspr, int xoff, int yoff)
 	{
-    	int lpal = (tspr.owner >= MAXSPRITES) ? tspr.pal : world.getsprite(tspr.owner).pal;
+    	int lpal = (tspr.owner >= MAXSPRITES) ? tspr.pal : sprite[tspr.owner].pal;
     	
     	updateanimation(m, tspr, lpal);
 
@@ -5923,7 +5918,7 @@ public abstract class Polymost implements Renderer {
 		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    if ((hictinting[globalpal].f&4) == 0)
 	    {
-	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && world.getsector(world.getsprite(tspr.owner).sectnum).floorpal!=0))
+	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
 	        {
 	            polyColor.r *= (float)hictinting[globalpal].r / 255.0;
 	            polyColor.g *= (float)hictinting[globalpal].g / 255.0;
@@ -6155,7 +6150,7 @@ public abstract class Polymost implements Renderer {
 	
 		if (m == null)
 			return 0;
-		if ((world.getsprite(tspr.owner).cstat & 48) == 32)
+		if ((sprite[tspr.owner].cstat & 48) == 32)
 			return 0;
 		
 		dvoxm0.x = m.scale;
@@ -6165,9 +6160,9 @@ public abstract class Polymost implements Renderer {
 		modela0.z = ((globalorientation & 8) != 0 ? -m.zadd : m.zadd) * m.scale;
 
 		f = ((float) tspr.xrepeat) * (256.0f / 320.0f) / 64.0f * m.bscale;
-		if ((world.getsprite(tspr.owner).cstat & 48) == 16)
+		if ((sprite[tspr.owner].cstat & 48) == 16)
 			f *= 1.25f;
-		if ((world.getsprite(tspr.owner).cstat & 48) == 32)
+		if ((sprite[tspr.owner].cstat & 48) == 32)
 			f *= 1.25f;
 
 		dvoxm0.x *= f;
@@ -6212,11 +6207,11 @@ public abstract class Polymost implements Renderer {
 		g = 32.0f / (float) (xdimen * gxyaspect);
 		
 		dvoxm0.y *= f;
-		if ((world.getsprite(tspr.owner).cstat & 48) == 32)
+		if ((sprite[tspr.owner].cstat & 48) == 32)
 			dvoxm0.y *= -1;
 		modela0.y = (((float) (x0 - globalposx)) / 1024.0f + modela0.y) * f;
 		dvoxm0.x *= -f;
-		if ((world.getsprite(tspr.owner).cstat & 48) == 32)
+		if ((sprite[tspr.owner].cstat & 48) == 32)
 			dvoxm0.x *= -1;
 		if(xflip) dvoxm0.x *= -1;
 		modela0.x = (((float) (tspr.y - globalposy)) / -1024.0f + modela0.x) * -f;
@@ -6679,45 +6674,45 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	public double polymost_getflorzofslope(int sectnum, double dax, double day) {
-		if(world.getsector(sectnum) == null) return 0;
-		if ((world.getsector(sectnum).floorstat & 2) == 0)
-			return (world.getsector(sectnum).floorz);
+		if(sector[sectnum] == null) return 0;
+		if ((sector[sectnum].floorstat & 2) == 0)
+			return (sector[sectnum].floorz);
 
-		WALL wal = world.getwall(world.getsector(sectnum).wallptr);
-		int dx = world.getwall(wal.point2).x - wal.x;
-		int dy = world.getwall(wal.point2).y - wal.y;
+		WALL wal = wall[sector[sectnum].wallptr];
+		int dx = wall[wal.point2].x - wal.x;
+		int dy = wall[wal.point2].y - wal.y;
 		long i = (engine.ksqrt(dx * dx + dy * dy) << 5);
 		if (i == 0)
-			return (world.getsector(sectnum).floorz);
+			return (sector[sectnum].floorz);
 
 		double j = (dx * (day - wal.y) - dy * (dax - wal.x)) / 8;
-		return world.getsector(sectnum).floorz + world.getsector(sectnum).floorheinum * j / i;
+		return sector[sectnum].floorz + sector[sectnum].floorheinum * j / i;
 	}
 	
 	public double polymost_getceilzofslope(int sectnum, double dax, double day) {
-		if ((world.getsector(sectnum).ceilingstat & 2) == 0)
-			return (world.getsector(sectnum).ceilingz);
+		if ((sector[sectnum].ceilingstat & 2) == 0)
+			return (sector[sectnum].ceilingz);
 
-		WALL wal = world.getwall(world.getsector(sectnum).wallptr);
-		int dx = world.getwall(wal.point2).x - wal.x;
-		int dy = world.getwall(wal.point2).y - wal.y;
+		WALL wal = wall[sector[sectnum].wallptr];
+		int dx = wall[wal.point2].x - wal.x;
+		int dy = wall[wal.point2].y - wal.y;
 		long i = (engine.ksqrt(dx * dx + dy * dy) << 5);
 		if (i == 0)
-			return (world.getsector(sectnum).ceilingz);
+			return (sector[sectnum].ceilingz);
 		
 		double j = (dx * (day - wal.y) - dy * (dax - wal.x)) / 8;
-		return world.getsector(sectnum).ceilingz + world.getsector(sectnum).ceilingheinum * j / i;
+		return sector[sectnum].ceilingz + sector[sectnum].ceilingheinum * j / i;
 	}
 	
 	private static double dceilzsofslope, dfloorzsofslope;
 	public void polymost_getzsofslope(int sectnum, double dax, double day) {
-		SECTOR sec = world.getsector(sectnum);
+		SECTOR sec = sector[sectnum];
 		if(sec == null) return;
 		dceilzsofslope = sec.ceilingz;
 		dfloorzsofslope = sec.floorz;
 		if (((sec.ceilingstat | sec.floorstat) & 2) != 0) {
-			WALL wal = world.getwall(sec.wallptr);
-			WALL wal2 = world.getwall(wal.point2);
+			WALL wal = wall[sec.wallptr];
+			WALL wal2 = wall[wal.point2];
 			int dx = wal2.x - wal.x;
 			int dy = wal2.y - wal.y;
 			long i = (engine.ksqrt(dx * dx + dy * dy) << 5);
@@ -6726,9 +6721,9 @@ public abstract class Polymost implements Renderer {
 			double j = (dx * (day - wal.y) - dy * (dax - wal.x)) / 8;
 
 			if ((sec.ceilingstat & 2) != 0)
-				dceilzsofslope += world.getsector(sectnum).ceilingheinum * j / i;
+				dceilzsofslope += sector[sectnum].ceilingheinum * j / i;
 			if ((sec.floorstat & 2) != 0)
-				dfloorzsofslope += world.getsector(sectnum).floorheinum * j / i;
+				dfloorzsofslope += sector[sectnum].floorheinum * j / i;
 		}
 	}
 	
