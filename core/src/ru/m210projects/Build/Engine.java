@@ -2291,10 +2291,10 @@ public abstract class Engine {
 
 	public int neartag(int xs, int ys, int zs, short sectnum, short ange, Neartag near, int neartagrange, int tagsearch) { //jfBuild
 
-		int i, z, zz, x1, y1, z1, x2, y2, endwall;
+		int i, zz, x1, y1, z1, x2, y2, endwall;
 		int topt, topu, bot, dist, offx, offy;
 		short dasector, startwall;
-		short nextsector, good;
+		short nextsector, good, z;
 
 		near.tagsector = -1;
 		near.tagwall = -1;

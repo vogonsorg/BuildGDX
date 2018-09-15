@@ -12,7 +12,6 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -38,7 +37,7 @@ public class Cache1D {
 	static final int MAXGROUPFILES = 16;
 	static final int MAXOPENFILES = 64;
 	
-	static List<IResource> groupfil = Collections.synchronizedList(new ArrayList<IResource>());
+	static List<IResource> groupfil = new ArrayList<IResource>();
 	
 	static int[] filegrp = new int[MAXOPENFILES];
 	static int[] filehan;
@@ -121,7 +120,7 @@ public class Cache1D {
 		return null;
 	}
 	
-	public synchronized static int initgroupfile(String filename) throws Exception
+	public static int initgroupfile(String filename) throws Exception
 	{
 		if (groupfil.size() >= MAXGROUPFILES) return -1;
 		
@@ -151,7 +150,7 @@ public class Cache1D {
 		else res.type &= ~DYNAMIC;
 	}
 	
-	public synchronized static int initgroupfile(byte[] data) throws Exception
+	public static int initgroupfile(byte[] data) throws Exception
 	{
 		if (groupfil.size() >= MAXGROUPFILES) return -1;
 
@@ -165,7 +164,7 @@ public class Cache1D {
 		return -1;
 	}
 	
-	public synchronized static int kGroupNew(String name, boolean dynamic)
+	public static int kGroupNew(String name, boolean dynamic)
 	{
 		if (groupfil.size() >= MAXGROUPFILES) return -1;
 
@@ -190,7 +189,7 @@ public class Cache1D {
 		return true;
 	}
 
-	public synchronized static void kDynamicClear()
+	public static void kDynamicClear()
 	{
 		for (Iterator<IResource> iterator = groupfil.iterator(); iterator.hasNext();) {
 			IResource group = iterator.next();
@@ -202,7 +201,7 @@ public class Cache1D {
 		}
 	}
 	
-	public synchronized static int uninitgroupfile(String filename)
+	public static int uninitgroupfile(String filename)
 	{
 		for (Iterator<IResource> iterator = groupfil.iterator(); iterator.hasNext();) {
 			IResource group = iterator.next();
@@ -216,7 +215,7 @@ public class Cache1D {
 		return 0;
 	}
 	
-	public synchronized static List<RESHANDLE> kDynamicList()
+	public static List<RESHANDLE> kDynamicList()
 	{
 		List<RESHANDLE> list = new ArrayList<RESHANDLE>();
 		for (Iterator<IResource> iterator = groupfil.iterator(); iterator.hasNext();) {
@@ -271,7 +270,7 @@ public class Cache1D {
 		return false;
 	}
 
-	public synchronized static int kOpen(String filename, int searchfirst)
+	public static int kOpen(String filename, int searchfirst)
 	{
 		int i, k, fil, newhandle;
 		
@@ -360,7 +359,7 @@ public class Cache1D {
 		return 0;
 	}
 
-	public synchronized static byte[] kGetBytes(int fileId, String type)
+	public static byte[] kGetBytes(int fileId, String type)
 	{
 		int handle = kOpen(fileId, type);
 		byte[] out = null;
@@ -370,7 +369,7 @@ public class Cache1D {
 		return out;
 	}
 	
-	public synchronized static byte[] kGetBytes(String filename, int searchfirst)
+	public static byte[] kGetBytes(String filename, int searchfirst)
 	{
 		int handle = kOpen(filename, searchfirst);
 		byte[] out = null;
@@ -380,7 +379,7 @@ public class Cache1D {
 		return out;
 	}
 	
-	public synchronized static ByteBuffer kGetBuffer(int fileId, String type)
+	public static ByteBuffer kGetBuffer(int fileId, String type)
 	{
 		int handle = kOpen(fileId, type);
 		ByteBuffer out = null;
@@ -390,7 +389,7 @@ public class Cache1D {
 		return out;
 	}
 	
-	public synchronized static ByteBuffer kGetBuffer(String filename, int searchfirst)
+	public static ByteBuffer kGetBuffer(String filename, int searchfirst)
 	{
 		int handle = kOpen(filename, searchfirst);
 		ByteBuffer out = null;
@@ -422,7 +421,7 @@ public class Cache1D {
 		return -1;
 	}
 	
-	public synchronized static void kClose(int handle) {
+	public static void kClose(int handle) {
 		if (handle < 0) return;
 		int groupnum = filegrp[handle];
 		if (groupnum == 255) 
