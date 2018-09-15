@@ -28,6 +28,7 @@ public class DEFOSDFUNC implements OSDFunc {
 	
 	private Engine engine;
 	private int white = -1;
+	protected char[] charbuf = new char[1];
 	public DEFOSDFUNC(Engine engine){
 		this.engine = engine;
 		
@@ -44,7 +45,8 @@ public class DEFOSDFUNC implements OSDFunc {
 	public void drawchar(int x, int y, char ch, int shade, int pal, int scale) {
 		x = (x << 3) + 4;
 		y = (y << 3);
-		engine.printchar256(x, y, white, -1, ch, 0);
+		charbuf[0] = ch;
+		engine.printext256(x, y, white, -1, charbuf, 0);
 	}
 
 	@Override
@@ -67,8 +69,10 @@ public class DEFOSDFUNC implements OSDFunc {
 		if(type != 0)
 			ch = '#';
 		
-		if ((lastkeypress & 0x40l) == 0) 
-			engine.printchar256(4+(x<<3),(y<<3)+2, white, -1, ch, 0);
+		if ((lastkeypress & 0x40l) == 0) {
+			charbuf[0] = ch;
+			engine.printext256(4+(x<<3),(y<<3)+2, white, -1, charbuf, 0);
+		}
 	}
 	
 	@Override

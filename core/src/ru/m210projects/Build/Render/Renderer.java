@@ -53,9 +53,7 @@ public interface Renderer {
 	
 	public abstract void drawmapview(int dax, int day, int zoome, int ang);
 	
-	public int printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize);
-	
-	public int printchar(int xpos, int ypos, int col, int backcol, char ch, int fontsize);
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize);
 	
 	public void gltexinvalidateall(int flags);
 

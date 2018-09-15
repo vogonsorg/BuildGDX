@@ -1148,4 +1148,9 @@ public class AndroidGL10 extends GL10 {
 		
 	}
 
+	@Override
+	public void glVertex2d(double x, double y) {
+		
+	}
+
 }

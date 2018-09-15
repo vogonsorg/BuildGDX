@@ -2958,7 +2958,7 @@ public class Software implements Renderer {
 	}
 
 	@Override
-	public int printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize) {
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize) {
 		int stx = xpos;
 		int charxsiz = 8;
 		char[] fontptr = textfont;
@@ -2983,14 +2983,6 @@ public class Software implements Renderer {
 			}
 			stx += charxsiz;
 		}
-		
-		return 0;
-	}
-
-	@Override
-	public int printchar(int xpos, int ypos, int col, int backcol, char ch, int fontsize) {
-		
-		return 0;
 	}
 
 	@Override

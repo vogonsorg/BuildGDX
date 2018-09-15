@@ -244,6 +244,8 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	public abstract void glVertex2i(int x, int y);
 
 	public abstract void glVertex2f(float x, float y);
+	
+	public abstract void glVertex2d(double x, double y);
 
 	public abstract void glVertex3d(double x, double y, double z);
 

@@ -270,7 +270,7 @@ public class Cache1D {
 		return false;
 	}
 
-	public static int kOpen(String filename, int searchfirst)
+	public synchronized static int kOpen(String filename, int searchfirst)
 	{
 		int i, k, fil, newhandle;
 		
@@ -359,7 +359,7 @@ public class Cache1D {
 		return 0;
 	}
 
-	public static byte[] kGetBytes(int fileId, String type)
+	public synchronized static byte[] kGetBytes(int fileId, String type)
 	{
 		int handle = kOpen(fileId, type);
 		byte[] out = null;
@@ -369,7 +369,7 @@ public class Cache1D {
 		return out;
 	}
 	
-	public static byte[] kGetBytes(String filename, int searchfirst)
+	public synchronized static byte[] kGetBytes(String filename, int searchfirst)
 	{
 		int handle = kOpen(filename, searchfirst);
 		byte[] out = null;
@@ -379,7 +379,7 @@ public class Cache1D {
 		return out;
 	}
 	
-	public static ByteBuffer kGetBuffer(int fileId, String type)
+	public synchronized static ByteBuffer kGetBuffer(int fileId, String type)
 	{
 		int handle = kOpen(fileId, type);
 		ByteBuffer out = null;
@@ -389,7 +389,7 @@ public class Cache1D {
 		return out;
 	}
 	
-	public static ByteBuffer kGetBuffer(String filename, int searchfirst)
+	public synchronized static ByteBuffer kGetBuffer(String filename, int searchfirst)
 	{
 		int handle = kOpen(filename, searchfirst);
 		ByteBuffer out = null;
@@ -421,7 +421,7 @@ public class Cache1D {
 		return -1;
 	}
 	
-	public static void kClose(int handle) {
+	public synchronized static void kClose(int handle) {
 		if (handle < 0) return;
 		int groupnum = filegrp[handle];
 		if (groupnum == 255) 

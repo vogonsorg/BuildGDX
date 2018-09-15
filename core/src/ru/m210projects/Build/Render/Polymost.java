@@ -11,6 +11,7 @@
 
 package ru.m210projects.Build.Render;
 
+import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static java.lang.Math.*;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Loader.MDSprite.*;
@@ -64,12 +65,6 @@ public abstract class Polymost implements Renderer {
 
 	protected short globalpicnum;
 	protected int globalorientation;
-	protected long globalx1;
-	protected long globaly1;
-	protected long globalx2;
-	protected long globaly2;
-	protected char globalxshift;
-	protected char globalyshift;
 	private int numscans, numbunches;
 	private int lastageclock;
 	private boolean drunk;
@@ -82,9 +77,6 @@ public abstract class Polymost implements Renderer {
 //	private final int SPREXT_TSPRACCESS = 16;
 //	private final int SPREXT_TEMPINVISIBLE = 32;
 	
-//	private final int ROTATESPRITE_MAX = 2048;
-	private final int RS_CENTERORIGIN = (1 << 30);
-
 	private SPRITE[] tspriteptr = new SPRITE[MAXSPRITESONSCREEN + 1];
 	private Wallspriteinfo[] wsprinfo;
 //	private int[] wallchanged = new int[MAXWALLS];
@@ -98,12 +90,6 @@ public abstract class Polymost implements Renderer {
 	protected int asm1;
 	protected int asm2;
 
-	protected int[] xb1 = new int[MAXWALLSB];
-	protected int[] xb2 = new int[MAXWALLSB];
-	protected float[] rx1 = new float[MAXWALLSB];
-	protected float[] ry1 = new float[MAXWALLSB];
-	private float[] rx2 = new float[MAXWALLSB];
-	private float[] ry2 = new float[MAXWALLSB];
 	private short[] p2 = new short[MAXWALLSB], thesector = new short[MAXWALLSB], thewall = new short[MAXWALLSB];
 	private short maskwall[] = new short[MAXWALLSB];
 	private int maskwallcnt;
@@ -121,16 +107,12 @@ public abstract class Polymost implements Renderer {
 	private int shadescale_unbounded = 0;
 	
 	private boolean nofog;
-	
-	private int guniqhudid;
-	
+
 	// For GL_LINEAR fog:
 	private final int FOGDISTCONST = 600;
 	private final double FULLVIS_BEGIN = 2.9e30;
 	private final double FULLVIS_END = 3.0e30;
 
-	private int lastglpolygonmode = 0; // FUK
-	private int glpolygonmode = 0; // 0:GL_FILL,1:GL_LINE,2:GL_POINT //FUK
 	private IntBuffer polymosttext;
 
 	private float curpolygonoffset; // internal polygon offset stack for drawing flat sprites to avoid depth fighting
@@ -183,6 +165,7 @@ public abstract class Polymost implements Renderer {
 	private int vcnt, gtag;
 	private final int VSPMAX = 4096; // <- careful!
 	private vsptyp[] vsp = new vsptyp[VSPMAX];
+	private final float[][] matrix = new float[4][4];
 
 	private int srepeat = 0, trepeat = 0;
 
@@ -228,7 +211,6 @@ public abstract class Polymost implements Renderer {
 		for(int i = 0; i < 4; i++)
 			domost[i] = new TSurface();
 		for(int i = 0; i < 8; i++) {
-			drot[i] = new TSurface();
 			dmaskwall[i] = new TSurface();
 		}
 		for(int i = 0; i < 6; i++)
@@ -357,6 +339,7 @@ public abstract class Polymost implements Renderer {
 
 	@Override
 	public void init() {
+		init2drender();
 		GLInfo.init(gl);
 
 		if (GLInfo.vendor.compareTo("NVIDIA Corporation") == 0) {
@@ -410,30 +393,6 @@ public abstract class Polymost implements Renderer {
 
 	public void resizeglcheck() // Ken Build method
 	{
-		// FUK
-		if (lastglpolygonmode != glpolygonmode) {
-			lastglpolygonmode = glpolygonmode;
-			switch (glpolygonmode) {
-			default:
-			case 0:
-				gl.glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				break;
-			case 1:
-				gl.glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-				break;
-			case 2:
-				gl.glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-				break;
-			}
-		}
-		
-		if (glpolygonmode != 0) // FUK
-		{
-			gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-			gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			gl.glDisable(GL_TEXTURE_2D);
-		}
-		
 		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
 			int ourxdimen = (windowx2-windowx1+1);
 	        float ratio = get_projhack_ratio();
@@ -444,8 +403,12 @@ public abstract class Polymost implements Renderer {
 	        glox1 = windowx1; gloy1 = windowy1;
 			glox2 = windowx2; gloy2 = windowy2;
 
-			gl.glViewport(windowx1-(fovcorrect/2), ydim - (windowy2 + 1), ourxdimen+fovcorrect, windowy2 - windowy1 + 1);
+			//gl.glViewport(windowx1-(fovcorrect/2), ydim - (windowy2 + 1), ourxdimen+fovcorrect, windowy2 - windowy1 + 1);
 
+			
+			gl.glViewport(0, 0, xdim, ydim);
+
+			
 			gl.glMatrixMode(GL_PROJECTION);
 
 			for (float[] row: matrix)
@@ -458,7 +421,7 @@ public abstract class Polymost implements Renderer {
 			matrix[2][2] = 1.0f;
 			matrix[2][3] = ydimen * ratio;
 			matrix[3][2] = -1.0f;
-		
+
 			gl.glLoadMatrixf(matrix);
 			
 			gl.glMatrixMode(GL_MODELVIEW);
@@ -3749,845 +3712,11 @@ public abstract class Polymost implements Renderer {
 			show2dsprite[snum >> 3] |= pow2char[snum & 7];
 	}
 
-	private final TSurface drot[] = new TSurface[8];
-	private final float[][] matrix = new float[4][4];
-	private final SPRITE hudsprite = new SPRITE();
-
-	public void dorotatesprite(int sx, int sy, int z, int a, int picnum,
-			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
-			int cy2, int uniqid) {
-		
-		int xoff = 0, yoff = 0, xsiz, ysiz, method;
-		int ogpicnum, ogshade, ogpal;
-		float ogchang, ogshang, ogctang, ogstang, oghalfx, oghoriz;
-		float ogrhalfxdown10, ogrhalfxdown10x;
-		float d, cosang, sinang, cosang2, sinang2;
-
-		for (float[] row: matrix)
-		    Arrays.fill(row, 0.0f);
-
-		int ourxyaspect = xyaspect;
-		
-		if (usemodels && hudmem != null && hudmem[(dastat&4)>>2][picnum].angadd != 0)
-	    {
-	        int tilenum = Ptile2tile(picnum,dapalnum);
-
-	        if (tile2model[tilenum].modelid >= 0 &&
-	            tile2model[tilenum].framenum >= 0)
-	        {
-	            int oldviewingrange;
-	            float ogxyaspect;
-	            float x1, y1, z1;
-	            hudsprite.reset((byte)0);
-
-	            if ((hudmem[(dastat&4)>>2][picnum].flags&1) != 0) return; //"HIDE" is specified in DEF
-
-	            ogchang = gchang; gchang = 1.0f;
-	            ogshang = gshang; gshang = 0.0f; d = z/(65536.0f*16384.0f);
-	            ogctang = gctang; gctang = (float)sintable[(a+512)&2047]*d;
-	            ogstang = gstang; gstang = (float)sintable[a&2047]*d;
-	            ogshade  = (int) globalshade;  globalshade  = dashade;
-	            ogpal    = globalpal;    globalpal = dapalnum;
-	            ogxyaspect = gxyaspect; gxyaspect = 1.0f;
-	            oldviewingrange = viewingrange; viewingrange = 65536;
-
-	            x1 = hudmem[(dastat&4)>>2][picnum].xadd;
-	            y1 = hudmem[(dastat&4)>>2][picnum].yadd;
-	            z1 = hudmem[(dastat&4)>>2][picnum].zadd;
-
-	            if ((hudmem[(dastat&4)>>2][picnum].flags&2) == 0) //"NOBOB" is specified in DEF
-	            {
-	            	float fx = (sx)*(1.0f/65536.0f);
-	            	float fy = (sy)*(1.0f/65536.0f);
-
-	                if ((dastat&16) != 0)
-	                {
-	                    xsiz = tilesizx[picnum]; ysiz = tilesizy[picnum];
-	                    xoff = (int) ((byte) ((picanm[picnum] >> 8) & 255)) + (xsiz >> 1);
-	        			yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
-
-	                    d = z/(65536.0f*16384.0f);
-	                    cosang2 = cosang = (float)sintable[(a+512)&2047]*d;
-	                    sinang2 = sinang = (float)sintable[a&2047]*d;
-	                    if ((dastat&2) != 0 || ((dastat&8) == 0)) //Don't aspect unscaled perms
-	                        { d = (float)xyaspect/65536.0f; cosang2 *= d; sinang2 *= d; }
-	                    fx += -(double)xoff*cosang2+ (double)yoff*sinang2;
-	                    fy += -(double)xoff*sinang - (double)yoff*cosang;
-	                }
-
-	                if ((dastat&2) == 0)
-	                {
-	                    x1 += fx/((double)(xdim<<15))-1.0; //-1: left of screen, +1: right of screen
-	                    y1 += fy/((double)(ydim<<15))-1.0; //-1: top of screen, +1: bottom of screen
-	                }
-	                else
-	                {
-	                    x1 += fx/160.0-1.0; //-1: left of screen, +1: right of screen
-	                    y1 += fy/100.0-1.0; //-1: top of screen, +1: bottom of screen
-	                }
-	            }
-	            hudsprite.ang = (short) (hudmem[(dastat&4)>>2][picnum].angadd+globalang);
-
-	            if ((dastat&4) != 0) { x1 = -x1; y1 = -y1; }
-
-                hudsprite.xrepeat = hudsprite.yrepeat = 32;
-
-                hudsprite.x = (int)(((double)gcosang*z1 - (double)gsinang*x1)*16384.0 + globalposx);
-                hudsprite.y = (int)(((double)gsinang*z1 + (double)gcosang*x1)*16384.0 + globalposy);
-                hudsprite.z = (int)(globalposz + y1*16384.0*0.8);
-	            
-
-	            hudsprite.picnum = (short) picnum;
-	            hudsprite.shade = (byte) dashade;
-	            hudsprite.pal = (short) dapalnum;
-	            hudsprite.owner = (short) (uniqid+MAXSPRITES);
-	            globalorientation = (dastat&1)+((dastat&32)<<4)+((dastat&4)<<1);
-	            hudsprite.cstat = (short) globalorientation;
-
-	            if ((dastat&10) == 2)
-	                gl.glViewport(windowx1,ydim-(windowy2+1),windowx2-windowx1+1,windowy2-windowy1+1);
-	            else
-	            {
-	                gl.glViewport(0,0,xdim,ydim);
-	                glox1 = -1; //Force fullscreen (glox1=-1 forces it to restore)
-	            }
-
-	           
-                gl.glMatrixMode(GL_PROJECTION);
-              
-                if ((dastat&10) == 2)
-                {
-                    float ratioratio = (float)xdim/ydim;
-                    matrix[0][0] = (float)ydimen*(ratioratio >= 1.6f?1.2f:1); matrix[0][2] = 1.0f;
-                    matrix[1][1] = (float)xdimen; matrix[1][2] = 1.0f;
-                    matrix[2][2] = 1.0f; matrix[2][3] = (float)ydimen*(ratioratio >= 1.6f?1.2f:1);
-                    matrix[3][2] = -1.0f;
-                }
-                else { matrix[0][0] = matrix[2][3] = 1.0f; matrix[1][1] = ((float)xdim)/((float)ydim); matrix[2][2] = 1.0001f; matrix[3][2] = 1-matrix[2][2]; }
-                gl.glLoadMatrixf(matrix);
-                gl.glMatrixMode(GL_MODELVIEW);
-                gl.glLoadIdentity();
-	            
-
-	            if ((hudmem[(dastat&4)>>2][picnum].flags&8) != 0) //NODEPTH flag
-	                gl.glDisable(GL_DEPTH_TEST);
-	            else
-	            {
-	                gl.glEnable(GL_DEPTH_TEST);
-	                gl.glClear(GL_DEPTH_BUFFER_BIT);
-	            }
-
-	            gl.glDisable(GL_FOG);
-	            mddraw(hudsprite, 0, 0);
-
-	            EnableFog();
-
-	            viewingrange = oldviewingrange;
-	            gxyaspect = ogxyaspect;
-	            globalshade  = ogshade;
-	            globalpal    = ogpal;
-	            gchang = ogchang;
-	            gshang = ogshang;
-	            gctang = ogctang;
-	            gstang = ogstang;
-
-	            return;
-	        }
-	    }
-		
-		ogpicnum = globalpicnum;
-		globalpicnum = (short) picnum;
-		ogshade = (int) globalshade;
-		globalshade = dashade;
-		ogpal = globalpal;
-		globalpal = (int) (dapalnum & 0xFF);
-		oghalfx = ghalfx;
-		ghalfx = (xdim >> 1);
-		ogrhalfxdown10 = grhalfxdown10;
-		grhalfxdown10 = 1.0f / (ghalfx * 1024);
-		ogrhalfxdown10x = grhalfxdown10x;
-		grhalfxdown10x = grhalfxdown10;
-		oghoriz = (float) ghoriz;
-		ghoriz = (ydim >> 1);
-		ogchang = gchang;
-		gchang = 1.0f;
-		ogshang = gshang;
-		gshang = 0.0f;
-		ogctang = gctang;
-		gctang = 1.0f;
-		ogstang = gstang;
-		gstang = 0.0f;
-
-		gl.glViewport(0, 0, xdim, ydim);
-		glox1 = -1; // Force fullscreen (glox1=-1 forces it to restore)
-		gl.glMatrixMode(GL_PROJECTION);
-
-		matrix[0][0] = matrix[2][3] = 1.0f;
-		matrix[1][1] = xdim / ((float) ydim);
-		matrix[2][2] = 1.0001f;
-		matrix[3][2] = 1 - matrix[2][2];
-
-		gl.glPushMatrix();
-		gl.glLoadMatrixf(matrix);
-		gl.glMatrixMode(GL_MODELVIEW);
-		gl.glPushMatrix();
-		gl.glLoadIdentity();
-
-		gl.glDisable(GL_DEPTH_TEST);
-		gl.glDisable(GL_ALPHA_TEST);
-		gl.glEnable(GL_TEXTURE_2D);
-
-		method = 0;
-		if ((dastat & 64) == 0) {
-			method = 1;
-			if ((dastat & 1) != 0) {
-				if ((dastat & 32) == 0)
-					method = 2;
-				else
-					method = 3;
-			}
-		} else
-			method |= 256; // non-transparent 255 color
-
-		method |= 4; // Use OpenGL clamping - dorotatesprite never repeats
-
-		xsiz = tilesizx[globalpicnum];
-		ysiz = tilesizy[globalpicnum];
-
-		if ((dastat & 16) == 0) {
-			xoff = (int) ((byte) ((picanm[globalpicnum] >> 8) & 255)) + (xsiz >> 1);
-			yoff = (int) ((byte) ((picanm[globalpicnum] >> 16) & 255)) + (ysiz >> 1);
-		}
-
-		if ((dastat & 4) != 0)
-			yoff = ysiz - yoff;
-
-		int cx1_plus_cx2 = cx1 + cx2;
-		int cy1_plus_cy2 = cy1 + cy2;
-
-		if ((dastat & 2) == 0) {
-			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
-				ourxyaspect = (10 << 16) / 12;
-			}
-		} else {
-			// dastat&2: Auto window size scaling
-			int oxdim = xdim;
-			int xdim = oxdim; // SHADOWS global
-
-			int zoomsc;
-			int ouryxaspect = yxaspect;
-			ourxyaspect = xyaspect;
-
-			// screen center to s[xy], 320<<16 coords.
-			int normxofs = sx - (320 << 15), normyofs = sy - (200 << 15);
-
-			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
-				xdim = (4 * ydim) / 3;
-
-				ouryxaspect = (12 << 16) / 10;
-				ourxyaspect = (10 << 16) / 12;
-			}
-
-			// nasty hacks go here
-			if ((dastat & 8) == 0) {
-				int twice_midcx = cx1_plus_cx2 + 2;
-
-				// screen x center to sx1, scaled to viewport
-				int scaledxofs = scale(normxofs, scale(xdimen, xdim, oxdim), 320);
-
-				int xbord = 0;
-
-				if ((dastat & (256 | 512)) != 0) {
-					xbord = scale(oxdim - xdim, twice_midcx, oxdim);
-
-					if ((dastat & 512) == 0)
-						xbord = -xbord;
-				}
-
-				sx = ((twice_midcx + xbord) << 15) + scaledxofs;
-
-				zoomsc = xdimenscale; // = scale(xdimen,yxaspect,320);
-				sy = (int) (((cy1_plus_cy2 + 2) << 15) + mulscale(normyofs, zoomsc, 16));
-			} else {
-				// If not clipping to startmosts, & auto-scaling on, as a
-				// hard-coded bonus, scale to full screen instead
-				sx = (xdim << 15) + scale(normxofs, xdim, 320);
-
-				if ((dastat & 512) != 0)
-					sx += (oxdim - xdim) << 16;
-				else if (alphaMode(dastat))
-					sx += (oxdim - xdim) << 15;
-
-				if ((dastat & RS_CENTERORIGIN) != 0)
-					sx += oxdim << 15;
-
-				zoomsc = scale(xdim, ouryxaspect, 320);
-				sy = (ydim << 15) + mulscale(normyofs, zoomsc, 16);
-			}
-
-			z = mulscale(z, zoomsc, 16);
-		}
-
-		d = z / (65536.0f * 16384.0f);
-		cosang2 = cosang = sintable[(a + 512) & 2047] * d;
-		sinang2 = sinang = sintable[a & 2047] * d;
-		if (((dastat & 2) != 0) || ((dastat & 8) == 0)) // Don't aspect unscaled perms
-		{
-			d = ourxyaspect / 65536.0f;
-			cosang2 *= d;
-			sinang2 *= d;
-		}
-
-		float cx = sx * (1.0f / 65536.f) - xoff * cosang2 + yoff * sinang2;
-		float cy = sy * (1.0f / 65536.f) - xoff * sinang  - yoff * cosang;
-		
-		drot[0].px = cx;
-		drot[0].py = cy;
-		drot[1].px = cx + xsiz * cosang2;
-		drot[1].py = cy + xsiz * sinang;
-		drot[3].px = cx - ysiz * sinang2;
-		drot[3].py = cy + ysiz * cosang;
-		drot[2].px = drot[1].px + drot[3].px - drot[0].px;
-		drot[2].py = drot[1].py + drot[3].py - drot[0].py;
-
-		int n = 4;
-
-		gdx = 0;
-		gdy = 0;
-		gdo = 1.0;
-
-		d = (float) (1.0 / (drot[0].px * (drot[1].py - drot[3].py) + drot[1].px
-				* (drot[3].py - drot[0].py) + drot[3].px
-				* (drot[0].py - drot[1].py)));
-		
-		gux = (drot[3].py - drot[0].py) * ((float) xsiz - .0001f) * d;
-		guy = (drot[0].px - drot[3].px) * ((float) xsiz - .0001f) * d;
-		guo = 0 - drot[0].px * gux - drot[0].py * guy;
-
-		if ((dastat & 4) == 0) {
-			gvx = (drot[0].py - drot[1].py) * ((float) ysiz - .0001f) * d;
-			gvy = (drot[1].px - drot[0].px) * ((float) ysiz - .0001f) * d;
-			gvo = 0 - drot[0].px * gvx - drot[0].py * gvy;
-		} else {
-			gvx = (drot[1].py - drot[0].py) * ((float) ysiz - .0001f) * d;
-			gvy = (drot[0].px - drot[1].px) * ((float) ysiz - .0001f) * d;
-			gvo = (float) ysiz - .0001f - drot[0].px * gvx - drot[0].py * gvy;
-		}
-
-		cx2++;
-		cy2++;
-
-		// Clippoly4 (converted from int to double)
-		int nn = z = 0;
-		do {
-			float fx, x1, x2;
-			int zz = z + 1;
-			if (zz == n)
-				zz = 0;
-			x1 = (float) drot[z].px;
-			x2 = (float) (drot[zz].px - x1);
-			if ((cx1 <= x1) && (x1 <= cx2)) {
-				drot[nn].px2 = x1;
-				drot[nn].py2 = drot[z].py;
-				nn++;
-			}
-			if (x2 <= 0)
-				fx = cx2;
-			else
-				fx = cx1;
-			d = fx - x1;
-			if ((d < x2) != (d < 0)) {
-				drot[nn].px2 = fx;
-				drot[nn].py2 = (drot[zz].py - drot[z].py)
-						* d / x2 + drot[z].py;
-				nn++;
-			}
-			if (x2 <= 0)
-				fx = cx1;
-			else
-				fx = cx2;
-			d = fx - x1;
-			if ((d < x2) != (d < 0)) {
-				drot[nn].px2 = fx;
-				drot[nn].py2 = (drot[zz].py - drot[z].py)
-						* d / x2 + drot[z].py;
-				nn++;
-			}
-			z = zz;
-		} while (z != 0);
-
-		if (nn >= 3) {
-
-			n = z = 0;
-			do {
-				float fy, y1, y2;
-				int zz = z + 1;
-				if (zz == nn)
-					zz = 0;
-				y1 = (float) drot[z].py2;
-				y2 = (float) (drot[zz].py2 - y1);
-				if ((cy1 <= y1) && (y1 <= cy2)) {
-					drot[n].py = y1;
-					drot[n].px = drot[z].px2;
-					n++;
-				}
-				if (y2 <= 0)
-					fy = cy2;
-				else
-					fy = cy1;
-				d = fy - y1;
-				if ((d < y2) != (d < 0)) {
-					drot[n].py = fy;
-					drot[n].px = (drot[zz].px2 - drot[z].px2)
-							* d / y2 + drot[z].px2;
-					n++;
-				}
-				if (y2 <= 0)
-					fy = cy1;
-				else
-					fy = cy2;
-				d = fy - y1;
-				if ((d < y2) != (d < 0)) {
-					drot[n].py = fy;
-					drot[n].px = (drot[zz].px2 - drot[z].px2)
-							* d / y2 + drot[z].px2;
-					n++;
-				}
-				z = zz;
-			} while (z != 0);
-			
-			gl.glDisable(GL_FOG);
-
-			pow2xsplit = 0;
-
-			drawpoly(drot, n, method);
-			EnableFog();
-		}
-
-		gl.glMatrixMode(GL_PROJECTION);
-		gl.glPopMatrix();
-		gl.glMatrixMode(GL_MODELVIEW);
-		gl.glPopMatrix();
-
-		globalpicnum = (short) ogpicnum;
-		globalshade = ogshade;
-		globalpal = ogpal & 0xFF;
-		ghalfx = oghalfx;
-		grhalfxdown10 = ogrhalfxdown10;
-		grhalfxdown10x = ogrhalfxdown10x;
-		ghoriz = oghoriz;
-		gchang = ogchang;
-		gshang = ogshang;
-		gctang = ogctang;
-		gstang = ogstang;
-	}
-	
 	private void EnableFog()
 	{
 		if (!nofog)
 			gl.glEnable(GL_FOG);
 	}
-
-	private final float[] trapextx = new float[2], drawtrap_px = new float[4],
-			drawtrap_py = new float[4];
-
-	private void drawtrap(float x0, float x1, float y0, float x2, float x3,
-			float y1) {
-		int i, n = 3;
-
-		if (y0 == y1)
-			return;
-		drawtrap_px[0] = x0;
-		drawtrap_py[0] = y0;
-		drawtrap_py[2] = y1;
-		if (x0 == x1) {
-			drawtrap_px[1] = x3;
-			drawtrap_py[1] = y1;
-			drawtrap_px[2] = x2;
-		} else if (x2 == x3) {
-			drawtrap_px[1] = x1;
-			drawtrap_py[1] = y0;
-			drawtrap_px[2] = x3;
-		} else {
-			drawtrap_px[1] = x1;
-			drawtrap_py[1] = y0;
-			drawtrap_px[2] = x3;
-			drawtrap_px[3] = x2;
-			drawtrap_py[3] = y1;
-			n = 4;
-		}
-
-		gl.glBegin(GL_TRIANGLE_FAN);
-		for (i = 0; i < n; i++) {
-			drawtrap_px[i] = min(max(drawtrap_px[i], trapextx[0]), trapextx[1]);
-			gl.glTexCoord2f(
-					(float) (drawtrap_px[i] * gux + drawtrap_py[i] * guy + guo),
-					(float) (drawtrap_px[i] * gvx + drawtrap_py[i] * gvy + gvo));
-			gl.glVertex2f(drawtrap_px[i], drawtrap_py[i]);
-		}
-		gl.glEnd();
-	}
-
-	private int allocpoints = 0, slist[], npoint2[];
-	private raster[] rst;
-
-	private void tessectrap(float[] px, float[] py, int[] point2, int numpoints) {
-		float x0, x1, m0, m1;
-		int i, j, k, z, i0, i1, i2, i3, npoints, gap, numrst;
-
-		if (numpoints + 16 > allocpoints) // 16 for safety
-		{
-			allocpoints = numpoints + 16;
-			rst = new raster[allocpoints];
-			for (i = 0; i < allocpoints; i++)
-				rst[i] = new raster();
-
-			slist = new int[allocpoints];
-
-			npoint2 = new int[allocpoints];
-		}
-
-		// Remove unnecessary collinear points:
-		for (i = 0; i < numpoints; i++)
-			npoint2[i] = point2[i];
-		npoints = numpoints;
-		z = 0;
-
-		for (i = 0; i < numpoints; i++) {
-			j = npoint2[i];
-			if ((point2[i] < i) && (i < numpoints - 1))
-				z = 3;
-
-			if (j < 0) continue;
-			k = npoint2[j];
-			if (k < 0) continue;
-
-			m0 = (px[j] - px[i])
-					* (py[k] - py[j]);
-			m1 = (py[j] - py[i]) * (px[k] - px[j]);
-			if (m0 < m1) {
-				z |= 1;
-				continue;
-			}
-			if (m0 > m1) {
-				z |= 2;
-				continue;
-			}
-			npoint2[i] = k;
-			npoint2[j] = -1;
-			npoints--;
-			i--; // collinear
-		}
-
-		if (z == 0)
-			return;
-		trapextx[0] = trapextx[1] = px[0];
-		for (i = j = 0; i < numpoints; i++) {
-			if (npoint2[i] < 0)
-				continue;
-			if (px[i] < trapextx[0])
-				trapextx[0] = px[i];
-			if (px[i] > trapextx[1])
-				trapextx[1] = px[i];
-			slist[j++] = i;
-		}
-
-		if (z != 3) // Simple polygon... early out
-		{
-			gl.glBegin(GL_TRIANGLE_FAN);
-			for (i = 0; i < npoints; i++) {
-				j = slist[i];
-				gl.glTexCoord2f((float) (px[j] * gux + py[j] * guy + guo),
-						(float) (px[j] * gvx + py[j] * gvy + gvo));
-				gl.glVertex2f(px[j], py[j]);
-			}
-			gl.glEnd();
-			return;
-		}
-
-		// Sort points by y's
-		for (gap = (npoints >> 1); gap != 0; gap >>= 1)
-			for (i = 0; i < npoints - gap; i++)
-				for (j = i; j >= 0; j -= gap) {
-					if (py[npoint2[slist[j]]] <= py[npoint2[slist[j + gap]]])
-						break;
-					k = slist[j];
-					slist[j] = slist[j + gap];
-					slist[j + gap] = k;
-				}
-
-		numrst = 0;
-		for (z = 0; z < npoints; z++) {
-			i0 = slist[z];
-			i1 = npoint2[i0];
-			if (py[i0] == py[i1] || npoint2[i1] == -1)
-				continue;
-			i2 = i1;
-			i3 = npoint2[i1];
-			if (py[i1] == py[i3]) {
-				i2 = i3;
-				i3 = npoint2[i3];
-			}
-
-			// i0 i3
-			// \ /
-			// i1--i2
-			// / \ ~
-			// i0 i3
-
-			if ((py[i1] < py[i0]) && (py[i2] < py[i3])) // Insert raster
-			{
-				for (i = numrst; i > 0; i--) {
-					if (rst[i - 1].xi * (py[i1] - rst[i - 1].y) + rst[i - 1].x < px[i1])
-						break;
-					rst[i + 1].set(rst[i - 1]);
-				}
-				numrst += 2;
-				if ((i & 1) != 0) // split inside area
-				{
-					j = i - 1;
-					x0 = (py[i1] - rst[j].y) * rst[j].xi + rst[j].x;
-					x1 = (py[i1] - rst[j + 1].y) * rst[j + 1].xi + rst[j + 1].x;
-					drawtrap(rst[j].x, rst[j + 1].x, rst[j].y, x0, x1, py[i1]);
-					rst[j].x = x0;
-					rst[j].y = py[i1];
-					rst[j + 3].x = x1;
-					rst[j + 3].y = py[i1];
-				}
-
-				m0 = (px[i0] - px[i1]) / (py[i0] - py[i1]);
-				m1 = (px[i3] - px[i2]) / (py[i3] - py[i2]);
-
-				j = ((px[i1] > px[i2] || (i1 == i2) && (m0 >= m1)) ? 1 : 0) + i;
-				k = (i << 1) + 1 - j;
-
-				rst[j].i = i0;
-				rst[j].xi = m0;
-				rst[j].x = px[i1];
-				rst[j].y = py[i1];
-				rst[k].i = i3;
-				rst[k].xi = m1;
-				rst[k].x = px[i2];
-				rst[k].y = py[i2];
-			} else {
-				// NOTE:don't count backwards!
-				if (i1 == i2) {
-					for (i = 0; i < numrst; i++)
-						if (rst[i].i == i1)
-							break;
-				} else {
-					for (i = 0; i < numrst; i++)
-						if ((rst[i].i == i1) || (rst[i].i == i2))
-							break;
-				}
-				j = i & ~1;
-
-				if ((py[i1] > py[i0]) && (py[i2] > py[i3])) // Delete raster
-				{
-					for (; j <= i + 1; j += 2) {
-						x0 = (py[i1] - rst[j].y) * rst[j].xi + rst[j].x;
-						if ((i == j) && (i1 == i2))
-							x1 = x0;
-						else
-							x1 = (py[i1] - rst[j + 1].y) * rst[j + 1].xi
-									+ rst[j + 1].x;
-						drawtrap(rst[j].x, rst[j + 1].x, rst[j].y, x0, x1,
-								py[i1]);
-						rst[j].x = x0;
-						rst[j].y = py[i1];
-						rst[j + 1].x = x1;
-						rst[j + 1].y = py[i1];
-					}
-					numrst -= 2;
-					for (; i < numrst; i++)
-						rst[i].set(rst[i + 2]);
-				} else {
-					x0 = (py[i1] - rst[j].y) * rst[j].xi + rst[j].x;
-					x1 = (py[i1] - rst[j + 1].y) * rst[j + 1].xi + rst[j + 1].x;
-
-					drawtrap(rst[j].x, rst[j + 1].x, rst[j].y, x0, x1, py[i1]);
-					rst[j].x = x0;
-					rst[j].y = py[i1];
-					rst[j + 1].x = x1;
-					rst[j + 1].y = py[i1];
-
-					if (py[i0] < py[i3]) {
-						rst[i].x = px[i2];
-						rst[i].y = py[i2];
-						rst[i].i = i3;
-					} else {
-						rst[i].x = px[i1];
-						rst[i].y = py[i1];
-						rst[i].i = i0;
-					}
-					rst[i].xi = (px[rst[i].i] - rst[i].x)
-							/ (py[rst[i].i] - py[i1]);
-				}
-
-			}
-		}
-	}
-
-	public void fillpolygon(int npoints) {
-
-		for (int z = 0; z < npoints; z++) {
-			if (xb1[z] >= npoints)
-				xb1[z] = 0;
-		}
-		
-		if (palookup[globalpal] == null)
-			globalpal = 0;
-
-		Pthtyp pth;
-		float a = 0.0f;
-
-		globalx1 = mulscale((int) globalx1, xyaspect, 16);
-		globaly2 = mulscale((int) globaly2, xyaspect, 16);
-		gux = ((double) asm1) * (1.0 / 4294967296.0);
-		gvx = ((double) asm2) * (1.0 / 4294967296.0);
-		guy = ((double) globalx1) * (1.0 / 4294967296.0);
-		gvy = ((double) globaly2) * (-1.0 / 4294967296.0);
-		guo = (((double) xdim) * gux + ((double) ydim) * guy) * -.5
-				+ ((double) globalposx) * (1.0 / 4294967296.0);
-		gvo = (((double) xdim) * gvx + ((double) ydim) * gvy) * -.5
-				- ((double) globalposy) * (1.0 / 4294967296.0);
-
-		for (int i = npoints - 1; i >= 0; i--) {
-			rx1[i] = rx1[i] / 4096.0f;
-			ry1[i] = ry1[i] / 4096.0f;
-		}
-		
-		gl.glDisable(GL_FOG);
-
-		if (gloy1 != -1)
-			setpolymost2dview(); // disables blending, texturing, and depth testing
-		gl.glEnable(GL_ALPHA_TEST);
-		gl.glEnable(GL_TEXTURE_2D);
-		pth = textureCache.cache(globalpicnum, globalpal, false, true);
-
-		bindTexture(pth.glpic);
-		float f = getshadefactor(globalshade);
-		
-		switch ((globalorientation >> 7) & 3) {
-		case 0:
-		case 1:
-			a = 1.0f;
-			gl.glDisable(GL_BLEND);
-			break;
-		case 2:
-			a = TRANSLUSCENT1;
-			gl.glEnable(GL_BLEND);
-			break;
-		case 3:
-			a = TRANSLUSCENT2;
-			gl.glEnable(GL_BLEND);
-			break;
-		}
-
-		gl.glColor4f(f, f, f, a);
-
-		tessectrap(rx1, ry1, xb1, npoints); // vertices + textures
-		
-		EnableFog();
-	}
-
-	public int drawtilescreen(int tilex, int tiley, int wallnum, int dimen,
-			int tilezoom, boolean usehitile, int[] loadedhitile) {
-
-		float xdime, ydime, xdimepad, ydimepad, scx, scy, ratio = 1.0f;
-		int i;
-		Pthtyp pth;
-
-		if (GLInfo.texnpot == 0) {
-			i = (1 << (picsiz[wallnum] & 15));
-			if (i < tilesizx[wallnum])
-				i += i;
-			xdimepad = (float) i;
-			i = (1 << (picsiz[wallnum] >> 4));
-			if (i < tilesizy[wallnum])
-				i += i;
-			ydimepad = (float) i;
-		} else {
-			xdimepad = (float) tilesizx[wallnum];
-			ydimepad = (float) tilesizy[wallnum];
-		}
-		xdime = (float) tilesizx[wallnum];
-		xdimepad = xdime / xdimepad;
-		ydime = (float) tilesizy[wallnum];
-		ydimepad = ydime / ydimepad;
-
-		if ((xdime <= dimen) && (ydime <= dimen)) {
-			scx = xdime;
-			scy = ydime;
-		} else {
-			scx = (float) dimen;
-			scy = (float) dimen;
-			if (xdime < ydime)
-				scx *= xdime / ydime;
-			else
-				scy *= ydime / xdime;
-		}
-
-		{
-			boolean ousehightile = usehightile;
-			usehightile = usehitile && usehightile;
-			pth = textureCache.cache(wallnum, 0, true, false);
-			if (usehightile)
-				loadedhitile[wallnum >> 3] |= (1 << (wallnum & 7));
-			usehightile = ousehightile;
-		}
-
-		bindTexture(pth.glpic);
-
-		gl.glDisable(GL_ALPHA_TEST);
-
-		if (tilezoom != 0) {
-			if (scx > scy)
-				ratio = dimen / scx;
-			else
-				ratio = dimen / scy;
-		}
-
-		if (pth == null || pth.hasAlpha()) {
-			gl.glDisable(GL_TEXTURE_2D);
-			gl.glBegin(GL_TRIANGLE_FAN);
-			if (gammabrightness != 0)
-				gl.glColor4f((float) (curpalette[765]&0xFF) / 255.0f,
-						(float) (curpalette[766]&0xFF) / 255.0f,
-						(float) (curpalette[767]&0xFF) / 255.0f, 1.0f);
-			else
-				gl.glColor4f(
-						(float) britable[curbrightness][curpalette[765]&0xFF] / 255.0f,
-						(float) britable[curbrightness][curpalette[766]&0xFF] / 255.0f,
-						(float) britable[curbrightness][curpalette[767]&0xFF] / 255.0f,
-						1.0f);
-			gl.glVertex2f((float) tilex, (float) tiley);
-			gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley);
-			gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley
-					+ (scy * ratio));
-			gl.glVertex2f((float) tilex, (float) tiley + (scy * ratio));
-			gl.glEnd();
-		}
-
-		gl.glColor4f(1, 1, 1, 1);
-		gl.glEnable(GL_TEXTURE_2D);
-		gl.glEnable(GL_BLEND);
-		gl.glBegin(GL_TRIANGLE_FAN);
-		gl.glTexCoord2f(0, 0);
-		gl.glVertex2f((float) tilex, (float) tiley);
-		gl.glTexCoord2f(xdimepad, 0);
-		gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley);
-		gl.glTexCoord2f(xdimepad, ydimepad);
-		gl.glVertex2f((float) tilex + (scx * ratio), (float) tiley
-				+ (scy * ratio));
-		gl.glTexCoord2f(0, ydimepad);
-		gl.glVertex2f((float) tilex, (float) tiley + (scy * ratio));
-		gl.glEnd();
-
-		return (0);
-	}
-	
-	
 
 	@Override
 	public void palfade(HashMap<String, FadeEffect> fades) {
@@ -4622,249 +3751,6 @@ public abstract class Polymost implements Renderer {
 		gl.glPopMatrix();
 		
 		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	
-	@Override
-	public int printchar(int xpos, int ypos, int col, int backcol, char ch, int fontsize) {
-		float tx, ty, txc, tyc;
-
-		if (polymosttext == null) {
-			// construct a 256x128 8-bit alpha-only texture for the font glyph
-			// matrix
-			byte[] tbuf;
-			int tptr;
-			int h, i, j;
-			polymosttext = BufferUtils.newIntBuffer(1);
-
-			tbuf = new byte[256 * 128];
-			ByteBuffer fbuf = BufferUtils.newByteBuffer(256 * 128);
-
-			for (h = 0; h < 256; h++) {
-				tptr = (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 0; i < 8; i++) {
-					for (j = 0; j < 8; j++) {
-						if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							tbuf[tptr + j] = (byte) 255;
-					}
-					tptr += 256;
-				}
-			}
-
-			for (h = 0; h < 256; h++) {
-				tptr = 256 * 64 + (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 1; i < 7; i++) {
-					for (j = 2; j < 6; j++) {
-						if ((smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							tbuf[tptr + j - 2] = (byte) 255;
-					}
-					tptr += 256;
-				}
-			}
-
-			fbuf.put(tbuf);
-			fbuf.rewind();
-
-			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 256, 128, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-			fbuf.clear(); // Bfree(tbuf);
-			fbuf = null;
-			tbuf = null;
-		} else
-			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-
-		setpolymost2dview(); // disables blending, texturing, and depth testing
-		gl.glDisable(GL_ALPHA_TEST);
-		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
-
-		if (backcol >= 0) {
-			gl.glColor4ub(curpalette[3*backcol]&0xFF,
-					curpalette[3*backcol+1]&0xFF, curpalette[3*backcol+2]&0xFF,
-					255);
-			gl.glBegin(GL_QUADS);
-			gl.glVertex2i(xpos, ypos);
-			gl.glVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
-			int x = xpos + (1 << (3 - fontsize));
-			int y = ypos + (fontsize != 0 ? 6 : 8);
-			gl.glVertex2i(x, y);
-			gl.glVertex2i(xpos + (1 << (3 - fontsize)), ypos);
-			gl.glEnd();
-		}
-
-		gl.glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		gl.glDisable(GL_FOG);
-		 
-		gl.glEnable(GL_TEXTURE_2D);
-		gl.glEnable(GL_BLEND);
-		gl.glColor4ub(curpalette[3*col]&0xFF, curpalette[3*col+1]&0xFF, curpalette[3*col+2]&0xFF, 255);
-
-		txc = (float) (fontsize != 0 ? (4.0 / 256.0) : (8.0 / 256.0));
-		tyc = (float) (fontsize != 0 ? (6.0 / 128.0) : (8.0 / 128.0));
-
-		gl.glBegin(GL_QUADS);
-	
-		tx = (float) ((ch % 32) / 32.0);
-		ty = (float) (((ch / 32) + (fontsize * 8)) / 16.0);
-
-		int x = xpos + (8 >> fontsize);
-		int y = ypos + (fontsize != 0 ? 6 : 8);
-
-		gl.glTexCoord2f(tx, ty); // 0
-		gl.glVertex2i(xpos, ypos);
-
-		gl.glTexCoord2f(tx + txc, ty); // 1
-		gl.glVertex2i(x, ypos);
-
-		gl.glTexCoord2f(tx + txc, ty + tyc); // 2
-		gl.glVertex2i(x, y);
-
-		gl.glTexCoord2f(tx, ty + tyc); // 3
-		gl.glVertex2i(xpos, y);
-
-		gl.glEnd();
-
-		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
-
-		EnableFog();
-
-		return 0;
-	}
-
-	@Override
-	public int printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize) {
-		float tx, ty, txc, tyc;
-		int c;
-		int line = 0;
-		int oxpos = xpos;
-
-		if (polymosttext == null) {
-			// construct a 256x128 8-bit alpha-only texture for the font glyph
-			// matrix
-			byte[] tbuf;
-			int tptr;
-			int h, i, j;
-			polymosttext = BufferUtils.newIntBuffer(1);
-
-			tbuf = new byte[256 * 128];
-			ByteBuffer fbuf = BufferUtils.newByteBuffer(256 * 128);
-
-			for (h = 0; h < 256; h++) {
-				tptr = (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 0; i < 8; i++) {
-					for (j = 0; j < 8; j++) {
-						if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							tbuf[tptr + j] = (byte) 255;
-					}
-					tptr += 256;
-				}
-			}
-
-			for (h = 0; h < 256; h++) {
-				tptr = 256 * 64 + (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 1; i < 7; i++) {
-					for (j = 2; j < 6; j++) {
-						if ((smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							tbuf[tptr + j - 2] = (byte) 255;
-					}
-					tptr += 256;
-				}
-			}
-
-			fbuf.put(tbuf);
-			fbuf.rewind();
-
-			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 256, 128, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-			fbuf.clear(); // Bfree(tbuf);
-			fbuf = null;
-			tbuf = null;
-		} else
-			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-
-		setpolymost2dview(); // disables blending, texturing, and depth testing
-		gl.glDisable(GL_ALPHA_TEST);
-		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
-
-		if (backcol >= 0) {
-			gl.glColor4ub(curpalette[3*backcol]&0xFF,
-					curpalette[3*backcol+1]&0xFF, curpalette[3*backcol+2]&0xFF,
-					255);
-			c = Bstrlen(text);
-
-			gl.glBegin(GL_QUADS);
-			gl.glVertex2i(xpos, ypos);
-			gl.glVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
-			int x = xpos + (c << (3 - fontsize));
-			int y = ypos + (fontsize != 0 ? 6 : 8);
-			gl.glVertex2i(x, y);
-			gl.glVertex2i(xpos + (c << (3 - fontsize)), ypos);
-			gl.glEnd();
-		}
-
-//		gl.glPushAttrib(GL_POLYGON_BIT); // we want to have readable text in FIXME decreasing fps?
-		// wireframe mode, too
-		gl.glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		gl.glDisable(GL_FOG);
-		 
-		gl.glEnable(GL_TEXTURE_2D);
-		gl.glEnable(GL_BLEND);
-		gl.glColor4ub(curpalette[3*col]&0xFF, curpalette[3*col+1]&0xFF, curpalette[3*col+2]&0xFF, 255);
-
-		txc = (float) (fontsize != 0 ? (4.0 / 256.0) : (8.0 / 256.0));
-		tyc = (float) (fontsize != 0 ? (6.0 / 128.0) : (8.0 / 128.0));
-
-		gl.glBegin(GL_QUADS);
-
-		c = 0;
-		while (c < text.length && text[c] != '\0') {
-			if(text[c] == '\n')
-			{
-				text[c] = 0;
-				line += 1;
-				xpos = oxpos - (8 >> fontsize);
-			}
-			if(text[c] == '\r')
-				text[c] = 0;
-			
-			tx = (float) ((text[c] % 32) / 32.0);
-			ty = (float) (((text[c] / 32) + (fontsize * 8)) / 16.0);
-
-			int yoffs = line * (fontsize != 0 ? 6 : 8);
-
-			int x = xpos + (8 >> fontsize);
-			int y = ypos + (fontsize != 0 ? 6 : 8);
-
-			gl.glTexCoord2f(tx, ty); // 0
-			gl.glVertex2i(xpos, ypos + yoffs);
-
-			gl.glTexCoord2f(tx + txc, ty); // 1
-			gl.glVertex2i(x, ypos + yoffs);
-
-			gl.glTexCoord2f(tx + txc, ty + tyc); // 2
-			gl.glVertex2i(x, y + yoffs);
-
-			gl.glTexCoord2f(tx, ty + tyc); // 3
-			gl.glVertex2i(xpos, y + yoffs);
-
-			xpos += (8 >> fontsize);
-			c++;
-		}
-
-		gl.glEnd();
-
-		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
-//		gl.glPopAttrib();
-		
-		EnableFog();
-
-		return 0;
 	}
 
 	@Override
@@ -4960,23 +3846,6 @@ public abstract class Polymost implements Renderer {
 	    gl.glFogfv(GL_FOG_COLOR, fogcol);	
 	    gl.glFogf(GL_FOG_START, (float)FULLVIS_BEGIN);
 	    gl.glFogf(GL_FOG_END, (float)FULLVIS_END);
-	}
-
-	public void setpolymost2dview() {
-		if (gloy1 != -1) {
-			gl.glViewport(0, 0, xdim, ydim);
-			gl.glMatrixMode(GL_PROJECTION);
-			gl.glLoadIdentity();
-			gl.glOrthof(0, xdim, ydim, 0, -1, 1);
-			gl.glMatrixMode(GL_MODELVIEW);
-			gl.glLoadIdentity();
-		}
-
-		gloy1 = -1;
-
-		gl.glDisable(GL_DEPTH_TEST);
-		gl.glDisable(GL_TEXTURE_2D);
-		gl.glDisable(GL_BLEND);
 	}
 
 	public static void equation(Vector3 ret, float x1, float y1, float x2, float y2)
@@ -5276,44 +4145,6 @@ public abstract class Polymost implements Renderer {
 			gl.glEnable(GL_ALPHA_TEST);
 			gl.glDisable(GL_TEXTURE_2D);
 		}
-	}
-
-	@Override
-	public void rotatesprite(int sx, int sy, int z, int a, int picnum,
-			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
-			int cy2) {
-
-		if (picnum >= MAXTILES)
-			return;
-
-		if ((cx1 > cx2) || (cy1 > cy2))
-			return;
-		if (z <= 16)
-			return;
-		if ((picanm[picnum] & 192) != 0)
-			picnum += engine.animateoffs((short) picnum, (short) 0xc000);
-		if ((tilesizx[picnum] <= 0) || (tilesizy[picnum] <= 0))
-			return;
-
-		if ((dastat & 128) == 0 || beforedrawrooms != 0)
-			dorotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2, guniqhudid);
-	}
-
-	@Override
-	public void drawline256(int x1, int y1, int x2, int y2, int col) {
-		col = palookup[0][col] & 0xFF;
-		
-		gl.glDisable(GL_FOG);
-
-		setpolymost2dview(); // JBF 20040205: more efficient setup
-
-		gl.glBegin(GL_LINES);
-		gl.glColor4ub(curpalette[3*col]&0xFF, curpalette[3*col+1]&0xFF, curpalette[3*col+2]&0xFF, 255);
-		gl.glVertex2f((float) x1 / 4096.0f, (float) y1 / 4096.0f);
-		gl.glVertex2f((float) x2 / 4096.0f, (float) y2 / 4096.0f);
-		gl.glEnd();
-		
-		EnableFog();
 	}
 
 	protected int getclipmask(int a, int b, int c, int d) { // Ken did this
@@ -6335,259 +5166,6 @@ public abstract class Polymost implements Renderer {
 		return 1;
 	}
 
-	public int clippoly(int npoints, int clipstat) {
-		int z, zz, s1, s2, t, npoints2, start2, z1, z2, z3, z4, splitcnt;
-		int cx1, cy1, cx2, cy2;
-
-		cx1 = windowx1;
-		cy1 = windowy1;
-		cx2 = windowx2 + 1;
-		cy2 = windowy2 + 1;
-		cx1 <<= 12;
-		cy1 <<= 12;
-		cx2 <<= 12;
-		cy2 <<= 12;
-
-		if ((clipstat & 0xa) != 0) // Need to clip top or left
-		{
-			npoints2 = 0;
-			start2 = 0;
-			z = 0;
-			splitcnt = 0;
-			do {
-				s2 = (int) (cx1 - rx1[z]);
-				do {
-					zz = (int) xb1[z];
-					xb1[z] = -1;
-					s1 = s2;
-					s2 = (int) (cx1 - rx1[zz]);
-					if (s1 < 0) {
-						rx2[npoints2] = rx1[z];
-						ry2[npoints2] = ry1[z];
-						xb2[npoints2] = npoints2 + 1;
-						npoints2++;
-					}
-					if ((s1 ^ s2) < 0) {
-						rx2[npoints2] = rx1[z] + scale((int) (rx1[zz] - rx1[z]), s1, s1 - s2);
-						ry2[npoints2] = ry1[z] + scale((int) (ry1[zz] - ry1[z]), s1, s1 - s2);
-						if (s1 < 0)
-							p2[splitcnt++] = (short) npoints2;
-						xb2[npoints2] = npoints2 + 1;
-						npoints2++;
-					}
-					z = zz;
-				} while (xb1[z] >= 0);
-
-				if (npoints2 >= start2 + 3) {
-					xb2[npoints2 - 1] = start2;
-					start2 = npoints2;
-				} else
-					npoints2 = start2;
-
-				z = 1;
-				while ((z < npoints) && (xb1[z] < 0))
-					z++;
-			} while (z < npoints);
-			if (npoints2 <= 2)
-				return (0);
-
-			for (z = 1; z < splitcnt; z++)
-				for (zz = 0; zz < z; zz++) {
-					z1 = p2[z];
-					z2 = (int) xb2[z1];
-					z3 = p2[zz];
-					z4 = (int) xb2[z3];
-					s1 = (int) (abs(rx2[z1] - rx2[z2]) + abs(ry2[z1] - ry2[z2]));
-					s1 += abs(rx2[z3] - rx2[z4]) + abs(ry2[z3] - ry2[z4]);
-					s2 = (int) (abs(rx2[z1] - rx2[z4]) + abs(ry2[z1] - ry2[z4]));
-					s2 += abs(rx2[z3] - rx2[z2]) + abs(ry2[z3] - ry2[z2]);
-					if (s2 < s1) {
-						t = (int) xb2[p2[z]];
-						xb2[p2[z]] = xb2[p2[zz]];
-						xb2[p2[zz]] = t;
-					}
-				}
-
-			npoints = 0;
-			start2 = 0;
-			z = 0;
-			splitcnt = 0;
-			do {
-				s2 = (int) (cy1 - ry2[z]);
-				do {
-					zz = (int) xb2[z];
-					xb2[z] = -1;
-					s1 = s2;
-					s2 = (int) (cy1 - ry2[zz]);
-					if (s1 < 0) {
-						rx1[npoints] = rx2[z];
-						ry1[npoints] = ry2[z];
-						xb1[npoints] = npoints + 1;
-						npoints++;
-					}
-					if ((s1 ^ s2) < 0) {
-						rx1[npoints] = rx2[z] + scale((int) (rx2[zz] - rx2[z]), s1, s1 - s2);
-						ry1[npoints] = ry2[z] + scale((int) (ry2[zz] - ry2[z]), s1, s1 - s2);
-						if (s1 < 0)
-							p2[splitcnt++] = (short) npoints;
-						xb1[npoints] = npoints + 1;
-						npoints++;
-					}
-					z = zz;
-				} while (xb2[z] >= 0);
-
-				if (npoints >= start2 + 3) {
-					xb1[npoints - 1] = start2;
-					start2 = npoints;
-				} else
-					npoints = start2;
-
-				z = 1;
-				while ((z < npoints2) && (xb2[z] < 0))
-					z++;
-			} while (z < npoints2);
-			if (npoints <= 2)
-				return (0);
-
-			for (z = 1; z < splitcnt; z++)
-				for (zz = 0; zz < z; zz++) {
-					z1 = p2[z];
-					z2 = (int) xb1[z1];
-					z3 = p2[zz];
-					z4 = (int) xb1[z3];
-					s1 = (int) (abs(rx1[z1] - rx1[z2]) + abs(ry1[z1] - ry1[z2]));
-					s1 += abs(rx1[z3] - rx1[z4]) + abs(ry1[z3] - ry1[z4]);
-					s2 = (int) (abs(rx1[z1] - rx1[z4]) + abs(ry1[z1] - ry1[z4]));
-					s2 += abs(rx1[z3] - rx1[z2]) + abs(ry1[z3] - ry1[z2]);
-					if (s2 < s1) {
-						t = (int) xb1[p2[z]];
-						xb1[p2[z]] = xb1[p2[zz]];
-						xb1[p2[zz]] = t;
-					}
-				}
-		}
-
-		if ((clipstat & 0x5) != 0) // Need to clip bottom or right
-		{
-			npoints2 = 0;
-			start2 = 0;
-			z = 0;
-			splitcnt = 0;
-			do {
-				s2 = (int) (rx1[z] - cx2);
-				do {
-					zz = (int) xb1[z];
-					xb1[z] = -1;
-					s1 = s2;
-					s2 = (int) (rx1[zz] - cx2);
-					if (s1 < 0) {
-						rx2[npoints2] = rx1[z];
-						ry2[npoints2] = ry1[z];
-						xb2[npoints2] = npoints2 + 1;
-						npoints2++;
-					}
-					if ((s1 ^ s2) < 0) {
-						rx2[npoints2] = rx1[z] + scale((int) (rx1[zz] - rx1[z]), s1, s1 - s2);
-						ry2[npoints2] = ry1[z] + scale((int) (ry1[zz] - ry1[z]), s1, s1 - s2);
-						if (s1 < 0)
-							p2[splitcnt++] = (short) npoints2;
-						xb2[npoints2] = npoints2 + 1;
-						npoints2++;
-					}
-					z = zz;
-				} while (xb1[z] >= 0);
-
-				if (npoints2 >= start2 + 3) {
-					xb2[npoints2 - 1] = start2;
-					start2 = npoints2;
-				} else
-					npoints2 = start2;
-
-				z = 1;
-				while ((z < npoints) && (xb1[z] < 0))
-					z++;
-			} while (z < npoints);
-			if (npoints2 <= 2)
-				return (0);
-
-			for (z = 1; z < splitcnt; z++)
-				for (zz = 0; zz < z; zz++) {
-					z1 = p2[z];
-					z2 = (int) xb2[z1];
-					z3 = p2[zz];
-					z4 = (int) xb2[z3];
-					s1 = (int) (abs(rx2[z1] - rx2[z2]) + abs(ry2[z1] - ry2[z2]));
-					s1 += abs(rx2[z3] - rx2[z4]) + abs(ry2[z3] - ry2[z4]);
-					s2 = (int) (abs(rx2[z1] - rx2[z4]) + abs(ry2[z1] - ry2[z4]));
-					s2 += abs(rx2[z3] - rx2[z2]) + abs(ry2[z3] - ry2[z2]);
-					if (s2 < s1) {
-						t = (int) xb2[p2[z]];
-						xb2[p2[z]] = xb2[p2[zz]];
-						xb2[p2[zz]] = t;
-					}
-				}
-
-			npoints = 0;
-			start2 = 0;
-			z = 0;
-			splitcnt = 0;
-			do {
-				s2 = (int) (ry2[z] - cy2);
-				do {
-					zz = (int) xb2[z];
-					xb2[z] = -1;
-					s1 = s2;
-					s2 = (int) (ry2[zz] - cy2);
-					if (s1 < 0) {
-						rx1[npoints] = rx2[z];
-						ry1[npoints] = ry2[z];
-						xb1[npoints] = npoints + 1;
-						npoints++;
-					}
-					if ((s1 ^ s2) < 0) {
-						rx1[npoints] = rx2[z] + scale((int) (rx2[zz] - rx2[z]), s1, s1 - s2);
-						ry1[npoints] = ry2[z] + scale((int) (ry2[zz] - ry2[z]), s1, s1 - s2);
-						if (s1 < 0)
-							p2[splitcnt++] = (short) npoints;
-						xb1[npoints] = npoints + 1;
-						npoints++;
-					}
-					z = zz;
-				} while (xb2[z] >= 0);
-
-				if (npoints >= start2 + 3) {
-					xb1[npoints - 1] = start2;
-					start2 = npoints;
-				} else
-					npoints = start2;
-
-				z = 1;
-				while ((z < npoints2) && (xb2[z] < 0))
-					z++;
-			} while (z < npoints2);
-			if (npoints <= 2)
-				return (0);
-
-			for (z = 1; z < splitcnt; z++)
-				for (zz = 0; zz < z; zz++) {
-					z1 = p2[z];
-					z2 = (int) xb1[z1];
-					z3 = p2[zz];
-					z4 = (int) xb1[z3];
-					s1 = (int) (abs(rx1[z1] - rx1[z2]) + abs(ry1[z1] - ry1[z2]));
-					s1 += abs(rx1[z3] - rx1[z4]) + abs(ry1[z3] - ry1[z4]);
-					s2 = (int) (abs(rx1[z1] - rx1[z4]) + abs(ry1[z1] - ry1[z4]));
-					s2 += abs(rx1[z3] - rx1[z2]) + abs(ry1[z3] - ry1[z2]);
-					if (s2 < s1) {
-						t = (int) xb1[p2[z]];
-						xb1[p2[z]] = xb1[p2[zz]];
-						xb1[p2[zz]] = t;
-					}
-				}
-		}
-		return (npoints);
-	}
-
 	@Override
 	public void gltexinvalidateall(int flags) {
 		if ((flags & 1) == 1)
@@ -6644,12 +5222,6 @@ public abstract class Polymost implements Renderer {
 	public void preload() {
 		// TODO Auto-generated method stub
 	}
-	
-	@Override
-	public abstract void drawmapview(int dax, int day, int zoome, int ang);
-	
-	@Override
-	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 
 	@Override
 	public void settiltang(int tilt) {
@@ -6732,49 +5304,956 @@ public abstract class Polymost implements Renderer {
 	public String getname() {
 		return "Polymost";
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//2d drawing
+	
+	private void init2drender()
+	{
+		for(int i = 0; i < 8; i++)
+			drot[i] = new TSurface();
+		
+		if (polymosttext == null) {
+			// construct a 256x128 8-bit alpha-only texture for the font glyph
+			// matrix
+			byte[] tbuf;
+			int tptr;
+			int h, i, j;
+			polymosttext = BufferUtils.newIntBuffer(1);
 
-	// private int recheck(int x, int y, int oldx, int j, SPRITE tspr, short datempsectnum) {
-	// updatesectorz(tspr.x + x, tspr.y + y, tspr.z, datempsectnum);
-	//
-	// if (datempsectnum == -1) {
-	// if (x == y || x != oldx)
-	// return 0;
-	//
-	// int tmp = x;
-	// x = y; // swaplong(&x,&y);
-	// y = tmp;
-	//
-	// updatesector(tspr.x + x, tspr.y + y, datempsectnum);
-	// }
-	//
-	// int i = 4;
-	// do {
-	// cullcheckcnt += 2;
-	// if (cansee(globalposx, globalposy, globalposz, globalcursectnum,
-	// tspr.x + x, tspr.y + y, tspr.z - (j * i) - 512,
-	// datempsectnum) != 0)
-	// return 1;
-	// if (cansee(globalposx, globalposy, globalposz, globalcursectnum,
-	// tspr.x + x, tspr.y + y, tspr.z - (j * (i - 1)) - 512,
-	// datempsectnum) != 0)
-	// return 1;
-	// i -= 2;
-	// } while (i != 0);
-	//
-	// cullcheckcnt++;
-	// if (cansee(globalposx, globalposy, globalposz, globalcursectnum, tspr.x
-	// + x, tspr.y + y, tspr.z - 512, datempsectnum) != 0)
-	// return 1;
-	//
-	// if (x != y && x == oldx) {
-	// int tmp = x;
-	// x = y; // swaplong(&x,&y);
-	// y = tmp;
-	//
-	// recheck(x, y, oldx, j, tspr, datempsectnum);
-	// }
-	// return 0;
-	// }
+			tbuf = new byte[256 * 128];
+			ByteBuffer fbuf = BufferUtils.newByteBuffer(256 * 128);
+
+			for (h = 0; h < 256; h++) {
+				tptr = (h % 32) * 8 + (h / 32) * 256 * 8;
+				for (i = 0; i < 8; i++) {
+					for (j = 0; j < 8; j++) {
+						if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
+							tbuf[tptr + j] = (byte) 255;
+					}
+					tptr += 256;
+				}
+			}
+
+			for (h = 0; h < 256; h++) {
+				tptr = 256 * 64 + (h % 32) * 8 + (h / 32) * 256 * 8;
+				for (i = 1; i < 7; i++) {
+					for (j = 2; j < 6; j++) {
+						if ((smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0)
+							tbuf[tptr + j - 2] = (byte) 255;
+					}
+					tptr += 256;
+				}
+			}
+
+			fbuf.put(tbuf);
+			fbuf.rewind();
+
+			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
+			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 256, 128, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+			fbuf.clear(); // Bfree(tbuf);
+			fbuf = null;
+			tbuf = null;
+		} 
+	}
+	
+	protected int globalx1;
+	protected int globaly1;
+	protected int globalx2;
+	protected int globaly2;
+	
+	private int guniqhudid;
+	
+	protected int[] xb1 = new int[MAXWALLSB];
+	protected int[] xb2 = new int[MAXWALLSB];
+	protected float[] rx1 = new float[MAXWALLSB];
+	protected float[] ry1 = new float[MAXWALLSB];
+
+	private int allocpoints = 0, slist[], npoint2[];
+	private raster[] rst;
+	private final float[] trapextx = new float[2];
+	
+	private final TSurface drot[] = new TSurface[8];
+	private final SPRITE hudsprite = new SPRITE();
+	
+//	private final int ROTATESPRITE_MAX = 2048;
+	private final int RS_CENTERORIGIN = (1 << 30);
+	
+	@Override
+	public abstract void drawmapview(int dax, int day, int zoome, int ang);
+	
+	@Override
+	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
+
+	protected void setpolymost2dview() {
+		if (gloy1 != -1) {
+			gl.glViewport(0, 0, xdim, ydim);
+			gl.glMatrixMode(GL_PROJECTION);
+			gl.glLoadIdentity();
+			gl.glOrthof(0, xdim, ydim, 0, -1, 1);
+			gl.glMatrixMode(GL_MODELVIEW);
+			gl.glLoadIdentity();
+		}
+
+		gloy1 = -1;
+
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDisable(GL_TEXTURE_2D);
+		gl.glDisable(GL_BLEND);
+	}
+
+	protected void fillpolygon(int npoints) {
+
+		for (int z = 0; z < npoints; z++) {
+			if (xb1[z] >= npoints)
+				xb1[z] = 0;
+		}
+
+		if (palookup[globalpal] == null)
+			globalpal = 0;
+
+		globalx1 = mulscale(globalx1, xyaspect, 16);
+		globaly2 = mulscale(globaly2, xyaspect, 16);
+		gux = asm1 / 4294967296.0;
+		gvx = asm2 / 4294967296.0;
+		guy = globalx1 / 4294967296.0;
+		gvy = -globaly2 / 4294967296.0;
+		guo = (xdim * gux + ydim * guy) * -0.5 + globalposx / 4294967296.0;
+		gvo = (xdim * gvx + ydim * gvy) * -0.5 - globalposy / 4294967296.0;
+
+		for (int i = npoints - 1; i >= 0; i--) {
+			rx1[i] /= 4096.0f;
+			ry1[i] /= 4096.0f;
+		}
+		
+		gl.glDisable(GL_FOG);
+
+		setpolymost2dview(); 
+		gl.glEnable(GL_ALPHA_TEST);
+		gl.glEnable(GL_TEXTURE_2D);
+		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, false, true);
+
+		bindTexture(pth.glpic);
+		float f = getshadefactor(globalshade), a = 0.0f;
+		
+		switch ((globalorientation >> 7) & 3) {
+		case 0:
+		case 1:
+			a = 1.0f;
+			gl.glDisable(GL_BLEND);
+			break;
+		case 2:
+			a = TRANSLUSCENT1;
+			gl.glEnable(GL_BLEND);
+			break;
+		case 3:
+			a = TRANSLUSCENT2;
+			gl.glEnable(GL_BLEND);
+			break;
+		}
+
+		gl.glColor4f(f, f, f, a);
+
+		tessectrap(rx1, ry1, xb1, npoints); // vertices + textures
+
+		EnableFog();
+	}
+	
+	private void drawtrap(float x0, float x1, float y0, float x2, float x3, float y1) {
+		if (y0 == y1) return;
+		
+		drawpoly[0].px = x0;
+		drawpoly[0].py = y0;
+		drawpoly[2].py = y1;
+		
+		int n = 3;
+		if (x0 == x1) {
+			drawpoly[1].px = x3;
+			drawpoly[1].py = y1;
+			drawpoly[2].px = x2;
+		} else if (x2 == x3) {
+			drawpoly[1].px = x1;
+			drawpoly[1].py = y0;
+			drawpoly[2].px = x3;
+		} else {
+			drawpoly[1].px = x1;
+			drawpoly[1].py = y0;
+			drawpoly[2].px = x3;
+			drawpoly[3].px = x2;
+			drawpoly[3].py = y1;
+			n = 4;
+		}
+
+		gl.glBegin(GL_TRIANGLE_FAN);
+		for (int i = 0; i < n; i++) {
+			drawpoly[i].px = min(max(drawpoly[i].px, trapextx[0]), trapextx[1]);
+			gl.glTexCoord2d(
+				drawpoly[i].px * gux + drawpoly[i].py * guy + guo,
+				drawpoly[i].px * gvx + drawpoly[i].py * gvy + gvo);
+			gl.glVertex2d(drawpoly[i].px, drawpoly[i].py);
+		}
+		gl.glEnd();
+	}
+
+	private void tessectrap(float[] px, float[] py, int[] point2, int numpoints) {
+		float x0, x1, m0, m1;
+		int i, j, k, z, i0, i1, i2, i3, npoints, gap, numrst;
+
+		if (numpoints + 16 > allocpoints) // 16 for safety
+		{
+			allocpoints = numpoints + 16;
+			rst = new raster[allocpoints];
+			for (i = 0; i < allocpoints; i++)
+				rst[i] = new raster();
+
+			slist = new int[allocpoints];
+
+			npoint2 = new int[allocpoints];
+		}
+
+		// Remove unnecessary collinear points:
+		for (i = 0; i < numpoints; i++)
+			npoint2[i] = point2[i];
+		npoints = numpoints;
+		z = 0;
+
+		for (i = 0; i < numpoints; i++) {
+			j = npoint2[i];
+			if ((point2[i] < i) && (i < numpoints - 1))
+				z = 3;
+
+			if (j < 0) continue;
+			k = npoint2[j];
+			if (k < 0) continue;
+
+			m0 = (px[j] - px[i])
+					* (py[k] - py[j]);
+			m1 = (py[j] - py[i]) * (px[k] - px[j]);
+			if (m0 < m1) {
+				z |= 1;
+				continue;
+			}
+			if (m0 > m1) {
+				z |= 2;
+				continue;
+			}
+			npoint2[i] = k;
+			npoint2[j] = -1;
+			npoints--;
+			i--; // collinear
+		}
+
+		if (z == 0)
+			return;
+		trapextx[0] = trapextx[1] = px[0];
+		for (i = j = 0; i < numpoints; i++) {
+			if (npoint2[i] < 0)
+				continue;
+			if (px[i] < trapextx[0])
+				trapextx[0] = px[i];
+			if (px[i] > trapextx[1])
+				trapextx[1] = px[i];
+			slist[j++] = i;
+		}
+
+		if (z != 3) // Simple polygon... early out
+		{
+			gl.glBegin(GL_TRIANGLE_FAN);
+			for (i = 0; i < npoints; i++) {
+				j = slist[i];
+				gl.glTexCoord2f((float) (px[j] * gux + py[j] * guy + guo),
+						(float) (px[j] * gvx + py[j] * gvy + gvo));
+				gl.glVertex2d(px[j], py[j]);
+			}
+			gl.glEnd();
+			return;
+		}
+
+		// Sort points by y's
+		for (gap = (npoints >> 1); gap != 0; gap >>= 1)
+			for (i = 0; i < npoints - gap; i++)
+				for (j = i; j >= 0; j -= gap) {
+					if (py[npoint2[slist[j]]] <= py[npoint2[slist[j + gap]]])
+						break;
+					k = slist[j];
+					slist[j] = slist[j + gap];
+					slist[j + gap] = k;
+				}
+
+		numrst = 0;
+		for (z = 0; z < npoints; z++) {
+			i0 = slist[z];
+			i1 = npoint2[i0];
+			if (py[i0] == py[i1] || npoint2[i1] == -1)
+				continue;
+			i2 = i1;
+			i3 = npoint2[i1];
+			if (py[i1] == py[i3]) {
+				i2 = i3;
+				i3 = npoint2[i3];
+			}
+
+			// i0 i3
+			// \ /
+			// i1--i2
+			// / \ ~
+			// i0 i3
+
+			if ((py[i1] < py[i0]) && (py[i2] < py[i3])) // Insert raster
+			{
+				for (i = numrst; i > 0; i--) {
+					if (rst[i - 1].xi * (py[i1] - rst[i - 1].y) + rst[i - 1].x < px[i1])
+						break;
+					rst[i + 1].set(rst[i - 1]);
+				}
+				numrst += 2;
+				if ((i & 1) != 0) // split inside area
+				{
+					j = i - 1;
+					x0 = (py[i1] - rst[j].y) * rst[j].xi + rst[j].x;
+					x1 = (py[i1] - rst[j + 1].y) * rst[j + 1].xi + rst[j + 1].x;
+					drawtrap(rst[j].x, rst[j + 1].x, rst[j].y, x0, x1, py[i1]);
+					rst[j].x = x0;
+					rst[j].y = py[i1];
+					rst[j + 3].x = x1;
+					rst[j + 3].y = py[i1];
+				}
+
+				m0 = (px[i0] - px[i1]) / (py[i0] - py[i1]);
+				m1 = (px[i3] - px[i2]) / (py[i3] - py[i2]);
+
+				j = ((px[i1] > px[i2] || (i1 == i2) && (m0 >= m1)) ? 1 : 0) + i;
+				k = (i << 1) + 1 - j;
+
+				rst[j].i = i0;
+				rst[j].xi = m0;
+				rst[j].x = px[i1];
+				rst[j].y = py[i1];
+				rst[k].i = i3;
+				rst[k].xi = m1;
+				rst[k].x = px[i2];
+				rst[k].y = py[i2];
+			} else {
+				// NOTE:don't count backwards!
+				if (i1 == i2) {
+					for (i = 0; i < numrst; i++)
+						if (rst[i].i == i1)
+							break;
+				} else {
+					for (i = 0; i < numrst; i++)
+						if ((rst[i].i == i1) || (rst[i].i == i2))
+							break;
+				}
+				j = i & ~1;
+
+				if ((py[i1] > py[i0]) && (py[i2] > py[i3])) // Delete raster
+				{
+					for (; j <= i + 1; j += 2) {
+						x0 = (py[i1] - rst[j].y) * rst[j].xi + rst[j].x;
+						if ((i == j) && (i1 == i2))
+							x1 = x0;
+						else
+							x1 = (py[i1] - rst[j + 1].y) * rst[j + 1].xi
+									+ rst[j + 1].x;
+						drawtrap(rst[j].x, rst[j + 1].x, rst[j].y, x0, x1,py[i1]);
+						rst[j].x = x0;
+						rst[j].y = py[i1];
+						rst[j + 1].x = x1;
+						rst[j + 1].y = py[i1];
+					}
+					numrst -= 2;
+					for (; i < numrst; i++)
+						rst[i].set(rst[i + 2]);
+				} else {
+					x0 = (py[i1] - rst[j].y) * rst[j].xi + rst[j].x;
+					x1 = (py[i1] - rst[j + 1].y) * rst[j + 1].xi + rst[j + 1].x;
+
+					drawtrap(rst[j].x, rst[j + 1].x, rst[j].y, x0, x1, py[i1]);
+					rst[j].x = x0;
+					rst[j].y = py[i1];
+					rst[j + 1].x = x1;
+					rst[j + 1].y = py[i1];
+
+					if (py[i0] < py[i3]) {
+						rst[i].x = px[i2];
+						rst[i].y = py[i2];
+						rst[i].i = i3;
+					} else {
+						rst[i].x = px[i1];
+						rst[i].y = py[i1];
+						rst[i].i = i0;
+					}
+					rst[i].xi = (px[rst[i].i] - rst[i].x) / (py[rst[i].i] - py[i1]);
+				}
+
+			}
+		}
+	}
+	
+	@Override
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize) {
+		int oxpos = xpos;
+		
+		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
+
+		setpolymost2dview();
+		gl.glDisable(GL_FOG);
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
+
+		if (backcol >= 0) {
+			gl.glColor4ub(curpalette[3*backcol]&0xFF,
+					curpalette[3*backcol+1]&0xFF, curpalette[3*backcol+2]&0xFF,
+					255);
+			int c = Bstrlen(text);
+
+			gl.glBegin(GL_TRIANGLE_FAN);
+			gl.glVertex2i(xpos, ypos);
+			gl.glVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
+			int x = xpos + (c << (3 - fontsize));
+			int y = ypos + (fontsize != 0 ? 6 : 8);
+			gl.glVertex2i(x, y);
+			gl.glVertex2i(xpos + (c << (3 - fontsize)), ypos);
+			gl.glEnd();
+		}
+
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_BLEND);
+		gl.glColor4ub(curpalette[3*col]&0xFF, curpalette[3*col+1]&0xFF, curpalette[3*col+2]&0xFF, 255);
+
+		float txc = (fontsize != 0 ? (4.0f / 256.0f) : (8.0f / 256.0f));
+		float tyc = (fontsize != 0 ? (6.0f / 128.0f) : (8.0f / 128.0f));
+
+		gl.glBegin(GL_TRIANGLE_STRIP);
+
+		int c = 0, line = 0;
+		int x, y, yoffs;
+		float tx, ty;
+		while (c < text.length && text[c] != '\0') {
+			if(text[c] == '\n')
+			{
+				text[c] = 0;
+				line += 1;
+				xpos = oxpos - (8 >> fontsize);
+			}
+			if(text[c] == '\r')
+				text[c] = 0;
+			
+			tx = (text[c] % 32) / 32.0f;
+			ty = ((text[c] / 32) + (fontsize * 8)) / 16.0f;
+
+			yoffs = line * (fontsize != 0 ? 6 : 8);
+
+			x = xpos + (8 >> fontsize);
+			y = ypos + (fontsize != 0 ? 6 : 8);
+
+			gl.glTexCoord2f(tx, ty);
+			gl.glVertex2i(xpos, ypos + yoffs);
+			gl.glTexCoord2f(tx, ty + tyc);
+			gl.glVertex2i(xpos, y + yoffs);
+			gl.glTexCoord2f(tx + txc, ty);
+			gl.glVertex2i(x, ypos + yoffs);
+			gl.glTexCoord2f(tx + txc, ty + tyc);
+			gl.glVertex2i(x, y + yoffs);
+
+			xpos += (8 >> fontsize);
+			c++;
+		}
+
+		gl.glEnd();
+
+		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+
+		EnableFog();
+	}
+
+	@Override
+	public void drawline256(int x1, int y1, int x2, int y2, int col) {
+		gl.glDisable(GL_FOG);
+
+		setpolymost2dview(); // JBF 20040205: more efficient setup
+
+		col = palookup[0][col] & 0xFF;
+		gl.glBegin(GL_LINES);
+		gl.glColor4ub(curpalette[3*col]&0xFF, curpalette[3*col+1]&0xFF, curpalette[3*col+2]&0xFF, 255);
+		gl.glVertex2f(x1 / 4096.0f, y1 / 4096.0f);
+		gl.glVertex2f(x2 / 4096.0f, y2 / 4096.0f);
+		gl.glEnd();
+		
+		EnableFog();
+	}
+	
+	@Override
+	public void rotatesprite(int sx, int sy, int z, int a, int picnum,
+			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
+			int cy2) {
+
+		if (picnum >= MAXTILES) return;
+		if ((cx1 > cx2) || (cy1 > cy2)) return;
+		if (z <= 16) return;
+		
+		if ((picanm[picnum] & 192) != 0)
+			picnum += engine.animateoffs((short) picnum, (short) 0xc000);
+		
+		if ((tilesizx[picnum] <= 0) || (tilesizy[picnum] <= 0))
+			return;
+
+		if ((dastat & 128) == 0 || beforedrawrooms != 0)
+			dorotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2, guniqhudid);
+	}
+
+	public void dorotatesprite(int sx, int sy, int z, int a, int picnum,
+			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
+			int cy2, int uniqid) {
+		
+		int xoff = 0, yoff = 0, xsiz, ysiz, method;
+		int ogpicnum, ogshade, ogpal;
+		float ogchang, ogshang, ogctang, ogstang, oghalfx, oghoriz;
+		float ogrhalfxdown10, ogrhalfxdown10x;
+		float d, cosang, sinang, cosang2, sinang2;
+
+		for (float[] row: matrix)
+		    Arrays.fill(row, 0.0f);
+
+		int ourxyaspect = xyaspect;
+		
+		if (usemodels && hudmem != null && hudmem[(dastat&4)>>2][picnum].angadd != 0)
+	    {
+	        int tilenum = Ptile2tile(picnum,dapalnum);
+
+	        if (tile2model[tilenum].modelid >= 0 &&
+	            tile2model[tilenum].framenum >= 0)
+	        {
+	            int oldviewingrange;
+	            float ogxyaspect;
+	            float x1, y1, z1;
+	            hudsprite.reset((byte)0);
+
+	            if ((hudmem[(dastat&4)>>2][picnum].flags&1) != 0) return; //"HIDE" is specified in DEF
+
+	            ogchang = gchang; gchang = 1.0f;
+	            ogshang = gshang; gshang = 0.0f; d = z/(65536.0f*16384.0f);
+	            ogctang = gctang; gctang = (float)sintable[(a+512)&2047]*d;
+	            ogstang = gstang; gstang = (float)sintable[a&2047]*d;
+	            ogshade  = (int) globalshade;  globalshade  = dashade;
+	            ogpal    = globalpal;    globalpal = dapalnum;
+	            ogxyaspect = gxyaspect; gxyaspect = 1.0f;
+	            oldviewingrange = viewingrange; viewingrange = 65536;
+
+	            x1 = hudmem[(dastat&4)>>2][picnum].xadd;
+	            y1 = hudmem[(dastat&4)>>2][picnum].yadd;
+	            z1 = hudmem[(dastat&4)>>2][picnum].zadd;
+
+	            if ((hudmem[(dastat&4)>>2][picnum].flags&2) == 0) //"NOBOB" is specified in DEF
+	            {
+	            	float fx = (sx)*(1.0f/65536.0f);
+	            	float fy = (sy)*(1.0f/65536.0f);
+
+	                if ((dastat&16) != 0)
+	                {
+	                    xsiz = tilesizx[picnum]; ysiz = tilesizy[picnum];
+	                    xoff = (int) ((byte) ((picanm[picnum] >> 8) & 255)) + (xsiz >> 1);
+	        			yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
+
+	                    d = z/(65536.0f*16384.0f);
+	                    cosang2 = cosang = (float)sintable[(a+512)&2047]*d;
+	                    sinang2 = sinang = (float)sintable[a&2047]*d;
+	                    if ((dastat&2) != 0 || ((dastat&8) == 0)) //Don't aspect unscaled perms
+	                        { d = (float)xyaspect/65536.0f; cosang2 *= d; sinang2 *= d; }
+	                    fx += -(double)xoff*cosang2+ (double)yoff*sinang2;
+	                    fy += -(double)xoff*sinang - (double)yoff*cosang;
+	                }
+
+	                if ((dastat&2) == 0)
+	                {
+	                    x1 += fx/((double)(xdim<<15))-1.0; //-1: left of screen, +1: right of screen
+	                    y1 += fy/((double)(ydim<<15))-1.0; //-1: top of screen, +1: bottom of screen
+	                }
+	                else
+	                {
+	                    x1 += fx/160.0-1.0; //-1: left of screen, +1: right of screen
+	                    y1 += fy/100.0-1.0; //-1: top of screen, +1: bottom of screen
+	                }
+	            }
+	            hudsprite.ang = (short) (hudmem[(dastat&4)>>2][picnum].angadd+globalang);
+
+	            if ((dastat&4) != 0) { x1 = -x1; y1 = -y1; }
+
+                hudsprite.xrepeat = hudsprite.yrepeat = 32;
+
+                hudsprite.x = (int)(((double)gcosang*z1 - (double)gsinang*x1)*16384.0 + globalposx);
+                hudsprite.y = (int)(((double)gsinang*z1 + (double)gcosang*x1)*16384.0 + globalposy);
+                hudsprite.z = (int)(globalposz + y1*16384.0*0.8);
+	            
+
+	            hudsprite.picnum = (short) picnum;
+	            hudsprite.shade = (byte) dashade;
+	            hudsprite.pal = (short) dapalnum;
+	            hudsprite.owner = (short) (uniqid+MAXSPRITES);
+	            globalorientation = (dastat&1)+((dastat&32)<<4)+((dastat&4)<<1);
+	            hudsprite.cstat = (short) globalorientation;
+
+	            if ((dastat&10) == 2)
+	                gl.glViewport(windowx1,ydim-(windowy2+1),windowx2-windowx1+1,windowy2-windowy1+1);
+	            else
+	            {
+	                gl.glViewport(0,0,xdim,ydim);
+	                glox1 = -1; //Force fullscreen (glox1=-1 forces it to restore)
+	            }
+
+	           
+                gl.glMatrixMode(GL_PROJECTION);
+              
+                if ((dastat&10) == 2)
+                {
+                    float ratioratio = (float)xdim/ydim;
+                    matrix[0][0] = (float)ydimen*(ratioratio >= 1.6f?1.2f:1); matrix[0][2] = 1.0f;
+                    matrix[1][1] = (float)xdimen; matrix[1][2] = 1.0f;
+                    matrix[2][2] = 1.0f; matrix[2][3] = (float)ydimen*(ratioratio >= 1.6f?1.2f:1);
+                    matrix[3][2] = -1.0f;
+                }
+                else { matrix[0][0] = matrix[2][3] = 1.0f; matrix[1][1] = ((float)xdim)/((float)ydim); matrix[2][2] = 1.0001f; matrix[3][2] = 1-matrix[2][2]; }
+                gl.glLoadMatrixf(matrix);
+                gl.glMatrixMode(GL_MODELVIEW);
+                gl.glLoadIdentity();
+	            
+
+	            if ((hudmem[(dastat&4)>>2][picnum].flags&8) != 0) //NODEPTH flag
+	                gl.glDisable(GL_DEPTH_TEST);
+	            else
+	            {
+	                gl.glEnable(GL_DEPTH_TEST);
+	                gl.glClear(GL_DEPTH_BUFFER_BIT);
+	            }
+
+	            gl.glDisable(GL_FOG);
+	            mddraw(hudsprite, 0, 0);
+
+	            EnableFog();
+
+	            viewingrange = oldviewingrange;
+	            gxyaspect = ogxyaspect;
+	            globalshade  = ogshade;
+	            globalpal    = ogpal;
+	            gchang = ogchang;
+	            gshang = ogshang;
+	            gctang = ogctang;
+	            gstang = ogstang;
+
+	            return;
+	        }
+	    }
+		
+		ogpicnum = globalpicnum;
+		globalpicnum = (short) picnum;
+		ogshade = (int) globalshade;
+		globalshade = dashade;
+		ogpal = globalpal;
+		globalpal = (int) (dapalnum & 0xFF);
+		oghalfx = ghalfx;
+		ghalfx = (xdim >> 1);
+		ogrhalfxdown10 = grhalfxdown10;
+		grhalfxdown10 = 1.0f / (ghalfx * 1024);
+		ogrhalfxdown10x = grhalfxdown10x;
+		grhalfxdown10x = grhalfxdown10;
+		oghoriz = (float) ghoriz;
+		ghoriz = (ydim >> 1);
+		ogchang = gchang;
+		gchang = 1.0f;
+		ogshang = gshang;
+		gshang = 0.0f;
+		ogctang = gctang;
+		gctang = 1.0f;
+		ogstang = gstang;
+		gstang = 0.0f;
+
+		
+		gl.glViewport(0, 0, xdim, ydim);
+		glox1 = -1; // Force fullscreen (glox1=-1 forces it to restore)
+		gl.glMatrixMode(GL_PROJECTION);
+
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+
+		matrix[0][0] = matrix[2][3] = 1.0f;
+		matrix[1][1] = xdim / ((float) ydim);
+		matrix[2][2] = 1.0001f;
+		matrix[3][2] = 1 - matrix[2][2];
+
+		gl.glLoadMatrixf(matrix);
+		gl.glMatrixMode(GL_MODELVIEW);
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glEnable(GL_TEXTURE_2D);
+
+		method = 0;
+		if ((dastat & 64) == 0) {
+			method = 1;
+			if ((dastat & 1) != 0) {
+				if ((dastat & 32) == 0)
+					method = 2;
+				else
+					method = 3;
+			}
+		} else
+			method |= 256; // non-transparent 255 color
+
+		method |= 4; // Use OpenGL clamping - dorotatesprite never repeats
+
+		xsiz = tilesizx[globalpicnum];
+		ysiz = tilesizy[globalpicnum];
+
+		if ((dastat & 16) == 0) {
+			xoff = (int) ((byte) ((picanm[globalpicnum] >> 8) & 255)) + (xsiz >> 1);
+			yoff = (int) ((byte) ((picanm[globalpicnum] >> 16) & 255)) + (ysiz >> 1);
+		}
+
+		if ((dastat & 4) != 0)
+			yoff = ysiz - yoff;
+
+		int cx1_plus_cx2 = cx1 + cx2;
+		int cy1_plus_cy2 = cy1 + cy2;
+
+		if ((dastat & 2) == 0) {
+			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
+				ourxyaspect = (10 << 16) / 12;
+			}
+		} else {
+			// dastat&2: Auto window size scaling
+			int oxdim = xdim;
+			int xdim = oxdim; // SHADOWS global
+
+			int zoomsc;
+			int ouryxaspect = yxaspect;
+			ourxyaspect = xyaspect;
+
+			// screen center to s[xy], 320<<16 coords.
+			int normxofs = sx - (320 << 15), normyofs = sy - (200 << 15);
+
+			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
+				xdim = (4 * ydim) / 3;
+
+				ouryxaspect = (12 << 16) / 10;
+				ourxyaspect = (10 << 16) / 12;
+			}
+
+			// nasty hacks go here
+			if ((dastat & 8) == 0) {
+				int twice_midcx = cx1_plus_cx2 + 2;
+
+				// screen x center to sx1, scaled to viewport
+				int scaledxofs = scale(normxofs, scale(xdimen, xdim, oxdim), 320);
+
+				int xbord = 0;
+
+				if ((dastat & (256 | 512)) != 0) {
+					xbord = scale(oxdim - xdim, twice_midcx, oxdim);
+
+					if ((dastat & 512) == 0)
+						xbord = -xbord;
+				}
+
+				sx = ((twice_midcx + xbord) << 15) + scaledxofs;
+
+				zoomsc = xdimenscale; // = scale(xdimen,yxaspect,320);
+				sy = (int) (((cy1_plus_cy2 + 2) << 15) + mulscale(normyofs, zoomsc, 16));
+			} else {
+				// If not clipping to startmosts, & auto-scaling on, as a
+				// hard-coded bonus, scale to full screen instead
+				sx = (xdim << 15) + scale(normxofs, xdim, 320);
+
+				if ((dastat & 512) != 0)
+					sx += (oxdim - xdim) << 16;
+				else if (alphaMode(dastat))
+					sx += (oxdim - xdim) << 15;
+
+				if ((dastat & RS_CENTERORIGIN) != 0)
+					sx += oxdim << 15;
+
+				zoomsc = scale(xdim, ouryxaspect, 320);
+				sy = (ydim << 15) + mulscale(normyofs, zoomsc, 16);
+			}
+
+			z = mulscale(z, zoomsc, 16);
+		}
+
+		d = z / (65536.0f * 16384.0f);
+		cosang2 = cosang = sintable[(a + 512) & 2047] * d;
+		sinang2 = sinang = sintable[a & 2047] * d;
+		if (((dastat & 2) != 0) || ((dastat & 8) == 0)) // Don't aspect unscaled perms
+		{
+			d = ourxyaspect / 65536.0f;
+			cosang2 *= d;
+			sinang2 *= d;
+		}
+
+		double cx = sx / 65536.0 - xoff * cosang2 + yoff * sinang2;
+		double cy = sy / 65536.0 - xoff * sinang  - yoff * cosang;
+		
+		drot[0].px = cx;
+		drot[0].py = cy;
+		drot[1].px = cx + xsiz * cosang2;
+		drot[1].py = cy + xsiz * sinang;
+		drot[2].px = cx + xsiz * cosang2 - ysiz * sinang2;
+		drot[2].py = cy + xsiz * sinang + ysiz * cosang;
+		drot[3].px = cx - ysiz * sinang2;
+		drot[3].py = cy + ysiz * cosang;
+		
+		int n = 4;
+
+		gdx = 0;
+		gdy = 0;
+		gdo = 1.0;
+
+		d = (float) (1.0 / (drot[0].px * (drot[1].py - drot[3].py) + drot[1].px
+				* (drot[3].py - drot[0].py) + drot[3].px
+				* (drot[0].py - drot[1].py)));
+		
+		gux = (drot[3].py - drot[0].py) * (xsiz - .0001f) * d;
+		guy = (drot[0].px - drot[3].px) * (xsiz - .0001f) * d;
+		guo = 0 - drot[0].px * gux - drot[0].py * guy;
+
+		if ((dastat & 4) == 0) {
+			gvx = (drot[0].py - drot[1].py) * (ysiz - .0001f) * d;
+			gvy = (drot[1].px - drot[0].px) * (ysiz - .0001f) * d;
+			gvo = 0 - drot[0].px * gvx - drot[0].py * gvy;
+		} else {
+			gvx = (drot[1].py - drot[0].py) * (ysiz - .0001f) * d;
+			gvy = (drot[0].px - drot[1].px) * (ysiz - .0001f) * d;
+			gvo = ysiz - .0001f - drot[0].px * gvx - drot[0].py * gvy;
+		}
+
+		cx2++;
+		cy2++;
+
+		// Clippoly4 (converted from int to double)
+		int nn = z = 0;
+		do {
+			float fx, x1, x2;
+			int zz = z + 1;
+			if (zz == n)
+				zz = 0;
+			x1 = (float) drot[z].px;
+			x2 = (float) (drot[zz].px - x1);
+			if ((cx1 <= x1) && (x1 <= cx2)) {
+				drot[nn].px2 = x1;
+				drot[nn].py2 = drot[z].py;
+				nn++;
+			}
+			if (x2 <= 0)
+				fx = cx2;
+			else
+				fx = cx1;
+			d = fx - x1;
+			if ((d < x2) != (d < 0)) {
+				drot[nn].px2 = fx;
+				drot[nn].py2 = (drot[zz].py - drot[z].py)
+						* d / x2 + drot[z].py;
+				nn++;
+			}
+			if (x2 <= 0)
+				fx = cx1;
+			else
+				fx = cx2;
+			d = fx - x1;
+			if ((d < x2) != (d < 0)) {
+				drot[nn].px2 = fx;
+				drot[nn].py2 = (drot[zz].py - drot[z].py)
+						* d / x2 + drot[z].py;
+				nn++;
+			}
+			z = zz;
+		} while (z != 0);
+
+		if (nn >= 3) {
+
+			n = z = 0;
+			do {
+				float fy, y1, y2;
+				int zz = z + 1;
+				if (zz == nn)
+					zz = 0;
+				y1 = (float) drot[z].py2;
+				y2 = (float) (drot[zz].py2 - y1);
+				if ((cy1 <= y1) && (y1 <= cy2)) {
+					drot[n].py = y1;
+					drot[n].px = drot[z].px2;
+					n++;
+				}
+				if (y2 <= 0)
+					fy = cy2;
+				else
+					fy = cy1;
+				d = fy - y1;
+				if ((d < y2) != (d < 0)) {
+					drot[n].py = fy;
+					drot[n].px = (drot[zz].px2 - drot[z].px2)
+							* d / y2 + drot[z].px2;
+					n++;
+				}
+				if (y2 <= 0)
+					fy = cy1;
+				else
+					fy = cy2;
+				d = fy - y1;
+				if ((d < y2) != (d < 0)) {
+					drot[n].py = fy;
+					drot[n].px = (drot[zz].px2 - drot[z].px2)
+							* d / y2 + drot[z].px2;
+					n++;
+				}
+				z = zz;
+			} while (z != 0);
+			
+			gl.glDisable(GL_FOG);
+
+			pow2xsplit = 0;
+
+			drawpoly(drot, n, method);
+			EnableFog();
+		}
+
+		gl.glMatrixMode(GL_PROJECTION);
+		gl.glPopMatrix();
+		gl.glMatrixMode(GL_MODELVIEW);
+		gl.glPopMatrix();
+
+		globalpicnum = (short) ogpicnum;
+		globalshade = ogshade;
+		globalpal = ogpal & 0xFF;
+		ghalfx = oghalfx;
+		grhalfxdown10 = ogrhalfxdown10;
+		grhalfxdown10x = ogrhalfxdown10x;
+		ghoriz = oghoriz;
+		gchang = ogchang;
+		gshang = ogshang;
+		gctang = ogctang;
+		gstang = ogstang;
+	}
+	
+
 }
 
 class raster {

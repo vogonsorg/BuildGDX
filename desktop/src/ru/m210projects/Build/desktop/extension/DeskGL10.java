@@ -939,6 +939,11 @@ public class DeskGL10 extends GL10 {
 	public void glVertex2f(float x, float y) {
 		GL11.glVertex2f(x, y);
 	}
+	
+	@Override
+	public void glVertex2d(double x, double y) {
+		GL11.glVertex2d(x, y);
+	}
 
 	@Override
 	public void glVertex3d(double x, double y, double z) {

@@ -3775,10 +3775,6 @@ public abstract class Engine {
 		render.printext(xpos, ypos, col, backcol, name, fontsize);
 	}
 	
-	public void printchar256(int xpos, int ypos, int col, int backcol, char ch, int fontsize) { //gdxBuild
-		render.printchar(xpos, ypos, col, backcol, ch, fontsize);
-	}
-
 	public String screencapture(String fn) { //jfBuild + gdxBuild
 		int a, b, c, d;
 		
