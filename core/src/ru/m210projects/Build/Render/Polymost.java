@@ -21,6 +21,7 @@ import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.GLInfo.*;
 import static ru.m210projects.Build.Render.TextureUtils.*;
+import static ru.m210projects.Build.Render.TextureCache.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
@@ -403,12 +404,8 @@ public abstract class Polymost implements Renderer {
 	        glox1 = windowx1; gloy1 = windowy1;
 			glox2 = windowx2; gloy2 = windowy2;
 
-			//gl.glViewport(windowx1-(fovcorrect/2), ydim - (windowy2 + 1), ourxdimen+fovcorrect, windowy2 - windowy1 + 1);
+			gl.glViewport(windowx1-(fovcorrect/2), ydim - (windowy2 + 1), ourxdimen+fovcorrect, windowy2 - windowy1 + 1);
 
-			
-			gl.glViewport(0, 0, xdim, ydim);
-
-			
 			gl.glMatrixMode(GL_PROJECTION);
 
 			for (float[] row: matrix)
@@ -742,33 +739,7 @@ public abstract class Polymost implements Renderer {
 			break;
 		}
 
-		// tinting happens only to hightile textures, and only if the
-		// texture we're
-		// rendering isn't for the same palette as what we asked for
-		if ((hictinting[globalpal].f & 4) == 0) {
-			if (pth != null && pth.isHighTile()) {
-				if (pth.hicr.palnum != globalpal) {
-					// apply tinting for replaced textures
-					polyColor.r *= (float) hictinting[globalpal].r / 255.0f;
-					polyColor.g *= (float) hictinting[globalpal].g / 255.0f;
-					polyColor.b *= (float) hictinting[globalpal].b / 255.0f;
-				}
-				if (hictinting[MAXPALOOKUPS - 1].r != 255
-						|| hictinting[MAXPALOOKUPS - 1].g != 255
-						|| hictinting[MAXPALOOKUPS - 1].b != 255) {
-					polyColor.r *= (float) hictinting[MAXPALOOKUPS - 1].r / 255.0f;
-					polyColor.g *= (float) hictinting[MAXPALOOKUPS - 1].g / 255.0f;
-					polyColor.b *= (float) hictinting[MAXPALOOKUPS - 1].b / 255.0f;
-				}
-			}
-			// hack: this is for drawing the 8-bit crosshair recolored in
-			// polymost
-			else if ((hictinting[globalpal].f & 8) != 0) {
-				polyColor.r *= (float) hictinting[globalpal].r / 255.0f;
-				polyColor.g *= (float) hictinting[globalpal].g / 255.0f;
-				polyColor.b *= (float) hictinting[globalpal].b / 255.0f;
-			}
-		}
+		calcHictintingColor(pth);
 
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
@@ -5827,12 +5798,7 @@ public abstract class Polymost implements Renderer {
 		
 		int xoff = 0, yoff = 0, xsiz, ysiz, method;
 		int ogpicnum, ogshade, ogpal;
-		float ogchang, ogshang, ogctang, ogstang, oghalfx, oghoriz;
-		float ogrhalfxdown10, ogrhalfxdown10x;
 		float d, cosang, sinang, cosang2, sinang2;
-
-		for (float[] row: matrix)
-		    Arrays.fill(row, 0.0f);
 
 		int ourxyaspect = xyaspect;
 		
@@ -5850,10 +5816,10 @@ public abstract class Polymost implements Renderer {
 
 	            if ((hudmem[(dastat&4)>>2][picnum].flags&1) != 0) return; //"HIDE" is specified in DEF
 
-	            ogchang = gchang; gchang = 1.0f;
-	            ogshang = gshang; gshang = 0.0f; d = z/(65536.0f*16384.0f);
-	            ogctang = gctang; gctang = (float)sintable[(a+512)&2047]*d;
-	            ogstang = gstang; gstang = (float)sintable[a&2047]*d;
+	            float ogchang = gchang; gchang = 1.0f;
+	            float ogshang = gshang; gshang = 0.0f; d = z/(65536.0f*16384.0f);
+	            float ogctang = gctang; gctang = (float)sintable[(a+512)&2047]*d;
+	            float ogstang = gstang; gstang = (float)sintable[a&2047]*d;
 	            ogshade  = (int) globalshade;  globalshade  = dashade;
 	            ogpal    = globalpal;    globalpal = dapalnum;
 	            ogxyaspect = gxyaspect; gxyaspect = 1.0f;
@@ -5969,37 +5935,13 @@ public abstract class Polymost implements Renderer {
 		globalshade = dashade;
 		ogpal = globalpal;
 		globalpal = (int) (dapalnum & 0xFF);
-		oghalfx = ghalfx;
-		ghalfx = (xdim >> 1);
-		ogrhalfxdown10 = grhalfxdown10;
-		grhalfxdown10 = 1.0f / (ghalfx * 1024);
-		ogrhalfxdown10x = grhalfxdown10x;
-		grhalfxdown10x = grhalfxdown10;
-		oghoriz = (float) ghoriz;
-		ghoriz = (ydim >> 1);
-		ogchang = gchang;
-		gchang = 1.0f;
-		ogshang = gshang;
-		gshang = 0.0f;
-		ogctang = gctang;
-		gctang = 1.0f;
-		ogstang = gstang;
-		gstang = 0.0f;
 
-		
 		gl.glViewport(0, 0, xdim, ydim);
 		glox1 = -1; // Force fullscreen (glox1=-1 forces it to restore)
 		gl.glMatrixMode(GL_PROJECTION);
-
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
-
-		matrix[0][0] = matrix[2][3] = 1.0f;
-		matrix[1][1] = xdim / ((float) ydim);
-		matrix[2][2] = 1.0001f;
-		matrix[3][2] = 1 - matrix[2][2];
-
-		gl.glLoadMatrixf(matrix);
+		gl.glOrthof(0, xdim, ydim, 0, 0, 1);
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
@@ -6231,7 +6173,7 @@ public abstract class Polymost implements Renderer {
 
 			pow2xsplit = 0;
 
-			drawpoly(drot, n, method);
+			drawrotate(drot, n, method);
 			EnableFog();
 		}
 
@@ -6240,20 +6182,127 @@ public abstract class Polymost implements Renderer {
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glPopMatrix();
 
+
 		globalpicnum = (short) ogpicnum;
 		globalshade = ogshade;
 		globalpal = ogpal & 0xFF;
-		ghalfx = oghalfx;
-		grhalfxdown10 = ogrhalfxdown10;
-		grhalfxdown10x = ogrhalfxdown10x;
-		ghoriz = oghoriz;
-		gchang = ogchang;
-		gshang = ogshang;
-		gctang = ogctang;
-		gstang = ogstang;
 	}
 	
+	
+	private void drawrotate(Surface[] dm, int n, int method) {
+		
+		gl.glMatrixMode(GL_TEXTURE);
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+		
+		if (globalpicnum >= MAXTILES)
+			globalpicnum = 0;
+		if (palookup[globalpal] == null)
+			globalpal = 0;
+		
+		engine.setgotpic(globalpicnum);
+		int tsizx = tilesizx[globalpicnum];
+		int tsizy = tilesizy[globalpicnum];
 
+		if (waloff[globalpicnum] == null) {
+			engine.loadtile(globalpicnum);
+			if (waloff[globalpicnum] == null) {
+				tsizx = tsizy = 1;
+				method = 1;
+			}
+		}
+
+		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, clampingMode(method), alphaMode(method));
+		if(pth == null) //hires texture not found
+			return;
+		bindTexture(pth.glpic);
+
+		// texture scale by parkar request
+		if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f))) {
+			gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
+		}
+
+		float hackscx = 1.0f, hackscy = 1.0f;
+		if (pth != null && pth.isHighTile()) {
+			hackscx = pth.scalex;
+			hackscy = pth.scaley;
+			tsizx = pth.sizx;
+			tsizy = pth.sizy;
+		}
+		float ox2 = hackscx / calcSize(tsizx);
+		float oy2 = hackscy / calcSize(tsizy);
+		
+		gl.glScalef(ox2, oy2, 1.0f);
+
+		if (((method & 3) == 0)) {
+			gl.glDisable(GL_BLEND);
+			gl.glDisable(GL_ALPHA_TEST);
+		} else {
+			gl.glEnable(GL_BLEND);
+			gl.glEnable(GL_ALPHA_TEST);
+		}
+
+		polyColor.r = polyColor.g = polyColor.b = getshadefactor(globalshade); 
+		switch (method & 3) {
+		default:
+		case 0:
+		case 1:
+			polyColor.a = 1.0f;
+			break;
+		case 2:
+			polyColor.a = TRANSLUSCENT1;
+			break;
+		case 3:
+			polyColor.a = TRANSLUSCENT2;
+			break;
+		}
+		calcHictintingColor(pth);
+		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+
+		gl.glBegin(GL_TRIANGLE_FAN);
+		for (int i = 0; i < n; i++) {
+			double u = dm[i].px*gux + dm[i].py*guy + guo;
+        	double v = dm[i].px*gvx + dm[i].py*gvy + gvo;
+
+        	gl.glTexCoord2d(u, v);
+			gl.glVertex2d(dm[i].px, dm[i].py);
+		}
+		gl.glEnd();
+		
+		gl.glPopMatrix();
+	}
+
+	public void calcHictintingColor(Pthtyp pth)
+	{
+		// tinting happens only to hightile textures, and only if the
+		// texture we're
+		// rendering isn't for the same palette as what we asked for
+		
+		if ((hictinting[globalpal].f & 4) == 0) {
+			if (pth != null && pth.isHighTile()) {
+				if (pth.hicr.palnum != globalpal) {
+					// apply tinting for replaced textures
+					polyColor.r *= (float) (hictinting[globalpal].r / 255);
+					polyColor.g *= (float) (hictinting[globalpal].g / 255);
+					polyColor.b *= (float) (hictinting[globalpal].b / 255);
+				}
+				if (hictinting[MAXPALOOKUPS - 1].r != 255
+						|| hictinting[MAXPALOOKUPS - 1].g != 255
+						|| hictinting[MAXPALOOKUPS - 1].b != 255) {
+					polyColor.r *= (float) (hictinting[MAXPALOOKUPS - 1].r / 255);
+					polyColor.g *= (float) (hictinting[MAXPALOOKUPS - 1].g / 255);
+					polyColor.b *= (float) (hictinting[MAXPALOOKUPS - 1].b / 255);
+				}
+			}
+			// hack: this is for drawing the 8-bit crosshair recolored in polymost
+			else if ((hictinting[globalpal].f & 8) != 0) {
+				polyColor.r *= (float) (hictinting[globalpal].r / 255);
+				polyColor.g *= (float) (hictinting[globalpal].g / 255);
+				polyColor.b *= (float) (hictinting[globalpal].b / 255);
+			}
+		}
+	}
+	
 }
 
 class raster {

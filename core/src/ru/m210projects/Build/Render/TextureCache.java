@@ -132,7 +132,7 @@ public class TextureCache {
 		return loadHighTile(dapic, dapal, clamping, alpha, facen, hicr, pth, effect, false);
 	}
 
-	private static int calcSize(int size) {
+	public static int calcSize(int size) {
 		int nsize = 1;
 		if (GLInfo.texnpot == 0) {
 			for (; nsize < size; nsize *= 2)
