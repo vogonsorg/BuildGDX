@@ -6106,15 +6106,6 @@ public abstract class Polymost implements Renderer {
 			gl.glScalef(z * aspectFix / 65536.0f, z * aspectFix / 65536.0f, 0);
 			gl.glTranslatef(-xoff, -yoff, 0);
 			gl.glScalef(xsiz, ysiz, 0);
-
-			drot[0].px = 0;
-			drot[0].py = 0;
-			drot[1].px = 1;
-			drot[1].py = 0;
-			drot[2].px = 1;
-			drot[2].py = 1;
-			drot[3].px = 0;
-			drot[3].py = 1;
 		}
 
 		
