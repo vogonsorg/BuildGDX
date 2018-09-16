@@ -1008,4 +1008,9 @@ public class DeskGL10 extends GL10 {
 		else if (pixels instanceof ShortBuffer) 
 			GL11.glGetTexImage(target, level, format, type, (ShortBuffer)pixels);
 	}
+	
+	@Override
+	public void glClipPlanef(int plane, float a, float b, float c, float d) {
+		GL11.glClipPlane(plane, toPlaneBufferd(a,b,c,d));
+	}
 }

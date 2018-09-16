@@ -1,6 +1,7 @@
 package ru.m210projects.Build.Render.Types;
 
 import java.nio.Buffer;
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -11,6 +12,7 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	
 	private IntBuffer tempInt;
 	private FloatBuffer tempFloat;
+	private DoubleBuffer tempDouble;
 	
 	public static final int GL_VERTEX_ARRAY = 32884;
 	public static final int GL_NORMAL_ARRAY = 32885;
@@ -60,9 +62,35 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	public static final int GL_MODULATE = 8448;
 	public static final int GL_RGB_SCALE = 34163;
 	
+	public static final int GL_CLIP_PLANE0 = 12288;
+	public static final int GL_MAX_CLIP_PLANES = 3378;
+	
 	public GL10() {
 		tempInt = BufferUtils.newIntBuffer(8);
 		tempFloat = BufferUtils.newFloatBuffer(8);
+		tempDouble = BufferUtils.newDoubleBuffer(4);
+	}
+	
+	protected DoubleBuffer toPlaneBufferd(double a, double b, double c, double d)
+	{
+		tempDouble.clear();
+		tempDouble.put(a);
+		tempDouble.put(b);
+		tempDouble.put(c);
+		tempDouble.put(d);
+		tempDouble.flip();
+		return tempDouble;
+	}
+	
+	protected FloatBuffer toPlaneBufferf(float a, float b, float c, float d)
+	{
+		tempFloat.clear();
+		tempFloat.put(a);
+		tempFloat.put(b);
+		tempFloat.put(c);
+		tempFloat.put(d);
+		tempFloat.flip();
+		return tempFloat;
 	}
 	
 	protected IntBuffer toBuffer (int[] src, int offset) {
@@ -96,6 +124,8 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 		tempFloat.flip();
 		return tempFloat;
 	}
+	
+	public abstract void glClipPlanef(int plane, float a, float b, float c, float d);
 	
 	public abstract void glGetTexImage(int target, int level, int format, int type, Buffer pixels);
 	

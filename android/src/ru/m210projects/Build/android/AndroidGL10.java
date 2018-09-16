@@ -1153,4 +1153,9 @@ public class AndroidGL10 extends GL10 {
 		
 	}
 
+	@Override
+	public void glClipPlanef(int plane, float a, float b, float c, float d) {
+		GLES11.glClipPlanef(plane, toPlaneBufferf(a,b,c,d));
+	}
+
 }

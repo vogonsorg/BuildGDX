@@ -5792,7 +5792,7 @@ public abstract class Polymost implements Renderer {
 			dorotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2, guniqhudid);
 	}
 	
-	public static boolean usenewcode = true;
+	public static boolean usenewcode;
 	private static final FloatBuffer vertices = BufferUtils.newFloatBuffer(8);
 	private static final FloatBuffer textures = BufferUtils.newFloatBuffer(8);
 	static {
@@ -5807,11 +5807,10 @@ public abstract class Polymost implements Renderer {
 			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
 			int cy2, int uniqid) {
 		
+		usenewcode = true;
 		int xoff = 0, yoff = 0, xsiz, ysiz, method;
 		int ogpicnum, ogshade, ogpal;
-		float d, cosang, sinang, cosang2, sinang2;
 
-		
 		int ourxyaspect = xyaspect;
 	
 		if (usemodels && hudmem != null && hudmem[(dastat&4)>>2][picnum].angadd != 0)
@@ -5829,7 +5828,8 @@ public abstract class Polymost implements Renderer {
 	            if ((hudmem[(dastat&4)>>2][picnum].flags&1) != 0) return; //"HIDE" is specified in DEF
 
 	            float ogchang = gchang; gchang = 1.0f;
-	            float ogshang = gshang; gshang = 0.0f; d = z/(65536.0f*16384.0f);
+	            float ogshang = gshang; gshang = 0.0f; 
+	            float d = z/(65536.0f*16384.0f);
 	            float ogctang = gctang; gctang = (float)sintable[(a+512)&2047]*d;
 	            float ogstang = gstang; gstang = (float)sintable[a&2047]*d;
 	            ogshade  = (int) globalshade;  globalshade  = dashade;
@@ -5853,8 +5853,9 @@ public abstract class Polymost implements Renderer {
 	        			yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
 
 	                    d = z/(65536.0f*16384.0f);
-	                    cosang2 = cosang = (float)sintable[(a+512)&2047]*d;
-	                    sinang2 = sinang = (float)sintable[a&2047]*d;
+	                    float cosang, sinang;
+	                    float cosang2 = cosang = (float)sintable[(a+512)&2047]*d;
+	                    float sinang2 = sinang = (float)sintable[a&2047]*d;
 	                    if ((dastat&2) != 0 || ((dastat&8) == 0)) //Don't aspect unscaled perms
 	                        { d = (float)xyaspect/65536.0f; cosang2 *= d; sinang2 *= d; }
 	                    fx += -(double)xoff*cosang2+ (double)yoff*sinang2;
@@ -5949,7 +5950,6 @@ public abstract class Polymost implements Renderer {
 		globalpal = (int) (dapalnum & 0xFF);
 
 		gl.glViewport(0, 0, xdim, ydim);
-		glox1 = -1; // Force fullscreen (glox1=-1 forces it to restore)
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
@@ -5957,7 +5957,7 @@ public abstract class Polymost implements Renderer {
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
-
+		
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDisable(GL_ALPHA_TEST);
 		gl.glEnable(GL_TEXTURE_2D);
@@ -6053,12 +6053,11 @@ public abstract class Polymost implements Renderer {
 			z = mulscale(z, zoomsc, 16);
 		}
 
-		//clippoly doesn't work
-		usenewcode = true;
 		if(!usenewcode) {
-			d = z / (65536.0f * 16384.0f);
-			cosang2 = cosang = sintable[(a + 512) & 2047] * d;
-			sinang2 = sinang = sintable[a & 2047] * d;
+			double d = z / (65536.0f * 16384.0f);
+			double cosang, sinang;
+			double cosang2 = cosang = sintable[(a + 512) & 2047] * d;
+			double sinang2 = sinang = sintable[a & 2047] * d;
 			if (((dastat & 2) != 0) || ((dastat & 8) == 0)) // Don't aspect unscaled perms
 			{
 				d = ourxyaspect / 65536.0f;
@@ -6096,8 +6095,19 @@ public abstract class Polymost implements Renderer {
 				gvo = ysiz - .0001f - drot[0].px * gvx - drot[0].py * gvy;
 			}
 		} else {
+			
+			gl.glEnable(GL_CLIP_PLANE0);
+			gl.glClipPlanef(GL_CLIP_PLANE0, 1, 0, 0, -cx1);
+			gl.glEnable(GL_CLIP_PLANE0 + 1);
+			gl.glClipPlanef(GL_CLIP_PLANE0 + 1, -1, 0, 0, cx2);
+			
+			gl.glEnable(GL_CLIP_PLANE0 + 2);
+			gl.glClipPlanef(GL_CLIP_PLANE0 + 2, 0, 1, 0, -cy1);
+			gl.glEnable(GL_CLIP_PLANE0 + 3);
+			gl.glClipPlanef(GL_CLIP_PLANE0 + 3, 0, -1, 0, cy2);
+				
 			float aspectFix = ((dastat & 2) != 0) || ((dastat & 8) == 0) ? ourxyaspect / 65536.0f : 1.0f;
-	
+
 			float cx = sx / 65536.0f;
 			float cy = sy / 65536.0f;
 			gl.glTranslatef(cx, cy, 0);
@@ -6110,83 +6120,80 @@ public abstract class Polymost implements Renderer {
 
 		
 		if(!usenewcode) {
+			double d, fx, x1, x2;
 			cx2++;
 			cy2++;
 	
 			// Clippoly4 (converted from int to double)
-			int nn = z = 0;
+			int nn = z = 0, zz;
 			do {
-				float fx, x1, x2;
-				int zz = z + 1;
-				if (zz == 4)
-					zz = 0;
-				x1 = (float) drot[z].px;
-				x2 = (float) (drot[zz].px - x1);
+				zz = z + 1;
+				if (zz == 4) zz = 0;
+				x1 = drot[z].px;
+				x2 = drot[zz].px - x1;
 				if ((cx1 <= x1) && (x1 <= cx2)) {
 					drot[nn].px2 = x1;
 					drot[nn].py2 = drot[z].py;
 					nn++;
 				}
+				
 				if (x2 <= 0)
 					fx = cx2;
-				else
-					fx = cx1;
+				else fx = cx1;
+				
 				d = fx - x1;
 				if ((d < x2) != (d < 0)) {
 					drot[nn].px2 = fx;
-					drot[nn].py2 = (drot[zz].py - drot[z].py)
-							* d / x2 + drot[z].py;
+					drot[nn].py2 = (drot[zz].py - drot[z].py) * d / x2 + drot[z].py;
 					nn++;
 				}
+				
 				if (x2 <= 0)
 					fx = cx1;
-				else
-					fx = cx2;
+				else fx = cx2;
+				
 				d = fx - x1;
 				if ((d < x2) != (d < 0)) {
 					drot[nn].px2 = fx;
-					drot[nn].py2 = (drot[zz].py - drot[z].py)
-							* d / x2 + drot[z].py;
+					drot[nn].py2 = (drot[zz].py - drot[z].py) * d / x2 + drot[z].py;
 					nn++;
 				}
 				z = zz;
 			} while (z != 0);
 	
 			if (nn >= 3) {
-	
+				double fy, y1, y2;
 				int n = z = 0;
 				do {
-					float fy, y1, y2;
-					int zz = z + 1;
-					if (zz == nn)
-						zz = 0;
-					y1 = (float) drot[z].py2;
-					y2 = (float) (drot[zz].py2 - y1);
+					zz = z + 1;
+					if (zz == nn) zz = 0;
+					y1 = drot[z].py2;
+					y2 = drot[zz].py2 - y1;
 					if ((cy1 <= y1) && (y1 <= cy2)) {
 						drot[n].py = y1;
 						drot[n].px = drot[z].px2;
 						n++;
 					}
+					
 					if (y2 <= 0)
 						fy = cy2;
-					else
-						fy = cy1;
+					else fy = cy1;
+					
 					d = fy - y1;
 					if ((d < y2) != (d < 0)) {
 						drot[n].py = fy;
-						drot[n].px = (drot[zz].px2 - drot[z].px2)
-								* d / y2 + drot[z].px2;
+						drot[n].px = (drot[zz].px2 - drot[z].px2) * d / y2 + drot[z].px2;
 						n++;
 					}
+					
 					if (y2 <= 0)
 						fy = cy1;
-					else
-						fy = cy2;
+					else fy = cy2;
+					
 					d = fy - y1;
 					if ((d < y2) != (d < 0)) {
 						drot[n].py = fy;
-						drot[n].px = (drot[zz].px2 - drot[z].px2)
-								* d / y2 + drot[z].px2;
+						drot[n].px = (drot[zz].px2 - drot[z].px2) * d / y2 + drot[z].px2;
 						n++;
 					}
 					z = zz;
@@ -6200,6 +6207,11 @@ public abstract class Polymost implements Renderer {
 			gl.glDisable(GL_FOG);
 			drawrotate(drot, 4, method, dastat);
 			EnableFog();
+			
+			gl.glDisable(GL_CLIP_PLANE0);
+			gl.glDisable(GL_CLIP_PLANE0 + 1);
+			gl.glDisable(GL_CLIP_PLANE0 + 2);
+			gl.glDisable(GL_CLIP_PLANE0 + 3);
 		}
 
 		gl.glMatrixMode(GL_PROJECTION);
@@ -6313,19 +6325,19 @@ public abstract class Polymost implements Renderer {
 		}
 		
 		
-//		gl.glDisable(GL_TEXTURE_2D);
-//		int[] p = new int[2];
-//		gl.glColor4f(1, 1, 1, 1);
-//		gl.glBegin(GL_LINES); 
-//		for (int i = 1; i <= n; i++) { 
-//			p[0] = i-1; p[1] = i;
-//			if(i == n) { p[0] = i - 1; p[1] = 0; }
-//			for(int l = 0; l < 2; l++) {
-//				gl.glVertex2d(dm[p[l]].px, dm[p[l]].py);
-//			}
-//		} 
-//		gl.glEnd(); 
-//		gl.glEnable(GL_TEXTURE_2D);
+		gl.glDisable(GL_TEXTURE_2D);
+		int[] p = new int[2];
+		gl.glColor4f(1, 1, 1, 1);
+		gl.glBegin(GL_LINES); 
+		for (int i = 1; i <= n; i++) { 
+			p[0] = i-1; p[1] = i;
+			if(i == n) { p[0] = i - 1; p[1] = 0; }
+			for(int l = 0; l < 2; l++) {
+				gl.glVertex2d(dm[p[l]].px, dm[p[l]].py);
+			}
+		} 
+		gl.glEnd(); 
+		gl.glEnable(GL_TEXTURE_2D);
 		
 		gl.glPopMatrix();
 	}
