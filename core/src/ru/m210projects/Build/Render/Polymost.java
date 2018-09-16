@@ -5295,10 +5295,15 @@ public abstract class Polymost implements Renderer {
 	
 	//2d drawing
 	
+	private final FloatBuffer vertices = BufferUtils.newFloatBuffer(8);
+	private final FloatBuffer textures = BufferUtils.newFloatBuffer(8);
+
 	private void init2drender()
 	{
-		for(int i = 0; i < 8; i++)
-			drot[i] = new TSurface();
+		vertices.put(new float[] { 0, 0, 1, 0, 1, 1, 0, 1 });
+		textures.put(new float[] { 0, 0, 1 - 0.0001f, 0, 1 - 0.0001f, 1 - 0.0001f, 0, 1 - 0.0001f });
+		vertices.rewind();
+		textures.rewind();
 		
 		if (polymosttext == null) {
 			// construct a 256x128 8-bit alpha-only texture for the font glyph
@@ -5362,8 +5367,7 @@ public abstract class Polymost implements Renderer {
 	private int allocpoints = 0, slist[], npoint2[];
 	private raster[] rst;
 	private final float[] trapextx = new float[2];
-	
-	private final TSurface drot[] = new TSurface[8];
+		
 	private final SPRITE hudsprite = new SPRITE();
 	
 //	private final int ROTATESPRITE_MAX = 2048;
@@ -5792,162 +5796,27 @@ public abstract class Polymost implements Renderer {
 			dorotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2, guniqhudid);
 	}
 	
-	public static boolean usenewcode;
-	private static final FloatBuffer vertices = BufferUtils.newFloatBuffer(8);
-	private static final FloatBuffer textures = BufferUtils.newFloatBuffer(8);
-	static {
-		vertices.put(new float[] { 0, 0, 1, 0, 1, 1, 0, 1 });
-		textures.put(new float[] { 0, 0, 1 - 0.0001f, 0, 1 - 0.0001f, 1 - 0.0001f, 0, 1 - 0.0001f });
-		vertices.rewind();
-		textures.rewind();
-	}
-
-	
-	public void dorotatesprite(int sx, int sy, int z, int a, int picnum,
+	protected void dorotatesprite(int sx, int sy, int z, int a, int picnum,
 			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
 			int cy2, int uniqid) {
-		
-		usenewcode = true;
-		int xoff = 0, yoff = 0, xsiz, ysiz, method;
-		int ogpicnum, ogshade, ogpal;
 
 		int ourxyaspect = xyaspect;
-	
 		if (usemodels && hudmem != null && hudmem[(dastat&4)>>2][picnum].angadd != 0)
 	    {
 	        int tilenum = Ptile2tile(picnum,dapalnum);
-
-	        if (tile2model[tilenum].modelid >= 0 &&
-	            tile2model[tilenum].framenum >= 0)
+	        if (tile2model[tilenum].modelid >= 0 && tile2model[tilenum].framenum >= 0)
 	        {
-	            int oldviewingrange;
-	            float ogxyaspect;
-	            float x1, y1, z1;
-	            hudsprite.reset((byte)0);
-
-	            if ((hudmem[(dastat&4)>>2][picnum].flags&1) != 0) return; //"HIDE" is specified in DEF
-
-	            float ogchang = gchang; gchang = 1.0f;
-	            float ogshang = gshang; gshang = 0.0f; 
-	            float d = z/(65536.0f*16384.0f);
-	            float ogctang = gctang; gctang = (float)sintable[(a+512)&2047]*d;
-	            float ogstang = gstang; gstang = (float)sintable[a&2047]*d;
-	            ogshade  = (int) globalshade;  globalshade  = dashade;
-	            ogpal    = globalpal;    globalpal = dapalnum;
-	            ogxyaspect = gxyaspect; gxyaspect = 1.0f;
-	            oldviewingrange = viewingrange; viewingrange = 65536;
-
-	            x1 = hudmem[(dastat&4)>>2][picnum].xadd;
-	            y1 = hudmem[(dastat&4)>>2][picnum].yadd;
-	            z1 = hudmem[(dastat&4)>>2][picnum].zadd;
-
-	            if ((hudmem[(dastat&4)>>2][picnum].flags&2) == 0) //"NOBOB" is specified in DEF
-	            {
-	            	float fx = (sx)*(1.0f/65536.0f);
-	            	float fy = (sy)*(1.0f/65536.0f);
-
-	                if ((dastat&16) != 0)
-	                {
-	                    xsiz = tilesizx[picnum]; ysiz = tilesizy[picnum];
-	                    xoff = (int) ((byte) ((picanm[picnum] >> 8) & 255)) + (xsiz >> 1);
-	        			yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
-
-	                    d = z/(65536.0f*16384.0f);
-	                    float cosang, sinang;
-	                    float cosang2 = cosang = (float)sintable[(a+512)&2047]*d;
-	                    float sinang2 = sinang = (float)sintable[a&2047]*d;
-	                    if ((dastat&2) != 0 || ((dastat&8) == 0)) //Don't aspect unscaled perms
-	                        { d = (float)xyaspect/65536.0f; cosang2 *= d; sinang2 *= d; }
-	                    fx += -(double)xoff*cosang2+ (double)yoff*sinang2;
-	                    fy += -(double)xoff*sinang - (double)yoff*cosang;
-	                }
-
-	                if ((dastat&2) == 0)
-	                {
-	                    x1 += fx/((double)(xdim<<15))-1.0; //-1: left of screen, +1: right of screen
-	                    y1 += fy/((double)(ydim<<15))-1.0; //-1: top of screen, +1: bottom of screen
-	                }
-	                else
-	                {
-	                    x1 += fx/160.0-1.0; //-1: left of screen, +1: right of screen
-	                    y1 += fy/100.0-1.0; //-1: top of screen, +1: bottom of screen
-	                }
-	            }
-	            hudsprite.ang = (short) (hudmem[(dastat&4)>>2][picnum].angadd+globalang);
-
-	            if ((dastat&4) != 0) { x1 = -x1; y1 = -y1; }
-
-                hudsprite.xrepeat = hudsprite.yrepeat = 32;
-
-                hudsprite.x = (int)(((double)gcosang*z1 - (double)gsinang*x1)*16384.0 + globalposx);
-                hudsprite.y = (int)(((double)gsinang*z1 + (double)gcosang*x1)*16384.0 + globalposy);
-                hudsprite.z = (int)(globalposz + y1*16384.0*0.8);
-	            
-
-	            hudsprite.picnum = (short) picnum;
-	            hudsprite.shade = (byte) dashade;
-	            hudsprite.pal = (short) dapalnum;
-	            hudsprite.owner = (short) (uniqid+MAXSPRITES);
-	            globalorientation = (dastat&1)+((dastat&32)<<4)+((dastat&4)<<1);
-	            hudsprite.cstat = (short) globalorientation;
-
-	            if ((dastat&10) == 2)
-	                gl.glViewport(windowx1,ydim-(windowy2+1),windowx2-windowx1+1,windowy2-windowy1+1);
-	            else
-	            {
-	                gl.glViewport(0,0,xdim,ydim);
-	                glox1 = -1; //Force fullscreen (glox1=-1 forces it to restore)
-	            }
-
-	           
-                gl.glMatrixMode(GL_PROJECTION);
-              
-                if ((dastat&10) == 2)
-                {
-                    float ratioratio = (float)xdim/ydim;
-                    matrix[0][0] = (float)ydimen*(ratioratio >= 1.6f?1.2f:1); matrix[0][2] = 1.0f;
-                    matrix[1][1] = (float)xdimen; matrix[1][2] = 1.0f;
-                    matrix[2][2] = 1.0f; matrix[2][3] = (float)ydimen*(ratioratio >= 1.6f?1.2f:1);
-                    matrix[3][2] = -1.0f;
-                }
-                else { matrix[0][0] = matrix[2][3] = 1.0f; matrix[1][1] = ((float)xdim)/((float)ydim); matrix[2][2] = 1.0001f; matrix[3][2] = 1-matrix[2][2]; }
-                gl.glLoadMatrixf(matrix);
-                gl.glMatrixMode(GL_MODELVIEW);
-                gl.glLoadIdentity();
-	            
-
-	            if ((hudmem[(dastat&4)>>2][picnum].flags&8) != 0) //NODEPTH flag
-	                gl.glDisable(GL_DEPTH_TEST);
-	            else
-	            {
-	                gl.glEnable(GL_DEPTH_TEST);
-	                gl.glClear(GL_DEPTH_BUFFER_BIT);
-	            }
-
-	            gl.glDisable(GL_FOG);
-	            mddraw(hudsprite, 0, 0);
-
-	            EnableFog();
-
-	            viewingrange = oldviewingrange;
-	            gxyaspect = ogxyaspect;
-	            globalshade  = ogshade;
-	            globalpal    = ogpal;
-	            gchang = ogchang;
-	            gshang = ogshang;
-	            gctang = ogctang;
-	            gstang = ogstang;
-
+	        	dorotatesprite3d(sx,sy,z,a,picnum,dashade,dapalnum,dastat,cx1,cy1,cx2,cy2,uniqid);
 	            return;
 	        }
 	    }
 		
-		ogpicnum = globalpicnum;
+		short ogpicnum = globalpicnum;
 		globalpicnum = (short) picnum;
-		ogshade = (int) globalshade;
+		int ogshade = globalshade;
 		globalshade = dashade;
-		ogpal = globalpal;
-		globalpal = (int) (dapalnum & 0xFF);
+		int ogpal = globalpal;
+		globalpal = dapalnum & 0xFF;
 
 		gl.glViewport(0, 0, xdim, ydim);
 		gl.glMatrixMode(GL_PROJECTION);
@@ -5962,7 +5831,7 @@ public abstract class Polymost implements Renderer {
 		gl.glDisable(GL_ALPHA_TEST);
 		gl.glEnable(GL_TEXTURE_2D);
 
-		method = 0;
+		int method = 0;
 		if ((dastat & 64) == 0) {
 			method = 1;
 			if ((dastat & 1) != 0) {
@@ -5976,9 +5845,10 @@ public abstract class Polymost implements Renderer {
 
 		method |= 4; // Use OpenGL clamping - dorotatesprite never repeats
 
-		xsiz = tilesizx[globalpicnum];
-		ysiz = tilesizy[globalpicnum];
+		int xsiz = tilesizx[globalpicnum];
+		int ysiz = tilesizy[globalpicnum];
 
+		int xoff = 0, yoff = 0;
 		if ((dastat & 16) == 0) {
 			xoff = (int) ((byte) ((picanm[globalpicnum] >> 8) & 255)) + (xsiz >> 1);
 			yoff = (int) ((byte) ((picanm[globalpicnum] >> 16) & 255)) + (ysiz >> 1);
@@ -5987,25 +5857,19 @@ public abstract class Polymost implements Renderer {
 		if ((dastat & 4) != 0)
 			yoff = ysiz - yoff;
 
-		int cx1_plus_cx2 = cx1 + cx2;
-		int cy1_plus_cy2 = cy1 + cy2;
-
 		if ((dastat & 2) == 0) {
-			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
+			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim)
 				ourxyaspect = (10 << 16) / 12;
-			}
 		} else {
 			// dastat&2: Auto window size scaling
-			int oxdim = xdim;
+			int oxdim = xdim, zoomsc;
 			int xdim = oxdim; // SHADOWS global
 
-			int zoomsc;
 			int ouryxaspect = yxaspect;
 			ourxyaspect = xyaspect;
 
 			// screen center to s[xy], 320<<16 coords.
 			int normxofs = sx - (320 << 15), normyofs = sy - (200 << 15);
-
 			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
 				xdim = (4 * ydim) / 3;
 
@@ -6015,24 +5879,20 @@ public abstract class Polymost implements Renderer {
 
 			// nasty hacks go here
 			if ((dastat & 8) == 0) {
-				int twice_midcx = cx1_plus_cx2 + 2;
+				int twice_midcx = (cx1 + cx2) + 2;
 
 				// screen x center to sx1, scaled to viewport
 				int scaledxofs = scale(normxofs, scale(xdimen, xdim, oxdim), 320);
-
 				int xbord = 0;
-
 				if ((dastat & (256 | 512)) != 0) {
 					xbord = scale(oxdim - xdim, twice_midcx, oxdim);
-
 					if ((dastat & 512) == 0)
 						xbord = -xbord;
 				}
 
 				sx = ((twice_midcx + xbord) << 15) + scaledxofs;
-
-				zoomsc = xdimenscale; // = scale(xdimen,yxaspect,320);
-				sy = (int) (((cy1_plus_cy2 + 2) << 15) + mulscale(normyofs, zoomsc, 16));
+				zoomsc = xdimenscale;
+				sy = (((cy1 + cy2) + 2) << 15) + mulscale(normyofs, zoomsc, 16);
 			} else {
 				// If not clipping to startmosts, & auto-scaling on, as a
 				// hard-coded bonus, scale to full screen instead
@@ -6053,185 +5913,47 @@ public abstract class Polymost implements Renderer {
 			z = mulscale(z, zoomsc, 16);
 		}
 
-		if(!usenewcode) {
-			double d = z / (65536.0f * 16384.0f);
-			double cosang, sinang;
-			double cosang2 = cosang = sintable[(a + 512) & 2047] * d;
-			double sinang2 = sinang = sintable[a & 2047] * d;
-			if (((dastat & 2) != 0) || ((dastat & 8) == 0)) // Don't aspect unscaled perms
-			{
-				d = ourxyaspect / 65536.0f;
-				cosang2 *= d;
-				sinang2 *= d;
-			}
-	
-			double cx = sx / 65536.0 - xoff * cosang2 + yoff * sinang2;
-			double cy = sy / 65536.0 - xoff * sinang  - yoff * cosang;
-	
-			drot[0].px = cx;
-			drot[0].py = cy;
-			drot[1].px = cx + xsiz * cosang2;
-			drot[1].py = cy + xsiz * sinang;
-			drot[2].px = cx + xsiz * cosang2 - ysiz * sinang2;
-			drot[2].py = cy + xsiz * sinang + ysiz * cosang;
-			drot[3].px = cx - ysiz * sinang2;
-			drot[3].py = cy + ysiz * cosang;
-			
-			d = (float) (1.0 / (drot[0].px * (drot[1].py - drot[3].py) + drot[1].px
-					* (drot[3].py - drot[0].py) + drot[3].px
-					* (drot[0].py - drot[1].py)));
-	
-			gux = (drot[3].py - drot[0].py) * (xsiz - 0.0001f) * d;
-			guy = (drot[0].px - drot[3].px) * (xsiz - 0.0001f) * d;
-			guo = 0 - drot[0].px * gux - drot[0].py * guy;
-	
-			if ((dastat & 4) == 0) {
-				gvx = (drot[0].py - drot[1].py) * (ysiz - 0.0001f) * d;
-				gvy = (drot[1].px - drot[0].px) * (ysiz - 0.0001f) * d;
-				gvo = 0 - drot[0].px * gvx - drot[0].py * gvy;
-			} else {
-				gvx = (drot[1].py - drot[0].py) * (ysiz - 0.0001f) * d;
-				gvy = (drot[0].px - drot[1].px) * (ysiz - 0.0001f) * d;
-				gvo = ysiz - .0001f - drot[0].px * gvx - drot[0].py * gvy;
-			}
-		} else {
-			
-			gl.glEnable(GL_CLIP_PLANE0);
-			gl.glClipPlanef(GL_CLIP_PLANE0, 1, 0, 0, -cx1);
-			gl.glEnable(GL_CLIP_PLANE0 + 1);
-			gl.glClipPlanef(GL_CLIP_PLANE0 + 1, -1, 0, 0, cx2);
-			
-			gl.glEnable(GL_CLIP_PLANE0 + 2);
-			gl.glClipPlanef(GL_CLIP_PLANE0 + 2, 0, 1, 0, -cy1);
-			gl.glEnable(GL_CLIP_PLANE0 + 3);
-			gl.glClipPlanef(GL_CLIP_PLANE0 + 3, 0, -1, 0, cy2);
-				
-			float aspectFix = ((dastat & 2) != 0) || ((dastat & 8) == 0) ? ourxyaspect / 65536.0f : 1.0f;
-
-			float cx = sx / 65536.0f;
-			float cy = sy / 65536.0f;
-			gl.glTranslatef(cx, cy, 0);
-			gl.glScalef(1, 1 / aspectFix, 0);
-			gl.glRotatef(360.0f * a / 2048.0f, 0, 0, 1);
-			gl.glScalef(z * aspectFix / 65536.0f, z * aspectFix / 65536.0f, 0);
-			gl.glTranslatef(-xoff, -yoff, 0);
-			gl.glScalef(xsiz, ysiz, 0);
-		}
-
+		gl.glEnable(GL_CLIP_PLANE0);
+		gl.glClipPlanef(GL_CLIP_PLANE0, 1, 0, 0, -cx1);
+		gl.glEnable(GL_CLIP_PLANE0 + 1);
+		gl.glClipPlanef(GL_CLIP_PLANE0 + 1, -1, 0, 0, cx2);
 		
-		if(!usenewcode) {
-			double d, fx, x1, x2;
-			cx2++;
-			cy2++;
-	
-			// Clippoly4 (converted from int to double)
-			int nn = z = 0, zz;
-			do {
-				zz = z + 1;
-				if (zz == 4) zz = 0;
-				x1 = drot[z].px;
-				x2 = drot[zz].px - x1;
-				if ((cx1 <= x1) && (x1 <= cx2)) {
-					drot[nn].px2 = x1;
-					drot[nn].py2 = drot[z].py;
-					nn++;
-				}
-				
-				if (x2 <= 0)
-					fx = cx2;
-				else fx = cx1;
-				
-				d = fx - x1;
-				if ((d < x2) != (d < 0)) {
-					drot[nn].px2 = fx;
-					drot[nn].py2 = (drot[zz].py - drot[z].py) * d / x2 + drot[z].py;
-					nn++;
-				}
-				
-				if (x2 <= 0)
-					fx = cx1;
-				else fx = cx2;
-				
-				d = fx - x1;
-				if ((d < x2) != (d < 0)) {
-					drot[nn].px2 = fx;
-					drot[nn].py2 = (drot[zz].py - drot[z].py) * d / x2 + drot[z].py;
-					nn++;
-				}
-				z = zz;
-			} while (z != 0);
-	
-			if (nn >= 3) {
-				double fy, y1, y2;
-				int n = z = 0;
-				do {
-					zz = z + 1;
-					if (zz == nn) zz = 0;
-					y1 = drot[z].py2;
-					y2 = drot[zz].py2 - y1;
-					if ((cy1 <= y1) && (y1 <= cy2)) {
-						drot[n].py = y1;
-						drot[n].px = drot[z].px2;
-						n++;
-					}
-					
-					if (y2 <= 0)
-						fy = cy2;
-					else fy = cy1;
-					
-					d = fy - y1;
-					if ((d < y2) != (d < 0)) {
-						drot[n].py = fy;
-						drot[n].px = (drot[zz].px2 - drot[z].px2) * d / y2 + drot[z].px2;
-						n++;
-					}
-					
-					if (y2 <= 0)
-						fy = cy1;
-					else fy = cy2;
-					
-					d = fy - y1;
-					if ((d < y2) != (d < 0)) {
-						drot[n].py = fy;
-						drot[n].px = (drot[zz].px2 - drot[z].px2) * d / y2 + drot[z].px2;
-						n++;
-					}
-					z = zz;
-				} while (z != 0);
-				
-				gl.glDisable(GL_FOG);
-				drawrotate(drot, n, method, dastat);
-				EnableFog();
-			} 
-		} else {
-			gl.glDisable(GL_FOG);
-			drawrotate(drot, 4, method, dastat);
-			EnableFog();
+		gl.glEnable(GL_CLIP_PLANE0 + 2);
+		gl.glClipPlanef(GL_CLIP_PLANE0 + 2, 0, 1, 0, -cy1);
+		gl.glEnable(GL_CLIP_PLANE0 + 3);
+		gl.glClipPlanef(GL_CLIP_PLANE0 + 3, 0, -1, 0, cy2);
 			
-			gl.glDisable(GL_CLIP_PLANE0);
-			gl.glDisable(GL_CLIP_PLANE0 + 1);
-			gl.glDisable(GL_CLIP_PLANE0 + 2);
-			gl.glDisable(GL_CLIP_PLANE0 + 3);
-		}
+		float aspectFix = ((dastat & 2) != 0) || ((dastat & 8) == 0) ? ourxyaspect / 65536.0f : 1.0f;
+		float cx = sx / 65536.0f;
+		float cy = sy / 65536.0f;
+		gl.glTranslatef(cx, cy, 0);
+		gl.glScalef(1, 1 / aspectFix, 0);
+		gl.glRotatef(360.0f * a / 2048.0f, 0, 0, 1);
+		gl.glScalef(z * aspectFix / 65536.0f, z * aspectFix / 65536.0f, 0);
+		gl.glTranslatef(-xoff, -yoff, 0);
+		gl.glScalef(xsiz, ysiz, 0);
 
+		gl.glDisable(GL_FOG);
+		drawrotate(method, dastat);
+		EnableFog();
+		
+		gl.glDisable(GL_CLIP_PLANE0);
+		gl.glDisable(GL_CLIP_PLANE0 + 1);
+		gl.glDisable(GL_CLIP_PLANE0 + 2);
+		gl.glDisable(GL_CLIP_PLANE0 + 3);
+		
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glPopMatrix();
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glPopMatrix();
 
-
-		globalpicnum = (short) ogpicnum;
+		globalpicnum = ogpicnum;
 		globalshade = ogshade;
 		globalpal = ogpal & 0xFF;
 	}
 	
-	
-	private void drawrotate(Surface[] dm, int n, int method, int dastat) {
-		
-		gl.glMatrixMode(GL_TEXTURE);
-		gl.glPushMatrix();
-		gl.glLoadIdentity();
-		
+	protected void drawrotate(int method, int dastat) {
+
 		if (globalpicnum >= MAXTILES)
 			globalpicnum = 0;
 		if (palookup[globalpal] == null)
@@ -6257,28 +5979,26 @@ public abstract class Polymost implements Renderer {
 
 		float hackscx = 1.0f, hackscy = 1.0f;
 		if (pth != null && pth.isHighTile()) {
-			if(!usenewcode) {
-				hackscx = pth.scalex;
-				hackscy = pth.scaley;
-			}
 			tsizx = pth.sizx;
 			tsizy = pth.sizy;
 		}
 
 		float ox2 = hackscx / calcSize(tsizx);
 		float oy2 = hackscy / calcSize(tsizy);
-		if(usenewcode) 
-			gl.glScalef(tsizx, tsizy, 1.0f);
+		
+		gl.glMatrixMode(GL_TEXTURE);
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+		gl.glScalef(tsizx, tsizy, 1.0f);
 		gl.glScalef(ox2, oy2, 1.0f);
+		
 		// texture scale by parkar request
  		if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f)))
 			gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
 		
-		if(usenewcode) {
-			if((dastat & 4) != 0) {
-				gl.glScalef(1, -1, 1.0f);
-				gl.glTranslatef(0, -1, 0);
-			}
+		if((dastat & 4) != 0) {
+			gl.glScalef(1, -1, 1.0f);
+			gl.glTranslatef(0, -1, 0);
 		}
 
 		if (((method & 3) == 0)) {
@@ -6291,58 +6011,25 @@ public abstract class Polymost implements Renderer {
 
 		polyColor.r = polyColor.g = polyColor.b = getshadefactor(globalshade); 
 		switch (method & 3) {
-		default:
-		case 0:
-		case 1:
-			polyColor.a = 1.0f;
-			break;
-		case 2:
-			polyColor.a = TRANSLUSCENT1;
-			break;
-		case 3:
-			polyColor.a = TRANSLUSCENT2;
-			break;
+			default:
+			case 0: case 1: polyColor.a = 1.0f; break;
+			case 2: polyColor.a = TRANSLUSCENT1; break;
+			case 3: polyColor.a = TRANSLUSCENT2; break;
 		}
 		calcHictintingColor(pth);
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
-		if(!usenewcode) {
-			gl.glBegin(GL_TRIANGLE_FAN);
-			double u, v;
-			for (int i = 0; i < n; i++) {
-				u = dm[i].px*gux + dm[i].py*guy + guo;
-		        v = dm[i].px*gvx + dm[i].py*gvy + gvo;
-	        	gl.glTexCoord2d(u, v);
-				gl.glVertex2d(dm[i].px, dm[i].py);
-			}
-			gl.glEnd();
-		} else {
-			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
-			gl.glEnableClientState(GL_VERTEX_ARRAY);
-			gl.glVertexPointer(2, GL_FLOAT, 0, vertices);
-			gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
-		
-		
-		gl.glDisable(GL_TEXTURE_2D);
-		int[] p = new int[2];
-		gl.glColor4f(1, 1, 1, 1);
-		gl.glBegin(GL_LINES); 
-		for (int i = 1; i <= n; i++) { 
-			p[0] = i-1; p[1] = i;
-			if(i == n) { p[0] = i - 1; p[1] = 0; }
-			for(int l = 0; l < 2; l++) {
-				gl.glVertex2d(dm[p[l]].px, dm[p[l]].py);
-			}
-		} 
-		gl.glEnd(); 
-		gl.glEnable(GL_TEXTURE_2D);
-		
+		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
+		gl.glEnableClientState(GL_VERTEX_ARRAY);
+		gl.glVertexPointer(2, GL_FLOAT, 0, vertices);
+		gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+		gl.glMatrixMode(GL_TEXTURE);
 		gl.glPopMatrix();
 	}
 
-	public void calcHictintingColor(Pthtyp pth)
+	protected void calcHictintingColor(Pthtyp pth)
 	{
 		// tinting happens only to hightile textures, and only if the
 		// texture we're
@@ -6373,6 +6060,131 @@ public abstract class Polymost implements Renderer {
 		}
 	}
 	
+	protected void dorotatesprite3d(int sx, int sy, int z, int a, int picnum,
+			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
+			int cy2, int uniqid)
+	{
+		int xoff = 0, yoff = 0, xsiz, ysiz;
+		int ogshade, ogpal;
+
+		int oldviewingrange;
+        float ogxyaspect;
+        float x1, y1, z1;
+        hudsprite.reset((byte)0);
+
+        if ((hudmem[(dastat&4)>>2][picnum].flags&1) != 0) return; //"HIDE" is specified in DEF
+
+        float ogchang = gchang; gchang = 1.0f;
+        float ogshang = gshang; gshang = 0.0f; 
+        float d = z/(65536.0f*16384.0f);
+        float ogctang = gctang; gctang = (float)sintable[(a+512)&2047]*d;
+        float ogstang = gstang; gstang = (float)sintable[a&2047]*d;
+        ogshade  = (int) globalshade;  globalshade  = dashade;
+        ogpal    = globalpal;    globalpal = dapalnum;
+        ogxyaspect = gxyaspect; gxyaspect = 1.0f;
+        oldviewingrange = viewingrange; viewingrange = 65536;
+
+        x1 = hudmem[(dastat&4)>>2][picnum].xadd;
+        y1 = hudmem[(dastat&4)>>2][picnum].yadd;
+        z1 = hudmem[(dastat&4)>>2][picnum].zadd;
+
+        if ((hudmem[(dastat&4)>>2][picnum].flags&2) == 0) //"NOBOB" is specified in DEF
+        {
+        	float fx = (sx)*(1.0f/65536.0f);
+        	float fy = (sy)*(1.0f/65536.0f);
+
+            if ((dastat&16) != 0)
+            {
+                xsiz = tilesizx[picnum]; ysiz = tilesizy[picnum];
+                xoff = (int) ((byte) ((picanm[picnum] >> 8) & 255)) + (xsiz >> 1);
+    			yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
+
+                d = z/(65536.0f*16384.0f);
+                float cosang, sinang;
+                float cosang2 = cosang = (float)sintable[(a+512)&2047]*d;
+                float sinang2 = sinang = (float)sintable[a&2047]*d;
+                if ((dastat&2) != 0 || ((dastat&8) == 0)) //Don't aspect unscaled perms
+                    { d = (float)xyaspect/65536.0f; cosang2 *= d; sinang2 *= d; }
+                fx += -(double)xoff*cosang2+ (double)yoff*sinang2;
+                fy += -(double)xoff*sinang - (double)yoff*cosang;
+            }
+
+            if ((dastat&2) == 0)
+            {
+                x1 += fx/((double)(xdim<<15))-1.0; //-1: left of screen, +1: right of screen
+                y1 += fy/((double)(ydim<<15))-1.0; //-1: top of screen, +1: bottom of screen
+            }
+            else
+            {
+                x1 += fx/160.0-1.0; //-1: left of screen, +1: right of screen
+                y1 += fy/100.0-1.0; //-1: top of screen, +1: bottom of screen
+            }
+        }
+        hudsprite.ang = (short) (hudmem[(dastat&4)>>2][picnum].angadd+globalang);
+
+        if ((dastat&4) != 0) { x1 = -x1; y1 = -y1; }
+
+        hudsprite.xrepeat = hudsprite.yrepeat = 32;
+
+        hudsprite.x = (int)(((double)gcosang*z1 - (double)gsinang*x1)*16384.0 + globalposx);
+        hudsprite.y = (int)(((double)gsinang*z1 + (double)gcosang*x1)*16384.0 + globalposy);
+        hudsprite.z = (int)(globalposz + y1*16384.0*0.8);
+        
+
+        hudsprite.picnum = (short) picnum;
+        hudsprite.shade = (byte) dashade;
+        hudsprite.pal = (short) dapalnum;
+        hudsprite.owner = (short) (uniqid+MAXSPRITES);
+        globalorientation = (dastat&1)+((dastat&32)<<4)+((dastat&4)<<1);
+        hudsprite.cstat = (short) globalorientation;
+
+        if ((dastat&10) == 2)
+            gl.glViewport(windowx1,ydim-(windowy2+1),windowx2-windowx1+1,windowy2-windowy1+1);
+        else
+        {
+            gl.glViewport(0,0,xdim,ydim);
+            glox1 = -1; //Force fullscreen (glox1=-1 forces it to restore)
+        }
+
+       
+        gl.glMatrixMode(GL_PROJECTION);
+      
+        if ((dastat&10) == 2)
+        {
+            float ratioratio = (float)xdim/ydim;
+            matrix[0][0] = (float)ydimen*(ratioratio >= 1.6f?1.2f:1); matrix[0][2] = 1.0f;
+            matrix[1][1] = (float)xdimen; matrix[1][2] = 1.0f;
+            matrix[2][2] = 1.0f; matrix[2][3] = (float)ydimen*(ratioratio >= 1.6f?1.2f:1);
+            matrix[3][2] = -1.0f;
+        }
+        else { matrix[0][0] = matrix[2][3] = 1.0f; matrix[1][1] = ((float)xdim)/((float)ydim); matrix[2][2] = 1.0001f; matrix[3][2] = 1-matrix[2][2]; }
+        gl.glLoadMatrixf(matrix);
+        gl.glMatrixMode(GL_MODELVIEW);
+        gl.glLoadIdentity();
+        
+
+        if ((hudmem[(dastat&4)>>2][picnum].flags&8) != 0) //NODEPTH flag
+            gl.glDisable(GL_DEPTH_TEST);
+        else
+        {
+            gl.glEnable(GL_DEPTH_TEST);
+            gl.glClear(GL_DEPTH_BUFFER_BIT);
+        }
+
+        gl.glDisable(GL_FOG);
+        mddraw(hudsprite, 0, 0);
+
+        EnableFog();
+
+        viewingrange = oldviewingrange;
+        gxyaspect = ogxyaspect;
+        globalshade  = ogshade;
+        globalpal    = ogpal;
+        gchang = ogchang;
+        gshang = ogshang;
+        gctang = ogctang;
+        gstang = ogstang;
+	}
 }
 
 class raster {
