@@ -5793,7 +5793,16 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	public static boolean usenewcode = true;
+	private static final FloatBuffer vertices = BufferUtils.newFloatBuffer(8);
+	private static final FloatBuffer textures = BufferUtils.newFloatBuffer(8);
+	static {
+		vertices.put(new float[] { 0, 0, 1, 0, 1, 1, 0, 1 });
+		textures.put(new float[] { 0, 0, 1 - 0.0001f, 0, 1 - 0.0001f, 1 - 0.0001f, 0, 1 - 0.0001f });
+		vertices.rewind();
+		textures.rewind();
+	}
 
+	
 	public void dorotatesprite(int sx, int sy, int z, int a, int picnum,
 			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
 			int cy2, int uniqid) {
@@ -5802,8 +5811,9 @@ public abstract class Polymost implements Renderer {
 		int ogpicnum, ogshade, ogpal;
 		float d, cosang, sinang, cosang2, sinang2;
 
-		int ourxyaspect = xyaspect;
 		
+		int ourxyaspect = xyaspect;
+	
 		if (usemodels && hudmem != null && hudmem[(dastat&4)>>2][picnum].angadd != 0)
 	    {
 	        int tilenum = Ptile2tile(picnum,dapalnum);
@@ -6107,90 +6117,97 @@ public abstract class Polymost implements Renderer {
 			drot[3].py = 1;
 		}
 
-		cx2++;
-		cy2++;
-
-		// Clippoly4 (converted from int to double)
-		int nn = z = 0;
-		do {
-			float fx, x1, x2;
-			int zz = z + 1;
-			if (zz == 4)
-				zz = 0;
-			x1 = (float) drot[z].px;
-			x2 = (float) (drot[zz].px - x1);
-			if ((cx1 <= x1) && (x1 <= cx2)) {
-				drot[nn].px2 = x1;
-				drot[nn].py2 = drot[z].py;
-				nn++;
-			}
-			if (x2 <= 0)
-				fx = cx2;
-			else
-				fx = cx1;
-			d = fx - x1;
-			if ((d < x2) != (d < 0)) {
-				drot[nn].px2 = fx;
-				drot[nn].py2 = (drot[zz].py - drot[z].py)
-						* d / x2 + drot[z].py;
-				nn++;
-			}
-			if (x2 <= 0)
-				fx = cx1;
-			else
-				fx = cx2;
-			d = fx - x1;
-			if ((d < x2) != (d < 0)) {
-				drot[nn].px2 = fx;
-				drot[nn].py2 = (drot[zz].py - drot[z].py)
-						* d / x2 + drot[z].py;
-				nn++;
-			}
-			z = zz;
-		} while (z != 0);
-
-		if (nn >= 3) {
-
-			int n = z = 0;
+		
+		if(!usenewcode) {
+			cx2++;
+			cy2++;
+	
+			// Clippoly4 (converted from int to double)
+			int nn = z = 0;
 			do {
-				float fy, y1, y2;
+				float fx, x1, x2;
 				int zz = z + 1;
-				if (zz == nn)
+				if (zz == 4)
 					zz = 0;
-				y1 = (float) drot[z].py2;
-				y2 = (float) (drot[zz].py2 - y1);
-				if ((cy1 <= y1) && (y1 <= cy2)) {
-					drot[n].py = y1;
-					drot[n].px = drot[z].px2;
-					n++;
+				x1 = (float) drot[z].px;
+				x2 = (float) (drot[zz].px - x1);
+				if ((cx1 <= x1) && (x1 <= cx2)) {
+					drot[nn].px2 = x1;
+					drot[nn].py2 = drot[z].py;
+					nn++;
 				}
-				if (y2 <= 0)
-					fy = cy2;
+				if (x2 <= 0)
+					fx = cx2;
 				else
-					fy = cy1;
-				d = fy - y1;
-				if ((d < y2) != (d < 0)) {
-					drot[n].py = fy;
-					drot[n].px = (drot[zz].px2 - drot[z].px2)
-							* d / y2 + drot[z].px2;
-					n++;
+					fx = cx1;
+				d = fx - x1;
+				if ((d < x2) != (d < 0)) {
+					drot[nn].px2 = fx;
+					drot[nn].py2 = (drot[zz].py - drot[z].py)
+							* d / x2 + drot[z].py;
+					nn++;
 				}
-				if (y2 <= 0)
-					fy = cy1;
+				if (x2 <= 0)
+					fx = cx1;
 				else
-					fy = cy2;
-				d = fy - y1;
-				if ((d < y2) != (d < 0)) {
-					drot[n].py = fy;
-					drot[n].px = (drot[zz].px2 - drot[z].px2)
-							* d / y2 + drot[z].px2;
-					n++;
+					fx = cx2;
+				d = fx - x1;
+				if ((d < x2) != (d < 0)) {
+					drot[nn].px2 = fx;
+					drot[nn].py2 = (drot[zz].py - drot[z].py)
+							* d / x2 + drot[z].py;
+					nn++;
 				}
 				z = zz;
 			} while (z != 0);
-			
+	
+			if (nn >= 3) {
+	
+				int n = z = 0;
+				do {
+					float fy, y1, y2;
+					int zz = z + 1;
+					if (zz == nn)
+						zz = 0;
+					y1 = (float) drot[z].py2;
+					y2 = (float) (drot[zz].py2 - y1);
+					if ((cy1 <= y1) && (y1 <= cy2)) {
+						drot[n].py = y1;
+						drot[n].px = drot[z].px2;
+						n++;
+					}
+					if (y2 <= 0)
+						fy = cy2;
+					else
+						fy = cy1;
+					d = fy - y1;
+					if ((d < y2) != (d < 0)) {
+						drot[n].py = fy;
+						drot[n].px = (drot[zz].px2 - drot[z].px2)
+								* d / y2 + drot[z].px2;
+						n++;
+					}
+					if (y2 <= 0)
+						fy = cy1;
+					else
+						fy = cy2;
+					d = fy - y1;
+					if ((d < y2) != (d < 0)) {
+						drot[n].py = fy;
+						drot[n].px = (drot[zz].px2 - drot[z].px2)
+								* d / y2 + drot[z].px2;
+						n++;
+					}
+					z = zz;
+				} while (z != 0);
+				
+				gl.glDisable(GL_FOG);
+				drawrotate(drot, n, method, dastat);
+				EnableFog();
+			} 
+		} else {
 			gl.glDisable(GL_FOG);
-			drawrotate(drot, n, method, dastat);
+			drawrotate(drot, 4, method, dastat);
 			EnableFog();
 		}
 
@@ -6232,22 +6249,26 @@ public abstract class Polymost implements Renderer {
 		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, clampingMode(method), alphaMode(method));
 		if(pth == null) //hires texture not found
 			return;
+
 		bindTexture(pth.glpic);
 
 		float hackscx = 1.0f, hackscy = 1.0f;
 		if (pth != null && pth.isHighTile()) {
-			hackscx = pth.scalex;
-			hackscy = pth.scaley;
+			if(!usenewcode) {
+				hackscx = pth.scalex;
+				hackscy = pth.scaley;
+			}
 			tsizx = pth.sizx;
 			tsizy = pth.sizy;
 		}
+
 		float ox2 = hackscx / calcSize(tsizx);
 		float oy2 = hackscy / calcSize(tsizy);
 		if(usenewcode) 
 			gl.glScalef(tsizx, tsizy, 1.0f);
 		gl.glScalef(ox2, oy2, 1.0f);
 		// texture scale by parkar request
-		if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f)))
+ 		if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f)))
 			gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
 		
 		if(usenewcode) {
@@ -6282,22 +6303,23 @@ public abstract class Polymost implements Renderer {
 		calcHictintingColor(pth);
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
-		gl.glBegin(GL_TRIANGLE_FAN);
-
-		double u, v;
-		for (int i = 0; i < n; i++) {
-			if(!usenewcode) {
+		if(!usenewcode) {
+			gl.glBegin(GL_TRIANGLE_FAN);
+			double u, v;
+			for (int i = 0; i < n; i++) {
 				u = dm[i].px*gux + dm[i].py*guy + guo;
-	        	v = dm[i].px*gvx + dm[i].py*gvy + gvo;
-			} else {
-				u = dm[i].px - 0.0001f;
-	        	v = dm[i].py - 0.0001f;
+		        v = dm[i].px*gvx + dm[i].py*gvy + gvo;
+	        	gl.glTexCoord2d(u, v);
+				gl.glVertex2d(dm[i].px, dm[i].py);
 			}
-        	
-        	gl.glTexCoord2d(u, v);
-			gl.glVertex2d(dm[i].px, dm[i].py);
+			gl.glEnd();
+		} else {
+			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
+			gl.glEnableClientState(GL_VERTEX_ARRAY);
+			gl.glVertexPointer(2, GL_FLOAT, 0, vertices);
+			gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
-		gl.glEnd();
 		
 		
 //		gl.glDisable(GL_TEXTURE_2D);
