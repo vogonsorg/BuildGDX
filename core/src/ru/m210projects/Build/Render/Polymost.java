@@ -27,6 +27,7 @@ import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -63,7 +64,87 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public abstract class Polymost implements Renderer {
+	
+	class GLSurfaceArray {
+		
+		private GLSurface[] items;
+		private int size;
+		
+		public GLSurfaceArray() {
+			items = new GLSurface[4];
+		}
+		
+		public GLSurface build()
+		{
+			if (size == items.length) items = resize(Math.max(8, (int)(size * 1.75f)));
+			if(items[size] == null)
+				items[size] = new GLSurface();
+			items[size].clear();
+			return items[size++];
+		}
+		
+		public GLSurface get (int index) {
+			if (index >= size) throw new IndexOutOfBoundsException("index can't be >= size: " + index + " >= " + size);
+			return items[index];
+		}
 
+		public void clear () {
+			size = 0;
+		}
+		
+		public boolean isEmpty () {
+			return size == 0;
+		}
+		
+		protected GLSurface[] resize (int newSize) {
+			GLSurface[] newItems = new GLSurface[newSize];
+			GLSurface[] items = this.items;
+			System.arraycopy(items, 0, newItems, 0, Math.min(size, newItems.length));
+			this.items = newItems;
+			return newItems;
+		}
+		
+		public GLSurface[] toArray () {
+			GLSurface[] array = new GLSurface[size];
+			System.arraycopy(items, 0, array, 0, size);
+			return array;
+		}
+	}
+	
+	class GLSurface {
+		public int type;
+		public int numvertices;
+		public Pthtyp pth;
+		public int picnum;
+
+		public FloatBuffer buffer;
+
+		public GLSurface()
+		{
+			int maxvertices = 64;
+			buffer = allocateBuffer( (2 + 4 + 3) * maxvertices );
+		}
+
+		public void clear() {
+			type = 0;
+			numvertices = 0;
+			picnum = 0;
+			pth = null;
+			buffer.clear();
+		}
+		
+		private FloatBuffer allocateBuffer( int numFloats )
+		{
+			ByteBuffer buffer = ByteBuffer.allocateDirect( numFloats * 4 );
+			buffer.order(ByteOrder.nativeOrder());
+			return buffer.asFloatBuffer();
+		}
+	}
+	
+	private GLSurfaceArray surfaces = new GLSurfaceArray();
+	private int surfaceType = 0;
+	
+	
 	protected short globalpicnum;
 	protected int globalorientation;
 	private int numscans, numbunches;
@@ -527,7 +608,7 @@ public abstract class Polymost implements Renderer {
 				method = 1; // Hack to update Z-buffer for invalid mirror textures
 			}
 		}
-
+	
 		j = 0; dorot = ((gchang != 1.0) || (gctang != 1.0));
 		if(dorot)
 		{
@@ -582,6 +663,13 @@ public abstract class Polymost implements Renderer {
 			return;
 
 		bindTexture(pth.glpic);
+		
+		GLSurface surf = null;
+		if(surfaceType == 1) { 
+			surf = surfaces.build();
+			surf.pth = pth;	
+			surf.picnum = globalpicnum;
+		}
 		
 		if (srepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -869,22 +957,49 @@ public abstract class Polymost implements Renderer {
 		} else {
 			ox2 *= hackscx;
 			oy2 *= hackscy;
-		
-			gl.glBegin(GL_TRIANGLE_FAN);
-			for (i = 0; i < n; i++) {
-				Polygon dpoly = drawpoly[i];
-				
-				r = 1.0f / dpoly.dd;
-				if (texunits > GL_TEXTURE0) {
-					j = GL_TEXTURE0;
-					while (j <= texunits)
-						gl.glMultiTexCoord2d(j++, dpoly.uu * r * ox2, dpoly.vv * r * oy2);
-				} else
-					gl.glTexCoord2d(dpoly.uu * r * ox2, dpoly.vv * r * oy2);
 
-				gl.glVertex3d((dpoly.px - ghalfx) * r * grhalfxdown10x, (ghoriz - dpoly.py) * r * grhalfxdown10, r * (1.f / 1024.f));
+			if(surfaceType == 0)
+			{
+				nofog = false;
+				gl.glBegin(GL_TRIANGLE_FAN);
+				for (i = 0; i < n; i++) {
+					Polygon dpoly = drawpoly[i];
+
+					r = 1.0f / dpoly.dd;
+					if (texunits > GL_TEXTURE0) {
+						j = GL_TEXTURE0;
+						while (j <= texunits)
+							gl.glMultiTexCoord2d(j++, dpoly.uu * r * ox2, dpoly.vv * r * oy2);
+					} else
+						gl.glTexCoord2d(dpoly.uu * r * ox2, dpoly.vv * r * oy2);
+
+					gl.glVertex3d((dpoly.px - ghalfx) * r * grhalfxdown10x, (ghoriz - dpoly.py) * r * grhalfxdown10, r * (1.f / 1024.f));
+				}
+				gl.glEnd();
+			} else {
+				nofog = true;
+				surf.numvertices = n;
+				for (i = 0; i < n; i++) {
+					Polygon dpoly = drawpoly[i];
+					r = 1.0f / dpoly.dd;
+					if(method != 1) {
+						surf.buffer.put((float) ((dpoly.px - ghalfx) * r * grhalfxdown10)); //x
+						surf.buffer.put((float) ((ghoriz - dpoly.py) * r * grhalfxdown10)); //y
+						surf.buffer.put((float) (r * (1.f / 1024.f))); //z
+
+						surf.buffer.put((float) (dpoly.uu * r * ox2));
+						surf.buffer.put((float) (dpoly.vv * r * oy2));
+						
+						surf.buffer.put(polyColor.r);
+						surf.buffer.put(polyColor.g);
+						surf.buffer.put(polyColor.b);
+						surf.buffer.put(polyColor.a);
+					}
+				}
+				surf.buffer.flip();
+				
 			}
-			gl.glEnd();
+
 			if(showlines) {
 				gl.glDisable(GL_TEXTURE_2D);
 				int[] p = new int[2];
@@ -2720,6 +2835,9 @@ public abstract class Polymost implements Renderer {
 
 		polymost_scansector(globalcursectnum);
 		
+		surfaceType = 0;
+//		surfaces.clear();
+		
 		grhalfxdown10x = grhalfxdown10;
 
 		if (inpreparemirror) {
@@ -2772,6 +2890,35 @@ public abstract class Polymost implements Renderer {
 			bunchfirst[closest] = bunchfirst[numbunches];
 			bunchlast[closest] = bunchlast[numbunches];
 		}
+		
+		
+		gl.glEnableClientState(GL_VERTEX_ARRAY);
+		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		gl.glEnableClientState(GL_COLOR_ARRAY);
+		
+		Pthtyp p = null;
+		for(i = 0; i < surfaces.size; i++)
+		{
+			GLSurface s = surfaces.get(i);
+			if(!s.buffer.hasRemaining()) continue;
+			
+			if(s.pth != p) 
+				bindTexture(s.pth.glpic);
+			p = s.pth;
+
+			gl.glVertexPointer(3, GL_FLOAT, 4 * 9, s.buffer);
+			s.buffer.position(3);
+			gl.glTexCoordPointer(2, GL_FLOAT, 4 * 9, s.buffer);
+			s.buffer.position(5);
+			gl.glColorPointer(4, GL_FLOAT, 4 * 9, s.buffer);
+			gl.glDrawArrays(GL_TRIANGLE_FAN, 0, s.numvertices);
+		}
+		
+		gl.glDisableClientState(GL_VERTEX_ARRAY);
+		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		gl.glDisableClientState(GL_COLOR_ARRAY);
+
+		surfaceType = 0;
 	}
 	
 	private final TSurface[] dmaskwall = new TSurface[8];
@@ -6017,13 +6164,19 @@ public abstract class Polymost implements Renderer {
 			case 3: polyColor.a = TRANSLUSCENT2; break;
 		}
 		calcHictintingColor(pth);
+		
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-
+	
 		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
 		gl.glEnableClientState(GL_VERTEX_ARRAY);
+		
+		gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
 		gl.glVertexPointer(2, GL_FLOAT, 0, vertices);
+		
 		gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		
+		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		gl.glDisableClientState(GL_VERTEX_ARRAY);
 
 		gl.glMatrixMode(GL_TEXTURE);
 		gl.glPopMatrix();
