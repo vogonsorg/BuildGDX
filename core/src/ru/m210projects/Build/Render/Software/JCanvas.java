@@ -52,4 +52,14 @@ public class JCanvas extends Canvas {
 		paletteModel = new IndexColorModel(1, 256, palette, 0, false);
 		display = new BufferedImage(paletteModel, display.getRaster(), false, null);
 	}
+	
+	public int getHeight()
+	{
+		return display.getHeight();
+	}
+	
+	public int getWidth()
+	{
+		return display.getWidth();
+	}
 }

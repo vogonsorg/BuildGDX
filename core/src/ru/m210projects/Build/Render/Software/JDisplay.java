@@ -17,6 +17,8 @@
 package ru.m210projects.Build.Render.Software;
 
 import java.awt.Dimension;
+import java.nio.ByteBuffer;
+
 import javax.swing.JFrame;
 
 public class JDisplay
@@ -35,7 +37,6 @@ public class JDisplay
 		m_frame = new JFrame();
 		m_frame.add(canvas);
 		m_frame.pack();
-		m_frame.setResizable(false);
 		m_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		m_frame.setLocationRelativeTo(null);
 		m_frame.setTitle(title);
@@ -53,5 +54,22 @@ public class JDisplay
 	public void setTitle(String title)
 	{
 		m_frame.setTitle(title);
+	}
+	
+	public void setUndecorated(boolean undecorated)
+	{
+		m_frame.setUndecorated(undecorated);
+	}
+	
+	public void setResizable(boolean resizable) {
+		m_frame.setResizable(false);
+	}
+
+	public void setLocation(int x, int y) {
+		m_frame.setLocation(x, y);
+	}
+
+	public void setIcon(ByteBuffer[] icons) {
+		
 	}
 }

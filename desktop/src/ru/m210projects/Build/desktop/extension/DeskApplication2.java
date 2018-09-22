@@ -1,6 +1,4 @@
 package ru.m210projects.Build.desktop.extension;
-
-
 import java.io.File;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
@@ -29,7 +27,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.SnapshotArray;
 
-public class DeskApplication implements Application {
+public class DeskApplication2 implements Application {
 
 	protected final DeskGraphics graphics;
 	protected final LwjglFiles files;
@@ -46,19 +44,19 @@ public class DeskApplication implements Application {
 	protected String preferencesdir;
 	protected Files.FileType preferencesFileType;
 
-	public DeskApplication (ApplicationListener listener, String title, int width, int height) {
+	public DeskApplication2 (ApplicationListener listener, String title, int width, int height) {
 		this(listener, createConfig(title, width, height));
 	}
 
-	public DeskApplication (ApplicationListener listener) {
+	public DeskApplication2 (ApplicationListener listener) {
 		this(listener, null, 640, 480);
 	}
 
-	public DeskApplication (ApplicationListener listener, DeskApplicationConfiguration config) {
+	public DeskApplication2 (ApplicationListener listener, DeskApplicationConfiguration config) {
 		this(listener, config, new DeskGraphics(config));
 	}
 
-	public DeskApplication (ApplicationListener listener, LwjglApplicationConfiguration config, DeskGraphics graphics) {
+	public DeskApplication2 (ApplicationListener listener, LwjglApplicationConfiguration config, DeskGraphics graphics) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 
@@ -94,7 +92,7 @@ public class DeskApplication implements Application {
 			public void run () {
 				graphics.setVSync(graphics.config.vSyncEnabled);
 				try {
-					DeskApplication.this.mainLoop();
+					DeskApplication2.this.mainLoop();
 				} catch (Throwable t) {
 					Gdx.input.setCursorCatched(false);
 					if(listener != null) {

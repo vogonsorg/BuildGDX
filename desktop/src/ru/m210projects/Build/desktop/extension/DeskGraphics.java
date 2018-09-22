@@ -1,7 +1,6 @@
 package ru.m210projects.Build.desktop.extension;
 
 
-import java.awt.Canvas;
 import java.awt.Toolkit;
 import java.nio.ByteBuffer;
 
@@ -45,7 +44,6 @@ public class DeskGraphics implements BGraphics {
 	int frames = 0;
 	int fps;
 	long lastTime = System.nanoTime();
-	Canvas canvas;
 	boolean vsync = false;
 	boolean resize = false;
 	DeskApplicationConfiguration config;
@@ -59,31 +57,12 @@ public class DeskGraphics implements BGraphics {
 		this.config = config;
 	}
 
-	DeskGraphics (Canvas canvas) {
-		this.config = new DeskApplicationConfiguration();
-		config.width = canvas.getWidth();
-		config.height = canvas.getHeight();
-		this.canvas = canvas;
-	}
-
-	DeskGraphics (Canvas canvas, DeskApplicationConfiguration config) {
-		this.config = config;
-		this.canvas = canvas;
-	}
-
-
 	public int getHeight () {
-		if (canvas != null)
-			return Math.max(1, canvas.getHeight());
-		else
-			return (int)(Display.getHeight() * Display.getPixelScaleFactor());
+		return (int)(Display.getHeight() * Display.getPixelScaleFactor());
 	}
 
 	public int getWidth () {
-		if (canvas != null)
-			return Math.max(1, canvas.getWidth());
-		else
-			return (int)(Display.getWidth() * Display.getPixelScaleFactor());
+		return (int)(Display.getWidth() * Display.getPixelScaleFactor());
 	}
 
 	@Override
@@ -177,56 +156,53 @@ public class DeskGraphics implements BGraphics {
 			System.setProperty("org.lwjgl.opengl.Display.enableHighDPI", "true");
 		}
 
-		if (canvas != null) {
-			Display.setParent(canvas);
-		} else {
-			boolean displayCreated = false;
+		boolean displayCreated = false;
 
-			if(!config.fullscreen) {
-				displayCreated = setWindowedMode(config.width, config.height);
-			} else {
-				DisplayMode bestMode = null;
-				for(DisplayMode mode: getDisplayModes()) {
-					if(mode.width == config.width && mode.height == config.height) {
-						if(bestMode == null || bestMode.refreshRate < this.getDisplayMode().refreshRate) {
-							bestMode = mode;
-						}
+		if(!config.fullscreen) {
+			displayCreated = setWindowedMode(config.width, config.height);
+		} else {
+			DisplayMode bestMode = null;
+			for(DisplayMode mode: getDisplayModes()) {
+				if(mode.width == config.width && mode.height == config.height) {
+					if(bestMode == null || bestMode.refreshRate < this.getDisplayMode().refreshRate) {
+						bestMode = mode;
 					}
 				}
-				if(bestMode == null) {
-					bestMode = this.getDisplayMode();
+			}
+			if(bestMode == null) {
+				bestMode = this.getDisplayMode();
+			}
+			displayCreated = setFullscreenMode(bestMode);
+		}
+		if (!displayCreated) {
+			if (config.setDisplayModeCallback != null) {
+				config = config.setDisplayModeCallback.onFailure(config);
+				if (config != null) {
+					displayCreated = setWindowedMode(config.width, config.height);
 				}
-				displayCreated = setFullscreenMode(bestMode);
 			}
 			if (!displayCreated) {
-				if (config.setDisplayModeCallback != null) {
-					config = config.setDisplayModeCallback.onFailure(config);
-					if (config != null) {
-						displayCreated = setWindowedMode(config.width, config.height);
-					}
-				}
-				if (!displayCreated) {
-					throw new GdxRuntimeException("Couldn't set display mode " + config.width + "x" + config.height + ", fullscreen: "
-						+ config.fullscreen);
-				}
-			}
-			if (config.iconPaths.size > 0) {
-				ByteBuffer[] icons = new ByteBuffer[config.iconPaths.size];
-				for (int i = 0, n = config.iconPaths.size; i < n; i++) {
-					Pixmap pixmap = new Pixmap(Gdx.files.getFileHandle(config.iconPaths.get(i), config.iconFileTypes.get(i)));
-					if (pixmap.getFormat() != Format.RGBA8888) {
-						Pixmap rgba = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), Format.RGBA8888);
-						rgba.drawPixmap(pixmap, 0, 0);
-						pixmap.dispose();
-						pixmap = rgba;
-					}
-					icons[i] = ByteBuffer.allocateDirect(pixmap.getPixels().limit());
-					icons[i].put(pixmap.getPixels()).flip();
-					pixmap.dispose();
-				}
-				Display.setIcon(icons);
+				throw new GdxRuntimeException("Couldn't set display mode " + config.width + "x" + config.height + ", fullscreen: "
+					+ config.fullscreen);
 			}
 		}
+		if (config.iconPaths.size > 0) {
+			ByteBuffer[] icons = new ByteBuffer[config.iconPaths.size];
+			for (int i = 0, n = config.iconPaths.size; i < n; i++) {
+				Pixmap pixmap = new Pixmap(Gdx.files.getFileHandle(config.iconPaths.get(i), config.iconFileTypes.get(i)));
+				if (pixmap.getFormat() != Format.RGBA8888) {
+					Pixmap rgba = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), Format.RGBA8888);
+					rgba.drawPixmap(pixmap, 0, 0);
+					pixmap.dispose();
+					pixmap = rgba;
+				}
+				icons[i] = ByteBuffer.allocateDirect(pixmap.getPixels().limit());
+				icons[i].put(pixmap.getPixels()).flip();
+				pixmap.dispose();
+			}
+			Display.setIcon(icons);
+		}
+		
 		Display.setTitle(config.title);
 		Display.setResizable(config.resizable);
 		Display.setInitialBackground(config.initialBackgroundColor.r, config.initialBackgroundColor.g,
@@ -586,9 +562,9 @@ public class DeskGraphics implements BGraphics {
 
 	@Override
 	public void setSystemCursor (SystemCursor systemCursor) {
-		if (canvas != null && SharedLibraryLoader.isMac) {
+		if (SharedLibraryLoader.isMac)
 			return;
-		}
+		
 		try {
 			Mouse.setNativeCursor(null);
 		} catch (LWJGLException e) {
