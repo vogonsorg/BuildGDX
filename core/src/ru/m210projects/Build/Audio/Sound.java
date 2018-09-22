@@ -23,19 +23,23 @@ import ru.m210projects.Build.Audio.BMusic.Music;
 
 public interface Sound {
 	//Driver
-	public boolean init(int system, int kMaxSFXChannels);
+	public boolean init(int system, int kMaxSFXChannels, int softResampler);
+	public void uninit();
 	public boolean isInited();
-	public void dispose();
+	public void destroy();
 	public String getName();
 	public Music getDigitalMusic();
 	
 	//EFX
-	public int getReverb();
-	public float getReverbDelay();
-	public void setReverb(int enable);
-	public void setReverbDelay(float delay);
+	public float getReverb();
+	public void setReverb(boolean enable, float delay);
 	public void setListener(int x, int y, int z, int ang);
 	public void resetListener();
+	
+	///Soft resampler
+	public String getSoftResamplerName(int num);
+	public int getSoftResampler();
+	public void setSoftResampler(int num);
 	
 	//Source handler
 	public float getVolume();

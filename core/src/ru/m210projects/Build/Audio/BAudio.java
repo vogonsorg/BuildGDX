@@ -53,7 +53,7 @@ public class BAudio implements Disposable {
 		{
 			if(this.fx != null) {
 				this.fx.stopAllSounds();	
-				this.fx.dispose();
+				this.fx.uninit();
 			}
 			if(drv == null) drv = new DummySound();
 			if(drv instanceof Sound)
@@ -88,7 +88,7 @@ public class BAudio implements Disposable {
 	}
 	
 	public void dispose() {
-		fx.dispose();
+		fx.destroy();
 		mx.dispose();
 	}
 	

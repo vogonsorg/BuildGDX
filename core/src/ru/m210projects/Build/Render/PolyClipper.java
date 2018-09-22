@@ -115,7 +115,7 @@ public class PolyClipper {
 					j = n - 1;
 			}
 		} while (i != j);
-		
+
 		if (px[i] > vsp[vcnt - 1].x) {
 			vsp[vcnt].x = (float) px[i];
 			vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = (float) py[i];
@@ -283,9 +283,11 @@ public class PolyClipper {
 						domost[1].py = vsp[i].cy[1];
 						domost[2].px = dx0;
 						domost[2].py = ny0;
-						vsp[i].cy[0] = ny0;
-						vsp[i].ctag = gtag;
-						r.drawpoly(domost, 3, domostpolymethod);
+						if(domostpolymethod != -1) {
+							vsp[i].cy[0] = ny0;
+							vsp[i].ctag = gtag;
+							r.drawpoly(domost, 3, domostpolymethod);
+						}
 						break;
 					case 3:
 					case 6:
@@ -295,9 +297,11 @@ public class PolyClipper {
 						domost[1].py = vsp[i].cy[1];
 						domost[2].px = dx1;
 						domost[2].py = ny1;
-						r.drawpoly(domost, 3, domostpolymethod);
-						vsp[i].cy[1] = ny1;
-						vsp[i].ctag = gtag;
+						if(domostpolymethod != -1) {
+							r.drawpoly(domost, 3, domostpolymethod);
+							vsp[i].cy[1] = ny1;
+							vsp[i].ctag = gtag;
+						}
 						break;
 					case 4:
 					case 5:
@@ -310,10 +314,12 @@ public class PolyClipper {
 						domost[2].py = ny1;
 						domost[3].px = dx0;
 						domost[3].py = ny0;
-						vsp[i].cy[0] = ny0;
-						vsp[i].cy[1] = ny1;
-						vsp[i].ctag = gtag;
-						r.drawpoly(domost, 4, domostpolymethod);
+						if(domostpolymethod != -1) {
+							vsp[i].cy[0] = ny0;
+							vsp[i].cy[1] = ny1;
+							vsp[i].ctag = gtag;
+							r.drawpoly(domost, 4, domostpolymethod);
+						}
 						break;
 					case 8:
 						domost[0].px = dx0;
@@ -324,8 +330,10 @@ public class PolyClipper {
 						domost[2].py = vsp[i].fy[1];
 						domost[3].px = dx0;
 						domost[3].py = vsp[i].fy[0];
-						vsp[i].ctag = vsp[i].ftag = -1;
-						r.drawpoly(domost, 4, domostpolymethod);
+						if(domostpolymethod != -1) {
+							vsp[i].ctag = vsp[i].ftag = -1;
+							r.drawpoly(domost, 4, domostpolymethod);
+						}
 						break;
 					default:
 						break;
@@ -340,9 +348,11 @@ public class PolyClipper {
 						domost[1].py = vsp[i].fy[1];
 						domost[2].px = dx0;
 						domost[2].py = vsp[i].fy[0];
-						vsp[i].fy[0] = ny0;
-						vsp[i].ftag = gtag;
-						r.drawpoly(domost, 3, domostpolymethod);
+						if(domostpolymethod != -1) {
+							vsp[i].fy[0] = ny0;
+							vsp[i].ftag = gtag;
+							r.drawpoly(domost, 3, domostpolymethod);
+						}
 						break;
 					case 5:
 					case 2:
@@ -352,9 +362,11 @@ public class PolyClipper {
 						domost[1].py = ny1;
 						domost[2].px = dx1;
 						domost[2].py = vsp[i].fy[1];
-						vsp[i].fy[1] = ny1;
-						vsp[i].ftag = gtag;
-						r.drawpoly(domost, 3, domostpolymethod);
+						if(domostpolymethod != -1) {
+							vsp[i].fy[1] = ny1;
+							vsp[i].ftag = gtag;
+							r.drawpoly(domost, 3, domostpolymethod);
+						}
 						break;
 					case 4:
 					case 3:
@@ -367,10 +379,12 @@ public class PolyClipper {
 						domost[2].py = vsp[i].fy[1];
 						domost[3].px = dx0;
 						domost[3].py = vsp[i].fy[0];
-						vsp[i].fy[0] = ny0;
-						vsp[i].fy[1] = ny1;
-						vsp[i].ftag = gtag;
-						r.drawpoly(domost, 4, domostpolymethod);
+						if(domostpolymethod != -1) {
+							vsp[i].fy[0] = ny0;
+							vsp[i].fy[1] = ny1;
+							vsp[i].ftag = gtag;
+							r.drawpoly(domost, 4, domostpolymethod);
+						}
 						break;
 					case 0:
 						domost[0].px = dx0;
@@ -381,8 +395,10 @@ public class PolyClipper {
 						domost[2].py = vsp[i].fy[1];
 						domost[3].px = dx0;
 						domost[3].py = vsp[i].fy[0];
-						vsp[i].ctag = vsp[i].ftag = -1;
-						r.drawpoly(domost, 4, domostpolymethod);
+						if(domostpolymethod != -1) {
+							vsp[i].ctag = vsp[i].ftag = -1;
+							r.drawpoly(domost, 4, domostpolymethod);
+						}
 						break;
 					default:
 						break;

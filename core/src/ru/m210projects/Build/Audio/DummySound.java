@@ -26,7 +26,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 public class DummySound implements Sound {
 
 	@Override
-	public boolean init(int system, int maxChannels) {
+	public boolean init(int system, int kMaxSFXChannels, int softResampler) {
 		Console.Println(getName() + " initialized", OSDTEXT_GOLD);
 		return true;
 	}
@@ -37,30 +37,12 @@ public class DummySound implements Sound {
 	}
 
 	@Override
-	public void dispose() {
+	public void destroy() {
 	}
 
 	@Override
 	public String getName() {
 		return "Dummy sound";
-	}
-
-	@Override
-	public int getReverb() {
-		return 0;
-	}
-
-	@Override
-	public float getReverbDelay() {
-		return 0;
-	}
-
-	@Override
-	public void setReverb(int enable) {
-	}
-
-	@Override
-	public void setReverbDelay(float delay) {
 	}
 
 	@Override
@@ -101,5 +83,32 @@ public class DummySound implements Sound {
 	@Override
 	public boolean isAvailable(int priority) {
 		return true;
+	}
+
+	@Override
+	public float getReverb() {
+		return 0;
+	}
+
+	@Override
+	public void setReverb(boolean enable, float delay) {
+	}
+
+	@Override
+	public int getSoftResampler() {
+		return 0;
+	}
+
+	@Override
+	public void setSoftResampler(int num) {
+	}
+
+	@Override
+	public String getSoftResamplerName(int num) {
+		return "Not support";
+	}
+
+	@Override
+	public void uninit() {
 	}
 }
