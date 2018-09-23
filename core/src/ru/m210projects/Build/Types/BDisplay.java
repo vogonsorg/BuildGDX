@@ -1,4 +1,4 @@
-package ru.m210projects.Build.desktop.extension;
+package ru.m210projects.Build.Types;
 
 import com.badlogic.gdx.Graphics.BufferFormat;
 import com.badlogic.gdx.Graphics.DisplayMode;
@@ -6,7 +6,7 @@ import com.badlogic.gdx.Graphics.DisplayMode;
 public interface BDisplay {
 	
 	public enum DisplayType {
-		Software, LWJGL
+		Software, GL
 	}
 	
 	public DisplayType getType();
@@ -21,6 +21,8 @@ public interface BDisplay {
 	
 	public void setResizable (boolean resizable);
 	
+	public void sync(int frameRate);
+
 	public void setVSync (boolean vsync);
 	
 	public boolean isFullscreen ();

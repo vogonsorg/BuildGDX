@@ -489,7 +489,7 @@ public class DeskGL10 extends GL10 {
 	@Override
 	public void glTexParameterf (int target, int pname, float param) {
 		// LwjglGraphics.major is should to be 1 if we are in LwjglGL10.
-		if(DeskGraphics.glVersion.getMinorVersion() < 2 && param == GL12.GL_CLAMP_TO_EDGE) param = GL11.GL_CLAMP;
+		if(GLDisplay.glVersion.getMinorVersion() < 2 && param == GL12.GL_CLAMP_TO_EDGE) param = GL11.GL_CLAMP;
 		GL11.glTexParameterf(target, pname, param);
 	}
 

@@ -10,20 +10,102 @@
 
 package ru.m210projects.Build.Render.Software;
 
-import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Pragmas.*;
+import static ru.m210projects.Build.Engine.CEIL;
+import static ru.m210projects.Build.Engine.FLOOR;
+import static ru.m210projects.Build.Engine.MAXSECTORS;
+import static ru.m210projects.Build.Engine.MAXSPRITES;
+import static ru.m210projects.Build.Engine.MAXSPRITESONSCREEN;
+import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.MAXVOXELS;
+import static ru.m210projects.Build.Engine.MAXWALLS;
+import static ru.m210projects.Build.Engine.MAXXDIM;
+import static ru.m210projects.Build.Engine.MAXYDIM;
+import static ru.m210projects.Build.Engine.automapping;
+import static ru.m210projects.Build.Engine.beforedrawrooms;
+import static ru.m210projects.Build.Engine.cosglobalang;
+import static ru.m210projects.Build.Engine.cosviewingrangeglobalang;
+import static ru.m210projects.Build.Engine.curpalette;
+import static ru.m210projects.Build.Engine.globalang;
+import static ru.m210projects.Build.Engine.globalcursectnum;
+import static ru.m210projects.Build.Engine.globalhoriz;
+import static ru.m210projects.Build.Engine.globalpal;
+import static ru.m210projects.Build.Engine.globalposx;
+import static ru.m210projects.Build.Engine.globalposy;
+import static ru.m210projects.Build.Engine.globalposz;
+import static ru.m210projects.Build.Engine.globalshade;
+import static ru.m210projects.Build.Engine.globalvisibility;
+import static ru.m210projects.Build.Engine.gotsector;
+import static ru.m210projects.Build.Engine.halfxdimen;
+import static ru.m210projects.Build.Engine.headspritesect;
+import static ru.m210projects.Build.Engine.inpreparemirror;
+import static ru.m210projects.Build.Engine.nextspritesect;
+import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Engine.parallaxtype;
+import static ru.m210projects.Build.Engine.parallaxvisibility;
+import static ru.m210projects.Build.Engine.parallaxyoffs;
+import static ru.m210projects.Build.Engine.parallaxyscale;
+import static ru.m210projects.Build.Engine.picanm;
+import static ru.m210projects.Build.Engine.picsiz;
+import static ru.m210projects.Build.Engine.pow2char;
+import static ru.m210projects.Build.Engine.pow2long;
+import static ru.m210projects.Build.Engine.pskybits;
+import static ru.m210projects.Build.Engine.pskyoff;
+import static ru.m210projects.Build.Engine.radarang;
+import static ru.m210projects.Build.Engine.sector;
+import static ru.m210projects.Build.Engine.show2dsector;
+import static ru.m210projects.Build.Engine.show2dsprite;
+import static ru.m210projects.Build.Engine.show2dwall;
+import static ru.m210projects.Build.Engine.showinvisibility;
+import static ru.m210projects.Build.Engine.singlobalang;
+import static ru.m210projects.Build.Engine.sintable;
+import static ru.m210projects.Build.Engine.sinviewingrangeglobalang;
+import static ru.m210projects.Build.Engine.smalltextfont;
+import static ru.m210projects.Build.Engine.sprite;
+import static ru.m210projects.Build.Engine.spritesortcnt;
+import static ru.m210projects.Build.Engine.textfont;
+import static ru.m210projects.Build.Engine.tilesizx;
+import static ru.m210projects.Build.Engine.tilesizy;
+import static ru.m210projects.Build.Engine.tiletovox;
+import static ru.m210projects.Build.Engine.transluc;
+import static ru.m210projects.Build.Engine.tsprite;
+import static ru.m210projects.Build.Engine.usevoxels;
+import static ru.m210projects.Build.Engine.viewingrange;
+import static ru.m210projects.Build.Engine.viewingrangerecip;
+import static ru.m210projects.Build.Engine.wall;
+import static ru.m210projects.Build.Engine.waloff;
+import static ru.m210projects.Build.Engine.windowx1;
+import static ru.m210projects.Build.Engine.windowx2;
+import static ru.m210projects.Build.Engine.windowy1;
+import static ru.m210projects.Build.Engine.windowy2;
+import static ru.m210projects.Build.Engine.xdim;
+import static ru.m210projects.Build.Engine.xdimen;
+import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Engine.ydimen;
+import static ru.m210projects.Build.Engine.xdimenscale;
+import static ru.m210projects.Build.Engine.xdimscale;
+import static ru.m210projects.Build.Engine.xyaspect;
+import static ru.m210projects.Build.Engine.yxaspect;
+import static ru.m210projects.Build.Pragmas.divscale;
+import static ru.m210projects.Build.Pragmas.dmulscale;
+import static ru.m210projects.Build.Pragmas.klabs;
+import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Pragmas.scale;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import com.badlogic.gdx.Gdx;
+
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Types.BGraphics;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
+import ru.m210projects.Build.Types.BDisplay.DisplayType;
 
 public class Software implements Renderer {
 
@@ -31,9 +113,6 @@ public class Software implements Renderer {
 	
 	private Ac a;
 	protected Engine engine;
-	private JDisplay display;
-	
-	private int xres, yres;
 
 	private int numpages; //XXX
 	public int bytesperline, frameoffset;
@@ -133,25 +212,25 @@ public class Software implements Renderer {
 
 	public Software(Engine engine)
 	{
+		((BGraphics) Gdx.graphics).setDisplayType(DisplayType.Software);
 		this.engine = engine;
 		a = new Ac(this);
+		
+		init();
 	}
 	
 	@Override
 	public void init() {
-		this.xres = xdim;
-		this.yres = ydim;
-		display = new JDisplay(xres, yres, "Software");
-		frameplace = new byte[xres * yres];
-		bytesperline = xres;
+		frameplace = new byte[Gdx.graphics.getWidth() * Gdx.graphics.getHeight()];
+		bytesperline = Gdx.graphics.getWidth();
 		
-		int j = ydim*4*4;
+		int j = Gdx.graphics.getHeight()*4*4;
 		
 		lookups = new int[j<<1];
 		
 		horizlookup = 0;
 		horizlookup2 = j;
-		horizycent = ((ydim*4)>>1);
+		horizycent = ((Gdx.graphics.getHeight()*4)>>1);
 		
 		//Force drawrooms to call dosetaspect & recalculate stuff
 		oxyaspect = oxdimen = oviewingrange = -1;
@@ -164,7 +243,7 @@ public class Software implements Renderer {
 		a.setpalookupaddress(globalpalwritten);
 		
 		j = 0;
-		for(int i=0;i<=ydim;i++) { ylookup[i] = j; j += bytesperline; }
+		for(int i=0;i<=Gdx.graphics.getHeight();i++) { ylookup[i] = j; j += bytesperline; }
 		
 		for(int i=0;i<2048;i++) reciptable[i] = (int) divscale(2048,i+2048, 30);
 		
@@ -2591,9 +2670,9 @@ public class Software implements Renderer {
 	}
 
 	@Override
-	public void nextpage() {
-		System.arraycopy(frameplace, 0, getCanvas().getFrame(), 0, frameplace.length);
-		getCanvas().update();
+	public void nextpage() { 
+		if(((BGraphics)Gdx.graphics).getDisplayType() == DisplayType.Software)  
+			System.arraycopy(frameplace, 0, ((BGraphics)Gdx.graphics).getFrame(), 0, frameplace.length);
 	}
 
 	@Override
@@ -3041,7 +3120,10 @@ public class Software implements Renderer {
 	public void preload() {}
 	public void precache(int dapicnum, int dapalnum, int datype) {}
 	public void gltexapplyprops() {}
-	public void gltexinvalidateall(int flags) { getCanvas().changepalette(curpalette); }
+	public void gltexinvalidateall(int flags) { 
+		if(((BGraphics)Gdx.graphics).getDisplayType() == DisplayType.Software)  
+			((BGraphics)Gdx.graphics).changepalette(curpalette); 
+	}
 	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {}
 	
 	private void scansector(short sectnum)
@@ -3505,10 +3587,4 @@ public class Software implements Renderer {
 		a.thline(globalbufplc,globaly1*r+globalxpanning-a.asm1*(xr-xl),(xr-xl)<<16,0,
 			globalx2*r+globalypanning-a.asm2*(xr-xl),ylookup[yp]+xl);
 	}
-	
-	public JCanvas getCanvas()
-	{
-		return display.getCanvas();
-	}
-
 }

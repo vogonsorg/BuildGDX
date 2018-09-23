@@ -12,6 +12,7 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics.BufferFormat;
 import com.badlogic.gdx.Graphics.DisplayMode;
+import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -21,6 +22,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.Types.BDisplay;
 
 public class GLDisplay implements BDisplay {
 	
@@ -38,8 +40,11 @@ public class GLDisplay implements BDisplay {
 	boolean softwareMode;
 	boolean resize = false;
 	BufferFormat bufferFormat = new BufferFormat(8, 8, 8, 8, 16, 8, 0, false);
-	
-	void setupDisplay () throws LWJGLException {
+
+	public GLDisplay(DeskApplicationConfiguration config)
+	{
+		LwjglNativesLoader.load();
+		this.config = config;
 		if (config.useHDPI) {
 			System.setProperty("org.lwjgl.opengl.Display.enableHighDPI", "true");
 		}
@@ -100,7 +105,7 @@ public class GLDisplay implements BDisplay {
 		createDisplayPixelFormat(config.useGL30, config.gles30ContextMajorVersion, config.gles30ContextMinorVersion);
 		initiateGL();
 	}
-	
+
 	private void createDisplayPixelFormat (boolean useGL30, int gles30ContextMajor, int gles30ContextMinor) {
 		try {
 			if (useGL30) {
@@ -228,6 +233,11 @@ public class GLDisplay implements BDisplay {
 		Display.setResizable(resizable);
 	}
 
+	@Override
+	public void sync(int frameRate) {
+		Display.sync(frameRate);
+	}
+	
 	@Override
 	public void setVSync(boolean vsync) {
 		Display.setVSyncEnabled(vsync);
@@ -387,7 +397,7 @@ public class GLDisplay implements BDisplay {
 
 	@Override
 	public DisplayType getType() {
-		return DisplayType.LWJGL;
+		return DisplayType.GL;
 	}
 	
 	@Override

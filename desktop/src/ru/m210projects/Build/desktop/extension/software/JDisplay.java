@@ -14,7 +14,7 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Render.Software;
+package ru.m210projects.Build.desktop.extension.software;
 
 import java.awt.Dimension;
 import java.nio.ByteBuffer;
@@ -25,10 +25,11 @@ public class JDisplay
 {
 	private final JFrame m_frame;
 	private final JCanvas canvas;
+	private Dimension size;
 	
-	public JDisplay(int width, int height, String title)
+	public JDisplay(int width, int height)
 	{
-		Dimension size = new Dimension(width, height);
+		size = new Dimension(width, height);
 		canvas = new JCanvas(width, height);
 		canvas.setPreferredSize(size);
 		canvas.setMinimumSize(size);
@@ -39,11 +40,16 @@ public class JDisplay
 		m_frame.pack();
 		m_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		m_frame.setLocationRelativeTo(null);
-		m_frame.setTitle(title);
 		m_frame.setVisible(true);
-
+		
 		canvas.setFocusable(true);
 		canvas.requestFocus();
+	}
+	
+	public void setSize(int width, int height)
+	{
+		//size = new Dimension(width, height); XXX
+		//canvas = new JCanvas(width, height);
 	}
 	
 	public JCanvas getCanvas()
@@ -54,6 +60,16 @@ public class JDisplay
 	public void setTitle(String title)
 	{
 		m_frame.setTitle(title);
+	}
+	
+	public int getX()
+	{
+		return m_frame.getX();
+	}
+	
+	public int getY()
+	{
+		return m_frame.getY();
 	}
 	
 	public void setUndecorated(boolean undecorated)

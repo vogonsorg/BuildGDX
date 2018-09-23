@@ -1,9 +1,5 @@
 package ru.m210projects.Build.desktop.extension;
-
-
 import java.io.File;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationListener;
@@ -15,7 +11,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.LifecycleListener;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationLogger;
 import com.badlogic.gdx.backends.lwjgl.LwjglClipboard;
 import com.badlogic.gdx.backends.lwjgl.LwjglFileHandle;
@@ -58,7 +53,8 @@ public class DeskApplication implements Application {
 		this(listener, config, new DeskGraphics(config));
 	}
 
-	public DeskApplication (ApplicationListener listener, LwjglApplicationConfiguration config, DeskGraphics graphics) {
+	DeskApplicationConfiguration config;
+	public DeskApplication (ApplicationListener listener, DeskApplicationConfiguration config, DeskGraphics graphics) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 
@@ -76,7 +72,8 @@ public class DeskApplication implements Application {
 		Gdx.files = files;
 		Gdx.input = input;
 		Gdx.net = net;
-		initialize();
+		this.config = config;
+		initialize(config);
 	}
 
 	private static DeskApplicationConfiguration createConfig (String title, int width, int height) {
@@ -88,11 +85,10 @@ public class DeskApplication implements Application {
 		return config;
 	}
 
-	private void initialize () {
+	private void initialize (final DeskApplicationConfiguration config) {
 		mainLoopThread = new Thread("BuildEngine Application") {
 			@Override
 			public void run () {
-				graphics.setVSync(graphics.config.vSyncEnabled);
 				try {
 					DeskApplication.this.mainLoop();
 				} catch (Throwable t) {
@@ -113,23 +109,16 @@ public class DeskApplication implements Application {
 
 	void mainLoop () {
 		SnapshotArray<LifecycleListener> lifecycleListeners = this.lifecycleListeners;
-
-		try {
-			graphics.setupDisplay();
-		} catch (LWJGLException e) {
-			throw new GdxRuntimeException(e);
-		}
-
 		listener.create();
-		graphics.resize = true;
+		boolean resize = true;
 
 		graphics.lastTime = System.nanoTime();
 		boolean wasActive = true;
 		while (running) {
-			Display.processMessages();
-			if (Display.isCloseRequested()) exit();
+			graphics.getDisplay().process();
+			if (graphics.getDisplay().isCloseRequested()) exit();
 
-			boolean isActive = Display.isActive();
+			boolean isActive = graphics.getDisplay().isActive();
 			if (wasActive && !isActive) { // if it's just recently minimized from active state
 				wasActive = false;
 				synchronized (lifecycleListeners) {
@@ -153,15 +142,15 @@ public class DeskApplication implements Application {
 
 			boolean shouldRender = false;
 
-			graphics.config.x = Display.getX();
-			graphics.config.y = Display.getY();
-			if (graphics.resize || Display.wasResized()
-				|| (int)(Display.getWidth() * Display.getPixelScaleFactor()) != graphics.config.width
-				|| (int)(Display.getHeight() * Display.getPixelScaleFactor()) != graphics.config.height) {
-				graphics.resize = false;
-				graphics.config.width = (int)(Display.getWidth() * Display.getPixelScaleFactor());
-				graphics.config.height = (int)(Display.getHeight() * Display.getPixelScaleFactor());
-				Gdx.gl.glViewport(0, 0, graphics.config.width, graphics.config.height);
+			graphics.config.x = graphics.getDisplay().getX();
+			graphics.config.y = graphics.getDisplay().getY();
+			if (resize || graphics.getDisplay().wasResized()
+				|| graphics.getDisplay().getWidth() != graphics.config.width
+				|| graphics.getDisplay().getHeight() != graphics.config.height) {
+				resize = false;
+				graphics.config.width = graphics.getDisplay().getWidth();
+				graphics.config.height = graphics.getDisplay().getHeight();
+				graphics.getDisplay().resize(graphics.config.width, graphics.config.height);
 				if (listener != null) listener.resize(graphics.config.width, graphics.config.height);
 				graphics.requestRendering();
 			}
@@ -181,14 +170,14 @@ public class DeskApplication implements Application {
 				graphics.updateTime();
 				graphics.frameId++;
 				listener.render();
-				Display.update(false);
+				graphics.getDisplay().update();
 			} else {
 				// Sleeps to avoid wasting CPU in an empty loop.
 				if (frameRate == -1) frameRate = 10;
 				if (frameRate == 0) frameRate = graphics.config.backgroundFPS;
 				if (frameRate == 0) frameRate = 30;
 			}
-			if (frameRate > 0) Display.sync(frameRate);
+			if (frameRate > 0) graphics.getDisplay().sync(frameRate);
 		}
 
 		synchronized (lifecycleListeners) {
@@ -201,7 +190,7 @@ public class DeskApplication implements Application {
 		}
 		listener.pause();
 		listener.dispose();
-		Display.destroy();
+		graphics.getDisplay().destroy();
 		if (graphics.config.forceExit) System.exit(-1);
 	}
 
@@ -256,7 +245,7 @@ public class DeskApplication implements Application {
 	@Override
 	public int getVersion () {
 		System.out.println("LWJGL2 version " + org.lwjgl.Sys.getVersion());
-		return 161;
+		return 198;
 	}
 
 	public void stop () {

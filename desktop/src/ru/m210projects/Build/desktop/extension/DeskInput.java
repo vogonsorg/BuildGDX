@@ -33,7 +33,6 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Cursor;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -41,6 +40,8 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.Pool;
 
 import ru.m210projects.Build.Input.BInput;
+import ru.m210projects.Build.Types.BGraphics;
+import ru.m210projects.Build.Types.BDisplay.DisplayType;
 
 /** An implementation of the {@link Input} interface hooking a LWJGL panel for input.
  * 
@@ -93,13 +94,13 @@ final public class DeskInput implements BInput {
 	}
 
 	public int getX () {
-		if(!Display.isActive()) return 0;
+		if(!((DeskGraphics) Gdx.graphics).getDisplay().isActive()) return 0;
 		if(!Mouse.isCreated()) return 0;
 		return Mouse.getX();
 	}
 
 	public int getY () {
-		if(!Display.isActive()) return 0;
+		if(!((DeskGraphics) Gdx.graphics).getDisplay().isActive()) return 0;
 		if(!Mouse.isCreated()) return 0;
 		return Gdx.graphics.getHeight() - 1 - Mouse.getY();
 	}
@@ -109,7 +110,9 @@ final public class DeskInput implements BInput {
 	}
 
 	public boolean isKeyPressed (int key) {
-		return Keyboard.isKeyDown(getLwjglKeyCode(key));
+		if(((BGraphics) Gdx.graphics).getDisplayType() != DisplayType.Software)
+			return Keyboard.isKeyDown(getLwjglKeyCode(key));
+		return false;
 	}
 
 	public boolean isTouched () {
@@ -122,7 +125,7 @@ final public class DeskInput implements BInput {
 	}
 
 	public int getX (int pointer) {
-		if(!Display.isActive()) return 0;
+		if(!((DeskGraphics) Gdx.graphics).getDisplay().isActive()) return 0;
 		if (pointer > 0)
 			return 0;
 		else
@@ -130,7 +133,7 @@ final public class DeskInput implements BInput {
 	}
 
 	public int getY (int pointer) {
-		if(!Display.isActive()) return 0;
+		if(!((DeskGraphics) Gdx.graphics).getDisplay().isActive()) return 0;
 		if (pointer > 0)
 			return 0;
 		else
@@ -253,7 +256,7 @@ final public class DeskInput implements BInput {
 	
 	@Override
 	public int getDeltaX () {
-		if(!Display.isActive()) return 0;
+		if(!((DeskGraphics) Gdx.graphics).getDisplay().isActive()) return 0;
 		if(!Mouse.isCreated()) return 0;
 		
 		int dx = Mouse.getX() - oldX;
@@ -263,7 +266,7 @@ final public class DeskInput implements BInput {
 	
 	@Override
 	public int getDeltaY () {
-		if(!Display.isActive()) return 0;
+		if(!((DeskGraphics) Gdx.graphics).getDisplay().isActive()) return 0;
 		if(!Mouse.isCreated()) return 0;
 		
 		int dy = Mouse.getY() - oldY;
@@ -335,7 +338,7 @@ final public class DeskInput implements BInput {
 
 	@Override
 	public void updateRequest() {
-		Display.processMessages();
+		((DeskGraphics) Gdx.graphics).getDisplay().process();
 	}
 	
 	@Override
@@ -344,7 +347,7 @@ final public class DeskInput implements BInput {
 			if(emptyCursor == null)
 				emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null);
 			
-			if (emptyCursor != null && Mouse.isInsideWindow() && Display.isActive()) 
+			if (emptyCursor != null && Mouse.isInsideWindow() && ((DeskGraphics) Gdx.graphics).getDisplay().isActive()) 
 				Mouse.setNativeCursor(emptyCursor);
 			else Mouse.setNativeCursor(defCursor);
 		} catch (Exception e) {}

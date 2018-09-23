@@ -6,8 +6,8 @@ import com.badlogic.gdx.utils.Array;
 
 public class DeskApplicationConfiguration extends LwjglApplicationConfiguration {
 
-	Array<String> iconPaths = new Array<String>();
-	Array<FileType> iconFileTypes = new Array<FileType>();
+	public Array<String> iconPaths = new Array<String>();
+	public Array<FileType> iconFileTypes = new Array<FileType>();
 	
 	public DeskGraphics.SetDisplayModeCallback setDisplayModeCallback;
 	

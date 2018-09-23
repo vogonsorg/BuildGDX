@@ -50,10 +50,13 @@ import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Pthtyp;
 import ru.m210projects.Build.Render.Types.ValueResolver;
+import ru.m210projects.Build.Types.BGraphics;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Types.Wallspriteinfo;
+import ru.m210projects.Build.Types.BDisplay.DisplayType;
+
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import com.badlogic.gdx.Gdx;
@@ -279,6 +282,7 @@ public abstract class Polymost implements Renderer {
 	private boolean showlines = false;
 
 	public Polymost(Engine engine) {
+		((BGraphics) Gdx.graphics).setDisplayType(DisplayType.GL);
 		this.gl = (GL10) Gdx.gl;
 		this.engine = engine;
 		this.textureCache = createTextureCache();
