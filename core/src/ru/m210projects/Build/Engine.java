@@ -832,7 +832,7 @@ public abstract class Engine {
 				if (cnt < 0) {
 					rayx = x3;
 					rayy = y3;
-					return ray.set(rayx, rayy, 0, hitwall);
+					return ray.set(rayx, rayy, 0, z);
 				}
 				nintx = x3 + scale(x43, topu, bot);
 				ninty = y3 + scale(y43, topu, bot);
@@ -3008,7 +3008,6 @@ public abstract class Engine {
 	}
 
 	public short updatesector(int x, int y, short sectnum) { //jfBuild
-		if(sectnum < 0 || sectnum >= MAXSECTORS) return -1;
 		if (inside(x, y, sectnum) == 1)
 			return sectnum;
 
@@ -3040,7 +3039,6 @@ public abstract class Engine {
 	}
 
 	public short updatesectorz(int x, int y, int z, short sectnum) { //jfBuild
-		if(sectnum < 0 || sectnum >= MAXSECTORS) return -1;
 		getzsofslope(sectnum, x, y, zofslope);
 		if ((z >= zofslope[CEIL]) && (z <= zofslope[FLOOR]))
 			if (inside(x, y, sectnum) != 0)
