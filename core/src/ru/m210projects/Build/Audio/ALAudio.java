@@ -66,6 +66,8 @@ public interface ALAudio {
 	
 	public String alGetSoftResamplerName(int num);
 	
+	public int alGetNumResamplers();
+	
 	public void dispose();
 	
 	public int alGetError();

@@ -95,7 +95,7 @@ public class DummySound implements Sound {
 	}
 
 	@Override
-	public int getSoftResampler() {
+	public int getCurrentSoftResampler() {
 		return 0;
 	}
 
@@ -110,5 +110,10 @@ public class DummySound implements Sound {
 
 	@Override
 	public void uninit() {
+	}
+
+	@Override
+	public int getNumResamplers() {
+		return 1;
 	}
 }

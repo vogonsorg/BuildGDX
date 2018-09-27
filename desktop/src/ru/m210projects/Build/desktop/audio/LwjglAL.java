@@ -228,4 +228,8 @@ public class LwjglAL implements ALAudio {
 		AL10.alDeleteSources(sourceId);
 	}
 
+	@Override
+	public int alGetNumResamplers() {
+		return 0;
+	}
 }

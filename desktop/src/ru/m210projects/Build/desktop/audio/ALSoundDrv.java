@@ -137,9 +137,9 @@ public class ALSoundDrv implements Sound {
 	
 	@Override
 	public void destroy() {
-		if (noDevice) return;
 		uninit();
-		al.dispose();
+		if(al != null)
+			al.dispose();
 	}
 
 	@Override
@@ -261,8 +261,13 @@ public class ALSoundDrv implements Sound {
 	}
 
 	@Override
-	public int getSoftResampler() {
+	public int getCurrentSoftResampler() {
 		return alCurrentSoftResampler;
+	}
+	
+	@Override
+	public int getNumResamplers() {
+		return al.alGetNumResamplers();
 	}
 
 	@Override

@@ -38,7 +38,8 @@ public interface Sound {
 	
 	///Soft resampler
 	public String getSoftResamplerName(int num);
-	public int getSoftResampler();
+	public int getNumResamplers();
+	public int getCurrentSoftResampler();
 	public void setSoftResampler(int num);
 	
 	//Source handler

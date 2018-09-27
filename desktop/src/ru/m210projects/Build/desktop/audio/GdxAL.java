@@ -230,4 +230,9 @@ public class GdxAL implements ALAudio {
 	public void alDeleteSources(int sourceId) {
 		AL10.alDeleteSources(sourceId);
 	}
+
+	@Override
+	public int alGetNumResamplers() {
+		return alNumResamplers;
+	}
 }
