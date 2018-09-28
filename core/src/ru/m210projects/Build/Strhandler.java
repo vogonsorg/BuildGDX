@@ -67,6 +67,29 @@ public class Strhandler {
 		return pos;
 	}
 	
+	public static int indexOf(String target, byte[] source, int fromIndex) {
+        if (fromIndex >= source.length) 
+            return (target.length() == 0 ? source.length : -1);
+
+        char first = target.charAt(0);
+        int max = (source.length - target.length());
+
+        for (int i = fromIndex; i <= max; i++) {
+            if (source[i] != first) 
+                while (++i <= max && source[i] != first);
+            
+            if (i <= max) {
+                int j = i + 1;
+                int end = j + target.length() - 1;
+                for (int k = 1; j < end && source[j] == target.charAt(k); j++, k++);
+                if (j == end) 
+                    return i;
+                
+            }
+        }
+        return -1;
+    }
+	
 		static char[] tmp_buffer = new char[80];
 		public static int Bsprintf(char[] b, int slen, int num, int align) {
 			Bitoa(num, tmp_buffer);
