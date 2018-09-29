@@ -1488,7 +1488,7 @@ public abstract class Engine {
 		picsiz[tilenum] += (j << 4);
 	}
 
-	public int loadpics(String filename) { //jfBuild
+	public synchronized int loadpics(String filename) { //jfBuild
 		int offscount, localtilestart, localtileend, dasiz;
 		int fil, i, k;
 
@@ -1555,7 +1555,7 @@ public abstract class Engine {
 		return (numtilefiles);
 	}
 
-	public byte[] loadtile(int tilenume) { //jfBuild
+	public synchronized byte[] loadtile(int tilenume) { //jfBuild
 		if (tilenume >= MAXTILES)
 			return null;
 		int dasiz = tilesizx[tilenume] * tilesizy[tilenume];
