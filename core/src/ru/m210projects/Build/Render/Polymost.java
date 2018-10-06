@@ -5335,6 +5335,7 @@ public abstract class Polymost implements Renderer {
 				m1 = (px[i3] - px[i2]) / (py[i3] - py[i2]);
 
 				j = ((px[i1] > px[i2] || (i1 == i2) && (m0 >= m1)) ? 1 : 0) + i;
+				if(j < 0) continue;
 				k = (i << 1) + 1 - j;
 
 				rst[j].i = i0;
