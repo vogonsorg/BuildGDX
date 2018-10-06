@@ -1,4 +1,4 @@
-﻿/*
+/*
  * "POLYMOST" code originally written by Ken Silverman
  * Ken Silverman's official web site: "http://www.advsys.net/ken"
  * See the included license file "BUILDLIC.TXT" for license info.
