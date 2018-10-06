@@ -32,7 +32,8 @@ public class GPManager {
 
 	private Array<Gamepad> gamepads;
 	private float deadZone = 0.01f;
-	
+	private float smoothing = 1.0f;
+
 	boolean TestGamepad = false;
 	
 	public GPManager()
@@ -68,7 +69,16 @@ public class GPManager {
 	{
 		this.deadZone = value;
 	}
-	
+
+	public void setSmoothing(float value)
+	{
+		// here we allow the user to decide between 1.0 (linear) to 3.0 (cubic) response
+		float min = 1.0f;
+		float max = 3.0f;
+		float len = max - min;
+		this.smoothing = min + value / 32768.0f * len;
+	}
+
 	public boolean buttonPressed()
 	{
 		for(int i = 0; i < gamepads.size; i++) {
@@ -138,7 +148,7 @@ public class GPManager {
 		float value = 0.0f;
 		for(int i = 0; i < gamepads.size; i++) {
 			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
-				return value;
+				return  Math.signum(value) * (float) Math.pow(Math.abs(value), smoothing);
 		}
 		return 0.0f;
 	}
