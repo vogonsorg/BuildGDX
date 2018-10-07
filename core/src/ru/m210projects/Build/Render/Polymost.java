@@ -114,6 +114,68 @@ public abstract class Polymost implements Renderer {
 		}
 	}
 	
+	class GLFog {
+		
+		public int shade, pal;
+		public float combvis;
+
+		private final FloatBuffer color = BufferUtils.newFloatBuffer(4);
+	
+		public void copy(GLFog src)
+		{
+			this.shade = src.shade;
+			this.combvis = src.combvis;
+			this.pal = src.pal;
+		}
+		
+		public void clear()
+		{
+			shade = 0;
+			combvis = 0;
+			pal = 0;
+		}
+		
+		public void apply()
+		{
+			if(nofog) return;
+			
+			float start, end;
+	        if (combvis == 0)
+	        {
+	        	start = FULLVIS_BEGIN;
+	        	end = FULLVIS_END;
+	        } 
+	        else if (shade >= numshades-1)
+	        {
+	        	start = -1;
+	        	end = 0.001f;
+	        }
+	        else
+	        {
+	            start = (shade > 0) ? 0 : -(FOGDISTCONST * shade) / combvis;
+	            end = (FOGDISTCONST * (numshades-1-shade)) / combvis;
+	        }
+	        
+	        if(UseBloodPal && pal == 1) //Blood's pal 1
+			{
+	        	start = 0;
+				if(end > 2)
+					end = 2;
+			}
+			
+	        color.clear();
+	        color.put(fogtable[pal][0]);
+	        color.put(fogtable[pal][1]);
+	        color.put(fogtable[pal][2]);
+	        color.put(0);
+	        color.flip();
+	        
+	        gl.glFogfv(GL_FOG_COLOR, color);	
+		    gl.glFogf(GL_FOG_START, start);
+		    gl.glFogf(GL_FOG_END, end);
+		}
+	}
+	
 	class GLSurface {
 		public int type;
 		public int numvertices;
@@ -121,11 +183,13 @@ public abstract class Polymost implements Renderer {
 		public int picnum;
 
 		public FloatBuffer buffer;
+		public GLFog fog;
 
 		public GLSurface()
 		{
 			int maxvertices = 64;
 			buffer = allocateBuffer( (2 + 4 + 3) * maxvertices );
+			fog = new GLFog();
 		}
 
 		public void clear() {
@@ -134,6 +198,7 @@ public abstract class Polymost implements Renderer {
 			picnum = 0;
 			pth = null;
 			buffer.clear();
+			fog.clear();
 		}
 		
 		private FloatBuffer allocateBuffer( int numFloats )
@@ -145,8 +210,8 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	private GLSurfaceArray surfaces = new GLSurfaceArray();
-	private int surfaceType = 0;
-	
+	private int surfaceType = 1;
+	public GLFog globalfog = new GLFog();
 	
 	protected short globalpicnum;
 	protected int globalorientation;
@@ -195,8 +260,8 @@ public abstract class Polymost implements Renderer {
 
 	// For GL_LINEAR fog:
 	private final int FOGDISTCONST = 600;
-	private final double FULLVIS_BEGIN = 2.9e30;
-	private final double FULLVIS_END = 3.0e30;
+	private final float FULLVIS_BEGIN = (float) 2.9e30;
+	private final float FULLVIS_END = (float) 3.0e30;
 
 	private IntBuffer polymosttext;
 
@@ -223,10 +288,6 @@ public abstract class Polymost implements Renderer {
 	private int frameh;
 	private int framesize;
 
-	private float fogresult;
-	private float fogresult2;
-
-	private FloatBuffer fogcol = BufferUtils.newFloatBuffer(4);
 	private float fogtable[][] = new float[MAXPALOOKUPS][3];
 
 	private float gyxscale, gxyaspect, gviewxrange, ghalfx, grhalfxdown10,
@@ -506,7 +567,7 @@ public abstract class Polymost implements Renderer {
 			gl.glMatrixMode(GL_MODELVIEW);
 			gl.glLoadIdentity();
 
-			if (!nofog) gl.glEnable(GL_FOG);
+			EnableFog();
 		}
 		/*
 		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
@@ -961,7 +1022,6 @@ public abstract class Polymost implements Renderer {
 
 			if(surfaceType == 0)
 			{
-				nofog = false;
 				gl.glBegin(GL_TRIANGLE_FAN);
 				for (i = 0; i < n; i++) {
 					Polygon dpoly = drawpoly[i];
@@ -978,12 +1038,12 @@ public abstract class Polymost implements Renderer {
 				}
 				gl.glEnd();
 			} else {
-				nofog = true;
 				surf.numvertices = n;
+				surf.fog.copy(globalfog);
 				for (i = 0; i < n; i++) {
 					Polygon dpoly = drawpoly[i];
 					r = 1.0f / dpoly.dd;
-					if(method != 1) {
+					if(waloff[globalpicnum] != null) {
 						surf.buffer.put((float) ((dpoly.px - ghalfx) * r * grhalfxdown10)); //x
 						surf.buffer.put((float) ((ghoriz - dpoly.py) * r * grhalfxdown10)); //y
 						surf.buffer.put((float) (r * (1.f / 1024.f))); //z
@@ -998,7 +1058,6 @@ public abstract class Polymost implements Renderer {
 					}
 				}
 				surf.buffer.flip();
-				
 			}
 
 			if(showlines) {
@@ -1245,8 +1304,7 @@ public abstract class Polymost implements Renderer {
 				clipper.setMethod(-1); // Back-face culling
 		}
 
-		if (!nofog)  // noparalaxed
-			calc_and_apply_fog(globalpicnum, global_cf_shade, sec.visibility,  global_cf_pal);
+		calc_and_apply_fog(global_cf_shade, sec.visibility,  global_cf_pal);
 
 		pow2xsplit = 0;
 		if (have_floor != 0) 
@@ -1319,8 +1377,7 @@ public abstract class Polymost implements Renderer {
 		sectnum = thesector[bunchfirst[bunch]];
 		sec = sector[sectnum];
 
-		if (!nofog)
-			calc_and_apply_fog(sec.floorpicnum, sec.floorshade, sec.visibility,  sec.floorpal);
+		calc_and_apply_fog(sec.floorshade, sec.visibility,  sec.floorpal);
 
 		for (z = bunchfirst[bunch]; z >= 0; z = p2[z]) {
 			// DRAW WALLS SECTION!
@@ -1492,12 +1549,12 @@ public abstract class Polymost implements Renderer {
 						gvo = -gvo;
 					} // yflip
 
-					if (!nofog) {
-						int shade = wal.shade;
-						if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
-							shade = 0;
-						calc_and_apply_fog(wal.picnum, shade, sec.visibility, sec.floorpal);
-					}
+					
+					int shade = wal.shade;
+					if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
+						shade = 0;
+					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
+					
 
 					pow2xsplit = 1;
 					clipper.domost((float) x1, (float) ocy1, (float) x0, (float) ocy0);
@@ -1547,12 +1604,10 @@ public abstract class Polymost implements Renderer {
 						gvo = -gvo;
 					} // yflip
 
-					if (!nofog) {
-						int shade = drawalls_nwal.shade;
-						if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
-							shade = 0;
-						calc_and_apply_fog(drawalls_nwal.picnum, shade, sec.visibility, sec.floorpal);
-					}
+					int shade = drawalls_nwal.shade;
+					if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
+						shade = 0;
+					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 					pow2xsplit = 1;
 					clipper.domost((float) x0, (float) ofy0, (float) x1, (float) ofy1);
@@ -1603,12 +1658,11 @@ public abstract class Polymost implements Renderer {
 						gvo = -gvo;
 					} 
 
-					if (!nofog) {
-						int shade = wal.shade;
-						if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
-							shade = 0;
-						calc_and_apply_fog(wal.picnum, shade, sec.visibility, sec.floorpal);
-					}
+					int shade = wal.shade;
+					if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
+						shade = 0;
+					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
+					
 					pow2xsplit = 1;
 					clipper.domost((float)x0, (float)cy0, (float)x1, (float)cy1);
 				} while (false);
@@ -2249,18 +2303,15 @@ public abstract class Polymost implements Renderer {
 		// Parallaxing sky... hacked for Ken's mountain texture;
 
 		SECTOR sec = sector[sectnum];
-		int picnum = sec.floorpicnum;
 		int shade = sec.floorshade;
 		int pal = sec.floorpal;
 		if(!floor)
 		{
-			picnum = sec.ceilingpicnum;
 			shade = sec.ceilingshade;
 			pal = sec.ceilingpal;
 		}
 		
-		if (!nofog)  
-			calc_and_apply_skyfog(picnum, shade, sec.visibility,  pal);
+		calc_and_apply_skyfog(shade, sec.visibility,  pal);
 
 		if (!usehightile || hicfindsubst(globalpicnum, globalpal, 1) == null)
 			drawpapersky(sectnum, x0, x1, y0, y1, floor);
@@ -2268,8 +2319,7 @@ public abstract class Polymost implements Renderer {
 			drawskybox(x0, x1, y0, y1, floor);
 
 		skyclamphack = 0;
-		if (!nofog) 
-			calc_and_apply_fog(picnum, shade, sec.visibility,  pal);
+		calc_and_apply_fog(shade, sec.visibility,  pal);
 	}
 	
 	private final double[] drawrooms_px = new double[6],
@@ -2406,8 +2456,7 @@ public abstract class Polymost implements Renderer {
 
 		polymost_scansector(globalcursectnum);
 		
-		surfaceType = 0; //1
-//		surfaces.clear();
+		surfaces.clear();
 		
 		grhalfxdown10x = grhalfxdown10;
 
@@ -2462,34 +2511,7 @@ public abstract class Polymost implements Renderer {
 			bunchlast[closest] = bunchlast[numbunches];
 		}
 		
-		
-		gl.glEnableClientState(GL_VERTEX_ARRAY);
-		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		gl.glEnableClientState(GL_COLOR_ARRAY);
-		
-		Pthtyp p = null;
-		for(i = 0; i < surfaces.size; i++)
-		{
-			GLSurface s = surfaces.get(i);
-			if(!s.buffer.hasRemaining()) continue;
-			
-			if(s.pth != p) 
-				bindTexture(s.pth.glpic);
-			p = s.pth;
-
-			gl.glVertexPointer(3, GL_FLOAT, 4 * 9, s.buffer);
-			s.buffer.position(3);
-			gl.glTexCoordPointer(2, GL_FLOAT, 4 * 9, s.buffer);
-			s.buffer.position(5);
-			gl.glColorPointer(4, GL_FLOAT, 4 * 9, s.buffer);
-			gl.glDrawArrays(GL_TRIANGLE_FAN, 0, s.numvertices);
-		}
-		
-		gl.glDisableClientState(GL_VERTEX_ARRAY);
-		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		gl.glDisableClientState(GL_COLOR_ARRAY);
-
-		surfaceType = 0;
+		drawsurfaces(surfaces);
 	}
 	
 	private final Surface[] dmaskwall = new Surface[8];
@@ -2606,7 +2628,6 @@ public abstract class Polymost implements Renderer {
 	    calc_ypanning(((wal.cstat & 4) == 0) ? max(nsec.ceilingz, sec.ceilingz) : min(nsec.floorz, sec.floorz), ryp0, ryp1,
 	                  x0, x1, wal.ypanning, wal.yrepeat, false);
 	    
-	    
 		if ((wal.cstat & 8) != 0) // xflip
 		{
 			t = (float) ((wal.xrepeat & 0xFF) * 8 + wal.xpanning * 2);
@@ -2629,12 +2650,10 @@ public abstract class Polymost implements Renderer {
 				method = 3;
 		}
 
-		if (!nofog) {
-			int shade = wal.shade;
-			if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
-				shade = 0;
-			calc_and_apply_fog(wal.picnum, shade, sec.visibility, sec.floorpal);
-		}
+		int shade = wal.shade;
+		if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
+			shade = 0;
+		calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 		
 		drawmaskwall_csy[0] = (float) ((drawmaskwall_cz[0] - globalposz) * ryp0 + ghoriz);
 		drawmaskwall_csy[1] = (float) ((drawmaskwall_cz[1] - globalposz) * ryp0 + ghoriz);
@@ -2871,16 +2890,14 @@ public abstract class Polymost implements Renderer {
 				method = 3 + 4;
 		}
 		
-		if (!nofog) {
-			int shade = (int) (globalshade / 1.5f);
-			if(UseBloodPal) {
-				if(tspr.pal == 5 && tspr.shade == 127)
-					shade = 0; //Blood's shadows (for pal 1)
-				if(globalpal == 1 || tspr.pal == 1) //Blood's pal 1
-					shade = 0;
-			}
-			calc_and_apply_fog(tspr.picnum, shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
+		int shade = (int) (globalshade / 1.5f);
+		if(UseBloodPal) {
+			if(tspr.pal == 5 && tspr.shade == 127)
+				shade = 0; //Blood's shadows (for pal 1)
+			if(globalpal == 1 || tspr.pal == 1) //Blood's pal 1
+				shade = 0;
 		}
+		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 		
 		posx = tspr.x;
 		posy = tspr.y;
@@ -3479,62 +3496,22 @@ public abstract class Polymost implements Renderer {
 		// }
 	}
 
-	private void fogcalc(int tile, int shade, int vis, int pal)
+	private void calc_and_apply_fog(int shade, int vis, int pal)
 	{
-// 		If models disabled, levels seems darker
-//	    if (shade > 0 && 
-//	        (!usehightile || hicfindsubst(tile, pal, 0) == null) &&
-//	        (!usemodels /* || md_tilehasmodel(tile, pal) < 0 */)) 
-		if (shade > 0)
-		{
-	    	//shade >>= 1;
-	    }
-	   
-        float combvis = (float) globalvisibility * ((vis+16) & 0xFF);
-        if (combvis == 0)
-        {
-        	fogresult = (float) FULLVIS_BEGIN;
-            fogresult2 = (float) FULLVIS_END;
-        } 
-        else if (shade >= numshades-1)
-        {
-            fogresult = -1;
-            fogresult2 = 0.001f;
-        }
-        else
-        {
-            combvis = 1.0f / combvis;
-            fogresult = (shade > 0) ? 0 : -(FOGDISTCONST * shade) * combvis;
-            fogresult2 = (FOGDISTCONST * (numshades-1-shade)) * combvis;
-        }
-
-        fogcol.put(fogtable[pal][0]);
-		fogcol.put(fogtable[pal][1]);
-		fogcol.put(fogtable[pal][2]);
-		fogcol.put(0);
-		fogcol.flip();
-	}
-
-	private void calc_and_apply_fog(int tile, int shade, int vis, int pal)
-	{
-		fogcalc(tile, shade, vis, pal);
-	    gl.glFogfv(GL_FOG_COLOR, fogcol);
-	    if(UseBloodPal && pal == 1) //Blood's pal 1
-		{
-			fogresult = 0;
-			if(fogresult2 > 2)
-				fogresult2 = 2;
-		}
-	    gl.glFogf(GL_FOG_START, fogresult);
-	    gl.glFogf(GL_FOG_END, fogresult2);
+		globalfog.shade = shade;
+		globalfog.combvis = globalvisibility * ((vis+16) & 0xFF);
+		globalfog.pal = pal;
+		if(surfaceType == 0) 
+			globalfog.apply();
 	}
 	
-	private void calc_and_apply_skyfog(int tile, int shade, int vis, int pal)
+	private void calc_and_apply_skyfog(int shade, int vis, int pal)
 	{
-		fogcalc(tile, shade, vis, pal);
-	    gl.glFogfv(GL_FOG_COLOR, fogcol);	
-	    gl.glFogf(GL_FOG_START, (float)FULLVIS_BEGIN);
-	    gl.glFogf(GL_FOG_END, (float)FULLVIS_END);
+		globalfog.shade = shade;
+		globalfog.combvis = 0;
+		globalfog.pal = pal;
+		if(surfaceType == 0) 
+			globalfog.apply();
 	}
 
 	public static void equation(Vector3 ret, float x1, float y1, float x2, float y2)
@@ -3566,6 +3543,44 @@ public abstract class Polymost implements Renderer {
 		}
 		// OSD_Printf("OPPOSITE SIDE !\n");
 		return false;
+	}
+	
+	private void drawsurfaces(GLSurfaceArray surfaces)
+	{
+		if(surfaceType != 1) return;
+		
+		//TODO:
+		//	MultiTextures
+		//	glTexParameteri
+		//	glAlphaFunc
+		
+		gl.glEnableClientState(GL_VERTEX_ARRAY);
+		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		gl.glEnableClientState(GL_COLOR_ARRAY);
+		
+		Pthtyp p = null;
+		for(int i = 0; i < surfaces.size; i++)
+		{
+			GLSurface s = surfaces.get(i);
+			if(!s.buffer.hasRemaining()) continue;
+			
+			if(s.pth != p) 
+				bindTexture(s.pth.glpic);
+			p = s.pth;
+			
+			s.fog.apply();
+
+			gl.glVertexPointer(3, GL_FLOAT, 4 * 9, s.buffer);
+			s.buffer.position(3);
+			gl.glTexCoordPointer(2, GL_FLOAT, 4 * 9, s.buffer);
+			s.buffer.position(5);
+			gl.glColorPointer(4, GL_FLOAT, 4 * 9, s.buffer);
+			gl.glDrawArrays(GL_TRIANGLE_FAN, 0, s.numvertices);
+		}
+		
+		gl.glDisableClientState(GL_VERTEX_ARRAY);
+		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		gl.glDisableClientState(GL_COLOR_ARRAY);
 	}
 
 	// PLAG: sorting stuff
@@ -3718,6 +3733,8 @@ public abstract class Polymost implements Renderer {
 		drawmasks_pos.y = (float) globalposy;
 		
 		gl.glEnable(GL10.GL_POLYGON_OFFSET_FILL);
+		
+		surfaces.clear();
 
 		while (maskwallcnt != 0) {
 
@@ -3758,6 +3775,8 @@ public abstract class Polymost implements Renderer {
 				drawsprite(spritesortcnt);
 			}
 		}
+		
+		drawsurfaces(surfaces);
 		
 		gl.glDisable(GL10.GL_POLYGON_OFFSET_FILL);
 		gl.glPolygonOffset(0, 0);
