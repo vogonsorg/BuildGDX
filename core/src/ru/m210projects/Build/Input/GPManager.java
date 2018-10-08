@@ -148,7 +148,7 @@ public class GPManager {
 		float value = 0.0f;
 		for(int i = 0; i < gamepads.size; i++) {
 			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
-				return  Math.signum(value) * (float) Math.pow(Math.abs(value), smoothing);
+				return value;
 		}
 		return 0.0f;
 	}
