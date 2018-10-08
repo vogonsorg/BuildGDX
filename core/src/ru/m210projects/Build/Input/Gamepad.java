@@ -22,6 +22,7 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.util.Arrays;
 
+import com.badlogic.gdx.math.Vector2;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import com.badlogic.gdx.controllers.ControlType;
@@ -128,6 +129,35 @@ public class Gamepad {
 		if(Math.abs(value = controller.getAxis(aCode)) >= deadZone) return value;
 		
 		return 0.0f;
+	}
+
+	public Vector2 getStickValue(int aCode1, int aCode2, float deadZone, float smoothing)
+	{
+		float lx = controller.getAxis(aCode1);
+		float ly = controller.getAxis(aCode2);
+		float mag = (float) Math.sqrt(lx*lx + ly*ly);
+		float nlx = lx / mag;
+		float nly = ly / mag;
+		float nlm = 0.0f;
+		if (mag > deadZone)
+		{
+			if (mag > 1.0f)
+				mag = 1.0f;
+
+			mag -= deadZone;
+			nlm = mag / (1.0f - deadZone);
+			float x1 = nlx * nlm;
+			float y1 = nly * nlm;
+			float x2 = Math.signum(x1) * (float) Math.pow(Math.abs(x1), smoothing);
+			float y2 = Math.signum(y1) * (float) Math.pow(Math.abs(y1), smoothing);
+			return new Vector2(x2, y2);
+		}
+		else
+		{
+			mag = 0.0f;
+			nlm = 0.0f;
+			return new Vector2(0.0f, 0.0f);
+		}
 	}
 
 	public String getName() {
