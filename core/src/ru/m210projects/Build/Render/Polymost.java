@@ -210,7 +210,7 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	private GLSurfaceArray surfaces = new GLSurfaceArray();
-	private int surfaceType = 1;
+	private int surfaceType = 0;
 	public GLFog globalfog = new GLFog();
 	
 	protected short globalpicnum;

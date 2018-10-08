@@ -131,6 +131,7 @@ public class Gamepad {
 		return 0.0f;
 	}
 
+	private Vector2 stickOut = new Vector2();
 	public Vector2 getStickValue(int aCode1, int aCode2, float deadZone, float smoothing)
 	{
 		float lx = controller.getAxis(aCode1);
@@ -150,13 +151,17 @@ public class Gamepad {
 			float y1 = nly * nlm;
 			float x2 = Math.signum(x1) * (float) Math.pow(Math.abs(x1), smoothing);
 			float y2 = Math.signum(y1) * (float) Math.pow(Math.abs(y1), smoothing);
-			return new Vector2(x2, y2);
+			//return new Vector2(x2, y2); //I don't like memory leaks
+			stickOut.set(x2, y2);
+			return stickOut;
 		}
 		else
 		{
 			mag = 0.0f;
 			nlm = 0.0f;
-			return new Vector2(0.0f, 0.0f);
+			//return new Vector2(0.0f, 0.0f); //I don't like memory leaks
+			stickOut.set(0.0f, 0.0f);
+			return stickOut;
 		}
 	}
 
