@@ -1,4 +1,4 @@
-﻿// This file is part of BuildGDX.
+// This file is part of BuildGDX.
 // Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
 //
 // BuildGDX is free software: you can redistribute it and/or modify

@@ -19,6 +19,7 @@ package ru.m210projects.Build.Input;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
 import ru.m210projects.Build.Types.BGraphics;
@@ -148,8 +149,16 @@ public class GPManager {
 		float value = 0.0f;
 		for(int i = 0; i < gamepads.size; i++) {
 			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
-				return  Math.signum(value) * (float) Math.pow(Math.abs(value), smoothing);
+				return value;
 		}
 		return 0.0f;
+	}
+
+	public Vector2 getStickValue(int aCode1, int aCode2)
+	{
+		// TODO
+		// how come we are looping through an array in getAxisValue while it's single player ?
+		// there should a parameter indicating which player pad is desired
+		return gamepads.get(0).getStickValue(aCode1, aCode2, deadZone, smoothing);
 	}
 }
