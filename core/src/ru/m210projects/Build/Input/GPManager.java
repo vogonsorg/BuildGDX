@@ -159,6 +159,6 @@ public class GPManager {
 		// TODO
 		// how come we are looping through an array in getAxisValue while it's single player ?
 		// there should a parameter indicating which player pad is desired
-		return gamepads.get(0).getStickValue(aCode1, aCode2, deadZone, smoothing);
+		return gamepads.get(0).getStickValue(aCode1, aCode2, deadZone);
 	}
 }
