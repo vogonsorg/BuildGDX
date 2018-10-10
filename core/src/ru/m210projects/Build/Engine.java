@@ -524,7 +524,7 @@ public abstract class Engine {
 		int i, k, dist;
 		byte retcol;
 		int pal1;
-		
+
 		r >>= 2;
 		g >>= 2;
 		b >>= 2;
@@ -3475,9 +3475,9 @@ public abstract class Engine {
 	            long palscale = divscale(i,numshades, 16);
 	            for (int j=0; j<256; j++)
 	            {
-	                palookup[palnum][i] = (byte) getclosestcol((palette[remapbuf[j]&0xFF*3]&0xFF)+mulscale(r-palette[remapbuf[j]&0xFF*3]&0xFF,palscale, 16),
-	                                        (palette[remapbuf[j]&0xFF*3+1]&0xFF)+mulscale(g-palette[remapbuf[j]&0xFF*3+1]&0xFF,palscale, 16),
-	                                        (palette[remapbuf[j]&0xFF*3+2]&0xFF)+mulscale(b-palette[remapbuf[j]&0xFF*3+2]&0xFF,palscale, 16));
+	                palookup[palnum][i] = (byte) getclosestcol((palette[(remapbuf[j]&0xFF)*3]&0xFF)+mulscale(r-(palette[(remapbuf[j]&0xFF)*3]&0xFF),palscale, 16),
+	                                        (palette[(remapbuf[j]&0xFF)*3+1]&0xFF)+mulscale(g-(palette[(remapbuf[j]&0xFF)*3+1]&0xFF),palscale, 16),
+	                                        (palette[(remapbuf[j]&0xFF)*3+2]&0xFF)+mulscale(b-(palette[(remapbuf[j]&0xFF)*3+2]&0xFF),palscale, 16));
 	            }
 	        }
 			palookupfog[palnum][0] = (byte) r;
