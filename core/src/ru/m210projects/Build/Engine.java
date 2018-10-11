@@ -525,10 +525,6 @@ public abstract class Engine {
 		byte retcol;
 		int pal1;
 
-		r >>= 2;
-		g >>= 2;
-		b >>= 2;
-
 		int j = (r>>3)*FASTPALGRIDSIZ*FASTPALGRIDSIZ+(g>>3)*FASTPALGRIDSIZ+(b>>3)+FASTPALGRIDSIZ*FASTPALGRIDSIZ+FASTPALGRIDSIZ+1;
 		int mindist = min(rdist[(coldist[r&7] & 0xFF)+64+8],gdist[(coldist[g&7] & 0xFF)+64+8]);
 		mindist = min(mindist,bdist[(coldist[b&7] & 0xFF)+64+8]);
@@ -3475,9 +3471,14 @@ public abstract class Engine {
 	            long palscale = divscale(i,numshades, 16);
 	            for (int j=0; j<256; j++)
 	            {
-	                palookup[palnum][i] = (byte) getclosestcol((palette[(remapbuf[j]&0xFF)*3]&0xFF)+mulscale(r-(palette[(remapbuf[j]&0xFF)*3]&0xFF),palscale, 16),
-	                                        (palette[(remapbuf[j]&0xFF)*3+1]&0xFF)+mulscale(g-(palette[(remapbuf[j]&0xFF)*3+1]&0xFF),palscale, 16),
-	                                        (palette[(remapbuf[j]&0xFF)*3+2]&0xFF)+mulscale(b-(palette[(remapbuf[j]&0xFF)*3+2]&0xFF),palscale, 16));
+	            	int rptr = palette[3 * (remapbuf[j] & 0xFF)] & 0xFF;
+	            	int gptr = palette[3 * (remapbuf[j] & 0xFF) + 1] & 0xFF;
+	            	int bptr = palette[3 * (remapbuf[j] & 0xFF) + 2] &  0xFF;
+
+	                palookup[palnum][j + i * 256] = (byte) getclosestcol(
+	                		rptr+mulscale(r-rptr,palscale, 16),
+	                        gptr+mulscale(g-gptr,palscale, 16),
+	                        bptr+mulscale(b-bptr,palscale, 16));
 	            }
 	        }
 			palookupfog[palnum][0] = (byte) r;
@@ -3841,9 +3842,9 @@ public abstract class Engine {
 			base = mulscale(heigth - y - 1, yf, 16) * xdim;
 			for (x = 0; x < width; x++) {
 				frame.position(3 * (base + mulscale(x, xf, 16)));
-				r = frame.get() & 0xFF;
-				g = frame.get() & 0xFF;
-				b = frame.get() & 0xFF;
+				r = (frame.get() & 0xFF) >> 2;
+				g = (frame.get() & 0xFF) >> 2;
+				b = (frame.get() & 0xFF) >> 2;
 				capture[heigth * x + y] = getclosestcol(r, g, b);
 			}
 		}
@@ -3857,9 +3858,9 @@ public abstract class Engine {
 		int r, g, b;
 		for (int x, y = heigth - 1; y >= 0; y--) {
 			for (x = 0; x < width; x++) {
-				r = frame.get() & 0xFF;
-				g = frame.get() & 0xFF;
-				b = frame.get() & 0xFF;
+				r = (frame.get() & 0xFF) >> 2;
+				g = (frame.get() & 0xFF) >> 2;
+				b = (frame.get() & 0xFF) >> 2;
 				capture[heigth * x + y] = getclosestcol(r, g, b);
 			}
 		}
