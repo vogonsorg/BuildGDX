@@ -33,7 +33,6 @@ public class GPManager {
 
 	private Array<Gamepad> gamepads;
 	private float deadZone = 0.01f;
-	private float smoothing = 1.0f;
 
 	boolean TestGamepad = false;
 	
@@ -69,15 +68,6 @@ public class GPManager {
 	public void setDeadZone(float value)
 	{
 		this.deadZone = value;
-	}
-
-	public void setSmoothing(float value)
-	{
-		// here we allow the user to decide between 1.0 (linear) to 3.0 (cubic) response
-		float min = 1.0f;
-		float max = 3.0f;
-		float len = max - min;
-		this.smoothing = min + value / 32768.0f * len;
 	}
 
 	public boolean buttonPressed()
@@ -160,7 +150,7 @@ public class GPManager {
 		// how come we are looping through an array in getAxisValue while it's single player ?
 		// there should a parameter indicating which player pad is desired
 		if(gamepads.size > 0)
-			return gamepads.get(0).getStickValue(aCode1, aCode2, deadZone, smoothing);
+			return gamepads.get(0).getStickValue(aCode1, aCode2, deadZone);
 		return null;
 	}
 }
