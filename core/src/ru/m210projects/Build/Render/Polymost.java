@@ -162,11 +162,11 @@ public abstract class Polymost implements Renderer {
 				if(end > 2)
 					end = 2;
 			}
-			
+
 	        color.clear();
-	        color.put(fogtable[pal][0]);
-	        color.put(fogtable[pal][1]);
-	        color.put(fogtable[pal][2]);
+	        color.put(palookupfog[pal][0] / 63.f);
+	        color.put(palookupfog[pal][1] / 63.f);
+	        color.put(palookupfog[pal][2] / 63.f);
 	        color.put(0);
 	        color.flip();
 	        
@@ -287,8 +287,6 @@ public abstract class Polymost implements Renderer {
 	private int framew;
 	private int frameh;
 	private int framesize;
-
-	private float fogtable[][] = new float[MAXPALOOKUPS][3];
 
 	private float gyxscale, gxyaspect, gviewxrange, ghalfx, grhalfxdown10,
 			grhalfxdown10x;
@@ -450,12 +448,6 @@ public abstract class Polymost implements Renderer {
 
 	@Override
 	public void uninit() {
-		for (int i = MAXPALOOKUPS - 1; i >= 0; i--) {
-			fogtable[i][0] = palookupfog[i][0] / 63.f;
-			fogtable[i][1] = palookupfog[i][1] / 63.f;
-			fogtable[i][2] = palookupfog[i][2] / 63.f;
-		}
-
 		// Reset if this is -1 (meaning 1st texture call ever), or > 0 (textures
 		// in memory)
 		if (gltexcacnum < 0) {
