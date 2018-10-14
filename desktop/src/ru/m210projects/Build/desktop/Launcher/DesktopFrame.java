@@ -69,7 +69,7 @@ import org.lwjgl.opengl.Display;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.BConfig;
-import ru.m210projects.Build.desktop.audio.midi.DavidMusicModule;
+import ru.m210projects.Build.desktop.audio.midi.MidiMusicModule;
 import ru.m210projects.Build.desktop.extension.DeskApplicationConfiguration;
 
 public class DesktopFrame {
@@ -566,7 +566,7 @@ public class DesktopFrame {
 	    		lwjglConfig.resizable = false;
 	    		lwjglConfig.depth = 32; //z-buffer
 
-	    		lwjglConfig.backgroundFPS = cfg.fpslimit;
+	    		lwjglConfig.backgroundFPS = 10;
 	    		lwjglConfig.foregroundFPS = cfg.fpslimit;
 	    		lwjglConfig.vSyncEnabled = cfg.gVSync;
 	    		
@@ -729,12 +729,12 @@ public class DesktopFrame {
 		midiDevice = -1;
 		byte[] namedata = new byte[64];
 		if(midiMap == null) {
-			List<MidiDevice.Info> devices = DavidMusicModule.getDevices();
+			List<MidiDevice> devices = MidiMusicModule.getDevices();
 			midiMap = new HashMap<Integer, String>();
 
 			if(midiDeviceList != null) midiDeviceList.addItem("None");
 			for(int i = 0; i < devices.size(); i++) {
-				String name = devices.get(i).getName();
+				String name = devices.get(i).getDeviceInfo().getName();
 				//Cyrillic convert
 				for(int c = 0; c < name.length(); c++) 
 					namedata[c] = (byte) name.codePointAt(c);
