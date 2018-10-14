@@ -5548,7 +5548,14 @@ public abstract class Polymost implements Renderer {
 		int ogpal = globalpal;
 		globalpal = dapalnum & 0xFF;
 
-		gl.glViewport(0, 0, xdim, ydim);
+		if ((dastat&10) == 2)
+            gl.glViewport(windowx1,ydim-(windowy2+1),windowx2-windowx1+1,windowy2-windowy1+1);
+        else
+        {
+            gl.glViewport(0,0,xdim,ydim);
+            glox1 = -1; //Force fullscreen (glox1=-1 forces it to restore)
+        }
+		
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
