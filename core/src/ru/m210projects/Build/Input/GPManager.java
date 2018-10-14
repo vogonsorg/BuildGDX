@@ -54,45 +54,39 @@ public class GPManager {
 		if(TestGamepad)
 			gamepads.add(new Gamepad(new TestController()));
 	}
-	
+
+	private void checkDeviceIndex(int index)
+	{
+		if (index < 0 || index >= gamepads.size)
+			throw new IllegalArgumentException("Device index is invalid.");
+	}
+
 	public int getControllers()
 	{
 		return gamepads.size;
 	}
 	
-	public String getControllerName(int num)
+	public String getControllerName(int deviceIndex)
 	{
-		return gamepads.get(num).getName();
+		checkDeviceIndex(deviceIndex);
+		return gamepads.get(deviceIndex).getName();
 	}
-	
+
 	public void setDeadZone(float value)
 	{
 		this.deadZone = value;
 	}
 
-	public boolean buttonPressed()
+	public int getButtonCount(int deviceIndex)
 	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).buttonPressed())
-				return true;
-		}
-		return false;
+		checkDeviceIndex(deviceIndex);
+		return gamepads.get(deviceIndex).getButtonCount();
 	}
 	
-	public int getButtonCount(int num)
+	public boolean getButton(int deviceIndex, int buttonCode)
 	{
-		if(getControllers() > 0)
-			return gamepads.get(num).getButtonCount();
-		return 0;
-	}
-	
-	public boolean getButton(int buttonCode)
-	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).getButton(buttonCode))
-				return true;
-		}
-		return false;
+		checkDeviceIndex(deviceIndex);
+		return gamepads.get(deviceIndex).getButton(buttonCode);
 	}
 	
 	public void handler()
@@ -108,49 +102,27 @@ public class GPManager {
 		}
 	}
 	
-	public boolean buttonStatusOnce(int buttonCode)
+	public boolean buttonStatusOnce(int deviceIndex, int buttonCode)
 	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).buttonStatusOnce(buttonCode))
-				return true;
-		}
-		return false;
+		checkDeviceIndex(deviceIndex);
+		return gamepads.get(deviceIndex).buttonStatusOnce(buttonCode);
 	}
 	
-	public boolean buttonPressed(int buttonCode)
+	public boolean buttonPressed(int deviceIndex, int buttonCode)
 	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).buttonPressed(buttonCode))
-				return true;
-		}
-		return false;
+		checkDeviceIndex(deviceIndex);
+		return gamepads.get(deviceIndex).buttonPressed(buttonCode);
 	}
 	
-	public boolean buttonStatus(int buttonCode)
+	public boolean buttonStatus(int deviceIndex, int buttonCode)
 	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).buttonStatus(buttonCode))
-				return true;
-		}
-		return false;
-	}
-	
-	public float getAxisValue(int aCode) {
-		float value = 0.0f;
-		for(int i = 0; i < gamepads.size; i++) {
-			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
-				return value;
-		}
-		return 0.0f;
+		checkDeviceIndex(deviceIndex);
+		return gamepads.get(deviceIndex).buttonStatus(buttonCode);
 	}
 
-	public Vector2 getStickValue(int aCode1, int aCode2)
+	public Vector2 getStickValue(int deviceIndex, int aCode1, int aCode2)
 	{
-		// TODO
-		// how come we are looping through an array in getAxisValue while it's single player ?
-		// there should a parameter indicating which player pad is desired
-		if(gamepads.size > 0)
-			return gamepads.get(0).getStickValue(aCode1, aCode2, deadZone);
-		return null;
+		checkDeviceIndex(deviceIndex);
+		return gamepads.get(deviceIndex).getStickValue(aCode1, aCode2, deadZone);
 	}
 }
