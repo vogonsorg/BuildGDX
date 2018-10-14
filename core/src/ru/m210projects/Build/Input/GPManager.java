@@ -19,7 +19,6 @@ package ru.m210projects.Build.Input;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
 import ru.m210projects.Build.Types.BGraphics;
@@ -33,7 +32,7 @@ public class GPManager {
 
 	private Array<Gamepad> gamepads;
 	private float deadZone = 0.01f;
-
+	
 	boolean TestGamepad = false;
 	
 	public GPManager()
@@ -54,39 +53,45 @@ public class GPManager {
 		if(TestGamepad)
 			gamepads.add(new Gamepad(new TestController()));
 	}
-
-	private void checkDeviceIndex(int index)
-	{
-		if (index < 0 || index >= gamepads.size)
-			throw new IllegalArgumentException("Device index is invalid.");
-	}
-
+	
 	public int getControllers()
 	{
 		return gamepads.size;
 	}
 	
-	public String getControllerName(int deviceIndex)
+	public String getControllerName(int num)
 	{
-		checkDeviceIndex(deviceIndex);
-		return gamepads.get(deviceIndex).getName();
+		return gamepads.get(num).getName();
 	}
-
+	
 	public void setDeadZone(float value)
 	{
 		this.deadZone = value;
 	}
-
-	public int getButtonCount(int deviceIndex)
+	
+	public boolean buttonPressed()
 	{
-		checkDeviceIndex(deviceIndex);
-		return gamepads.get(deviceIndex).getButtonCount();
+		for(int i = 0; i < gamepads.size; i++) {
+			if(gamepads.get(i).buttonPressed())
+				return true;
+		}
+		return false;
 	}
 	
-	public boolean getButton(int deviceIndex, int buttonCode)
+	public int getButtonCount(int num)
 	{
-		checkDeviceIndex(deviceIndex);
-		return gamepads.get(deviceIndex).getButton(buttonCode);
+		if(getControllers() > 0)
+			return gamepads.get(num).getButtonCount();
+		return 0;
+	}
+	
+	public boolean getButton(int buttonCode)
+	{
+		for(int i = 0; i < gamepads.size; i++) {
+			if(gamepads.get(i).getButton(buttonCode))
+				return true;
+		}
+		return false;
 	}
 	
 	public void handler()
@@ -102,27 +107,39 @@ public class GPManager {
 		}
 	}
 	
-	public boolean buttonStatusOnce(int deviceIndex, int buttonCode)
+	public boolean buttonStatusOnce(int buttonCode)
 	{
-		checkDeviceIndex(deviceIndex);
-		return gamepads.get(deviceIndex).buttonStatusOnce(buttonCode);
+		for(int i = 0; i < gamepads.size; i++) {
+			if(gamepads.get(i).buttonStatusOnce(buttonCode))
+				return true;
+		}
+		return false;
 	}
 	
-	public boolean buttonPressed(int deviceIndex, int buttonCode)
+	public boolean buttonPressed(int buttonCode)
 	{
-		checkDeviceIndex(deviceIndex);
-		return gamepads.get(deviceIndex).buttonPressed(buttonCode);
+		for(int i = 0; i < gamepads.size; i++) {
+			if(gamepads.get(i).buttonPressed(buttonCode))
+				return true;
+		}
+		return false;
 	}
 	
-	public boolean buttonStatus(int deviceIndex, int buttonCode)
+	public boolean buttonStatus(int buttonCode)
 	{
-		checkDeviceIndex(deviceIndex);
-		return gamepads.get(deviceIndex).buttonStatus(buttonCode);
+		for(int i = 0; i < gamepads.size; i++) {
+			if(gamepads.get(i).buttonStatus(buttonCode))
+				return true;
+		}
+		return false;
 	}
-
-	public Vector2 getStickValue(int deviceIndex, int aCode1, int aCode2)
-	{
-		checkDeviceIndex(deviceIndex);
-		return gamepads.get(deviceIndex).getStickValue(aCode1, aCode2, deadZone);
+	
+	public float getAxisValue(int aCode) {
+		float value = 0.0f;
+		for(int i = 0; i < gamepads.size; i++) {
+			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
+				return value;
+		}
+		return 0.0f;
 	}
 }
