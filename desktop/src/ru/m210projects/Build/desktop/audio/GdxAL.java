@@ -53,7 +53,7 @@ public class GdxAL implements ALAudio {
         {
 			alEffectSlot = EXTEfx.alGenAuxiliaryEffectSlots();
 			alEffect = EXTEfx.alGenEffects();
-			EXTEfx.alEffecti(alEffect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_REVERB);	
+			EXTEfx.alEffecti(alEffect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_CHORUS);	//AL_EFFECT_REVERB
 		}
 	}
 
@@ -113,7 +113,11 @@ public class GdxAL implements ALAudio {
 		
 		if(enable)
 		{
-			EXTEfx.alEffectf(alEffect, EXTEfx.AL_REVERB_DECAY_TIME, delay);
+//			EXTEfx.alEffecti(alEffect, EXTEfx.AL_CHORUS_WAVEFORM, 0);
+			EXTEfx.alEffectf(alEffect, EXTEfx.AL_CHORUS_RATE, 0);
+			EXTEfx.alEffectf(alEffect, EXTEfx.AL_CHORUS_FEEDBACK, delay);
+			EXTEfx.alEffectf(alEffect, EXTEfx.AL_CHORUS_DEPTH, 0.0f);
+			EXTEfx.alEffectf(alEffect, EXTEfx.AL_CHORUS_DELAY, 0.012f);
 			EXTEfx.alAuxiliaryEffectSloti(alEffectSlot, EXTEfx.AL_EFFECTSLOT_EFFECT, alEffect);
 		    alSource3i(sourceId, EXTEfx.AL_AUXILIARY_SEND_FILTER, alEffectSlot, 0, EXTEfx.AL_FILTER_NULL);
 		} 
