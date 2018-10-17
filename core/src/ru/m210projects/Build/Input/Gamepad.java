@@ -131,7 +131,7 @@ public class Gamepad {
 		return 0.0f;
 	}
 
-	public Vector2 getStickValue(int aCode1, int aCode2, float deadZone, float smoothing)
+	public Vector2 getStickValue(int aCode1, int aCode2, float deadZone)
 	{
 		float lx = controller.getAxis(aCode1);
 		float ly = controller.getAxis(aCode2);
@@ -148,9 +148,7 @@ public class Gamepad {
 			nlm = mag / (1.0f - deadZone);
 			float x1 = nlx * nlm;
 			float y1 = nly * nlm;
-			float x2 = Math.signum(x1) * (float) Math.pow(Math.abs(x1), smoothing);
-			float y2 = Math.signum(y1) * (float) Math.pow(Math.abs(y1), smoothing);
-			return new Vector2(x2, y2);
+			return new Vector2(x1, y1);
 		}
 		else
 		{
