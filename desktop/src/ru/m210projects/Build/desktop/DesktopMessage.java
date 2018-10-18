@@ -41,9 +41,15 @@ public class DesktopMessage implements Message {
 	
 	@Override
 	public boolean show(String header, String message, boolean send) {
+		if(message.length() >= 384)
+		{
+			message = message.substring(0, 384);
+			message += "...";
+		}
+	
 		if(send) {
 			if(frame != null) {
-				frame.setMessage(message);
+				frame.setMessage(message + "\r\n \r\n      Do you want to send a crash report?");
 				frame.setOptionType(JOptionPane.YES_NO_OPTION);
 				JDialog dialog = frame.createDialog(header);
 				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
