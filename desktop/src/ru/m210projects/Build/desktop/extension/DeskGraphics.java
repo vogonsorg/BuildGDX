@@ -367,12 +367,11 @@ public class DeskGraphics implements BGraphics {
 				gldisplay = new GLDisplay(config);
 			this.currdisplay = gldisplay;
 		}
+		this.setVSync(config.vSyncEnabled);
 	}
 
 	@Override
 	public DisplayType getDisplayType() {
 		return currdisplay.getType();
 	}
-	
-	
 }
