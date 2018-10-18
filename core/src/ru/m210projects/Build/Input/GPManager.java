@@ -59,7 +59,12 @@ public class GPManager {
 	{
 		return gamepads.size;
 	}
-	
+
+	public boolean isValidDevice(int deviceIndex)
+	{
+		return gamepads.size > 0 && deviceIndex >= 0 && deviceIndex < gamepads.size;
+	}
+
 	public String getControllerName(int num)
 	{
 		return gamepads.get(num).getName();
