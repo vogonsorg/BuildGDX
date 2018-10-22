@@ -67,9 +67,9 @@ public class Mmulti {
 	
 	public static NetInfo inet = new NetInfo();
 	
-	private static int GetTickCount()
+	private static long GetTickCount()
 	{
-		return (int) System.currentTimeMillis();
+		return System.currentTimeMillis();
 	}
 	
 	private static int[] crctab16 = new int[256];
@@ -448,6 +448,11 @@ public class Mmulti {
 
 	public static int getoutputcirclesize() {
 		return 0;
+	}
+	
+	public static boolean canSend(int other) //for waitforplayers
+	{
+		return (GetTickCount() >= lastsendtims[other]+1000/PAKRATE);
 	}
 	
 	public static void dosendpackets(int other)
