@@ -14,6 +14,7 @@ package ru.m210projects.Build.Render;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static java.lang.Math.*;
 import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Loader.MDSprite.*;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
@@ -35,6 +36,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Engine.Point;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
 import ru.m210projects.Build.Loader.Model;
@@ -357,6 +359,12 @@ public abstract class Polymost implements Renderer {
 		}
 		for(int i = 0; i < 6; i++)
 			dsprite[i] = new Surface();
+		
+		for(int i = 0; i < dsin.length; i++)
+			dsin[i] = new Vector2();
+		for(int i = 0; i < dcoord.length; i++)
+			dcoord[i] = new Vector2();
+		Arrays.fill(spritewall, -1);
 		
 		init();
 
@@ -1547,8 +1555,8 @@ public abstract class Polymost implements Renderer {
 						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 					
-
-					pow2xsplit = 1;
+					if(surfaceType == 0)
+						pow2xsplit = 1;
 					clipper.domost((float) x1, (float) ocy1, (float) x0, (float) ocy0);
 					if ((wal.cstat & 8) != 0) {
 						gux = ogux;
@@ -1601,7 +1609,8 @@ public abstract class Polymost implements Renderer {
 						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
-					pow2xsplit = 1;
+					if(surfaceType == 0)
+						pow2xsplit = 1;
 					clipper.domost((float) x0, (float) ofy0, (float) x1, (float) ofy1);
 					if ((wal.cstat & (2 + 8)) != 0) {
 						guo = oguo;
@@ -1654,8 +1663,8 @@ public abstract class Polymost implements Renderer {
 					if(UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) //Blood's pal 1
 						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
-					
-					pow2xsplit = 1;
+					if(surfaceType == 0)
+						pow2xsplit = 1;
 					clipper.domost((float)x0, (float)cy0, (float)x1, (float)cy1);
 				} while (false);
 		
@@ -2320,6 +2329,8 @@ public abstract class Polymost implements Renderer {
 			drawrooms_pz2 = new double[6], drawrooms_sx = new double[6],
 			drawrooms_sy = new double[6];
 
+	public double defznear = 0.1;
+	public double defzfar = 0.9;
 	public void drawrooms() // eduke32
 	{
 		int i, j, n, n2, closest;
@@ -2331,14 +2342,10 @@ public abstract class Polymost implements Renderer {
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_DEPTH_TEST);
 		
-//		Пока что лучший результат
-//		gl.glDepthFunc(GL10.GL_ALWAYS); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
-//		gl.glPolygonOffset(0, 0);
-		
+		surfaceType = 0;
 
-//		gl.glDepthRange(0.0001, 1.0); // <- this is more widely supported than glPolygonOffset
 		gl.glDepthFunc(GL_LEQUAL); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
-		gl.glDepthRange(0.0, 1.0); //<- this is more widely supported than glPolygonOffset
+		gl.glDepthRange(defznear, defzfar); //<- this is more widely supported than glPolygonOffset
 
 		// Polymost supports true look up/down :) Here, we convert horizon to angle.
 		// gchang&gshang are cos&sin of this angle (respectively)
@@ -2519,8 +2526,6 @@ public abstract class Polymost implements Renderer {
 		int m0, m1;
 		SECTOR sec, nsec;
 		WALL wal, wal2;
-		
-		gl.glDepthRange(0.0, 0.99999);
 
 		// cullcheckcnt = 0;
 
@@ -2634,7 +2639,8 @@ public abstract class Polymost implements Renderer {
 		} // yflip
 
 		method = 1;
-		pow2xsplit = 1;
+		if(surfaceType == 0)
+			pow2xsplit = 1;
 		if ((wal.cstat & 128) != 0) {
 			if ((wal.cstat & 512) == 0)
 				method = 2;
@@ -2741,38 +2747,12 @@ public abstract class Polymost implements Renderer {
 		if (n < 3)
 			return;
 
+		gl.glDepthRange(defznear+0.000001, defzfar-0.00001);
 		drawpoly(dmaskwall, n, method);
-		gl.glDepthRange(0.0, 1.0);
+		gl.glDepthRange(defznear, defzfar);
 	}
 
-//	private static int findwall_dist;
 	private static Vector2 projPoint = new Vector2();
-//	private int polymost_findwall(SPRITE tspr, int tsizx, int tsizy, int rd)
-//	{
-//		findwall_dist = rd;
-//	    int dist = 4, closest = -1, dst;
-//	    SECTOR sect = sector[tspr.sectnum];
-//
-//	    
-//	    for (int i=sect.wallptr; i<sect.wallptr + sect.wallnum; i++)
-//	    {
-//	    	if ((wall[i].nextsector == -1 || ((sector[wall[i].nextsector].ceilingz > (tspr.z - ((tsizy * tspr.yrepeat) << 2))) ||
-//	                sector[wall[i].nextsector].floorz < tspr.z)) && getclosestpointonwall(tspr, i, projPoint) == 0)
-//	        {
-//	            dst = (int) (klabs((int)(tspr.x - projPoint.x)) + klabs((int)(tspr.y - projPoint.y)));
-//
-//	            if (dst <= dist)
-//	            {
-//	                dist = dst;
-//	                closest = i;
-//	            }
-//	        }
-//	    }
-//
-//	    findwall_dist = dist;
-//	    return closest;
-//	}
-
 	private int getclosestpointonwall(int posx, int posy, int dawall, Vector2 n)
 	{
 		WALL w = wall[dawall];
@@ -2798,40 +2778,17 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	private final float TSPR_OFFSET_FACTOR = 0.000008f;
-	private float TSPR_OFFSET(SPRITE tspr)
+	private float TSPR_OFFSET(SPRITE tspr, long dist)
 	{
-		float dist = sepdist(globalposx - tspr.x, globalposy - tspr.y, globalposz - tspr.z);
-		float offset = (TSPR_OFFSET_FACTOR + ((tspr.owner != -1 ? tspr.owner & 61 : 1) * TSPR_OFFSET_FACTOR)) * dist * 0.025f;
-		return offset;
+		float offset = (TSPR_OFFSET_FACTOR + ((tspr.owner != -1 ? tspr.owner & 31 : 1) * TSPR_OFFSET_FACTOR)) * dist * 0.025f;
+		return -offset;
 	}
-	
-	// dz: in Build coordinates
-	private int sepdist(int x, int y, int z)
-	{
-		int dx = (int) klabs(x);
-		int dy = (int) klabs(y);
-		int dz = (int) klabs(z);
-	
-	    if (dx < dy) {
-	    	int tmp = dx;
-	    	dx = dy;
-	    	dy = tmp;
-	    }
-
-	    if (dx < dz) {
-	    	int tmp = dx;
-	    	dx = dz;
-	    	dz = tmp;
-	    }
-
-	    dy += dz;
-
-	    return dx - (dx>>4) + (dy>>2) + (dy>>3);
-	}
-
 
 	private final Surface dsprite[] = new Surface[6];
 	private final float drawsprite_ft[] = new float[4];
+	private final Vector2[] dsin = new Vector2[MAXSPRITES];
+	private final Vector2[] dcoord = new Vector2[MAXSPRITES];
+	private final int[] spritewall = new int[MAXSPRITES];
 
 	private void drawsprite(int snum) {
 		float f, c, s, fx, fy, sx0, sy0, sx1, xp0, yp0, xp1, yp1, oxp0, oyp0, ryp0, ryp1;
@@ -2927,17 +2884,6 @@ public abstract class Polymost implements Renderer {
 			break;
 		}
 		
-//		if ((((tspr.cstat&2) != 0) || (textureCache.gltexmayhavealpha(tspr.picnum,tspr.pal))))
-//	    {
-//	        curpolygonoffset += 0.01f;
-//	        gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
-//	    }
-		
-//		if ((tspr.cstat & 32) != 0) {
-//			curpolygonoffset += 0.01f;
-//		    gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
-//		}
-
 		if ((spriteext[tspr.owner].flags & SPREXT_AWAY1) != 0) {
 			posx += (sintable[(tspr.ang + 512) & 2047] >> 13);
 			posy += (sintable[(tspr.ang) & 2047] >> 13);
@@ -2956,6 +2902,8 @@ public abstract class Polymost implements Renderer {
 
 		if (tsizx <= 0 || tsizy <= 0)
 			return;
+		
+		long dist;
 
 		float foffs, offsx, offsy;
 		int ang;
@@ -2967,8 +2915,10 @@ public abstract class Polymost implements Renderer {
 			// NOTE: yoff not negated not for y flipping, unlike wall and floor
 			// aligned sprites.
 			
+			dist = engine.qdist(globalposx - tspr.x, globalposy - tspr.y);
 			ang = (engine.getangle(tspr.x - globalposx, tspr.y - globalposy) + 1024) & 2047;
-			foffs = TSPR_OFFSET(tspr);
+			foffs = TSPR_OFFSET(tspr, dist);
+			dist *= (dist >> 7);
 			
 			offsx = (float) (sintable[(ang + 512) & 2047] >> 6) * foffs;
 			offsy = (float) (sintable[(ang) & 2047] >> 6) * foffs;
@@ -3061,39 +3011,35 @@ public abstract class Polymost implements Renderer {
 			tilesizx[globalpicnum] = (short) tsizx;
 			tilesizy[globalpicnum] = (short) tsizy;
 
+			gl.glDepthRange(defznear, defzfar-(10f / (dist + 1)));
+	
 			pow2xsplit = 0;
 			drawpoly(dsprite, 4, method);
 
+			gl.glDepthRange(defznear, defzfar);
+
 			srepeat = 0;
 			trepeat = 0;
-
 			break;
 	
 		case 1: // Wall sprite
 
-			curpolygonoffset += 0.01f;
-	        gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
-	        
 			// Project 3D to 2D
 			if ((globalorientation & 4) != 0)
 				xoff = -xoff;
 			if ((globalorientation & 8) != 0)
 				yoff = -yoff;
 
-//			ang = (getangle(tspr.x - globalposx, tspr.y - globalposy) + 1024) & 2047;
-//			float dist = sepdist(globalposx - tspr.x, globalposy - tspr.y, 0);
-//			float WALLSPR_OFFSET_FACTOR = 0.008f;
-//			if(dist > 4096) dist = 4096;
-//			foffs = 0.05f + (tspr.owner & 61) * 0.25f; //TSPR_OFFSET(tspr); //(WALLSPR_OFFSET_FACTOR + ((tspr.owner != -1 ? tspr.owner & 61 : 1) * WALLSPR_OFFSET_FACTOR)) * dist * 0.1f;
-//			offsx = (foffs * sintable[(ang + 512) & 2047]) / 16384.f;
-//			offsy = (foffs * sintable[ang]) / 16384.f;
+			posx += dcoord[tspr.owner].x;
+			posy += dcoord[tspr.owner].y;
 
-			xv = (float) tspr.xrepeat * (float) sintable[(tspr.ang) & 2047] * (1.0f / 65536.f);
-			yv = (float) tspr.xrepeat * (float) sintable[(tspr.ang + 1536) & 2047] * (1.0f / 65536.f);
+			xv = (float) tspr.xrepeat * ((float) (sintable[(tspr.ang) & 2047] * (1.0f / 65536.f)) - dsin[tspr.owner].x);
+			yv = (float) tspr.xrepeat * ((float) (sintable[(tspr.ang + 1536) & 2047] * (1.0f / 65536.f)) - dsin[tspr.owner].y);
+
 			f = (float) (tsizx >> 1) + (float) xoff;
-			x0 = (float) (posx - globalposx /*+ offsx*/) - xv * f;
+			x0 = (float) (posx - globalposx) - xv * f;
 			x1 = xv * (float) tsizx + x0;
-			y0 = (float) (posy - globalposy /*+ offsy*/) - yv * f;
+			y0 = (float) (posy - globalposy) - yv * f;
 			y1 = yv * (float) tsizx + y0;
 
 			yp0 = (float) (x0 * gcosang2 + y0 * gsinang2);
@@ -3229,14 +3175,29 @@ public abstract class Polymost implements Renderer {
 			tilesizx[globalpicnum] = (short) tsizx;
 			tilesizy[globalpicnum] = (short) tsizy;
 
+			if(spritewall[tspr.owner] != -1 && (tspr.cstat & 2) != 0)
+				gl.glDepthMask(false);
+			
+			dist = engine.qdist(globalposx - tspr.x, globalposy - tspr.y);
+			dist *= (dist >> 7);
+			
+			if(spritewall[tspr.owner] != -1 && dist > 0)
+				gl.glDepthRange(defznear, defzfar-(Math.min(dist / 16384f, 40) / dist));
+
+			curpolygonoffset += 0.01f;
+			gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
+
 			pow2xsplit = 0;
 			drawpoly(dsprite, 4, method);
 
+			gl.glPolygonOffset(0,0);
+			gl.glDepthRange(defznear, defzfar);
+			if(spritewall[tspr.owner] != -1 && (tspr.cstat & 2) != 0)
+				gl.glDepthMask(true);
+			
 			srepeat = 0;
 			trepeat = 0;
 			
-			gl.glPolygonOffset(0,0);
-
 			break;
 		
 		case 2: // Floor sprite
@@ -3391,9 +3352,15 @@ public abstract class Polymost implements Renderer {
 
 			tilesizx[globalpicnum] = (short) tsizx;
 			tilesizy[globalpicnum] = (short) tsizy;
+			
+			if((tspr.cstat & 2) != 0)
+				gl.glDepthMask(false);
 
 			pow2xsplit = 0;
 			drawpoly(dsprite, npoints, method);
+			
+			if((tspr.cstat & 2) != 0)
+				gl.glDepthMask(true);
 
 			srepeat = 0;
 			trepeat = 0;
@@ -3563,10 +3530,8 @@ public abstract class Polymost implements Renderer {
 			s.fog.apply();
 
 			gl.glVertexPointer(3, GL_FLOAT, 4 * 9, s.buffer);
-			s.buffer.position(3);
-			gl.glTexCoordPointer(2, GL_FLOAT, 4 * 9, s.buffer);
-			s.buffer.position(5);
-			gl.glColorPointer(4, GL_FLOAT, 4 * 9, s.buffer);
+			gl.glTexCoordPointer(2, GL_FLOAT, 4 * 9, s.buffer.position(3));
+			gl.glColorPointer(4, GL_FLOAT, 4 * 9, s.buffer.position(5));
 			gl.glDrawArrays(GL_TRIANGLE_FAN, 0, s.numvertices);
 		}
 		
@@ -3575,6 +3540,26 @@ public abstract class Polymost implements Renderer {
 		gl.glDisableClientState(GL_COLOR_ARRAY);
 	}
 
+	public void swapsprite(int k, int l, boolean z)
+	{
+		SPRITE stmp = tspriteptr[k];
+		tspriteptr[k] = tspriteptr[l];
+		tspriteptr[l] = stmp;
+
+		int tmp = spritesx[k];
+		spritesx[k] = spritesx[l];
+		spritesx[l] = tmp;
+		tmp = spritesy[k];
+		spritesy[k] = spritesy[l];
+		spritesy[l] = tmp;
+
+		if(z) {
+			tmp = spritesz[k];
+			spritesz[k] = spritesz[l];
+			spritesz[l] = tmp;
+		}
+	}
+	
 	// PLAG: sorting stuff
 	private static Vector3 drawmasks_maskeq = new Vector3(), drawmasks_p1eq = new Vector3(), drawmasks_p2eq = new Vector3();
 	private static final Vector2 drawmasks_dot = new Vector2(), drawmasks_dot2 = new Vector2(), drawmasks_middle = new Vector2(), drawmasks_pos = new Vector2(),
@@ -3631,18 +3616,7 @@ public abstract class Polymost implements Renderer {
 				for (l = i; l >= 0; l -= gap) {
 					if (spritesy[l] <= spritesy[l + gap])
 						break;
-
-					SPRITE stmp = tspriteptr[l];
-					tspriteptr[l] = tspriteptr[l + gap]; // swaplong(&tspriteptr[l],&tspriteptr[l+gap]);
-					tspriteptr[l + gap] = stmp;
-
-					int tmp = spritesx[l];
-					spritesx[l] = spritesx[l + gap]; // swaplong(&spritesx[l],&spritesx[l+gap]);
-					spritesx[l + gap] = tmp;
-
-					tmp = spritesy[l];
-					spritesy[l] = spritesy[l + gap];
-					spritesy[l + gap] = tmp;
+					swapsprite(l, l+gap, false);
 				}
 		if (spritesortcnt > 0)
 			spritesy[spritesortcnt] = (spritesy[spritesortcnt - 1] ^ 1);
@@ -3669,51 +3643,14 @@ public abstract class Polymost implements Renderer {
 				}
 				for (k = i + 1; k < j; k++)
 					for (l = i; l < k; l++)
-						if (klabs(spritesz[k] - globalposz) < klabs(spritesz[l] - globalposz)) {
-							SPRITE stmp = tspriteptr[k];
-							tspriteptr[k] = tspriteptr[l]; // swaplong(&tspriteptr[k],&tspriteptr[l]);
-							tspriteptr[l] = stmp;
-
-							int tmp = spritesx[k];
-							spritesx[k] = spritesx[l];
-							spritesx[l] = tmp;
-
-							tmp = spritesy[k];
-							spritesy[k] = spritesy[l];
-							spritesy[l] = tmp;
-
-							tmp = spritesz[k];
-							spritesz[k] = spritesz[l];
-							spritesz[l] = tmp;
-						}
+						if (klabs(spritesz[k] - globalposz) < klabs(spritesz[l] - globalposz)) 
+							swapsprite(k, l, true);
 				for (k = i + 1; k < j; k++)
 					for (l = i; l < k; l++) {
-						if (tspriteptr[k].statnum < tspriteptr[l].statnum) {
-							SPRITE stmp = tspriteptr[k];
-							tspriteptr[k] = tspriteptr[l]; // swaplong(&tspriteptr[k],&tspriteptr[l]);
-							tspriteptr[l] = stmp;
-							int tmp = spritesx[k];
-							spritesx[k] = spritesx[l];
-							spritesx[l] = tmp;
-
-							tmp = spritesy[k];
-							spritesy[k] = spritesy[l];
-							spritesy[l] = tmp;
-						}
-						
+						if (tspriteptr[k].statnum < tspriteptr[l].statnum) 
+							swapsprite(k, l, false);
 						if((tspriteptr[k].cstat & 2) != 0) //transparent sort
-						{
-							SPRITE stmp = tspriteptr[k];
-							tspriteptr[k] = tspriteptr[l];
-							tspriteptr[l] = stmp;
-							int tmp = spritesx[k];
-							spritesx[k] = spritesx[l];
-							spritesx[l] = tmp;
-
-							tmp = spritesy[k];
-							spritesy[k] = spritesy[l];
-							spritesy[l] = tmp;
-						}
+							swapsprite(k, l, true);
 					}
 			}
 			i = j;
@@ -3768,11 +3705,11 @@ public abstract class Polymost implements Renderer {
 			}
 		}
 		
-		drawsurfaces(surfaces);
-		
 		gl.glDisable(GL10.GL_POLYGON_OFFSET_FILL);
 		gl.glPolygonOffset(0, 0);
-		
+
+		drawsurfaces(surfaces);
+
 		if (totalclock < lastcullcheck - CULL_DELAY)
 			lastcullcheck = totalclock;
 		if (totalclock >= lastcullcheck + CULL_DELAY)
@@ -4917,10 +4854,89 @@ public abstract class Polymost implements Renderer {
 		gl.glReadPixels(x, y, w, h, format, GL10.GL_UNSIGNED_BYTE, framebuffer);
 		return framebuffer;
 	}
+	
+	public int nearwall(int i, int range) {
+		SPRITE spr = sprite[i];
+		short sectnum = spr.sectnum;
+		int xs = spr.x; int ys = spr.y;
+
+		int vx = mulscale(sintable[(spr.ang + 2560) & 2047], range, 14);
+		int xe = xs + vx;
+		int vy = mulscale(sintable[(spr.ang + 2048) & 2047], range, 14);
+		int ye = ys + vy;
+
+		if ((sectnum < 0) || (sectnum >= numsectors))
+			return (-1);
+		
+		short startwall = sector[sectnum].wallptr;
+		int endwall = (startwall + sector[sectnum].wallnum - 1);
+		for (int z = startwall; z <= endwall; z++) {
+			WALL wal = wall[z];
+			WALL  wal2 = wall[wal.point2];
+			int x1 = wal.x;
+			int y1 = wal.y;
+			int x2 = wal2.x;
+			int y2 = wal2.y;
+
+			if ((x1 - xs) * (y2 - ys) < (x2 - xs) * (y1 - ys))
+				continue;
+
+			if(wal.nextsector != -1) {
+				int daz = engine.getflorzofslope(sectnum, xs, ys);
+				int daz2 = engine.getflorzofslope(wal.nextsector, xs, ys);
+
+				boolean clipyou = false;
+				int z1 = spr.z, z2 = spr.z;
+				int yoff =  ((byte)(picanm[spr.picnum] >> 16) & 255);
+				
+				if((spr.cstat & 128) != 0) {
+					z1 -= (yoff + tilesizy[spr.picnum] / 2) * (spr.yrepeat << 2);
+					z2 += (tilesizy[spr.picnum] - (tilesizy[spr.picnum] / 2 + yoff)) * (spr.yrepeat << 2);
+				} else 
+					z1 -= (yoff + tilesizy[spr.picnum]) * (spr.yrepeat << 2);
+				
+				if (daz2 < daz - (1 << 8))
+					if (z2 >= daz2) clipyou = true;
+				if (!clipyou) {
+					daz = engine.getceilzofslope(sectnum, xs, ys);
+					daz2 = engine.getceilzofslope(wal.nextsector, xs, ys);
+					if (daz2 > daz + (1 << 8))
+							if (z1 <= daz2)
+								clipyou = true;
+				}
+				
+				if(!clipyou) continue;
+			}
+			
+			Point out;
+			if ((out = engine.lintersect(xs, ys, 0, xe, ye, 0, x1, y1, x2, y2)) != null) {
+				int dist = dmulscale(out.getX() - xs, sintable[(spr.ang + 2560) & 2047], out.getY() - ys, sintable[(spr.ang + 2048) & 2047], 14);
+				if(klabs(dist) <= 8) {
+					int wallang = engine.getangle(wall[wal.point2].x - wal.x, wall[wal.point2].y - wal.y) - 512;
+					int nx = out.getX() - mulscale(sintable[(wallang + 2560) & 2047], 4, 14);
+					int ny = out.getY() - mulscale(sintable[(wallang + 2048) & 2047], 4, 14);
+					dcoord[i].x = nx - spr.x;
+					dcoord[i].y = ny - spr.y;
+				}
+				return z;
+			}
+		}
+
+		return -1;
+	}
 
 	@Override
 	public void preload() {
-		// TODO Auto-generated method stub
+		System.err.println("Preload");
+		for(int i = 0; i < MAXSPRITES; i++)
+		{
+			removeSpriteCorr(i);
+			SPRITE spr = sprite[i];
+			if(((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS) 
+				continue;
+			
+			addSpriteCorr(i);
+		}
 	}
 
 	@Override
@@ -5927,6 +5943,34 @@ public abstract class Polymost implements Renderer {
         gshang = ogshang;
         gctang = ogctang;
         gstang = ogstang;
+	}
+	
+	@Override
+	public void addSpriteCorr(int snum) {
+		int spr_wall = -1;
+		SPRITE spr = sprite[snum];
+		if((spr_wall = nearwall(snum, -64)) == -1) 
+			if((spr.cstat & 64) != 0 || (spr_wall = nearwall(snum, 64)) == -1)
+				return;
+
+		spritewall[snum] = spr_wall;
+		float sang = spr.ang * 360 / 2048;
+		int wdx = wall[spr_wall].x-wall[wall[spr_wall].point2].x;
+		int wdy = wall[spr_wall].y-wall[wall[spr_wall].point2].y;
+		float wang = new Vector2(wdx, wdy).angle()-90;
+		if(wang < 0) wang += 360;
+		wang = BClipRange(wang, 0, 360);
+		if(Math.abs(wang - sang) > 10) return;
+
+		dsin[snum].x = (sintable[(spr.ang) & 2047] / 65536.0f) - (float) (Math.sin(Math.toRadians(wang)) / 4);
+		dsin[snum].y = (sintable[(spr.ang + 1536) & 2047] / 65536.0f) - (float) (Math.sin(Math.toRadians(wang + 270)) / 4);
+	}
+	
+	@Override
+	public void removeSpriteCorr(int snum) {
+		dsin[snum].set(0, 0);
+		dcoord[snum].set(0, 0);
+		spritewall[snum] = -1;
 	}
 }
 

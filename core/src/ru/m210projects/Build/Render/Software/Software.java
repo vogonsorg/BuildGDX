@@ -3587,4 +3587,12 @@ public class Software implements Renderer {
 		a.thline(globalbufplc,globaly1*r+globalxpanning-a.asm1*(xr-xl),(xr-xl)<<16,0,
 			globalx2*r+globalypanning-a.asm2*(xr-xl),ylookup[yp]+xl);
 	}
+
+	@Override
+	public void addSpriteCorr(int snum) {
+	}
+
+	@Override
+	public void removeSpriteCorr(int snum) {
+	}
 }

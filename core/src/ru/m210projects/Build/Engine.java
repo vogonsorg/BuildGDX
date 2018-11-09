@@ -636,6 +636,7 @@ public abstract class Engine {
 
 	public short deletesprite(short spritenum) //jfBuild
 	{
+		getrender().removeSpriteCorr(spritenum);
 		deletespritestat(spritenum);
 		return(deletespritesect(spritenum));
 	}
@@ -700,7 +701,7 @@ public abstract class Engine {
 		return(0);
 	}
 
-	protected Point lintersect(int x1, int y1, int z1, int x2, int y2, int z2, int x3, //jfBuild
+	public Point lintersect(int x1, int y1, int z1, int x2, int y2, int z2, int x3, //jfBuild
 			int y3, int x4, int y4) {
 		
 		// p1 to p2 is a line segment
@@ -1143,7 +1144,7 @@ public abstract class Engine {
 		{
 			Console.Println("Invalid map version!");
 			kClose(fil);
-			return(-1);
+			return(-2);
 		}
 		
 		initspritelists();

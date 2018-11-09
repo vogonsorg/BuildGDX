@@ -68,4 +68,8 @@ public interface Renderer {
 	public void setdrunk(float intensive);
 	
 	public float getdrunk();
+	
+	public void addSpriteCorr(int snum);
+	
+	public void removeSpriteCorr(int snum);
 }
