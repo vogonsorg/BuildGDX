@@ -294,7 +294,7 @@ public abstract class Polymost implements Renderer {
 			grhalfxdown10x;
 	private double ghoriz;
 	private float gcosang, gsinang, gcosang2, gsinang2;
-	private float gchang, gshang, gctang, gstang;
+	private float gchang, gshang, ogshang, gctang, gstang;
 	private float gtang = 0.0f;
 	private double guo, gux; // Screen-based texture mapping parameters
 	private double guy;
@@ -2336,6 +2336,11 @@ public abstract class Polymost implements Renderer {
 		int i, j, n, n2, closest;
 		double ox, oy, oz, ox2, oy2, oz2, r;
 
+		if(offscreenrendering) {
+			if(setviewcnt == 1)
+				ogshang = gshang;
+		} else if(ogshang != -1) gshang = ogshang;
+		
 		resizeglcheck();
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		gl.glDisable(GL_BLEND);
@@ -4839,6 +4844,7 @@ public abstract class Polymost implements Renderer {
 				spriteext[i].mdanimtims += mdtims - omdtims;
 
 		beforedrawrooms = 1;
+		ogshang = -1;
 		gl.glFlush();
 	}
 	
