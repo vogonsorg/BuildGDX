@@ -566,7 +566,7 @@ public class DesktopFrame {
 	    		lwjglConfig.resizable = false;
 	    		lwjglConfig.depth = 32; //z-buffer
 
-	    		lwjglConfig.backgroundFPS = 30;
+	    		lwjglConfig.backgroundFPS = cfg.fpslimit;
 	    		lwjglConfig.foregroundFPS = cfg.fpslimit;
 	    		lwjglConfig.vSyncEnabled = cfg.gVSync;
 	    		
