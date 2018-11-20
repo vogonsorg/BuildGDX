@@ -25,6 +25,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import ru.m210projects.Build.Architecture.BuildMessage;
 import ru.m210projects.Build.Audio.BAudio;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.Input.KeyInput;
@@ -39,7 +40,6 @@ import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Render.Types.Spritesmooth;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
-import ru.m210projects.Build.Types.Message;
 import ru.m210projects.Build.Types.Neartag;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
@@ -105,7 +105,7 @@ public abstract class Engine {
 	public static boolean UseBloodPal = false;
 	
 	public Renderer render;
-	private Message message;
+	private BuildMessage message;
 	private BAudio audio;
 	private static KeyInput input;
 	
@@ -935,7 +935,7 @@ public abstract class Engine {
 		bakwindowy2 = new int[4];
 	}
 	
-	public Engine(Message message, BAudio audio, boolean releasedEngine) throws Exception { //gdxBuild
+	public Engine(BuildMessage message, BAudio audio, boolean releasedEngine) throws Exception { //gdxBuild
 		this.releasedEngine = releasedEngine;
 		this.message = message;
 		if(audio == null) new Exception("BAudio == null!");

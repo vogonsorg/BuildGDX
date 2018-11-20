@@ -67,10 +67,11 @@ import javax.swing.event.ChangeListener;
 import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.Graphics.DisplayMode;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.BConfig;
 import ru.m210projects.Build.desktop.audio.midi.MidiMusicModule;
-import ru.m210projects.Build.desktop.extension.DeskApplicationConfiguration;
 
 public class DesktopFrame {
 	
@@ -356,7 +357,7 @@ public class DesktopFrame {
 	private void initSettingsTab(JPanel settings, Font font)
 	{
 		if(!settingsCreated) {
-			initVideoModes(DeskApplicationConfiguration.getDisplayModes(), DeskApplicationConfiguration.getDesktopDisplayMode());
+			initVideoModes(LwjglApplicationConfiguration.getDisplayModes(), LwjglApplicationConfiguration.getDesktopDisplayMode());
 			
 			JLabel sounddrv = new JLabel("Sound: ");
 			sounddrv.setFont(font);
@@ -557,9 +558,9 @@ public class DesktopFrame {
 	        {
 	        	String apptitle = title;
 	        	if(!settingsInited)
-	        		initVideoModes(DeskApplicationConfiguration.getDisplayModes(), DeskApplicationConfiguration.getDesktopDisplayMode());
+	        		initVideoModes(LwjglApplicationConfiguration.getDisplayModes(), LwjglApplicationConfiguration.getDesktopDisplayMode());
 	        	
-	        	DeskApplicationConfiguration lwjglConfig = new DeskApplicationConfiguration();
+	        	LwjglApplicationConfiguration lwjglConfig = new LwjglApplicationConfiguration();
 	    		lwjglConfig.fullscreen = setFullscreen(cfg.ScreenWidth, cfg.ScreenHeight, cfg.fullscreen == 1);
 	    		lwjglConfig.width = (cfg.ScreenWidth);
 	    		lwjglConfig.height = (cfg.ScreenHeight);

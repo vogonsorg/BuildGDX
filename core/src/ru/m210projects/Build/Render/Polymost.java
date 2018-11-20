@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Engine.Point;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
@@ -52,16 +54,12 @@ import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Pthtyp;
 import ru.m210projects.Build.Render.Types.ValueResolver;
-import ru.m210projects.Build.Types.BGraphics;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
-import ru.m210projects.Build.Types.Wallspriteinfo;
-import ru.m210projects.Build.Types.BDisplay.DisplayType;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -230,7 +228,6 @@ public abstract class Polymost implements Renderer {
 //	private final int SPREXT_TEMPINVISIBLE = 32;
 	
 	private SPRITE[] tspriteptr = new SPRITE[MAXSPRITESONSCREEN + 1];
-	private Wallspriteinfo[] wsprinfo;
 //	private int[] wallchanged = new int[MAXWALLS];
 //	private int[] spritechanged = new int[MAXSPRITES];
 
@@ -343,15 +340,12 @@ public abstract class Polymost implements Renderer {
 	private boolean showlines = false;
 
 	public Polymost(Engine engine) {
-		((BGraphics) Gdx.graphics).setDisplayType(DisplayType.GL);
-		this.gl = (GL10) Gdx.gl;
+		BuildGDX.app.setFrame(FrameType.GL);
+		this.gl = BuildGDX.graphics.getGL10();
 		this.engine = engine;
 		this.textureCache = createTextureCache();
 		this.clipper = new PolyClipper(this);
 
-		wsprinfo = new Wallspriteinfo[MAXSPRITES];
-		for (int i = 0; i < wsprinfo.length; i++)
-			wsprinfo[i] = new Wallspriteinfo();
 		for(int i = 0; i < 16; i++)
 			drawpoly[i] = new Polygon();
 		for(int i = 0; i < 8; i++) {

@@ -1,4 +1,4 @@
-package ru.m210projects.Build.desktop.extension;
+package ru.m210projects.Build.desktop.gl;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -15,12 +15,13 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import ru.m210projects.Build.Render.Types.GL10;
 
-public class DeskGL10 extends GL10 {
+public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glActiveTexture (int texture) {
@@ -489,7 +490,7 @@ public class DeskGL10 extends GL10 {
 	@Override
 	public void glTexParameterf (int target, int pname, float param) {
 		// LwjglGraphics.major is should to be 1 if we are in LwjglGL10.
-		if(GLDisplay.glVersion.getMinorVersion() < 2 && param == GL12.GL_CLAMP_TO_EDGE) param = GL11.GL_CLAMP;
+		if(Gdx.graphics.getGLVersion().getMinorVersion() < 2 && param == GL12.GL_CLAMP_TO_EDGE) param = GL11.GL_CLAMP;
 		GL11.glTexParameterf(target, pname, param);
 	}
 

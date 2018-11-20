@@ -14,7 +14,7 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.desktop.extension.software;
+package ru.m210projects.Build.desktop.software;
 
 import java.awt.Dimension;
 import java.nio.ByteBuffer;
@@ -23,9 +23,11 @@ import javax.swing.JFrame;
 
 public class JDisplay
 {
-	private final JFrame m_frame;
+	protected final JFrame m_frame;
 	private final JCanvas canvas;
 	private Dimension size;
+	
+	private boolean isCloseRequested = false;
 	
 	public JDisplay(int width, int height)
 	{
@@ -42,8 +44,24 @@ public class JDisplay
 		m_frame.setLocationRelativeTo(null);
 		m_frame.setVisible(true);
 		
+		m_frame.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+		    	isCloseRequested = true;
+		    }
+		});
+
 		canvas.setFocusable(true);
 		canvas.requestFocus();
+	}
+	
+	public boolean isCloseRequested() {
+		return isCloseRequested;
+	}
+	
+	public boolean isActive()
+	{
+		return m_frame.isActive();
 	}
 	
 	public void setSize(int width, int height)
@@ -71,7 +89,7 @@ public class JDisplay
 	{
 		return m_frame.getY();
 	}
-	
+
 	public void setUndecorated(boolean undecorated)
 	{
 		m_frame.setUndecorated(undecorated);
@@ -83,6 +101,11 @@ public class JDisplay
 
 	public void setLocation(int x, int y) {
 		m_frame.setLocation(x, y);
+	}
+	
+	public boolean wasResized()
+	{
+		return false;
 	}
 
 	public void setIcon(ByteBuffer[] icons) {

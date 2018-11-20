@@ -23,9 +23,9 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import ru.m210projects.Build.Types.Message;
+import ru.m210projects.Build.Architecture.BuildMessage;
 
-public class DesktopMessage implements Message {
+public class DesktopMessage implements BuildMessage {
 	JOptionPane frame;
 	URL icon;
 

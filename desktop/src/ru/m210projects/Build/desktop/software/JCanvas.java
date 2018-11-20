@@ -14,7 +14,7 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.desktop.extension.software;
+package ru.m210projects.Build.desktop.software;
 
 import java.awt.Canvas;
 import java.awt.Graphics;
