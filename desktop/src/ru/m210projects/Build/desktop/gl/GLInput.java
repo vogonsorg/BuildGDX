@@ -1,7 +1,12 @@
 package ru.m210projects.Build.desktop.gl;
 
+import static ru.m210projects.Build.Input.Keymap.KEY_SCROLLOCK;
+import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
+import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Cursor;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
@@ -112,7 +117,8 @@ public class GLInput implements BuildInput {
 
 	@Override
 	public boolean isKeyPressed(int key) {
-		return input.isKeyPressed(key);
+		if (!Keyboard.isCreated()) return false;
+		return Keyboard.isKeyDown(getLwjglKeyCode(key));
 	}
 
 	@Override
@@ -256,5 +262,18 @@ public class GLInput implements BuildInput {
 	@Override
 	public int getDWheel() {
 		return Mouse.getDWheel();
+	}
+	
+	protected static int getLwjglKeyCode (int gdxKeyCode) {
+		switch (gdxKeyCode) {
+		case KEY_PAUSE:
+			return Keyboard.KEY_PAUSE;
+		case KEY_CAPSLOCK:
+			return Keyboard.KEY_CAPITAL;
+		case KEY_SCROLLOCK:
+			return Keyboard.KEY_SCROLL;
+		default:
+			return LwjglInput.getLwjglKeyCode(gdxKeyCode);
+		}
 	}
 }
