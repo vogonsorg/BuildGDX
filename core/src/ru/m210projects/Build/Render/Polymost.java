@@ -5575,7 +5575,7 @@ public abstract class Polymost implements Renderer {
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
-		gl.glOrthof(0, xdim, ydim, 0, -1, 1);
+		gl.glOrthof(0, xdim-1, ydim-1, 0, -1, 1);
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glPushMatrix();
 		gl.glLoadIdentity();
