@@ -18,6 +18,8 @@ package ru.m210projects.Build.FileHandle;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Locale;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -226,6 +228,20 @@ public class Compat {
 	    	return -1;
 	    }
 		return var;
+	}
+	
+	public static ByteBuffer Bread(int handle, int position, int len)
+	{
+		ByteBuffer out = null;
+		
+		RandomAccessFile fis = raf_list[handle];
+		try {
+			out = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, position, len);
+		} catch (IOException e) {
+			throw new RuntimeException("Couldn't load file " + handle);
+	    }
+		
+		return out;
 	}
 	
 	private static byte[] tmpbyte = new byte[1];
