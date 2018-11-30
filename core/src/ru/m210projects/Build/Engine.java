@@ -272,7 +272,7 @@ public abstract class Engine {
 	private int[] tilefileoffs;
 	private int artversion;
 	private int mapversion;
-	private long totalclocklock;
+	protected long totalclocklock;
 	protected short[] sqrtable;
 	protected short[] shlookup;
 	private int hitallsprites = 0;
