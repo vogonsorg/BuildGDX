@@ -267,6 +267,7 @@ public class ALSoundDrv implements Sound {
 	
 	@Override
 	public int getNumResamplers() {
+		if(noDevice) return 1;
 		return al.alGetNumResamplers();
 	}
 

@@ -243,6 +243,8 @@ public class Software implements Renderer {
 		globalpalwritten = 0;
 		a.setpalookupaddress(globalpalwritten);
 		
+		gltexinvalidateall(0);
+		
 		j = 0;
 		for(int i=0;i<=Gdx.graphics.getHeight();i++) { ylookup[i] = j; j += bytesperline; }
 		
@@ -3044,7 +3046,7 @@ public class Software implements Renderer {
 		char[] fontptr = textfont;
 		if (fontsize != 0) { fontptr = smalltextfont; charxsiz = 4; }
 
-		for(int i=0; text[i] != 0;i++)
+		for(int i=0; i < text.length && text[i] != 0;i++)
 		{
 			int ptr = bytesperline*(ypos+7)+(stx-fontsize);
 			
