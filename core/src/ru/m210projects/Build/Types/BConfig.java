@@ -38,6 +38,7 @@ public abstract class BConfig {
 	public float gamma = 1;
 	public float brightness = 0;
 	public float contrast = 1;
+	public float gFpsScale = 1.0f;
 	
 	public abstract void saveConfig(String path);
 }

@@ -84,7 +84,7 @@ public class GLFrameImpl implements GLFrame, Frame {
 	}
 
 	@Override
-	public boolean render(boolean shouldRender) {
+	public boolean checkRender(boolean shouldRender) {
 		boolean isActive = Display.isActive();
 		input.update();
 		shouldRender |= graphics.shouldRender();
@@ -94,7 +94,6 @@ public class GLFrameImpl implements GLFrame, Frame {
 		if (shouldRender) {
 			graphics.updateTime();
 			graphics.frameId++;
-			Display.update(false);
 		} else {
 			// Sleeps to avoid wasting CPU in an empty loop.
 			if (frameRate == -1) frameRate = 10;
@@ -134,5 +133,10 @@ public class GLFrameImpl implements GLFrame, Frame {
 	@Override
 	public void setDefaultDisplayConfiguration() {
 		setDisplayConfiguration(1.0f, 0.0f, 1.0f);
+	}
+
+	@Override
+	public void repaint() {
+		Display.update(false);
 	}
 }

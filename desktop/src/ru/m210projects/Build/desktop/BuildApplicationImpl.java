@@ -174,8 +174,10 @@ public class BuildApplicationImpl implements BuildApplication {
 			// If one of the runnables set running to false, for example after an exit().
 			if (!running) break;
 
-			if(frame.render(shouldRender))
+			if(frame.checkRender(shouldRender)) {
 				listener.render();
+				frame.repaint();
+			}
 		}
 
 		synchronized (lifecycleListeners) {

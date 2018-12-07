@@ -26,12 +26,14 @@ public interface BuildApplication extends Application {
 		
 		public boolean update();
 		
-		public boolean render(boolean shouldRender);
+		public boolean checkRender(boolean shouldRender);
 
 		public boolean isCloseRequested();
 		
 		public boolean isActive();
 
 		public void destroy();
+		
+		public void repaint();
 	}
 }

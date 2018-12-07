@@ -71,7 +71,7 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 	}
 
 	@Override
-	public boolean render(boolean shouldRender) {
+	public boolean checkRender(boolean shouldRender) {
 		boolean isActive = isActive();
 		input.update();
 		shouldRender |= graphics.shouldRender();
@@ -81,7 +81,6 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 		if (shouldRender) {
 			graphics.updateTime();
 			graphics.frameId++;
-			graphics.getCanvas().update();
 		} else {
 			// Sleeps to avoid wasting CPU in an empty loop.
 			if (frameRate == -1) frameRate = 10;
@@ -121,5 +120,10 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 	@Override
 	public void changepalette(byte[] palette) {
 		graphics.getCanvas().changepalette(palette);
+	}
+
+	@Override
+	public void repaint() {
+		graphics.getCanvas().repaint();
 	}
 }

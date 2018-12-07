@@ -3040,7 +3040,7 @@ public class Software implements Renderer {
 	}
 
 	@Override
-	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize) {
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int stx = xpos;
 		int charxsiz = 8;
 		char[] fontptr = textfont;

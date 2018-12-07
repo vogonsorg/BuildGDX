@@ -22,13 +22,13 @@ public abstract class FadeEffect {
 	public int sfactor; 
 	public int dfactor;
 	public int r, g, b, a; 
-	
+
 	public FadeEffect(int sfactor, int dfactor)
 	{
 		this.sfactor = sfactor;
 		this.dfactor = dfactor;
 	}
-	
+
 	public abstract void update(int intensive);
 
 	public void draw(GL10 gl) {

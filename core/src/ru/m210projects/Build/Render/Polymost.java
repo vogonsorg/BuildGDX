@@ -5431,7 +5431,7 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	@Override
-	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize) {
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int oxpos = xpos;
 		
 		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
@@ -5469,6 +5469,7 @@ public abstract class Polymost implements Renderer {
 		int c = 0, line = 0;
 		int x, y, yoffs;
 		float tx, ty;
+
 		while (c < text.length && text[c] != '\0') {
 			if(text[c] == '\n')
 			{
@@ -5484,8 +5485,8 @@ public abstract class Polymost implements Renderer {
 
 			yoffs = line * (fontsize != 0 ? 6 : 8);
 
-			x = xpos + (8 >> fontsize);
-			y = ypos + (fontsize != 0 ? 6 : 8);
+			x = xpos + (int) (scale * (8 >> fontsize));
+			y = ypos + (int) (scale * (fontsize != 0 ? 6 : 8));
 
 			gl.glTexCoord2f(tx, ty);
 			gl.glVertex2i(xpos, ypos + yoffs);
@@ -5496,7 +5497,7 @@ public abstract class Polymost implements Renderer {
 			gl.glTexCoord2f(tx + txc, ty + tyc);
 			gl.glVertex2i(x, y + yoffs);
 
-			xpos += (8 >> fontsize);
+			xpos += scale * (8 >> fontsize);
 			c++;
 		}
 

@@ -371,8 +371,8 @@ public class ALSoundDrv implements Sound {
 				source.free = false;
 				al.alSourceStop(sourceId);
 				al.alSourcei(sourceId, AL_BUFFER, 0);
-				al.alSourcef(sourceId, AL_GAIN, 0);
-				al.alSourcef(sourceId, AL_PITCH, 1);
+				al.alSourcef(sourceId, AL_GAIN, 0.0f);
+				al.alSourcef(sourceId, AL_PITCH, 1.0f);
 				al.alSource3f(sourceId, AL_POSITION, 0, 0, 0);
 				al.alSourcei (sourceId, AL_SOURCE_RELATIVE,  AL_FALSE);
 				add(source);

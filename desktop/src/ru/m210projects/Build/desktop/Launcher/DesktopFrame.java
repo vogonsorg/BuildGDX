@@ -110,7 +110,7 @@ public class DesktopFrame {
 	private String userHomePath;
 	private String portablePath;
 	private LaunchCallback cLaunch;
-
+	
 	public DesktopFrame(String appname, String appversion, String[] resources, 
 			LaunchCallback cLaunch, URL Title, URL FrameIcon, final URL AboutImg) throws Exception
 	{
@@ -252,6 +252,7 @@ public class DesktopFrame {
 				if(f != null)
 					path = f.getAbsolutePath() + File.separator;
 					textField.setText(path);  
+					
 					startButtonStatus(checkResources(path, resources) != -1, appname, resources[0]);
 			}
 		});
@@ -661,6 +662,7 @@ public class DesktopFrame {
 		Console.Println(message, OSDTEXT_GOLD);
 	}
 
+//	private int resnum;
 	private int checkResources(String path, String[] resources)
 	{
 		if(resources.length < 2) {
@@ -682,7 +684,21 @@ public class DesktopFrame {
 			if(filesMap.get(resources[i]) == null)
 				return -1;
 		}
-
+			
+//		resnum = -1;
+//		int r = 0, i = 1;
+//		while(i < resources[r].length) {
+//			if(filesMap.get(resources[r][i]) == null) {
+//				if(r < resources.length - 1) {
+//					r++; i = 1;
+//					continue;
+//				}
+//				return -1;
+//			}
+//			i++;
+//		}
+//		resnum = r;
+		
 //		if(!Files.isWritable(directory.toPath())) // JDK 1.7
 		if(!isWritable(path))
 			return 0;

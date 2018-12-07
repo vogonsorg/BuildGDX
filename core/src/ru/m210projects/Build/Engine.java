@@ -56,6 +56,46 @@ import com.badlogic.gdx.graphics.PixmapIO;
 
 public abstract class Engine {
 	
+	/*
+	 * 	Engine
+	 * 		messages
+	 * 		filecache
+	 * 		filegroup		-> 		filecache
+	 * 		(net) mmulti
+	 * 		audiomanger (BAudio)
+	 * 			midimodule
+	 * 			openal
+	 * 		renderer				
+	 * 			polymost	->    texturecache
+	 * 			software
+	 * 		input
+	 * 			keyboard -> input()
+	 * 			gamepad	-> gpmanager
+	 * 		
+	 * 		OnScreenDisplay
+	 * 			Console
+	 * 		loader
+	 * 			md2
+	 * 			md3
+	 * 			vox
+	 * 			wav
+	 * 		
+	 * 
+	 *  Utils
+	 *  	string handler
+	 *  	def loader + common + scriptfile	-> texturecache / mdloader
+	 *  	pragmas
+	 *  	bithandler
+	 *  
+	 *  Game
+	 *  	config
+	 *  	
+	 *  
+	 * 
+	 */
+	
+	
+	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
 	
@@ -3772,7 +3812,7 @@ public abstract class Engine {
 	}
 
 	public void printext256(int xpos, int ypos, int col, int backcol, char[] name, int fontsize) { //gdxBuild
-		render.printext(xpos, ypos, col, backcol, name, fontsize);
+		render.printext(xpos, ypos, col, backcol, name, fontsize, 1.0f);
 	}
 	
 	public String screencapture(String fn) { //jfBuild + gdxBuild
@@ -4083,15 +4123,15 @@ public abstract class Engine {
 		input = new KeyInput();
 	}
 
-    public void printfps() { 
+    public void printfps(float scale) { 
     	int fps = Gdx.graphics.getFramesPerSecond();
     	int rate = (int)(Gdx.graphics.getDeltaTime() * 1000);
     	if(fps <= 9999 && rate <= 9999) {
 	    	int chars = Bitoa(rate, fpsbuffer);
 			chars = buildString(fpsbuffer, chars, "ms ", fps);
 			chars = buildString(fpsbuffer, chars, "fps");
-			
-			printext256(windowx2 - (chars << (3)), windowy1 + 1, 31, -1, fpsbuffer, 0);
+
+			render.printext(windowx2 - (int) ((chars << 3) * scale), windowy1 + 1, 31, -1, fpsbuffer, 0, scale);
     	}
     }
 

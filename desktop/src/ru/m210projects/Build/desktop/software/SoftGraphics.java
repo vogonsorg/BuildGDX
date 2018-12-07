@@ -52,7 +52,7 @@ public class SoftGraphics implements BuildGraphics {
 		return display.getCanvas();
 	}
 	
-	public void sync(int fps)
+	protected void sync(int fps)
 	{
 		
 	}

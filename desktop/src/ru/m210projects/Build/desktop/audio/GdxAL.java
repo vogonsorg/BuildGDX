@@ -239,4 +239,24 @@ public class GdxAL implements ALAudio {
 	public int alGetNumResamplers() {
 		return alNumResamplers;
 	}
+
+	@Override
+	public void alGetSourcefv(int source, int param, FloatBuffer values) {
+		AL10.alGetSourcefv(source, param, values);
+	}
+
+	@Override
+	public float alGetListenerf(int paramName) {
+		return AL10.alGetListenerf(paramName);
+	}
+
+	@Override
+	public int alGetListeneri(int paramName) {
+		return AL10.alGetListeneri(paramName);
+	}
+
+	@Override
+	public void alGetListenerfv(int param, FloatBuffer values) {
+		AL10.alGetListenerfv(param, values);
+	}
 }
