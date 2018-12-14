@@ -17,7 +17,9 @@
 package ru.m210projects.Build.desktop.software;
 
 import java.awt.Dimension;
-import java.nio.ByteBuffer;
+import java.awt.Image;
+import java.awt.MouseInfo;
+import java.util.List;
 
 import javax.swing.JFrame;
 
@@ -37,13 +39,13 @@ public class JDisplay
 		canvas.setMinimumSize(size);
 		canvas.setMaximumSize(size);
 
-		m_frame = new JFrame();
+		m_frame = new JFrame(MouseInfo.getPointerInfo().getDevice().getDefaultConfiguration());
 		m_frame.add(canvas);
 		m_frame.pack();
 		m_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		m_frame.setLocationRelativeTo(null);
 		m_frame.setVisible(true);
-		
+
 		m_frame.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -68,6 +70,11 @@ public class JDisplay
 	{
 		//size = new Dimension(width, height); XXX
 		//canvas = new JCanvas(width, height);
+	}
+	
+	public boolean wasResized()
+	{
+		return false;
 	}
 	
 	public JCanvas getCanvas()
@@ -96,19 +103,17 @@ public class JDisplay
 	}
 	
 	public void setResizable(boolean resizable) {
-		m_frame.setResizable(false);
+		m_frame.setResizable(resizable);
 	}
 
 	public void setLocation(int x, int y) {
+		if(x == - 1 && y == -1)
+			return;
+		
 		m_frame.setLocation(x, y);
 	}
 	
-	public boolean wasResized()
-	{
-		return false;
-	}
-
-	public void setIcon(ByteBuffer[] icons) {
-		
+	public void setIcon(List<Image> icons) {
+		m_frame.setIconImages(icons);
 	}
 }

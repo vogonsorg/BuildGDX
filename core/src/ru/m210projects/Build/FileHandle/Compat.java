@@ -32,6 +32,8 @@ public class Compat {
 	private static Locale usLocal = Locale.US;
 	public static String FilePath;
 	public static String FileUserdir;
+	public static boolean FileIndicator;
+	public static boolean FileDebug = false;
 	private static RandomAccessFile raf;
 	public static final int SEEK_SET = 0;
 	public static final int SEEK_CUR = 1;
@@ -121,7 +123,7 @@ public class Compat {
 	public static int Bopen(String filename, String opt) {
 		if(cache == null)
 			initCacheList(FilePath, FileUserdir);
-		
+
 		int var = -1;
 		try {
 			if(opt.equals("r") || opt.equals("R")) {
@@ -156,6 +158,9 @@ public class Compat {
 				}
 			}
 
+			if(FileDebug)
+				System.out.println("Opening " + filename + " [ " + (MAXOPENFILES-newhandle-1) + " / " + MAXOPENFILES + " ]");
+			
 			raf_list[newhandle] = raf;
 		
 			var = newhandle;
@@ -187,6 +192,7 @@ public class Compat {
 	public static int Blseek(int handle, long offset, int whence) {
 		int var = -1;
 		
+		FileIndicator = true;
 		RandomAccessFile fis = raf_list[handle];
 		try {
 			if(whence == SEEK_SET) {
@@ -219,6 +225,7 @@ public class Compat {
 	public static int Bread(int handle, byte[] buf, int len) {
 		int var = -1;
 		
+		FileIndicator = true;
 		RandomAccessFile fis = raf_list[handle];
 		try {
 			var = fis.read(buf, 0, len);
@@ -234,6 +241,7 @@ public class Compat {
 	{
 		ByteBuffer out = null;
 		
+		FileIndicator = true;
 		RandomAccessFile fis = raf_list[handle];
 		try {
 			out = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, position, len);
@@ -250,6 +258,8 @@ public class Compat {
 	
 	public static int Bread(int handle, int len) {
 		int var = -1;
+		
+		FileIndicator = true;
 		RandomAccessFile fis = raf_list[handle];
 		try {
 			if(len == 1)
@@ -275,6 +285,7 @@ public class Compat {
 	public static int Bwrite(int handle, byte[] buf, int len) {
 		int var = -1;
 		
+		FileIndicator = true;
 		RandomAccessFile fis = raf_list[handle];
 		try {
 			fis.write(buf, 0, len);
@@ -288,6 +299,7 @@ public class Compat {
 	public static int Bwrite(int handle, char[] buf, int len) {
 		int var = -1;
 		
+		FileIndicator = true;
 		RandomAccessFile fis = raf_list[handle];
 		byte[] buffer = new byte[len];
 		
@@ -305,6 +317,7 @@ public class Compat {
 	public static int Bwrite(int handle, int data, int len) {
 		int var = -1;
 		
+		FileIndicator = true;
 		RandomAccessFile fis = raf_list[handle];
 		byte[] buf = null;
 		

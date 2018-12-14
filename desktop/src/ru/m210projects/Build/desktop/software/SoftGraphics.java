@@ -1,16 +1,25 @@
 package ru.m210projects.Build.desktop.software;
 
+import java.awt.Image;
 import java.awt.Toolkit;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.glutils.GLVersion;
+import com.badlogic.gdx.utils.Array;
 
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Render.Types.GL10;
@@ -39,6 +48,21 @@ public class SoftGraphics implements BuildGraphics {
 	
 	protected JFrame setupDisplay () {
 		display = new JDisplay(config.width, config.height);
+		
+		try {
+			Array<String> iconPaths = getIconPaths(config);
+			if (iconPaths.size > 0) {
+				List<Image> icons = new ArrayList<Image>();
+				for (int i = 0, n = iconPaths.size; i < n; i++) {
+					FileHandle file = Gdx.files.getFileHandle(iconPaths.get(i), getIconFileTypes(config).get(i));
+					ImageIcon icon = new ImageIcon(file.readBytes());
+					icons.add(icon.getImage());
+				}
+				display.setIcon(icons);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		
 		display.setTitle(config.title);
 		display.setResizable(config.resizable);
@@ -298,6 +322,24 @@ public class SoftGraphics implements BuildGraphics {
 	@Override
 	public GL10 getGL10() {
 		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Array<String> getIconPaths(LwjglApplicationConfiguration config) throws Exception
+	{
+		Field f = config.getClass().getDeclaredField("iconPaths"); 
+		f.setAccessible(true);
+		Array<String> icons = (Array<String>) f.get(config);
+		return icons;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Array<FileType> getIconFileTypes(LwjglApplicationConfiguration config) throws Exception
+	{
+		Field f = config.getClass().getDeclaredField("iconFileTypes"); 
+		f.setAccessible(true);
+		Array<FileType> iconFileTypes = (Array<FileType>) f.get(config);
+		return iconFileTypes;
 	}
 
 }

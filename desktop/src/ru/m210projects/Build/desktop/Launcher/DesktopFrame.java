@@ -744,6 +744,7 @@ public class DesktopFrame {
 	private void initMidiDevice(String midiSynth)
 	{
 		midiDevice = -1;
+		int defGervill = -1;
 		byte[] namedata = new byte[64];
 		if(midiMap == null) {
 			List<MidiDevice> devices = MidiMusicModule.getDevices();
@@ -759,6 +760,8 @@ public class DesktopFrame {
 
 				
 				if(midiDeviceList != null) midiDeviceList.addItem(name);
+				if(name.equalsIgnoreCase("Gervill"))
+					defGervill = i;
 				midiMap.put(i, name);
 			} 
 		}
@@ -766,6 +769,13 @@ public class DesktopFrame {
 		for(Integer key : midiMap.keySet()){
 			if(midiMap.get(key).equals(midiSynth))
 				midiDevice = key;
+		}
+		
+		if(midiDevice == -1 && defGervill != -1)
+		{
+			midiDevice = defGervill;
+			cfg.midiSynth = midiMap.get(midiDevice);
+			cfg.middrv = 1;
 		}
 	}
 }

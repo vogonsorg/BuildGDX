@@ -48,7 +48,7 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 	@Override
 	public void init() {
 		graphics.setupDisplay();
-		input.init(graphics.getCanvas());
+		input.init(graphics.display);
 		graphics.resize = true;
 		graphics.lastTime = System.nanoTime();
 	}
