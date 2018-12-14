@@ -14,8 +14,8 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Input;
 
-public interface MessageCallback {
+public interface InputCallback {
 	public int run(int ch);
 }

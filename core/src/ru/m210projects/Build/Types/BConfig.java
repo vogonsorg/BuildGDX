@@ -33,7 +33,7 @@ public abstract class BConfig {
 	
 	public int snddrv = 1;
 	public int middrv = 1;
-	public String midiSynth;
+	public String midiSynth = "None";
 	
 	public float gamma = 1;
 	public float brightness = 0;

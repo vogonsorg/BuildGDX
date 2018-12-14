@@ -230,7 +230,7 @@ public class LwjglAL implements ALAudio {
 
 	@Override
 	public int alGetNumResamplers() {
-		return 0;
+		return 1;
 	}
 
 	@Override

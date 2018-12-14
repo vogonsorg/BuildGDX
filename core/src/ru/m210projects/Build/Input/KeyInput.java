@@ -23,8 +23,6 @@ import static ru.m210projects.Build.Strhandler.isdigit;
 import java.util.Arrays;
 
 import ru.m210projects.Build.Architecture.BuildGDX;
-import ru.m210projects.Build.Types.MessageCallback;
-
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -252,7 +250,7 @@ public class KeyInput {
     	return 0;
 	}
 	
-	public int putMessage(MessageCallback callback, boolean cursor)
+	public int putMessage(InputCallback callback, boolean cursor)
 	{
 		int ch, keystate;
     	while (keyfifoplc != keyfifoend) {
