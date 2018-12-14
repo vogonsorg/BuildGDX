@@ -3842,27 +3842,31 @@ public abstract class Engine {
 		} while (true);
 		
 		int w = xdim, h = ydim;
-		ByteBuffer frame = render.getframebuffer(0, 0, w, h, GL10.GL_RGB);
-		Pixmap capture = new Pixmap(w, h, Format.RGB888);
-		ByteBuffer pixels = capture.getPixels();
-		
-		final int numBytes = w * h * 3;
-		byte[] lines = new byte[numBytes];
-		final int numBytesPerLine = w * 3;
-		for (int i = 0; i < h; i++) {
-			frame.position((h - i - 1) * numBytesPerLine);
-			frame.get(lines, i * numBytesPerLine, numBytesPerLine);
-		}
-		pixels.put(lines);
-		
-		File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
+		Pixmap capture = null;
 		try {
+			ByteBuffer frame = render.getframebuffer(0, 0, w, h, GL10.GL_RGB);
+			capture = new Pixmap(w, h, Format.RGB888);
+			ByteBuffer pixels = capture.getPixels();
+			
+			final int numBytes = w * h * 3;
+			byte[] lines = new byte[numBytes];
+			final int numBytesPerLine = w * 3;
+			for (int i = 0; i < h; i++) {
+				frame.position((h - i - 1) * numBytesPerLine);
+				frame.get(lines, i * numBytesPerLine, numBytesPerLine);
+			}
+			pixels.put(lines);
+			
+			File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
+		
 			PixmapIO.writePNG(new FileHandle(pci), capture);
 			userdir.addFile(pci);
 			capture.dispose();
 			return fn + a + b + c + d + ".png";
 		} 
 		catch(Exception e) {
+			if(capture != null)
+				capture.dispose();
 			return null;
 		}
 	}
