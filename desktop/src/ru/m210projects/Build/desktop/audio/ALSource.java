@@ -32,6 +32,7 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
 import ru.m210projects.Build.Audio.ALAudio;
 import ru.m210projects.Build.Audio.Source;
+import ru.m210projects.Build.Audio.SourceCallback;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class ALSource extends Source {
@@ -178,5 +179,11 @@ public class ALSource extends Source {
 		if(!drv.isInited()) return;
 		if(al.alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PAUSED)
 			al.alSourcePlay(sourceId);
+	}
+
+	@Override
+	public void setCallback(SourceCallback callback, int num) {
+		this.callback = callback;
+		this.channel = num;
 	}
 }

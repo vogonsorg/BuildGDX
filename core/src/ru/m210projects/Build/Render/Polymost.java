@@ -68,6 +68,7 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 public abstract class Polymost implements Renderer {
 	
+	public static long TexDebug = -1;
 	class GLSurfaceArray {
 		
 		private GLSurface[] items;
@@ -658,11 +659,17 @@ public abstract class Polymost implements Renderer {
 			globalpal = 0;
 
 		if (waloff[globalpicnum] == null) {
+			if(TexDebug != -1)
+				TexDebug = System.nanoTime();
+
 			engine.loadtile(globalpicnum);
 			if (waloff[globalpicnum] == null) {
 				tsizx = tsizy = 1;
 				method = 1; // Hack to update Z-buffer for invalid mirror textures
 			}
+			
+			if(TexDebug != -1)
+				System.out.println("Loading tile " + globalpicnum + " [" + ((System.nanoTime() - TexDebug) / 1000000f) + " ms]");
 		}
 	
 		j = 0; dorot = ((gchang != 1.0) || (gctang != 1.0));
@@ -5718,6 +5725,7 @@ public abstract class Polymost implements Renderer {
 		int tsizy = tilesizy[globalpicnum];
 
 		if (waloff[globalpicnum] == null) {
+			//
 			engine.loadtile(globalpicnum);
 			if (waloff[globalpicnum] == null) {
 				tsizx = tsizy = 1;

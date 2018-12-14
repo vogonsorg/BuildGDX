@@ -1,16 +1,24 @@
 package ru.m210projects.Build.desktop.software;
 
+import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
 import static ru.m210projects.Build.Input.Keymap.KEY_SCROLLOCK;
 
-import java.awt.Canvas;
+import java.awt.AWTException;
+import java.awt.Cursor;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 
@@ -18,16 +26,30 @@ import ru.m210projects.Build.Architecture.BuildInput;
 
 public class SoftInput implements BuildInput {
 
-	protected Canvas canvas;
+	protected Cursor emptyCursor;
+	protected Cursor defCursor = Cursor.getDefaultCursor();
+	
+	protected JDisplay display;
 
 	protected int omouse_x;
 	protected int omouse_y;
 	protected int mouse_x;
 	protected int mouse_y;
+	protected Robot robot;
+	protected boolean cursorCatched;
 
 	protected boolean[] pressedKeys = new boolean[256];
 	protected boolean[] justPressedKeys = new boolean[256];
 
+	public SoftInput()
+	{
+		try {
+			robot = new Robot();
+		} catch (AWTException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public int getKeyCode(KeyEvent ke) {
 		switch (ke.getKeyCode()) {
 		case KeyEvent.VK_MULTIPLY:
@@ -234,8 +256,8 @@ public class SoftInput implements BuildInput {
 		}
 	}
 
-	public void init(Canvas canvas) {
-		this.canvas = canvas;
+	public void init(final JDisplay display) {
+		this.display = display;
 
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
 			@Override
@@ -273,14 +295,15 @@ public class SoftInput implements BuildInput {
 				mouse_y = e.getY();
 			}
 		};
-
-		canvas.addMouseListener(adapter);
-		canvas.addMouseMotionListener(adapter);
+		
+		
+		display.getCanvas().addMouseListener(adapter);
+		display.getCanvas().addMouseMotionListener(adapter);
 	}
 
 	@Override
 	public int getX() {
-		return mouse_x;
+		return (int) (MouseInfo.getPointerInfo().getLocation().getX() - display.getCanvas().getLocationOnScreen().getX());
 	}
 
 	@Override
@@ -309,7 +332,7 @@ public class SoftInput implements BuildInput {
 
 	@Override
 	public int getY() {
-		return mouse_y;
+		return (int) (MouseInfo.getPointerInfo().getLocation().getY() - display.getCanvas().getLocationOnScreen().getY());	
 	}
 
 	@Override
@@ -361,16 +384,22 @@ public class SoftInput implements BuildInput {
 	
 	@Override
 	public void setCursorCatched(boolean catched) {
-
+		this.cursorCatched = catched;
 	}
 
 	@Override
 	public boolean isCursorCatched() {
-		return false;
+		return cursorCatched;
 	}
 
 	@Override
-	public void setCursorPosition(int x, int y) {}
+	public void setCursorPosition(int x, int y) {
+		if(!display.m_frame.isActive() || !display.m_frame.isFocused())
+			return;
+		
+		Point p = display.getCanvas().getLocationOnScreen();
+		robot.mouseMove(p.x + x, p.y + y);
+	}
 
 	@Override
 	public int getDWheel() {
@@ -400,12 +429,32 @@ public class SoftInput implements BuildInput {
 	}
 
 	@Override
-	public void processMessages() {}
+	public void processMessages() {
+		if(isCursorCatched())
+		{
+			int x = BClipRange(getX(), 0, Gdx.graphics.getWidth() - 1);
+			int y = BClipRange(getY(), 0, Gdx.graphics.getHeight() - 1);
+			setCursorPosition(x, y);
+		}
+	}
 
 	@Override
-	public boolean cursorHandler() {return false;}
+	public boolean cursorHandler() {
+		if(emptyCursor == null) {
+			emptyCursor = Toolkit.getDefaultToolkit().createCustomCursor(
+					new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB), new Point(0, 0), "emptyCursor");
+		}
+		
+		if (emptyCursor != null && display.m_frame.isActive() && display.m_frame.isFocused()) 
+			display.m_frame.getContentPane().setCursor(emptyCursor);
+		else display.m_frame.getContentPane().setCursor(defCursor);
+
+		return false;
+	}
 
 	public void update() {}
+	
+	
 
 	@Override
 	public float getAccelerometerX() { return 0; }
