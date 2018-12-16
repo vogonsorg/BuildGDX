@@ -1158,4 +1158,10 @@ public class AndroidGL10 extends GL10 {
 		GLES11.glClipPlanef(plane, toPlaneBufferf(a,b,c,d));
 	}
 
+	@Override
+	public int glGetInteger(int pname) {
+		GLES11.glGetIntegerv(pname, tempInt);
+		return tempInt.get(0);
+	}
+
 }

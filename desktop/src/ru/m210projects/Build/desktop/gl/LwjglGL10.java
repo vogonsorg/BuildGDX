@@ -1014,4 +1014,9 @@ public class LwjglGL10 extends GL10 {
 	public void glClipPlanef(int plane, float a, float b, float c, float d) {
 		GL11.glClipPlane(plane, toPlaneBufferd(a,b,c,d));
 	}
+
+	@Override
+	public int glGetInteger(int pname) {
+		return GL11.glGetInteger(pname);
+	}
 }

@@ -43,21 +43,22 @@ public class ImageUtils {
 			tsizx = tsizy = 1;
 			hasalpha = true;
 		} else {
-			for (int y = 0; y < ysiz; y++) {
-				int y2 = (y < tsizy) ? y : y - tsizy;
-				int wpptr = y * xsiz;
-				for (int x = 0; x < xsiz; x++, wpptr++) {
-					int wp = 4 * wpptr;
+			int wpptr, wp, dacol;
+			for (int y = 0, x2, y2, x; y < ysiz; y++) {
+				y2 = (y < tsizy) ? y : y - tsizy;
+				wpptr = y * xsiz;
+				for (x = 0; x < xsiz; x++, wpptr++) {
+					wp = wpptr << 2;
 
 					if (clamped && ((x >= tsizx) || (y >= tsizy))) { // Clamp texture
 						pic[wp + 0] = pic[wp + 1] = pic[wp + 2] = pic[wp + 3] = 0;
 						continue;
 					}
-					int x2 = (x < tsizx) ? x : x - tsizx;
+					x2 = (x < tsizx) ? x : x - tsizx;
 					if (x2 * tsizy + y2 >= data.length)
 						break;
 
-					int dacol = data[x2 * tsizy + y2] & 0xFF;
+					dacol = data[x2 * tsizy + y2] & 0xFF;
 
 					pic[wp + 3] = (byte) 255;
 
@@ -66,23 +67,23 @@ public class ImageUtils {
 						dacol = 0;
 						hasalpha = true;
 					} else {
-						if(dapal == 1) //Blood's pal 1
+						if(UseBloodPal && dapal == 1) //Blood's pal 1
 						{
 							int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
 							dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-						} else
-						dacol = palookup[dapal][dacol] & 0xFF;
+						} else dacol = palookup[dapal][dacol] & 0xFF;
 					}
 
+					dacol *= 3;
 					if (gammabrightness != 0) {
-						pic[wp + 0] = curpalette[3 * dacol];
-						pic[wp + 1] = curpalette[3 * dacol + 1];
-						pic[wp + 2] = curpalette[3 * dacol + 2];
+						pic[wp + 0] = curpalette[dacol];
+						pic[wp + 1] = curpalette[dacol + 1];
+						pic[wp + 2] = curpalette[dacol + 2];
 					} else {
 						byte[] brighttable = britable[curbrightness];
-						pic[wp + 0] = brighttable[curpalette[3 * dacol]&0xFF];
-						pic[wp + 1] = brighttable[curpalette[3 * dacol + 1]&0xFF];
-						pic[wp + 2] = brighttable[curpalette[3 * dacol + 2]&0xFF];
+						pic[wp + 0] = brighttable[curpalette[dacol] & 0xFF];
+						pic[wp + 1] = brighttable[curpalette[dacol + 1] & 0xFF];
+						pic[wp + 2] = brighttable[curpalette[dacol + 2] & 0xFF];
 					}
 				}
 			}
@@ -107,42 +108,44 @@ public class ImageUtils {
 
 		daxsiz--;
 		daysiz--;
-		int naxsiz2 = -daxsiz2; // Hacks for optimization inside loop
-
+	
 		// Set transparent pixels to average color of neighboring opaque pixels
 		// Doing this makes bilinear filtering look much better for masked
 		// textures (I.E. sprites)
-		for (int y = doy; y >= 0; y--) {
-			int wpptr = y * daxsiz2 + dox;
-			for (int x = dox; x >= 0; x--, wpptr--) {
-				int wp = 4 * wpptr;
-				if (dapic[wp + 3] != 0)
-					continue;
-				int r = 0, g = 0, b = 0, j = 0;
-				if ((x > 0) && (dapic[wp - 4 + 3] != 0)) {
-					r += dapic[wp - 4 + 0];
-					g += dapic[wp - 4 + 1];
-					b += dapic[wp - 4 + 2];
+		int r, g, b, j, index, wp, wpptr;
+		for (int y = doy, x; y >= 0; y--) {
+			wpptr = y * daxsiz2 + dox;
+			for (x = dox; x >= 0; x--, wpptr--) {
+				wp = (wpptr << 2);
+				if (dapic[wp + 3] != 0) continue;
+				
+				r = g = b = j = 0;
+				index = wp - 4;
+				if ((x > 0) && (dapic[index + 3] != 0)) {
+					r += dapic[index + 0] & 0xFF;
+					g += dapic[index + 1] & 0xFF;
+					b += dapic[index + 2] & 0xFF;
 					j++;
 				}
-				if ((x < daxsiz) && (dapic[wp + 4 + 3] != 0)) {
-					r += dapic[wp + 4 + 0];
-					g += dapic[wp + 4 + 1];
-					b += dapic[wp + 4 + 2];
+				index = wp + 4;
+				if ((x < daxsiz) && (dapic[index + 3] != 0)) {
+					r += dapic[index + 0] & 0xFF;
+					g += dapic[index + 1] & 0xFF;
+					b += dapic[index + 2] & 0xFF;
 					j++;
 				}
-				int offset = 4 * naxsiz2;
-				if ((y > 0) && (dapic[wp + offset + 3] != 0)) {
-					r += dapic[wp + offset + 0];
-					g += dapic[wp + offset + 1];
-					b += dapic[wp + offset + 2];
+				index = wp - (daxsiz2 << 2);
+				if ((y > 0) && (dapic[index + 3] != 0)) {
+					r += dapic[index + 0] & 0xFF;
+					g += dapic[index + 1] & 0xFF;
+					b += dapic[index + 2] & 0xFF;
 					j++;
 				}
-				offset = 4 * daxsiz2;
-				if ((y < daysiz) && (dapic[wp + offset + 3] != 0)) {
-					r += dapic[wp + offset + 0];
-					g += dapic[wp + offset + 1];
-					b += dapic[wp + offset + 2];
+				index = wp + (daxsiz2 << 2);
+				if ((y < daysiz) && (dapic[index + 3] != 0)) {
+					r += dapic[index + 0] & 0xFF;
+					g += dapic[index + 1] & 0xFF;
+					b += dapic[index + 2] & 0xFF;
 					j++;
 				}
 				switch (j) {

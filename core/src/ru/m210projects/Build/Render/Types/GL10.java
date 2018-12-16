@@ -10,9 +10,9 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	
-	private IntBuffer tempInt;
-	private FloatBuffer tempFloat;
-	private DoubleBuffer tempDouble;
+	protected IntBuffer tempInt;
+	protected FloatBuffer tempFloat;
+	protected DoubleBuffer tempDouble;
 	
 	public static final int GL_VERTEX_ARRAY = 32884;
 	public static final int GL_NORMAL_ARRAY = 32885;
@@ -214,6 +214,8 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	public abstract void glGenTextures (int n, int[] textures, int offset);
 
 	public abstract void glGetIntegerv (int pname, int[] params, int offset);
+	
+	public abstract int glGetInteger (int pname);
 
 	public abstract void glLightModelfv (int pname, float[] params, int offset);
 

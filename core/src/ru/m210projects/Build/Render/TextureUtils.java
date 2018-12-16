@@ -28,9 +28,9 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_WRAP_T;
 import static ru.m210projects.Build.Render.Types.GL10.GL_UNSIGNED_BYTE;
 
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 
+import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GLFilter;
 
@@ -138,9 +138,7 @@ public class TextureUtils {
 
 	private static int getTextureMaxSize() {
 		if (gltexmaxsize <= 0) {
-			IntBuffer buffer = BufferUtils.newIntBuffer(16); // FIXME 16?
-			Gdx.gl.glGetIntegerv(GL_MAX_TEXTURE_SIZE, buffer);
-			int i = buffer.get(0);
+			int i = BuildGDX.gl.glGetInteger(GL_MAX_TEXTURE_SIZE);
 			if (i == 0) {
 				gltexmaxsize = 6; // 2^6 = 64 == default GL max texture size
 			} else {
@@ -186,55 +184,60 @@ public class TextureUtils {
 	
 	private static void generateMipMapCPU(boolean doalloc, int mipLevel, int xsiz, int ysiz, int intexfmt, int texfmt, byte[] pic)
 	{
-		int x2 = xsiz; 
-		int y2 = ysiz;
-		int r, g, b, a, k;
-	    for (int j = 1; (x2 > 1) || (y2 > 1); j++)
+		int x2 = xsiz, x3; 
+		int y2 = ysiz, y3;
+		int r, g, b, a, k, wpptr, rpptr, wp, rp, index;
+	    for (int j = 1, x, y; (x2 > 1) || (y2 > 1); j++)
 	    {
-	        int x3 = Math.max(1, x2 >> 1); 
-	        int y3 = Math.max(1, y2 >> 1);		// this came from the GL_ARB_texture_non_power_of_two spec
-	        for (int y = 0; y < y3; y++)
+	        x3 = Math.max(1, x2 >> 1); 
+	        y3 = Math.max(1, y2 >> 1);		// this came from the GL_ARB_texture_non_power_of_two spec
+	        for (y = 0; y < y3; y++)
 	        {
-	            int wpptr = y * x3; 
-	            int rpptr = (y << 1) * x2;
-	            for (int x = 0; x < x3; x++, wpptr++, rpptr += 2)
+	            wpptr = y * x3; 
+	            rpptr = (y << 1) * x2;
+	            for (x = 0; x < x3; x++, wpptr++, rpptr += 2)
 	            {
-	            	int wp = 4 * wpptr;
-	            	int rp = 4 * rpptr;
+	            	wp = wpptr << 2;
+	            	rp = rpptr << 2;
 	            	r = g = b = a = k = 0;
 	            	
-	                if (pic[rp + 3] != 0) 
+	            	index = rp;
+	                if (pic[index + 3] != 0) 
 	                { 
-	                	r += pic[rp + 0] & 0xFF; 
-	                	g += pic[rp + 1] & 0xFF; 
-	                	b += pic[rp + 2] & 0xFF; 
-	                	a += pic[rp + 3] & 0xFF; 
+	                	r += pic[index + 0] & 0xFF; 
+	                	g += pic[index + 1] & 0xFF; 
+	                	b += pic[index + 2] & 0xFF; 
+	                	a += pic[index + 3] & 0xFF; 
 	                	k++; 
 	                }
-	                if ((x + x + 1 < x2) && (pic[rp + 4 + 3] != 0)) 
+	                index = rp + 4;
+	                if (((x << 1) + 1 < x2) && (pic[index + 3] != 0)) 
 	                { 
-	                	r += pic[rp + 4 + 0] & 0xFF; 
-	                	g += pic[rp + 4 + 1] & 0xFF; 
-	                	b += pic[rp + 4 + 2] & 0xFF; 
-	                	a += pic[rp + 4 + 3] & 0xFF; 
+	                	r += pic[index + 0] & 0xFF; 
+	                	g += pic[index + 1] & 0xFF; 
+	                	b += pic[index + 2] & 0xFF; 
+	                	a += pic[index + 3] & 0xFF; 
 	                	k++; 
 	                }
-	                if (y + y + 1 < y2)
+	                if ((y << 1) + 1 < y2)
 	                {
-	                    if (pic[rp + 4 * x2 + 3] != 0) 
+	                	index = rp + (x2 << 2);
+	                    if (pic[index + 3] != 0) 
 	                    { 
-	                    	r += pic[rp + 4 * x2 + 0] & 0xFF; 
-	                    	g += pic[rp + 4 * x2 + 1] & 0xFF; 
-	                    	b += pic[rp + 4 * x2 + 2] & 0xFF; 
-	                    	a += pic[rp + 4 * x2 + 3] & 0xFF; 
+	                    	r += pic[index + 0] & 0xFF; 
+	                    	g += pic[index + 1] & 0xFF; 
+	                    	b += pic[index + 2] & 0xFF; 
+	                    	a += pic[index + 3] & 0xFF; 
 	                    	k++; 
 	                    }
-	                    if ((x + x + 1 < x2) && pic[rp + 4 * (x2 + 1) + 3] != 0) 
+	                    
+	                    index = rp + ((x2 + 1) << 2);
+	                    if (((x << 1) + 1 < x2) && pic[index + 3] != 0) 
 	                    { 
-	                    	r += pic[rp + 4 * (x2 + 1) + 0] & 0xFF; 
-	                    	g += pic[rp + 4 * (x2 + 1) + 1] & 0xFF; 
-	                    	b += pic[rp + 4 * (x2 + 1) + 2] & 0xFF; 
-	                    	a += pic[rp + 4 * (x2 + 1) + 3] & 0xFF; 
+	                    	r += pic[index + 0] & 0xFF; 
+	                    	g += pic[index + 1] & 0xFF; 
+	                    	b += pic[index + 2] & 0xFF; 
+	                    	a += pic[index + 3] & 0xFF; 
 	                    	k++; 
 	                    }
 	                }
