@@ -229,8 +229,6 @@ public abstract class Polymost implements Renderer {
 //	private final int SPREXT_TEMPINVISIBLE = 32;
 	
 	private SPRITE[] tspriteptr = new SPRITE[MAXSPRITESONSCREEN + 1];
-//	private int[] wallchanged = new int[MAXWALLS];
-//	private int[] spritechanged = new int[MAXSPRITES];
 
 	private int spritesx[] = new int[MAXSPRITESONSCREEN + 1];
 	private int spritesy[] = new int[MAXSPRITESONSCREEN + 1];
@@ -267,22 +265,8 @@ public abstract class Polymost implements Renderer {
 
 	private float curpolygonoffset; // internal polygon offset stack for drawing flat sprites to avoid depth fighting
 
-	// private int hicprecaching = 0;
-
 	public static int drawingskybox = 0;
 
-	// Detail mapping cvar
-	//private final OSDCVAR r_detailmapping;
-	// Glow mapping cvar
-	
-	// line of sight checks before mddraw()
-	// private int r_modelocclusionchecking = 0;
-
-	// texture downsizing
-	// is medium quality a good default?
-//	private int r_downsize = 1; // FIXME Actually does not work
-//	private int r_downsizevar = -1;
-	
 	BTexture frameTexture;
 	private int framew;
 	private int frameh;
@@ -310,7 +294,7 @@ public abstract class Polymost implements Renderer {
 
 	private int srepeat = 0, trepeat = 0;
 
-	private final double SCISDIST = 1.0; // 1.0: Close plane clipping distance
+	private double SCISDIST = 1.0; // 1.0: Close plane clipping distance
 	// private final int USEZBUFFER = 1; //1:use zbuffer (slow, nice sprite
 	// rendering), 0:no zbuffer (fast, bad sprite rendering)
 	// private final int LINTERPSIZ = 4; //log2 of interpolation size. 4:pretty
@@ -322,13 +306,7 @@ public abstract class Polymost implements Renderer {
 	private PolyClipper clipper;
 
 	private int lastcullcheck = 0;
-	// private short[] cullmodel = new short[MAXSPRITES];
-	// private int cullcheckcnt = 0;
-
-	// private int glusetexcompr = 1;
-	// private int glusetexcache = 2;
 	private int glmultisample, glnvmultisamplehint;
-	// private int glwidescreen = 0, glprojectionhacks = 1;
 
 	private final TextureCache textureCache;
 	
@@ -516,77 +494,62 @@ public abstract class Polymost implements Renderer {
 			r_vbos = 0;
 		}
 	}
-	
-	private int glprojectionhacks = 1;
-	public float get_projhack_ratio()
-	{
-	    if (glprojectionhacks != 0)
-	    {
-	        float mul = (gshang * gshang);
-	        return 1.05f + mul * mul * mul * mul;
-	    }
-
-	    // No projection hacks (legacy or new-aspect)
-	    return 1.f;
-	}
 
 	public void resizeglcheck() // Ken Build method
 	{
 		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
-			int ourxdimen = (windowx2-windowx1+1);
-	        float ratio = get_projhack_ratio();
-	        int fovcorrect = (int) (ourxdimen*ratio - ourxdimen);
-
-	        ratio = 1.f/ratio;
-	        
 	        glox1 = windowx1; gloy1 = windowy1;
 			glox2 = windowx2; gloy2 = windowy2;
 
-			gl.glViewport(windowx1-(fovcorrect/2), ydim - (windowy2 + 1), ourxdimen+fovcorrect, windowy2 - windowy1 + 1);
-
-			gl.glMatrixMode(GL_PROJECTION);
-
-			for (float[] row: matrix)
-			    Arrays.fill(row, 0.0f);
-
-			matrix[0][0] = ydimen * ratio;
-			matrix[0][2] = 1.0f;
-			matrix[1][1] = xdimen;
-			matrix[1][2] = 1.0f;
-			matrix[2][2] = 1.0f;
-			matrix[2][3] = ydimen * ratio;
-			matrix[3][2] = -1.0f;
-
-			gl.glLoadMatrixf(matrix);
+			gl.glViewport(windowx1, ydim - (windowy2 + 1), windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
 			
+			gl.glMatrixMode(GL_PROJECTION);
+			gl.glLoadIdentity();
+			
+//			glPerspective(65, xdimen / (float) ydimen, 0.0001f, 2000);
+			float ang = 87 * 320 / (float) xdimen;
+			glPerspective(ang / 256.0f, xdimen / (float) (ydimen), -ydimen, ydimen);
+
 			gl.glMatrixMode(GL_MODELVIEW);
 			gl.glLoadIdentity();
 
 			EnableFog();
 		}
-		/*
-		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
-			glox1 = windowx1;
-			gloy1 = windowy1;
-			glox2 = windowx2;
-			gloy2 = windowy2;
-
-			gl.glViewport(windowx1, ydim - (windowy2 + 1), windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
-
-			gl.glMatrixMode(GL_PROJECTION);
-
-			matrix[0][0] = ydimen;
-			matrix[0][2] = 1.0f;
-			matrix[1][1] = xdimen;
-			matrix[1][2] = 1.0f;
-			matrix[2][2] = 1.0f;
-			matrix[2][3] = ydimen;
-			matrix[3][2] = -1.0f;
+	}
+	
+	public void glPerspective(float fovyInDegrees, float aspectRatio, float znear, float zfar)
+	{
+	    float ymax = (float) (znear * Math.tan(fovyInDegrees * Math.PI / 360.0));
+	    float xmax = ymax * aspectRatio;
+//	    gl.glFrustumf(-xmax, xmax, -ymax, ymax, znear, zfar);
+	    glFrustumf(-xmax, xmax, -ymax, ymax, znear, zfar);
+	}
+	
+	public void glFrustumf(float left, float right, float bottom, float top, float znear, float zfar)
+	{
+		float A = (right + left) / (right - left);
+		float B = (top + bottom) / (top - bottom);
+		float C = -(zfar + znear) / (zfar - znear);
+		float D = -(2 * zfar * znear) / (zfar - znear);
 		
-			gl.glLoadMatrixf(matrix);
-			// gluPerspective ( 90, (GLint)width/ (GLint)height, 0.0, 200.0 );
-		}
-		*/
+		matrix[0][0] = 2.0f * znear / (right - left); //0
+		matrix[0][1] = 0.0f; //4
+		matrix[0][2] = A; //8
+		matrix[0][3] = 0.0f; //12
+		matrix[1][0] = 0.0f; //1
+		matrix[1][1] = 2.0f * znear / (top - bottom); //5
+		matrix[1][2] = B; //9
+		matrix[1][3] = 0.0f; //13
+		matrix[2][0] = 0.0f; //2
+		matrix[2][1] = 0.0f; //6
+		matrix[2][2] = C; //2000 * C // 10
+		matrix[2][3] = D; //14
+		matrix[3][0] = 0.0f; //3
+		matrix[3][1] = 0.0f; //7
+		matrix[3][2] = -1.0f; //1f - matrix[2][2]; // 11
+		matrix[3][3] = 0.0f; //15	
+		
+		gl.glLoadMatrixf(matrix);
 	}
 
 	// (dpx,dpy) specifies an n-sided polygon. The polygon must be a convex
@@ -3215,11 +3178,11 @@ public abstract class Polymost implements Renderer {
 				xoff = -xoff;
 			if ((globalorientation & 8) > 0)
 				yoff = -yoff;
-			
-			if ((tspr.z - sector[tspr.sectnum].ceilingz) < (sector[tspr.sectnum].floorz - tspr.z))
-				tspr.z += (tspr.owner & 31);
-			else
-				tspr.z -= (tspr.owner & 31);
+
+			if (tspr.z < sector[tspr.sectnum].ceilingz)
+				tspr.z += ((tspr.owner) & 31);
+			if (tspr.z > sector[tspr.sectnum].floorz)
+				tspr.z -= ((tspr.owner) & 31);
 
 			i = (tspr.ang & 2047);
 			c = (float) (sintable[(i + 512) & 2047] / 65536.0);
@@ -3289,17 +3252,7 @@ public abstract class Polymost implements Renderer {
 				return;
 
 			// Project rotated 3D points to screen
-			SECTOR sec = sector[tspr.sectnum];
-			float fadjust = 0;
-
-             // unfortunately, offsetting by only 1 isn't enough on most Android devices
-            if (tspr.z == sec.ceilingz || tspr.z == sec.ceilingz + 1) {
-            	tspr.z = sec.ceilingz + 2; fadjust = (tspr.owner & 31); }
-
-            if (tspr.z == sec.floorz || tspr.z == sec.floorz - 1) {
-                tspr.z = sec.floorz - 2; fadjust = -(tspr.owner & 31); }
-
-			f = (float) ((tspr.z - globalposz + fadjust)*gyxscale);
+			f = (float) ((tspr.z - globalposz)*gyxscale);
 			for (j = 0; j < npoints; j++) {
 				ryp0 = (float) (1.0 / dsprite[j].py2);
 				dsprite[j].px = ghalfx * dsprite[j].px2 * ryp0 + ghalfx;
@@ -3308,7 +3261,7 @@ public abstract class Polymost implements Renderer {
 
 			// gd? Copied from floor rendering code
 			gdx = 0;
-			gdy = gxyaspect / (double) (tspr.z - globalposz + fadjust);
+			gdy = gxyaspect / (double) (tspr.z - globalposz);
 			gdo = -ghoriz * gdy;
 			// copied&modified from relative alignment
 			xv = (float) tspr.x + s * x1 + c * y1;
@@ -3361,9 +3314,16 @@ public abstract class Polymost implements Renderer {
 			
 			if((tspr.cstat & 2) != 0)
 				gl.glDepthMask(false);
+			
+			gl.glDepthRange(defznear+0.000001, defzfar-0.00001);
 
+			curpolygonoffset += 0.01f;
+			gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
+			
 			pow2xsplit = 0;
 			drawpoly(dsprite, npoints, method);
+			
+			gl.glDepthRange(defznear, defzfar);
 			
 			if((tspr.cstat & 2) != 0)
 				gl.glDepthMask(true);

@@ -36,6 +36,8 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	public static final int GL_PERSPECTIVE_CORRECTION_HINT = 3152;
 	public static final int GL_PROJECTION = 5889;
 	public static final int GL_MODELVIEW = 5888;
+	public static final int GL_PROJECTION_MATRIX = 2983;
+	public static final int GL_MODELVIEW_MATRIX = 2982;
 	public static final int GL_CLAMP = 10496;
 	public static final int GL_ALPHA_TEST = 3008;
 	
