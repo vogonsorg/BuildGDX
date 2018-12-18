@@ -16,7 +16,6 @@ import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.waloff;
 import static ru.m210projects.Build.Engine.usehightile;
 import static ru.m210projects.Build.Render.ImageUtils.loadPic;
-import static ru.m210projects.Build.Render.Polymost.drawingskybox;
 import static ru.m210projects.Build.Render.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureUtils.setupBoundTextureWrap;
@@ -304,13 +303,13 @@ public class TextureCache {
 		return pth;
 	}
 	
-	public Pthtyp cache(int dapicnum, int dapalnum, boolean clamping, boolean alpha)
+	public Pthtyp cache(int dapicnum, int dapalnum, int skybox, boolean clamping, boolean alpha)
 	{
-		Hicreplctyp si = usehightile ? hicfindsubst(dapicnum,dapalnum,drawingskybox) : null;
+		Hicreplctyp si = usehightile ? hicfindsubst(dapicnum,dapalnum,skybox) : null;
 
 		if (si == null)
 	    {
-	        if (drawingskybox != 0 || dapalnum >= (MAXPALOOKUPS - RESERVEDPALS)) return null;
+	        if (skybox != 0 || dapalnum >= (MAXPALOOKUPS - RESERVEDPALS)) return null;
 	        return cache_tryart(dapicnum, dapalnum, clamping, alpha);
 	    }
 
@@ -321,14 +320,14 @@ public class TextureCache {
 	     */
 
 	    // load a replacement
-		Pthtyp pth = get(dapicnum, dapalnum, clamping, drawingskybox);
+		Pthtyp pth = get(dapicnum, dapalnum, clamping, skybox);
 		
 		if (pth != null) {
 			if (pth.isInvalidated()) {
 				pth.setInvalidated(false);
-				if((pth = loadHighTileNoAlloc(dapicnum, dapalnum, clamping, alpha, drawingskybox, si, pth, (si.palnum>0) ? 0 : hictinting[dapalnum].f)) == null) // reload tile
+				if((pth = loadHighTileNoAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, pth, (si.palnum>0) ? 0 : hictinting[dapalnum].f)) == null) // reload tile
 				{
-					if (drawingskybox != 0) return null;
+					if (skybox != 0) return null;
 					return cache_tryart(dapicnum, dapalnum, clamping, alpha);
 				}
 			}
@@ -338,9 +337,9 @@ public class TextureCache {
 			// { ... }  if (dapalnum >= (MAXPALOOKUPS - RESERVEDPALS))
 			//
 
-			pth = gloadHighTileAlloc(dapicnum, dapalnum, clamping, alpha, drawingskybox, si, new Pthtyp(), (si.palnum>0) ? 0 : hictinting[dapalnum].f);
+			pth = gloadHighTileAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, new Pthtyp(), (si.palnum>0) ? 0 : hictinting[dapalnum].f);
 			if (pth != null) {
-				add(dapicnum, pth, drawingskybox);
+				add(dapicnum, pth, skybox);
 			} else // failed, so try for ART
 				return cache_tryart(dapicnum, dapalnum, clamping, alpha);
 		}

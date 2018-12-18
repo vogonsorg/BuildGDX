@@ -11,24 +11,9 @@ package ru.m210projects.Build.Render;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR_MIPMAP_LINEAR;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LINEAR_MIPMAP_NEAREST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MAX_TEXTURE_SIZE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_NEAREST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_NEAREST_MIPMAP_LINEAR;
-import static ru.m210projects.Build.Render.Types.GL10.GL_NEAREST_MIPMAP_NEAREST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_RGBA;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_MAG_FILTER;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_MAX_ANISOTROPY_EXT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_MIN_FILTER;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_WRAP_S;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_WRAP_T;
-import static ru.m210projects.Build.Render.Types.GL10.GL_UNSIGNED_BYTE;
+import static ru.m210projects.Build.Render.Types.GL10.*;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.Render.Types.BTexture;
@@ -43,7 +28,6 @@ public class TextureUtils {
 	private static final int TEX_MAX_SIZE = 1024;
 
 	private static ByteBuffer tmp_buffer;
-	private static byte[] tmp_array;
 	private static int gltexmaxsize = 0;
 
 	private static GLFilter[] glfiltermodes = {
@@ -63,50 +47,26 @@ public class TextureUtils {
 		return glfiltermodes.length;
 	}
 
-	private static ByteBuffer getTmpBuffer() {
+	public static ByteBuffer getTmpBuffer() {
 		if (tmp_buffer == null) {
 			tmp_buffer = BufferUtils.newByteBuffer(TEX_MAX_SIZE * TEX_MAX_SIZE * 4);
 		}
 		return tmp_buffer;
 	}
-
-	private static byte[] getTmpArray() {
-		if (tmp_array == null) {
-			tmp_array = new byte[TEX_MAX_SIZE * TEX_MAX_SIZE * 4];
-		}
-		return tmp_array;
-	}
-
-	public static ByteBuffer wrap(byte[] data) {
-		return wrap(data, data.length);
-	}
-
-	public static ByteBuffer wrap(byte[] data, int size) {
+	
+	public static BTexture gloadtex(byte[] picbuf, int xsiz, int ysiz, int dapal) {
 		ByteBuffer buffer = getTmpBuffer();
-		buffer.clear();
-		buffer.put(data, 0, size * 4);
-		buffer.flip();
-		return buffer;
-	}
-
-	public static byte[] tmpArray(int w, int h) {
-		byte[] arr = getTmpArray();
-		Arrays.fill(arr, 0, w * h * 4, (byte) 0);
-		return arr;
-	}
-
-	public static BTexture gloadtex(int[] picbuf, int xsiz, int ysiz, int dapal) {
-		byte[] pic = tmpArray(xsiz, ysiz);
 
 		if (palookup[dapal] == null)
 			dapal = 0;
 
-		for (int y = 0; y < ysiz; y++) {
-			int wpptr = y * xsiz;
-			for (int x = 0; x < xsiz; x++, wpptr++) {
-				int wp = 4 * wpptr;
+		int rgb = 0, r, g, b, wpptr, wp, dacol;
+		for (int x, y = 0; y < ysiz; y++) {
+			wpptr = y * xsiz;
+			for (x = 0; x < xsiz; x++, wpptr++) {
+				wp = wpptr << 2;
 
-				int dacol = (int) ((picbuf[wpptr] & 0xFFFFFFFFL) >> 24); // FIXME actually picbuf need to be byte[]
+				dacol = picbuf[wpptr] & 0xFF;
 				if(UseBloodPal && dapal == 1) //Blood's pal 1
 				{
 					int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
@@ -114,24 +74,25 @@ public class TextureUtils {
 				} else
 					dacol = palookup[dapal][dacol] & 0xFF; 
 
-				if (gammabrightness != 0) {
-					pic[wp + 0] = curpalette[3*dacol];
-					pic[wp + 1] = curpalette[3*dacol+1];
-					pic[wp + 2] = curpalette[3*dacol+2];
-					pic[wp + 3] = (byte) 0xFF;
+				dacol *= 3;
+				if (gammabrightness == 0) {
+					r = curpalette[dacol + 0] & 0xFF;
+					g = curpalette[dacol + 1] & 0xFF;
+					b = curpalette[dacol + 2] & 0xFF;
 				} else {
-					byte[] bightness = britable[curbrightness];
-					pic[wp + 0] = bightness[curpalette[3*dacol]&0xFF];
-					pic[wp + 1] = bightness[curpalette[3*dacol+1]&0xFF];
-					pic[wp + 2] = bightness[curpalette[3*dacol+2]&0xFF];
-					pic[wp + 3] = (byte) 0xFF;
+					byte[] brighttable = britable[curbrightness];
+					r = brighttable[curpalette[dacol + 0] & 0xFF] & 0xFF;
+					g = brighttable[curpalette[dacol + 1] & 0xFF] & 0xFF;
+					b = brighttable[curpalette[dacol + 2] & 0xFF] & 0xFF;
 				}
+				rgb = ( 255 << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
+				buffer.putInt(wp, rgb);
 			}
 		}
 
 		BTexture rtexid = new BTexture();
 		bindTexture(rtexid);
-		uploadBoundTexture(true, xsiz, ysiz, GL_RGBA, GL_RGBA, pic, xsiz, ysiz);
+		uploadBoundTexture(true, xsiz, ysiz, GL_RGBA, GL_RGBA, buffer, xsiz, ysiz);
 		setupBoundTexture(0, 0);
 		return rtexid;
 	}
@@ -158,13 +119,13 @@ public class TextureUtils {
 		tex.dispose();
 	}
 
-	public static void uploadBoundTexture(boolean doalloc, int xsiz, int ysiz, int intexfmt, int texfmt, byte[] pic, int tsizx, int tsizy) {
+	public static void uploadBoundTexture(boolean doalloc, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic, int tsizx, int tsizy) {
 		int mipLevel = calcMipLevel(xsiz, ysiz, getTextureMaxSize());
 		if (mipLevel == 0) {
 			if (doalloc) {
-				Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, intexfmt, xsiz, ysiz, 0, texfmt, GL_UNSIGNED_BYTE, wrap(pic, xsiz * ysiz)); // loading 1st time
+				Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, intexfmt, xsiz, ysiz, 0, texfmt, GL_UNSIGNED_BYTE, pic); // loading 1st time
 			} else {
-				Gdx.gl.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, xsiz, ysiz, texfmt, GL_UNSIGNED_BYTE, wrap(pic, xsiz * ysiz)); // overwrite old texture
+				Gdx.gl.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, xsiz, ysiz, texfmt, GL_UNSIGNED_BYTE, pic); // overwrite old texture
 			}
 		} else {
 			System.err.println("Uploading non-zero mipmap level textures is unimplemented");
@@ -182,11 +143,11 @@ public class TextureUtils {
 			generateMipMapCPU(doalloc, mipLevel, xsiz, ysiz, intexfmt, texfmt, pic);
 	}
 	
-	private static void generateMipMapCPU(boolean doalloc, int mipLevel, int xsiz, int ysiz, int intexfmt, int texfmt, byte[] pic)
+	private static void generateMipMapCPU(boolean doalloc, int mipLevel, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic)
 	{
 		int x2 = xsiz, x3; 
 		int y2 = ysiz, y3;
-		int r, g, b, a, k, wpptr, rpptr, wp, rp, index;
+		int r, g, b, a, k, wpptr, rpptr, wp, rp, index, rgb;
 	    for (int j = 1, x, y; (x2 > 1) || (y2 > 1); j++)
 	    {
 	        x3 = Math.max(1, x2 >> 1); 
@@ -202,42 +163,42 @@ public class TextureUtils {
 	            	r = g = b = a = k = 0;
 	            	
 	            	index = rp;
-	                if (pic[index + 3] != 0) 
+	                if (pic.get(index + 3) != 0) 
 	                { 
-	                	r += pic[index + 0] & 0xFF; 
-	                	g += pic[index + 1] & 0xFF; 
-	                	b += pic[index + 2] & 0xFF; 
-	                	a += pic[index + 3] & 0xFF; 
+	                	r += pic.get(index + 0) & 0xFF;
+						g += pic.get(index + 1) & 0xFF;
+						b += pic.get(index + 2) & 0xFF;
+						a += pic.get(index + 3) & 0xFF;
 	                	k++; 
 	                }
 	                index = rp + 4;
-	                if (((x << 1) + 1 < x2) && (pic[index + 3] != 0)) 
+	                if (((x << 1) + 1 < x2) && (pic.get(index + 3) != 0)) 
 	                { 
-	                	r += pic[index + 0] & 0xFF; 
-	                	g += pic[index + 1] & 0xFF; 
-	                	b += pic[index + 2] & 0xFF; 
-	                	a += pic[index + 3] & 0xFF; 
+	                	r += pic.get(index + 0) & 0xFF;
+						g += pic.get(index + 1) & 0xFF;
+						b += pic.get(index + 2) & 0xFF;
+						a += pic.get(index + 3) & 0xFF;
 	                	k++; 
 	                }
 	                if ((y << 1) + 1 < y2)
 	                {
 	                	index = rp + (x2 << 2);
-	                    if (pic[index + 3] != 0) 
+	                    if (pic.get(index + 3) != 0) 
 	                    { 
-	                    	r += pic[index + 0] & 0xFF; 
-	                    	g += pic[index + 1] & 0xFF; 
-	                    	b += pic[index + 2] & 0xFF; 
-	                    	a += pic[index + 3] & 0xFF; 
+	                    	r += pic.get(index + 0) & 0xFF;
+							g += pic.get(index + 1) & 0xFF;
+							b += pic.get(index + 2) & 0xFF;
+							a += pic.get(index + 3) & 0xFF;
 	                    	k++; 
 	                    }
 	                    
 	                    index = rp + ((x2 + 1) << 2);
-	                    if (((x << 1) + 1 < x2) && pic[index + 3] != 0) 
+	                    if (((x << 1) + 1 < x2) && pic.get(index + 3) != 0) 
 	                    { 
-	                    	r += pic[index + 0] & 0xFF; 
-	                    	g += pic[index + 1] & 0xFF; 
-	                    	b += pic[index + 2] & 0xFF; 
-	                    	a += pic[index + 3] & 0xFF; 
+	                    	r += pic.get(index + 0) & 0xFF;
+							g += pic.get(index + 1) & 0xFF;
+							b += pic.get(index + 2) & 0xFF;
+							a += pic.get(index + 3) & 0xFF;
 	                    	k++; 
 	                    }
 	                }
@@ -245,41 +206,31 @@ public class TextureUtils {
 	                {
 		                case 0:
 		                case 1:
-		                	pic[wp] = (byte) r;
-		                	pic[wp + 1] = (byte) g;
-		                	pic[wp + 2] = (byte) b;
-		                	pic[wp + 3] = (byte) a;
-		                    break;
-		                case 2:
-		                	pic[wp] = (byte) ((r + 1) >> 1);
-		                	pic[wp + 1] = (byte) ((g + 1) >> 1);
-		                	pic[wp + 2] = (byte) ((b + 1) >> 1);
-		                	pic[wp + 3] = (byte) ((a + 1) >> 1);
-		                    break;
-		                case 3:
-		                	pic[wp] = (byte) ((r * 85 + 128) >> 8);
-		                	pic[wp + 1] = (byte) ((g * 85 + 128) >> 8);
-		                	pic[wp + 2] = (byte) ((b * 85 + 128) >> 8);
-		                	pic[wp + 3] = (byte) ((a * 85 + 128) >> 8);
-		                    break;
-		                case 4:
-		                	pic[wp] = (byte) ((r + 2) >> 2);
-		                	pic[wp + 1] = (byte) ((g + 2) >> 2);
-		                	pic[wp + 2] = (byte) ((b + 2) >> 2);
-		                	pic[wp + 3] = (byte) ((a + 2) >> 2);
-		                    break;
-		                default:
-		                    break;
+					        rgb = ( (a) << 24 ) + ( (b) << 16 ) + ( (g) << 8 ) + ( (r) << 0 );
+							break;
+						case 2:
+							rgb = ( ((a + 1) >> 1) << 24 ) + ( ((b + 1) >> 1) << 16 ) + ( ((g + 1) >> 1) << 8 ) + ( ((r + 1) >> 1) << 0 );
+							break;
+						case 3:
+							rgb = ( ((a * 85 + 128) >> 8) << 24 ) + ( ((b * 85 + 128) >> 8) << 16 ) + ( ((g * 85 + 128) >> 8) << 8 ) + ( ((r * 85 + 128) >> 8) << 0 );
+							break;
+						case 4:
+							rgb = ( ((a + 2) >> 2) << 24 ) + ( ((b + 2) >> 2) << 16 ) + ( ((g + 2) >> 2) << 8 ) + ( ((r + 2) >> 2) << 0 );
+							break;
+						default:
+							continue;
 	                }
+	                
+	                pic.putInt(wp, rgb);	
 	            }
 	        }
 	        
 	        if (j >= mipLevel)
 	        {
 	        	if (doalloc) {
-					Gdx.gl.glTexImage2D(GL_TEXTURE_2D, j - mipLevel, intexfmt, x3, y3, 0, texfmt, GL_UNSIGNED_BYTE, wrap(pic, x3 * y3)); // loading 1st time
+					Gdx.gl.glTexImage2D(GL_TEXTURE_2D, j - mipLevel, intexfmt, x3, y3, 0, texfmt, GL_UNSIGNED_BYTE, pic); // loading 1st time
 				} else {
-					Gdx.gl.glTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, texfmt, GL_UNSIGNED_BYTE, wrap(pic, x3 * y3)); // overwrite old texture
+					Gdx.gl.glTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, texfmt, GL_UNSIGNED_BYTE, pic); // overwrite old texture
 				}
 	        }
 	        x2 = x3; y2 = y3;

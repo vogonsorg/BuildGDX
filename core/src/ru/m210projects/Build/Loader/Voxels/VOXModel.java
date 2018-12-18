@@ -29,7 +29,8 @@ public class VOXModel extends Model {
 	}
 	public voxrect_t[] quad; 
 	public int qcnt, qfacind[] = new int[7];
-	public int mytex[], mytexx, mytexy;
+	public int mytexx, mytexy;
+	public byte[] mytex;
 	public int xsiz, ysiz, zsiz;
 	public float xpiv, ypiv, zpiv;
 	public int is8bit;

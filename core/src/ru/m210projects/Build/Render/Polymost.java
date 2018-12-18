@@ -684,7 +684,7 @@ public abstract class Polymost implements Renderer {
 		if (skyclamphack != 0)
 			method |= 4;
 
-		pth = textureCache.cache(globalpicnum, globalpal, clampingMode(method), alphaMode(method));
+		pth = textureCache.cache(globalpicnum, globalpal, drawingskybox, clampingMode(method), alphaMode(method));
 		if(pth == null) //hires texture not found
 			return;
 
@@ -712,7 +712,7 @@ public abstract class Polymost implements Renderer {
 
 		// detail texture
 		if (Console.Geti("r_detailmapping") != 0 && usehightile && drawingskybox == 0 && hicfindsubst(globalpicnum, DETAILPAL, 0) != null)
-			detailpth = textureCache.cache(globalpicnum, DETAILPAL, clampingMode(method), alphaMode(method));
+			detailpth = textureCache.cache(globalpicnum, DETAILPAL, drawingskybox, clampingMode(method), alphaMode(method));
 
 		if (GLInfo.multisample != 0 && detailpth != null && detailpth.hicr != null && (detailpth.hicr.palnum == DETAILPAL)) {
 			gl.glActiveTexture(++texunits);
@@ -754,7 +754,7 @@ public abstract class Polymost implements Renderer {
 		}
 		
 		if (r_glowmapping != 0 && usehightile && drawingskybox == 0 && hicfindsubst(globalpicnum, GLOWPAL, 0) != null)
-			glowpth = textureCache.cache(globalpicnum, GLOWPAL, clampingMode(method), alphaMode(method));
+			glowpth = textureCache.cache(globalpicnum, GLOWPAL, drawingskybox, clampingMode(method), alphaMode(method));
 		
 		if (GLInfo.multisample != 0 && glowpth != null && glowpth.hicr != null && (glowpth.hicr.palnum == GLOWPAL))
 		{
@@ -3398,7 +3398,7 @@ public abstract class Polymost implements Renderer {
 
 		// OSD_Printf("precached %d %d type %d\n", dapicnum, dapalnum, datype);
 		// hicprecaching = 1;
-		textureCache.cache(dapicnum, dapalnum, clampingMode((datype & 1) << 2), false);
+		textureCache.cache(dapicnum, dapalnum, 0, clampingMode((datype & 1) << 2), false);
 		// hicprecaching = 0;
 
 		if (datype == 0 || !usemodels)
@@ -5137,7 +5137,7 @@ public abstract class Polymost implements Renderer {
 		setpolymost2dview(); 
 		gl.glEnable(GL_ALPHA_TEST);
 		gl.glEnable(GL_TEXTURE_2D);
-		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, false, true);
+		Pthtyp pth = textureCache.cache(globalpicnum, 0, globalpal, false, true);
 
 		bindTexture(pth.glpic);
 		float f = getshadefactor(globalshade), a = 0.0f;
@@ -5693,7 +5693,7 @@ public abstract class Polymost implements Renderer {
 			}
 		}
 
-		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, clampingMode(method), alphaMode(method));
+		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, 0, clampingMode(method), alphaMode(method));
 		if(pth == null) //hires texture not found
 			return;
 
