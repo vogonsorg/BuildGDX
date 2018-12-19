@@ -66,7 +66,7 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	
 	public static final int GL_CLIP_PLANE0 = 12288;
 	public static final int GL_MAX_CLIP_PLANES = 3378;
-	
+
 	public GL10() {
 		tempInt = BufferUtils.newIntBuffer(8);
 		tempFloat = BufferUtils.newFloatBuffer(8);

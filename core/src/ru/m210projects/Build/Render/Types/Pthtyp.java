@@ -7,7 +7,7 @@
 package ru.m210projects.Build.Render.Types;
 
 public class Pthtyp {
-	public static int sizeof = 16; // ?
+
 	public BTexture glpic;
 	public short picnum;
 	public short palnum;

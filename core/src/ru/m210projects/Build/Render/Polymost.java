@@ -21,8 +21,8 @@ import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.GLInfo.*;
-import static ru.m210projects.Build.Render.TextureUtils.*;
-import static ru.m210projects.Build.Render.TextureCache.*;
+import static ru.m210projects.Build.Render.TextureHandle.TextureCache.*;
+import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
@@ -49,6 +49,7 @@ import ru.m210projects.Build.Loader.MD3.MD3Surface;
 import ru.m210projects.Build.Loader.MD3.MD3Vertice;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
@@ -265,7 +266,7 @@ public abstract class Polymost implements Renderer {
 
 	private float curpolygonoffset; // internal polygon offset stack for drawing flat sprites to avoid depth fighting
 
-	public static int drawingskybox = 0;
+	public static short drawingskybox = 0;
 
 	BTexture frameTexture;
 	private int framew;
@@ -2163,7 +2164,7 @@ public abstract class Polymost implements Renderer {
 
 			// wall of skybox
 
-			drawingskybox = i + 1; // i+1th texture/index i of skybox
+			drawingskybox = (short) (i + 1); // i+1th texture/index i of skybox
 
 			gdx = (_ryp0 - _ryp1) * gxyaspect * (1.f / 512.f)
 					/ (_ox0 - _ox1);
@@ -3398,7 +3399,7 @@ public abstract class Polymost implements Renderer {
 
 		// OSD_Printf("precached %d %d type %d\n", dapicnum, dapalnum, datype);
 		// hicprecaching = 1;
-		textureCache.cache(dapicnum, dapalnum, 0, clampingMode((datype & 1) << 2), false);
+		textureCache.cache(dapicnum, dapalnum, (short) 0, clampingMode((datype & 1) << 2), false);
 		// hicprecaching = 0;
 
 		if (datype == 0 || !usemodels)
@@ -4724,7 +4725,7 @@ public abstract class Polymost implements Renderer {
 		dvoxphack[1] = 1.f / 256.f;
 
 		if (m.texid[globalpal] == null)
-			m.texid[globalpal] = gloadtex(m.mytex, m.mytexx, m.mytexy, globalpal);
+			m.texid[globalpal] = m.gloadtex(globalpal);
 		else
 			bindTexture(m.texid[globalpal]);
 		
@@ -5137,7 +5138,7 @@ public abstract class Polymost implements Renderer {
 		setpolymost2dview(); 
 		gl.glEnable(GL_ALPHA_TEST);
 		gl.glEnable(GL_TEXTURE_2D);
-		Pthtyp pth = textureCache.cache(globalpicnum, 0, globalpal, false, true);
+		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, (short) 0,  false, true);
 
 		bindTexture(pth.glpic);
 		float f = getshadefactor(globalshade), a = 0.0f;
@@ -5693,7 +5694,7 @@ public abstract class Polymost implements Renderer {
 			}
 		}
 
-		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, 0, clampingMode(method), alphaMode(method));
+		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, (short) 0, clampingMode(method), alphaMode(method));
 		if(pth == null) //hires texture not found
 			return;
 

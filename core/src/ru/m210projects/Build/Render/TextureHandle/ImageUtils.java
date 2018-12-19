@@ -5,7 +5,7 @@
  * See the included license file "BUILDLIC.TXT" for license info.
  */
 
-package ru.m210projects.Build.Render;
+package ru.m210projects.Build.Render.TextureHandle;
 
 import static java.lang.Math.min;
 import static java.lang.Math.max;
@@ -15,7 +15,7 @@ import static ru.m210projects.Build.Engine.curpalette;
 import static ru.m210projects.Build.Engine.gammabrightness;
 import static ru.m210projects.Build.Engine.globalshade;
 import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Render.TextureUtils.*;
+import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 
 import java.nio.ByteBuffer;
 
@@ -31,10 +31,37 @@ public class ImageUtils {
 		}
 	}
 
-	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode) {
+	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, boolean isPaletted) {
 		ByteBuffer buffer = getTmpBuffer();
 		boolean hasalpha = false;
 		buffer.clear();
+		
+		if(isPaletted)
+		{
+			if (data == null) {
+				buffer.put(0, (byte) 255);
+				tsizx = tsizy = 1;
+				hasalpha = true;
+			} else {
+				int wpptr, wp;
+				for (int y = 0, x2, y2, x; y < ysiz; y++) {
+					y2 = (y < tsizy) ? y : y - tsizy;
+					wpptr = y * xsiz;
+					for (x = 0; x < xsiz; x++, wpptr++) {
+						wp = wpptr << 2;
+	
+						if (clamped && ((x >= tsizx) || (y >= tsizy))) { // Clamp texture
+							buffer.put(wp, (byte) 255);
+							continue;
+						}
+						x2 = (x < tsizx) ? x : x - tsizx;
+						buffer.put(wp, data[x2 * tsizy + y2]);
+					}
+				}
+			}
+			
+			return new PicInfo(buffer, hasalpha);
+		}
 
 		if (data == null) {
 			// Force invalid textures to draw something - an almost purely

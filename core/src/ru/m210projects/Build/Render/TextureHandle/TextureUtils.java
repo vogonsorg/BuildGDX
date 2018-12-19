@@ -6,21 +6,22 @@
  * See the included license file "BUILDLIC.TXT" for license info.
  */
 
-package ru.m210projects.Build.Render;
+package ru.m210projects.Build.Render.TextureHandle;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 
 import java.nio.ByteBuffer;
 
 import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.GLFilter;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class TextureUtils {
@@ -29,6 +30,8 @@ public class TextureUtils {
 
 	private static ByteBuffer tmp_buffer;
 	private static int gltexmaxsize = 0;
+	
+	private static ShaderProgram shader;
 
 	private static GLFilter[] glfiltermodes = {
 			new GLFilter("GL_NEAREST", GL_NEAREST, GL_NEAREST), // 0
@@ -43,58 +46,11 @@ public class TextureUtils {
 		return glfiltermodes[mode];
 	}
 
-	public static int getGlFilterCount() {
-		return glfiltermodes.length;
-	}
-
 	public static ByteBuffer getTmpBuffer() {
 		if (tmp_buffer == null) {
 			tmp_buffer = BufferUtils.newByteBuffer(TEX_MAX_SIZE * TEX_MAX_SIZE * 4);
 		}
 		return tmp_buffer;
-	}
-	
-	public static BTexture gloadtex(byte[] picbuf, int xsiz, int ysiz, int dapal) {
-		ByteBuffer buffer = getTmpBuffer();
-
-		if (palookup[dapal] == null)
-			dapal = 0;
-
-		int rgb = 0, r, g, b, wpptr, wp, dacol;
-		for (int x, y = 0; y < ysiz; y++) {
-			wpptr = y * xsiz;
-			for (x = 0; x < xsiz; x++, wpptr++) {
-				wp = wpptr << 2;
-
-				dacol = picbuf[wpptr] & 0xFF;
-				if(UseBloodPal && dapal == 1) //Blood's pal 1
-				{
-					int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
-					dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-				} else
-					dacol = palookup[dapal][dacol] & 0xFF; 
-
-				dacol *= 3;
-				if (gammabrightness == 0) {
-					r = curpalette[dacol + 0] & 0xFF;
-					g = curpalette[dacol + 1] & 0xFF;
-					b = curpalette[dacol + 2] & 0xFF;
-				} else {
-					byte[] brighttable = britable[curbrightness];
-					r = brighttable[curpalette[dacol + 0] & 0xFF] & 0xFF;
-					g = brighttable[curpalette[dacol + 1] & 0xFF] & 0xFF;
-					b = brighttable[curpalette[dacol + 2] & 0xFF] & 0xFF;
-				}
-				rgb = ( 255 << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
-				buffer.putInt(wp, rgb);
-			}
-		}
-
-		BTexture rtexid = new BTexture();
-		bindTexture(rtexid);
-		uploadBoundTexture(true, xsiz, ysiz, GL_RGBA, GL_RGBA, buffer, xsiz, ysiz);
-		setupBoundTexture(0, 0);
-		return rtexid;
 	}
 
 	private static int getTextureMaxSize() {
@@ -117,6 +73,25 @@ public class TextureUtils {
 
 	public static void deleteTexture(BTexture tex) {
 		tex.dispose();
+	}
+	
+	public static void createShader()
+	{
+		byte[] file = kGetBytes("fragment.glsl", 0);
+	    String fragment = new String(file);
+	    shader = new ShaderProgram(SpriteBatch.createDefaultShader().getVertexShaderSource(), fragment);
+        if(!shader.isCompiled())
+        	Console.Println("Shader compile error: " + shader.getLog());
+	}
+	
+	public static void bindShader()
+	{
+		shader.begin();
+	}
+	
+	public static void unbindShader()
+	{
+		shader.end();
 	}
 
 	public static void uploadBoundTexture(boolean doalloc, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic, int tsizx, int tsizy) {

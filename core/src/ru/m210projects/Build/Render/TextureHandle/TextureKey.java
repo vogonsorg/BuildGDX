@@ -14,44 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Render;
+package ru.m210projects.Build.Render.TextureHandle;
 
-public class ImmutableTextureKey extends TextureKey {
-	
-	final int picnum;
-    final int palnum;
-    final int surfnum;
-    final boolean clamped;
+public abstract class TextureKey {
 
-    ImmutableTextureKey(int picnum, int palnum, boolean clamped, int surfnum) {
-        this.picnum = picnum;
-        this.palnum = palnum;
-        this.clamped = clamped;
-        this.surfnum = surfnum;
-    }
+    abstract int picnum();
 
-    @Override
-    boolean clamped() {
-        return this.clamped;
-    }
-
-    @Override
-    int palnum() {
-        return this.palnum;
-    }
-
-    @Override
-    int picnum() {
-        return this.picnum;
-    }
+    abstract int palnum();
     
-    @Override
-   	int surfnum() {
-   		return this.surfnum;
-   	}
+    abstract int surfnum();
+    
+    abstract int effects();
 
-   	@Override
-   	int effects() {
-   		return 0;
-   	}
+    abstract boolean clamped();
+
+    @Override
+    public int hashCode() {
+        return (this.clamped() ? 31 : 0) ^ this.picnum() ^ this.palnum() ^ this.surfnum();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+    	if (obj instanceof TextureKey) {
+			TextureKey other = (TextureKey) obj;
+			return this.picnum() == other.picnum()
+					&& this.palnum() == other.palnum()
+					&& this.clamped() == other.clamped()
+					&& this.surfnum() == other.surfnum()
+					&& this.effects() == other.effects();
+		}
+		return false;
+    }
 }
