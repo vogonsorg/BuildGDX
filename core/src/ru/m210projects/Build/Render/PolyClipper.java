@@ -1,3 +1,13 @@
+/*
+ * "POLYMOST" code originally written by Ken Silverman
+ * Ken Silverman's official web site: "http://www.advsys.net/ken"
+ * See the included license file "BUILDLIC.TXT" for license info.
+ *
+ * This file has been modified from Ken Silverman's original release
+ * by Jonathon Fowler (jf@jonof.id.au)
+ * by Alexander Makarov-[M210] (m210-2007@mail.ru)
+ */
+
 package ru.m210projects.Build.Render;
 
 import static java.lang.Math.abs;

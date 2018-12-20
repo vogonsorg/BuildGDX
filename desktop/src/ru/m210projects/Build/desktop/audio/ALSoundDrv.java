@@ -267,6 +267,7 @@ public class ALSoundDrv implements Sound {
 	
 	@Override
 	public int getNumResamplers() {
+		if(noDevice) return 1;
 		return al.alGetNumResamplers();
 	}
 
@@ -342,7 +343,11 @@ public class ALSoundDrv implements Sound {
 				source.format = 0;
 				source.rate = 0;
 				source.data = null;
-				
+				if(source.callback != null) {
+					source.callback.run(source.channel);
+					source.callback = null;
+				}
+
 				add(source);
 			}
 		}
@@ -368,12 +373,19 @@ public class ALSoundDrv implements Sound {
 				int sourceId = source.sourceId;
 				source.priority = priority;
 				source.free = false;
+				if(source.callback != null) {
+					source.callback.run(source.channel);
+					source.callback = null;
+				}
+				
 				al.alSourceStop(sourceId);
 				al.alSourcei(sourceId, AL_BUFFER, 0);
-				al.alSourcef(sourceId, AL_GAIN, 0);
-				al.alSourcef(sourceId, AL_PITCH, 1);
+				al.alSourcef(sourceId, AL_GAIN, 0.0f);
+				al.alSourcef(sourceId, AL_PITCH, 1.0f);
 				al.alSource3f(sourceId, AL_POSITION, 0, 0, 0);
 				al.alSourcei (sourceId, AL_SOURCE_RELATIVE,  AL_FALSE);
+				al.alSourcei (sourceId, AL_LOOPING, AL_FALSE);
+				 
 				add(source);
 				
 				return source;

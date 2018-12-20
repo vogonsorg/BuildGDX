@@ -22,10 +22,11 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.util.Arrays;
 
+import com.badlogic.gdx.math.Vector2;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import com.badlogic.gdx.controllers.ControlType;
-import com.badlogic.gdx.controllers.Controller;
+import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 
 public class Gamepad {
@@ -41,7 +42,7 @@ public class Gamepad {
 		PovDirection.southEast, //down rigth
 	};
 	
-	private Controller controller;
+	protected int deviceIndex;
 	protected String controllerName;
 	protected boolean[] buttonStatus;
 	protected boolean[] hitButton;
@@ -51,18 +52,18 @@ public class Gamepad {
 	protected int allButtonsCount;
 	protected boolean buttonPressed = false;
 
-	public Gamepad(Controller controller)
+	public Gamepad(int deviceIndex)
 	{
-		buttonsNum = controller.getControlCount(ControlType.button);
-		axisNum = controller.getControlCount(ControlType.axis);
-		povNum = controller.getControlCount(ControlType.pov);
+		this.deviceIndex = deviceIndex;
+		buttonsNum = Controllers.getControllers().get(deviceIndex).getControlCount(ControlType.button);
+		axisNum = Controllers.getControllers().get(deviceIndex).getControlCount(ControlType.axis);
+		povNum = Controllers.getControllers().get(deviceIndex).getControlCount(ControlType.pov);
 		
-		controllerName = controller.getName();
+		controllerName = Controllers.getControllers().get(deviceIndex).getName();
 		Console.Println("Found controller: \"" + controllerName + "\" [buttons: " + buttonsNum + " axises: " + axisNum + " povs: " + povNum + "]", OSDTEXT_YELLOW);
 		allButtonsCount = buttonsNum + povNum * 4 + 2;
 		buttonStatus = new boolean[allButtonsCount];
 		hitButton = new boolean[allButtonsCount];
-		this.controller = controller;
 	}
 	
 	public boolean buttonPressed()
@@ -125,9 +126,36 @@ public class Gamepad {
 
 	public float getAxisValue(int aCode, float deadZone) {
 		float value = 0.0f;
-		if(Math.abs(value = controller.getAxis(aCode)) >= deadZone) return value;
+		if(Math.abs(value = Controllers.getControllers().get(deviceIndex).getAxis(aCode)) >= deadZone) return value;
 		
 		return 0.0f;
+	}
+
+	public Vector2 getStickValue(int aCode1, int aCode2, float deadZone)
+	{
+		float lx = Controllers.getControllers().get(deviceIndex).getAxis(aCode1);
+		float ly = Controllers.getControllers().get(deviceIndex).getAxis(aCode2);
+		float mag = (float) Math.sqrt(lx*lx + ly*ly);
+		float nlx = lx / mag;
+		float nly = ly / mag;
+		float nlm = 0.0f;
+		if (mag > deadZone)
+		{
+			if (mag > 1.0f)
+				mag = 1.0f;
+
+			mag -= deadZone;
+			nlm = mag / (1.0f - deadZone);
+			float x1 = nlx * nlm;
+			float y1 = nly * nlm;
+			return new Vector2(x1, y1);
+		}
+		else
+		{
+			mag = 0.0f;
+			nlm = 0.0f;
+			return new Vector2(0.0f, 0.0f);
+		}
 	}
 
 	public String getName() {
@@ -136,7 +164,7 @@ public class Gamepad {
 	
 	private void TriggerHandler()
 	{
-		float value = controller.getAxis(4);
+		float value = Controllers.getControllers().get(deviceIndex).getAxis(4);
 		int num = buttonsNum + (4 * povNum);
 		
 		if(value >= 0.9f) {
@@ -168,7 +196,7 @@ public class Gamepad {
 	{
 		for(int i = 0; i < povNum; i++)
 		{
-			PovDirection dir = controller.getPov(i);
+			PovDirection dir = Controllers.getControllers().get(deviceIndex).getPov(i);
 			if (dir != null && dir != PovDirection.center) 
 			{
 				int num = buttonsNum + (4 * i);
@@ -218,7 +246,7 @@ public class Gamepad {
 		TriggerHandler();
 		for(int i = 0; i < buttonsNum; i++)
 		{
-			if (controller.getButton(i)) {
+			if (Controllers.getControllers().get(deviceIndex).getButton(i)) {
 				buttonPressed = true;
 				if (!hitButton[i]) {
 					getInput().setKey(ANYKEY, 1);

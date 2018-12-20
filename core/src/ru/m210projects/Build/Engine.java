@@ -25,6 +25,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import ru.m210projects.Build.Architecture.BuildMessage;
 import ru.m210projects.Build.Audio.BAudio;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.Input.KeyInput;
@@ -39,7 +40,6 @@ import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Render.Types.Spritesmooth;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
-import ru.m210projects.Build.Types.Message;
 import ru.m210projects.Build.Types.Neartag;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
@@ -55,6 +55,46 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.PixmapIO;
 
 public abstract class Engine {
+	
+	/*
+	 * 	Engine
+	 * 		messages
+	 * 		filecache
+	 * 		filegroup		-> 		filecache
+	 * 		(net) mmulti
+	 * 		audiomanger (BAudio)
+	 * 			midimodule
+	 * 			openal
+	 * 		renderer				
+	 * 			polymost	->    texturecache
+	 * 			software
+	 * 		input
+	 * 			keyboard -> input()
+	 * 			gamepad	-> gpmanager
+	 * 		
+	 * 		OnScreenDisplay
+	 * 			Console
+	 * 		loader
+	 * 			md2
+	 * 			md3
+	 * 			vox
+	 * 			wav
+	 * 		
+	 * 
+	 *  Utils
+	 *  	string handler
+	 *  	def loader + common + scriptfile	-> texturecache / mdloader
+	 *  	pragmas
+	 *  	bithandler
+	 *  
+	 *  Game
+	 *  	config
+	 *  	
+	 *  
+	 * 
+	 */
+	
+	
 	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -105,7 +145,7 @@ public abstract class Engine {
 	public static boolean UseBloodPal = false;
 	
 	public Renderer render;
-	private Message message;
+	private BuildMessage message;
 	private BAudio audio;
 	private static KeyInput input;
 	
@@ -272,7 +312,7 @@ public abstract class Engine {
 	private int[] tilefileoffs;
 	private int artversion;
 	private int mapversion;
-	private long totalclocklock;
+	protected long totalclocklock;
 	protected short[] sqrtable;
 	protected short[] shlookup;
 	private int hitallsprites = 0;
@@ -636,6 +676,7 @@ public abstract class Engine {
 
 	public short deletesprite(short spritenum) //jfBuild
 	{
+		getrender().removeSpriteCorr(spritenum);
 		deletespritestat(spritenum);
 		return(deletespritesect(spritenum));
 	}
@@ -700,7 +741,7 @@ public abstract class Engine {
 		return(0);
 	}
 
-	protected Point lintersect(int x1, int y1, int z1, int x2, int y2, int z2, int x3, //jfBuild
+	public Point lintersect(int x1, int y1, int z1, int x2, int y2, int z2, int x3, //jfBuild
 			int y3, int x4, int y4) {
 		
 		// p1 to p2 is a line segment
@@ -934,7 +975,7 @@ public abstract class Engine {
 		bakwindowy2 = new int[4];
 	}
 	
-	public Engine(Message message, BAudio audio, boolean releasedEngine) throws Exception { //gdxBuild
+	public Engine(BuildMessage message, BAudio audio, boolean releasedEngine) throws Exception { //gdxBuild
 		this.releasedEngine = releasedEngine;
 		this.message = message;
 		if(audio == null) new Exception("BAudio == null!");
@@ -1143,7 +1184,7 @@ public abstract class Engine {
 		{
 			Console.Println("Invalid map version!");
 			kClose(fil);
-			return(-1);
+			return(-2);
 		}
 		
 		initspritelists();
@@ -2283,6 +2324,7 @@ public abstract class Engine {
 		Console.draw();
 		render.nextpage();
 		audio.update();
+		FileIndicator = false;
 	}
 
 	public int neartag(int xs, int ys, int zs, short sectnum, short ange, Neartag near, int neartagrange, int tagsearch) { //jfBuild
@@ -3771,7 +3813,7 @@ public abstract class Engine {
 	}
 
 	public void printext256(int xpos, int ypos, int col, int backcol, char[] name, int fontsize) { //gdxBuild
-		render.printext(xpos, ypos, col, backcol, name, fontsize);
+		render.printext(xpos, ypos, col, backcol, name, fontsize, 1.0f);
 	}
 	
 	public String screencapture(String fn) { //jfBuild + gdxBuild
@@ -3800,27 +3842,31 @@ public abstract class Engine {
 		} while (true);
 		
 		int w = xdim, h = ydim;
-		ByteBuffer frame = render.getframebuffer(0, 0, w, h, GL10.GL_RGB);
-		Pixmap capture = new Pixmap(w, h, Format.RGB888);
-		ByteBuffer pixels = capture.getPixels();
-		
-		final int numBytes = w * h * 3;
-		byte[] lines = new byte[numBytes];
-		final int numBytesPerLine = w * 3;
-		for (int i = 0; i < h; i++) {
-			frame.position((h - i - 1) * numBytesPerLine);
-			frame.get(lines, i * numBytesPerLine, numBytesPerLine);
-		}
-		pixels.put(lines);
-		
-		File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
+		Pixmap capture = null;
 		try {
+			ByteBuffer frame = render.getframebuffer(0, 0, w, h, GL10.GL_RGB);
+			capture = new Pixmap(w, h, Format.RGB888);
+			ByteBuffer pixels = capture.getPixels();
+			
+			final int numBytes = w * h * 3;
+			byte[] lines = new byte[numBytes];
+			final int numBytesPerLine = w * 3;
+			for (int i = 0; i < h; i++) {
+				frame.position((h - i - 1) * numBytesPerLine);
+				frame.get(lines, i * numBytesPerLine, numBytesPerLine);
+			}
+			pixels.put(lines);
+			
+			File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
+		
 			PixmapIO.writePNG(new FileHandle(pci), capture);
 			userdir.addFile(pci);
 			capture.dispose();
 			return fn + a + b + c + d + ".png";
 		} 
 		catch(Exception e) {
+			if(capture != null)
+				capture.dispose();
 			return null;
 		}
 	}
@@ -4082,15 +4128,15 @@ public abstract class Engine {
 		input = new KeyInput();
 	}
 
-    public void printfps() { 
+    public void printfps(float scale) { 
     	int fps = Gdx.graphics.getFramesPerSecond();
     	int rate = (int)(Gdx.graphics.getDeltaTime() * 1000);
     	if(fps <= 9999 && rate <= 9999) {
 	    	int chars = Bitoa(rate, fpsbuffer);
 			chars = buildString(fpsbuffer, chars, "ms ", fps);
 			chars = buildString(fpsbuffer, chars, "fps");
-			
-			printext256(windowx2 - (chars << (3)), windowy1 + 1, 31, -1, fpsbuffer, 0);
+
+			render.printext(windowx2 - (int) ((chars << 3) * scale), windowy1 + 1, 31, -1, fpsbuffer, 0, scale);
     	}
     }
 

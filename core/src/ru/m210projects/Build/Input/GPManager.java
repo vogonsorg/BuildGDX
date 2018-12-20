@@ -16,13 +16,13 @@
 
 package ru.m210projects.Build.Input;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-import ru.m210projects.Build.Types.BGraphics;
-import ru.m210projects.Build.Types.BDisplay.DisplayType;
+import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 
 public class GPManager {
 	
@@ -33,32 +33,38 @@ public class GPManager {
 	private Array<Gamepad> gamepads;
 	private float deadZone = 0.01f;
 	
-	boolean TestGamepad = false;
+//	boolean TestGamepad = false;
 	
 	public GPManager()
 	{
 		try {
 			gamepads = new Array<Gamepad>();
 			Array<Controller> controllers = null;
-			if(((BGraphics) Gdx.graphics).getDisplayType() != DisplayType.Software)
+			
+			if(BuildGDX.app.getFrameType() != FrameType.Software)
 				controllers = Controllers.getControllers();
 			
 			if(controllers != null && controllers.size > 0) {
 				for(int i = 0; i < controllers.size; i++) {
-					gamepads.add(new Gamepad(controllers.get(i)));
+					gamepads.add(new Gamepad(i));
 				}
 			}
 		} catch (Exception e) { }
 		
-		if(TestGamepad)
-			gamepads.add(new Gamepad(new TestController()));
+//		if(TestGamepad)
+//			gamepads.add(new Gamepad(new TestController()));
 	}
 	
 	public int getControllers()
 	{
 		return gamepads.size;
 	}
-	
+
+	public boolean isValidDevice(int deviceIndex)
+	{
+		return gamepads.size > 0 && deviceIndex >= 0 && deviceIndex < gamepads.size;
+	}
+
 	public String getControllerName(int num)
 	{
 		return gamepads.get(num).getName();
@@ -85,13 +91,9 @@ public class GPManager {
 		return 0;
 	}
 	
-	public boolean getButton(int buttonCode)
+	public boolean getButton(int deviceIndex, int buttonCode)
 	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).getButton(buttonCode))
-				return true;
-		}
-		return false;
+		return gamepads.get(deviceIndex).getButton(buttonCode);
 	}
 	
 	public void handler()
@@ -107,31 +109,19 @@ public class GPManager {
 		}
 	}
 	
-	public boolean buttonStatusOnce(int buttonCode)
+	public boolean buttonStatusOnce(int deviceIndex, int buttonCode)
 	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).buttonStatusOnce(buttonCode))
-				return true;
-		}
-		return false;
+		return gamepads.get(deviceIndex).buttonStatusOnce(buttonCode);
 	}
 	
-	public boolean buttonPressed(int buttonCode)
+	public boolean buttonPressed(int deviceIndex, int buttonCode)
 	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).buttonPressed(buttonCode))
-				return true;
-		}
-		return false;
+		return gamepads.get(deviceIndex).buttonPressed(buttonCode);
 	}
 	
-	public boolean buttonStatus(int buttonCode)
+	public boolean buttonStatus(int deviceIndex, int buttonCode)
 	{
-		for(int i = 0; i < gamepads.size; i++) {
-			if(gamepads.get(i).buttonStatus(buttonCode))
-				return true;
-		}
-		return false;
+		return gamepads.get(deviceIndex).buttonStatus(buttonCode);
 	}
 	
 	public float getAxisValue(int aCode) {
@@ -141,5 +131,13 @@ public class GPManager {
 				return value;
 		}
 		return 0.0f;
+	}
+
+	public Vector2 getStickValue(int deviceIndex, int aCode1, int aCode2)
+	{
+		// TODO
+		// how come we are looping through an array in getAxisValue while it's single player ?
+		// there should a parameter indicating which player pad is desired
+		return gamepads.get(deviceIndex).getStickValue(aCode1, aCode2, deadZone);
 	}
 }

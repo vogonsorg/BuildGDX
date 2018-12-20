@@ -230,6 +230,26 @@ public class LwjglAL implements ALAudio {
 
 	@Override
 	public int alGetNumResamplers() {
-		return 0;
+		return 1;
+	}
+
+	@Override
+	public void alGetSourcefv(int source, int param, FloatBuffer values) {
+		AL10.alGetSource(source, param, values);
+	}
+	
+	@Override
+	public float alGetListenerf(int paramName) {
+		return AL10.alGetListenerf(paramName);
+	}
+
+	@Override
+	public int alGetListeneri(int paramName) {
+		return AL10.alGetListeneri(paramName);
+	}
+
+	@Override
+	public void alGetListenerfv(int param, FloatBuffer values) {
+		AL10.alGetListener(param, values);
 	}
 }

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import ru.m210projects.Build.Input.BInput;
+import ru.m210projects.Build.Architecture.BuildGDX;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -64,8 +64,8 @@ public class TCPServer implements ISocket {
 
 		while(clientListener.isAlive())
 		{
-			if(Gdx.input != null) {
-				((BInput) Gdx.input).updateRequest();
+			if(BuildGDX.input != null) {
+				BuildGDX.input.processMessages();
 				if(Gdx.input.isKeyPressed(Keys.ESCAPE)) {
 					clientListener.interrupt();
 					dispose();

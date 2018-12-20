@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Render;
+package ru.m210projects.Build.Render.TextureHandle;
 
-public class MutableTextureKey extends TextureKey {
+public class ImmutableTextureKey extends TextureKey {
 	
-	private int picnum;
-    private int palnum;
-    private int surfnum;
-    private boolean clamped;
+	final int picnum;
+    final int palnum;
+    final int surfnum;
+    final boolean clamped;
 
-    MutableTextureKey() {
+    ImmutableTextureKey(int picnum, int palnum, boolean clamped, int surfnum) {
+        this.picnum = picnum;
+        this.palnum = palnum;
+        this.clamped = clamped;
+        this.surfnum = surfnum;
     }
 
     @Override
@@ -42,39 +46,12 @@ public class MutableTextureKey extends TextureKey {
     }
     
     @Override
-	int surfnum() {
-		return this.surfnum;
-	}
+   	int surfnum() {
+   		return this.surfnum;
+   	}
 
-	@Override
-	int effects() {
-		return 0;
-	}
-
-    /**
-     * Factory method for immutable keys.
-     */
-    public TextureKey toImmutable() {
-        return new ImmutableTextureKey(picnum, palnum, clamped, surfnum);
-    }
-
-    public MutableTextureKey picnum(int i) {
-        this.picnum = i;
-        return this;
-    }
-
-    public MutableTextureKey palnum(int i) {
-        this.palnum = i;
-        return this;
-    }
-
-    public MutableTextureKey clamped(boolean b) {
-        this.clamped = b;
-        return this;
-    }
-    
-    public MutableTextureKey surfnum(int i) {
-        this.surfnum = i;
-        return this;
-    }
+   	@Override
+   	int effects() {
+   		return 0;
+   	}
 }

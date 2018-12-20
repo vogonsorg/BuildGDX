@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import ru.m210projects.Build.Input.InputCallback;
 import ru.m210projects.Build.Input.Keymap;
-import ru.m210projects.Build.Types.MessageCallback;
 
 import com.badlogic.gdx.Input.Keys;
 
@@ -536,7 +536,7 @@ public class Console {
 	    getInput().initMessageInput(null);
 	}
 	
-	private static final MessageCallback osdcallback = new MessageCallback() {
+	private static final InputCallback osdcallback = new InputCallback() {
 		@Override
 		public int run(int ch) {
 			if (osdeditlen < OSD_EDITLENGTH && ch < 128) {

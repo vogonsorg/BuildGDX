@@ -67,9 +67,9 @@ public class Mmulti {
 	
 	public static NetInfo inet = new NetInfo();
 	
-	private static int GetTickCount()
+	private static long GetTickCount()
 	{
-		return (int) System.currentTimeMillis();
+		return System.currentTimeMillis();
 	}
 	
 	private static int[] crctab16 = new int[256];
@@ -386,12 +386,12 @@ public class Mmulti {
 				if (isvalidipaddress(argv[i]))
 				{
 					if ((danetmode == 1) && (daindex == myconnectindex)) daindex++;
-					for(int j = 0; j <  argv[i].length() && argv[i].charAt(j) != 0; j++)
-						if (argv[i].charAt(j) == ':') { 
-							String port = argv[i].substring(j+1).trim();
-							portnum = Integer.parseInt(port); 
-							break; 
-						}
+//					for(int j = 0; j <  argv[i].length() && argv[i].charAt(j) != 0; j++)
+//						if (argv[i].charAt(j) == ':') { 
+//							String port = argv[i].substring(j+1).trim();
+//							portnum = Integer.parseInt(port); 
+//							break; 
+//						}
 
 					inet.serverip = argv[i];
 					inet.port = portnum;
@@ -402,19 +402,19 @@ public class Mmulti {
 				}
 				else
 				{
-					int pt = NETPORT;
-					char[] st = argv[i].toCharArray();
-	
-					int pos;
-					for(pos = 0; pos < argv[i].length() && st[pos] != 0; pos++) {
-						if (argv[i].charAt(pos) == ':')
-						{ 
-							pt = Integer.parseInt(argv[i].substring(pos+1)); 
-							break; 
-						}
-					}
+					int pt = portnum;
+//					char[] st = argv[i].toCharArray();
+//					int pos;
+//					for(pos = 0; pos < argv[i].length() && st[pos] != 0; pos++) {
+//						if (argv[i].charAt(pos) == ':')
+//						{ 
+//							pt = Integer.parseInt(argv[i].substring(pos+1)); 
+//							break; 
+//						}
+//					}
 					try {
-						InetAddress addr = InetAddress.getByName(argv[i].substring(0, pos));
+//						InetAddress addr = InetAddress.getByName(argv[i].substring(0, pos));
+						InetAddress addr = InetAddress.getByName(argv[i]);
 						if ((danetmode == 1) && (daindex == myconnectindex)) daindex++;
 						inet.serverip = addr.getHostName();
 						othersocket[daindex] = new InetSocketAddress(addr.getHostAddress(), pt);
@@ -448,6 +448,11 @@ public class Mmulti {
 
 	public static int getoutputcirclesize() {
 		return 0;
+	}
+	
+	public static boolean canSend(int other) //for waitforplayers
+	{
+		return (GetTickCount() >= lastsendtims[other]+1000/PAKRATE);
 	}
 	
 	public static void dosendpackets(int other)

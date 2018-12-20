@@ -34,6 +34,8 @@ public abstract class Source implements Comparable<Source> {
 	public ByteBuffer data;
 
 	public LoopInfo loopInfo;
+	public SourceCallback callback;
+	public int channel;
 	
 	public Source(int bufferId, int sourceId, int priority)
 	{
@@ -66,4 +68,6 @@ public abstract class Source implements Comparable<Source> {
 	public abstract boolean isActive();	
 	public abstract boolean isLooping();
 	public abstract boolean isPlaying();
+	
+	public abstract void setCallback(SourceCallback callback, int num);
 }

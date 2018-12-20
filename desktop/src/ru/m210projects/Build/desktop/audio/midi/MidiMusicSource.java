@@ -26,7 +26,7 @@ import ru.m210projects.Build.Audio.BMusic.MusicSource;
 public class MidiMusicSource extends MusicSource {
 
 	private boolean looping;
-	private MidiSequencer sequencer;
+	private final MidiSequencer sequencer;
 	protected Sequence data;
 	private long position;
 	

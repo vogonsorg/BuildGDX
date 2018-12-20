@@ -1,3 +1,5 @@
+package ru.m210projects.Build.Architecture;
+
 //This file is part of BuildGDX.
 //Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
 //
@@ -14,8 +16,10 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Types;
 
-public interface MessageCallback {
-	public int run(int ch);
+public interface BuildMessage {
+
+	public boolean show(String header, String text, boolean send);
+	public void dispose();
+	
 }
