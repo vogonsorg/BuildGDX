@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Types.MemLog;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
@@ -143,7 +144,7 @@ public class Defs {
 	    "left face", "top face", "bottom face"
 	};
 	
-	static final Map<String , Integer> basetokens = new HashMap<String , Integer>() {
+	public static final Map<String , Integer> basetokens = new HashMap<String , Integer>() {
 		private static final long serialVersionUID = 1L;
 		{
 			put("include",    T_INCLUDE);
@@ -230,7 +231,7 @@ public class Defs {
 	    			String modelfn;
 	    			double mdscale=1.0, mzadd=0.0, myoffset=0.0;
 	    	        int shadeoffs=0, mdpal=0, mdflags=0;
-	    	        byte[] usedframebitmap = new byte[1024>>3];
+//	    	        byte[] usedframebitmap = new byte[1024>>3];
 	    	        int model_ok = 1;
 	    		
 	    			final Map<String , Integer> modeltokens = new HashMap<String , Integer>() {
@@ -352,8 +353,8 @@ public class Defs {
 		                                happy = 0;
 		                                break;
 		                            default:
-		                                if (framei >= 0 && framei < 1024)
-		                                    usedframebitmap[framei>>3] |= (1<<(framei&7));
+//		                                if (framei >= 0 && framei < 1024)
+//		                                    usedframebitmap[framei>>3] |= (1<<(framei&7));
 		                            }
 
 		                            model_ok &= happy;
@@ -849,8 +850,8 @@ public class Defs {
 	    	        String vfn;
 	    	        int vmodelend;
 	    	        int tile0 = MAXTILES, tile1 = -1, tilex = -1, rotate = -1;
-	    	            
-	    	        final Map<String , Integer> voxeltokens = new HashMap<String , Integer>() {
+
+	    	        Map<String , Integer> voxeltokens = new HashMap<String , Integer>() {
 	    				private static final long serialVersionUID = 1L;
 	    				{
 	    					put("tile",     T_TILE);
@@ -860,7 +861,7 @@ public class Defs {
 	    					put("rotate",   T_ROTATE);
 	    				}
 	    	        };
-	    	        
+
 	    	        if ((vfn = script.getstring()) == null) break; //voxel filename
 	    	        if(script.path != null)
 	    	        	vfn = script.path + File.separator + vfn;

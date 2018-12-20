@@ -70,6 +70,7 @@ public class MDSprite {
 	public static int allocvbos = 0, curvbo = 0;
 	public static IntBuffer vertvbos;
 	public static IntBuffer indexvbos;
+	public static Tile2model[] tile2model;
 	
 	public static void md_freevbos()
 	{
@@ -254,6 +255,8 @@ public class MDSprite {
 	{
 		models = new HashMap<Integer, Model>();
 		hudmem = new Hudtyp[2][MAXTILES];
+		tile2model = new Tile2model[MAXTILES + EXTRATILES];
+		
 		for(int i = 0; i < 2; i++)
 			for(int j = 0; j < MAXTILES; j++)
 				hudmem[i][j] = new Hudtyp();

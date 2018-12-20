@@ -22,9 +22,10 @@ public class Hightile {
 
 	public static Hicreplctyp[] hicreplc = new Hicreplctyp[MAXTILES];
 	public static Palette[] hictinting = new Palette[MAXPALOOKUPS];
-	public static boolean hicfirstinit;
 	public static final int  HICEFFECTMASK = (1|2|4|8);
-	public static int first = 1;
+	
+	protected static boolean hicfirstinit;
+	protected static int first = 1;
 	
 	//
 	// find the index into hicreplc[] which contains the replacement tile particulars

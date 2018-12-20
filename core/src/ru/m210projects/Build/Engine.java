@@ -44,7 +44,6 @@ import ru.m210projects.Build.Types.Neartag;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
-import ru.m210projects.Build.Types.Tile2model;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
@@ -270,7 +269,6 @@ public abstract class Engine {
 	public static byte[] curpalette;
 	public static FadeEffect palfadergb;
 
-	public static Tile2model[] tile2model;
 	public static int clipmoveboxtracenum = 3;
 	public static int hitscangoalx = (1 << 29) - 1, hitscangoaly = (1 << 29) - 1;
 	public static final int MAXVOXMIPS = 5;
@@ -935,7 +933,7 @@ public abstract class Engine {
 			@Override
 			public void update(int intensive) {}
 		};
-		tile2model = new Tile2model[MAXTILES + EXTRATILES];
+
 		rxi = new int[4]; 
 		ryi = new int[4];
 		hitwalls = new short[clipmoveboxtracenum + 1];
@@ -998,7 +996,7 @@ public abstract class Engine {
 
 		loadpalette();
 
-		if (!hicfirstinit) hicinit();
+		hicinit();
 		
 		initkeys();
 

@@ -235,9 +235,7 @@ public abstract class Polymost implements Renderer {
 	private int spritesy[] = new int[MAXSPRITESONSCREEN + 1];
 	private int spritesz[] = new int[MAXSPRITESONSCREEN + 1];
 	
-	private final int MAXWALLSB = ((MAXWALLS >> 2) + (MAXWALLS >> 3));
-	protected int asm1;
-	protected int asm2;
+	protected final static int MAXWALLSB = ((MAXWALLS >> 2) + (MAXWALLS >> 3));
 
 	private short[] p2 = new short[MAXWALLSB], thesector = new short[MAXWALLSB], thewall = new short[MAXWALLSB];
 	private short maskwall[] = new short[MAXWALLSB];
@@ -712,8 +710,8 @@ public abstract class Polymost implements Renderer {
 		}
 
 		// detail texture
-		if (Console.Geti("r_detailmapping") != 0 && usehightile && drawingskybox == 0 && hicfindsubst(globalpicnum, DETAILPAL, 0) != null)
-			detailpth = textureCache.cache(globalpicnum, DETAILPAL, drawingskybox, clampingMode(method), alphaMode(method));
+		if (Console.Geti("r_detailmapping") != 0 && usehightile && drawingskybox == 0)
+			detailpth = textureCache.cache(globalpicnum, DETAILPAL, (short) 0, clampingMode(method), alphaMode(method));
 
 		if (GLInfo.multisample != 0 && detailpth != null && detailpth.hicr != null && (detailpth.hicr.palnum == DETAILPAL)) {
 			gl.glActiveTexture(++texunits);
@@ -754,8 +752,8 @@ public abstract class Polymost implements Renderer {
 			gl.glMatrixMode(GL_MODELVIEW);
 		}
 		
-		if (r_glowmapping != 0 && usehightile && drawingskybox == 0 && hicfindsubst(globalpicnum, GLOWPAL, 0) != null)
-			glowpth = textureCache.cache(globalpicnum, GLOWPAL, drawingskybox, clampingMode(method), alphaMode(method));
+		if (r_glowmapping != 0 && usehightile && drawingskybox == 0)
+			glowpth = textureCache.cache(globalpicnum, GLOWPAL, (short) 0, clampingMode(method), alphaMode(method));
 		
 		if (GLInfo.multisample != 0 && glowpth != null && glowpth.hicr != null && (glowpth.hicr.palnum == GLOWPAL))
 		{
@@ -1331,7 +1329,7 @@ public abstract class Polymost implements Renderer {
 			drawalls_vv[] = new double[3], drawalls_ft[] = new double[4];
 	private WALL drawalls_nwal = new WALL();
 
-	private void drawalls(int bunch) { //XXX
+	private void drawalls(int bunch) {
 		SECTOR sec, nextsec;
 		WALL wal, wal2;
 		double x0, x1, cy0, cy1, fy0, fy1, xp0, yp0, xp1, yp1, ryp0, ryp1, nx0, ny0, nx1, ny1;
@@ -4021,7 +4019,6 @@ public abstract class Polymost implements Renderer {
 		gl.glLoadMatrixf(matrix);
 		gl.glRotatef(-90, 0.0f, 1.0f, 0.0f);
 
-//        gl.glPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
         if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.glFrontFace(GL_CW); else gl.glFrontFace(GL_CCW);
         gl.glEnable(GL_CULL_FACE);
         gl.glCullFace(GL_BACK);
@@ -4343,7 +4340,6 @@ public abstract class Polymost implements Renderer {
 		gl.glLoadMatrixf(matrix);
 		gl.glRotatef(-90, 0.0f, 1.0f, 0.0f);
 
-//        gl.glPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
         if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.glFrontFace(GL_CW); else gl.glFrontFace(GL_CCW);
         gl.glEnable(GL_CULL_FACE);
         gl.glCullFace(GL_FRONT);
@@ -4654,7 +4650,6 @@ public abstract class Polymost implements Renderer {
 		if(yflip) dvoxm0.z *= -1;
 		modela0.z = (((float) (k0 - globalposz)) / -16384.0f + modela0.z) * g;
 
-//		gl.glPushAttrib(GL_POLYGON_BIT); FIXME decreasing fps?
 		if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) gl.glFrontFace(GL_CW); else gl.glFrontFace(GL_CCW);
 
 		gl.glEnable(GL_CULL_FACE);
@@ -4906,6 +4901,34 @@ public abstract class Polymost implements Renderer {
 			addSpriteCorr(i);
 		}
 	}
+	
+	@Override
+	public void addSpriteCorr(int snum) {
+		int spr_wall = -1;
+		SPRITE spr = sprite[snum];
+		if((spr_wall = nearwall(snum, -64)) == -1) 
+			if((spr.cstat & 64) != 0 || (spr_wall = nearwall(snum, 64)) == -1)
+				return;
+
+		spritewall[snum] = spr_wall;
+		float sang = spr.ang * 360 / 2048;
+		int wdx = wall[spr_wall].x-wall[wall[spr_wall].point2].x;
+		int wdy = wall[spr_wall].y-wall[wall[spr_wall].point2].y;
+		float wang = new Vector2(wdx, wdy).angle()-90;
+		if(wang < 0) wang += 360;
+		wang = BClipRange(wang, 0, 360);
+		if(Math.abs(wang - sang) > 10) return;
+
+		dsin[snum].x = (sintable[(spr.ang) & 2047] / 65536.0f) - (float) (Math.sin(Math.toRadians(wang)) / 4);
+		dsin[snum].y = (sintable[(spr.ang + 1536) & 2047] / 65536.0f) - (float) (Math.sin(Math.toRadians(wang + 270)) / 4);
+	}
+	
+	@Override
+	public void removeSpriteCorr(int snum) {
+		dsin[snum].set(0, 0);
+		dcoord[snum].set(0, 0);
+		spritewall[snum] = -1;
+	}
 
 	@Override
 	public void settiltang(int tilt) {
@@ -5085,6 +5108,9 @@ public abstract class Polymost implements Renderer {
 	
 //	private final int ROTATESPRITE_MAX = 2048;
 	private final int RS_CENTERORIGIN = (1 << 30);
+	
+	protected int asm1; //drawmapview
+	protected int asm2; //drawmapview
 	
 	@Override
 	public abstract void drawmapview(int dax, int day, int zoome, int ang);
@@ -5913,34 +5939,6 @@ public abstract class Polymost implements Renderer {
         gshang = ogshang;
         gctang = ogctang;
         gstang = ogstang;
-	}
-	
-	@Override
-	public void addSpriteCorr(int snum) {
-		int spr_wall = -1;
-		SPRITE spr = sprite[snum];
-		if((spr_wall = nearwall(snum, -64)) == -1) 
-			if((spr.cstat & 64) != 0 || (spr_wall = nearwall(snum, 64)) == -1)
-				return;
-
-		spritewall[snum] = spr_wall;
-		float sang = spr.ang * 360 / 2048;
-		int wdx = wall[spr_wall].x-wall[wall[spr_wall].point2].x;
-		int wdy = wall[spr_wall].y-wall[wall[spr_wall].point2].y;
-		float wang = new Vector2(wdx, wdy).angle()-90;
-		if(wang < 0) wang += 360;
-		wang = BClipRange(wang, 0, 360);
-		if(Math.abs(wang - sang) > 10) return;
-
-		dsin[snum].x = (sintable[(spr.ang) & 2047] / 65536.0f) - (float) (Math.sin(Math.toRadians(wang)) / 4);
-		dsin[snum].y = (sintable[(spr.ang + 1536) & 2047] / 65536.0f) - (float) (Math.sin(Math.toRadians(wang + 270)) / 4);
-	}
-	
-	@Override
-	public void removeSpriteCorr(int snum) {
-		dsin[snum].set(0, 0);
-		dcoord[snum].set(0, 0);
-		spritewall[snum] = -1;
 	}
 }
 
