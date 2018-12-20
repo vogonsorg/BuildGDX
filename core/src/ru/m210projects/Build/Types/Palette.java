@@ -17,42 +17,26 @@
 package ru.m210projects.Build.Types;
 
 public class Palette {
-	public int r;
-	public int g;
-	public int b;
-	public int f;
-	public int rgb;
+	public short r;
+	public short g;
+	public short b;
+	public byte f;
 
 	public Palette() { }
 	
 	public Palette(int r, int g, int b, int f)
 	{
-		this.r = r;
-		this.g = g;
-		this.b = b;
-		this.f = f;
-		this.rgb = b + (g << 8) + (r << 16);
+		this.r = (short) r;
+		this.g = (short) g;
+		this.b = (short) b;
+		this.f = (byte) f;
 	}
 
 	public void update(int r, int g, int b, int f)
 	{
-		this.r = r;
-		this.g = g;
-		this.b = b;
-		this.f = f;
-		this.rgb = b + (g << 8) + (r << 16);
-	}
-	
-	public int[] array;
-	
-	public int[] toArray() {
-		if(array == null)
-			array = new int[4];
-		array[0] = r;
-		array[1] = g;
-		array[2] = b;
-		array[3] = f;
-		
-		return array;
+		this.r = (short) r;
+		this.g = (short) g;
+		this.b = (short) b;
+		this.f = (byte) f;
 	}
 }

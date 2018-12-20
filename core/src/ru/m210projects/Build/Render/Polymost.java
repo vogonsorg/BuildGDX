@@ -14,6 +14,7 @@ package ru.m210projects.Build.Render;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static java.lang.Math.*;
 import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Defs.*;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Loader.MDSprite.*;
 import static ru.m210projects.Build.Pragmas.dmulscale;
@@ -24,7 +25,6 @@ import static ru.m210projects.Build.Render.GLInfo.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureCache.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
-import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
 
 import java.nio.ByteBuffer;
@@ -49,12 +49,14 @@ import ru.m210projects.Build.Loader.MD3.MD3Surface;
 import ru.m210projects.Build.Loader.MD3.MD3Vertice;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Pthtyp;
 import ru.m210projects.Build.Render.Types.ValueResolver;
+import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
@@ -321,7 +323,7 @@ public abstract class Polymost implements Renderer {
 		BuildGDX.app.setFrame(FrameType.GL);
 		this.gl = BuildGDX.graphics.getGL10();
 		this.engine = engine;
-		this.textureCache = createTextureCache();
+		this.textureCache = createTextureCache(hdInfo);
 		this.clipper = new PolyClipper(this);
 
 		for(int i = 0; i < 16; i++)
@@ -343,8 +345,8 @@ public abstract class Polymost implements Renderer {
 		Console.Println(GLInfo.renderer + " " + GLInfo.version + " initialized", OSDTEXT_GOLD);
 	}
 
-	private TextureCache createTextureCache() {
-		return new TextureCache(new ValueResolver<Integer>() {
+	private TextureCache createTextureCache(TextureHDInfo info) {
+		return new TextureCache(info, new ValueResolver<Integer>() {
 			@Override
 			public Integer get() {
 				return anisotropy();
@@ -405,7 +407,7 @@ public abstract class Polymost implements Renderer {
 				continue;
 			
 			MDModel m = (MDModel) models.get(i);
-			for (int j = 0; j < m.numskins * (HICEFFECTMASK + 1); j++) { 
+			for (int j = 0; j < m.numskins * m.texid.length; j++) { 
 				if (m.texid[j] == null)
 					continue;
 				bindTexture(m.texid[j]);
@@ -413,7 +415,7 @@ public abstract class Polymost implements Renderer {
 			}
 
 			for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next) {
-				for (int j = 0; j < (HICEFFECTMASK + 1); j++) {
+				for (int j = 0; j < m.texid.length; j++) {
 					if (sk.texid[j] == null)
 						continue;
 					bindTexture(sk.texid[j]);
@@ -1308,7 +1310,7 @@ public abstract class Polymost implements Renderer {
 			if(!dopancor) //texture scaled, it's need to fix
 				t *= (float)tilesizy[globalpicnum] / i;
 	        i = tilesizy[globalpicnum];
-	    } else if (dopancor && hicreplc[globalpicnum] != null) {
+	    } else if (dopancor && hdInfo.isHighTile(globalpicnum)) {
 			// Carry out panning "correction" to make it look like classic in some
 	        // cases, but failing in the general case.
 			
@@ -2277,7 +2279,7 @@ public abstract class Polymost implements Renderer {
 		
 		calc_and_apply_skyfog(shade, sec.visibility,  pal);
 
-		if (!usehightile || hicfindsubst(globalpicnum, globalpal, 1) == null)
+		if (!usehightile || hdInfo.findTexture(globalpicnum, globalpal, 1) == null)
 			drawpapersky(sectnum, x0, x1, y0, y1, floor);
 		else
 			drawskybox(x0, x1, y0, y1, floor);
@@ -4026,22 +4028,23 @@ public abstract class Polymost implements Renderer {
         gl.glEnable(GL_TEXTURE_2D);
 
 		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
-	    if ((hictinting[globalpal].f&4) == 0)
-	    {
-	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
-	        {
-	            polyColor.r *= (float)hictinting[globalpal].r / 255.0;
-	            polyColor.g *= (float)hictinting[globalpal].g / 255.0;
-	            polyColor.b *= (float)hictinting[globalpal].b / 255.0;
-	            if (hictinting[MAXPALOOKUPS-1].r != 255 || hictinting[MAXPALOOKUPS-1].g != 255 || hictinting[MAXPALOOKUPS-1].b != 255)
-	            {
-	                polyColor.r *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
-	                polyColor.g *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
-	                polyColor.b *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
-	            }
-	        }
-	        else globalnoeffect=1;
-	    }
+
+        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
+        {
+        	Palette p = hdInfo.getTints(globalpal);
+            polyColor.r *= p.r / 255.0f;
+            polyColor.g *= p.g / 255.0f;
+            polyColor.b *= p.b / 255.0f;
+            
+            Palette pdetail = hdInfo.getTints(MAXPALOOKUPS-1);
+            if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255)
+            {
+                polyColor.r *= pdetail.r / 255.0f;
+                polyColor.g *= pdetail.g / 255.0f;
+                polyColor.b *= pdetail.b / 255.0f;
+            }
+        }
+        else globalnoeffect=1;
 
 	    if ((tspr.cstat&2) != 0) {
 	    	if ((tspr.cstat&512) == 0) {
@@ -4082,13 +4085,13 @@ public abstract class Polymost implements Renderer {
 	        }
 	    	m.verticesBuffer.flip();
 
-			BTexture texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,surfi);
+			BTexture texid = mdloadskin(hdInfo, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,surfi);
 	        if (texid != null) {
 
 		        bindTexture(texid);
 		        
 		        if ( Console.Geti("r_detailmapping") != 0 )
-		        	texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,surfi);
+		        	texid = mdloadskin(hdInfo, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,surfi);
 		        else
 		        	texid = null;
 		        
@@ -4130,7 +4133,7 @@ public abstract class Polymost implements Renderer {
 		        }
 		        
 		        if (r_glowmapping != 0)
-		        	texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,surfi);
+		        	texid = mdloadskin(hdInfo, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,surfi);
 		        else
 		        	texid = null;
 		        
@@ -4347,22 +4350,23 @@ public abstract class Polymost implements Renderer {
         gl.glEnable(GL_TEXTURE_2D);
 
 		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
-	    if ((hictinting[globalpal].f&4) == 0)
-	    {
-	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
-	        {
-	            polyColor.r *= (float)hictinting[globalpal].r / 255.0;
-	            polyColor.g *= (float)hictinting[globalpal].g / 255.0;
-	            polyColor.b *= (float)hictinting[globalpal].b / 255.0;
-	            if (hictinting[MAXPALOOKUPS-1].r != 255 || hictinting[MAXPALOOKUPS-1].g != 255 || hictinting[MAXPALOOKUPS-1].b != 255)
-	            {
-	                polyColor.r *= (float)hictinting[MAXPALOOKUPS-1].r / 255.0f;
-	                polyColor.g *= (float)hictinting[MAXPALOOKUPS-1].g / 255.0f;
-	                polyColor.b *= (float)hictinting[MAXPALOOKUPS-1].b / 255.0f;
-	            }
-	        }
-	        else globalnoeffect=1;
-	    }
+	    
+        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
+        {
+        	Palette p = hdInfo.getTints(globalpal);
+            polyColor.r *= p.r / 255.0f;
+            polyColor.g *= p.g / 255.0f;
+            polyColor.b *= p.b / 255.0f;
+            
+            Palette pdetail = hdInfo.getTints(MAXPALOOKUPS-1);
+            if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255)
+            {
+                polyColor.r *= pdetail.r / 255.0f;
+                polyColor.g *= pdetail.g / 255.0f;
+                polyColor.b *= pdetail.b / 255.0f;
+            }
+        }
+        else globalnoeffect=1;
 
 	    if ((tspr.cstat&2) != 0) {
 	    	if ((tspr.cstat&512) == 0) {
@@ -4386,12 +4390,12 @@ public abstract class Polymost implements Renderer {
 	    gl.glColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
 
 	    int rendered = 0;
-		BTexture texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
+		BTexture texid = mdloadskin(hdInfo, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
         if (texid != null)
         {
 	        bindTexture(texid);
 	        if (Console.Geti("r_detailmapping") != 0)
-	        	texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,0);
+	        	texid = mdloadskin(hdInfo, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,0);
 	        else
 	        	texid = null;
 	        
@@ -4433,7 +4437,7 @@ public abstract class Polymost implements Renderer {
 	        }
 	        
 	        if (r_glowmapping != 0)
-	        	texid = mdloadskin(m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,0);
+	        	texid = mdloadskin(hdInfo,m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,0);
 	        else
 	        	texid = null;
 	        
@@ -4658,9 +4662,12 @@ public abstract class Polymost implements Renderer {
 		gl.glEnable(GL_TEXTURE_2D);
 
 		polyColor.r = polyColor.g = polyColor.b = ((float) (numshades - min(max((globalshade * shadescale) + m.shadeoff, 0), numshades))) / ((float) numshades);
-		polyColor.r *= (float) hictinting[globalpal].r / 255.0f;
-		polyColor.g *= (float) hictinting[globalpal].g / 255.0f;
-		polyColor.b *= (float) hictinting[globalpal].b / 255.0f;
+
+		Palette p = hdInfo.getTints(globalpal);
+		polyColor.r *= p.r / 255.0f;
+		polyColor.g *= p.g / 255.0f;
+		polyColor.b *= p.b / 255.0f;
+		
 		if ((tspr.cstat & 2) != 0) {
 			if ((tspr.cstat & 512) == 0)
 				polyColor.a = TRANSLUSCENT1;
@@ -5790,28 +5797,23 @@ public abstract class Polymost implements Renderer {
 		// texture we're
 		// rendering isn't for the same palette as what we asked for
 		
-		if ((hictinting[globalpal].f & 4) == 0) {
-			if (pth != null && pth.isHighTile()) {
-				if (pth.hicr.palnum != globalpal) {
-					// apply tinting for replaced textures
-					polyColor.r *= (float) (hictinting[globalpal].r / 255);
-					polyColor.g *= (float) (hictinting[globalpal].g / 255);
-					polyColor.b *= (float) (hictinting[globalpal].b / 255);
-				}
-				if (hictinting[MAXPALOOKUPS - 1].r != 255
-						|| hictinting[MAXPALOOKUPS - 1].g != 255
-						|| hictinting[MAXPALOOKUPS - 1].b != 255) {
-					polyColor.r *= (float) (hictinting[MAXPALOOKUPS - 1].r / 255);
-					polyColor.g *= (float) (hictinting[MAXPALOOKUPS - 1].g / 255);
-					polyColor.b *= (float) (hictinting[MAXPALOOKUPS - 1].b / 255);
-				}
+		if (pth != null && pth.isHighTile()) {
+			if (pth.hicr.palnum != globalpal) {
+				// apply tinting for replaced textures
+				
+				Palette p = hdInfo.getTints(globalpal);
+	            polyColor.r *= p.r / 255.0f;
+	            polyColor.g *= p.g / 255.0f;
+	            polyColor.b *= p.b / 255.0f;
 			}
-			// hack: this is for drawing the 8-bit crosshair recolored in polymost
-			else if ((hictinting[globalpal].f & 8) != 0) {
-				polyColor.r *= (float) (hictinting[globalpal].r / 255);
-				polyColor.g *= (float) (hictinting[globalpal].g / 255);
-				polyColor.b *= (float) (hictinting[globalpal].b / 255);
-			}
+			
+			Palette pdetail = hdInfo.getTints(MAXPALOOKUPS-1);
+            if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255)
+            {
+                polyColor.r *= pdetail.r / 255.0f;
+                polyColor.g *= pdetail.g / 255.0f;
+                polyColor.b *= pdetail.b / 255.0f;
+            }
 		}
 	}
 	

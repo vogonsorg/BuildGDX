@@ -20,9 +20,6 @@ import static ru.m210projects.Build.Loader.MDSprite.md_undefinemodel;
 import static ru.m210projects.Build.Loader.MDSprite.qloadkvx;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
-import static ru.m210projects.Build.Render.Types.Hightile.hicsetpalettetint;
-import static ru.m210projects.Build.Render.Types.Hightile.hicsetskybox;
-import static ru.m210projects.Build.Render.Types.Hightile.hicsetsubsttex;
 
 import java.io.File;
 import java.util.HashMap;
@@ -30,14 +27,12 @@ import java.util.Map;
 
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.Types.Hicreplctyp;
-import ru.m210projects.Build.Types.Palette;
+import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
 import ru.m210projects.Build.Types.Tile2model;
 
 public class DefScript {
 
-	private Hicreplctyp[] hicreplc = new Hicreplctyp[MAXTILES];
-	private Palette[] hictinting = new Palette[MAXPALOOKUPS];
+	public TextureHDInfo hiresInfo;
 	
 	private int[] tiletovox;
 	private int nextvoxid, lastvoxid = -1;
@@ -289,6 +284,7 @@ public class DefScript {
 
 		Console.Println("Loading defscript " + script.filename + "...");
 
+		hiresInfo = new TextureHDInfo();
 		defsparser(script);
 	}
 
@@ -752,7 +748,8 @@ public class DefScript {
                         if (!kExist(tfn, 0))
                             break;
 //                      Console.Println("Loading hires texture \"" + tfn + "\"", false);
-                        hicsetsubsttex(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
+                        
+                        hiresInfo.addTexture(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
                     	break;
                     }
                 }
@@ -872,7 +869,7 @@ public class DefScript {
                 }
 
                 if(!error)
-                	hicsetskybox(stile,spal,sfn);
+                	hiresInfo.addSkybox(stile,spal,sfn);
     			
     			break;
 			case DEFINETINT:
@@ -883,8 +880,9 @@ public class DefScript {
 	            if ((g = script.getsymbol()) == null) break;
 	            if ((b = script.getsymbol()) == null) break;
 	            if ((f = script.getsymbol()) == null) break; //effects
-	            hicsetpalettetint(pal.intValue(),r.intValue(),g.intValue(),b.intValue(),f.intValue());
-    	        
+	            
+	            hiresInfo.setPaletteTint(pal.intValue(),r.intValue(),g.intValue(),b.intValue(),f.intValue());
+	          
     	        break;
 			case MUSIC:
 			case SOUND:

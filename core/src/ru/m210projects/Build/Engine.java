@@ -13,9 +13,9 @@ import static java.lang.Math.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
+import static ru.m210projects.Build.Loader.MDSprite.*;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
-import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
@@ -147,7 +147,7 @@ public abstract class Engine {
 	private BuildMessage message;
 	private BAudio audio;
 	private static KeyInput input;
-	
+
 	public static boolean offscreenrendering;
 	
 	public static float TRANSLUSCENT1 = 0.66f;
@@ -357,6 +357,7 @@ public abstract class Engine {
 	public static int r_animsmoothing = 1;
 	public static int glanisotropy = 1; // 0 = maximum supported by card
 		
+	
 	//Engine.c
 
 	public int getpalookup(int davis, int dashade) //jfBuild
@@ -995,8 +996,8 @@ public abstract class Engine {
 		parallaxvisibility = 512;
 
 		loadpalette();
-
-		hicinit();
+		
+		mdinit();
 		
 		initkeys();
 

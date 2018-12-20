@@ -18,19 +18,19 @@ import static ru.m210projects.Build.Common.check_file_exist;
 import static ru.m210projects.Build.Common.getatoken;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Loader.MDSprite.*;
-import static ru.m210projects.Build.Render.Types.Hightile.*;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Types.MemLog;
+import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 public class Defs {
 	
+	public static TextureHDInfo hdInfo = new TextureHDInfo();
 	public static final int MAXUSERTRACKS = 64;
 	public static String usertrack[] = new String[MAXUSERTRACKS];
 
@@ -696,7 +696,7 @@ public class Defs {
 	                }
 
 	                if(!error)
-	                	hicsetskybox(stile,spal,sfn);
+	                	hdInfo.addSkybox(stile,spal,sfn);
 	    			
 	    			break;
 	    		case T_TEXTURE:
@@ -823,7 +823,8 @@ public class Defs {
 	                        if (check_file_exist(tfn))
 	                            break;
 //	                        Console.Println("Loading hires texture \"" + tfn + "\"", false);
-	                        hicsetsubsttex(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
+	                        
+	                        hdInfo.addTexture(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
 	                    	break;
 	                    }
 	                }
@@ -843,8 +844,8 @@ public class Defs {
     	            if ((g = script.getsymbol()) == null) break;
     	            if ((b = script.getsymbol()) == null) break;
     	            if ((f = script.getsymbol()) == null) break; //effects
-    	            hicsetpalettetint(pal.intValue(),r.intValue(),g.intValue(),b.intValue(),f.intValue());
-	    	        
+
+    	            hdInfo.setPaletteTint(pal.intValue(),r.intValue(),g.intValue(),b.intValue(),f.intValue());
 	    	        break;
 	    		case T_VOXEL:
 	    	        String vfn;

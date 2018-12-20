@@ -16,8 +16,6 @@ import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTextureWrap;
 import static ru.m210projects.Build.Render.Types.GL10.*;
-import static ru.m210projects.Build.Render.Types.Hightile.HICEFFECTMASK;
-import static ru.m210projects.Build.Render.Types.Hightile.hictinting;
 import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
 
@@ -36,6 +34,7 @@ import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
 import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -393,7 +392,6 @@ public class MDSprite {
 	    int modelid = models.size();
 	    
 	    models.put(modelid, vm);
-//	    models.add(vm);
 	    vm.modelid = modelid;
 
 	    return vm.modelid;
@@ -572,10 +570,10 @@ public class MDSprite {
 	    m.interpol = ((float)(i&65535))/65536.f;
 	}
 
-	public static int hicfxmask(int pal)
-	{
-	    return (globalnoeffect != 0)?0:(hictinting[pal].f&HICEFFECTMASK);
-	}
+//	public static int hicfxmask(int pal)
+//	{
+//	    return (globalnoeffect != 0)?0:(hictinting[pal].f&HICEFFECTMASK);
+//	}
 	
 	public static int md_defineskin(int modelid, String skinfn, int palnum, int skinnum, int surfnum, double param, double specpower, double specfactor)
 	{
@@ -614,7 +612,7 @@ public class MDSprite {
 	    return 0;
 	}
 	
-	public static BTexture mdloadskin(MDModel m, int number, int pal, int surf)
+	public static BTexture mdloadskin(TextureHDInfo info, MDModel m, int number, int pal, int surf)
 	{
 	    String skinfile = null;
 	    BTexture texidx = null;
@@ -626,7 +624,7 @@ public class MDSprite {
 	    if (m.mdnum == 2)
 	        surf = 0;
 	    
-	    if (pal >= MAXPALOOKUPS)
+	    if (pal >= MAXPALOOKUPS || info == null)
 	    	return null;
 	    
 
@@ -636,7 +634,7 @@ public class MDSprite {
 	    	if (sk.palette == pal && sk.skinnum == number && sk.surfnum == surf)
 	        {
 	            skinfile = sk.fn;
-	            idptr = hicfxmask(pal);
+	            idptr = info.getPaletteEffect(pal);
 	            texptr = sk.texid;
 	            if(texptr != null)
 	            	texidx = texptr[idptr];
@@ -660,7 +658,7 @@ public class MDSprite {
 	        if (skzero != null)
 	        {
 	            skinfile = skzero.fn;
-	            idptr = hicfxmask(pal);
+	            idptr = info.getPaletteEffect(pal);
 	            texptr = skzero.texid;
 	            if(texptr != null)
 	            	texidx = texptr[idptr];
@@ -680,7 +678,7 @@ public class MDSprite {
 	            MD2Model md = (MD2Model) m;
 
 	            skinfile = md.skinfn + number*64;
-	            idptr = number*(HICEFFECTMASK+1) + hicfxmask(pal);
+	            idptr = number*m.texid.length + info.getPaletteEffect(pal);
 	            texptr = m.texid;
 	            if(texptr != null)
 	            	texidx = texptr[idptr];
@@ -701,9 +699,9 @@ public class MDSprite {
 	        		continue;
 	        	MDModel mi = (MDModel) models.get(i);
 	            for (skzero = mi.skinmap; skzero != null; skzero = skzero.next)
-	                if (Bstrcasecmp(skzero.fn, sk.fn) == 0 && skzero.texid[hicfxmask(pal)] != null)
+	                if (Bstrcasecmp(skzero.fn, sk.fn) == 0 && skzero.texid[info.getPaletteEffect(pal)] != null)
 	                {
-	                    int f = hicfxmask(pal);
+	                    int f = info.getPaletteEffect(pal);
 	                    sk.texid[f] = skzero.texid[f];
 	                    return sk.texid[f];
 	                }
@@ -739,7 +737,7 @@ public class MDSprite {
 
 	    long etime = System.currentTimeMillis()-startticks;
 	    
-	    System.out.println("Load skin: p" + pal +  "-e" + hicfxmask(pal) + " \"" + skinfile + "\"... " + etime + " ms");
+	    System.out.println("Load skin: p" + pal +  "-e" + info.getPaletteEffect(pal) + " \"" + skinfile + "\"... " + etime + " ms");
 
         texptr[idptr] = texidx;
 	    return texidx;
