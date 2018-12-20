@@ -14,11 +14,8 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Input;
 
-public interface Message {
-
-	public boolean show(String header, String text, boolean send);
-	public void dispose();
-	
+public interface InputCallback {
+	public int run(int ch);
 }

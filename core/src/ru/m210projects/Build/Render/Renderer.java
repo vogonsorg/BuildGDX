@@ -53,7 +53,7 @@ public interface Renderer {
 	
 	public abstract void drawmapview(int dax, int day, int zoome, int ang);
 	
-	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize);
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 	
 	public void gltexinvalidateall(int flags);
 
@@ -68,4 +68,8 @@ public interface Renderer {
 	public void setdrunk(float intensive);
 	
 	public float getdrunk();
+	
+	public void addSpriteCorr(int snum);
+	
+	public void removeSpriteCorr(int snum);
 }

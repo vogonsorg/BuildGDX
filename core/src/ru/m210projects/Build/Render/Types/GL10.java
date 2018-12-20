@@ -10,9 +10,9 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	
-	private IntBuffer tempInt;
-	private FloatBuffer tempFloat;
-	private DoubleBuffer tempDouble;
+	protected IntBuffer tempInt;
+	protected FloatBuffer tempFloat;
+	protected DoubleBuffer tempDouble;
 	
 	public static final int GL_VERTEX_ARRAY = 32884;
 	public static final int GL_NORMAL_ARRAY = 32885;
@@ -36,6 +36,8 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	public static final int GL_PERSPECTIVE_CORRECTION_HINT = 3152;
 	public static final int GL_PROJECTION = 5889;
 	public static final int GL_MODELVIEW = 5888;
+	public static final int GL_PROJECTION_MATRIX = 2983;
+	public static final int GL_MODELVIEW_MATRIX = 2982;
 	public static final int GL_CLAMP = 10496;
 	public static final int GL_ALPHA_TEST = 3008;
 	
@@ -64,7 +66,7 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	
 	public static final int GL_CLIP_PLANE0 = 12288;
 	public static final int GL_MAX_CLIP_PLANES = 3378;
-	
+
 	public GL10() {
 		tempInt = BufferUtils.newIntBuffer(8);
 		tempFloat = BufferUtils.newFloatBuffer(8);
@@ -212,6 +214,8 @@ public abstract class GL10 implements com.badlogic.gdx.graphics.GL20 {
 	public abstract void glGenTextures (int n, int[] textures, int offset);
 
 	public abstract void glGetIntegerv (int pname, int[] params, int offset);
+	
+	public abstract int glGetInteger (int pname);
 
 	public abstract void glLightModelfv (int pname, float[] params, int offset);
 

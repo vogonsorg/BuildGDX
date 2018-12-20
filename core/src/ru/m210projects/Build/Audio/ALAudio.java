@@ -82,6 +82,8 @@ public interface ALAudio {
 	
 	public int alGetSourcei(int source, int param);
 	
+	public void alGetSourcefv(int source, int param, FloatBuffer values);
+	
 	public void alSourcei(int source, int param,  int value);
 	
 	public void alSourcef(int source, int param,  float value);
@@ -111,6 +113,12 @@ public interface ALAudio {
 	public void alListener(int paramName, FloatBuffer value) ;
 
 	public void alListener3f(int paramName,  float value1,  float value2,  float value3);
+
+	public float alGetListenerf(int paramName);
+	
+	public int alGetListeneri(int paramName);
+	
+	public void alGetListenerfv(int param, FloatBuffer values);
 
 	public int alGenSources();
 

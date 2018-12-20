@@ -1,16 +1,16 @@
-package ru.m210projects.Build.desktop.extension;
+package ru.m210projects.Build.desktop;
+
 import java.io.File;
 
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.ApplicationLogger;
 import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.LifecycleListener;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationLogger;
 import com.badlogic.gdx.backends.lwjgl.LwjglClipboard;
 import com.badlogic.gdx.backends.lwjgl.LwjglFileHandle;
@@ -24,12 +24,17 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.SnapshotArray;
 
-public class DeskApplication implements Application {
+import ru.m210projects.Build.Architecture.BuildApplication;
+import ru.m210projects.Build.Architecture.BuildFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGraphics;
+import ru.m210projects.Build.Architecture.BuildInput;
+import ru.m210projects.Build.desktop.gl.GLFrameImpl;
+import ru.m210projects.Build.desktop.software.SoftFrameImpl;
 
-	protected final DeskGraphics graphics;
-	protected final LwjglFiles files;
-	protected final DeskInput input;
-	protected final LwjglNet net;
+public class BuildApplicationImpl implements BuildApplication {
+	protected Frame frame;
 	protected final ApplicationListener listener;
 	protected Thread mainLoopThread;
 	protected boolean running = true;
@@ -40,57 +45,76 @@ public class DeskApplication implements Application {
 	protected ApplicationLogger applicationLogger;
 	protected String preferencesdir;
 	protected Files.FileType preferencesFileType;
+	protected final LwjglApplicationConfiguration config;
+	protected final LwjglFiles files;
+	protected final LwjglNet net;
 
-	public DeskApplication (ApplicationListener listener, String title, int width, int height) {
-		this(listener, createConfig(title, width, height));
-	}
-
-	public DeskApplication (ApplicationListener listener) {
-		this(listener, null, 640, 480);
-	}
-
-	public DeskApplication (ApplicationListener listener, DeskApplicationConfiguration config) {
-		this(listener, config, new DeskGraphics(config));
-	}
-
-	DeskApplicationConfiguration config;
-	public DeskApplication (ApplicationListener listener, DeskApplicationConfiguration config, DeskGraphics graphics) {
+	public BuildApplicationImpl (ApplicationListener listener, LwjglApplicationConfiguration config) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
-
+		
 		if (config.title == null) config.title = listener.getClass().getSimpleName();
-		this.graphics = graphics;
-		files = new LwjglFiles();
-		input = new DeskInput();
-		net = new LwjglNet();
+		this.config = config;
+		
+		setFrame(FrameType.GL);
+
 		this.listener = listener;
 		this.preferencesdir = config.preferencesDirectory;
 		this.preferencesFileType = config.preferencesFileType;
 
+		files = new LwjglFiles();
+		net = new LwjglNet();
+
 		Gdx.app = this;
-		Gdx.graphics = graphics;
 		Gdx.files = files;
-		Gdx.input = input;
 		Gdx.net = net;
-		this.config = config;
-		initialize(config);
+		
+		BuildGDX.app = this;
+		BuildGDX.files = Gdx.files;
+		BuildGDX.net = Gdx.net;
+		
+		initialize();
+	}
+	
+	@Override
+	public FrameType getFrameType() {
+		return frame.getType();
+	}
+	
+	@Override
+	public BuildFrame getFrame() {
+		return frame;
+	}
+	
+	@Override
+	public void setFrame(FrameType type)
+	{
+		if(frame == null || frame.getType() != type) {
+			if(frame != null) frame.destroy();
+			Frame fr = null;
+			if(type == FrameType.Software) {
+				fr = new SoftFrameImpl(config); 
+			} else 
+				fr = new GLFrameImpl(config);
+			
+			if(frame != null) fr.init();
+
+			this.frame = fr;
+			Gdx.graphics = frame.getGraphics();
+			Gdx.input = frame.getInput();
+			
+			BuildGDX.graphics = frame.getGraphics();
+			BuildGDX.input = frame.getInput();
+			frame.setVSync(config.vSyncEnabled);
+		}
 	}
 
-	private static DeskApplicationConfiguration createConfig (String title, int width, int height) {
-		DeskApplicationConfiguration config = new DeskApplicationConfiguration();
-		config.title = title;
-		config.width = width;
-		config.height = height;
-		config.vSyncEnabled = true;
-		return config;
-	}
-
-	private void initialize (final DeskApplicationConfiguration config) {
-		mainLoopThread = new Thread("BuildEngine Application") {
+	private void initialize () {
+		mainLoopThread = new Thread("Build Application") {
 			@Override
 			public void run () {
 				try {
-					DeskApplication.this.mainLoop();
+					BuildApplicationImpl.this.mainLoop();
 				} catch (Throwable t) {
 					Gdx.input.setCursorCatched(false);
 					if(listener != null) {
@@ -107,18 +131,19 @@ public class DeskApplication implements Application {
 		mainLoopThread.start();
 	}
 
-	void mainLoop () {
+	private void mainLoop () {
 		SnapshotArray<LifecycleListener> lifecycleListeners = this.lifecycleListeners;
-		listener.create();
-		boolean resize = true;
 
-		graphics.lastTime = System.nanoTime();
+		frame.init();
+
+		listener.create();
+
 		boolean wasActive = true;
 		while (running) {
-			graphics.getDisplay().process();
-			if (graphics.getDisplay().isCloseRequested()) exit();
+			frame.getInput().processMessages();
+			if (frame.isCloseRequested()) exit();
 
-			boolean isActive = graphics.getDisplay().isActive();
+			boolean isActive = frame.isActive();
 			if (wasActive && !isActive) { // if it's just recently minimized from active state
 				wasActive = false;
 				synchronized (lifecycleListeners) {
@@ -140,44 +165,19 @@ public class DeskApplication implements Application {
 				listener.resume();
 			}
 
-			boolean shouldRender = false;
-
-			graphics.config.x = graphics.getDisplay().getX();
-			graphics.config.y = graphics.getDisplay().getY();
-			if (resize || graphics.getDisplay().wasResized()
-				|| graphics.getDisplay().getWidth() != graphics.config.width
-				|| graphics.getDisplay().getHeight() != graphics.config.height) {
-				resize = false;
-				graphics.config.width = graphics.getDisplay().getWidth();
-				graphics.config.height = graphics.getDisplay().getHeight();
-				graphics.getDisplay().resize(graphics.config.width, graphics.config.height);
-				if (listener != null) listener.resize(graphics.config.width, graphics.config.height);
-				graphics.requestRendering();
-			}
+			if(frame.update()) 
+				listener.resize(config.width, config.height);
 			
+			boolean shouldRender = false;
 			if (executeRunnables()) shouldRender = true;
 
 			// If one of the runnables set running to false, for example after an exit().
 			if (!running) break;
 
-			
-			shouldRender |= graphics.shouldRender();
-
-			if (!isActive && graphics.config.backgroundFPS == -1) shouldRender = false;
-			int frameRate = isActive ? graphics.config.foregroundFPS : graphics.config.backgroundFPS;
-			if (shouldRender) {
-				input.update();
-				graphics.updateTime();
-				graphics.frameId++;
+			if(frame.checkRender(shouldRender)) {
 				listener.render();
-				graphics.getDisplay().update();
-			} else {
-				// Sleeps to avoid wasting CPU in an empty loop.
-				if (frameRate == -1) frameRate = 10;
-				if (frameRate == 0) frameRate = graphics.config.backgroundFPS;
-				if (frameRate == 0) frameRate = 30;
+				frame.repaint();
 			}
-			if (frameRate > 0) graphics.getDisplay().sync(frameRate);
 		}
 
 		synchronized (lifecycleListeners) {
@@ -190,10 +190,10 @@ public class DeskApplication implements Application {
 		}
 		listener.pause();
 		listener.dispose();
-		graphics.getDisplay().destroy();
-		if (graphics.config.forceExit) System.exit(-1);
+		frame.destroy();
+		if (config.forceExit) System.exit(-1);
 	}
-
+	
 	public boolean executeRunnables () {
 		synchronized (runnables) {
 			for (int i = runnables.size - 1; i >= 0; i--)
@@ -223,13 +223,13 @@ public class DeskApplication implements Application {
 	}
 
 	@Override
-	public DeskGraphics getGraphics () {
-		return graphics;
+	public BuildGraphics getGraphics () {
+		return frame.getGraphics();
 	}
 
 	@Override
-	public Input getInput () {
-		return input;
+	public BuildInput getInput () {
+		return frame.getInput();
 	}
 
 	@Override
@@ -342,7 +342,6 @@ public class DeskApplication implements Application {
 		return applicationLogger;
 	}
 
-
 	@Override
 	public void exit () {
 		postRunnable(new Runnable() {
@@ -365,5 +364,10 @@ public class DeskApplication implements Application {
 		synchronized (lifecycleListeners) {
 			lifecycleListeners.removeValue(listener, true);
 		}
+	}
+
+	@Override
+	public void setMaxFramerate(int fps) {
+		frame.setMaxFramerate(fps);
 	}
 }

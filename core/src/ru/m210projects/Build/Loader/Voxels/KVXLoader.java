@@ -150,13 +150,13 @@ public class KVXLoader {
 	    vcol.put(z, col);
 	}
 		
-	public static int getvox (int x, int y, int z)
+	public static byte getvox (int x, int y, int z)
 	{
 		z += x*yzsiz + y*zsiz;
 		Integer col = vcol.get(z);
 		if (col == null) 
-			return(0x808080);
-		return col;
+			return 0; //(0x808080);
+		return (byte) ((col & 0xFFFFFFFFL) >> 24);
 	}
 	
 	//Set all bits in vbit from (x,y,z0) to (x,y,z1-1) to 1's
@@ -442,7 +442,7 @@ public class KVXLoader {
 	 
 	            gvox.quad = new voxrect_t[gvox.qcnt];
                 gvox.initQuads();
-                gvox.mytex = new int[gvox.mytexx*gvox.mytexy];
+                gvox.mytex = new byte[gvox.mytexx*gvox.mytexy];
 	        }
 	    }
 	    

@@ -73,7 +73,7 @@ public class MidiReceiver implements Receiver  {
 	}
 	
 	private ShortMessage getVolumeMessage(MidiMessage message) {
-    	if((message.getStatus() & ShortMessage.CONTROL_CHANGE) != 0)
+		if((message.getStatus() & 0xF0) == ShortMessage.CONTROL_CHANGE)
     	{
     		ShortMessage m = (ShortMessage) message;
     		if(m.getData1() == CONTROL_VOLUME) 

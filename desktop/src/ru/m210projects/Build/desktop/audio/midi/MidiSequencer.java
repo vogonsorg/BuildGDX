@@ -24,7 +24,7 @@ import javax.sound.midi.Transmitter;
 
 public class MidiSequencer {
 	
-	private Sequencer sequencer;
+	private final Sequencer sequencer;
 	private Transmitter transmitter;
 	private MidiReceiver receiver;
 	private MidiMusicSource currentSource;
@@ -69,7 +69,8 @@ public class MidiSequencer {
 	
 	public void stop()
 	{
-		sequencer.stop();
+		if(isOpen())
+			sequencer.stop();
 	}
 	
 	public long getPosition()
@@ -111,7 +112,7 @@ public class MidiSequencer {
 	{
 		if(sequencer != null)
     	{
-			sequencer.stop();
+			stop();
 			sequencer.close();
     	}
     	if(transmitter != null)

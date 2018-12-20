@@ -20,9 +20,9 @@ import com.badlogic.gdx.backends.android.AndroidApplication;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import ru.m210projects.Build.Types.Message;
+import ru.m210projects.Build.Architecture.BuildMessage;
 
-public class AndroidMessage implements Message {
+public class AndroidMessage implements BuildMessage {
 	AndroidApplication app;
 	public AndroidMessage(AndroidApplication app)
 	{

@@ -37,7 +37,7 @@ public class MidiMusicModule implements Music {
 
 	protected MidiSequencer sequencer;
 
-	private String name;
+	private String name = "Midi Music Module";
 	private boolean inited;
 	private int nDevice;
 	private List<MidiDevice> devices;
@@ -46,7 +46,6 @@ public class MidiMusicModule implements Music {
 	
 	public MidiMusicModule(int nDevice, File soundbank) {
 		try {
-			sequencer = new MidiSequencer();
 			devices = getDevices();
 			this.nDevice = nDevice;
 			if(soundbank != null)
@@ -95,6 +94,7 @@ public class MidiMusicModule implements Music {
 	@Override
 	public boolean init() {
 		try {
+			sequencer = new MidiSequencer();
 			if(device != null)
 	    		device.close();
 			
@@ -122,6 +122,7 @@ public class MidiMusicModule implements Music {
 		    return true;
 		} catch (Exception e) {
 			e.printStackTrace();
+			name = "initialization failed";
 			return false;
 		}
 	}
@@ -149,7 +150,7 @@ public class MidiMusicModule implements Music {
 			sequencer.dispose();
     	if( device != null)
     		device.close();
-    	devices = null;
+//    	devices = null;
 	}
 
 	@Override

@@ -14,7 +14,7 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.desktop.extension.software;
+package ru.m210projects.Build.desktop.software;
 
 import java.awt.Canvas;
 import java.awt.Graphics;
@@ -45,8 +45,6 @@ public class JCanvas extends Canvas {
 	public void paint( Graphics g ) { g.drawImage(display, 0, 0, null); }
 
 	public byte[] getFrame() { return raster; }
-	
-	public void update() { repaint(); }
 	
 	public void changepalette(byte[] palette) {
 		paletteModel = new IndexColorModel(1, 256, palette, 0, false);

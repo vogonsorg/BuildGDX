@@ -67,10 +67,11 @@ import javax.swing.event.ChangeListener;
 import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.Graphics.DisplayMode;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.BConfig;
 import ru.m210projects.Build.desktop.audio.midi.MidiMusicModule;
-import ru.m210projects.Build.desktop.extension.DeskApplicationConfiguration;
 
 public class DesktopFrame {
 	
@@ -109,7 +110,7 @@ public class DesktopFrame {
 	private String userHomePath;
 	private String portablePath;
 	private LaunchCallback cLaunch;
-
+	
 	public DesktopFrame(String appname, String appversion, String[] resources, 
 			LaunchCallback cLaunch, URL Title, URL FrameIcon, final URL AboutImg) throws Exception
 	{
@@ -251,6 +252,7 @@ public class DesktopFrame {
 				if(f != null)
 					path = f.getAbsolutePath() + File.separator;
 					textField.setText(path);  
+					
 					startButtonStatus(checkResources(path, resources) != -1, appname, resources[0]);
 			}
 		});
@@ -356,7 +358,7 @@ public class DesktopFrame {
 	private void initSettingsTab(JPanel settings, Font font)
 	{
 		if(!settingsCreated) {
-			initVideoModes(DeskApplicationConfiguration.getDisplayModes(), DeskApplicationConfiguration.getDesktopDisplayMode());
+			initVideoModes(LwjglApplicationConfiguration.getDisplayModes(), LwjglApplicationConfiguration.getDesktopDisplayMode());
 			
 			JLabel sounddrv = new JLabel("Sound: ");
 			sounddrv.setFont(font);
@@ -557,16 +559,16 @@ public class DesktopFrame {
 	        {
 	        	String apptitle = title;
 	        	if(!settingsInited)
-	        		initVideoModes(DeskApplicationConfiguration.getDisplayModes(), DeskApplicationConfiguration.getDesktopDisplayMode());
+	        		initVideoModes(LwjglApplicationConfiguration.getDisplayModes(), LwjglApplicationConfiguration.getDesktopDisplayMode());
 	        	
-	        	DeskApplicationConfiguration lwjglConfig = new DeskApplicationConfiguration();
+	        	LwjglApplicationConfiguration lwjglConfig = new LwjglApplicationConfiguration();
 	    		lwjglConfig.fullscreen = setFullscreen(cfg.ScreenWidth, cfg.ScreenHeight, cfg.fullscreen == 1);
 	    		lwjglConfig.width = (cfg.ScreenWidth);
 	    		lwjglConfig.height = (cfg.ScreenHeight);
 	    		lwjglConfig.resizable = false;
 	    		lwjglConfig.depth = 32; //z-buffer
 
-	    		lwjglConfig.backgroundFPS = 30;
+	    		lwjglConfig.backgroundFPS = cfg.fpslimit;
 	    		lwjglConfig.foregroundFPS = cfg.fpslimit;
 	    		lwjglConfig.vSyncEnabled = cfg.gVSync;
 	    		
@@ -660,6 +662,7 @@ public class DesktopFrame {
 		Console.Println(message, OSDTEXT_GOLD);
 	}
 
+//	private int resnum;
 	private int checkResources(String path, String[] resources)
 	{
 		if(resources.length < 2) {
@@ -681,7 +684,21 @@ public class DesktopFrame {
 			if(filesMap.get(resources[i]) == null)
 				return -1;
 		}
-
+			
+//		resnum = -1;
+//		int r = 0, i = 1;
+//		while(i < resources[r].length) {
+//			if(filesMap.get(resources[r][i]) == null) {
+//				if(r < resources.length - 1) {
+//					r++; i = 1;
+//					continue;
+//				}
+//				return -1;
+//			}
+//			i++;
+//		}
+//		resnum = r;
+		
 //		if(!Files.isWritable(directory.toPath())) // JDK 1.7
 		if(!isWritable(path))
 			return 0;
@@ -727,6 +744,7 @@ public class DesktopFrame {
 	private void initMidiDevice(String midiSynth)
 	{
 		midiDevice = -1;
+		int defGervill = -1;
 		byte[] namedata = new byte[64];
 		if(midiMap == null) {
 			List<MidiDevice> devices = MidiMusicModule.getDevices();
@@ -742,6 +760,8 @@ public class DesktopFrame {
 
 				
 				if(midiDeviceList != null) midiDeviceList.addItem(name);
+				if(name.equalsIgnoreCase("Gervill"))
+					defGervill = i;
 				midiMap.put(i, name);
 			} 
 		}
@@ -749,6 +769,13 @@ public class DesktopFrame {
 		for(Integer key : midiMap.keySet()){
 			if(midiMap.get(key).equals(midiSynth))
 				midiDevice = key;
+		}
+		
+		if(midiDevice == -1 && defGervill != -1)
+		{
+			midiDevice = defGervill;
+			cfg.midiSynth = midiMap.get(midiDevice);
+			cfg.middrv = 1;
 		}
 	}
 }

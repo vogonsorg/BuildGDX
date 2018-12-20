@@ -98,14 +98,15 @@ import java.util.HashMap;
 import com.badlogic.gdx.Gdx;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.SoftFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.FadeEffect;
-import ru.m210projects.Build.Types.BGraphics;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
-import ru.m210projects.Build.Types.BDisplay.DisplayType;
 
 public class Software implements Renderer {
 
@@ -212,7 +213,7 @@ public class Software implements Renderer {
 
 	public Software(Engine engine)
 	{
-		((BGraphics) Gdx.graphics).setDisplayType(DisplayType.Software);
+		BuildGDX.app.setFrame(FrameType.Software);
 		this.engine = engine;
 		a = new Ac(this);
 		
@@ -241,6 +242,8 @@ public class Software implements Renderer {
 		a.fixtransluscence(transluc);
 		globalpalwritten = 0;
 		a.setpalookupaddress(globalpalwritten);
+		
+		gltexinvalidateall(0);
 		
 		j = 0;
 		for(int i=0;i<=Gdx.graphics.getHeight();i++) { ylookup[i] = j; j += bytesperline; }
@@ -2671,8 +2674,8 @@ public class Software implements Renderer {
 
 	@Override
 	public void nextpage() { 
-		if(((BGraphics)Gdx.graphics).getDisplayType() == DisplayType.Software)  
-			System.arraycopy(frameplace, 0, ((BGraphics)Gdx.graphics).getFrame(), 0, frameplace.length);
+		if(BuildGDX.app.getFrameType() == FrameType.Software)  
+			System.arraycopy(frameplace, 0, ((SoftFrame)BuildGDX.app.getFrame()).getFrame(), 0, frameplace.length);
 	}
 
 	@Override
@@ -3037,13 +3040,13 @@ public class Software implements Renderer {
 	}
 
 	@Override
-	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize) {
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int stx = xpos;
 		int charxsiz = 8;
 		char[] fontptr = textfont;
 		if (fontsize != 0) { fontptr = smalltextfont; charxsiz = 4; }
 
-		for(int i=0; text[i] != 0;i++)
+		for(int i=0; i < text.length && text[i] != 0;i++)
 		{
 			int ptr = bytesperline*(ypos+7)+(stx-fontsize);
 			
@@ -3121,8 +3124,8 @@ public class Software implements Renderer {
 	public void precache(int dapicnum, int dapalnum, int datype) {}
 	public void gltexapplyprops() {}
 	public void gltexinvalidateall(int flags) { 
-		if(((BGraphics)Gdx.graphics).getDisplayType() == DisplayType.Software)  
-			((BGraphics)Gdx.graphics).changepalette(curpalette); 
+		if(BuildGDX.app.getFrameType() == FrameType.Software)  
+			((SoftFrame)BuildGDX.app.getFrame()).changepalette(curpalette);
 	}
 	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {}
 	
@@ -3586,5 +3589,13 @@ public class Software implements Renderer {
 		}
 		a.thline(globalbufplc,globaly1*r+globalxpanning-a.asm1*(xr-xl),(xr-xl)<<16,0,
 			globalx2*r+globalypanning-a.asm2*(xr-xl),ylookup[yp]+xl);
+	}
+
+	@Override
+	public void addSpriteCorr(int snum) {
+	}
+
+	@Override
+	public void removeSpriteCorr(int snum) {
 	}
 }
