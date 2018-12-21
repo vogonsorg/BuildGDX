@@ -4,7 +4,7 @@
 * See the included license file "BUILDLIC.TXT" for license info.
 */
 
-package ru.m210projects.Build.Render.Types;
+package ru.m210projects.Build.Render.TextureHandle;
 
 public class Hicreplctyp {
 	

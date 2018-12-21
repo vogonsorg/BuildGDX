@@ -25,10 +25,6 @@ import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
-import ru.m210projects.Build.Render.Types.BTexture;
-import ru.m210projects.Build.Render.Types.Hicreplctyp;
-import ru.m210projects.Build.Render.Types.Pthtyp;
-import ru.m210projects.Build.Render.Types.ValueResolver;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
@@ -112,16 +108,6 @@ public class TextureCache {
 
 	private Pthtyp loadHighTileNoAlloc(int dapic, int dapal, boolean clamping, boolean alpha, int facen, Hicreplctyp hicr, Pthtyp pth, int effect) {
 		return loadHighTile(dapic, dapal, clamping, alpha, facen, hicr, pth, effect, false);
-	}
-
-	public static int calcSize(int size) {
-		int nsize = 1;
-		if (GLInfo.texnpot == 0) {
-			for (; nsize < size; nsize *= 2)
-				;
-			return nsize;
-		}
-		return size == 0 ? 1 : size;
 	}
 
 	private Pthtyp loadTileArt(int dapic, int dapal, boolean clamping, boolean alpha, Pthtyp pth, boolean doalloc) {

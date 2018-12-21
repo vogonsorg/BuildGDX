@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import ru.m210projects.Build.Loader.Voxels.VOXModel.voxrect_t;
-import ru.m210projects.Build.Render.Types.BTexture;
+import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;

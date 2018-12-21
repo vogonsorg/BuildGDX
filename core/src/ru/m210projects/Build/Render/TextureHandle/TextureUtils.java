@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 
 import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.Types.BTexture;
+import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
 
 import com.badlogic.gdx.Gdx;
@@ -65,6 +65,16 @@ public class TextureUtils {
 			}
 		}
 		return gltexmaxsize;
+	}
+	
+	public static int calcSize(int size) {
+		int nsize = 1;
+		if (GLInfo.texnpot == 0) {
+			for (; nsize < size; nsize *= 2)
+				;
+			return nsize;
+		}
+		return size == 0 ? 1 : size;
 	}
 
 	public static void bindTexture(BTexture tex) {

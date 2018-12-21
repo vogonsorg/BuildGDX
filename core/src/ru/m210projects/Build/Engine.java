@@ -37,7 +37,6 @@ import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
-import ru.m210projects.Build.Render.Types.Spritesmooth;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Neartag;
@@ -194,7 +193,6 @@ public abstract class Engine {
 	public static int totalclock;
 	public static short pskyoff[], zeropskyoff[], pskybits;
 	public static Spriteext[] spriteext;
-	public static Spritesmooth[] spritesmooth;
 	public static byte parallaxtype;
 	public static boolean showinvisibility;
 	public static int visibility, parallaxvisibility;
@@ -901,7 +899,7 @@ public abstract class Engine {
 		pskyoff = new short[MAXPSKYTILES];
 		zeropskyoff = new short[MAXPSKYTILES];
 		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID];
-		spritesmooth = new Spritesmooth[MAXSPRITES+MAXUNIQHUDID];
+		
 		tilesizx = new short[MAXTILES]; 
 		tilesizy = new short[MAXTILES];
 		picanm = new int[MAXTILES];
@@ -956,9 +954,7 @@ public abstract class Engine {
 	
 		for (int i = 0; i < spriteext.length; i++)
 			spriteext[i] = new Spriteext();
-		for (int i = 0; i < spritesmooth.length; i++)
-			spritesmooth[i] = new Spritesmooth();
-		
+
 		palookup = new byte[MAXPALOOKUPS][];
 		waloff = new byte[MAXTILES][];
 		

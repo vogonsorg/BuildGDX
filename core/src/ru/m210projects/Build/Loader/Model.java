@@ -12,7 +12,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import ru.m210projects.Build.Render.Types.BTexture;
+import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
 public class Model {
 	public int mdnum; //VOX=1, MD2=2, MD3=3. NOTE: must be first in structure!

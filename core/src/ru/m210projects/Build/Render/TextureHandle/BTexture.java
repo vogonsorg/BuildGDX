@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Render.Types;
+package ru.m210projects.Build.Render.TextureHandle;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +28,8 @@ import com.badlogic.gdx.graphics.TextureData;
 import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+
+import ru.m210projects.Build.Render.Types.GL10;
 
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
 

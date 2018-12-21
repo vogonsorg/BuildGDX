@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import ru.m210projects.Build.Loader.Model;
-import ru.m210projects.Build.Render.Types.BTexture;
+import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
 public class VOXModel extends Model {
 	

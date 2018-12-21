@@ -20,7 +20,6 @@ import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 
-import ru.m210projects.Build.Render.Types.Hicreplctyp;
 import ru.m210projects.Build.Types.Palette;
 
 public class TextureHDInfo {
@@ -65,6 +64,27 @@ public class TextureHDInfo {
 	private void add(Hicreplctyp tex, int picnum) {
 		tex.next = cache[picnum];
         cache[picnum] = tex;
+	}
+	
+	public Hicreplctyp remove(int picnum, int palnum)
+	{
+		Hicreplctyp tmp;
+		if(cache[picnum].palnum == palnum)
+		{
+			tmp = cache[picnum];
+			cache[picnum] = cache[picnum].next;
+			return tmp;
+		}
+
+		for (Hicreplctyp hr = cache[picnum]; hr != null; hr = hr.next) {
+			tmp = hr.next;
+			if (tmp.palnum == palnum) {
+				hr.next = tmp.next;
+				return tmp;
+			}
+		}
+		
+		return null;
 	}
 	
 	public boolean isHighTile(int picnum)
@@ -136,18 +156,5 @@ public class TextureHDInfo {
 	    } while(true);
 
 		return null;
-	}
-	
-	public void clearTexture(int picnum, int palnum)
-	{
-		Hicreplctyp nexthr;
-		for (Hicreplctyp hr = cache[picnum]; hr != null;) {
-			nexthr = hr.next;
-			if (nexthr.palnum == palnum) {
-				hr.next = nexthr.next;
-				return;
-			}
-			hr = hr.next;
-		}
 	}
 }

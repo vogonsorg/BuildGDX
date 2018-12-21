@@ -34,11 +34,10 @@ import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
-import ru.m210projects.Build.Render.Types.BTexture;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Spriteext;
-import ru.m210projects.Build.Render.Types.Spritesmooth;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile2model;
 
@@ -49,6 +48,14 @@ import com.badlogic.gdx.utils.BufferUtils;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 public class MDSprite {
+	
+	public static Spritesmooth[] spritesmooth;
+	public static class Spritesmooth {
+		public float smoothduration;
+		public short mdcurframe;
+		public short mdoldframe;
+		public short mdsmooth;
+	}
 	
 	public static final int MDANIM_LOOP = 0;
 	public static final int MDANIM_ONESHOT = 1;
@@ -255,6 +262,10 @@ public class MDSprite {
 		models = new HashMap<Integer, Model>();
 		hudmem = new Hudtyp[2][MAXTILES];
 		tile2model = new Tile2model[MAXTILES + EXTRATILES];
+		spritesmooth = new Spritesmooth[MAXSPRITES+MAXUNIQHUDID];
+		
+		for (int i = 0; i < spritesmooth.length; i++)
+			spritesmooth[i] = new Spritesmooth();
 		
 		for(int i = 0; i < 2; i++)
 			for(int j = 0; j < MAXTILES; j++)
