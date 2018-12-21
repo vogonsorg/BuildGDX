@@ -825,7 +825,7 @@ public class Defs {
 //	                        Console.Println("Loading hires texture \"" + tfn + "\"", false);
 	                        
 	                        hdInfo.addTexture(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
-	                    	break;
+	                        break;
 	                    }
 	                }
 

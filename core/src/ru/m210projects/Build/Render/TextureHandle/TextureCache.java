@@ -39,15 +39,19 @@ public class TextureCache {
     private final boolean useShader;
     private TextureHDInfo info;
 
-	public TextureCache(TextureHDInfo info, ValueResolver<Integer> anisotropy) {
+	public TextureCache(ValueResolver<Integer> anisotropy) {
 		this.anisotropy = anisotropy;
-		this.info = info;
 		cache = new Pthtyp[MAXTILES];
 //		cache = new HashMap<TextureKey, Pthtyp>();
 //	    key = new MutableTextureKey();
 	    useShader = false;
 	    if(useShader)
 	    	createShader();
+	}
+	
+	public void setTextureInfo(TextureHDInfo info)
+	{
+		this.info = info;
 	}
 
 	private Pthtyp get(int picnum, int palnum, boolean clamped, int surfnum) {
@@ -273,7 +277,7 @@ public class TextureCache {
 	
 	public Pthtyp cache(int dapicnum, int dapalnum, short skybox, boolean clamping, boolean alpha)
 	{
-		Hicreplctyp si = (usehightile) ? info.findTexture(dapicnum,dapalnum,skybox) : null;
+		Hicreplctyp si = (usehightile && info != null) ? info.findTexture(dapicnum,dapalnum,skybox) : null;
 
 		if (si == null)
 	    {
@@ -293,7 +297,7 @@ public class TextureCache {
 		if (pth != null) {
 			if (pth.isInvalidated()) {
 				pth.setInvalidated(false);
-				if((pth = loadHighTileNoAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, pth, (si.palnum>0) ? 0 : info.getPaletteEffect(dapalnum))) == null) // reload tile
+				if((pth = loadHighTileNoAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, pth, (si.palnum>0 || info == null) ? 0 : info.getPaletteEffect(dapalnum))) == null) // reload tile
 				{
 					if (skybox != 0) return null;
 					return cache_tryart(dapicnum, dapalnum, clamping, alpha);
@@ -305,7 +309,7 @@ public class TextureCache {
 			// { ... }  if (dapalnum >= (MAXPALOOKUPS - RESERVEDPALS))
 			//
 
-			pth = gloadHighTileAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, new Pthtyp(), (si.palnum>0) ? 0 : info.getPaletteEffect(dapalnum));
+			pth = gloadHighTileAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, new Pthtyp(), (si.palnum>0 || info == null) ? 0 : info.getPaletteEffect(dapalnum));
 			if (pth != null) {
 				pth.skyface = skybox;
 				add(pth);

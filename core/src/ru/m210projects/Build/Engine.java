@@ -4139,4 +4139,15 @@ public abstract class Engine {
     {
     	return audio;
     }
+    
+    private DefScript defs;
+    public void setDefs(DefScript defs)
+    {
+    	this.defs = defs;
+    }
+    
+    public DefScript getDefs()
+    {
+    	return defs;
+    }
 }

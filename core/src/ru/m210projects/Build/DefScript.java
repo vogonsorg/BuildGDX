@@ -1,5 +1,6 @@
 package ru.m210projects.Build;
 
+import static ru.m210projects.Build.Defs.defsparser;
 import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
@@ -22,9 +23,13 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import ru.m210projects.Build.FileHandle.Compat;
+import ru.m210projects.Build.FileHandle.DirectoryEntry;
+import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
@@ -278,14 +283,37 @@ public class DefScript {
 		}
 	};
 	
-	public DefScript(Scriptfile script) throws NullPointerException {
-		if (script == null)
-			throw new NullPointerException("script == null");
-
-		Console.Println("Loading defscript " + script.filename + "...");
-
+	public DefScript() {
 		hiresInfo = new TextureHDInfo();
+	}
+	
+	public boolean loadScript(FileEntry file)
+	{
+		Scriptfile script = Scriptfile.scriptfile_fromfile(file.getPath());
+		if (script == null) {
+			Console.Println("Def error: script not found", OSDTEXT_RED);
+			return false;
+		}
+		script.path = file.getParent().getRelativePath();
 		defsparser(script);
+		
+		return true;
+	}
+	
+	public boolean loadScript(String name, byte[] buf)
+	{
+		int flen = buf.length;
+		byte[] tx = Arrays.copyOf(buf, flen + 2);
+		String scripttxt = new String(tx);
+		Scriptfile script = Scriptfile.scriptfile_fromstring(scripttxt);
+		if (script == null) {
+			Console.Println("Def error: script not found", OSDTEXT_RED);
+			return false;
+		}
+		script.filename = name;
+		defsparser(script);
+		
+		return true;
 	}
 
 	private Token gettoken(Scriptfile sf, Map<String , Token> list) {
