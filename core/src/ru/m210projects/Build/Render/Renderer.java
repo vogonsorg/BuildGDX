@@ -19,6 +19,7 @@ package ru.m210projects.Build.Render;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import ru.m210projects.Build.DefScript;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 
 public interface Renderer {
@@ -72,4 +73,6 @@ public interface Renderer {
 	public void addSpriteCorr(int snum);
 	
 	public void removeSpriteCorr(int snum);
+	
+	public void setDefs(DefScript defs);
 }

@@ -4143,7 +4143,10 @@ public abstract class Engine {
     private DefScript defs;
     public void setDefs(DefScript defs)
     {
-    	this.defs = defs;
+    	this.defs = defs;  
+    	if(getrender() == null)
+    		throw new NullPointerException("Renderer is not initialized!");
+    	getrender().setDefs(defs);
     }
     
     public DefScript getDefs()

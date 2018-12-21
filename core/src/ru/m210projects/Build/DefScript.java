@@ -285,6 +285,9 @@ public class DefScript {
 	
 	public DefScript() {
 		hiresInfo = new TextureHDInfo();
+		
+		tiletovox = new int[MAXTILES];
+		voxrotate = new boolean[MAXTILES]; 
 	}
 	
 	public boolean loadScript(FileEntry file)

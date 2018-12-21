@@ -97,6 +97,7 @@ import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
 
+import ru.m210projects.Build.DefScript;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.Architecture.SoftFrame;
@@ -3597,5 +3598,9 @@ public class Software implements Renderer {
 
 	@Override
 	public void removeSpriteCorr(int snum) {
+	}
+
+	@Override
+	public void setDefs(DefScript defs) {
 	}
 }

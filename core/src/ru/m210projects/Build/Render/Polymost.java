@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import ru.m210projects.Build.Defs;
+import ru.m210projects.Build.DefScript;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
@@ -326,8 +326,7 @@ public abstract class Polymost implements Renderer {
 		
 		this.textureCache = createTextureCache();
 		this.clipper = new PolyClipper(this);
-		setTextureInfo(Defs.hdInfo);
-
+		
 		for(int i = 0; i < 16; i++)
 			drawpoly[i] = new Polygon();
 		for(int i = 0; i < 8; i++) 
@@ -343,6 +342,11 @@ public abstract class Polymost implements Renderer {
 		init();
 
 		Console.Println(GLInfo.renderer + " " + GLInfo.version + " initialized", OSDTEXT_GOLD);
+	}
+	
+	@Override
+	public void setDefs(DefScript defs) {
+		setTextureInfo(defs.hiresInfo);
 	}
 	
 	public void setTextureInfo(TextureHDInfo info)
