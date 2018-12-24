@@ -16,7 +16,7 @@ public class Pthtyp {
 	public short skyface;
 	public Hicreplctyp hicr;
 	public Pthtyp next;
-
+	
 	public short sizx, sizy;
 	public float scalex, scaley;
 

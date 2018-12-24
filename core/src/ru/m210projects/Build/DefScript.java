@@ -1,6 +1,5 @@
 package ru.m210projects.Build;
 
-import static ru.m210projects.Build.Defs.defsparser;
 import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
@@ -11,13 +10,6 @@ import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.SPECULARPAL;
 import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
 import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
-import static ru.m210projects.Build.Loader.MDSprite.md_defineanimation;
-import static ru.m210projects.Build.Loader.MDSprite.md_defineframe;
-import static ru.m210projects.Build.Loader.MDSprite.md_definehud;
-import static ru.m210projects.Build.Loader.MDSprite.md_defineskin;
-import static ru.m210projects.Build.Loader.MDSprite.md_loadmodel;
-import static ru.m210projects.Build.Loader.MDSprite.md_setmisc;
-import static ru.m210projects.Build.Loader.MDSprite.md_undefinemodel;
 import static ru.m210projects.Build.Loader.MDSprite.qloadkvx;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
@@ -27,25 +19,29 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import ru.m210projects.Build.FileHandle.Compat;
-import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.FileEntry;
+import ru.m210projects.Build.Loader.MDModel;
+import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.ModelCache;
+import ru.m210projects.Build.Loader.ModelInfo;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
-import ru.m210projects.Build.Types.Tile2model;
 
 public class DefScript {
 
 	public TextureHDInfo hiresInfo;
+	public ModelInfo mdInfo;
 	
 	private int[] tiletovox;
 	private int nextvoxid, lastvoxid = -1;
 	private VOXModel[] voxmodels = new VOXModel[MAXVOXELS];
 	private boolean[] voxrotate;
+
+	private int modelskin = -1, lastmodelskin = -1, seenframe = 0;
 	
-	private Tile2model[] tile2model;
-	private int lastmodelid = -1, modelskin = -1, lastmodelskin = -1, seenframe = 0;
+	
+	
 	
 	private HashMap<String, String> midToMusic = new HashMap<String, String>();
 	
@@ -285,6 +281,7 @@ public class DefScript {
 	
 	public DefScript() {
 		hiresInfo = new TextureHDInfo();
+		mdInfo = new ModelInfo();
 		
 		tiletovox = new int[MAXTILES];
 		voxrotate = new boolean[MAXTILES]; 
@@ -349,7 +346,7 @@ public class DefScript {
 				int modelend;
     			String modelfn;
     			double mdscale=1.0, mzadd=0.0, myoffset=0.0;
-    	        int shadeoffs=0, mdpal=0, mdflags=0;
+    	        int shadeoffs=0, mdflags=0;
     	        int model_ok = 1;
 
     			modelskin = lastmodelskin = 0;
@@ -357,9 +354,9 @@ public class DefScript {
     	        
     	        if ((modelfn = script.getstring()) == null) break;
                 if ((modelend = script.getbraces()) == -1) break;
-    			
-                lastmodelid = md_loadmodel(modelfn);
-                if (lastmodelid < 0)
+                
+                Model vm = ModelCache.mdload(modelfn); 
+                if (vm == null)
                 {
                 	Console.Println("Warning: Failed loading MD2/MD3 model " + modelfn, OSDTEXT_YELLOW);
                     script.textptr = modelend+1;
@@ -387,7 +384,7 @@ public class DefScript {
 	                    	int frametokptr = script.ltextptr;
 	                        int frameend, happy=1;
 	                        String framename = null;
-	                        int ftilenume = -1, ltilenume = -1, tilex = 0, framei;
+	                        int ftilenume = -1, ltilenume = -1, tilex = 0;
 	                        double smoothduration = 0.1;
 
 	    	    			if ((frameend = script.getbraces()) == -1) break;
@@ -397,8 +394,6 @@ public class DefScript {
 	    	    				switch (gettoken(script,modelframetokens))
     	                        {
     	                        default: break;
-    	                        case PAL:
-    	                            mdpal = script.getsymbol(); break;
     	                        case FRAME:
     	                        	framename = script.getstring(); break;
     	                        case TILE:
@@ -418,17 +413,9 @@ public class DefScript {
 	                            break;
 	                        }
 
-	                        if (lastmodelid < 0)
-	                        {
-	                        	Console.Println("Warning: Ignoring frame definition.", OSDTEXT_YELLOW);
-	                            break;
-	                        }
-
 	                        for (tilex = ftilenume; tilex <= ltilenume && happy != 0; tilex++)
 	                        {
-	                        						
-	                            framei = md_defineframe(lastmodelid, framename, tilex, (int)Math.max(0, modelskin), (float) smoothduration,mdpal);
-	                            switch (framei)
+	                            switch (mdInfo.addModelInfo(vm, tilex, framename, Math.max(0, modelskin), (float) smoothduration))
 	                            {
 	                            case -1:
 	                                happy = 0; break; // invalid model id!?
@@ -485,19 +472,10 @@ public class DefScript {
 	                        	happy = 0;
 	                        }
 	                        	model_ok &= happy;
-	                        if (happy == 0) break;
-
-	                        if (lastmodelid < 0)
+	                        if (happy == 0 || vm.mdnum < 2) break;
+	                        
+	                        switch (((MDModel) vm).setAnimation(startframe, endframe, (int)(dfps*(65536.0*.001)), flags))
 	                        {
-	                        	Console.Println("Warning: Ignoring animation definition.", OSDTEXT_YELLOW);
-	                            break;
-	                        }
-	                        switch (md_defineanimation(lastmodelid, startframe, endframe, (int)(dfps*(65536.0*.001)), flags))
-	                        {
-		                        case 0:
-		                            break;
-		                        case -1:
-		                            break; // invalid model id!?
 		                        case -2:
 		                        	Console.Println("Invalid starting frame name on line " + script.filename + ":" + script.getlinum(animtokptr), OSDTEXT_RED);
 		                            model_ok = 0;
@@ -569,15 +547,11 @@ public class DefScript {
 	                        if(script.path != null)
 	                        	skinfn = script.path + File.separator + skinfn;
 	                        
-	                        if (!kExist(skinfn, 0))
+	                        if (!kExist(skinfn, 0) || vm.mdnum < 2)
 	                            break;
-	                        
-	                        switch (md_defineskin(lastmodelid, skinfn, palnum, Math.max(0,modelskin), surfnum, param, specpower, specfactor))
+
+	                        switch (((MDModel) vm).setSkin(skinfn, palnum, Math.max(0,modelskin), surfnum, param, specpower, specfactor))
 	                        {
-		                        case 0:
-		                            break;
-		                        case -1:
-		                            break; // invalid model id!?
 		                        case -2:
 		                        	Console.Println("Invalid skin filename on line " + script.filename + ":" + script.getlinum(skintokptr), OSDTEXT_RED);
 		                            model_ok = 0;
@@ -634,29 +608,12 @@ public class DefScript {
 	                            model_ok = 0;
 	                            break;
 	                        }
-	                        
-	                        if (lastmodelid < 0)
-	                        {
-	                        	Console.Println("Warning: Ignoring frame definition.", OSDTEXT_YELLOW);
-	                            break;
-	                        }
-	                        
+
 	                        for (tilex = ftilenume; tilex <= ltilenume && happy != 0; tilex++)
 	                        {
-	                            switch (md_definehud(lastmodelid, tilex, xadd, yadd, zadd, angadd, flags, fov))
-	                            {
-	                            case 0:
-	                                break;
-	                            case -1:
-	                                happy = 0; break; // invalid model id!?
-	                            case -2:
+	                            if(mdInfo.addHudInfo(tilex, xadd, yadd, zadd, (short) angadd, flags, fov) == -2) {
 	                            	Console.Println("Invalid tile number on line " + script.filename + ":" + script.getlinum(hudtokptr), OSDTEXT_RED);
 	                                happy = 0;
-	                                break;
-	                            case -3:
-	                                Console.Println("Invalid frame name on line " + script.filename + ":" + script.getlinum(hudtokptr), OSDTEXT_RED);        
-	                                happy = 0;
-	                                break;
 	                            }
 
 	                            model_ok &= happy;
@@ -668,15 +625,15 @@ public class DefScript {
                 
                 if (model_ok == 0)
                 {
-                    if (lastmodelid >= 0)
+                    if (vm != null)
                     {
-                    	Console.Println("Removing model " + lastmodelid + " due to errors.", OSDTEXT_YELLOW);
-                        md_undefinemodel(lastmodelid);
+                    	Console.Println("Removing model " + modelfn + " due to errors.", OSDTEXT_YELLOW);
+                    	mdInfo.removeModelInfo(vm);
                     }
                     break;
                 }
-
-                md_setmisc(lastmodelid,(float)mdscale,shadeoffs,(float)mzadd,(float)myoffset,mdflags);
+                
+                vm.setMisc((float)mdscale,shadeoffs,(float)mzadd,(float)myoffset,mdflags);
 
                 modelskin = lastmodelskin = 0;
                 seenframe = 0;

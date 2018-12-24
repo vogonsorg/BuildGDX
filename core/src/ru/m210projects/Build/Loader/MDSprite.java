@@ -12,30 +12,24 @@ package ru.m210projects.Build.Loader;
 
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
-import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTextureWrap;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
-import static ru.m210projects.Build.Strhandler.Bstrcmp;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 
-import ru.m210projects.Build.Loader.MD2.MD2Frame;
-import ru.m210projects.Build.Loader.MD2.MD2Loader;
+import ru.m210projects.Build.DefScript;
 import ru.m210projects.Build.Loader.MD2.MD2Model;
-import ru.m210projects.Build.Loader.MD3.MD3Frame;
-import ru.m210projects.Build.Loader.MD3.MD3Loader;
 import ru.m210projects.Build.Loader.MD3.MD3Model;
 import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
-import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Types.SPRITE;
@@ -61,14 +55,14 @@ public class MDSprite {
 	public static final int MDANIM_ONESHOT = 1;
 	
 //	public static List<Model> models;
-	public static HashMap<Integer, Model> models;
-	public static Hudtyp[][] hudmem;
+	private static HashMap<Integer, Model> models;
+	public static Hudtyp[][] hudmem; //XXX
 	
 	public static VOXModel[] voxmodels = new VOXModel[MAXVOXELS];
 	
 	public static int mdinited;
 	public static int mdpause;
-	public static int curextra=MAXTILES;
+//	public static int curextra=MAXTILES;
 	
 	public static int globalnoeffect = 0;
 	
@@ -76,7 +70,7 @@ public class MDSprite {
 	public static int allocvbos = 0, curvbo = 0;
 	public static IntBuffer vertvbos;
 	public static IntBuffer indexvbos;
-	public static Tile2model[] tile2model;
+	private static Tile2model[] tile2model;
 	
 	public static void md_freevbos()
 	{
@@ -183,51 +177,6 @@ public class MDSprite {
 	        allocvbos = r_vbocount;
 	    }
 	}
-	
-	public static int md_definehud(int modelid, int tilex, double xadd, double yadd, double zadd, double angadd, int flags, int fov)
-	{
-	    if (mdinited == 0) mdinit();
-
-	    if (tilex >= MAXTILES) return -2;
-
-	    hudmem[(flags>>2)&1][tilex].xadd = (float) xadd;
-	    hudmem[(flags>>2)&1][tilex].yadd = (float) yadd;
-	    hudmem[(flags>>2)&1][tilex].zadd = (float) zadd;
-	    hudmem[(flags>>2)&1][tilex].angadd = (short) (((short)angadd)|2048);
-	    hudmem[(flags>>2)&1][tilex].flags = (short)flags;
-	    hudmem[(flags>>2)&1][tilex].fov = (short)fov;
-
-	    return 0;
-	}
-	
-	public static int md_defineanimation(int modelid, String framestart, String frameend, int fpssc, int flags)
-	{
-	    MDAnimation ma = new MDAnimation();
-	    int i = 0;
-
-	    if (mdinited == 0) mdinit();
-	    if (models.get(modelid) == null || models.get(modelid).mdnum < 2) return 0;
-	    
-	    MDModel m = (MDModel) models.get(modelid);
-
-	    //find index of start frame
-	    i = framename2index(m,framestart);
-	    if (i == m.numframes) return -2;
-	    ma.startframe = i;
-
-	    //find index of finish frame which must trail start frame
-	    i = framename2index(m,frameend);
-	    if (i == m.numframes) return -3;
-	    ma.endframe = i;
-
-	    ma.fpssc = fpssc;
-	    ma.flags = flags;
-
-	    ma.next = m.animations;
-	    m.animations = ma;
-
-	    return(0);
-	}
 
 	public static void freevbos()
 	{
@@ -261,7 +210,7 @@ public class MDSprite {
 	{
 		models = new HashMap<Integer, Model>();
 		hudmem = new Hudtyp[2][MAXTILES];
-		tile2model = new Tile2model[MAXTILES + EXTRATILES];
+		tile2model = new Tile2model[MAXTILES];
 		spritesmooth = new Spritesmooth[MAXSPRITES+MAXUNIQHUDID];
 		
 		for (int i = 0; i < spritesmooth.length; i++)
@@ -276,180 +225,8 @@ public class MDSprite {
 
 	    mdinited = 1;
 	}
-	
-	public static int addtileP(int model,int tile,int pallet)
-	{
-	    if (curextra==MAXTILES+EXTRATILES-1)
-	    {
-	    	Console.Println("warning: max EXTRATILES reached", OSDTEXT_YELLOW);
-	        return curextra;
-	    }
 
-	    if (tile2model[tile].modelid==-1)
-	    {
-	        tile2model[tile].pal=pallet;
-	        return tile;
-	    }
-
-	    if (tile2model[tile].pal==pallet)
-	        return tile;
-
-	    while (tile2model[tile].next!=-1)
-	    {
-	        tile=tile2model[tile].next;
-	        if (tile2model[tile].pal==pallet)
-	            return tile;
-	    }
-
-	    tile2model[tile].next=curextra;
-	    tile2model[curextra].pal=pallet;
-
-	    return curextra++;
-	}
-	
-	public static int md_defineframe(int modelid, String framename, int tilenume, int skinnum, float smoothduration, int pal)
-	{
-	    if (mdinited == 0) mdinit();
-
-	    if (tilenume >= MAXTILES) return(-2);
-	    if (framename == null) return(-3);
-
-	    tilenume=addtileP(modelid,tilenume,pal);
-	    Model m = models.get(modelid);
-	    if(m == null) return 0;
-	    
-	    if (m.mdnum == 1)
-	    {
-	        tile2model[tilenume].modelid = modelid;
-	        tile2model[tilenume].framenum = tile2model[tilenume].skinnum = 0;
-	        return 0;
-	    }
-	
-	    int i = framename2index(m, framename);	
-
-	    tile2model[tilenume].modelid = modelid;
-	    tile2model[tilenume].framenum = i;
-	    tile2model[tilenume].skinnum = skinnum;
-	    tile2model[tilenume].smoothduration = smoothduration;
-
-	    return i;
-	}
-	
-	public static int framename2index(Model vm, String nam)
-	{
-		int i = 0;
-	    switch (vm.mdnum)
-	    {
-		    case 2:
-		    {
-		        MD2Model m = (MD2Model)vm;
-		        for (i = 0; i < m.numframes; i++)
-		        {
-		        	MD2Frame fr = m.frames[i];
-		            if (Bstrcmp(fr.name, nam) == 0) break;
-		        }
-		        if (i == m.numframes) return(-3); // frame name invalid
-		    }
-		    break;
-		    case 3:
-		    {
-		    	MD3Model m = (MD3Model) vm;
-		    	for (i = 0; i < m.numframes; i++)
-		        {
-		        	MD3Frame fr = m.frames[i];
-		            if (Bstrcmp(fr.name, nam) == 0) break;
-		        }
-		        if (i == m.numframes) return(-3); // frame name invalid
-		    }
-		    break;
-	    }
-	    return(i);
-	}
-	
-	public static int md_setmisc(int modelid, float scale, int shadeoff, float zadd, float yoffset, int flags)
-	{
-	    if (mdinited == 0) mdinit();
-
-	    Model m = models.get(modelid);
-	    if(m == null) return 0;
-	    m.bscale = scale;
-	    m.shadeoff = shadeoff;
-	    m.zadd = zadd;
-	    m.yoffset = yoffset;
-	    m.flags = flags;
-
-	    return 0;
-	}
-	
-	public static int md_undefinemodel(int modelid)
-	{
-	    if (mdinited == 0) return 0;
-
-	    for (int i=MAXTILES+EXTRATILES-1; i>=0; i--) {
-	        if (tile2model[i].modelid == modelid) 
-	            tile2model[i].modelid = -1;
-	    }
-
-	    models.remove(modelid);
-	    return 0;
-	}
-	
-	public static int md_loadmodel(String fn)
-	{
-	    if (mdinited == 0) mdinit();
-
-	    Model vm = mdload(fn); 
-	    if (vm == null) return(-1);
-	    int modelid = models.size();
-	    
-	    models.put(modelid, vm);
-	    vm.modelid = modelid;
-
-	    return vm.modelid;
-	}
-
-	public static Model mdload(String filnam)
-	{
-	    int fil = kOpen(filnam, 0); if (fil < 0) return null;
-	    byte[] buf = new byte[kFileLength(fil)];
-	    kRead(fil, buf, buf.length);
-	    kClose(fil);
-	    
-	    ByteBuffer bb = ByteBuffer.wrap(buf);
-    	bb.order( ByteOrder.LITTLE_ENDIAN);
-    	
-    	Model vm = null;
-    	if (Bstrcasecmp(BfileExtension(filnam),"kvx") == 0) 
-		    if ((vm = KVXLoader.load(bb)) != null) 
-		    	return(vm);
-
-	    switch (bb.getInt(0))
-	    {
-		    case 0x32504449: //IDP2
-		        vm = MD2Loader.load(bb);
-		        break;
-		    case 0x33504449: //IDP3
-		        vm = MD3Loader.load(bb);
-		        break; 
-		    default:
-		        vm = null; break;
-	    }
-
-//	    if (vm != null) XXX
-//	    {
-//	        md3model_t vm3 = (md3model_t)vm;
-//
-//	        // smuggle the file name into the model struct.
-//	        // head.nam is unused as far as I can tell
-//	        Bstrncpyz(vm3.head.nam, filnam, sizeof(vm3.head.nam));
-//
-//	        md3postload_common(vm3);
-//	    }
-
-	    return(vm);
-	}
-
-	public static void updateanimation(MDModel m, SPRITE tspr, int lpal)
+	public static void updateanimation(MDModel m, SPRITE tspr)
 	{
 		MDAnimation anim;
 	    int i, j, k;
@@ -466,8 +243,8 @@ public class MDSprite {
 	        return;
 	    }
 
-	    tile = Ptile2tile(tspr.picnum,lpal);
-	    m.cframe = m.nframe = tile2model[tile].framenum;
+	    tile = tspr.picnum;
+	    m.cframe = m.nframe = tile2model[tspr.picnum].framenum;
 
 	    smoothdurationp = (r_animsmoothing != 0 && (tile2model[tile].smoothduration != 0));
 
@@ -581,49 +358,7 @@ public class MDSprite {
 	    m.interpol = ((float)(i&65535))/65536.f;
 	}
 
-//	public static int hicfxmask(int pal)
-//	{
-//	    return (globalnoeffect != 0)?0:(hictinting[pal].f&HICEFFECTMASK);
-//	}
-	
-	public static int md_defineskin(int modelid, String skinfn, int palnum, int skinnum, int surfnum, double param, double specpower, double specfactor)
-	{
-	    if (mdinited == 0) mdinit();
-
-	    if (skinfn == null) return -2;
-	    if (palnum >= MAXPALOOKUPS) return -3;
-
-	    if (models.get(modelid) == null || models.get(modelid).mdnum < 2) return 0;
-	    
-	    MDModel m = (MDModel) models.get(modelid);
-	    if (m.mdnum == 2) surfnum = 0;
-
-	    MDSkinmap sk, skl = null;
-	    for (sk = m.skinmap; sk != null; skl = sk, sk = sk.next)
-	        if (sk.palette == palnum && skinnum == sk.skinnum && surfnum == sk.surfnum)
-	            break;
-	    
-	    if (sk == null)
-	    {
-	        sk = new MDSkinmap();
-
-	        if (skl == null) m.skinmap = sk;
-	        else skl.next = sk;
-	    }
-	    else if (sk.fn != null) sk.fn = null;
-
-	    sk.palette = palnum;
-	    sk.skinnum = skinnum;
-	    sk.surfnum = surfnum;
-	    sk.param = (float) param;
-	    sk.specpower = (float) specpower;
-	    sk.specfactor = (float) specfactor;
-	    sk.fn = skinfn;
-	    
-	    return 0;
-	}
-	
-	public static BTexture mdloadskin(TextureHDInfo info, MDModel m, int number, int pal, int surf)
+	public static BTexture mdloadskin(DefScript defs, MDModel m, int number, int pal, int surf)
 	{
 	    String skinfile = null;
 	    BTexture texidx = null;
@@ -635,7 +370,7 @@ public class MDSprite {
 	    if (m.mdnum == 2)
 	        surf = 0;
 	    
-	    if (pal >= MAXPALOOKUPS || info == null)
+	    if (pal >= MAXPALOOKUPS || defs == null)
 	    	return null;
 	    
 
@@ -645,7 +380,7 @@ public class MDSprite {
 	    	if (sk.palette == pal && sk.skinnum == number && sk.surfnum == surf)
 	        {
 	            skinfile = sk.fn;
-	            idptr = info.getPaletteEffect(pal);
+	            idptr = defs.hiresInfo.getPaletteEffect(pal);
 	            texptr = sk.texid;
 	            if(texptr != null)
 	            	texidx = texptr[idptr];
@@ -669,7 +404,7 @@ public class MDSprite {
 	        if (skzero != null)
 	        {
 	            skinfile = skzero.fn;
-	            idptr = info.getPaletteEffect(pal);
+	            idptr = defs.hiresInfo.getPaletteEffect(pal);
 	            texptr = skzero.texid;
 	            if(texptr != null)
 	            	texidx = texptr[idptr];
@@ -682,14 +417,14 @@ public class MDSprite {
 
 	            if(m.mdnum != 2) {
 	            	Console.Println("Couldn't load skin", OSDTEXT_YELLOW);
-	    	    	md_undefinemodel(m.modelid);
+	            	defs.mdInfo.removeModelInfo(m);
 	            	return null;
 	            }
 
 	            MD2Model md = (MD2Model) m;
 
 	            skinfile = md.skinfn + number*64;
-	            idptr = number*m.texid.length + info.getPaletteEffect(pal);
+	            idptr = number*m.texid.length + defs.hiresInfo.getPaletteEffect(pal);
 	            texptr = m.texid;
 	            if(texptr != null)
 	            	texidx = texptr[idptr];
@@ -710,9 +445,9 @@ public class MDSprite {
 	        		continue;
 	        	MDModel mi = (MDModel) models.get(i);
 	            for (skzero = mi.skinmap; skzero != null; skzero = skzero.next)
-	                if (Bstrcasecmp(skzero.fn, sk.fn) == 0 && skzero.texid[info.getPaletteEffect(pal)] != null)
+	                if (Bstrcasecmp(skzero.fn, sk.fn) == 0 && skzero.texid[defs.hiresInfo.getPaletteEffect(pal)] != null)
 	                {
-	                    int f = info.getPaletteEffect(pal);
+	                    int f = defs.hiresInfo.getPaletteEffect(pal);
 	                    sk.texid[f] = skzero.texid[f];
 	                    return sk.texid[f];
 	                }
@@ -723,7 +458,7 @@ public class MDSprite {
 	    if (!kExist(skinfile, 0))
 	    {
 	    	Console.Println("Skin " + skinfile  + " not found.", OSDTEXT_YELLOW);
-	    	md_undefinemodel(m.modelid);
+	    	defs.mdInfo.removeModelInfo(m);
 	        skinfile = null;
 	        return null;
 	    }
@@ -736,7 +471,7 @@ public class MDSprite {
 	    	m.usesalpha = true;
 	    } catch(Exception e) {
 	    	Console.Println("Couldn't load file: " + skinfile, OSDTEXT_YELLOW);
-	    	md_undefinemodel(m.modelid);
+	    	defs.mdInfo.removeModelInfo(m);
 	        skinfile = null;
 	    	return null;
 	    }
@@ -748,19 +483,11 @@ public class MDSprite {
 
 	    long etime = System.currentTimeMillis()-startticks;
 	    
-	    System.out.println("Load skin: p" + pal +  "-e" + info.getPaletteEffect(pal) + " \"" + skinfile + "\"... " + etime + " ms");
+	    System.out.println("Load skin: p" + pal +  "-e" + defs.hiresInfo.getPaletteEffect(pal) + " \"" + skinfile + "\"... " + etime + " ms");
 
         texptr[idptr] = texidx;
 	    return texidx;
 	}
 
-	public static int Ptile2tile(int tile,int pallet)
-	{
-	    int t=tile;
-	    while (tile2model[tile] != null && (tile=tile2model[tile].next)!=-1)
-	    	if (tile2model[tile].pal==pallet)
-	            return tile;
-	    return t;
-	}
 }
 

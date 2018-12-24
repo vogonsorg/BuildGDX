@@ -17,12 +17,12 @@ public class Hicreplctyp {
 	    	face = new String[6];
 	    }
 	}
-	
-	public Hicreplctyp next;
+
 	public String filename;
 	public Hicskybox skybox;
     public int palnum, ignore, flags;
     public float alphacut, xscale, yscale, specpower, specfactor;
+    public Hicreplctyp next;
     
     public Hicreplctyp(int palnum)
     {

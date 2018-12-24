@@ -38,7 +38,6 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Engine.Point;
-import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.MD2.MD2Frame;
@@ -48,7 +47,6 @@ import ru.m210projects.Build.Loader.MD3.MD3Surface;
 import ru.m210projects.Build.Loader.MD3.MD3Vertice;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
 import ru.m210projects.Build.Render.TextureHandle.ValueResolver;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
@@ -58,6 +56,7 @@ import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.Tile2model;
 import ru.m210projects.Build.Types.WALL;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
@@ -309,7 +308,7 @@ public abstract class Polymost implements Renderer {
 	private int glmultisample, glnvmultisamplehint;
 
 	private final TextureCache textureCache;
-	private TextureHDInfo info;
+	private DefScript defs;
 	
 	private int[] h_xsize = new int[MAXTILES], h_ysize = new int[MAXTILES];
 	private byte[] h_xoffs = new byte[MAXTILES], h_yoffs = new byte[MAXTILES];
@@ -346,15 +345,10 @@ public abstract class Polymost implements Renderer {
 	
 	@Override
 	public void setDefs(DefScript defs) {
-		setTextureInfo(defs.hiresInfo);
-	}
-	
-	public void setTextureInfo(TextureHDInfo info)
-	{
-		this.textureCache.setTextureInfo(info);
-		if(this.info != null)
+		this.textureCache.setTextureInfo(defs.hiresInfo);
+		if(defs != null)
 			gltexinvalidateall();
-		this.info = info;
+		this.defs = defs;
 	}
 
 	private TextureCache createTextureCache() {
@@ -411,30 +405,31 @@ public abstract class Polymost implements Renderer {
 		int gltexfiltermode = Console.Geti("r_texturemode");
 		textureCache.updateSettings(gltexfiltermode);
 
-		if(models == null)
-			return;
-		
-		for (int i = 0; i < models.size(); i++) {
-			if (models.get(i) == null || models.get(i).mdnum < 2)
-				continue;
-			
-			MDModel m = (MDModel) models.get(i);
-			for (int j = 0; j < m.numskins * m.texid.length; j++) { 
-				if (m.texid[j] == null)
-					continue;
-				bindTexture(m.texid[j]);
-				setupBoundTexture(gltexfiltermode, anisotropy());
-			}
-
-			for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next) {
-				for (int j = 0; j < m.texid.length; j++) {
-					if (sk.texid[j] == null)
-						continue;
-					bindTexture(sk.texid[j]);
-					setupBoundTexture(gltexfiltermode, anisotropy());
-				}
-			}
-		}
+//		if(defs == null) XXX
+//			return;
+//		
+//		for (int i = 0; i < models.size(); i++) {
+//			if (models.get(i) == null || models.get(i).mdnum < 2)
+//				continue;
+//			
+//			MDModel m = (MDModel) models.get(i);
+//			if(m.texid == null) continue;
+//			for (int j = 0; j < m.numskins * m.texid.length; j++) { 
+//				if (m.texid[j] == null)
+//					continue;
+//				bindTexture(m.texid[j]);
+//				setupBoundTexture(gltexfiltermode, anisotropy());
+//			}
+//
+//			for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next) {
+//				for (int j = 0; j < m.texid.length; j++) {
+//					if (sk.texid[j] == null)
+//						continue;
+//					bindTexture(sk.texid[j]);
+//					setupBoundTexture(gltexfiltermode, anisotropy());
+//				}
+//			}
+//		}
 	}
 
 	public int gltexcacnum = -1;
@@ -1322,7 +1317,7 @@ public abstract class Polymost implements Renderer {
 			if(!dopancor) //texture scaled, it's need to fix
 				t *= (float)tilesizy[globalpicnum] / i;
 	        i = tilesizy[globalpicnum];
-	    } else if (dopancor && info != null && info.isHighTile(globalpicnum)) {
+	    } else if (dopancor && defs != null && defs.hiresInfo.isHighTile(globalpicnum)) {
 			// Carry out panning "correction" to make it look like classic in some
 	        // cases, but failing in the general case.
 			
@@ -1756,7 +1751,7 @@ public abstract class Polymost implements Renderer {
 					ys = spr.y - globalposy;
 					if (((spr.cstat & 48) != 0)
 							|| (xs * gcosang + ys * gsinang > 0)
-							|| (usemodels && tile2model[spr.picnum] != null && tile2model[spr.picnum].modelid >= 0)) {
+							|| (usemodels && defs != null && defs.mdInfo.getModel(spr.picnum) != null)) {
 						if ((spr.cstat & (64 + 48)) != (64 + 16)
 								|| dmulscale(sintable[(spr.ang + 512) & 2047],
 										-xs, sintable[spr.ang & 2047], -ys, 6) > 0)
@@ -2291,7 +2286,7 @@ public abstract class Polymost implements Renderer {
 		
 		calc_and_apply_skyfog(shade, sec.visibility,  pal);
 
-		if (!usehightile || info == null || info.findTexture(globalpicnum, globalpal, 1) == null)
+		if (!usehightile || defs == null || defs.hiresInfo.findTexture(globalpicnum, globalpal, 1) == null)
 			drawpapersky(sectnum, x0, x1, y0, y1, floor);
 		else
 			drawskybox(x0, x1, y0, y1, floor);
@@ -2835,9 +2830,9 @@ public abstract class Polymost implements Renderer {
 		
 		while ((spriteext[tspr.owner].flags & SPREXT_NOTMD) == 0) {
 
-			if (usemodels && tile2model[Ptile2tile(tspr.picnum, tspr.pal)] != null &&
-					tile2model[Ptile2tile(tspr.picnum, tspr.pal)].modelid >= 0 &&
-					tile2model[Ptile2tile(tspr.picnum, tspr.pal)].framenum >= 0) {
+			Tile2model entry = defs != null ? defs.mdInfo.getParams(tspr.picnum) : null;
+			if (usemodels && entry != null &&
+					entry.model != null && entry.framenum >= 0) {
 				if (tspr.owner < 0 || tspr.owner >= MAXSPRITES /* || tspr.statnum == TSPR_MIRROR */ ) {
 					if (mddraw(tspr, xoff, yoff) != 0)
 						return;
@@ -3556,9 +3551,7 @@ public abstract class Polymost implements Renderer {
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
 
-			modelp = (usemodels &&
-					tile2model[tspriteptr[i].picnum] != null &&
-					tile2model[tspriteptr[i].picnum].modelid >= 0);
+			modelp = (usemodels && defs != null && defs.mdInfo.getModel(tspriteptr[i].picnum) != null);
 
 			if (yp > (4 << 8)) {
 				xp = dmulscale(ys, cosglobalang, -xs, singlobalang, 6);
@@ -3910,7 +3903,7 @@ public abstract class Polymost implements Renderer {
 //	        allocmodelverts = maxmodelverts;
 //	    }
 
-		Model vm = models.get(tile2model[Ptile2tile(tspr.picnum,(tspr.owner >= MAXSPRITES) ? tspr.pal : sprite[tspr.owner].pal)].modelid);
+		Model vm = defs != null ? defs.mdInfo.getModel(tspr.picnum) : null;
 
 		if(vm == null) return 0;
 		
@@ -3922,12 +3915,10 @@ public abstract class Polymost implements Renderer {
 
 	private int md3draw(MD3Model m, SPRITE tspr, int xoff, int yoff)
 	{
-		int lpal = (tspr.owner >= MAXSPRITES) ? tspr.pal : sprite[tspr.owner].pal;
-    	
 //		if (r_vbos != 0 && (m.vbos == null))
 //	        mdloadvbos(m, gl);
 		
-    	updateanimation(m, tspr, lpal);
+    	updateanimation(m, tspr);
 
     	float f = m.interpol; float g = 1-f;
     	
@@ -4041,15 +4032,15 @@ public abstract class Polymost implements Renderer {
 
 		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 
-		if(info != null) {
+		if(defs != null) {
         if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
         {
-        	Palette p = info.getTints(globalpal);
+        	Palette p = defs.hiresInfo.getTints(globalpal);
             polyColor.r *= p.r / 255.0f;
             polyColor.g *= p.g / 255.0f;
             polyColor.b *= p.b / 255.0f;
             
-            Palette pdetail = info.getTints(MAXPALOOKUPS-1);
+            Palette pdetail = defs.hiresInfo.getTints(MAXPALOOKUPS-1);
             if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255)
             {
                 polyColor.r *= pdetail.r / 255.0f;
@@ -4082,7 +4073,7 @@ public abstract class Polymost implements Renderer {
 
 	    gl.glColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
 
-	    int rendered = 0;
+	    int rendered = 0, skinnum = -1;
 	    for (int surfi = 0; surfi < m.head.numSurfaces; surfi++)
 	    {
 	    	MD3Surface s = m.surfaces[surfi];
@@ -4099,13 +4090,14 @@ public abstract class Polymost implements Renderer {
 	        }
 	    	m.verticesBuffer.flip();
 
-			BTexture texid = mdloadskin(info, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,surfi);
+	    	skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
+			BTexture texid = mdloadskin(defs, m, skinnum,globalpal,surfi);
 	        if (texid != null) {
 
 		        bindTexture(texid);
 		        
 		        if ( Console.Geti("r_detailmapping") != 0 )
-		        	texid = mdloadskin(info, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,surfi);
+		        	texid = mdloadskin(defs, m,skinnum,DETAILPAL,surfi);
 		        else
 		        	texid = null;
 		        
@@ -4136,10 +4128,9 @@ public abstract class Polymost implements Renderer {
 		            gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 		            gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 		
-		            for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next)
-		                if (sk.palette == DETAILPAL && sk.skinnum == tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum && sk.surfnum == surfi)
-		                    f = sk.param;
-		
+		            MDSkinmap sk = m.getSkin(DETAILPAL, skinnum, surfi);
+		            if(sk != null) f = sk.param;
+		           
 		            gl.glMatrixMode(GL_TEXTURE);
 		            gl.glLoadIdentity();
 		            gl.glScalef(f, f, 1.0f);
@@ -4147,7 +4138,7 @@ public abstract class Polymost implements Renderer {
 		        }
 		        
 		        if (r_glowmapping != 0)
-		        	texid = mdloadskin(info, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,surfi);
+		        	texid = mdloadskin(defs, m,skinnum,GLOWPAL,surfi);
 		        else
 		        	texid = null;
 		        
@@ -4253,9 +4244,7 @@ public abstract class Polymost implements Renderer {
 	
 	private int md2draw(MD2Model m, SPRITE tspr, int xoff, int yoff)
 	{
-    	int lpal = (tspr.owner >= MAXSPRITES) ? tspr.pal : sprite[tspr.owner].pal;
-    	
-    	updateanimation(m, tspr, lpal);
+    	updateanimation(m, tspr);
 
     	float f = m.interpol; float g = 1-f;
     	
@@ -4365,15 +4354,15 @@ public abstract class Polymost implements Renderer {
 
 		polyColor.r = polyColor.g = polyColor.b = ((float)(numshades-min(max((globalshade * shadescale)+m.shadeoff,0),numshades)))/((float)numshades);
 	    
-		if(info != null) {
+		if(defs != null) {
         if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
         {
-        	Palette p = info.getTints(globalpal);
+        	Palette p = defs.hiresInfo.getTints(globalpal);
             polyColor.r *= p.r / 255.0f;
             polyColor.g *= p.g / 255.0f;
             polyColor.b *= p.b / 255.0f;
             
-            Palette pdetail = info.getTints(MAXPALOOKUPS-1);
+            Palette pdetail = defs.hiresInfo.getTints(MAXPALOOKUPS-1);
             if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255)
             {
                 polyColor.r *= pdetail.r / 255.0f;
@@ -4405,13 +4394,13 @@ public abstract class Polymost implements Renderer {
 
 	    gl.glColor4f(polyColor.r,polyColor.g,polyColor.b,polyColor.a);
 
-	    int rendered = 0;
-		BTexture texid = mdloadskin(info, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,globalpal,0);
+	    int rendered = 0, skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
+		BTexture texid = mdloadskin(defs, m, skinnum,globalpal,0);
         if (texid != null)
         {
 	        bindTexture(texid);
 	        if (Console.Geti("r_detailmapping") != 0)
-	        	texid = mdloadskin(info, m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,DETAILPAL,0);
+	        	texid = mdloadskin(defs, m, skinnum,DETAILPAL,0);
 	        else
 	        	texid = null;
 	        
@@ -4442,10 +4431,9 @@ public abstract class Polymost implements Renderer {
 	            gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	            gl.glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 	
-	            for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next)
-	                if (sk.palette == DETAILPAL && sk.skinnum == tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum && sk.surfnum == 0)
-	                    f = sk.param;
-	
+	            MDSkinmap sk = m.getSkin(DETAILPAL, skinnum, 0);
+	            if(sk != null) f = sk.param;
+
 	            gl.glMatrixMode(GL_TEXTURE);
 	            gl.glLoadIdentity();
 	            gl.glScalef(f, f, 1.0f);
@@ -4453,7 +4441,7 @@ public abstract class Polymost implements Renderer {
 	        }
 	        
 	        if (r_glowmapping != 0)
-	        	texid = mdloadskin(info,m,tile2model[Ptile2tile(tspr.picnum,lpal)].skinnum,GLOWPAL,0);
+	        	texid = mdloadskin(defs,m,skinnum,GLOWPAL,0);
 	        else
 	        	texid = null;
 	        
@@ -4679,8 +4667,8 @@ public abstract class Polymost implements Renderer {
 
 		polyColor.r = polyColor.g = polyColor.b = ((float) (numshades - min(max((globalshade * shadescale) + m.shadeoff, 0), numshades))) / ((float) numshades);
 
-		if(info != null) {
-		Palette p = info.getTints(globalpal);
+		if(defs != null) {
+		Palette p = defs.hiresInfo.getTints(globalpal);
 		polyColor.r *= p.r / 255.0f;
 		polyColor.g *= p.g / 255.0f;
 		polyColor.b *= p.b / 255.0f;
@@ -5569,8 +5557,8 @@ public abstract class Polymost implements Renderer {
 		int ourxyaspect = xyaspect;
 		if (usemodels && hudmem != null && hudmem[(dastat&4)>>2][picnum].angadd != 0)
 	    {
-	        int tilenum = Ptile2tile(picnum,dapalnum);
-	        if (tile2model[tilenum].modelid >= 0 && tile2model[tilenum].framenum >= 0)
+			Tile2model entry = defs != null ? defs.mdInfo.getParams(picnum) : null;
+	        if (entry.model != null && entry.framenum >= 0)
 	        {
 	        	dorotatesprite3d(sx,sy,z,a,picnum,dashade,dapalnum,dastat,cx1,cy1,cx2,cy2,uniqid);
 	            return;
@@ -5811,7 +5799,7 @@ public abstract class Polymost implements Renderer {
 
 	protected void calcHictintingColor(Pthtyp pth)
 	{
-		if(info == null) return;
+		if(defs == null) return;
 		// tinting happens only to hightile textures, and only if the
 		// texture we're
 		// rendering isn't for the same palette as what we asked for
@@ -5820,13 +5808,13 @@ public abstract class Polymost implements Renderer {
 			if (pth.hicr.palnum != globalpal) {
 				// apply tinting for replaced textures
 				
-				Palette p = info.getTints(globalpal);
+				Palette p = defs.hiresInfo.getTints(globalpal);
 	            polyColor.r *= p.r / 255.0f;
 	            polyColor.g *= p.g / 255.0f;
 	            polyColor.b *= p.b / 255.0f;
 			}
 			
-			Palette pdetail = info.getTints(MAXPALOOKUPS-1);
+			Palette pdetail = defs.hiresInfo.getTints(MAXPALOOKUPS-1);
             if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255)
             {
                 polyColor.r *= pdetail.r / 255.0f;

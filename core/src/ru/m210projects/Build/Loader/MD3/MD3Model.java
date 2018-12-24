@@ -16,9 +16,12 @@
 
 package ru.m210projects.Build.Loader.MD3;
 
+import static ru.m210projects.Build.Strhandler.Bstrcmp;
+
 import java.util.HashMap;
 
 import ru.m210projects.Build.Loader.MDModel;
+import ru.m210projects.Build.Types.SPRITE;
 
 import com.badlogic.gdx.math.Matrix4;
 
@@ -32,4 +35,23 @@ public class MD3Model extends MDModel {
 //    GLuint*             indices;
 //    GLuint*             texcoords;
 //    GLuint*             geometry;
+	
+	public int getFrameIndex(String framename)
+    {
+        for (int i = 0; i < numframes; i++)
+        {
+        	MD3Frame fr = frames[i];
+            if (Bstrcmp(fr.name, framename) == 0) {
+            	return i;
+            }
+        }
+        
+        return(-3); // frame name invalid
+    }
+
+	@Override
+	public void updateanimation(SPRITE tspr) {
+		// TODO Auto-generated method stub
+		
+	}
 }
