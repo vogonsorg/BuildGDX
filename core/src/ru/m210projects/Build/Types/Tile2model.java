@@ -11,10 +11,12 @@
 package ru.m210projects.Build.Types;
 
 import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.Voxels.VOXModel;
 
 public class Tile2model {
 	// maps build tiles to particular animation frames of a model
 	public Model 	model;
+	public VOXModel	voxel;
 	public int     	skinnum;
     public int     	framenum;   // calculate the number from the name when declaring
     public float   	smoothduration;  

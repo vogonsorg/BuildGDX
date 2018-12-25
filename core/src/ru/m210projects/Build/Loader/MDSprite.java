@@ -58,7 +58,7 @@ public class MDSprite {
 	private static HashMap<Integer, Model> models;
 	public static Hudtyp[][] hudmem; //XXX
 	
-	public static VOXModel[] voxmodels = new VOXModel[MAXVOXELS];
+//	public static VOXModel[] voxmodels = new VOXModel[MAXVOXELS];
 	
 	public static int mdinited;
 	public static int mdpause;
@@ -94,34 +94,34 @@ public class MDSprite {
 	    }
 	}
 	
-	public static int qloadkvx(int voxindex, String filename)
-	{
-		int i, dasiz, lengcnt, lengtot;
-
-		ByteBuffer buffer = kGetBuffer(filename, 0);
-		if(buffer == null) return -1;
-
-		lengcnt = 0;
-		lengtot = buffer.capacity();
-		
-		buffer.order( ByteOrder.LITTLE_ENDIAN);
-
-		for(i=0;i<MAXVOXMIPS;i++)
-		{
-			dasiz = buffer.getInt();
-			lengcnt += dasiz+4;
-			if (lengcnt >= lengtot-768) break;
-		}
-		
-		if (voxmodels[voxindex] != null)
-	    {
-	        voxfree(voxmodels[voxindex]);
-	        voxmodels[voxindex] = null;
-	    }
-		buffer.rewind();
-	    voxmodels[voxindex] = KVXLoader.load(buffer);
-		return 0;
-	}
+//	public static int qloadkvx(int voxindex, String filename)
+//	{
+//		int i, dasiz, lengcnt, lengtot;
+//
+//		ByteBuffer buffer = kGetBuffer(filename, 0);
+//		if(buffer == null) return -1;
+//
+//		lengcnt = 0;
+//		lengtot = buffer.capacity();
+//		
+//		buffer.order( ByteOrder.LITTLE_ENDIAN);
+//
+//		for(i=0;i<MAXVOXMIPS;i++)
+//		{
+//			dasiz = buffer.getInt();
+//			lengcnt += dasiz+4;
+//			if (lengcnt >= lengtot-768) break;
+//		}
+//		
+//		if (voxmodels[voxindex] != null)
+//	    {
+//	        voxfree(voxmodels[voxindex]);
+//	        voxmodels[voxindex] = null;
+//	    }
+//		buffer.rewind();
+//	    voxmodels[voxindex] = KVXLoader.load(buffer);
+//		return 0;
+//	}
 	
 	public static void voxfree(VOXModel m)
 	{
@@ -224,138 +224,6 @@ public class MDSprite {
 			tile2model[i] = new Tile2model();
 
 	    mdinited = 1;
-	}
-
-	public static void updateanimation(MDModel m, SPRITE tspr)
-	{
-		MDAnimation anim;
-	    int i, j, k;
-	    int fps;
-
-	    int tile;
-	    boolean smoothdurationp;
-	    Spritesmooth smooth;
-	    Spriteext sprext;
-
-	    if (m.numframes < 2)
-	    {
-	        m.interpol = 0;
-	        return;
-	    }
-
-	    tile = tspr.picnum;
-	    m.cframe = m.nframe = tile2model[tspr.picnum].framenum;
-
-	    smoothdurationp = (r_animsmoothing != 0 && (tile2model[tile].smoothduration != 0));
-
-	    smooth = (tspr.owner < MAXSPRITES+MAXUNIQHUDID) ? spritesmooth[tspr.owner] : null;
-	    sprext = (tspr.owner < MAXSPRITES+MAXUNIQHUDID) ? spriteext[tspr.owner] : null;
-
-	    for (anim = m.animations; anim != null && anim.startframe != m.cframe; anim = anim.next)
-	    {
-	        /* do nothing */;
-	    }
-
-	    if (anim == null)
-	    {
-	        if (!smoothdurationp || ((smooth.mdoldframe == m.cframe) && (smooth.mdcurframe == m.cframe)))
-	        {
-	            m.interpol = 0;
-	            return;
-	        }
-
-	        if (smooth.mdoldframe != m.cframe)
-	        {
-	            if (smooth.mdsmooth == 0)
-	            {
-	                sprext.mdanimtims = mdtims;
-	                m.interpol = 0;
-	                smooth.mdsmooth = 1;
-	                smooth.mdcurframe = (short) m.cframe;
-	            }
-
-	            if (smooth.mdcurframe != m.cframe)
-	            {
-	                sprext.mdanimtims = mdtims;
-	                m.interpol = 0;
-	                smooth.mdsmooth = 1;
-	                smooth.mdoldframe = smooth.mdcurframe;
-	                smooth.mdcurframe = (short) m.cframe;
-	            }
-	        }
-	        else 
-	        {
-	            sprext.mdanimtims = mdtims;
-	            m.interpol = 0;
-	            smooth.mdsmooth = 1;
-	            smooth.mdoldframe = smooth.mdcurframe;
-	            smooth.mdcurframe = (short) m.cframe;
-	        }
-	    }
-	    else if (/* anim && */ sprext.mdanimcur != anim.startframe)
-	    {
-	        sprext.mdanimcur = (short) anim.startframe;
-	        sprext.mdanimtims = mdtims;
-	        m.interpol = 0;
-
-	        if (!smoothdurationp)
-	        {
-	            m.cframe = m.nframe = anim.startframe;
-	            return;
-	        }
-
-	        m.nframe = anim.startframe;
-	        m.cframe = smooth.mdoldframe;
-	        smooth.mdsmooth = 1;
-	        return;
-	    }
-
-	    fps = (smooth.mdsmooth != 0) ? Math.round((1.0f / (float) (tile2model[tile].smoothduration)) * 66.f) : anim.fpssc;
-
-	    i = (int) ((mdtims - sprext.mdanimtims)*((fps*timerticspersec)/120));
-
-	    if (smooth.mdsmooth != 0)
-	        j = 65536;
-	    else
-	        j = ((anim.endframe+1-anim.startframe)<<16);
-	    // Just in case you play the game for a VERY long time...
-	    if (i < 0) { i = 0; sprext.mdanimtims = mdtims; }
-	    //compare with j*2 instead of j to ensure i stays > j-65536 for MDANIM_ONESHOT
-	    if (anim != null && (i >= j+j) && (fps != 0) && mdpause == 0) //Keep mdanimtims close to mdtims to avoid the use of MOD
-	        sprext.mdanimtims += j/((fps*timerticspersec)/120);
-
-	    k = i;
-
-	    if (anim != null && (anim.flags&MDANIM_ONESHOT) != 0)
-	        { if (i > j-65536) i = j-65536; }
-	    else { if (i >= j) { i -= j; if (i >= j) i %= j; } }
-
-	    if (r_animsmoothing != 0 && smooth.mdsmooth != 0)
-	    {
-	        m.nframe = anim != null ? anim.startframe : smooth.mdcurframe;
-	        m.cframe = smooth.mdoldframe;
-	
-	        if (k > 65535)
-	        {
-	            sprext.mdanimtims = mdtims;
-	            m.interpol = 0;
-	            smooth.mdsmooth = 0;
-	            m.cframe = m.nframe;
-	
-	            smooth.mdoldframe = (short) m.cframe;
-	            return;
-	        }
-	    }
-	    else
-	    {
-	        m.cframe = (i>>16)+anim.startframe;
-	        m.nframe = m.cframe+1;
-	        if (m.nframe > anim.endframe) 
-	            m.nframe = anim.startframe;
-
-	        smooth.mdoldframe = (short) m.cframe;
-	    }
-	    m.interpol = ((float)(i&65535))/65536.f;
 	}
 
 	public static BTexture mdloadskin(DefScript defs, MDModel m, int number, int pal, int surf)

@@ -15,6 +15,9 @@ import java.nio.ShortBuffer;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
 public class Model {
+	
+	public static final int MD_ROTATE = 2;
+	
 	public int mdnum; //VOX=1, MD2=2, MD3=3
 	public int modelid;
 	public int shadeoff;

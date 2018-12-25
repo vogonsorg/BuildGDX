@@ -21,7 +21,6 @@ import static ru.m210projects.Build.Strhandler.Bstrcmp;
 import java.nio.FloatBuffer;
 
 import ru.m210projects.Build.Loader.MDModel;
-import ru.m210projects.Build.Types.SPRITE;
 
 public class MD2Model extends MDModel {
     public int numverts, numglcmds, framebytes;
@@ -32,6 +31,7 @@ public class MD2Model extends MDModel {
     public FloatBuffer uv;
     public MD2Triangle[] tris;
     
+    @Override
     public int getFrameIndex(String framename)
     {
         for (int i = 0; i < numframes; i++)
@@ -44,10 +44,4 @@ public class MD2Model extends MDModel {
         
         return(-3); // frame name invalid
     }
-
-	@Override
-	public void updateanimation(SPRITE tspr) {
-		// TODO Auto-generated method stub
-		
-	}
 }

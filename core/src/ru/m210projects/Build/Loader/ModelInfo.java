@@ -1,7 +1,11 @@
 package ru.m210projects.Build.Loader;
 
+import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 
+import ru.m210projects.Build.Loader.MDSprite.Spritesmooth;
+import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Types.Tile2model;
 
@@ -9,6 +13,7 @@ public class ModelInfo {
 
 	private Tile2model[] cache = new Tile2model[MAXTILES];
 	private Hudtyp[][] hudmem = new Hudtyp[2][MAXTILES];
+	private Spritesmooth[] spritesmooth = new Spritesmooth[MAXSPRITES+MAXUNIQHUDID];
 
 	public ModelInfo()
 	{
@@ -18,12 +23,28 @@ public class ModelInfo {
 		for(int i = 0; i < 2; i++)
 			for(int j = 0; j < MAXTILES; j++)
 				hudmem[i][j] = new Hudtyp();
+		
+		for (int i = 0; i < spritesmooth.length; i++)
+			spritesmooth[i] = new Spritesmooth();
+	}
+	
+	public Spritesmooth getSmoothParams(int i)
+	{
+		return spritesmooth[i];
 	}
 
 	public Model getModel(int picnum)
 	{
 		if(cache[picnum] != null)
 			return cache[picnum].model;
+		
+		return null;
+	}
+	
+	public Model getVoxel(int picnum)
+	{
+		if(cache[picnum] != null)
+			return cache[picnum].voxel;
 		
 		return null;
 	}
@@ -40,7 +61,7 @@ public class ModelInfo {
 	{
 		if (picnum >= MAXTILES) return(-2);
 	    if (framename == null) return(-3);
-	    if(md == null) return 0;
+	    if(md == null) return -1;
 	   
 	    int i = -3;
 	    switch(md.mdnum)
@@ -62,11 +83,22 @@ public class ModelInfo {
 	    return i;
 	}
 	
+	public int addVoxelInfo(VOXModel md, int picnum)
+	{
+		if (picnum >= MAXTILES) return(-2);
+	    if(md == null) return -1;
+
+	    cache[picnum].voxel = md;
+	    return 0;
+	}
+	
 	public void removeModelInfo(Model md)
 	{
 		for (int i=MAXTILES-1; i>=0; i--) {
 	        if (cache[i].model == md) 
 	            cache[i].model = null;
+	        if (cache[i].voxel == md) 
+	            cache[i].voxel = null;
 	    }
 	}
 	

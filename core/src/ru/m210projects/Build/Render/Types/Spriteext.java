@@ -13,6 +13,5 @@ public class Spriteext {
 	public int xoff, yoff, zoff;
 	public short flags;
 	public short xpanning, ypanning;
-	public short filler;
 	public float alpha;
 }

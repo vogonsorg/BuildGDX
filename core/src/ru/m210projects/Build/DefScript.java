@@ -4,17 +4,19 @@ import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXVOXELS;
 import static ru.m210projects.Build.Engine.NORMALPAL;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.SPECULARPAL;
+import static ru.m210projects.Build.Loader.Model.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
-import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
-import static ru.m210projects.Build.Loader.MDSprite.qloadkvx;
+import static ru.m210projects.Build.FileHandle.Cache1D.kGetBuffer;
+import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +24,10 @@ import java.util.Map;
 import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
-import ru.m210projects.Build.Loader.ModelCache;
 import ru.m210projects.Build.Loader.ModelInfo;
+import ru.m210projects.Build.Loader.MD2.MD2Loader;
+import ru.m210projects.Build.Loader.MD3.MD3Loader;
+import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
@@ -33,10 +37,10 @@ public class DefScript {
 	public TextureHDInfo hiresInfo;
 	public ModelInfo mdInfo;
 	
-	private int[] tiletovox;
-	private int nextvoxid, lastvoxid = -1;
-	private VOXModel[] voxmodels = new VOXModel[MAXVOXELS];
-	private boolean[] voxrotate;
+//	private int[] tiletovox;
+//	private int nextvoxid, lastvoxid = -1;
+//	private VOXModel[] voxmodels = new VOXModel[MAXVOXELS];
+//	private boolean[] voxrotate;
 
 	private int modelskin = -1, lastmodelskin = -1, seenframe = 0;
 	
@@ -236,6 +240,7 @@ public class DefScript {
 			put("tile0",  Token.TILE0  );
 			put("tile1",  Token.TILE1  );
 			put("scale",  Token.SCALE  );
+			put("rotate", Token.ROTATE);
 		}
 	};
 
@@ -283,8 +288,8 @@ public class DefScript {
 		hiresInfo = new TextureHDInfo();
 		mdInfo = new ModelInfo();
 		
-		tiletovox = new int[MAXTILES];
-		voxrotate = new boolean[MAXTILES]; 
+//		tiletovox = new int[MAXTILES];
+//		voxrotate = new boolean[MAXTILES]; 
 	}
 	
 	public boolean loadScript(FileEntry file)
@@ -334,6 +339,8 @@ public class DefScript {
     {
 		String fn;
 		Token token;
+		ByteBuffer buffer;
+		
 		while (true)
         {
 			switch(gettoken(script, basetokens))
@@ -355,8 +362,30 @@ public class DefScript {
     	        if ((modelfn = script.getstring()) == null) break;
                 if ((modelend = script.getbraces()) == -1) break;
                 
-                Model vm = ModelCache.mdload(modelfn); 
-                if (vm == null)
+                buffer = kGetBuffer(modelfn, 0);
+        		if(buffer == null) {
+        			Console.Println("Warning: File not found" + modelfn, OSDTEXT_YELLOW);
+                    script.textptr = modelend+1;
+                    break;
+        		}
+        		buffer.order( ByteOrder.LITTLE_ENDIAN);
+        		
+        		Model m = null;
+        	    switch (buffer.getInt(0))
+        	    {
+        		    case 0x32504449: //IDP2
+        		        m = MD2Loader.load(buffer);
+        		        break;
+        		    case 0x33504449: //IDP3
+        		        m = MD3Loader.load(buffer);
+        		        break; 
+        		    default:
+        		    	if (BfileExtension(modelfn).equalsIgnoreCase("kvx"))
+                		    m = KVXLoader.load(buffer);  
+        		    	break;
+        	    }
+
+                if (m == null)
                 {
                 	Console.Println("Warning: Failed loading MD2/MD3 model " + modelfn, OSDTEXT_YELLOW);
                     script.textptr = modelend+1;
@@ -415,7 +444,7 @@ public class DefScript {
 
 	                        for (tilex = ftilenume; tilex <= ltilenume && happy != 0; tilex++)
 	                        {
-	                            switch (mdInfo.addModelInfo(vm, tilex, framename, Math.max(0, modelskin), (float) smoothduration))
+	                            switch (mdInfo.addModelInfo(m, tilex, framename, Math.max(0, modelskin), (float) smoothduration))
 	                            {
 	                            case -1:
 	                                happy = 0; break; // invalid model id!?
@@ -472,9 +501,9 @@ public class DefScript {
 	                        	happy = 0;
 	                        }
 	                        	model_ok &= happy;
-	                        if (happy == 0 || vm.mdnum < 2) break;
+	                        if (happy == 0 || m.mdnum < 2) break;
 	                        
-	                        switch (((MDModel) vm).setAnimation(startframe, endframe, (int)(dfps*(65536.0*.001)), flags))
+	                        switch (((MDModel) m).setAnimation(startframe, endframe, (int)(dfps*(65536.0*.001)), flags))
 	                        {
 		                        case -2:
 		                        	Console.Println("Invalid starting frame name on line " + script.filename + ":" + script.getlinum(animtokptr), OSDTEXT_RED);
@@ -547,10 +576,10 @@ public class DefScript {
 	                        if(script.path != null)
 	                        	skinfn = script.path + File.separator + skinfn;
 	                        
-	                        if (!kExist(skinfn, 0) || vm.mdnum < 2)
+	                        if (!kExist(skinfn, 0) || m.mdnum < 2)
 	                            break;
 
-	                        switch (((MDModel) vm).setSkin(skinfn, palnum, Math.max(0,modelskin), surfnum, param, specpower, specfactor))
+	                        switch (((MDModel) m).setSkin(skinfn, palnum, Math.max(0,modelskin), surfnum, param, specpower, specfactor))
 	                        {
 		                        case -2:
 		                        	Console.Println("Invalid skin filename on line " + script.filename + ":" + script.getlinum(skintokptr), OSDTEXT_RED);
@@ -625,15 +654,15 @@ public class DefScript {
                 
                 if (model_ok == 0)
                 {
-                    if (vm != null)
+                    if (m != null)
                     {
                     	Console.Println("Removing model " + modelfn + " due to errors.", OSDTEXT_YELLOW);
-                    	mdInfo.removeModelInfo(vm);
+                    	mdInfo.removeModelInfo(m);
                     }
                     break;
                 }
                 
-                vm.setMisc((float)mdscale,shadeoffs,(float)mzadd,(float)myoffset,mdflags);
+                m.setMisc((float)mdscale,shadeoffs,(float)mzadd,(float)myoffset,mdflags);
 
                 modelskin = lastmodelskin = 0;
                 seenframe = 0;
@@ -750,18 +779,31 @@ public class DefScript {
 				break;
 			case VOXEL:
 				int vmodelend;
+				double vscale = 1.0;
     	        int tile0 = MAXTILES, tile1 = -1, tilex = -1;
     	        boolean vrotate = false;
 
     	        if ((fn = script.getstring()) == null) break; //voxel filename
     	        if(script.path != null)
     	        	fn = script.path + File.separator + fn;
-    	        
-                if (nextvoxid == MAXVOXELS) { Console.Println("Maximum number of voxels already defined.", OSDTEXT_YELLOW); break; }
-                if (qloadkvx(nextvoxid, fn) == -1) { Console.Println("Failure loading voxel file " + fn, OSDTEXT_RED); break; }
-                lastvoxid = nextvoxid++;
-                
+
                 if ((vmodelend = script.getbraces()) == -1) break;
+                
+                buffer = kGetBuffer(fn, 0);
+        		if(buffer == null) {
+        			Console.Println("Warning: File not found" + fn, OSDTEXT_YELLOW);
+                    script.textptr = vmodelend+1;
+                    break;
+        		}
+        		buffer.order( ByteOrder.LITTLE_ENDIAN);
+        		
+        		VOXModel vox = KVXLoader.load(buffer);  
+                if (vox == null)
+                {
+                	Console.Println("Warning: Failed loading MD2/MD3 model " + fn, OSDTEXT_YELLOW);
+                    script.textptr = vmodelend+1;
+                    break;
+                }
 
                 while (script.textptr < vmodelend)
                 {
@@ -772,10 +814,11 @@ public class DefScript {
                             if (check_tile("voxel", tilex, script, script.ltextptr))
                                 break;
 
-                            tiletovox[tilex] = lastvoxid;
+                            mdInfo.addVoxelInfo(vox, tilex);
                     		break;
                     	case TILE0:
                     		tile0 = script.getsymbol();
+                    		mdInfo.addVoxelInfo(vox, tile0);
                             break; //1st tile #
 
                         case TILE1:
@@ -783,12 +826,10 @@ public class DefScript {
                         	if (check_tile_range("voxel", tile0, tile1, script, script.ltextptr))
                         		break;
                             for (tilex=tile0; tilex<=tile1; tilex++) 
-                                 tiletovox[tilex] = lastvoxid;
+                            	mdInfo.addVoxelInfo(vox, tilex);
                             break; //last tile number (inclusive)
                         case SCALE:
-                            double scale = script.getdouble();
-                            if (voxmodels[lastvoxid] != null)
-                                voxmodels[lastvoxid].scale = (float) scale;
+                            vscale = script.getdouble();
                             break;
                         case ROTATE:
                         	vrotate = true;
@@ -797,10 +838,8 @@ public class DefScript {
                         	break;
                     }
                 }
-//              Console.Println("Voxel model loaded \"" + fn + "\"", false);
-                if(tilex != -1 && vrotate) 
-                	voxrotate[tilex] = true;
-                lastvoxid = -1;
+                vox.setMisc((float)vscale,0,0,0,vrotate ? MD_ROTATE : 0);
+      
 				break;
 			case SKYBOX:
 				int sskyend, stile = -1, spal = 0;

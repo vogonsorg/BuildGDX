@@ -270,9 +270,6 @@ public abstract class Engine {
 	public static int clipmoveboxtracenum = 3;
 	public static int hitscangoalx = (1 << 29) - 1, hitscangoaly = (1 << 29) - 1;
 	public static final int MAXVOXMIPS = 5;
-//	public static byte[][][] voxoff;
-	public static int[] tiletovox;
-	public static boolean[] voxrotate;
 	public static int globalposx, globalposy, globalposz; //polymost
 	public static float globalhoriz, globalang;
 	public static float pitch;
@@ -947,9 +944,6 @@ public abstract class Engine {
 		colnext = new byte[256];
 		colscan = new int[27];
 		radarang = new short[1280]; //1024
-//		voxoff = new byte[MAXVOXELS][MAXVOXMIPS][];
-		tiletovox = new int[MAXTILES];
-		voxrotate = new boolean[MAXTILES]; 
 		palette = new byte[768];
 	
 		for (int i = 0; i < spriteext.length; i++)
@@ -961,8 +955,6 @@ public abstract class Engine {
 		Arrays.fill(show2dsector, (byte)0);
 		Arrays.fill(show2dsprite, (byte)0);
 		Arrays.fill(show2dwall, (byte)0);
-		Arrays.fill(tiletovox, -1);
-//		Arrays.fill(voxscale, 65536);
 		
 		bakwindowx1 = new int[4]; 
 		bakwindowy1 = new int[4];
