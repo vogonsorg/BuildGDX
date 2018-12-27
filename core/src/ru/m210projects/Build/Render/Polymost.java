@@ -3754,13 +3754,14 @@ public abstract class Polymost implements Renderer {
 		return (((d << 4) ^ 0xf0) | d);
 	}
 
-	public void md3_vox_calcmat_common(SPRITE tspr, Vector3 a0, float[][] mat) {
+	public void md3_vox_calcmat_common(SPRITE tspr, Vector3 a0, float f, float[][] mat) {
 		float g;
 		float k0, k1, k2, k3, k4, k5, k6, k7;
 
-		k0 = ((float) (tspr.x - globalposx)) * 1 / 1024.0f;
-		k1 = ((float) (tspr.y - globalposy)) * 1 / 1024.0f;
-		float f = (float) (gcosang2 * gshang);
+		k0 = ((float) (tspr.x - globalposx)) * f / 1024.0f;
+		k1 = ((float) (tspr.y - globalposy)) * f / 1024.0f;
+		
+		f = (float) (gcosang2 * gshang);
 		g = (float) (gsinang2 * gshang);
 		k4 = (float) sintable[(tspr.ang + spriteext[tspr.owner].angoff + 1024) & 2047] / 16384.0f;
 		k5 = (float) sintable[(tspr.ang + spriteext[tspr.owner].angoff + 512) & 2047] / 16384.0f;
@@ -3947,7 +3948,7 @@ public abstract class Polymost implements Renderer {
         modela0.z = (((float)(k0     -globalposz))/ -16384.0f + modela0.z)*g;
 
 //    	md3_vox_calcmat_common(tspr, dvoxa0);
-        md3_vox_calcmat_common(tspr, modela0, matrix);
+        md3_vox_calcmat_common(tspr, modela0, f, matrix);
 
     	// floor aligned
         if ((globalorientation&48)==32)
@@ -4399,7 +4400,7 @@ public abstract class Polymost implements Renderer {
 		
 		// ------------ Matrix
 		if(!newmatrix)
-			md3_vox_calcmat_common(tspr, modela0, matrix);
+			md3_vox_calcmat_common(tspr, modela0, f, matrix);
 		else { md3_vox_calcmat_common(tspr, modela0); }
 
 		if(!newmatrix) {
