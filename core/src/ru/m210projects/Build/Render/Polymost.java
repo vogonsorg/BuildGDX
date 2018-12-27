@@ -15,7 +15,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static java.lang.Math.*;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.*;
-import static ru.m210projects.Build.Loader.MDSprite.*;
+import static ru.m210projects.Build.Loader.MDAnimation.*;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import ru.m210projects.Build.DefScript;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
@@ -55,6 +54,8 @@ import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.Render.Types.Hudtyp;
+import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
@@ -347,8 +348,8 @@ public abstract class Polymost implements Renderer {
 	
 	@Override
 	public void setDefs(DefScript defs) {
-		this.textureCache.setTextureInfo(defs.hiresInfo);
-		if(defs != null)
+		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
+		if(this.defs != null)
 			gltexinvalidateall();
 		this.defs = defs;
 	}
@@ -435,27 +436,23 @@ public abstract class Polymost implements Renderer {
 	// Use this for palette effects ... but not ones that change every frame!
 	public void gltexinvalidateall() {
 		textureCache.invalidateall();
-		clearskins();
+		clearskins(true);
 	}
 
 	public void gltexinvalidate8() {
 		textureCache.invalidateall();
-		clearskins();
+		clearskins(true);
 	}
 
-	public void clearskins() { //XXX
-//		for (int i = 0; i < MAXVOXELS; i++) {
-//			VOXModel v = voxmodels[i];
-//			if (v == null)
-//				continue;
-//
-//			for (int j = 0; j < MAXPALOOKUPS; j++) {
-//				if (v.texid[j] != null) {
-//					deleteTexture(v.texid[j]);
-//					v.texid[j] = null;
-//				}
-//			}
-//		}
+	public void clearskins(boolean bit8only) {
+		if(defs == null) return;
+		for (int i=MAXTILES-1; i>=0; i--) {
+			Model m = defs.mdInfo.getModel(i);
+	        if(m != null && !bit8only) m.clearSkins();
+	        
+	        Model vox = defs.mdInfo.getVoxel(i);
+	        if(vox != null) vox.clearSkins();
+	    }
 	}
 	
 	@Override
@@ -463,31 +460,15 @@ public abstract class Polymost implements Renderer {
 		int gltexfiltermode = Console.Geti("r_texturemode");
 		textureCache.updateSettings(gltexfiltermode);
 
-//		if(defs == null) XXX
-//			return;
-//		
-//		for (int i = 0; i < models.size(); i++) {
-//			if (models.get(i) == null || models.get(i).mdnum < 2)
-//				continue;
-//			
-//			MDModel m = (MDModel) models.get(i);
-//			if(m.texid == null) continue;
-//			for (int j = 0; j < m.numskins * m.texid.length; j++) { 
-//				if (m.texid[j] == null)
-//					continue;
-//				bindTexture(m.texid[j]);
-//				setupBoundTexture(gltexfiltermode, anisotropy());
-//			}
-//
-//			for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next) {
-//				for (int j = 0; j < m.texid.length; j++) {
-//					if (sk.texid[j] == null)
-//						continue;
-//					bindTexture(sk.texid[j]);
-//					setupBoundTexture(gltexfiltermode, anisotropy());
-//				}
-//			}
-//		}
+		if(defs == null)
+			return;
+		
+		int anisotropy = anisotropy();
+		for (int i=MAXTILES-1; i>=0; i--) {
+			Model m = defs.mdInfo.getModel(i);
+	        if(m != null)
+	        	m.setSkinParams(gltexfiltermode, anisotropy);
+	    }
 	}
 
 	public int gltexcacnum = -1;
@@ -505,7 +486,7 @@ public abstract class Polymost implements Renderer {
 			gsinang = gsinang2 = 0.0f;
 		} else {
 			textureCache.uninit();
-			clearskins();
+			clearskins(false);
 		}
 
 		if (polymosttext != null) {
@@ -513,7 +494,6 @@ public abstract class Polymost implements Renderer {
 			gl.glDeleteTextures(1, polymosttext);
 		}
 		polymosttext = null;
-		freevbos();
 
 		//
 		// Cachefile_Free();
@@ -573,7 +553,7 @@ public abstract class Polymost implements Renderer {
 			gl.glLoadIdentity();
 			
 //			glPerspective(65, xdimen / (float) ydimen, 0.0001f, 2000);
-			float ang = 87 * 320 / (float) xdimen;
+			float ang = (87 - (24 * gshang * gshang)) * 320.0f / xdimen;
 			glPerspective(ang / 256.0f, xdimen / (float) (ydimen), -ydimen, ydimen);
 
 			gl.glMatrixMode(GL_MODELVIEW);
@@ -1045,7 +1025,6 @@ public abstract class Polymost implements Renderer {
 				surf.buffer.flip();
 			}
 
-			showlines = true;
 			if(showlines) {
 				gl.glDisable(GL_TEXTURE_2D);
 				int[] p = new int[2];
@@ -1331,7 +1310,7 @@ public abstract class Polymost implements Renderer {
 			if(!dopancor) //texture scaled, it's need to fix
 				t *= (float)tilesizy[globalpicnum] / i;
 	        i = tilesizy[globalpicnum];
-	    } else if (dopancor && defs != null && defs.hiresInfo.isHighTile(globalpicnum)) {
+	    } else if (dopancor && defs != null && defs.texInfo.isHighTile(globalpicnum)) {
 			// Carry out panning "correction" to make it look like classic in some
 	        // cases, but failing in the general case.
 			
@@ -2300,7 +2279,7 @@ public abstract class Polymost implements Renderer {
 		
 		calc_and_apply_skyfog(shade, sec.visibility,  pal);
 
-		if (!usehightile || defs == null || defs.hiresInfo.findTexture(globalpicnum, globalpal, 1) == null)
+		if (!usehightile || defs == null || defs.texInfo.findTexture(globalpicnum, globalpal, 1) == null)
 			drawpapersky(sectnum, x0, x1, y0, y1, floor);
 		else
 			drawskybox(x0, x1, y0, y1, floor);
@@ -2340,24 +2319,23 @@ public abstract class Polymost implements Renderer {
 
 		// Polymost supports true look up/down :) Here, we convert horizon to angle.
 		// gchang&gshang are cos&sin of this angle (respectively)
-		gyxscale = ((float) xdimenscale) / 131072.0f;
-		gxyaspect = ((float) xyaspect * (float) viewingrange) * (5.0f / (65536.0f * 262144.0f));
-		gviewxrange = ((float) viewingrange) * ((float) xdimen) / (32768.0f * 1024.0f);
-		gcosang = ((float) cosglobalang) / 262144.0f;
-		gsinang = ((float) singlobalang) / 262144.0f;
-		gcosang2 = gcosang * ((float) viewingrange) / 65536.0f;
+		gyxscale = xdimenscale / 131072.0f;
+		gxyaspect = (viewingrange / 65536.0f) * xyaspect * 5.0f / 262144.0f;
+		gviewxrange = viewingrange * xdimen / (32768.0f * 1024.0f);
+		gcosang = cosglobalang / 262144.0f;
+		gsinang = singlobalang / 262144.0f;
+		gcosang2 = gcosang * (viewingrange / 65536.0f);
 
-		gsinang2 = gsinang * ((float) viewingrange) / 65536.0f;
-		ghalfx = (float) halfxdimen;
-		grhalfxdown10 = 1.0f / (((float) ghalfx) * 1024); //viewport
-		ghoriz = (float) globalhoriz;
-
+		gsinang2 = gsinang * (viewingrange / 65536.0f);
+		ghalfx = halfxdimen;
+		grhalfxdown10 = 1.0f / (ghalfx * 1024.0f); //viewport
+		
 		// global cos/sin height angle
-		r = (float) ((ydimen >> 1) - ghoriz);
-		gshang = (float) r / (float) sqrt(r * r + ghalfx * ghalfx);
-		gchang = (float) sqrt(1.0 - gshang * gshang);
 		ghoriz = ydimen >> 1;
-
+		r = (ghoriz - globalhoriz);
+		gshang = (float) (r / sqrt(r * r + ghalfx * ghalfx));
+		gchang = (float) sqrt(1.0f - gshang * gshang);
+		
 		// global cos/sin tilt angle
 		gctang = (float) cos(gtang);
 		gstang = (float) sin(gtang);
@@ -2401,14 +2379,14 @@ public abstract class Polymost implements Renderer {
 		n2 = 0;
 		for (i = 0; i < n; i++) {
 			j = i + 1;
-			if (j >= n)
-				j = 0;
+			if (j >= n) j = 0;
 			if (drawrooms_pz[i] >= SCISDIST) {
 				drawrooms_px2[n2] = drawrooms_px[i];
 				drawrooms_py2[n2] = drawrooms_py[i];
 				drawrooms_pz2[n2] = drawrooms_pz[i];
 				n2++;
 			}
+
 			if ((drawrooms_pz[i] >= SCISDIST) != (drawrooms_pz[j] >= SCISDIST)) {
 				r = (SCISDIST - drawrooms_pz[i]) / (drawrooms_pz[j] - drawrooms_pz[i]);
 				drawrooms_px2[n2] = (drawrooms_px[j] - drawrooms_px[i]) * r + drawrooms_px[i];
@@ -2838,7 +2816,7 @@ public abstract class Polymost implements Renderer {
 		
 		posx = tspr.x;
 		posy = tspr.y;
-		
+
 		while ((spriteext[tspr.owner].flags & SPREXT_NOTMD) == 0) {
 
 			if(usemodels) {
@@ -3415,35 +3393,28 @@ public abstract class Polymost implements Renderer {
 		// datype is 0 for a wall/floor/ceiling and 1 for a sprite
 		// basically this just means walls are repeating
 		// while sprites are clamped
-		// int mid;
 
 		if ((palookup[dapalnum] == null)
 				&& (dapalnum < (MAXPALOOKUPS - RESERVEDPALS)))
-			return;// dapalnum = 0;
-
-		// OSD_Printf("precached %d %d type %d\n", dapicnum, dapalnum, datype);
-		// hicprecaching = 1;
-		textureCache.cache(dapicnum, dapalnum, (short) 0, clampingMode((datype & 1) << 2), false);
-		// hicprecaching = 0;
-
-		if (datype == 0 || !usemodels)
 			return;
-		
-		// FIXME:
-		// mid = md_tilehasmodel(dapicnum,dapalnum);
-		// if (mid < 0 || models[mid].mdnum < 2) return;
-		//
-		// {
-		// int i,j=0;
-		//
-		// if (models[mid].mdnum == 3)
-		// j = ((md3model_t *)models[mid]).head.numsurfs;
-		//
-		// for (i=0; i<=j; i++)
-		// {
-		// mdloadskin((md2model_t *)models[mid], 0, dapalnum, i);
-		// }
-		// }
+
+//		Console.Println("precached " + dapicnum + " " + dapalnum + " type " + datype);
+		textureCache.cache(dapicnum, dapalnum, (short) 0, clampingMode((datype & 1) << 2), false);
+
+		if (datype == 0 || !usemodels || defs == null)
+			return;
+
+		MDModel m = (MDModel) defs.mdInfo.getModel(dapicnum);
+        if(m != null) {
+        	if(m.mdnum == 3) {
+        		int numsurfs = ((MD3Model) m).head.numSurfaces;
+        		for (int surfi = 0, skinnum; surfi < numsurfs; surfi++)
+        	    {
+        	    	skinnum = defs.mdInfo.getParams(dapicnum).skinnum;
+        			m.loadskin(defs, skinnum,globalpal,surfi);
+        	    }
+        	} else m.loadskin(defs, 0, dapalnum, 0);
+        }
 	}
 
 	private void calc_and_apply_fog(int shade, int vis, int pal)
@@ -4010,12 +3981,12 @@ public abstract class Polymost implements Renderer {
 		if(defs != null) {
 	        if ((m.flags&1) == 0 || (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal!=0))
 	        {
-	        	Palette p = defs.hiresInfo.getTints(globalpal);
+	        	Palette p = defs.texInfo.getTints(globalpal);
 	            polyColor.r *= p.r / 255.0f;
 	            polyColor.g *= p.g / 255.0f;
 	            polyColor.b *= p.b / 255.0f;
 	            
-	            Palette pdetail = defs.hiresInfo.getTints(MAXPALOOKUPS-1);
+	            Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS-1);
 	            if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255)
 	            {
 	                polyColor.r *= pdetail.r / 255.0f;
@@ -4023,7 +3994,6 @@ public abstract class Polymost implements Renderer {
 	                polyColor.b *= pdetail.b / 255.0f;
 	            }
 	        }
-	        else globalnoeffect=1;
 		}
 
 	    if ((tspr.cstat&2) != 0) {
@@ -4075,13 +4045,13 @@ public abstract class Polymost implements Renderer {
 	    	m.verticesBuffer.flip();
 
 	    	skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-			BTexture texid = mdloadskin(defs, m, skinnum,globalpal,surfi);
+			BTexture texid = m.loadskin(defs, skinnum,globalpal,surfi);
 	        if (texid != null) {
 
 		        bindTexture(texid);
 		        
 		        if ( Console.Geti("r_detailmapping") != 0 )
-		        	texid = mdloadskin(defs, m,skinnum,DETAILPAL,surfi);
+		        	texid = m.loadskin(defs, skinnum,DETAILPAL,surfi);
 		        else
 		        	texid = null;
 		        
@@ -4101,7 +4071,7 @@ public abstract class Polymost implements Renderer {
 		        }
 		        
 		        if (r_glowmapping != 0)
-		        	texid = mdloadskin(defs, m,skinnum,GLOWPAL,surfi);
+		        	texid = m.loadskin(defs, skinnum,GLOWPAL,surfi);
 		        else
 		        	texid = null;
 		        
@@ -4176,7 +4146,6 @@ public abstract class Polymost implements Renderer {
     	gl.glDisable(GL_CULL_FACE);
         gl.glLoadIdentity();
 
-        globalnoeffect=0;
 		return rendered;
 	}
 	
@@ -4187,12 +4156,12 @@ public abstract class Polymost implements Renderer {
 		modelPrepare(m, tspr, xoff, yoff);
 
 	    int rendered = 0, skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-		BTexture texid = mdloadskin(defs, m, skinnum,globalpal,0);
+		BTexture texid = m.loadskin(defs, skinnum,globalpal,0);
         if (texid != null)
         {
 	        bindTexture(texid);
 	        if (Console.Geti("r_detailmapping") != 0)
-	        	texid = mdloadskin(defs, m, skinnum,DETAILPAL,0);
+	        	texid = m.loadskin(defs, skinnum,DETAILPAL,0);
 	        else
 	        	texid = null;
 	        
@@ -4213,7 +4182,7 @@ public abstract class Polymost implements Renderer {
 	        }
 	        
 	        if (r_glowmapping != 0)
-	        	texid = mdloadskin(defs,m,skinnum,GLOWPAL,0);
+	        	texid = m.loadskin(defs,skinnum,GLOWPAL,0);
 	        else
 	        	texid = null;
 	        
@@ -4314,7 +4283,6 @@ public abstract class Polymost implements Renderer {
 //    	gl.glPopAttrib();
         gl.glLoadIdentity();
 
-        globalnoeffect=0;
 		return rendered;
 	}
 	
@@ -4408,7 +4376,7 @@ public abstract class Polymost implements Renderer {
 		polyColor.r = polyColor.g = polyColor.b = ((float) (numshades - min(max((globalshade * shadescale) + m.shadeoff, 0), numshades))) / ((float) numshades);
 
 		if(defs != null) {
-		Palette p = defs.hiresInfo.getTints(globalpal);
+		Palette p = defs.texInfo.getTints(globalpal);
 		polyColor.r *= p.r / 255.0f;
 		polyColor.g *= p.g / 255.0f;
 		polyColor.b *= p.b / 255.0f;
@@ -4463,10 +4431,10 @@ public abstract class Polymost implements Renderer {
 		dvoxphack[1] = 1.f / 256.f;
 
 		if (m.texid[globalpal] == null)
-			m.texid[globalpal] = m.gloadtex(globalpal);
+			m.loadskin(globalpal);
 		else
 			bindTexture(m.texid[globalpal]);
-		
+
 		if(r_vertexarrays != 0)
 		{
 			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
@@ -5285,7 +5253,7 @@ public abstract class Polymost implements Renderer {
 			int cy2, int uniqid) {
 
 		int ourxyaspect = xyaspect;
-		if (usemodels && hudmem != null && hudmem[(dastat&4)>>2][picnum].angadd != 0)
+		if (usemodels && defs != null && defs.mdInfo.getHudInfo(picnum, dastat).angadd != 0)
 	    {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(picnum) : null;
 	        if (entry.model != null && entry.framenum >= 0)
@@ -5538,13 +5506,13 @@ public abstract class Polymost implements Renderer {
 			if (pth.hicr.palnum != globalpal) {
 				// apply tinting for replaced textures
 				
-				Palette p = defs.hiresInfo.getTints(globalpal);
+				Palette p = defs.texInfo.getTints(globalpal);
 	            polyColor.r *= p.r / 255.0f;
 	            polyColor.g *= p.g / 255.0f;
 	            polyColor.b *= p.b / 255.0f;
 			}
 			
-			Palette pdetail = defs.hiresInfo.getTints(MAXPALOOKUPS-1);
+			Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS-1);
             if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255)
             {
                 polyColor.r *= pdetail.r / 255.0f;
@@ -5566,7 +5534,7 @@ public abstract class Polymost implements Renderer {
         float x1, y1, z1;
         hudsprite.reset((byte)0);
 
-        if ((hudmem[(dastat&4)>>2][picnum].flags&1) != 0) return; //"HIDE" is specified in DEF
+        if (defs == null || (defs.mdInfo.getHudInfo(picnum, dastat).flags&1) != 0) return; //"HIDE" is specified in DEF
 
         float ogchang = gchang; gchang = 1.0f;
         float ogshang = gshang; gshang = 0.0f; 
@@ -5577,12 +5545,14 @@ public abstract class Polymost implements Renderer {
         ogpal    = globalpal;    globalpal = dapalnum;
         ogxyaspect = gxyaspect; gxyaspect = 1.0f;
         oldviewingrange = viewingrange; viewingrange = 65536;
+        
+        Hudtyp hudInfo = defs.mdInfo.getHudInfo(picnum, dastat);
 
-        x1 = hudmem[(dastat&4)>>2][picnum].xadd;
-        y1 = hudmem[(dastat&4)>>2][picnum].yadd;
-        z1 = hudmem[(dastat&4)>>2][picnum].zadd;
+        x1 = hudInfo.xadd;
+        y1 = hudInfo.yadd;
+        z1 = hudInfo.zadd;
 
-        if ((hudmem[(dastat&4)>>2][picnum].flags&2) == 0) //"NOBOB" is specified in DEF
+        if ((hudInfo.flags&2) == 0) //"NOBOB" is specified in DEF
         {
         	float fx = (sx)*(1.0f/65536.0f);
         	float fy = (sy)*(1.0f/65536.0f);
@@ -5614,7 +5584,7 @@ public abstract class Polymost implements Renderer {
                 y1 += fy/100.0-1.0; //-1: top of screen, +1: bottom of screen
             }
         }
-        hudsprite.ang = (short) (hudmem[(dastat&4)>>2][picnum].angadd+globalang);
+        hudsprite.ang = (short) (hudInfo.angadd+globalang);
 
         if ((dastat&4) != 0) { x1 = -x1; y1 = -y1; }
 
@@ -5657,7 +5627,7 @@ public abstract class Polymost implements Renderer {
         gl.glLoadIdentity();
         
 
-        if ((hudmem[(dastat&4)>>2][picnum].flags&8) != 0) //NODEPTH flag
+        if ((hudInfo.flags&8) != 0) //NODEPTH flag
             gl.glDisable(GL_DEPTH_TEST);
         else
         {

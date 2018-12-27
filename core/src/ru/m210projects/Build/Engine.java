@@ -13,7 +13,6 @@ import static java.lang.Math.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
-import static ru.m210projects.Build.Loader.MDSprite.*;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 import static ru.m210projects.Build.Strhandler.*;
@@ -37,6 +36,7 @@ import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
+import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Neartag;
@@ -984,9 +984,7 @@ public abstract class Engine {
 		parallaxvisibility = 512;
 
 		loadpalette();
-		
-		mdinit();
-		
+
 		initkeys();
 
 		Console.setFunction(new DEFOSDFUNC(this));
@@ -3536,7 +3534,7 @@ public abstract class Engine {
 //			setpalette(0,256,(char*)tempbuf);
 
 		if ((flags & 2) != 0) 
-			render.gltexinvalidateall(0);
+			render.gltexinvalidateall(flags);
 
 		palfadergb.r = palfadergb.g = palfadergb.b = 0;
 		palfadergb.a = 0;
@@ -4135,6 +4133,9 @@ public abstract class Engine {
     private DefScript defs;
     public void setDefs(DefScript defs)
     {
+    	if(this.defs != null)
+    		this.defs.dispose();
+    	
     	this.defs = defs;  
     	if(getrender() == null)
     		throw new NullPointerException("Renderer is not initialized!");

@@ -95,7 +95,6 @@ import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
 
-import ru.m210projects.Build.DefScript;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.Architecture.SoftFrame;
@@ -103,6 +102,7 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;

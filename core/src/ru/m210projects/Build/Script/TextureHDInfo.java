@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Render.TextureHandle;
+package ru.m210projects.Build.Script;
 
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 
+import ru.m210projects.Build.Render.TextureHandle.Hicreplctyp;
 import ru.m210projects.Build.Types.Palette;
 
 public class TextureHDInfo {
@@ -32,6 +33,15 @@ public class TextureHDInfo {
 	public TextureHDInfo() {
 	    for (int i = 0; i < MAXPALOOKUPS; i++) // all tints should be 100%
 	    	tinting[i] = new Palette(0xff, 0xff, 0xff, 0);
+	}
+	
+	public TextureHDInfo(TextureHDInfo src) {
+		for (int i = 0; i < MAXPALOOKUPS; i++) 
+			this.tinting[i] = new Palette(src.tinting[i]);
+		for (int i = 0; i < MAXTILES; i++) {
+			if(src.cache[i] == null) continue;
+			this.cache[i] = new Hicreplctyp(src.cache[i]);
+		}
 	}
 	
 	public void setPaletteTint(int palnum, int r, int g, int b, int effect)

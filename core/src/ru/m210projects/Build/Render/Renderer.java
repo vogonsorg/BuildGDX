@@ -19,8 +19,8 @@ package ru.m210projects.Build.Render;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
-import ru.m210projects.Build.DefScript;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Script.DefScript;
 
 public interface Renderer {
 	

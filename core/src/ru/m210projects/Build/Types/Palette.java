@@ -24,6 +24,13 @@ public class Palette {
 
 	public Palette() { }
 	
+	public Palette(Palette src) { 
+		this.r = src.r;
+		this.g = src.g;
+		this.b = src.b;
+		this.f = src.f;
+	}
+	
 	public Palette(int r, int g, int b, int f)
 	{
 		this.r = (short) r;

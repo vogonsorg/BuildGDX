@@ -24,6 +24,21 @@ public class Hicreplctyp {
     public float alphacut, xscale, yscale, specpower, specfactor;
     public Hicreplctyp next;
     
+    public Hicreplctyp(Hicreplctyp src)
+    {
+    	this.filename = src.filename;
+    	this.skybox = src.skybox;
+    	this.palnum = src.palnum;
+    	this.ignore = src.ignore;
+    	this.flags = src.flags;
+    	this.alphacut = src.alphacut;
+    	this.xscale = src.xscale;
+    	this.yscale = src.yscale;
+    	this.specpower = src.specpower;
+    	this.specfactor = src.specfactor;
+    	this.next = src.next;
+    }
+    
     public Hicreplctyp(int palnum)
     {
     	this.palnum = palnum;

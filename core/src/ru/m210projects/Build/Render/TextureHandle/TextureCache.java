@@ -25,6 +25,7 @@ import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
+import ru.m210projects.Build.Script.TextureHDInfo;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
@@ -33,8 +34,6 @@ import com.badlogic.gdx.graphics.Pixmap;
 public class TextureCache {
 	
 	private final ValueResolver<Integer> anisotropy;
-//	private final Map<TextureKey, Pthtyp> cache;
-//  private final MutableTextureKey key;
 	private final Pthtyp[] cache;
     private final boolean useShader;
     private TextureHDInfo info;
@@ -42,8 +41,6 @@ public class TextureCache {
 	public TextureCache(ValueResolver<Integer> anisotropy) {
 		this.anisotropy = anisotropy;
 		cache = new Pthtyp[MAXTILES];
-//		cache = new HashMap<TextureKey, Pthtyp>();
-//	    key = new MutableTextureKey();
 	    useShader = false;
 	    if(useShader)
 	    	createShader();
@@ -63,25 +60,12 @@ public class TextureCache {
 					&& pth.skyface == surfnum)
 				return pth;
 	    }
-		
-//		return this.cache.get(this.key.picnum(picnum).palnum(palnum).clamped(clamped).surfnum(surfnum));
-
 		return null;
 	}
 
 	private void add(Pthtyp tex) {
 		tex.next = cache[tex.picnum];
 		cache[tex.picnum] = tex;
-		
-//		this.cache.put(this.key
-//      .picnum(tex.picnum)
-//      .palnum(tex.palnum)
-//      .clamped(tex.isClamped())
-//      .surfnum(tex.skyface)
-//      .toImmutable(),
-//      tex
-//		);
-
 	}
 
 	public void invalidate(int dapicnum, int dapalnum, boolean clamped) {
@@ -92,10 +76,6 @@ public class TextureCache {
 		for(int j=MAXTILES-1;j>=0;j--)
 			for(Pthtyp pth = cache[j]; pth != null; pth = pth.next)
 				invalidate(pth);
-		
-//		for (Pthtyp pth : cache.values()) {
-//			invalidate(pth);
-//		}
 	}
 
 	private Pthtyp gloadTileArtAlloc(int dapic, int dapal, boolean clamping, boolean alpha, Pthtyp pth) {
@@ -326,11 +306,6 @@ public class TextureCache {
 				setupBoundTexture(gltexfiltermode, anisotropy.get());
 			}
 		}
-		
-//		for (Pthtyp pth : cache.values()) {
-//			bindTexture(pth.glpic);
-//			setupBoundTexture(gltexfiltermode, anisotropy.get());
-//		}
 	}
 
 	private static void invalidate(Pthtyp pth) {
@@ -348,11 +323,7 @@ public class TextureCache {
 			if ((pth.picnum == dapicnum) && (pth.palnum == dapalnum))
 		    	return pth.hasAlpha();
 	    }
-
-//		for (Pthtyp pth : cache.values()) 
-//		if ((pth.picnum == dapicnum) && (pth.palnum == dapalnum))
-//	    	return pth.hasAlpha();
-	
+		
 		return(true);
 	}
 
@@ -365,10 +336,5 @@ public class TextureCache {
 			}
 			cache[i] = null;
 		}
-		
-//		for (Pthtyp pth : cache.values()) {
-//			pth.glpic.dispose();
-//		}
-//		cache.clear();
 	}
 }

@@ -1,4 +1,4 @@
-package ru.m210projects.Build;
+package ru.m210projects.Build.Script;
 
 import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
@@ -10,6 +10,7 @@ import static ru.m210projects.Build.Engine.SPECULARPAL;
 import static ru.m210projects.Build.Loader.Model.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
 import static ru.m210projects.Build.FileHandle.Cache1D.kGetBuffer;
+import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
@@ -17,39 +18,43 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.badlogic.gdx.utils.Disposable;
 
 import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
-import ru.m210projects.Build.Loader.ModelInfo;
 import ru.m210projects.Build.Loader.MD2.MD2Loader;
 import ru.m210projects.Build.Loader.MD3.MD3Loader;
 import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.TextureHandle.TextureHDInfo;
 
-public class DefScript {
+public class DefScript implements Disposable {
 
-	public TextureHDInfo hiresInfo;
+	private boolean disposable;
+	public TextureHDInfo texInfo;
 	public ModelInfo mdInfo;
+	public AudioInfo audInfo;
 	
-//	private int[] tiletovox;
-//	private int nextvoxid, lastvoxid = -1;
-//	private VOXModel[] voxmodels = new VOXModel[MAXVOXELS];
-//	private boolean[] voxrotate;
+	public DefScript(DefScript src) {
+		this.disposable = true;
+		this.texInfo = new TextureHDInfo(src.texInfo);
+		this.mdInfo = new ModelInfo(src.mdInfo);
+	}
+	
+	public DefScript(boolean disposable) {
+		this.disposable = disposable;
+		texInfo = new TextureHDInfo();
+		mdInfo = new ModelInfo();
+		audInfo = new AudioInfo();
+	}
 
-	private int modelskin = -1, lastmodelskin = -1, seenframe = 0;
-	
-	
-	
-	
-	private HashMap<String, String> midToMusic = new HashMap<String, String>();
-	
-	private final String skyfaces[] = 
+	protected int modelskin = -1, lastmodelskin = -1, seenframe = 0;
+
+	private static final String skyfaces[] = 
 	{ 
 		"front face", 
 		"right face", 
@@ -59,7 +64,7 @@ public class DefScript {
 		"bottom face" 
 	};
 
-	private enum Token {
+	private static enum Token {
 		EOF,
 		ERROR,
 		INCLUDE,
@@ -283,22 +288,17 @@ public class DefScript {
 			put("alphacut", Token.ALPHACUT );
 		}
 	};
-	
-	public DefScript() {
-		hiresInfo = new TextureHDInfo();
-		mdInfo = new ModelInfo();
-		
-//		tiletovox = new int[MAXTILES];
-//		voxrotate = new boolean[MAXTILES]; 
-	}
-	
+
 	public boolean loadScript(FileEntry file)
 	{
-		Scriptfile script = Scriptfile.scriptfile_fromfile(file.getPath());
-		if (script == null) {
+		if(file == null)
+		{
 			Console.Println("Def error: script not found", OSDTEXT_RED);
 			return false;
 		}
+		
+		byte[] data = kGetBytes(file.getPath(), 0);
+		Scriptfile script = new Scriptfile(file.getPath(), data);
 		script.path = file.getParent().getRelativePath();
 		defsparser(script);
 		
@@ -307,16 +307,12 @@ public class DefScript {
 	
 	public boolean loadScript(String name, byte[] buf)
 	{
-		int flen = buf.length;
-		byte[] tx = Arrays.copyOf(buf, flen + 2);
-		String scripttxt = new String(tx);
-		Scriptfile script = Scriptfile.scriptfile_fromstring(scripttxt);
-		if (script == null) {
+		if (buf == null) {
 			Console.Println("Def error: script not found", OSDTEXT_RED);
 			return false;
 		}
-		script.filename = name;
-		defsparser(script);
+		
+		defsparser(new Scriptfile(name, buf));
 		
 		return true;
 	}
@@ -766,7 +762,7 @@ public class DefScript {
                             break;
 //                      Console.Println("Loading hires texture \"" + tfn + "\"", false);
                         
-                        hiresInfo.addTexture(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
+                        texInfo.addTexture(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
                     	break;
                     }
                 }
@@ -896,7 +892,7 @@ public class DefScript {
                 }
 
                 if(!error)
-                	hiresInfo.addSkybox(stile,spal,sfn);
+                	texInfo.addSkybox(stile,spal,sfn);
     			
     			break;
 			case DEFINETINT:
@@ -908,7 +904,7 @@ public class DefScript {
 	            if ((b = script.getsymbol()) == null) break;
 	            if ((f = script.getsymbol()) == null) break; //effects
 	            
-	            hiresInfo.setPaletteTint(pal.intValue(),r.intValue(),g.intValue(),b.intValue(),f.intValue());
+	            texInfo.setPaletteTint(pal.intValue(),r.intValue(),g.intValue(),b.intValue(),f.intValue());
 	          
     	        break;
 			case MUSIC:
@@ -932,10 +928,9 @@ public class DefScript {
                 if(script.path != null)
                 	t_file = script.path + File.separator + t_file;
                 
-                midToMusic.put(toLowerCase(t_id), toLowerCase(t_file));
+                audInfo.addDigitalInfo(t_id, t_file);
 				break;
-				
-				
+
 			case ERROR:
 				break;
 			case EOF:
@@ -946,16 +941,17 @@ public class DefScript {
 	
 	private void include(String fn, Scriptfile script, int cmdtokptr)
 	{
-		Scriptfile included = Scriptfile.scriptfile_fromfile(fn);
-	    if (included == null)
-	    {
-	        if (cmdtokptr == 0)
+		byte[] data = kGetBytes(fn, 0);
+		if(data == null)
+		{
+			if (cmdtokptr == 0)
 	        	Console.Println("Warning: Failed including " + fn + " as module", OSDTEXT_YELLOW);
 	        else
 	        	Console.Println("Warning: Failed including " + fn + " on line " + script.filename + ":" + script.getlinum(cmdtokptr), OSDTEXT_YELLOW);
-	    }
-	    else
-	    	defsparser(included);
+			return;
+		}
+		Scriptfile included = new Scriptfile(fn, data);
+	    defsparser(included);
 	}
 	
 	private boolean check_tile_range(String defcmd, int tilebeg, int tileend, Scriptfile script, int cmdtokptr)
@@ -988,11 +984,11 @@ public class DefScript {
 		return false;
 	}
 
-	public String checkDigitalMusic(String midi)
+	@Override
+	public void dispose()
 	{
-		if(midi != null)
-			return midToMusic.get(toLowerCase(midi));
-		
-		return null;
+		if(!disposable) return;
+
+		mdInfo.dispose();
 	}
 }

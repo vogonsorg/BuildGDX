@@ -9,23 +9,17 @@
 package ru.m210projects.Build.Loader;
 
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import ru.m210projects.Build.Render.TextureHandle.BTexture;
-
-public class Model {
+public abstract class Model {
 	
 	public static final int MD_ROTATE = 2;
 	
 	public int mdnum; //VOX=1, MD2=2, MD3=3
-	public int modelid;
 	public int shadeoff;
 	public float scale, bscale, zadd, yoffset;
-	public BTexture[] texid;	// skins XXX for voxels only
 	public int flags;
 	
-	public IntBuffer vbos;
 	public ShortBuffer indicesBuffer;
 	public FloatBuffer verticesBuffer;
 	
@@ -37,4 +31,16 @@ public class Model {
 	    this.yoffset = yoffset;
 	    this.flags = flags;
 	}
+
+	public void free() {
+		clearSkins();
+		indicesBuffer.clear();
+		verticesBuffer.clear();
+		indicesBuffer = null;
+		verticesBuffer = null;
+	}
+	
+	public abstract void setSkinParams(int filterMode, int anisotropy);
+	
+	public abstract void clearSkins();
 }

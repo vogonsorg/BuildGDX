@@ -20,4 +20,17 @@ public class Tile2model {
 	public int     	skinnum;
     public int     	framenum;   // calculate the number from the name when declaring
     public float   	smoothduration;  
+    
+    public Tile2model clone()
+    {
+    	Tile2model out = new Tile2model();
+    	
+    	out.model = model;
+    	out.voxel = voxel;
+    	out.skinnum = skinnum;
+    	out.framenum = framenum;
+    	out.smoothduration = smoothduration;
+    	
+    	return out;
+    }
 }

@@ -8,7 +8,7 @@
 
 package ru.m210projects.Build.Loader;
 
-import static ru.m210projects.Build.Render.TextureHandle.TextureHDInfo.HICEFFECTMASK;
+import static ru.m210projects.Build.Script.TextureHDInfo.HICEFFECTMASK;
 
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
