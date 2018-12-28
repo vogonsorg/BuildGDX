@@ -8,7 +8,7 @@
 * by Alexander Makarov-[M210] (m210-2007@mail.ru)
 */
 
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Render.Types;
 
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
@@ -20,8 +20,9 @@ public class Tile2model {
 	public int     	skinnum;
     public int     	framenum;   // calculate the number from the name when declaring
     public float   	smoothduration;  
+    public boolean disposable;
     
-    public Tile2model clone()
+    public Tile2model clone(boolean disposable)
     {
     	Tile2model out = new Tile2model();
     	
@@ -30,6 +31,7 @@ public class Tile2model {
     	out.skinnum = skinnum;
     	out.framenum = framenum;
     	out.smoothduration = smoothduration;
+    	out.disposable = disposable;
     	
     	return out;
     }

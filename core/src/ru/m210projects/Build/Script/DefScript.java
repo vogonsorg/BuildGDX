@@ -1,3 +1,14 @@
+/*
+ * Definitions file parser for Build
+ * by Jonathon Fowler (jf@jonof.id.au)
+ * Remixed substantially by Ken Silverman
+ * See the included license file "BUILDLIC.TXT" for license info.
+ * 
+ * This file has been modified
+ * by the EDuke32 team (development@voidpoint.com)
+ * by Alexander Makarov-[M210] (m210-2007@mail.ru)
+ */
+
 package ru.m210projects.Build.Script;
 
 import static ru.m210projects.Build.Engine.DETAILPAL;
@@ -42,7 +53,8 @@ public class DefScript implements Disposable {
 	public DefScript(DefScript src) {
 		this.disposable = true;
 		this.texInfo = new TextureHDInfo(src.texInfo);
-		this.mdInfo = new ModelInfo(src.mdInfo);
+		this.mdInfo = new ModelInfo(src.mdInfo, src.disposable);
+		this.audInfo = new AudioInfo(src.audInfo);
 	}
 	
 	public DefScript(boolean disposable) {

@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.Locale;
 
@@ -245,6 +246,23 @@ public class Compat {
 		RandomAccessFile fis = raf_list[handle];
 		try {
 			out = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, position, len);
+			out.order(ByteOrder.LITTLE_ENDIAN);
+		} catch (IOException e) {
+			throw new RuntimeException("Couldn't load file " + handle);
+	    }
+		
+		return out;
+	}
+	
+	public static ByteBuffer Bbuffer(int handle)
+	{
+		ByteBuffer out = null;
+		
+		FileIndicator = true;
+		RandomAccessFile fis = raf_list[handle];
+		try {
+			out = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, fis.length());
+			out.order(ByteOrder.LITTLE_ENDIAN);
 		} catch (IOException e) {
 			throw new RuntimeException("Couldn't load file " + handle);
 	    }

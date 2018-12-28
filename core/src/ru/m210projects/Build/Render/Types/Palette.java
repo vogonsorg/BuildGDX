@@ -14,7 +14,7 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Render.Types;
 
 public class Palette {
 	public short r;

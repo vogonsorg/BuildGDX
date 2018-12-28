@@ -1,3 +1,20 @@
+// This file is part of BuildGDX.
+// Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+// BuildGDX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// BuildGDX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
+
 package ru.m210projects.Build.Script;
 
 import static ru.m210projects.Build.Engine.MAXSPRITES;
@@ -10,7 +27,7 @@ import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.Render.Types.Hudtyp;
-import ru.m210projects.Build.Types.Tile2model;
+import ru.m210projects.Build.Render.Types.Tile2model;
 
 public class ModelInfo implements Disposable {
 
@@ -35,10 +52,10 @@ public class ModelInfo implements Disposable {
 			spritesmooth[i] = new Spritesmooth();
 	}
 	
-	public ModelInfo(ModelInfo src)
+	public ModelInfo(ModelInfo src, boolean disposable)
 	{
 		for(int i = 0; i < cache.length; i++)
-			cache[i] = src.cache[i].clone();
+			cache[i] = src.cache[i].clone(disposable);
 		for(int i = 0; i < 2; i++) 
 			for(int j = 0; j < MAXTILES; j++)
 				this.hudInfo[i][j] = src.hudInfo[i][j].clone();
@@ -144,6 +161,9 @@ public class ModelInfo implements Disposable {
 	@Override
 	public void dispose() {
 		for (int i=MAXTILES-1; i>=0; i--) {
+			if(!cache[i].disposable) 
+				continue;
+			
 	        if (cache[i].model != null) {
 	            cache[i].model.free();
 	            cache[i].model = null;

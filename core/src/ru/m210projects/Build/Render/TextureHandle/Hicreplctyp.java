@@ -16,6 +16,13 @@ public class Hicreplctyp {
 	    {
 	    	face = new String[6];
 	    }
+	    
+	    public Hicskybox(Hicskybox src)
+	    {
+	    	this.face = new String[6];
+	    	System.arraycopy(src.face, 0, face, 0, 6);
+	    	this.ignore = src.ignore;
+	    }
 	}
 
 	public String filename;
@@ -27,7 +34,8 @@ public class Hicreplctyp {
     public Hicreplctyp(Hicreplctyp src)
     {
     	this.filename = src.filename;
-    	this.skybox = src.skybox;
+    	if(src.skybox != null)
+    		this.skybox = new Hicskybox(src.skybox);
     	this.palnum = src.palnum;
     	this.ignore = src.ignore;
     	this.flags = src.flags;
@@ -36,7 +44,7 @@ public class Hicreplctyp {
     	this.yscale = src.yscale;
     	this.specpower = src.specpower;
     	this.specfactor = src.specfactor;
-    	this.next = src.next;
+    	this.next = null;
     }
     
     public Hicreplctyp(int palnum)

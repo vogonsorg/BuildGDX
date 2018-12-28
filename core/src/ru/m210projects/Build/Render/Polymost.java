@@ -55,11 +55,11 @@ import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hudtyp;
+import ru.m210projects.Build.Render.Types.Palette;
+import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
-import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
-import ru.m210projects.Build.Types.Tile2model;
 import ru.m210projects.Build.Types.WALL;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
@@ -4471,7 +4471,6 @@ public abstract class Polymost implements Renderer {
 	
 		// ------------
 		gl.glDisable(GL_CULL_FACE);
-//		gl.glPopAttrib();
 		gl.glLoadIdentity();
 
 		return 1;

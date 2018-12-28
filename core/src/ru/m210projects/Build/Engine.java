@@ -55,6 +55,12 @@ import com.badlogic.gdx.graphics.PixmapIO;
 public abstract class Engine {
 	
 	/*
+	 *  TODO:
+	 * 	Disable mipmaps build in nearest filter
+	 *  kOpen external file -> native bytebuffer
+	 *  
+	 * 
+	 * 
 	 * 	Engine
 	 * 		messages
 	 * 		filecache

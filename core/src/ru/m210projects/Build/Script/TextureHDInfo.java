@@ -21,7 +21,7 @@ import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 
 import ru.m210projects.Build.Render.TextureHandle.Hicreplctyp;
-import ru.m210projects.Build.Types.Palette;
+import ru.m210projects.Build.Render.Types.Palette;
 
 public class TextureHDInfo {
 	
@@ -40,7 +40,8 @@ public class TextureHDInfo {
 			this.tinting[i] = new Palette(src.tinting[i]);
 		for (int i = 0; i < MAXTILES; i++) {
 			if(src.cache[i] == null) continue;
-			this.cache[i] = new Hicreplctyp(src.cache[i]);
+			for (Hicreplctyp hr = src.cache[i]; hr != null; hr = hr.next)
+				add(new Hicreplctyp(hr), i);
 		}
 	}
 	
@@ -136,7 +137,7 @@ public class TextureHDInfo {
 
 	    Hicreplctyp hr = get(picnum, palnum);
 	    if (hr == null) // no replacement yet defined
-	    	add(hr = new Hicreplctyp(palnum, true), picnum);
+	    	add(hr = new Hicreplctyp(palnum, true), picnum); 
 	    
 	    System.arraycopy(faces, 0, hr.skybox.face, 0, 6);
 	    hr.skybox.ignore = 0;
