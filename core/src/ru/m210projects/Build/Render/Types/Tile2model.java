@@ -4,7 +4,6 @@
 * See the included license file "BUILDLIC.TXT" for license info.
 * 
 * This file has been modified
-* by the EDuke32 team (development@voidpoint.com)
 * by Alexander Makarov-[M210] (m210-2007@mail.ru)
 */
 
@@ -19,7 +18,7 @@ public class Tile2model {
 	public VOXModel	voxel;
 	public int     	skinnum;
     public int     	framenum;   // calculate the number from the name when declaring
-    public float   	smoothduration;  
+    public float   	smoothduration;
     public boolean disposable;
     
     public Tile2model clone(boolean disposable)
