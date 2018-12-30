@@ -8,9 +8,13 @@
 
 package ru.m210projects.Build.Render.TextureHandle;
 
+import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
+import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Engine.tilesizx;
@@ -20,8 +24,13 @@ import static ru.m210projects.Build.Engine.usehightile; //TODO: GL settings
 import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.*;
 
+import java.nio.ByteBuffer;
+
+import static ru.m210projects.Build.FileHandle.Cache1D.*;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
+
+import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
@@ -29,21 +38,25 @@ import ru.m210projects.Build.Script.TextureHDInfo;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class TextureCache {
 	
 	private final ValueResolver<Integer> anisotropy;
 	private final Pthtyp[] cache;
-    private final boolean useShader;
     private TextureHDInfo info;
+    
+    private ShaderProgram shader;
+	private BTexture palette[];
 
 	public TextureCache(ValueResolver<Integer> anisotropy) {
 		this.anisotropy = anisotropy;
 		cache = new Pthtyp[MAXTILES];
-	    useShader = false;
+	    boolean useShader = false;
 	    if(useShader)
-	    	createShader();
+	    	shader = createShader();
 	}
 	
 	public void setTextureInfo(TextureHDInfo info)
@@ -103,7 +116,7 @@ public class TextureCache {
 		if (palookup[dapal] == null)
 			dapal = 0;
 
-		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, useShader);
+		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, shader != null);
 
 		//Realloc for user tiles
 		if (pth.glpic != null && (pth.glpic.getWidth() != xsiz || pth.glpic.getHeight() != ysiz)) {
@@ -118,7 +131,7 @@ public class TextureCache {
 		}
 		
 		bindTexture(pth.glpic);
-		int intexfmt = useShader ? GL_LUMINANCE : (picInfo.hasalpha ? GL_RGBA : GL_RGB);
+		int intexfmt = shader != null ? GL_LUMINANCE : (picInfo.hasalpha ? GL_RGBA : GL_RGB);
 
 		if (Gdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
@@ -298,7 +311,7 @@ public class TextureCache {
 		}
 		return pth;
 	}
-
+	
 	public void updateSettings(int gltexfiltermode) {
 		for (int i=MAXTILES-1; i>=0; i--) {
 			for (Pthtyp pth=cache[i]; pth != null; pth = pth.next) {
@@ -336,5 +349,81 @@ public class TextureCache {
 			}
 			cache[i] = null;
 		}
+	}
+	
+	
+	//Shader feature
+	
+	private BTexture createPalette(byte[] paldata, int shade)
+	{
+		ByteBuffer buffer = getTmpBuffer();
+		buffer.clear();
+		for(int p = 0; p < MAXPALOOKUPS; p++) {
+			int pal = p;
+			if(palookup[pal] == null) pal = 0;
+			
+			for(int i = 0; i < 256; i++)
+			{
+				int dacol = palookup[pal][i + (shade << 8)] & 0xFF;
+				buffer.put(paldata[3 * dacol]);
+				buffer.put(paldata[3 * dacol + 1]); 
+				buffer.put(paldata[3 * dacol + 2]); 
+			}
+		}
+		buffer.flip();
+
+		BTexture palette = new BTexture();
+		palette.bind(1);
+		Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, MAXPALOOKUPS, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+		setupBoundTexture(0, 0);
+		
+		return palette;
+	}
+	
+	private ShaderProgram createShader() 
+	{
+	    String fragment = new String(kGetBytes("fragment.glsl", 0));
+	    String vertex = new String(kGetBytes("vertex.glsl", 0));
+	    
+	    ShaderProgram shader = new ShaderProgram(vertex, fragment);
+        if(!shader.isCompiled())
+        	Console.Println("Shader compile error: " + shader.getLog(), OSDTEXT_RED);
+
+        palette = new BTexture[numshades];
+        for(int i = 0; i < numshades; i++)
+        	palette[i] = createPalette(Engine.palette, i);
+        
+        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+        
+        return shader;
+	}
+	
+	public void bindShader()
+	{
+		if(shader != null) 
+			shader.begin();
+	}
+
+	public void unbindShader()
+	{
+		if(shader != null) {
+			shader.end();
+			Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+		}
+	}
+	
+	public void setShaderParams(int pal, int shade)
+	{
+		if(shader == null) return;
+		
+		palette[shade].bind(1);
+		shader.setUniformi("u_colorTable", 1);
+		shader.setUniformf("u_pal", pal);
+	}
+	
+	public void shaderTransparent(float alpha)
+	{
+		if(shader != null)
+			shader.setUniformf("u_alpha", alpha);
 	}
 }

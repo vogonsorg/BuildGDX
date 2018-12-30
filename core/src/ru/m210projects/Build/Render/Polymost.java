@@ -182,10 +182,11 @@ public abstract class Polymost implements Renderer {
 	}
 	
 	class GLSurface {
-		public int type;
+//		public int type;
 		public int numvertices;
 		public Pthtyp pth;
-		public int picnum;
+		public short picnum;
+		public byte shade;
 
 		public FloatBuffer buffer;
 		public GLFog fog;
@@ -198,7 +199,7 @@ public abstract class Polymost implements Renderer {
 		}
 
 		public void clear() {
-			type = 0;
+//			type = 0;
 			numvertices = 0;
 			picnum = 0;
 			pth = null;
@@ -734,6 +735,11 @@ public abstract class Polymost implements Renderer {
 		if(pth == null) //hires texture not found
 			return;
 
+		if(!pth.isHighTile()) {
+			textureCache.bindShader();
+			textureCache.setShaderParams(globalpal, engine.getpalookup(globalvisibility, globalshade));
+			gl.glDisable(GL_FOG);
+		}
 		bindTexture(pth.glpic);
 		
 		GLSurface surf = null;
@@ -741,6 +747,7 @@ public abstract class Polymost implements Renderer {
 			surf = surfaces.build();
 			surf.pth = pth;	
 			surf.picnum = globalpicnum;
+			surf.shade = (byte) globalshade;
 		}
 		
 		if (srepeat != 0)
@@ -855,6 +862,8 @@ public abstract class Polymost implements Renderer {
 		}
 
 		calcHictintingColor(pth);
+		
+		textureCache.shaderTransparent(polyColor.a);
 
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
@@ -917,8 +926,10 @@ public abstract class Polymost implements Renderer {
 					du1 = f;
 			}
 			
-			if((tsizx|tsizy) == 0)
+			if((tsizx|tsizy) == 0) {
+				System.err.println("return");
 				return;
+			}
 
 			f = 1.0 / (double) tsizx;
 			ix0 = (int) floor(du0 * f);
@@ -1063,6 +1074,11 @@ public abstract class Polymost implements Renderer {
 		if (trepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
 					GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+		
+		if(!pth.isHighTile()) {
+			textureCache.unbindShader();
+			EnableFog();
+		}
 	}
 
 	// variables that are set to ceiling- or floor-members, depending
@@ -2311,8 +2327,6 @@ public abstract class Polymost implements Renderer {
 		gl.glDisable(GL_BLEND);
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_DEPTH_TEST);
-		
-		surfaceType = 0;
 
 		gl.glDepthFunc(GL_LEQUAL); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
 		gl.glDepthRange(defznear, defzfar); //<- this is more widely supported than glPolygonOffset
@@ -3480,23 +3494,26 @@ public abstract class Polymost implements Renderer {
 		gl.glEnableClientState(GL_COLOR_ARRAY);
 		
 		Pthtyp p = null;
+		textureCache.bindShader();
 		for(int i = 0; i < surfaces.size; i++)
 		{
 			GLSurface s = surfaces.get(i);
 			if(!s.buffer.hasRemaining()) continue;
-			
-			if(s.pth != p) 
+
+			if(s.pth != p) {
+				textureCache.setShaderParams(s.pth.palnum, engine.getpalookup(globalvisibility, s.shade & 0xFF));
 				bindTexture(s.pth.glpic);
+			}
 			p = s.pth;
 			
 			s.fog.apply();
 
-			gl.glVertexPointer(3, GL_FLOAT, 4 * 9, s.buffer);
+			gl.glVertexPointer(3, GL_FLOAT, 4 * 9, s.buffer.position(0));
 			gl.glTexCoordPointer(2, GL_FLOAT, 4 * 9, s.buffer.position(3));
 			gl.glColorPointer(4, GL_FLOAT, 4 * 9, s.buffer.position(5));
 			gl.glDrawArrays(GL_TRIANGLE_FAN, 0, s.numvertices);
 		}
-		
+		textureCache.unbindShader();
 		gl.glDisableClientState(GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL_COLOR_ARRAY);
@@ -5139,6 +5156,7 @@ public abstract class Polymost implements Renderer {
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int oxpos = xpos;
 		
+		gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
 
 		setpolymost2dview();
@@ -5435,6 +5453,10 @@ public abstract class Polymost implements Renderer {
 		if(pth == null) //hires texture not found
 			return;
 
+		if(!pth.isHighTile()) {
+			textureCache.bindShader();
+			textureCache.setShaderParams(globalpal, engine.getpalookup(0, globalshade));
+		}
 		bindTexture(pth.glpic);
 
 		float hackscx = 1.0f, hackscy = 1.0f;
@@ -5478,21 +5500,25 @@ public abstract class Polymost implements Renderer {
 		}
 		calcHictintingColor(pth);
 		
+		textureCache.shaderTransparent(polyColor.a);
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 	
 		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		gl.glEnableClientState(GL_VERTEX_ARRAY);
-		
+
 		gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
 		gl.glVertexPointer(2, GL_FLOAT, 0, vertices);
 		
 		gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		
+
 		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL_VERTEX_ARRAY);
 
 		gl.glMatrixMode(GL_TEXTURE);
 		gl.glPopMatrix();
+		
+		if(!pth.isHighTile()) 
+			textureCache.unbindShader();
 	}
 
 	protected void calcHictintingColor(Pthtyp pth)

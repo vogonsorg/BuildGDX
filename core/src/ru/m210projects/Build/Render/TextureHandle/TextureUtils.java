@@ -8,20 +8,16 @@
 
 package ru.m210projects.Build.Render.TextureHandle;
 
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 
 import java.nio.ByteBuffer;
 
 import ru.m210projects.Build.Architecture.BuildGDX;
-import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class TextureUtils {
@@ -30,8 +26,6 @@ public class TextureUtils {
 
 	private static ByteBuffer tmp_buffer;
 	private static int gltexmaxsize = 0;
-	
-	private static ShaderProgram shader;
 
 	private static GLFilter[] glfiltermodes = {
 			new GLFilter("GL_NEAREST", GL_NEAREST, GL_NEAREST), // 0
@@ -78,30 +72,11 @@ public class TextureUtils {
 	}
 
 	public static void bindTexture(BTexture tex) {
-		tex.bind();
+		tex.bind(0);
 	}
 
 	public static void deleteTexture(BTexture tex) {
 		tex.dispose();
-	}
-	
-	public static void createShader()
-	{
-		byte[] file = kGetBytes("fragment.glsl", 0);
-	    String fragment = new String(file);
-	    shader = new ShaderProgram(SpriteBatch.createDefaultShader().getVertexShaderSource(), fragment);
-        if(!shader.isCompiled())
-        	Console.Println("Shader compile error: " + shader.getLog());
-	}
-	
-	public static void bindShader()
-	{
-		shader.begin();
-	}
-	
-	public static void unbindShader()
-	{
-		shader.end();
 	}
 
 	public static void uploadBoundTexture(boolean doalloc, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic, int tsizx, int tsizy) {

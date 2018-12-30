@@ -289,7 +289,28 @@ public class DefScript implements Disposable {
 	private final static Map<String , Token> texturetokens = new HashMap<String , Token>() {
 		private static final long serialVersionUID = 1L;
 		{
-			put("pal",   Token.PAL  );
+			put("pal",    			Token.PAL);
+			put("detail",    		Token.DETAIL);
+			put("glow",    			Token.GLOW);
+			put("specular",    		Token.SPECULAR);
+			put("normal",    		Token.NORMAL);
+
+			put( "file",            Token.FILE );
+			put( "name", 			Token.FILE );
+            put( "alphacut",        Token.ALPHACUT );
+            put( "detailscale",     Token.XSCALE ); 
+            put( "scale",  			Token.XSCALE ); 
+            put( "xscale", 			Token.XSCALE ); 
+            put( "intensity",  		Token.XSCALE );
+            put( "yscale",          Token.YSCALE );
+            put( "specpower",       Token.SPECPOWER ); 
+            put( "specularpower", 	Token.SPECPOWER ); 
+            put( "parallaxscale", 	Token.SPECPOWER );
+            put( "specfactor",      Token.SPECFACTOR ); 
+            put( "specularfactor", 	Token.SPECFACTOR ); 
+            put( "parallaxbias", 	Token.SPECFACTOR );
+            put( "nocompress",      Token.NOCOMPRESS );
+            put( "nodownsize",      Token.NODOWNSIZE );
 		}
 	};
 	
@@ -761,7 +782,7 @@ public class DefScript implements Disposable {
                         	Console.Println("Error: missing or invalid 'palette number' for texture definition near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
                             break;
                         }
-                        if (tfn == null)
+                        if (tfn == null) 
                         {
                         	Console.Println("Error: missing 'file name' for texture definition near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
                             break;
