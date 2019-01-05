@@ -9,6 +9,12 @@
 package ru.m210projects.Build.Loader;
 
 public class MDAnimation {
+	
+	public static final int MDANIM_LOOP = 0;
+	public static final int MDANIM_ONESHOT = 1;
+	public static long mdtims, omdtims;
+	public static int mdpause;
+	
 	public int startframe, endframe;
 	public int fpssc, flags;
 	public MDAnimation next;

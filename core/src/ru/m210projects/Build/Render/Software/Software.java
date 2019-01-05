@@ -16,7 +16,6 @@ import static ru.m210projects.Build.Engine.MAXSECTORS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXSPRITESONSCREEN;
 import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXVOXELS;
 import static ru.m210projects.Build.Engine.MAXWALLS;
 import static ru.m210projects.Build.Engine.MAXXDIM;
 import static ru.m210projects.Build.Engine.MAXYDIM;
@@ -65,7 +64,6 @@ import static ru.m210projects.Build.Engine.spritesortcnt;
 import static ru.m210projects.Build.Engine.textfont;
 import static ru.m210projects.Build.Engine.tilesizx;
 import static ru.m210projects.Build.Engine.tilesizy;
-import static ru.m210projects.Build.Engine.tiletovox;
 import static ru.m210projects.Build.Engine.transluc;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.usevoxels;
@@ -104,6 +102,7 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
@@ -114,6 +113,7 @@ public class Software implements Renderer {
 	
 	private Ac a;
 	protected Engine engine;
+	private DefScript defs;
 
 	private int numpages; //XXX
 	public int bytesperline, frameoffset;
@@ -203,7 +203,7 @@ public class Software implements Renderer {
 	private int oxyaspect, oxdimen, oviewingrange;
 
 	private final int MAXVOXMIPS = 5;
-	Model[][] voxoff = new Model[MAXVOXELS][MAXVOXMIPS];
+	Model[][] voxoff = new Model[MAXSPRITES][MAXVOXMIPS];
 	private int[] zofslope = new int[2];
 	
 //	private final int MAXXSIZ = 256;	
@@ -858,8 +858,8 @@ public class Software implements Renderer {
 		short cstat = tspr.cstat;
 		
 		if ((cstat&48)==48) vtilenum = tilenum;	// if the game wants voxels, it gets voxels
-		else if ((cstat&48)!=48 && (usevoxels) && (tiletovox[tilenum] != -1)) {
-			vtilenum = tiletovox[tilenum];
+		else if ((cstat&48)!=48 && (usevoxels) && (defs != null && defs.mdInfo.getVoxel(tilenum) != null)) {
+//			vtilenum = defs.mdInfo.getVoxel(tilenum); //XXX VOXEL DRAW
 			cstat |= 48;
 		}
 		
@@ -3597,5 +3597,9 @@ public class Software implements Renderer {
 
 	@Override
 	public void removeSpriteCorr(int snum) {
+	}
+
+	@Override
+	public void setDefs(DefScript defs) {
 	}
 }

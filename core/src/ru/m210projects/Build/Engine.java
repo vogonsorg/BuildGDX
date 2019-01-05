@@ -15,7 +15,6 @@ import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
-import static ru.m210projects.Build.Render.Types.Hightile.*;
 import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
@@ -37,14 +36,13 @@ import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
-import ru.m210projects.Build.Render.Types.Spritesmooth;
+import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Neartag;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
-import ru.m210projects.Build.Types.Tile2model;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
@@ -57,6 +55,12 @@ import com.badlogic.gdx.graphics.PixmapIO;
 public abstract class Engine {
 	
 	/*
+	 *  TODO:
+	 * 	Disable mipmaps build in nearest filter
+	 *  kOpen external file -> native bytebuffer
+	 *  
+	 * 
+	 * 
 	 * 	Engine
 	 * 		messages
 	 * 		filecache
@@ -148,7 +152,7 @@ public abstract class Engine {
 	private BuildMessage message;
 	private BAudio audio;
 	private static KeyInput input;
-	
+
 	public static boolean offscreenrendering;
 	
 	public static float TRANSLUSCENT1 = 0.66f;
@@ -183,7 +187,7 @@ public abstract class Engine {
 	public static int MAXSPRITES = MAXSPRITESV7;
 	public static final int MAXSPRITESONSCREEN = 1024;
 	public static final int MAXVOXELS = MAXSPRITES;
-	public static final int EXTRATILES = (MAXTILES / 8);
+//	public static final int EXTRATILES = (MAXTILES / 8);
 	public static final int MAXUNIQHUDID = 256; //Extra slots so HUD models can store animation state without messing game sprites
 	public static final int MAXPSKYMULTIS = 8;
 	public static final int MAXPLAYERS = 16;
@@ -195,7 +199,6 @@ public abstract class Engine {
 	public static int totalclock;
 	public static short pskyoff[], zeropskyoff[], pskybits;
 	public static Spriteext[] spriteext;
-	public static Spritesmooth[] spritesmooth;
 	public static byte parallaxtype;
 	public static boolean showinvisibility;
 	public static int visibility, parallaxvisibility;
@@ -270,13 +273,9 @@ public abstract class Engine {
 	public static byte[] curpalette;
 	public static FadeEffect palfadergb;
 
-	public static Tile2model[] tile2model;
 	public static int clipmoveboxtracenum = 3;
 	public static int hitscangoalx = (1 << 29) - 1, hitscangoaly = (1 << 29) - 1;
 	public static final int MAXVOXMIPS = 5;
-//	public static byte[][][] voxoff;
-	public static int[] tiletovox;
-	public static boolean[] voxrotate;
 	public static int globalposx, globalposy, globalposz; //polymost
 	public static float globalhoriz, globalang;
 	public static float pitch;
@@ -359,6 +358,7 @@ public abstract class Engine {
 	public static int r_animsmoothing = 1;
 	public static int glanisotropy = 1; // 0 = maximum supported by card
 		
+	
 	//Engine.c
 
 	public int getpalookup(int davis, int dashade) //jfBuild
@@ -902,7 +902,7 @@ public abstract class Engine {
 		pskyoff = new short[MAXPSKYTILES];
 		zeropskyoff = new short[MAXPSKYTILES];
 		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID];
-		spritesmooth = new Spritesmooth[MAXSPRITES+MAXUNIQHUDID];
+		
 		tilesizx = new short[MAXTILES]; 
 		tilesizy = new short[MAXTILES];
 		picanm = new int[MAXTILES];
@@ -935,7 +935,7 @@ public abstract class Engine {
 			@Override
 			public void update(int intensive) {}
 		};
-		tile2model = new Tile2model[MAXTILES + EXTRATILES];
+
 		rxi = new int[4]; 
 		ryi = new int[4];
 		hitwalls = new short[clipmoveboxtracenum + 1];
@@ -950,24 +950,17 @@ public abstract class Engine {
 		colnext = new byte[256];
 		colscan = new int[27];
 		radarang = new short[1280]; //1024
-//		voxoff = new byte[MAXVOXELS][MAXVOXMIPS][];
-		tiletovox = new int[MAXTILES];
-		voxrotate = new boolean[MAXTILES]; 
 		palette = new byte[768];
 	
 		for (int i = 0; i < spriteext.length; i++)
 			spriteext[i] = new Spriteext();
-		for (int i = 0; i < spritesmooth.length; i++)
-			spritesmooth[i] = new Spritesmooth();
-		
+
 		palookup = new byte[MAXPALOOKUPS][];
 		waloff = new byte[MAXTILES][];
 		
 		Arrays.fill(show2dsector, (byte)0);
 		Arrays.fill(show2dsprite, (byte)0);
 		Arrays.fill(show2dwall, (byte)0);
-		Arrays.fill(tiletovox, -1);
-//		Arrays.fill(voxscale, 65536);
 		
 		bakwindowx1 = new int[4]; 
 		bakwindowy1 = new int[4];
@@ -998,8 +991,6 @@ public abstract class Engine {
 
 		loadpalette();
 
-		if (!hicfirstinit) hicinit();
-		
 		initkeys();
 
 		Console.setFunction(new DEFOSDFUNC(this));
@@ -3549,7 +3540,7 @@ public abstract class Engine {
 //			setpalette(0,256,(char*)tempbuf);
 
 		if ((flags & 2) != 0) 
-			render.gltexinvalidateall(0);
+			render.gltexinvalidateall(flags);
 
 		palfadergb.r = palfadergb.g = palfadergb.b = 0;
 		palfadergb.a = 0;
@@ -3914,24 +3905,6 @@ public abstract class Engine {
 		return capture;
 	}
 
-	public void savetexture(byte[] pixels, int tw, int th, int w, int h, int num) { //gdxBuild
-		Pixmap pixmap = new Pixmap(w, h, Format.RGB888);
-
-		for (int i = 0; i < (tw * th); i++) {
-			int row = (int) Math.floor(i / tw);
-			int col = i % tw;
-			if (col < w && row < h) {
-				pixmap.setColor((pixels[4 * i + 0] & 0xFF) / 255.f, (pixels[4 * i + 1] & 0xFF) / 255.f, (pixels[4 * i + 2] & 0xFF) / 255.f, 1);
-				pixmap.drawPixel(col, row);
-			}
-		}
-
-		PixmapIO.writePNG(new FileHandle("texture" + num + ".png"), pixmap);
-
-		System.out.println("texture" + num + ".png saved!");
-		pixmap.dispose();
-	}
-
 	public int setrendermode(Renderer render) { //gdxBuild
 		this.render = render;
 
@@ -4143,5 +4116,22 @@ public abstract class Engine {
     public BAudio getAudio() //gdxBuild
     {
     	return audio;
+    }
+    
+    private DefScript defs;
+    public void setDefs(DefScript defs)
+    {
+    	if(this.defs != null)
+    		this.defs.dispose();
+    	
+    	this.defs = defs;  
+    	if(getrender() == null)
+    		throw new NullPointerException("Renderer is not initialized!");
+    	getrender().setDefs(defs);
+    }
+    
+    public DefScript getDefs()
+    {
+    	return defs;
     }
 }

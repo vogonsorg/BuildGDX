@@ -4,7 +4,7 @@
  * See the included license file "BUILDLIC.TXT" for license info.
  */
 
-package ru.m210projects.Build.Render.Types;
+package ru.m210projects.Build.Render.TextureHandle;
 
 public class Pthtyp {
 
@@ -15,7 +15,8 @@ public class Pthtyp {
 	public short flags; // 1 = clamped (dameth&4), 2 = hightile, 4 = skybox face, 8 = hasalpha, 16 = hasfullbright, 128 = invalidated, 256 = non-transparent
 	public short skyface;
 	public Hicreplctyp hicr;
-
+	public Pthtyp next;
+	
 	public short sizx, sizy;
 	public float scalex, scaley;
 
