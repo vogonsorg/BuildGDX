@@ -76,7 +76,7 @@ public class ModelInfo implements Disposable {
 		return null;
 	}
 	
-	public Model getVoxel(int picnum)
+	public VOXModel getVoxel(int picnum)
 	{
 		if(cache[picnum] != null)
 			return cache[picnum].voxel;

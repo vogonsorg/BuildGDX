@@ -37,9 +37,12 @@ import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
 import ru.m210projects.Build.Script.TextureHDInfo;
 
 import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.PixmapIO;
+import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class TextureCache {
@@ -351,6 +354,24 @@ public class TextureCache {
 		}
 	}
 	
+	public void savetexture(ByteBuffer pixels, int tw, int th, int w, int h, int num) {
+		Pixmap pixmap = new Pixmap(w, h, Format.RGB888);
+
+		for (int i = 0; i < (tw * th); i++) {
+			int row = (int) Math.floor(i / tw);
+			int col = i % tw;
+			if (col < w && row < h) {
+				pixmap.setColor((pixels.get(4 * i) & 0xFF) / 255.f, (pixels.get(4 * i + 1) & 0xFF) / 255.f, (pixels.get(4 * i + 2) & 0xFF) / 255.f, 1);
+				pixmap.drawPixel(col, row);
+			}
+		}
+
+		PixmapIO.writePNG(new FileHandle("texture" + num + ".png"), pixmap);
+
+		System.out.println("texture" + num + ".png saved!");
+		pixmap.dispose();
+	}
+	
 	
 	//Shader feature
 	
@@ -425,5 +446,10 @@ public class TextureCache {
 	{
 		if(shader != null)
 			shader.setUniformf("u_alpha", alpha);
+	}
+	
+	public boolean isUseShader()
+	{
+		return shader != null;
 	}
 }

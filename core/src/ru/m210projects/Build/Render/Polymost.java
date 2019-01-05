@@ -735,7 +735,7 @@ public abstract class Polymost implements Renderer {
 		if(pth == null) //hires texture not found
 			return;
 
-		if(!pth.isHighTile()) {
+		if(!pth.isHighTile() && textureCache.isUseShader()) {
 			textureCache.bindShader();
 			textureCache.setShaderParams(globalpal, engine.getpalookup(globalvisibility, globalshade));
 			gl.glDisable(GL_FOG);
@@ -926,10 +926,8 @@ public abstract class Polymost implements Renderer {
 					du1 = f;
 			}
 			
-			if((tsizx|tsizy) == 0) {
-				System.err.println("return");
+			if((tsizx|tsizy) == 0) 
 				return;
-			}
 
 			f = 1.0 / (double) tsizx;
 			ix0 = (int) floor(du0 * f);
@@ -1075,7 +1073,7 @@ public abstract class Polymost implements Renderer {
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
 					GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 		
-		if(!pth.isHighTile()) {
+		if(!pth.isHighTile() && textureCache.isUseShader()) {
 			textureCache.unbindShader();
 			EnableFog();
 		}
@@ -1296,22 +1294,6 @@ public abstract class Polymost implements Renderer {
 		clipper.setMethod(0);
 	}
 	
-	/*
-	// Are we using the mode that uploads non-power-of-two wall textures like they
-	// render in classic?
-	private boolean isnpotmode()
-	{
-	    // The glinfo.texnpot check is so we don't have to deal with that case in
-	    // gloadtile_art().
-	    return GLInfo.texnpot != 0 &&
-	        // r_npotwallmode is NYI for hightiles. We require r_hightile off
-	        // because in calc_ypanning(), the repeat would be multiplied by a
-	        // factor even if no modified texture were loaded.
-	        (!usehightile)
-	        && r_npotwallmode != 0;
-	}
-	*/
-	
 	private void calc_ypanning(int refposz, double ryp0, double ryp1,
 			double x0, double x1, short ypan, short yrepeat, boolean dopancor) {
 		double t0 = ((float) (refposz - globalposz)) * ryp0 + ghoriz;
@@ -1320,7 +1302,6 @@ public abstract class Polymost implements Renderer {
 		int i = (1 << (picsiz[globalpicnum] >> 4));
 		if (i < tilesizy[globalpicnum]) i <<= 1;
 
-		//if (isnpotmode())
 		if(GLInfo.texnpot != 0)
 	    {
 			if(!dopancor) //texture scaled, it's need to fix
@@ -2339,11 +2320,9 @@ public abstract class Polymost implements Renderer {
 		gcosang = cosglobalang / 262144.0f;
 		gsinang = singlobalang / 262144.0f;
 		gcosang2 = gcosang * (viewingrange / 65536.0f);
-
 		gsinang2 = gsinang * (viewingrange / 65536.0f);
 		ghalfx = halfxdimen;
 		grhalfxdown10 = 1.0f / (ghalfx * 1024.0f); //viewport
-		
 		// global cos/sin height angle
 		ghoriz = ydimen >> 1;
 		r = (ghoriz - globalhoriz);

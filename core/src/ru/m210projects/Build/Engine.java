@@ -3905,24 +3905,6 @@ public abstract class Engine {
 		return capture;
 	}
 
-	public void savetexture(byte[] pixels, int tw, int th, int w, int h, int num) { //gdxBuild
-		Pixmap pixmap = new Pixmap(w, h, Format.RGB888);
-
-		for (int i = 0; i < (tw * th); i++) {
-			int row = (int) Math.floor(i / tw);
-			int col = i % tw;
-			if (col < w && row < h) {
-				pixmap.setColor((pixels[4 * i + 0] & 0xFF) / 255.f, (pixels[4 * i + 1] & 0xFF) / 255.f, (pixels[4 * i + 2] & 0xFF) / 255.f, 1);
-				pixmap.drawPixel(col, row);
-			}
-		}
-
-		PixmapIO.writePNG(new FileHandle("texture" + num + ".png"), pixmap);
-
-		System.out.println("texture" + num + ".png saved!");
-		pixmap.dispose();
-	}
-
 	public int setrendermode(Renderer render) { //gdxBuild
 		this.render = render;
 

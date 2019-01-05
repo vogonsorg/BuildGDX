@@ -33,7 +33,7 @@ public class DirectoryEntry {
 	
 	private static HashMap<String, DirectoryEntry> cache;
 
-	public DirectoryEntry(String name, String Path)
+	protected DirectoryEntry(String name, String Path)
 	{
 		this.files = new HashMap<String, FileEntry>();
 		this.subDirectory = new HashMap<String, DirectoryEntry>();
@@ -122,7 +122,7 @@ public class DirectoryEntry {
 		return name;
 	}
 
-	public static DirectoryEntry updateCacheList(String mainpath)
+	protected static DirectoryEntry updateCacheList(String mainpath)
 	{
 		if(cache == null)
 			cache = new HashMap<String, DirectoryEntry>();
