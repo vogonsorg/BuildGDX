@@ -85,6 +85,9 @@ public class ImageUtils {
 						continue;
 					}
 					x2 = (x < tsizx) ? x : x - tsizx;
+					if (x2 * tsizy + y2 >= data.length) //sizx/y = 0 protect
+						break;
+					
 					dacol = data[x2 * tsizy + y2] & 0xFF;
 
 					a = 255;

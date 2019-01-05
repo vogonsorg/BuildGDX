@@ -26,9 +26,11 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import ru.m210projects.Build.Loader.Model;
-import ru.m210projects.Build.Render.Types.BTexture;
+import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
 public class VOXModel extends Model {
+	
+	public BTexture[] texid;
 	
 	public class voxrect_t {
 		public vert_t[] v = new vert_t[4];
@@ -54,12 +56,16 @@ public class VOXModel extends Model {
 	public int is8bit;
 	public FloatBuffer uv;
 
-	public BTexture gloadtex(int dapal) {
-		ByteBuffer buffer = getTmpBuffer();
-
+	public BTexture loadskin(int dapal) {
 		if (palookup[dapal] == null)
 			dapal = 0;
+		
+		if(texid[dapal] != null) 
+			return texid[dapal];
 
+		long startticks = System.currentTimeMillis();
+		ByteBuffer buffer = getTmpBuffer();
+		
 		int rgb = 0, r, g, b, wpptr, wp, dacol;
 		for (int x, y = 0; y < mytexy; y++) {
 			wpptr = y * mytexx;
@@ -94,6 +100,29 @@ public class VOXModel extends Model {
 		bindTexture(rtexid);
 		uploadBoundTexture(true, mytexx, mytexy, GL_RGBA, GL_RGBA, buffer, mytexx, mytexy);
 		setupBoundTexture(0, 0);
+		texid[dapal] = rtexid;
+		
+		long etime = System.currentTimeMillis()-startticks;
+		    
+		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
+
 		return rtexid;
+	}
+
+	@Override
+	public void setSkinParams(int filterMode, int anisotropy) {
+		/* nothing */
+	}
+
+	@Override
+	public void clearSkins() {
+		for(int i = 0; i < texid.length; i++)
+		{
+			BTexture tex = texid[i];
+			if(tex == null) continue;
+
+			tex.dispose();
+			texid[i] = null;
+		}
 	}
 }

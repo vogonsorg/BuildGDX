@@ -8,14 +8,16 @@ package ru.m210projects.Build.Loader.Voxels;
 
 import static java.lang.Math.max;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
+import static ru.m210projects.Build.FileHandle.Cache1D.kGetBuffer;
 import static ru.m210projects.Build.Pragmas.klabs;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 
 import ru.m210projects.Build.Loader.Voxels.VOXModel.voxrect_t;
-import ru.m210projects.Build.Render.Types.BTexture;
+import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -77,6 +79,15 @@ public class KVXLoader {
 	    }
 
 	    return(vm);
+	}
+
+	public static VOXModel load(String filepath)
+	{
+		ByteBuffer buffer = kGetBuffer(filepath, 0);
+		if(buffer == null) return null;
+
+		buffer.order( ByteOrder.LITTLE_ENDIAN);
+	    return KVXLoader.load(buffer);
 	}
 	
 	public static void loadkvx(ByteBuffer dat)

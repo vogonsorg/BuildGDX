@@ -15,8 +15,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import com.badlogic.gdx.utils.BufferUtils;
-
 import ru.m210projects.Build.FileHandle.IResource.RESHANDLE;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
@@ -511,15 +509,7 @@ public class Cache1D {
 		int filenum = filehan[handle];
 		int groupnum = filegrp[handle];
 		if (groupnum == 255) {
-			ByteBuffer byteBuffer = null;
-			int leng = Bfilelength(filenum);
-			byte[] buffer = new byte[leng];
-			Bread(filenum,buffer,leng);
-			
-			byteBuffer = BufferUtils.newByteBuffer(leng);
-			byteBuffer.put(buffer);
-			byteBuffer.rewind();
-			
+			ByteBuffer byteBuffer = Bbuffer(filenum);
 			return byteBuffer;
 		}
 		

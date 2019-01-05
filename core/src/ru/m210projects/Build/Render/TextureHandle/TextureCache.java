@@ -8,9 +8,14 @@
 
 package ru.m210projects.Build.Render.TextureHandle;
 
+import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
+import static ru.m210projects.Build.Engine.numshades;
+import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Engine.tilesizx;
 import static ru.m210projects.Build.Engine.tilesizy;
@@ -19,54 +24,64 @@ import static ru.m210projects.Build.Engine.usehightile; //TODO: GL settings
 import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
-import static ru.m210projects.Build.Render.Types.Hightile.hicfindsubst;
-import static ru.m210projects.Build.Render.Types.Hightile.hictinting;
+
+import java.nio.ByteBuffer;
+
 import static ru.m210projects.Build.FileHandle.Cache1D.*;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
-import ru.m210projects.Build.Render.Types.BTexture;
-import ru.m210projects.Build.Render.Types.Hicreplctyp;
-import ru.m210projects.Build.Render.Types.Pthtyp;
-import ru.m210projects.Build.Render.Types.ValueResolver;
+import ru.m210projects.Build.Script.TextureHDInfo;
 
 import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.PixmapIO;
+import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class TextureCache {
 	
 	private final ValueResolver<Integer> anisotropy;
-	private final Map<TextureKey, Pthtyp> cache;
-    private final MutableTextureKey key;
-    private final boolean useShader;
+	private final Pthtyp[] cache;
+    private TextureHDInfo info;
+    
+    private ShaderProgram shader;
+	private BTexture palette[];
 
 	public TextureCache(ValueResolver<Integer> anisotropy) {
 		this.anisotropy = anisotropy;
-		cache = new HashMap<TextureKey, Pthtyp>();
-	    key = new MutableTextureKey();
-	    useShader = false;
+		cache = new Pthtyp[MAXTILES];
+	    boolean useShader = false;
 	    if(useShader)
-	    	createShader();
+	    	shader = createShader();
+	}
+	
+	public void setTextureInfo(TextureHDInfo info)
+	{
+		this.info = info;
 	}
 
 	private Pthtyp get(int picnum, int palnum, boolean clamped, int surfnum) {
-		return this.cache.get(this.key.picnum(picnum).palnum(palnum).clamped(clamped).surfnum(surfnum));
+		for (Pthtyp pth = cache[picnum]; pth != null; pth = pth.next)
+	    {
+			if (pth.picnum == picnum
+					&& pth.palnum == palnum
+					&& pth.isClamped() == clamped
+					&& pth.skyface == surfnum)
+				return pth;
+	    }
+		return null;
 	}
 
 	private void add(Pthtyp tex) {
-		this.cache.put(this.key
-                .picnum(tex.picnum)
-                .palnum(tex.palnum)
-                .clamped(tex.isClamped())
-                .surfnum(tex.skyface)
-                .toImmutable(),
-                tex
-        );
+		tex.next = cache[tex.picnum];
+		cache[tex.picnum] = tex;
 	}
 
 	public void invalidate(int dapicnum, int dapalnum, boolean clamped) {
@@ -74,9 +89,9 @@ public class TextureCache {
 	}
 
 	public void invalidateall() {
-		for (Pthtyp pth : cache.values()) {
-			invalidate(pth);
-		}
+		for(int j=MAXTILES-1;j>=0;j--)
+			for(Pthtyp pth = cache[j]; pth != null; pth = pth.next)
+				invalidate(pth);
 	}
 
 	private Pthtyp gloadTileArtAlloc(int dapic, int dapal, boolean clamping, boolean alpha, Pthtyp pth) {
@@ -95,16 +110,6 @@ public class TextureCache {
 		return loadHighTile(dapic, dapal, clamping, alpha, facen, hicr, pth, effect, false);
 	}
 
-	public static int calcSize(int size) { //TODO: GL settings
-		int nsize = 1;
-		if (GLInfo.texnpot == 0) {
-			for (; nsize < size; nsize *= 2)
-				;
-			return nsize;
-		}
-		return size == 0 ? 1 : size;
-	}
-
 	private Pthtyp loadTileArt(int dapic, int dapal, boolean clamping, boolean alpha, Pthtyp pth, boolean doalloc) {
 		int tsizx = tilesizx[dapic];
 		int tsizy = tilesizy[dapic];
@@ -114,7 +119,7 @@ public class TextureCache {
 		if (palookup[dapal] == null)
 			dapal = 0;
 
-		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, useShader);
+		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, shader != null);
 
 		//Realloc for user tiles
 		if (pth.glpic != null && (pth.glpic.getWidth() != xsiz || pth.glpic.getHeight() != ysiz)) {
@@ -129,7 +134,7 @@ public class TextureCache {
 		}
 		
 		bindTexture(pth.glpic);
-		int intexfmt = useShader ? GL_LUMINANCE : (picInfo.hasalpha ? GL_RGBA : GL_RGB);
+		int intexfmt = shader != null ? GL_LUMINANCE : (picInfo.hasalpha ? GL_RGBA : GL_RGB);
 
 		if (Gdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
@@ -268,7 +273,7 @@ public class TextureCache {
 	
 	public Pthtyp cache(int dapicnum, int dapalnum, short skybox, boolean clamping, boolean alpha)
 	{
-		Hicreplctyp si = usehightile ? hicfindsubst(dapicnum,dapalnum,skybox) : null;
+		Hicreplctyp si = (usehightile && info != null) ? info.findTexture(dapicnum,dapalnum,skybox) : null;
 
 		if (si == null)
 	    {
@@ -288,7 +293,7 @@ public class TextureCache {
 		if (pth != null) {
 			if (pth.isInvalidated()) {
 				pth.setInvalidated(false);
-				if((pth = loadHighTileNoAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, pth, (si.palnum>0) ? 0 : hictinting[dapalnum].f)) == null) // reload tile
+				if((pth = loadHighTileNoAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, pth, (si.palnum>0 || info == null) ? 0 : info.getPaletteEffect(dapalnum))) == null) // reload tile
 				{
 					if (skybox != 0) return null;
 					return cache_tryart(dapicnum, dapalnum, clamping, alpha);
@@ -300,7 +305,7 @@ public class TextureCache {
 			// { ... }  if (dapalnum >= (MAXPALOOKUPS - RESERVEDPALS))
 			//
 
-			pth = gloadHighTileAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, new Pthtyp(), (si.palnum>0) ? 0 : hictinting[dapalnum].f);
+			pth = gloadHighTileAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, new Pthtyp(), (si.palnum>0 || info == null) ? 0 : info.getPaletteEffect(dapalnum));
 			if (pth != null) {
 				pth.skyface = skybox;
 				add(pth);
@@ -309,11 +314,13 @@ public class TextureCache {
 		}
 		return pth;
 	}
-
+	
 	public void updateSettings(int gltexfiltermode) {
-		for (Pthtyp pth : cache.values()) {
-			bindTexture(pth.glpic);
-			setupBoundTexture(gltexfiltermode, anisotropy.get());
+		for (int i=MAXTILES-1; i>=0; i--) {
+			for (Pthtyp pth=cache[i]; pth != null; pth = pth.next) {
+				bindTexture(pth.glpic);
+				setupBoundTexture(gltexfiltermode, anisotropy.get());
+			}
 		}
 	}
 
@@ -327,16 +334,122 @@ public class TextureCache {
 	
 	public boolean gltexmayhavealpha(int dapicnum, int dapalnum)
 	{
-		for (Pthtyp pth : cache.values()) 
+		for (Pthtyp pth = cache[dapicnum]; pth != null; pth = pth.next)
+	    {
 			if ((pth.picnum == dapicnum) && (pth.palnum == dapalnum))
 		    	return pth.hasAlpha();
+	    }
+		
 		return(true);
 	}
 
 	public void uninit() {
-		for (Pthtyp pth : cache.values()) {
-			pth.glpic.dispose();
+		for (int i=MAXTILES-1; i>=0; i--) {
+			for (Pthtyp pth=cache[i]; pth != null;) {
+				Pthtyp next = pth.next;
+				pth.glpic.dispose();
+				pth = next;
+			}
+			cache[i] = null;
 		}
-		cache.clear();
+	}
+	
+	public void savetexture(ByteBuffer pixels, int tw, int th, int w, int h, int num) {
+		Pixmap pixmap = new Pixmap(w, h, Format.RGB888);
+
+		for (int i = 0; i < (tw * th); i++) {
+			int row = (int) Math.floor(i / tw);
+			int col = i % tw;
+			if (col < w && row < h) {
+				pixmap.setColor((pixels.get(4 * i) & 0xFF) / 255.f, (pixels.get(4 * i + 1) & 0xFF) / 255.f, (pixels.get(4 * i + 2) & 0xFF) / 255.f, 1);
+				pixmap.drawPixel(col, row);
+			}
+		}
+
+		PixmapIO.writePNG(new FileHandle("texture" + num + ".png"), pixmap);
+
+		System.out.println("texture" + num + ".png saved!");
+		pixmap.dispose();
+	}
+	
+	
+	//Shader feature
+	
+	private BTexture createPalette(byte[] paldata, int shade)
+	{
+		ByteBuffer buffer = getTmpBuffer();
+		buffer.clear();
+		for(int p = 0; p < MAXPALOOKUPS; p++) {
+			int pal = p;
+			if(palookup[pal] == null) pal = 0;
+			
+			for(int i = 0; i < 256; i++)
+			{
+				int dacol = palookup[pal][i + (shade << 8)] & 0xFF;
+				buffer.put(paldata[3 * dacol]);
+				buffer.put(paldata[3 * dacol + 1]); 
+				buffer.put(paldata[3 * dacol + 2]); 
+			}
+		}
+		buffer.flip();
+
+		BTexture palette = new BTexture();
+		palette.bind(1);
+		Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, MAXPALOOKUPS, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+		setupBoundTexture(0, 0);
+		
+		return palette;
+	}
+	
+	private ShaderProgram createShader() 
+	{
+	    String fragment = new String(kGetBytes("fragment.glsl", 0));
+	    String vertex = new String(kGetBytes("vertex.glsl", 0));
+	    
+	    ShaderProgram shader = new ShaderProgram(vertex, fragment);
+        if(!shader.isCompiled())
+        	Console.Println("Shader compile error: " + shader.getLog(), OSDTEXT_RED);
+
+        palette = new BTexture[numshades];
+        for(int i = 0; i < numshades; i++)
+        	palette[i] = createPalette(Engine.palette, i);
+        
+        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+        
+        return shader;
+	}
+	
+	public void bindShader()
+	{
+		if(shader != null) 
+			shader.begin();
+	}
+
+	public void unbindShader()
+	{
+		if(shader != null) {
+			shader.end();
+			Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+		}
+	}
+	
+	public void setShaderParams(int pal, int shade)
+	{
+		if(shader == null) return;
+		
+		palette[shade].bind(1);
+		shader.setUniformi("u_colorTable", 1);
+		shader.setUniformf("u_pal", pal);
+	}
+	
+	public void shaderTransparent(float alpha)
+	{
+		if(shader != null)
+			shader.setUniformf("u_alpha", alpha);
+	}
+	
+	public boolean isUseShader()
+	{
+		return shader != null;
 	}
 }

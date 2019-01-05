@@ -8,8 +8,9 @@
 
 package ru.m210projects.Build.Loader;
 
-import static ru.m210projects.Build.Render.Types.Hightile.HICEFFECTMASK;
-import ru.m210projects.Build.Render.Types.BTexture;
+import static ru.m210projects.Build.Script.TextureHDInfo.HICEFFECTMASK;
+
+import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
 public class MDSkinmap {
 	public int palette; // Build palette number

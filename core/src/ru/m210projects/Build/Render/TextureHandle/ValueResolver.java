@@ -1,5 +1,5 @@
 // This file is part of BuildGDX.
-// Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
+// Copyright (C) 2017-2018  Kirill Klimenko-KLIMaka
 //
 // BuildGDX is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,26 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
+package ru.m210projects.Build.Render.TextureHandle;
 
-package ru.m210projects.Build.Audio.BMusic;
-
-import static ru.m210projects.Build.FileHandle.Compat.*;
-
-import java.util.HashMap;
-
-public class Highmusic {
-	public static HashMap<String, String> midToMusic = new HashMap<String, String>();
-	
-	public static void addDigitalMusic(String midi, String digital)
-	{
-		midToMusic.put(toLowerCase(midi), toLowerCase(digital));
-	}
-	
-	public static String checkDigitalMusic(String midi)
-	{
-		if(midi != null)
-			return midToMusic.get(toLowerCase(midi));
-		
-		return null;
-	}
+public interface ValueResolver<T> {
+	T get();
 }
