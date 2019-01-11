@@ -333,6 +333,7 @@ public class DefScript implements Disposable {
 		byte[] data = kGetBytes(file.getPath(), 0);
 		Scriptfile script = new Scriptfile(file.getPath(), data);
 		script.path = file.getParent().getRelativePath();
+		
 		defsparser(script);
 		
 		return true;
@@ -369,6 +370,8 @@ public class DefScript implements Disposable {
 		String fn;
 		Token token;
 		ByteBuffer buffer;
+		
+		Console.Println("Loading " + script.filename + "...");
 		
 		while (true)
         {
