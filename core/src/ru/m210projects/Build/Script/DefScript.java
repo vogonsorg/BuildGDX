@@ -178,6 +178,10 @@ public class DefScript implements Disposable {
 			put("undefmodelof",      Token.UNDEFMODELOF      );
 			put("undeftexture",      Token.UNDEFTEXTURE      );
 			put("undeftexturerange", Token.UNDEFTEXTURERANGE );
+			
+			//gdx
+			put("music", Token.MUSIC );
+			put("sound", Token.SOUND );
 		}
 	};
 	
@@ -955,9 +959,9 @@ public class DefScript implements Disposable {
                     {
                 	default: break;
                     case ID:
-                    	t_id = script.getstring(); break;
+                    	t_id = script.getstring().trim(); break;
                     case FILE:
-                    	t_file = script.getstring(); break;
+                    	t_file = script.getstring().trim(); break;
                     }
                 }
                 
