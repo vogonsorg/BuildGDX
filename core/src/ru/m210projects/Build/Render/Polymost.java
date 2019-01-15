@@ -437,6 +437,9 @@ public abstract class Polymost implements Renderer {
 	// Use this for palette effects ... but not ones that change every frame!
 	public void gltexinvalidateall() {
 		textureCache.invalidateall();
+
+		textureCache.changePalette(curpalette);
+		
 		clearskins(true);
 	}
 
@@ -447,12 +450,14 @@ public abstract class Polymost implements Renderer {
 
 	public void clearskins(boolean bit8only) {
 		if(defs == null) return;
+		
 		for (int i=MAXTILES-1; i>=0; i--) {
 			Model m = defs.mdInfo.getModel(i);
 	        if(m != null && !bit8only) m.clearSkins();
 	        
 	        Model vox = defs.mdInfo.getVoxel(i);
-	        if(vox != null) vox.clearSkins();
+	        if(vox != null && !textureCache.isUseShader()) 
+	        	vox.clearSkins();
 	    }
 	}
 	
@@ -668,14 +673,14 @@ public abstract class Polymost implements Renderer {
 		if (palookup[globalpal] == null)
 			globalpal = 0;
 
+		boolean HOM = false;
 		if (waloff[globalpicnum] == null) {
 			if(TexDebug != -1)
 				TexDebug = System.nanoTime();
 
-			engine.loadtile(globalpicnum);
-			if (waloff[globalpicnum] == null) {
-				tsizx = tsizy = 1;
-				method = 1; // Hack to update Z-buffer for invalid mirror textures
+			if (engine.loadtile(globalpicnum) == null) {
+				HOM = true;
+				gl.glDisable(GL_TEXTURE_2D);
 			}
 			
 			if(TexDebug != -1)
@@ -813,7 +818,7 @@ public abstract class Polymost implements Renderer {
 			oy2 = 1.0 / (double) yy;
 		}
 
-		if (((method & 3) == 0)) {
+		if (((method & 3) == 0) && !HOM) {
 			gl.glDisable(GL_BLEND);
 			gl.glDisable(GL_ALPHA_TEST); // alpha_test
 		} else {
@@ -848,8 +853,6 @@ public abstract class Polymost implements Renderer {
 		switch (method & 3) {
 		default:
 		case 0:
-			polyColor.a = 1.0f;
-			break;
 		case 1:
 			polyColor.a = 1.0f;
 			break;
@@ -863,8 +866,9 @@ public abstract class Polymost implements Renderer {
 
 		calcHictintingColor(pth);
 		
+		if(HOM) polyColor.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+		
 		textureCache.shaderTransparent(polyColor.a);
-
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		// Hack for walls&masked walls which use textures that are not a power
@@ -1077,6 +1081,8 @@ public abstract class Polymost implements Renderer {
 			textureCache.unbindShader();
 			EnableFog();
 		}
+		
+		if(HOM) gl.glEnable(GL_TEXTURE_2D);
 	}
 
 	// variables that are set to ceiling- or floor-members, depending
@@ -3394,20 +3400,28 @@ public abstract class Polymost implements Renderer {
 //		Console.Println("precached " + dapicnum + " " + dapalnum + " type " + datype);
 		textureCache.cache(dapicnum, dapalnum, (short) 0, clampingMode((datype & 1) << 2), false);
 
-		if (datype == 0 || !usemodels || defs == null)
+		if (datype == 0 || defs == null)
 			return;
-
-		MDModel m = (MDModel) defs.mdInfo.getModel(dapicnum);
-        if(m != null) {
-        	if(m.mdnum == 3) {
-        		int numsurfs = ((MD3Model) m).head.numSurfaces;
-        		for (int surfi = 0, skinnum; surfi < numsurfs; surfi++)
-        	    {
-        	    	skinnum = defs.mdInfo.getParams(dapicnum).skinnum;
-        			m.loadskin(defs, skinnum,globalpal,surfi);
-        	    }
-        	} else m.loadskin(defs, 0, dapalnum, 0);
-        }
+		
+		if(textureCache.isUseShader() && usevoxels)
+		{
+			VOXModel vox = defs.mdInfo.getVoxel(dapicnum);
+			if(vox != null) vox.loadskin(dapalnum, true);
+		}
+		
+		if(usemodels) {
+			MDModel m = (MDModel) defs.mdInfo.getModel(dapicnum);
+	        if(m != null) {
+	        	if(m.mdnum == 3) {
+	        		int numsurfs = ((MD3Model) m).head.numSurfaces;
+	        		for (int surfi = 0, skinnum; surfi < numsurfs; surfi++)
+	        	    {
+	        	    	skinnum = defs.mdInfo.getParams(dapicnum).skinnum;
+	        			m.loadskin(defs, skinnum,dapalnum,surfi);
+	        	    }
+	        	} else m.loadskin(defs, 0, dapalnum, 0);
+	        }
+		}
 	}
 
 	private void calc_and_apply_fog(int shade, int vis, int pal)
@@ -4426,9 +4440,13 @@ public abstract class Polymost implements Renderer {
 
 		dvoxphack[0] = 0;
 		dvoxphack[1] = 1.f / 256.f;
+		
+		textureCache.bindShader();
+		textureCache.setShaderParams(globalpal, engine.getpalookup(0, globalshade));
+		textureCache.shaderTransparent(polyColor.a);
 
 		if (m.texid[globalpal] == null)
-			m.loadskin(globalpal);
+			m.loadskin(globalpal, textureCache.isUseShader());
 		else
 			bindTexture(m.texid[globalpal]);
 
@@ -4468,6 +4486,8 @@ public abstract class Polymost implements Renderer {
 		// ------------
 		gl.glDisable(GL_CULL_FACE);
 		gl.glLoadIdentity();
+		
+		textureCache.unbindShader();
 
 		return 1;
 	}
@@ -5135,7 +5155,8 @@ public abstract class Polymost implements Renderer {
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int oxpos = xpos;
 		
-		gl.glActiveTexture(GL_TEXTURE0);
+		if(textureCache.isUseShader())
+			gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
 
 		setpolymost2dview();

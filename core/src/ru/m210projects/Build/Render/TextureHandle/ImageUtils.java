@@ -39,7 +39,7 @@ public class ImageUtils {
 		if(isPaletted)
 		{
 			if (data == null) {
-				buffer.put(0, (byte) 255);
+				buffer.put(0, (byte) 0);
 				tsizx = tsizy = 1;
 				hasalpha = true;
 			} else {
@@ -64,11 +64,7 @@ public class ImageUtils {
 		}
 
 		if (data == null) {
-			// Force invalid textures to draw something - an almost purely
-			// transparency texture
-			// This allows the Z-buffer to be updated for mirrors (which are
-			// invalidated textures)
-			buffer.putInt(0, 1 << 24); // 0 0 0 1
+			buffer.putInt(0, 0);
 			tsizx = tsizy = 1;
 			hasalpha = true;
 		} else {
