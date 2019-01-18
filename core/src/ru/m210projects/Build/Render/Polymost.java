@@ -678,11 +678,9 @@ public abstract class Polymost implements Renderer {
 			if(TexDebug != -1)
 				TexDebug = System.nanoTime();
 
-			if (engine.loadtile(globalpicnum) == null) {
+			if (engine.loadtile(globalpicnum) == null)
 				HOM = true;
-				gl.glDisable(GL_TEXTURE_2D);
-			}
-			
+
 			if(TexDebug != -1)
 				System.out.println("Loading tile " + globalpicnum + " [" + ((System.nanoTime() - TexDebug) / 1000000f) + " ms]");
 		}
@@ -974,6 +972,7 @@ public abstract class Polymost implements Renderer {
 				if (nn < 3)
 					continue;
 
+				if(HOM) gl.glDisable(GL_TEXTURE_2D);
 				gl.glBegin(GL_TRIANGLE_FAN);
 				for (i = 0; i < nn; i++) {
 					Polygon dpoly = drawpoly[i];
@@ -993,6 +992,7 @@ public abstract class Polymost implements Renderer {
 							(ghoriz - oy) * r * grhalfxdown10, r * (1.0 / 1024.0));
 				}
 				gl.glEnd();
+				if(HOM) gl.glEnable(GL_TEXTURE_2D);
 			}
 		} else {
 			ox2 *= hackscx;
@@ -1000,6 +1000,7 @@ public abstract class Polymost implements Renderer {
 
 			if(surfaceType == 0)
 			{
+				if(HOM) gl.glDisable(GL_TEXTURE_2D);
 				gl.glBegin(GL_TRIANGLE_FAN);
 				for (i = 0; i < n; i++) {
 					Polygon dpoly = drawpoly[i];
@@ -1015,6 +1016,7 @@ public abstract class Polymost implements Renderer {
 					gl.glVertex3d((dpoly.px - ghalfx) * r * grhalfxdown10x, (ghoriz - dpoly.py) * r * grhalfxdown10, r * (1.f / 1024.f));
 				}
 				gl.glEnd();
+				if(HOM) gl.glEnable(GL_TEXTURE_2D);
 			} else {
 				surf.numvertices = n;
 				surf.fog.copy(globalfog);
@@ -1081,8 +1083,6 @@ public abstract class Polymost implements Renderer {
 			textureCache.unbindShader();
 			EnableFog();
 		}
-		
-		if(HOM) gl.glEnable(GL_TEXTURE_2D);
 	}
 
 	// variables that are set to ceiling- or floor-members, depending
