@@ -29,7 +29,6 @@ public abstract class BConfig {
 	public int ScreenWidth = 640;
 	public int ScreenHeight = 400;
 	public boolean gVSync = false;
-	public boolean borderless = false;
 	public int fpslimit = 0;
 	
 	public int snddrv = 1;

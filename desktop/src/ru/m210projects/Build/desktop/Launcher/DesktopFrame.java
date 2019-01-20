@@ -84,7 +84,6 @@ public class DesktopFrame {
 	private JLabel label;
 	private JComboBox<String> comboBox;
 	private JCheckBox fullscr;
-	private JCheckBox borderless;
 	private JCheckBox chckbxUpdate;
 	private JCheckBox chckbxAlwaysShowThis;
 	private JCheckBox autoloadcheckBox;
@@ -417,16 +416,6 @@ public class DesktopFrame {
 			});
 			settings.add(comboBox);
 
-			borderless = new JCheckBox("Borderless mode");
-			borderless.setFont(font);
-			borderless.setBounds(10, 102, 140, 23);
-			borderless.addItemListener(new ItemListener() {
-			    public void itemStateChanged(ItemEvent e) {
-			    	cfg.borderless = e.getStateChange() == 1;
-			    }
-			});
-			settings.add(borderless);
-
 			midiDeviceList = new JComboBox<String>();
 			midiDeviceList.setFont(font);
 			midiDeviceList.setBounds(91, 39, 256, 20);
@@ -455,7 +444,6 @@ public class DesktopFrame {
 			return;
 		
 		fullscr.setSelected(cfg.fullscreen == 1);
-		borderless.setSelected(cfg.borderless);
 		initMidiDevice(cfg.midiSynth);
 
 		midiDeviceList.setSelectedIndex(midiDevice + 1);
@@ -571,8 +559,9 @@ public class DesktopFrame {
 	    		lwjglConfig.backgroundFPS = cfg.fpslimit;
 	    		lwjglConfig.foregroundFPS = cfg.fpslimit;
 	    		lwjglConfig.vSyncEnabled = cfg.gVSync;
-	    		
-	    		if(cfg.borderless)
+
+	    		if(LwjglApplicationConfiguration.getDesktopDisplayMode().width == cfg.ScreenWidth 
+	    				&& LwjglApplicationConfiguration.getDesktopDisplayMode().height == cfg.ScreenHeight)
 	    			System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
 //	    		System.setProperty("org.lwjgl.opengl.Display.allowSoftwareOpenGL", "true");
 	    		
