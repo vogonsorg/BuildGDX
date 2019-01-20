@@ -19,6 +19,7 @@ package ru.m210projects.Build.Types;
 public abstract class BConfig {
 	
 	public String path;
+	public String soundBank = "";
 	public boolean startup = true;
 	public boolean autoloadFolder = true;
 	public boolean userfolder = false;

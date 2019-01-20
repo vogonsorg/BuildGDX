@@ -25,7 +25,8 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glActiveTexture (int texture) {
-		GL13.glActiveTexture(texture);
+		if(Gdx.graphics.getGLVersion().isVersionEqualToOrHigher(1, 3))
+			GL13.glActiveTexture(texture);
 	}
 
 	@Override
