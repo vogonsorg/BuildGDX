@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/libs/gdx-controllers.jar" sourcepath="/libs/sources/gdx-controllers-sources.jar"/>
-	<classpathentry kind="lib" path="/libs/gdx.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-controllers.jar"/>
+	<classpathentry kind="lib" path="libs/gdx.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
