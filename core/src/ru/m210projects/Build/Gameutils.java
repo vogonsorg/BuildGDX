@@ -16,6 +16,8 @@
 
 package ru.m210projects.Build;
 
+import static ru.m210projects.Build.Engine.*;
+
 public class Gameutils {
 	
 	public static float BClampAngle(float angle)
@@ -79,5 +81,25 @@ public class Gameutils {
 	{
 		double rad_ang = daang * Math.PI * (1.0/1024.0);
 		return (Math.cos(rad_ang) * 16384.0);
+	}
+	
+	public static boolean isValidSector(short i)
+	{
+		return i >= 0 && i < MAXSECTORS;
+	}
+	
+	public static boolean isValidStat(short i)
+	{
+		return i >= 0 && i <= MAXSTATUS;
+	}
+	
+	public static boolean isValidSprite(short i)
+	{
+		return i >= 0 && i < MAXSPRITES;
+	}
+	
+	public static boolean isValidWall(short i)
+	{
+		return i >= 0 && i < MAXWALLS;
 	}
 }

@@ -154,7 +154,7 @@ public class Mmulti {
 	
 	private static void netsend (int other, byte[] dabuf, int bufsiz)
 	{
-		if(othersocket[other] == null) return;
+		if(othersocket[other] == null || mysock == null) return;
 		mysock.sendto(othersocket[other], dabuf, bufsiz);
 	}
 	

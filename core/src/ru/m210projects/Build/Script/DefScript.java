@@ -178,6 +178,10 @@ public class DefScript implements Disposable {
 			put("undefmodelof",      Token.UNDEFMODELOF      );
 			put("undeftexture",      Token.UNDEFTEXTURE      );
 			put("undeftexturerange", Token.UNDEFTEXTURERANGE );
+			
+			//gdx
+			put("music", Token.MUSIC );
+			put("sound", Token.SOUND );
 		}
 	};
 	
@@ -333,6 +337,7 @@ public class DefScript implements Disposable {
 		byte[] data = kGetBytes(file.getPath(), 0);
 		Scriptfile script = new Scriptfile(file.getPath(), data);
 		script.path = file.getParent().getRelativePath();
+		
 		defsparser(script);
 		
 		return true;
@@ -369,6 +374,8 @@ public class DefScript implements Disposable {
 		String fn;
 		Token token;
 		ByteBuffer buffer;
+		
+		Console.Println("Loading " + script.filename + "...");
 		
 		while (true)
         {
@@ -952,9 +959,9 @@ public class DefScript implements Disposable {
                     {
                 	default: break;
                     case ID:
-                    	t_id = script.getstring(); break;
+                    	t_id = script.getstring().trim(); break;
                     case FILE:
-                    	t_file = script.getstring(); break;
+                    	t_file = script.getstring().trim(); break;
                     }
                 }
                 

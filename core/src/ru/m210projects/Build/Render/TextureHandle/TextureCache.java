@@ -60,6 +60,7 @@ public class TextureCache {
 	    boolean useShader = false;
 	    if(useShader)
 	    	shader = createShader();
+	    changePalette(Engine.palette);
 	}
 	
 	public void setTextureInfo(TextureHDInfo info)
@@ -134,7 +135,7 @@ public class TextureCache {
 		}
 		
 		bindTexture(pth.glpic);
-		int intexfmt = shader != null ? GL_LUMINANCE : (picInfo.hasalpha ? GL_RGBA : GL_RGB);
+		int intexfmt = (picInfo.hasalpha ? GL_RGBA : GL_RGB);
 
 		if (Gdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
@@ -401,6 +402,17 @@ public class TextureCache {
 		return palette;
 	}
 	
+	public void changePalette(byte[] pal)
+	{
+		if(!isUseShader()) return;
+		
+        for(int i = 0; i < numshades; i++) {
+        	if(palette[i] != null)
+        		palette[i].dispose();
+        	palette[i] = createPalette(pal, i);
+        }
+	}
+	
 	private ShaderProgram createShader() 
 	{
 	    String fragment = new String(kGetBytes("fragment.glsl", 0));
@@ -411,9 +423,7 @@ public class TextureCache {
         	Console.Println("Shader compile error: " + shader.getLog(), OSDTEXT_RED);
 
         palette = new BTexture[numshades];
-        for(int i = 0; i < numshades; i++)
-        	palette[i] = createPalette(Engine.palette, i);
-        
+
         Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
         
         return shader;

@@ -56,10 +56,10 @@ public class VOXModel extends Model {
 	public int is8bit;
 	public FloatBuffer uv;
 
-	public BTexture loadskin(int dapal) {
-		if (palookup[dapal] == null)
+	public BTexture loadskin(int dapal, boolean bit8texture) {
+		if (palookup[dapal] == null || bit8texture)
 			dapal = 0;
-		
+
 		if(texid[dapal] != null) 
 			return texid[dapal];
 
@@ -72,27 +72,31 @@ public class VOXModel extends Model {
 			for (x = 0; x < mytexx; x++, wpptr++) {
 				wp = wpptr << 2;
 
-				dacol = mytex[wpptr] & 0xFF;
-				if(UseBloodPal && dapal == 1) //Blood's pal 1
-				{
-					int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
-					dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-				} else
-					dacol = palookup[dapal][dacol] & 0xFF; 
-
-				dacol *= 3;
-				if (gammabrightness == 0) {
-					r = curpalette[dacol + 0] & 0xFF;
-					g = curpalette[dacol + 1] & 0xFF;
-					b = curpalette[dacol + 2] & 0xFF;
+				if(bit8texture) {
+					buffer.put(wp, mytex[wpptr]);
 				} else {
-					byte[] brighttable = britable[curbrightness];
-					r = brighttable[curpalette[dacol + 0] & 0xFF] & 0xFF;
-					g = brighttable[curpalette[dacol + 1] & 0xFF] & 0xFF;
-					b = brighttable[curpalette[dacol + 2] & 0xFF] & 0xFF;
+					dacol = mytex[wpptr] & 0xFF;
+					if(UseBloodPal && dapal == 1) //Blood's pal 1
+					{
+						int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
+						dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
+					} else
+						dacol = palookup[dapal][dacol] & 0xFF; 
+	
+					dacol *= 3;
+					if (gammabrightness == 0) {
+						r = curpalette[dacol + 0] & 0xFF;
+						g = curpalette[dacol + 1] & 0xFF;
+						b = curpalette[dacol + 2] & 0xFF;
+					} else {
+						byte[] brighttable = britable[curbrightness];
+						r = brighttable[curpalette[dacol + 0] & 0xFF] & 0xFF;
+						g = brighttable[curpalette[dacol + 1] & 0xFF] & 0xFF;
+						b = brighttable[curpalette[dacol + 2] & 0xFF] & 0xFF;
+					}
+					rgb = ( 255 << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
+					buffer.putInt(wp, rgb);
 				}
-				rgb = ( 255 << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
-				buffer.putInt(wp, rgb);
 			}
 		}
 
