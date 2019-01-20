@@ -107,7 +107,6 @@ public class VOXModel extends Model {
 		texid[dapal] = rtexid;
 		
 		long etime = System.currentTimeMillis()-startticks;
-		    
 		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
 
 		return rtexid;

@@ -277,7 +277,7 @@ public abstract class Polymost implements Renderer {
 
 	private float gyxscale, gxyaspect, gviewxrange, ghalfx, grhalfxdown10,
 			grhalfxdown10x;
-	private double ghoriz;
+	private float ghoriz;
 	private float gcosang, gsinang, gcosang2, gsinang2;
 	private float gchang, gshang, ogshang, gctang, gstang;
 	private float gtang = 0.0f;
@@ -297,7 +297,7 @@ public abstract class Polymost implements Renderer {
 
 	private int srepeat = 0, trepeat = 0;
 
-	private double SCISDIST = 1.0; // 1.0: Close plane clipping distance
+	private float SCISDIST = 1.0f; // 1.0: Close plane clipping distance
 	// private final int USEZBUFFER = 1; //1:use zbuffer (slow, nice sprite
 	// rendering), 0:no zbuffer (fast, bad sprite rendering)
 	// private final int LINTERPSIZ = 4; //log2 of interpolation size. 4:pretty
@@ -1337,9 +1337,9 @@ public abstract class Polymost implements Renderer {
 	private void drawalls(int bunch) {
 		SECTOR sec, nextsec;
 		WALL wal, wal2;
-		double x0, x1, cy0, cy1, fy0, fy1, xp0, yp0, xp1, yp1, ryp0, ryp1, nx0, ny0, nx1, ny1;
-		double t, t0, t1, ocy0, ocy1, ofy0, ofy1, oxp0, oyp0;
-		double oguo, ogux, oguy, fwalxrepeat;
+		float x0, x1, cy0, cy1, fy0, fy1, xp0, yp0, xp1, yp1, ryp0, ryp1, nx0, ny0, nx1, ny1;
+		float t, t0, t1, ocy0, ocy1, ofy0, ofy1, oxp0, oyp0, fwalxrepeat;
+		double oguo, ogux, oguy;
 		int i, x, y, z, wallnum, sectnum, nextsectnum;
 
 		sectnum = thesector[bunchfirst[bunch]];
@@ -1356,17 +1356,17 @@ public abstract class Polymost implements Renderer {
 			nextsectnum = wal.nextsector;
 			nextsec = nextsectnum >= 0 ? sector[nextsectnum] : null;
 			
-			fwalxrepeat = (double) (wal.xrepeat & 0xFF);
+			fwalxrepeat = wal.xrepeat & 0xFF;
 
 			// Offset&Rotate 3D coordinates to screen 3D space
 			x = wal.x - globalposx;
 			y = wal.y - globalposy;
-			xp0 = (double) y * gcosang - (double) x * gsinang;
-			yp0 = (double) x * gcosang2 + (double) y * gsinang2;
+			xp0 = y * gcosang - x * gsinang;
+			yp0 = x * gcosang2 + y * gsinang2;
 			x = wal2.x - globalposx;
 			y = wal2.y - globalposy;
-			xp1 = (double) y * gcosang - (double) x * gsinang;
-			yp1 = (double) x * gcosang2 + (double) y * gsinang2;
+			xp1 = y * gcosang - x * gsinang;
+			yp1 = x * gcosang2 + y * gsinang2;
 
 			oxp0 = xp0;
 			oyp0 = yp0;
@@ -1433,7 +1433,7 @@ public abstract class Polymost implements Renderer {
 				
 				if ((globalorientation & 1) == 0) {
 					nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
-						(float) x0, (float) x1, (float) fy0, (float) fy1, 1,
+						x0, x1, fy0, fy1, 1,
 						sectnum, true);
 				} else if ((nextsectnum < 0) || ((sector[nextsectnum].floorstat & 1) == 0))
 					drawbackground(sectnum, x0, x1, fy0, fy1, true);
@@ -1443,7 +1443,7 @@ public abstract class Polymost implements Renderer {
 			{ //DRAW CEILING
 				globalpicnum = sec.ceilingpicnum;
 				globalshade = sec.ceilingshade;
-				globalpal = (int) (sec.ceilingpal & 0xFF);
+				globalpal = sec.ceilingpal & 0xFF;
 				globalorientation = sec.ceilingstat;
 				if ((picanm[globalpicnum] & 192) != 0)
 					globalpicnum += engine.animateoffs(globalpicnum, sectnum);
@@ -1457,7 +1457,7 @@ public abstract class Polymost implements Renderer {
 	
 				if ((globalorientation & 1) == 0) {
 					nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
-						(float) x0, (float) x1, (float) cy0, (float) cy1, 0,
+						x0, x1, cy0, cy1, 0,
 						sectnum, false);
 				} else if ((nextsectnum < 0) || ((sector[nextsectnum].ceilingstat & 1) == 0))
 					drawbackground(sectnum, x0, x1, cy0, cy1, false);
@@ -1469,8 +1469,8 @@ public abstract class Polymost implements Renderer {
 			gdo = ryp0 * gxyaspect - gdx * x0;
 			gux = (t0 * ryp0 - t1 * ryp1) * gxyaspect * fwalxrepeat * 8.0 / (x0 - x1);
 			guo = t0 * ryp0 * gxyaspect * fwalxrepeat * 8.0 - gux * x0;
-			guo += (float) wal.xpanning * gdo;
-			gux += (float) wal.xpanning * gdx;
+			guo += wal.xpanning * gdo;
+			gux += wal.xpanning * gdx;
 			guy = 0;
 			ogux = gux;
 			oguy = guy;
@@ -1491,7 +1491,7 @@ public abstract class Polymost implements Renderer {
 						&& (((sec.ceilingstat & sector[nextsectnum].ceilingstat) & 1)) == 0) {
 					globalpicnum = wal.picnum;
 					globalshade = wal.shade;
-					globalpal = (int) (wal.pal & 0xFF);
+					globalpal = wal.pal & 0xFF;
 					if ((picanm[globalpicnum] & 192) != 0)
 						globalpicnum += engine.animateoffs(globalpicnum,
 								wallnum + 16384);
@@ -1525,7 +1525,7 @@ public abstract class Polymost implements Renderer {
 					
 					if(surfaceType == 0)
 						pow2xsplit = 1;
-					clipper.domost((float) x1, (float) ocy1, (float) x0, (float) ocy0);
+					clipper.domost(x1, ocy1, x0, ocy0);
 					if ((wal.cstat & 8) != 0) {
 						gux = ogux;
 						guy = oguy;
@@ -1538,13 +1538,13 @@ public abstract class Polymost implements Renderer {
 						drawalls_nwal.set(wal);
 					} else {
 						drawalls_nwal.set(wall[wal.nextwall]);
-						guo += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdo;
-						gux += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdx;
-						guy += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdy;
+						guo += (drawalls_nwal.xpanning - wal.xpanning) * gdo;
+						gux += (drawalls_nwal.xpanning - wal.xpanning) * gdx;
+						guy += (drawalls_nwal.xpanning - wal.xpanning) * gdy;
 					}
 					globalpicnum = drawalls_nwal.picnum;
 					globalshade = drawalls_nwal.shade;
-					globalpal = (int) (drawalls_nwal.pal & 0xFF);
+					globalpal = drawalls_nwal.pal & 0xFF;
 					if ((picanm[globalpicnum] & 192) != 0)
 						globalpicnum += engine.animateoffs(globalpicnum,
 								wallnum + 16384);
@@ -1579,7 +1579,7 @@ public abstract class Polymost implements Renderer {
 
 					if(surfaceType == 0)
 						pow2xsplit = 1;
-					clipper.domost((float) x0, (float) ofy0, (float) x1, (float) ofy1);
+					clipper.domost(x0, ofy0, x1, ofy1);
 					if ((wal.cstat & (2 + 8)) != 0) {
 						guo = oguo;
 						gux = ogux;
@@ -1601,7 +1601,7 @@ public abstract class Polymost implements Renderer {
 					
 					globalpicnum = (nextsectnum < 0) ? wal.picnum : wal.overpicnum;
 					globalshade = wal.shade;
-					globalpal = (int) (wal.pal & 0xFF);
+					globalpal = wal.pal & 0xFF;
 					if ((picanm[globalpicnum] & 192) != 0)
 						globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 
@@ -1633,14 +1633,14 @@ public abstract class Polymost implements Renderer {
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 					if(surfaceType == 0)
 						pow2xsplit = 1;
-					clipper.domost((float)x0, (float)cy0, (float)x1, (float)cy1);
+					clipper.domost(x0, cy0, x1, cy1);
 				} while (false);
 		
 			}
 
 			if (nextsectnum >= 0)
 				if (((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)
-						&& (clipper.testvisiblemost((float) x0, (float) x1) != 0))
+						&& (clipper.testvisiblemost(x0, x1) != 0))
 					polymost_scansector(nextsectnum); 
 		}
 	}
@@ -2403,7 +2403,7 @@ public abstract class Polymost implements Renderer {
 			drawrooms_sx[i] = drawrooms_px2[i] * r + ghalfx;
 			drawrooms_sy[i] = drawrooms_py2[i] * r + ghoriz;
 		}
-		
+
 		clipper.initmosts(drawrooms_sx, drawrooms_sy, n2);
 
 		numscans = numbunches = 0;
@@ -2420,7 +2420,7 @@ public abstract class Polymost implements Renderer {
 			if (globalcursectnum < 0)
 				globalcursectnum = (short) i;
 		}
-
+		
 		polymost_scansector(globalcursectnum);
 		
 		surfaces.clear();
@@ -2439,7 +2439,7 @@ public abstract class Polymost implements Renderer {
 				bunchlast[0] = bunchlast[numbunches];
 			}
 		} 
-
+		
 		while (numbunches > 0) {
 			Arrays.fill(ptempbuf, 0, numbunches+3, (byte)0);
 			ptempbuf[0] = 1;
@@ -4710,7 +4710,7 @@ public abstract class Polymost implements Renderer {
 		return sector[sectnum].ceilingz + sector[sectnum].ceilingheinum * j / i;
 	}
 	
-	private static double dceilzsofslope, dfloorzsofslope;
+	private static float dceilzsofslope, dfloorzsofslope;
 	public void polymost_getzsofslope(int sectnum, double dax, double day) {
 		SECTOR sec = sector[sectnum];
 		if(sec == null) return;

@@ -20,6 +20,9 @@ public class Timer {
 	public static long startTime;
 	public static long spentTime;
 	
+	public static long summTime;
+	public static long count;
+	
 	public static void start() {
 		startTime = System.nanoTime();
 	}
@@ -28,6 +31,16 @@ public class Timer {
 		spentTime = System.nanoTime() - startTime;
 		System.out.println(spentTime / 1000f +" nsec");
 		return spentTime;
+	}
+	
+	public static long resultAverage() {
+		spentTime = System.nanoTime() - startTime;
+		count++;
+		summTime += (spentTime / 1000f);
+		long result = (summTime / count);
+		if((count % 255) == 1)
+		System.out.println(result +" nsec");
+		return result;
 	}
 	
 	public static long result(String comment) {
