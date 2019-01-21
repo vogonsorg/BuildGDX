@@ -63,7 +63,7 @@ public class VOXModel extends Model {
 		if(texid[dapal] != null) 
 			return texid[dapal];
 
-		long startticks = System.currentTimeMillis();
+//		long startticks = System.currentTimeMillis();
 		ByteBuffer buffer = getTmpBuffer();
 		
 		int rgb = 0, r, g, b, wpptr, wp, dacol;
@@ -106,8 +106,8 @@ public class VOXModel extends Model {
 		setupBoundTexture(0, 0);
 		texid[dapal] = rtexid;
 		
-		long etime = System.currentTimeMillis()-startticks;
-		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
+//		long etime = System.currentTimeMillis()-startticks;
+//		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
 
 		return rtexid;
 	}

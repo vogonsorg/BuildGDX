@@ -35,7 +35,7 @@ public class Keymap {
 	public static final int MOUSE_BUTTON9 = 0xEA;
 	public static final int MOUSE_BUTTON10 = 0xEB;
 	public static final int MOUSE_BUTTON11 = 0xEC;
-	public static final short ANYKEY = 0xFF;
+	public static final short ANYKEY = 256;
 	
 	public static final int KEY_PAUSE = 0xED;
 	public static final int KEY_CAPSLOCK = 0xEE;
