@@ -35,11 +35,12 @@ public class Keymap {
 	public static final int MOUSE_BUTTON9 = 0xEA;
 	public static final int MOUSE_BUTTON10 = 0xEB;
 	public static final int MOUSE_BUTTON11 = 0xEC;
-	public static final short ANYKEY = 256;
+	public static final short ANYKEY = 0xFF;
 	
 	public static final int KEY_PAUSE = 0xED;
 	public static final int KEY_CAPSLOCK = 0xEE;
 	public static final int KEY_SCROLLOCK = 0xEF;
+	public static final int KEY_NUMDECIMAL = 0xF0;
 
 	public static String toString (int libgdx_keycode) {
 		if(libgdx_keycode < 0 || libgdx_keycode > 255)
@@ -52,6 +53,8 @@ public class Keymap {
 			return "Caps Lock";
 		case KEY_SCROLLOCK:
 			return "Scroll Lock";
+		case KEY_NUMDECIMAL:
+			return "Numpad decimal";
 		case SOFT_LEFT:
 			return "Soft Left";
 		case SOFT_RIGHT:
