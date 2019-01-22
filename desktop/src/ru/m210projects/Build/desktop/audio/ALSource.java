@@ -16,23 +16,22 @@
 
 package ru.m210projects.Build.desktop.audio;
 
-import static ru.m210projects.Build.Audio.ALAudio.AL_BUFFER;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FALSE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_GAIN;
-import static ru.m210projects.Build.Audio.ALAudio.AL_LOOPING;
-import static ru.m210projects.Build.Audio.ALAudio.AL_NO_ERROR;
-import static ru.m210projects.Build.Audio.ALAudio.AL_PITCH;
-import static ru.m210projects.Build.Audio.ALAudio.AL_PLAYING;
-import static ru.m210projects.Build.Audio.ALAudio.AL_PAUSED;
-import static ru.m210projects.Build.Audio.ALAudio.AL_POSITION;
-import static ru.m210projects.Build.Audio.ALAudio.AL_SOURCE_RELATIVE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_SOURCE_STATE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_TRUE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_BUFFER;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FALSE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_GAIN;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_LOOPING;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_NO_ERROR;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_PAUSED;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_PITCH;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_PLAYING;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_POSITION;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_SOURCE_RELATIVE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_SOURCE_STATE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_TRUE;
 
-import ru.m210projects.Build.Audio.ALAudio;
-import ru.m210projects.Build.Audio.Source;
-import ru.m210projects.Build.Audio.SourceCallback;
+import ru.m210projects.Build.Architecture.Audio.Source;
+import ru.m210projects.Build.Architecture.Audio.SourceCallback;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class ALSource extends Source {

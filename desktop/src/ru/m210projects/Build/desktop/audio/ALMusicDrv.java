@@ -18,22 +18,21 @@
 
 package ru.m210projects.Build.desktop.audio;
 
-import static ru.m210projects.Build.Audio.ALAudio.AL_BUFFERS_PROCESSED;
-import static ru.m210projects.Build.Audio.ALAudio.AL_BUFFERS_QUEUED;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FALSE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FORMAT_MONO16;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FORMAT_STEREO16;
-import static ru.m210projects.Build.Audio.ALAudio.AL_GAIN;
-import static ru.m210projects.Build.Audio.ALAudio.AL_INVALID_VALUE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_LOOPING;
-import static ru.m210projects.Build.Audio.ALAudio.AL_NO_ERROR;
-import static ru.m210projects.Build.Audio.ALAudio.AL_PLAYING;
-import static ru.m210projects.Build.Audio.ALAudio.AL_SOURCE_STATE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_SEC_OFFSET;
-
 import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
 import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_BUFFERS_PROCESSED;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_BUFFERS_QUEUED;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FALSE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FORMAT_MONO16;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FORMAT_STEREO16;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_GAIN;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_INVALID_VALUE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_LOOPING;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_NO_ERROR;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_PLAYING;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_SEC_OFFSET;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_SOURCE_STATE;
 
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
@@ -43,10 +42,9 @@ import com.badlogic.gdx.backends.lwjgl.audio.OggInputStream;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.StreamUtils;
 
-import ru.m210projects.Build.Audio.ALAudio;
-import ru.m210projects.Build.Audio.Source;
-import ru.m210projects.Build.Audio.BMusic.Music;
-import ru.m210projects.Build.Audio.BMusic.MusicSource;
+import ru.m210projects.Build.Architecture.Audio.Music;
+import ru.m210projects.Build.Architecture.Audio.MusicSource;
+import ru.m210projects.Build.Architecture.Audio.Source;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.desktop.audio.ALSoundDrv.SourceManager;
 

@@ -21,7 +21,7 @@ import java.io.ByteArrayInputStream;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 
-import ru.m210projects.Build.Audio.BMusic.MusicSource;
+import ru.m210projects.Build.Architecture.Audio.MusicSource;
 
 public class MidiMusicSource extends MusicSource {
 

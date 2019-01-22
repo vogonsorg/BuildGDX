@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Audio;
+package ru.m210projects.Build.Architecture.Audio;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Audio.BMusic.Music;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class DummySound implements Sound {
 
 	@Override
-	public boolean init(int system, int kMaxSFXChannels, int softResampler) {
+	public boolean init(SystemType system, int kMaxSFXChannels, int softResampler) {
 		Console.Println(getName() + " initialized", OSDTEXT_GOLD);
 		return true;
 	}
@@ -37,7 +36,7 @@ public class DummySound implements Sound {
 	}
 
 	@Override
-	public void destroy() {
+	public void dispose() {
 	}
 
 	@Override

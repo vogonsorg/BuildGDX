@@ -24,8 +24,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import ru.m210projects.Build.Architecture.BuildMessage;
-import ru.m210projects.Build.Audio.BAudio;
+import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -149,8 +148,6 @@ public abstract class Engine {
 	public static boolean UseBloodPal = false;
 	
 	public Renderer render;
-	private BuildMessage message;
-	private BAudio audio;
 	private static KeyInput input;
 
 	public static boolean offscreenrendering;
@@ -968,11 +965,9 @@ public abstract class Engine {
 		bakwindowy2 = new int[4];
 	}
 	
-	public Engine(BuildMessage message, BAudio audio, boolean releasedEngine) throws Exception { //gdxBuild
+	public Engine(boolean releasedEngine) throws Exception { //gdxBuild
 		this.releasedEngine = releasedEngine;
-		this.message = message;
-		if(audio == null) new Exception("BAudio == null!");
-		this.audio = audio;
+
 		InitArrays();
 
 		loadtables();
@@ -1066,11 +1061,7 @@ public abstract class Engine {
 		for (i = 0; i < MAXPALOOKUPS; i++)
 			if (palookup[i] != null) 
 				palookup[i] = null;
-		if(message != null)
-			message.dispose();
-		
-		audio.dispose();
-		
+
 		uninitmultiplayer();
 	}
 
@@ -2314,7 +2305,7 @@ public abstract class Engine {
 	public void nextpage() { //gdxBuild
 		Console.draw();
 		render.nextpage();
-		audio.update();
+		BuildGDX.audio.update();
 		FileIndicator = false;
 	}
 
@@ -4073,15 +4064,7 @@ public abstract class Engine {
 			wall[j].y = tempint;
 		}
 	}
-	
-	public boolean showMessage(String header, String text, boolean send) //gdxBuild
-	{
-		if(message == null) return false;
-		if(Gdx.graphics != null)
-			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		return message.show(header, text, send);
-	}
-	 
+
 	public static KeyInput getInput() //gdxBuild
 	{
 		return input;
@@ -4113,11 +4096,6 @@ public abstract class Engine {
     	}
     }
 
-    public BAudio getAudio() //gdxBuild
-    {
-    	return audio;
-    }
-    
     private DefScript defs;
     public void setDefs(DefScript defs)
     {

@@ -1,11 +1,29 @@
+// This file is part of BuildGDX.
+// Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+// BuildGDX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// BuildGDX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
 package ru.m210projects.Build.desktop;
 
 import java.io.File;
+import java.net.URL;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.ApplicationLogger;
 import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Files;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.LifecycleListener;
 import com.badlogic.gdx.Net;
@@ -30,6 +48,7 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGDX;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
+import ru.m210projects.Build.Architecture.Audio.BuildAudio;
 import ru.m210projects.Build.desktop.gl.GLFrameImpl;
 import ru.m210projects.Build.desktop.software.SoftFrameImpl;
 
@@ -48,8 +67,10 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglApplicationConfiguration config;
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
+	protected final BuildAudio audio;
+	protected final DesktopMessage message;
 
-	public BuildApplicationImpl (ApplicationListener listener, LwjglApplicationConfiguration config) {
+	public BuildApplicationImpl (Game listener, URL messageIco, LwjglApplicationConfiguration config) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 		
@@ -64,12 +85,16 @@ public class BuildApplicationImpl implements BuildApplication {
 
 		files = new LwjglFiles();
 		net = new LwjglNet();
-
+		audio = new BuildAudio();
+		message = new DesktopMessage(messageIco, null); //XXX game.config
+		
 		Gdx.app = this;
 		Gdx.files = files;
 		Gdx.net = net;
 		
 		BuildGDX.app = this;
+		BuildGDX.audio = audio;
+		BuildGDX.message = message;
 		BuildGDX.files = Gdx.files;
 		BuildGDX.net = Gdx.net;
 		
@@ -121,6 +146,10 @@ public class BuildApplicationImpl implements BuildApplication {
 						listener.pause();
 						listener.dispose();
 					}
+					audio.dispose();
+					message.dispose();
+					frame.destroy();
+					
 					if (t instanceof RuntimeException)
 						throw (RuntimeException)t;
 					else
@@ -190,10 +219,12 @@ public class BuildApplicationImpl implements BuildApplication {
 		}
 		listener.pause();
 		listener.dispose();
+		audio.dispose();
+		message.dispose();
 		frame.destroy();
 		if (config.forceExit) System.exit(-1);
 	}
-	
+
 	public boolean executeRunnables () {
 		synchronized (runnables) {
 			for (int i = runnables.size - 1; i >= 0; i--)

@@ -15,7 +15,7 @@
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package ru.m210projects.Build.Audio;
+package ru.m210projects.Build.Architecture.Audio;
 
 import java.nio.ByteBuffer;
 
