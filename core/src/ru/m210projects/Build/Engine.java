@@ -1061,6 +1061,9 @@ public abstract class Engine {
 				palookup[i] = null;
 
 		uninitmultiplayer();
+		
+		BuildGdx.audio.dispose();
+		BuildGdx.message.dispose();
 	}
 
 	public void initspritelists() //jfBuild
