@@ -9,7 +9,7 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.Audio.BuildAudio;
 import ru.m210projects.Build.Render.Types.GL10;
 
-public class BuildGDX {
+public class BuildGdx {
 	public static BuildApplication app;
 	public static BuildGraphics graphics;
 	public static BuildAudio audio;

@@ -24,7 +24,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -283,8 +283,8 @@ public abstract class Engine {
 	public static int beforedrawrooms = 1;
 	public static int xyaspect, viewingrangerecip;
 	public static boolean inpreparemirror = false;
-	public static char[] textfont;
-	public static char[] smalltextfont;
+	public static byte[] textfont;
+	public static byte[] smalltextfont;
 	
 	//high resources
 	public static boolean usehightile = true;
@@ -395,6 +395,10 @@ public abstract class Engine {
 	}
 
 	public void initksqrt() { //jfBuild
+		
+		sqrtable = new short[4096];
+		shlookup = new short[4096 + 256];
+		
 		int i, j = 1, k = 0;
 		for (i = 0; i < 4096; i++) {
 			if (i >= j) { j <<= 2; k++; }
@@ -406,6 +410,8 @@ public abstract class Engine {
 	}
 
 	public void calcbritable() { //jfBuild
+		britable = new byte[16][256];
+		
 		int i, j;
 		double a, b;
 		for (i = 0; i < 16; i++) {
@@ -424,8 +430,9 @@ public abstract class Engine {
 			initksqrt();
 			
 			sintable = new short[2048];
-			textfont = new char[2048];
-			smalltextfont = new char[2048];
+			textfont = new byte[2048];
+			smalltextfont = new byte[2048];
+			radarang = new short[1280]; //1024
 
 			if ((fil = kOpen("tables.dat", 0)) != -1) {
 				byte[] buf = new byte[2048 * 2];
@@ -453,15 +460,9 @@ public abstract class Engine {
 					radarang[320] = 0x4000;
 				}
 
-				buf = new byte[1024];
-				kRead(fil, buf, 1024);
-				for (int i = 0; i < 1024; i++) 
-					textfont[i] = (char) (buf[i] & 0xff);
-				
-				kRead(fil, buf, 1024);
-				for (int i = 0; i < 1024; i++)
-					smalltextfont[i] = (char) (buf[i] & 0xff);
-				
+				kRead(fil, textfont, 1024);
+				kRead(fil, smalltextfont, 1024);
+
 				/* kread(fil, britable, 1024); */
 
 				calcbritable();
@@ -522,6 +523,10 @@ public abstract class Engine {
 		int fil;
 		if (paletteloaded != 0) return;
 		
+		palette = new byte[768];
+		curpalette = new byte[768];
+		palookup = new byte[MAXPALOOKUPS][];
+
 		Console.Println("Loading palettes");
 		if ((fil = kOpen("palette.dat", 0)) == -1) 
 			throw new Exception("Failed to load \"palette.dat\"!");
@@ -551,7 +556,7 @@ public abstract class Engine {
 		kRead(fil,transluc, 65536);
 
 		kClose(fil);
-
+		
 		initfastcolorlookup(30,59,11);
 
 		paletteloaded = 1;
@@ -898,7 +903,6 @@ public abstract class Engine {
 		palookupfog = new byte[MAXPALOOKUPS][3];
 		pskyoff = new short[MAXPSKYTILES];
 		zeropskyoff = new short[MAXPSKYTILES];
-		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID];
 		
 		tilesizx = new short[MAXTILES]; 
 		tilesizy = new short[MAXTILES];
@@ -921,17 +925,9 @@ public abstract class Engine {
 
 		pHitInfo = new Hitscan();
 		neartag = new Neartag();
-		britable = new byte[16][256];
 		picsiz = new int[MAXTILES];
 		tilefilenum = new int[MAXTILES];
 		tilefileoffs = new int[MAXTILES];
-		sqrtable = new short[4096];
-		shlookup = new short[4096 + 256];
-		curpalette = new byte[768];
-		palfadergb = new FadeEffect(GL10.GL_ONE_MINUS_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA) {
-			@Override
-			public void update(int intensive) {}
-		};
 
 		rxi = new int[4]; 
 		ryi = new int[4];
@@ -946,15 +942,7 @@ public abstract class Engine {
 		colhead = new byte[(FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)];
 		colnext = new byte[256];
 		colscan = new int[27];
-		radarang = new short[1280]; //1024
-		palette = new byte[768];
-	
-		for (int i = 0; i < spriteext.length; i++)
-			spriteext[i] = new Spriteext();
 
-		palookup = new byte[MAXPALOOKUPS][];
-		waloff = new byte[MAXTILES][];
-		
 		Arrays.fill(show2dsector, (byte)0);
 		Arrays.fill(show2dsprite, (byte)0);
 		Arrays.fill(show2dwall, (byte)0);
@@ -963,8 +951,18 @@ public abstract class Engine {
 		bakwindowy1 = new int[4];
 		bakwindowx2 = new int[4]; 
 		bakwindowy2 = new int[4];
+		
+		waloff = new byte[MAXTILES][];
+		palfadergb = new FadeEffect(GL10.GL_ONE_MINUS_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA) {
+			@Override
+			public void update(int intensive) {}
+		};
+		
+		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID]; //for nextpage
+		for (int i = 0; i < spriteext.length; i++)
+			spriteext[i] = new Spriteext();
 	}
-	
+
 	public Engine(boolean releasedEngine) throws Exception { //gdxBuild
 		this.releasedEngine = releasedEngine;
 
@@ -2305,7 +2303,7 @@ public abstract class Engine {
 	public void nextpage() { //gdxBuild
 		Console.draw();
 		render.nextpage();
-		BuildGDX.audio.update();
+		BuildGdx.audio.update();
 		FileIndicator = false;
 	}
 

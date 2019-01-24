@@ -12,7 +12,7 @@ import static ru.m210projects.Build.Render.Types.GL10.*;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
 
@@ -49,7 +49,7 @@ public class TextureUtils {
 
 	private static int getTextureMaxSize() {
 		if (gltexmaxsize <= 0) {
-			int i = BuildGDX.gl.glGetInteger(GL_MAX_TEXTURE_SIZE);
+			int i = BuildGdx.gl.glGetInteger(GL_MAX_TEXTURE_SIZE);
 			if (i == 0) {
 				gltexmaxsize = 6; // 2^6 = 64 == default GL max texture size
 			} else {

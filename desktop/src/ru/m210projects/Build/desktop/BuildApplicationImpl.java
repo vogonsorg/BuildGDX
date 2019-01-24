@@ -45,7 +45,7 @@ import com.badlogic.gdx.utils.SnapshotArray;
 import ru.m210projects.Build.Architecture.BuildApplication;
 import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 import ru.m210projects.Build.Architecture.Audio.BuildAudio;
@@ -67,10 +67,8 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglApplicationConfiguration config;
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
-	protected final BuildAudio audio;
-	protected final DesktopMessage message;
 
-	public BuildApplicationImpl (Game listener, URL messageIco, LwjglApplicationConfiguration config) {
+	public BuildApplicationImpl (Game listener, URL icon, LwjglApplicationConfiguration config) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 		
@@ -85,18 +83,18 @@ public class BuildApplicationImpl implements BuildApplication {
 
 		files = new LwjglFiles();
 		net = new LwjglNet();
-		audio = new BuildAudio();
-		message = new DesktopMessage(messageIco, null); //XXX game.config
-		
+
 		Gdx.app = this;
 		Gdx.files = files;
 		Gdx.net = net;
 		
-		BuildGDX.app = this;
-		BuildGDX.audio = audio;
-		BuildGDX.message = message;
-		BuildGDX.files = Gdx.files;
-		BuildGDX.net = Gdx.net;
+		BuildGdx.app = this;
+		if(BuildGdx.audio == null) //XXX temporaly code
+			BuildGdx.audio = new BuildAudio();
+		if(BuildGdx.message == null)
+			BuildGdx.message = new DesktopMessage(icon, null); //XXX game.cfg
+		BuildGdx.files = Gdx.files;
+		BuildGdx.net = Gdx.net;
 		
 		initialize();
 	}
@@ -128,8 +126,8 @@ public class BuildApplicationImpl implements BuildApplication {
 			Gdx.graphics = frame.getGraphics();
 			Gdx.input = frame.getInput();
 			
-			BuildGDX.graphics = frame.getGraphics();
-			BuildGDX.input = frame.getInput();
+			BuildGdx.graphics = frame.getGraphics();
+			BuildGdx.input = frame.getInput();
 			frame.setVSync(config.vSyncEnabled);
 		}
 	}
@@ -146,8 +144,8 @@ public class BuildApplicationImpl implements BuildApplication {
 						listener.pause();
 						listener.dispose();
 					}
-					audio.dispose();
-					message.dispose();
+					BuildGdx.audio.dispose();
+					BuildGdx.message.dispose();
 					frame.destroy();
 					
 					if (t instanceof RuntimeException)
@@ -219,8 +217,8 @@ public class BuildApplicationImpl implements BuildApplication {
 		}
 		listener.pause();
 		listener.dispose();
-		audio.dispose();
-		message.dispose();
+		BuildGdx.audio.dispose();
+		BuildGdx.message.dispose();
 		frame.destroy();
 		if (config.forceExit) System.exit(-1);
 	}

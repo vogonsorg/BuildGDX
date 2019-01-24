@@ -17,6 +17,7 @@
 package ru.m210projects.Build;
 
 import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Pragmas.scale;
 
 public class Gameutils {
 	
@@ -101,5 +102,34 @@ public class Gameutils {
 	public static boolean isValidWall(short i)
 	{
 		return i >= 0 && i < MAXWALLS;
+	}
+	
+	public static int coordsConvertXScaled(int coord, int bits)
+	{
+		int oxdim = xdim;
+		int xdim = (4 * ydim) / 3;
+		int offset = oxdim - xdim;
+	
+		int normxofs = coord - (320 << 15);
+		int wx = (xdim << 15) + scale(normxofs, xdim, 320);
+		wx += (oxdim - xdim) / 2;
+		
+		if((bits & 256) == 256)
+			return wx - offset / 2 - 1;
+		if((bits & 512) == 512)
+			return wx + offset / 2 - 1;
+
+		return wx - 1;
+	}
+	
+	public static int coordsConvertYScaled(int coord)
+	{
+		int oydim = ydim;
+		int ydim = (3 * xdim) / 4;
+		int buildim = 200 * ydim / oydim;
+		int normxofs = coord - (buildim << 15);
+		int wy = (ydim << 15) + scale(normxofs, ydim, buildim);
+
+		return wy;
 	}
 }

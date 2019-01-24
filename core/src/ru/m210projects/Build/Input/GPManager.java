@@ -21,7 +21,7 @@ import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 
 public class GPManager {
@@ -41,7 +41,7 @@ public class GPManager {
 			gamepads = new Array<Gamepad>();
 			Array<Controller> controllers = null;
 			
-			if(BuildGDX.app.getFrameType() != FrameType.Software)
+			if(BuildGdx.app.getFrameType() != FrameType.Software)
 				controllers = Controllers.getControllers();
 			
 			if(controllers != null && controllers.size > 0) {

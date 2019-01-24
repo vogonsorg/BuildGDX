@@ -96,7 +96,7 @@ import java.util.HashMap;
 import com.badlogic.gdx.Gdx;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.SoftFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Model;
@@ -213,7 +213,7 @@ public class Software implements Renderer {
 
 	public Software(Engine engine)
 	{
-		BuildGDX.app.setFrame(FrameType.Software);
+		BuildGdx.app.setFrame(FrameType.Software);
 		this.engine = engine;
 		a = new Ac(this);
 		
@@ -2674,8 +2674,8 @@ public class Software implements Renderer {
 
 	@Override
 	public void nextpage() { 
-		if(BuildGDX.app.getFrameType() == FrameType.Software)  
-			System.arraycopy(frameplace, 0, ((SoftFrame)BuildGDX.app.getFrame()).getFrame(), 0, frameplace.length);
+		if(BuildGdx.app.getFrameType() == FrameType.Software)  
+			System.arraycopy(frameplace, 0, ((SoftFrame)BuildGdx.app.getFrame()).getFrame(), 0, frameplace.length);
 	}
 
 	@Override
@@ -3043,7 +3043,7 @@ public class Software implements Renderer {
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int stx = xpos;
 		int charxsiz = 8;
-		char[] fontptr = textfont;
+		byte[] fontptr = textfont;
 		if (fontsize != 0) { fontptr = smalltextfont; charxsiz = 4; }
 
 		for(int i=0; i < text.length && text[i] != 0;i++)
@@ -3124,8 +3124,8 @@ public class Software implements Renderer {
 	public void precache(int dapicnum, int dapalnum, int datype) {}
 	public void gltexapplyprops() {}
 	public void gltexinvalidateall(int flags) { 
-		if(BuildGDX.app.getFrameType() == FrameType.Software)  
-			((SoftFrame)BuildGDX.app.getFrame()).changepalette(curpalette);
+		if(BuildGdx.app.getFrameType() == FrameType.Software)  
+			((SoftFrame)BuildGdx.app.getFrame()).changepalette(curpalette);
 	}
 	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {}
 	

@@ -142,6 +142,26 @@ public class BuildAudio implements Disposable {
 		
 		return this;
 	}
+	
+	public int getDriver(Driver type, Object driver)
+	{
+		int num = 0;
+		if(type == Driver.Sound) 
+		{
+			for(num = 0; num < fxdrivers.size(); num++)
+				if(fxdrivers.get(num) == driver)
+					return num;
+		}
+		
+		if(type == Driver.Music) 
+		{
+			for(num = 0; num < mxdrivers.size(); num++)
+				if(mxdrivers.get(num) == driver)
+					return num;
+		}
+		
+		return num;
+	}
 
 	public void setVolume(Driver type, float volume)
 	{

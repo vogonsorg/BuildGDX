@@ -726,7 +726,8 @@ public class DesktopFrame {
 	{
 		if(soundDeviceList != null) {
 			soundDeviceList.addItem("None");
-			soundDeviceList.addItem("OpenAL Soft");
+			soundDeviceList.addItem("OpenAL Soft 1.15.1");
+			soundDeviceList.addItem("OpenAL Soft 1.18.1");
 		}
 	}
 	
