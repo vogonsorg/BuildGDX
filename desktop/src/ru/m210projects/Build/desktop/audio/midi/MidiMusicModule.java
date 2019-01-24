@@ -27,8 +27,8 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
 
-import ru.m210projects.Build.Audio.BMusic.Music;
-import ru.m210projects.Build.Audio.BMusic.MusicSource;
+import ru.m210projects.Build.Audio.Music;
+import ru.m210projects.Build.Audio.MusicSource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import javax.sound.midi.MidiDevice.Info;

@@ -19,14 +19,15 @@ package ru.m210projects.Build.Audio;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Audio.BMusic.Music;
-
 public interface Sound {
+	
+	public enum SystemType { Mono, Stereo }
+	
 	//Driver
-	public boolean init(int system, int kMaxSFXChannels, int softResampler);
+	public boolean init(SystemType system, int kMaxSFXChannels, int softResampler);
 	public void uninit();
 	public boolean isInited();
-	public void destroy();
+	public void dispose();
 	public String getName();
 	public Music getDigitalMusic();
 	

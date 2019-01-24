@@ -17,26 +17,25 @@
 
 package ru.m210projects.Build.desktop.audio;
 
-import static ru.m210projects.Build.Audio.ALAudio.AL_BUFFER;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FALSE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_GAIN;
-import static ru.m210projects.Build.Audio.ALAudio.AL_LOOPING;
-import static ru.m210projects.Build.Audio.ALAudio.AL_NO_ERROR;
-import static ru.m210projects.Build.Audio.ALAudio.AL_PITCH;
-import static ru.m210projects.Build.Audio.ALAudio.AL_POSITION;
-import static ru.m210projects.Build.Audio.ALAudio.AL_SOURCE_RELATIVE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_TRUE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_NONE;
-import static ru.m210projects.Build.Audio.ALAudio.AL_ORIENTATION;
-import static ru.m210projects.Build.Audio.ALAudio.AL_VELOCITY;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FORMAT_STEREO16;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FORMAT_MONO16;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FORMAT_STEREO8;
-import static ru.m210projects.Build.Audio.ALAudio.AL_FORMAT_MONO8;
-
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_BUFFER;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FALSE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FORMAT_MONO16;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FORMAT_MONO8;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FORMAT_STEREO16;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_FORMAT_STEREO8;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_GAIN;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_LOOPING;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_NONE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_NO_ERROR;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_ORIENTATION;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_PITCH;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_POSITION;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_SOURCE_RELATIVE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_TRUE;
+import static ru.m210projects.Build.desktop.audio.ALAudio.AL_VELOCITY;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -45,28 +44,27 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import ru.m210projects.Build.Audio.ALAudio;
+import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.Sound;
 import ru.m210projects.Build.Audio.Source;
-import ru.m210projects.Build.Audio.BMusic.Music;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class ALSoundDrv implements Sound {
 
 	protected boolean noDevice = true;
-	protected static final int MONO = 0;
+
 	private final static FloatBuffer NULLVECTOR = BufferUtils.newFloatBuffer(3);
 	private final static FloatBuffer orientation = (FloatBuffer)BufferUtils.newFloatBuffer(6);
 	private final float[] deforientation = new float[] {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 
-	protected int system;
+	protected SystemType system;
 	protected IntBuffer buffers;
 
 	protected SourceManager sourceManager;
 	private float soundVolume = 0.5f;
-	
-	private String name = "OpenAL";
+
+	private String name;
 	protected List<Source> loopedSource = new ArrayList<Source>();
 	
 	private boolean alReverbEnable = false;
@@ -79,8 +77,14 @@ public class ALSoundDrv implements Sound {
 	
 	public ALSoundDrv(ALAudio al)
 	{
+		this(al, "OpenAL");
+	}
+	
+	public ALSoundDrv(ALAudio al, String name)
+	{
 		this.al = al;
 		this.mus = new ALMusicDrv(this);
+		this.name = name;
 	}
 	
 	public ALAudio getALAudio()
@@ -89,7 +93,7 @@ public class ALSoundDrv implements Sound {
 	}
 
 	@Override
-	public boolean init(int system, int maxChannels, int softResampler) {
+	public boolean init(SystemType system, int maxChannels, int softResampler) {
 		if(al == null) {
 			noDevice = true;
 			return false;
@@ -136,7 +140,7 @@ public class ALSoundDrv implements Sound {
 	}
 	
 	@Override
-	public void destroy() {
+	public void dispose() {
 		uninit();
 		if(al != null)
 			al.dispose();
@@ -145,13 +149,13 @@ public class ALSoundDrv implements Sound {
 	@Override
 	public String getName() {
 		if(noDevice) return name;
-		return name + al.getVersion();
+		return "OpenAL" + al.getVersion();
 	}
 
 	@Override
 	public void setListener(int x, int y, int z, int ang) {
 		if (noDevice) return;
-		if(system != MONO) 
+		if(system != SystemType.Mono) 
 		{
 			al.alListener3f(AL_POSITION, x, y, z);
 			double angle = (ang * 2 * Math.PI) / 2048;

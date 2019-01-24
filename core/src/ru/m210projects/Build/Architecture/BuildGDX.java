@@ -6,12 +6,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Render.Types.GL10;
 
-public class BuildGDX {
+public class BuildGdx {
 	public static BuildApplication app;
 	public static BuildGraphics graphics;
-//	public static Audio audio;
+	public static BuildAudio audio;
 	public static BuildInput input;
 	public static BuildMessage message;
 	public static Files files;

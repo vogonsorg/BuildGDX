@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Engine.Point;
 import ru.m210projects.Build.Loader.MDModel;
@@ -323,8 +323,8 @@ public abstract class Polymost implements Renderer {
 	private boolean showlines = false;
 
 	public Polymost(Engine engine) {
-		BuildGDX.app.setFrame(FrameType.GL);
-		this.gl = BuildGDX.graphics.getGL10();
+		BuildGdx.app.setFrame(FrameType.GL);
+		this.gl = BuildGdx.graphics.getGL10();
 		this.engine = engine;
 		
 		this.textureCache = createTextureCache();
@@ -4513,7 +4513,6 @@ public abstract class Polymost implements Renderer {
 
 	@Override
 	public void nextpage() {
-		int i;
 		engine.faketimerhandler();
 
 		if ((totalclock >= lastageclock + CACHEAGETIME) || (totalclock < lastageclock)) {
@@ -4523,7 +4522,7 @@ public abstract class Polymost implements Renderer {
 		omdtims = mdtims;
 		mdtims = engine.getticks();
 
-		for (i = 0; i < MAXSPRITES; i++)
+		for (int i = 0; i < MAXSPRITES; i++)
 			if ((mdpause != 0 && spriteext[i].mdanimtims != 0) || ((spriteext[i].flags & SPREXT_NOMDANIM) != 0)) 
 				spriteext[i].mdanimtims += mdtims - omdtims;
 

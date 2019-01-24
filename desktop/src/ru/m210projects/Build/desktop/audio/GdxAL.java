@@ -13,8 +13,6 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import ru.m210projects.Build.Audio.ALAudio;
-
 public class GdxAL implements ALAudio {
 	
 	private String name;
@@ -32,28 +30,43 @@ public class GdxAL implements ALAudio {
 	
 	public GdxAL() throws Throwable
 	{
-		AL.create();
-		ALCdevice device = AL.getDevice();
-		name = ALC10.alcGetString(device, ALC10.ALC_DEVICE_SPECIFIER);
-		version = AL10.alGetString(AL10.AL_VERSION);
-		
-        boolean makeCurrentFailed = EXTThreadLocalContext.alcSetThreadContext(AL.getContext());
-        if (!makeCurrentFailed) 
-        	throw new Throwable("Failed to make context current.");
-        
-        if(alResamplerSupport = AL10.alIsExtensionPresent("AL_SOFT_source_resampler"))
-        {
-	    	alNumResamplers = AL10.alGetInteger(SOFTSourceResampler.AL_NUM_RESAMPLERS_SOFT);
-	    	alResamplerNames = new String[alNumResamplers];
-	    	for(int i = 0; i < alNumResamplers; i++) 
-	    		alResamplerNames[i] = SOFTSourceResampler.alGetStringiSOFT(SOFTSourceResampler.AL_RESAMPLER_NAME_SOFT, i);
-        }
+		if(!init())
+			throw new Throwable();
+	}
+	
+	public boolean init()
+	{
+		try {
+			AL.create();
+			ALCdevice device = AL.getDevice();
+			name = ALC10.alcGetString(device, ALC10.ALC_DEVICE_SPECIFIER);
+			version = AL10.alGetString(AL10.AL_VERSION);
 
-        if (alEfxSupport = ALC10.alcIsExtensionPresent(device, "ALC_EXT_EFX")) 
-        {
-			alEffectSlot = EXTEfx.alGenAuxiliaryEffectSlots();
-			alEffect = EXTEfx.alGenEffects();
-			EXTEfx.alEffecti(alEffect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_CHORUS);	//AL_EFFECT_REVERB
+	        boolean makeCurrentFailed = EXTThreadLocalContext.alcSetThreadContext(AL.getContext());
+	        if (!makeCurrentFailed) 
+	        	return false;
+	        
+	        if(alResamplerSupport = AL10.alIsExtensionPresent("AL_SOFT_source_resampler"))
+	        {
+		    	alNumResamplers = AL10.alGetInteger(SOFTSourceResampler.AL_NUM_RESAMPLERS_SOFT);
+		    	alResamplerNames = new String[alNumResamplers];
+		    	for(int i = 0; i < alNumResamplers; i++) 
+		    		alResamplerNames[i] = SOFTSourceResampler.alGetStringiSOFT(SOFTSourceResampler.AL_RESAMPLER_NAME_SOFT, i);
+	        }
+	
+	        if (alEfxSupport = ALC10.alcIsExtensionPresent(device, "ALC_EXT_EFX")) 
+	        {
+				alEffectSlot = EXTEfx.alGenAuxiliaryEffectSlots();
+				alEffect = EXTEfx.alGenEffects();
+				EXTEfx.alEffecti(alEffect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_CHORUS);	//AL_EFFECT_REVERB
+			}
+	        
+	        return true;
+		}
+        catch (Throwable e)
+		{
+			e.printStackTrace();
+			return false;
 		}
 	}
 

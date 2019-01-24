@@ -20,13 +20,12 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Audio.BMusic.Music;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class DummySound implements Sound {
 
 	@Override
-	public boolean init(int system, int kMaxSFXChannels, int softResampler) {
+	public boolean init(SystemType system, int kMaxSFXChannels, int softResampler) {
 		Console.Println(getName() + " initialized", OSDTEXT_GOLD);
 		return true;
 	}
@@ -37,7 +36,7 @@ public class DummySound implements Sound {
 	}
 
 	@Override
-	public void destroy() {
+	public void dispose() {
 	}
 
 	@Override

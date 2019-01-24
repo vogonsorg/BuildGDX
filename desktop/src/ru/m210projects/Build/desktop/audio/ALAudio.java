@@ -14,7 +14,7 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Audio;
+package ru.m210projects.Build.desktop.audio;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;

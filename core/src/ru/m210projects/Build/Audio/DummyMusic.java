@@ -15,7 +15,7 @@
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package ru.m210projects.Build.Audio.BMusic;
+package ru.m210projects.Build.Audio;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
@@ -39,7 +39,7 @@ public class DummyMusic implements Music {
 
 	@Override
 	public String getName() {
-		return "Dummy midi synth";
+		return "Dummy music";
 	}
 
 	@Override

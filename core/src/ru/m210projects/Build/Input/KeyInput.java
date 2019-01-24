@@ -22,7 +22,7 @@ import static ru.m210projects.Build.Strhandler.isdigit;
 
 import java.util.Arrays;
 
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -78,8 +78,8 @@ public class KeyInput {
 		if(Gdx.input == null) //not initialized
 			return 0;
 
-		BuildGDX.input.processMessages();
-		BuildGDX.input.cursorHandler();
+		BuildGdx.input.processMessages();
+		BuildGdx.input.cursorHandler();
 
 		int rv = 0;
 		keyPressed = false;
@@ -118,7 +118,7 @@ public class KeyInput {
 		}
 		
 		//Mouse wheel handler
-		int wheel = BuildGDX.input.getDWheel();
+		int wheel = BuildGdx.input.getDWheel();
 		if(wheel > 0) {
 			keyPressed = true;
 			if (!hitkey[MOUSE_WHELLUP]) {

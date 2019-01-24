@@ -11,7 +11,7 @@
 	<classpathentry kind="lib" path="libs/jna-openal-natives-linux.jar"/>
 	<classpathentry kind="lib" path="libs/jna-openal-natives-macos.jar"/>
 	<classpathentry kind="lib" path="libs/jna-openal-natives-windows.jar"/>
-	<classpathentry kind="lib" path="/BuildEngine-core/libs/gdx.jar"/>
+	<classpathentry kind="lib" path="/BuildEngine-core/libs/gdx.jar" sourcepath="/BuildEngine-core/libs/gdx-sources.jar"/>
 	<classpathentry kind="lib" path="/BuildEngine-core/libs/gdx-natives.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

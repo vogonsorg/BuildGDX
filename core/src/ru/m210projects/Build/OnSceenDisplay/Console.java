@@ -533,7 +533,8 @@ public class Console {
 
 	    func.showosd(cap?1:0);
 
-	    getInput().initMessageInput(null);
+	    if(getInput() != null)
+	    	getInput().initMessageInput(null);
 	}
 	
 	private static final InputCallback osdcallback = new InputCallback() {
@@ -574,6 +575,16 @@ public class Console {
         osdrowscur += osdscroll;
         CaptureInput(osdscroll == 1);
         osdscrtime = func.getticksfunc();
+	}
+	
+	public static void fullscreen(boolean show)
+	{
+		if(show) 
+			osdrowscur = osdmaxrows;
+		else osdrowscur = -1;
+		
+		showDisplay(show?1:0);
+		func.showosd(show?1:0);
 	}
 	
 	static boolean lastmatch;
@@ -1018,13 +1029,13 @@ public class Console {
 	
 	public static void draw()
 	{
-	    if ((osdflags & OSD_INITIALIZED) == 0)
+	    if ((osdflags & OSD_INITIALIZED) == 0 || func == null)
 	        return;
 
 	    if (osdrowscur == 0)
 	        showDisplay(((osdflags & OSD_DRAW) != 0) ? 0 : 1);
 
-	    if (osdrowscur == osdrows)
+	    if (osdrowscur == osdrows || osdrowscur == osdmaxrows)
 	        osdscroll = 0;
 	    else
 	    {

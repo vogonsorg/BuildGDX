@@ -23,33 +23,52 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import com.badlogic.gdx.Gdx;
+
 import ru.m210projects.Build.Architecture.BuildMessage;
+import ru.m210projects.Build.Types.BConfig;
 
 public class DesktopMessage implements BuildMessage {
-	JOptionPane frame;
-	URL icon;
+	private JOptionPane frame;
+	private URL icon;
+	private BConfig cfg;
 
-	public DesktopMessage(URL icon)
+	public DesktopMessage(URL icon, BConfig cfg)
 	{
 		try {
 			this.icon = icon;
+			this.cfg = cfg;
 			frame = new JOptionPane();
-			frame.setMessageType(JOptionPane.ERROR_MESSAGE);
+			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {}
 	}
 	
 	@Override
-	public boolean show(String header, String message, boolean send) {
+	public boolean show(String header, String message, MessageType type) {
 		if(message.length() >= 384)
 		{
 			message = message.substring(0, 384);
 			message += "...";
 		}
-	
-		if(send) {
+		
+		if(Gdx.graphics != null) {
+			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+			cfg.fullscreen = 0;
+		}
+		
+		switch(type)
+		{
+		case Question:
+		case Crash:
 			if(frame != null) {
-				frame.setMessage(message + "\r\n \r\n      Do you want to send a crash report?");
+				if(type == MessageType.Crash) {
+					frame.setMessageType(JOptionPane.ERROR_MESSAGE);
+					frame.setMessage(message + "\r\n \r\n      Do you want to send a crash report?");
+				} else {
+					frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+					frame.setMessage(message);
+				}
 				frame.setOptionType(JOptionPane.YES_NO_OPTION);
 				JDialog dialog = frame.createDialog(header);
 				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
@@ -67,10 +86,9 @@ public class DesktopMessage implements BuildMessage {
 			}
 
 			return false;
-		} 
-		else
-		{
+		case Info:
 			if(frame != null) {
+				frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
 				frame.setMessage(message);
 				frame.setOptionType(JOptionPane.DEFAULT_OPTION);
 				final JDialog dlog = frame.createDialog(header);
@@ -83,6 +101,8 @@ public class DesktopMessage implements BuildMessage {
 			}
 			return false;
 		}
+		
+		return false;
 	}
 
 	@Override

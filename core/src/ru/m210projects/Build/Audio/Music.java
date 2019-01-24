@@ -15,7 +15,7 @@
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package ru.m210projects.Build.Audio.BMusic;
+package ru.m210projects.Build.Audio;
 
 public interface Music {
 	public MusicSource newMusic(byte[] data);
