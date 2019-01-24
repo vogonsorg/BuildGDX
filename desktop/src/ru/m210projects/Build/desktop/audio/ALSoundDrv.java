@@ -44,9 +44,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import ru.m210projects.Build.Architecture.Audio.Music;
-import ru.m210projects.Build.Architecture.Audio.Sound;
-import ru.m210projects.Build.Architecture.Audio.Source;
+import ru.m210projects.Build.Audio.Music;
+import ru.m210projects.Build.Audio.Sound;
+import ru.m210projects.Build.Audio.Source;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import com.badlogic.gdx.utils.BufferUtils;
 

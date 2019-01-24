@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Architecture.Audio.BuildAudio;
+import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Render.Types.GL10;
 
 public class BuildGdx {

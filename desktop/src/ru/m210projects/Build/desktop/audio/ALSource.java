@@ -30,8 +30,8 @@ import static ru.m210projects.Build.desktop.audio.ALAudio.AL_SOURCE_RELATIVE;
 import static ru.m210projects.Build.desktop.audio.ALAudio.AL_SOURCE_STATE;
 import static ru.m210projects.Build.desktop.audio.ALAudio.AL_TRUE;
 
-import ru.m210projects.Build.Architecture.Audio.Source;
-import ru.m210projects.Build.Architecture.Audio.SourceCallback;
+import ru.m210projects.Build.Audio.Source;
+import ru.m210projects.Build.Audio.SourceCallback;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class ALSource extends Source {

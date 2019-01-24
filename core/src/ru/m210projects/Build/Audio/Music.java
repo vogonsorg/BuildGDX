@@ -15,50 +15,16 @@
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package ru.m210projects.Build.Architecture.Audio;
+package ru.m210projects.Build.Audio;
 
-import static ru.m210projects.Build.OnSceenDisplay.Console.*;
+public interface Music {
+	public MusicSource newMusic(byte[] data);
+	public MusicSource newMusic(String name);
 
-import ru.m210projects.Build.OnSceenDisplay.Console;
-
-public class DummyMusic implements Music {
-
-	@Override
-	public void setVolume(float volume) {
-	}
-
-	@Override
-	public void dispose() {
-	}
-
-	@Override
-	public boolean init() {
-		Console.Println(getName() + " initialized", OSDTEXT_GOLD);
-		return true;
-	}
-
-	@Override
-	public String getName() {
-		return "Dummy music";
-	}
-
-	@Override
-	public boolean isInited() {
-		return true;
-	}
-
-	@Override
-	public MusicSource newMusic(byte[] data) {
-		
-		return null;
-	}
-
-	@Override
-	public MusicSource newMusic(String name) {
-		return null;
-	}
-
-	@Override
-	public void update() {
-	}
+	public void setVolume(float volume);
+	public boolean init();
+	public boolean isInited();
+	public String getName();
+	public void update();
+	public void dispose();
 }

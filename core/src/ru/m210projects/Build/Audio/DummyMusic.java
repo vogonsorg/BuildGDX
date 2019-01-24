@@ -15,39 +15,50 @@
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package ru.m210projects.Build.Architecture.Audio;
+package ru.m210projects.Build.Audio;
 
-import java.nio.ByteBuffer;
+import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
-public class LoopInfo {
-	public boolean looped;
-	public ByteBuffer data;
-	public int sampleRate;
-	public int format;
-	public int start;
-	public int end;
-	
-	public void set(ByteBuffer data, int start, int end, int format, int sampleRate)
-	{
-		this.start = start;
-		this.end = end;
-		this.data = data;
-		this.format = format;
-		this.sampleRate = sampleRate;
-		this.looped = true;
+import ru.m210projects.Build.OnSceenDisplay.Console;
+
+public class DummyMusic implements Music {
+
+	@Override
+	public void setVolume(float volume) {
 	}
-	
-	public ByteBuffer getData()
-	{
-		data.position(start);
-		data.limit(end);
-		return data;
+
+	@Override
+	public void dispose() {
 	}
-	
-	public void clear()
-	{
-		start = end = sampleRate = format = 0;
-		data = null;
-		looped = false;
+
+	@Override
+	public boolean init() {
+		Console.Println(getName() + " initialized", OSDTEXT_GOLD);
+		return true;
+	}
+
+	@Override
+	public String getName() {
+		return "Dummy music";
+	}
+
+	@Override
+	public boolean isInited() {
+		return true;
+	}
+
+	@Override
+	public MusicSource newMusic(byte[] data) {
+		
+		return null;
+	}
+
+	@Override
+	public MusicSource newMusic(String name) {
+		return null;
+	}
+
+	@Override
+	public void update() {
 	}
 }

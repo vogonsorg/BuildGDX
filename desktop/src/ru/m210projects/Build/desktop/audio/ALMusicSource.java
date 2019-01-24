@@ -16,7 +16,7 @@
 
 package ru.m210projects.Build.desktop.audio;
 
-import ru.m210projects.Build.Architecture.Audio.MusicSource;
+import ru.m210projects.Build.Audio.MusicSource;
 
 public class ALMusicSource extends MusicSource {
 

@@ -42,9 +42,9 @@ import com.badlogic.gdx.backends.lwjgl.audio.OggInputStream;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.StreamUtils;
 
-import ru.m210projects.Build.Architecture.Audio.Music;
-import ru.m210projects.Build.Architecture.Audio.MusicSource;
-import ru.m210projects.Build.Architecture.Audio.Source;
+import ru.m210projects.Build.Audio.Music;
+import ru.m210projects.Build.Audio.MusicSource;
+import ru.m210projects.Build.Audio.Source;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.desktop.audio.ALSoundDrv.SourceManager;
 

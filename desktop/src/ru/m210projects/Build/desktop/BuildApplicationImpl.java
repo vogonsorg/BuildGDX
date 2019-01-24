@@ -45,10 +45,10 @@ import com.badlogic.gdx.utils.SnapshotArray;
 import ru.m210projects.Build.Architecture.BuildApplication;
 import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
-import ru.m210projects.Build.Architecture.Audio.BuildAudio;
 import ru.m210projects.Build.desktop.gl.GLFrameImpl;
 import ru.m210projects.Build.desktop.software.SoftFrameImpl;
 
