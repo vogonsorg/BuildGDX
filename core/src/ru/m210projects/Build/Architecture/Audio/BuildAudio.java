@@ -84,7 +84,17 @@ public class BuildAudio implements Disposable {
 		this.mx = getMusic(0);
 	}
 	
-	public Sound getSound(int sndnum)
+	public boolean IsInited(Driver type)
+	{
+		if(type == Driver.Sound) 
+			return fx.isInited();
+		if(type == Driver.Music) 
+			return mx.isInited();
+		
+		return false;
+	}
+	
+	private Sound getSound(int sndnum)
 	{
 		if(sndnum < 0 || sndnum >= fxdrivers.size())
 			sndnum = 0;
@@ -97,7 +107,7 @@ public class BuildAudio implements Disposable {
 		return fx;
 	}
 	
-	public Music getMusic(int musnum)
+	private Music getMusic(int musnum)
 	{
 		if(musnum < 0 || musnum >= mxdrivers.size())
 			musnum = 0;
@@ -110,16 +120,6 @@ public class BuildAudio implements Disposable {
 		return mx;
 	}
 
-	public boolean IsInited(Driver type)
-	{
-		if(type == Driver.Sound) 
-			return fx.isInited();
-		if(type == Driver.Music) 
-			return mx.isInited();
-		
-		return false;
-	}
-	
 	public BuildAudio setDriver(Driver type, int drvnum)
 	{
 		if(type == Driver.Sound) 
@@ -142,25 +142,24 @@ public class BuildAudio implements Disposable {
 		
 		return this;
 	}
-	
-	public int getDriver(Driver type, Object driver)
+
+	public int getDriver(Driver type)
 	{
-		int num = 0;
 		if(type == Driver.Sound) 
 		{
-			for(num = 0; num < fxdrivers.size(); num++)
-				if(fxdrivers.get(num) == driver)
+			for(int num = 0; num < fxdrivers.size(); num++)
+				if(fxdrivers.get(num) == fx)
 					return num;
 		}
 		
 		if(type == Driver.Music) 
 		{
-			for(num = 0; num < mxdrivers.size(); num++)
-				if(mxdrivers.get(num) == driver)
+			for(int num = 0; num < mxdrivers.size(); num++)
+				if(mxdrivers.get(num) == mx)
 					return num;
 		}
 		
-		return num;
+		return 0;
 	}
 
 	public void setVolume(Driver type, float volume)
