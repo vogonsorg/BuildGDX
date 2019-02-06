@@ -143,6 +143,9 @@ public abstract class Engine {
 		}
 	}
 
+	protected long timerskipticks;
+	protected long timernexttick;
+	
 	private boolean releasedEngine;
 	public boolean compatibleMode;
 	public static boolean UseBloodPal = false;
@@ -4113,4 +4116,14 @@ public abstract class Engine {
     {
     	return defs;
     }
+    
+    protected void updatesmoothticks()
+	{
+		timernexttick = getticks();
+	}
+    
+    public int getsmoothratio()
+	{
+		return (int) (((System.currentTimeMillis() - timernexttick) / (float) timerskipticks) * 65536);
+	}
 }
