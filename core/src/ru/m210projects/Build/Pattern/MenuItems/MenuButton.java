@@ -49,10 +49,10 @@ public class MenuButton extends MenuItem
 	public void draw(MenuHandler handler) {
 		if ( text != null )
 		{
-			int shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
+			int shade = handler.getShade(this);
 		   
 		    int px = x;
-		    int pal = handler.getPal(font, (flags & 3) == 3);
+		    int pal = handler.getPal(font, this);
 		    
 		    if(align == 1) 
 		        px = width / 2 + x - font.getAlign(text).x / 2;

@@ -49,9 +49,8 @@ public class MenuSwitch extends MenuItem
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		
-		int shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
-		int pal = handler.getPal(font, (flags & 3) == 3);
+		int shade = handler.getShade(this);
+		int pal = handler.getPal(font, this);
 		
 		if ( text != null )
 			font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, false);

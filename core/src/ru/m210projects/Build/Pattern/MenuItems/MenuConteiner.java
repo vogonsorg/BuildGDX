@@ -62,12 +62,13 @@ public class MenuConteiner extends MenuItem
 		if(list != null && num != -1 && num < list.length) 
 			key = list[num];	
 
-		int shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
-		font.drawText(px, py, text, shade, handler.getPal(font, (flags & 3) == 3), TextAlign.Left, 0, false);
+		int pal = handler.getPal(font, this);
+		int shade = handler.getShade(this);
+		font.drawText(px, py, text, shade, pal, TextAlign.Left, 0, false);
 		
 		if(key == null) return;
 
-		listFont.drawText(x + width - 1 - listFont.getAlign(key).x, py, key, shade, handler.getPal(listFont, (flags & 3) == 3), TextAlign.Left, 0, false);
+		listFont.drawText(x + width - 1 - listFont.getAlign(key).x, py, key, shade, pal, TextAlign.Left, 0, false);
 	}
 
 	@Override

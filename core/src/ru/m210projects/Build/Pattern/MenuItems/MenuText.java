@@ -49,7 +49,7 @@ public class MenuText extends MenuItem
 		        px = x + width - 1 - ali.x;
 		    }
 
-		    font.drawText(px, y, text, -128, 0, TextAlign.Left, 0, false);
+		    font.drawText(px, y, text, -128, pal, TextAlign.Left, 0, false);
 		}
 	}
 

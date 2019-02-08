@@ -73,10 +73,10 @@ public class MenuResolutionList extends MenuList {
 		if(text.size() > 0) {
 			int px = x, py = y;
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < text.size(); i++) {	
-				int pal = handler.getPal(font, true);
-				int shade = 0;
+				int pal = handler.getPal(font, this);
+				int shade = handler.getShade(null);
 				if ( i == l_nFocus ) 
-					shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
+					shade = handler.getShade(this);
 			    if(align == 1) 
 			        px = width / 2 + x - font.getAlign(text.get(i)).x / 2;
 			    if(align == 2) 
@@ -87,7 +87,7 @@ public class MenuResolutionList extends MenuList {
 			}
 		} else 
 		{
-			int pal = handler.getPal(font, true);
+			int pal = handler.getPal(font, this);
 			String text = "List is empty";
 			
 			int px = x, py = y;		
@@ -95,7 +95,7 @@ public class MenuResolutionList extends MenuList {
 		        px = width / 2 + x - font.getAlign(text.toCharArray()).x / 2;
 		    if(align == 2) 
 		        px = x + width - 1 - font.getAlign(text.toCharArray()).x;
-		    int shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
+		    int shade = handler.getShade(this);
 		    
 		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, true);
 		}

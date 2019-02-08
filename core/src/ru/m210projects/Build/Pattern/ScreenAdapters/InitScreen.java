@@ -16,6 +16,7 @@
 
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
+import static ru.m210projects.Build.Pattern.BuildConfig.Show_Console;
 import static ru.m210projects.Build.Engine.fullscreen;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
@@ -73,6 +74,7 @@ public class InitScreen extends ScreenAdapter {
 		Console.Println("\t with JRE version: " + jrever + "\r\n");
 		
 		Console.Println("Initializing resource archives");
+
 		for(int i = 0; i < factory.resources.length; i++) {
 			try {
 				initgroupfile(factory.resources[i]);
@@ -118,6 +120,11 @@ public class InitScreen extends ScreenAdapter {
 					BuildGdx.audio.setDriver(Driver.Sound, cfg.snddrv);
 					BuildGdx.audio.setDriver(Driver.Music, cfg.middrv);
 					
+					Console.setCaptureKey(cfg.primarykeys[Show_Console], 0);
+					Console.setCaptureKey(cfg.secondkeys[Show_Console], 1);
+					Console.setCaptureKey(cfg.mousekeys[Show_Console], 2);
+					Console.setCaptureKey(cfg.gpadkeys[Show_Console], 3);
+
 					game.init();
 				} catch (Exception e) {
 					game.ThrowError("InitScreen error", e);

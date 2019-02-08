@@ -4528,7 +4528,9 @@ public abstract class Polymost implements Renderer {
 
 		beforedrawrooms = 1;
 		ogshang = -1;
-		gl.glFlush();
+		
+//		gl.glFlush();
+//		gl.glFinish();
 	}
 	
 	private ByteBuffer framebuffer;

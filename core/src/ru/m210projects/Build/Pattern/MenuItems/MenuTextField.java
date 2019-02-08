@@ -124,7 +124,7 @@ public class MenuTextField extends MenuItem {
 	public void draw(MenuHandler handler) {
 		if ( text != null )
 		{
-			int shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
+			int shade = handler.getShade(this);
 		    if ( !m_pMenu.mGetFocusedItem(this) )
 		     	typing = false;
 

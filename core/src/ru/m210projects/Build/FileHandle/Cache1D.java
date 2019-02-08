@@ -9,6 +9,7 @@ package ru.m210projects.Build.FileHandle;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import ru.m210projects.Build.FileHandle.IResource.RESHANDLE;
+import ru.m210projects.Build.FileHandle.IResource.ResourceException;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
 
@@ -82,7 +84,7 @@ public class Cache1D {
 		return null;
 	}
 	
-	public static IResource checkgroupfile(String filename) throws Exception
+	public static IResource checkgroupfile(String filename) throws ResourceException, IOException
 	{
 		int handle = Bopen(filename, "r");
 		if(handle != -1) {

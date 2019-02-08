@@ -23,10 +23,7 @@ public class Gameutils {
 	
 	public static float BClampAngle(float angle)
     {
-        if (angle < 0) angle += 2048f;
-        if (angle >= 2048) angle -= 2048f;
-
-        return BClipRange(angle, 0, 2048);
+		return angle < 0 ? (angle % 2048) + 2048 : angle % 2048;
     }
 	
 	public static float BClipRange(float value, float min, float max) {
@@ -57,7 +54,6 @@ public class Gameutils {
 		return value;
 	}
 
-	
 	public static float BClipLow(float value, int min) {
 		if(value < min)
 			value = min;

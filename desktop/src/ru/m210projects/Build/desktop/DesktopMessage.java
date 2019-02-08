@@ -41,7 +41,7 @@ public class DesktopMessage implements BuildMessage {
 			frame = new JOptionPane();
 			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {}
+		} catch (Exception e) { e.printStackTrace(); }
 	}
 	
 	@Override
@@ -51,7 +51,7 @@ public class DesktopMessage implements BuildMessage {
 			message = message.substring(0, 384);
 			message += "...";
 		}
-		
+
 		if(Gdx.graphics != null) {
 			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 			cfg.fullscreen = 0;

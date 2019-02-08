@@ -162,7 +162,7 @@ public class RFFResource extends IResource {
 			throw new ResourceException("Can't load packed RFF file");
 	}
 	
-	public RFFResource(String FileName) throws Exception
+	public RFFResource(String FileName) throws ResourceException
 	{
 		if(FileName != null && !FileName.isEmpty() && (File = Bopen(FileName, "r")) != -1) {
 			if(Bfilelength(File) == -1) 

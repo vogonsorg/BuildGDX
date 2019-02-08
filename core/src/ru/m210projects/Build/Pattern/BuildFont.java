@@ -32,17 +32,17 @@ public class BuildFont {
 		public int x, y;
 	}
 
-	private class BuildChar {
-		int nTile = -1;
-		short nWidth;
-		short xOffset, yOffset;
+	protected class BuildChar {
+		public int nTile = -1;
+		public short nWidth;
+		public short xOffset, yOffset;
 	}
 
 	public final int nHeigth;
 	public final int nScale;
 	public final int nFlags;
 	public BuildChar[] charInfo;
-	private final Engine draw;
+	protected final Engine draw;
 
 	public BuildFont(Engine draw, int nHeigth, int nScale, int nFlags) {
 		this.draw = draw;

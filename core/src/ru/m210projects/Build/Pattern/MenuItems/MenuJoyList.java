@@ -47,7 +47,7 @@ public class MenuJoyList extends MenuKeyboardList {
 		int px = x, py = y;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
 			int pal = 0;
-			int shade = handler.getShade(false);
+			int shade = handler.getShade(null);
 			String text = keynames[i];
 			String key;
 			
@@ -83,7 +83,7 @@ public class MenuJoyList extends MenuKeyboardList {
 			else key = "N/A";
 
 			if ( i == l_nFocus ) {
-				shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
+				shade = handler.getShade(m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 				if(l_set == 1 && (totalclock & 0x20) != 0)
 				{
 					key = "____";

@@ -21,6 +21,8 @@ import com.badlogic.gdx.Input.Keys;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Pattern.BuildFont;
+import ru.m210projects.Build.Pattern.BuildFont.Align;
+import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public abstract class MenuVariants extends MenuTitle
@@ -30,6 +32,15 @@ public abstract class MenuVariants extends MenuTitle
 		this.flags = 3 | 4;
 	}
 
+	@Override
+	public void draw(MenuHandler handler) {
+		if ( text != null )
+		{
+			Align align = font.getAlign(null);
+		    font.drawText(x, y - align.y / 2, text, handler.getShade(this), pal, TextAlign.Center, 0, false);
+		}
+	}
+	
 	@Override
 	public boolean callback(MenuHandler handler, MenuOpt opt) {
 		if(getInput().getKey(Keys.Y) != 0 || opt == MenuOpt.ENTER || opt == MenuOpt.LMB) {

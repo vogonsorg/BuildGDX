@@ -17,7 +17,6 @@
 package ru.m210projects.Build.desktop;
 
 import java.io.File;
-import java.net.URL;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.ApplicationLogger;
@@ -45,10 +44,10 @@ import com.badlogic.gdx.utils.SnapshotArray;
 import ru.m210projects.Build.Architecture.BuildApplication;
 import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
-import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
+import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.desktop.gl.GLFrameImpl;
 import ru.m210projects.Build.desktop.software.SoftFrameImpl;
 
@@ -68,7 +67,7 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
 
-	public BuildApplicationImpl (Game listener, URL icon, LwjglApplicationConfiguration config) {
+	public BuildApplicationImpl (Game listener, DesktopMessage message, LwjglApplicationConfiguration config) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 		
@@ -89,12 +88,10 @@ public class BuildApplicationImpl implements BuildApplication {
 		Gdx.net = net;
 		
 		BuildGdx.app = this;
-		if(BuildGdx.audio == null) //XXX temporaly code
-			BuildGdx.audio = new BuildAudio();
-		if(BuildGdx.message == null)
-			BuildGdx.message = new DesktopMessage(icon, null); //XXX game.cfg
 		BuildGdx.files = Gdx.files;
 		BuildGdx.net = Gdx.net;
+		BuildGdx.audio = new BuildAudio();
+		BuildGdx.message = message;
 		
 		initialize();
 	}

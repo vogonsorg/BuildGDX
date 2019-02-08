@@ -16,9 +16,16 @@
 
 package ru.m210projects.Build.Pattern;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
+import ru.m210projects.Build.Pattern.Tools.Interpolation;
+import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Script.DefScript;
+
+import static ru.m210projects.Build.OnSceenDisplay.Console.CloseLogFile;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -46,6 +53,8 @@ public abstract class BuildGame extends Game {
 	public MenuHandler menu;
 	public FontHandler fonts;
 	public BuildNet net;
+	public Interpolation gInt;
+	public SaveManager savemgr;
 	
 	public boolean gExit = false;
 	public boolean gPaused = false;
@@ -68,6 +77,8 @@ public abstract class BuildGame extends Game {
 		this.cfg = cfg;
 		this.date = new Date("MMM dd, yyyy HH:mm:ss");
 		this.baseDef = new DefScript(false);
+		this.gInt = new Interpolation();
+		this.savemgr = new SaveManager();
 	}
 
 	@Override
@@ -106,7 +117,7 @@ public abstract class BuildGame extends Game {
 		gCurrScreen = screen;
 		setScreen(screen);
 	}
-	
+
 	public boolean isCurrentScreen(Screen screen)
 	{
 		return gCurrScreen == screen;
@@ -137,8 +148,30 @@ public abstract class BuildGame extends Game {
 		}
 	}
 	
-	public void ThrowError(String msg, Exception e) {
-		e.printStackTrace();
+	protected String stackTraceToString(Throwable e) {
+		StringBuilder sb = new StringBuilder();
+		for (StackTraceElement element : e.getStackTrace()) {
+			sb.append("\t" + element.toString());
+			sb.append("\r\n");
+		}
+		return sb.toString();
+	}
+	
+	public void ThrowError(String msg, Exception ex) {
+		String stack = stackTraceToString(ex);
+		Console.LogPrint(msg + ": " + stack);
+		System.err.println(msg + ": " + stack);
+		CloseLogFile();
+
+		try {
+			if (BuildGdx.message.show(msg, stack, MessageType.Crash))
+			{
+//				saveToFTP(); XXX
+			}
+		} catch (Exception e) {	
+		} finally {
+			Gdx.app.exit();
+		}
 	}
 	
 	public void ThrowError(String msg) {

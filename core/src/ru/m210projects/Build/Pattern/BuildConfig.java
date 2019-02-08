@@ -25,25 +25,28 @@ public class BuildConfig extends BConfig {
 	public int[] secondkeys;
 	public int[] mousekeys;
 	public int[] gpadkeys;
-	public int gJoyDeadZone;
-	public int gJoyDevice;
-	public int gJoyLookSpeed;
-	public int gJoyTurnSpeed;
-	public boolean gJoyInvert;
-	public int gJoyTurnAxis;
-	public int gJoyLookAxis;
-	public int gJoyStrafeAxis;
-	public int gJoyMoveAxis;
 	
-	public boolean useMouse;
-	public boolean menuMouse;
-	public int gSensitivity;
-	public int gMouseTurnSpeed;
-	public int gMouseMoveSpeed;
-	public int gMouseStrafeSpeed;
-	public boolean gMouseAim;
-	public int gMouseLookSpeed;
-	public boolean gInvertmouse;
+	public  int gJoyMoveAxis = 0; //Stick1Y
+	public  int gJoyStrafeAxis = 1; //Stick1X
+	public  int gJoyLookAxis = 2; //Stick2Y
+	public  int gJoyTurnAxis = 3; //Stick2X
+	public  int gJoyTurnSpeed = 65536;
+	public  int gJoyLookSpeed = 65536;
+	public  int gJoyDeadZone = 6144;
+	public  boolean gJoyInvert = false;
+	public  int gJoyDevice = -1;
+
+	public boolean useMouse = true;
+	public boolean menuMouse = true;
+	public int gSensitivity = 69632;
+	public int gMouseTurnSpeed = 65536;
+	public int gMouseLookSpeed = 65536;
+	public int gMouseMoveSpeed = 65536;
+	public int gMouseStrafeSpeed = 131072;
+	public int gMouseCursor = 0;
+	public int gMouseCursorSize = 65536;
+	public boolean gMouseAim = true;
+	public boolean gInvertmouse = false;
 	
 	public static final int AXISLEFT = 0;
 	public static final int AXISRIGHT = 1;
@@ -51,19 +54,17 @@ public class BuildConfig extends BConfig {
 	public static final int AXISDOWN = 3;
 	public int[] mouseaxis = new int[4];
 	
-	public float soundVolume;
-	public float musicVolume;
-	public boolean noSound;
-	public boolean muteMusic;
-	public int resampler_num;
-	public int maxvoices;
-	public int musicType;
+	public float soundVolume = 1.00f;
+	public float musicVolume = 1.00f;
+	public boolean noSound = false;
+	public boolean muteMusic = false;
+	public int resampler_num = 0;
+	public int maxvoices = 32;
+	public int musicType = 0;
 	
 	public  int anisotropy = 0;
-	public int widescreen;
-	public boolean gShowFPS;
-	
-	
+	public int widescreen = 1;
+	public boolean gShowFPS = true;
 	
 	public static final int Show_Console = 0;
 	public static final int Menu_open = 1;

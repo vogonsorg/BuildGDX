@@ -44,7 +44,7 @@ public class MenuPicnum extends MenuItem
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		int shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
+		int shade = handler.getShade(this);
 		
 		if ( text != null ) 
 			font.drawText(x, y, text, shade, 0, TextAlign.Left, 0, false);

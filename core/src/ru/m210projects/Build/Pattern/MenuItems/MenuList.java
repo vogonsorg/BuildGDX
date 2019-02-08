@@ -85,7 +85,7 @@ public class MenuList extends MenuItem
 		    if(align == 2) 
 		        px = x + width - 1 - ali.x;   
 
-		    int shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
+		    int shade = handler.getShade(this);
 		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, true);
 		}
 	}

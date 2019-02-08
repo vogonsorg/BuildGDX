@@ -45,6 +45,16 @@ public abstract class MenuItem {
 			flags = 3 | 4;
 		else flags = 1;
 	}
+	
+	public boolean isEnabled()
+	{
+		return (flags & 3) == 3;
+	}
+	
+	public boolean isFocused()
+	{
+		return m_pMenu.mGetFocusedItem(this);
+	}
 
 	public abstract void draw(MenuHandler handler);
 	public abstract boolean callback(MenuHandler handler, MenuOpt opt);

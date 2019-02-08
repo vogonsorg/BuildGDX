@@ -16,16 +16,18 @@
 
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
-import static ru.m210projects.Build.Engine.totalclock;
+import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Net.Mmulti.*;
 import static ru.m210projects.Build.Pattern.BuildNet.*;
 
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildNet;
+import ru.m210projects.Build.Pattern.BuildGame.NetMode;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 
 public abstract class GameAdapter extends ScreenAdapter {
@@ -37,6 +39,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 	protected BuildConfig cfg;
 	
 	public boolean gPaused;
+	public Runnable gScreenCapture;
+	public byte[] captBuffer;
 	
 	LoadingAdapter load;
 
@@ -52,21 +56,26 @@ public abstract class GameAdapter extends ScreenAdapter {
 
 	public abstract void ProcessFrame(BuildNet net);
 	
-	public abstract void DrawFrame(float smooth);
+	public abstract void DrawWorld(float smooth);
+	
+	public abstract void DrawHud();
 	
 	public abstract void KeyHandler();
 	
 	protected abstract boolean prepareboard(String map);
 	
-	public void loadboard(final String map)
+	public void loadboard(final String map, final Runnable prestart)
 	{
 		net.ready2send = false;
 		game.changeScreen(load);
 		load.init(new Runnable() {
 			@Override
 			public void run() {
-				if(prepareboard(map))
+				if(prepareboard(map)) {
+					if(prestart != null)
+						prestart.run();
 					startboard();
+				}
 			}
 		});
 	}
@@ -74,14 +83,13 @@ public abstract class GameAdapter extends ScreenAdapter {
 	protected void startboard() 
 	{
 		net.WaitForAllPlayers(0);
-		engine.sampletimer(); //update timer before reset
+		System.gc();
 		
-		totalclock = 0;
 		net.ResetTimers();
 		net.ready2send = true;
-		
 		game.changeScreen(this);
-		System.gc();
+		
+		engine.faketimerhandler();
 	}
 	
 	@Override
@@ -91,9 +99,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 	
 	@Override
 	public void render(float delta) {
-
 		KeyHandler();
-		
+
 		if (numplayers > 1) {
 			engine.faketimerhandler();
 			
@@ -102,25 +109,54 @@ public abstract class GameAdapter extends ScreenAdapter {
 				net.UpdatePrediction(net.gFifoInput[net.gPredictTail & kFifoMask][myconnectindex]); 
 
 		} else net.bufferJitter = 0;
-		
+
 		int i;
 		while (net.gNetFifoHead[myconnectindex] - net.gNetFifoTail > net.bufferJitter && !game.gExit) {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
 				if (net.gNetFifoTail == net.gNetFifoHead[i]) break;
 			if (i >= 0) break;
-
+			game.gInt.updateinterpolations();
 			ProcessFrame(net);
 		}
 		
 		net.CheckSync();
 		
-		DrawFrame(engine.getsmoothratio());
+		float smoothratio = 65536;
+		if (!gPaused && (!menu.gShowMenu || game.nNetMode != NetMode.Single) && !Console.IsShown()) {
+			smoothratio = engine.getsmoothratio();
+			if (smoothratio < 0 || smoothratio > 0x10000) {
+				smoothratio = BClipRange(smoothratio, 0, 0x10000);
+//				System.err.println("Interpolation error");
+			}
+		}
+
+		game.gInt.dointerpolations(smoothratio);
+		DrawWorld(smoothratio); //smooth sprites
+		game.gInt.restoreinterpolations();
+		
+		if (gScreenCapture != null) {
+			gScreenCapture.run();
+			gScreenCapture = null;
+		}
+		
+		DrawHud();
+		if(menu.gShowMenu)
+			menu.mDrawMenu();
 
 		if (cfg.gShowFPS)
 			engine.printfps(cfg.gFpsScale);
-		
+
 		engine.nextpage();
 		engine.sampletimer();
+	}
+	
+	public void capture(final int width, final int height) {
+		gScreenCapture = new Runnable() {
+			@Override
+			public void run() {
+				captBuffer = engine.screencapture(width, height);
+			}
+		};
 	}
 
 }

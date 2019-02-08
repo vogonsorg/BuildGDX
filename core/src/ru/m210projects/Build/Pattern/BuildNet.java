@@ -51,7 +51,7 @@ public abstract class BuildNet {
 	
 	public boolean ready2send;
 	
-	public int gNetFifoClock = 0;
+	public int ototalclock = 0;
 	public int gNetFifoTail, gNetFifoHead[] = new int[MAXPLAYERS], gPredictTail, gNetFifoMasterTail;
 	public NetInput gInput;
 	public NetInput gFifoInput[][] = new NetInput[kNetFifoSize][MAXPLAYERS];
@@ -73,8 +73,9 @@ public abstract class BuildNet {
 	
 	public int nConnected = 0;
 	
-	public BuildNet()
+	public BuildNet(BuildGame game)
 	{
+		this.game = game;
 		gInput = newInstance();
 		for(int i = 0; i < MAXPLAYERS; i++)
 			for(int j = 0; j < kNetFifoSize; j++)
@@ -401,7 +402,10 @@ public abstract class BuildNet {
 	
 	public void ResetTimers()
 	{
-		gNetFifoClock = 0;
+		game.engine.sampletimer(); //update timer before reset
+		
+		totalclock = 0;
+		ototalclock = 0;
 		gNetFifoMasterTail = 0;
 		gPredictTail = 0;
 		gNetFifoTail = 0;

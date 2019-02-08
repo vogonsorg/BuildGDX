@@ -65,7 +65,7 @@ public class MenuKeyboardList extends MenuItem
 		Align ali = font.getAlign(null);
 		int px = x, py = y;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
-			int shade = handler.getShade(false);
+			int shade = handler.getShade(null);
 			String text = keynames[i];
 			String key;
 			
@@ -77,11 +77,8 @@ public class MenuKeyboardList extends MenuItem
 				key += " or " + Keymap.toString(cfg.secondkeys[i]);
 
 			if ( i == l_nFocus ) {
-				shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
 				if(l_set == 1 && (totalclock & 0x20) != 0)
-				{
 					key = "____";
-				}
 			}
 
 			char[] k = key.toCharArray();
@@ -93,7 +90,7 @@ public class MenuKeyboardList extends MenuItem
 				key = Keymap.toString(cfg.mousekeys[i]);
 			else key = " - ";
 			if ( i == l_nFocus ) {
-				shade = handler.getShade(m_pMenu.mGetFocusedItem(this));
+				shade = handler.getShade(m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 				if(l_set == 1 && (totalclock & 0x20) != 0)
 				{
 					key = "____";

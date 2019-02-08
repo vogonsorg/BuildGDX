@@ -37,7 +37,7 @@ public abstract class MenuHandler {
 	public BuildMenu[] mMenus;
 	public boolean gShowMenu;
 
-	private boolean mUseMouse;
+	protected boolean mUseMouse;
 	
 	private float keycount = 0;
 	private final float hitTime = 0.5f; //kTimerRate;
@@ -75,9 +75,10 @@ public abstract class MenuHandler {
 		mMenuHistory = new BuildMenu[10];
 	}
 
-	public abstract int getShade(boolean nFocused);
+	//item == m_pMenu.m_pItems[m_pMenu.m_nFocus] for get focused shade
+	public abstract int getShade(MenuItem item);
 	
-	public abstract int getPal(BuildFont font, boolean enable);
+	public abstract int getPal(BuildFont font, MenuItem item);
 	
 	public abstract MenuOpt mUpdateMouse();
 	
