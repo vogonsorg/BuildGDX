@@ -27,6 +27,7 @@ import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
+import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
@@ -39,7 +40,7 @@ public class MenuKeyboardList extends MenuItem
 	public int l_set = 0; 
 	public MenuOpt l_pressedId;
 	public MenuProc callback;
-	protected String[] keynames;
+	protected KeyType[] keynames;
 	protected BuildConfig cfg;
 	
 	protected int touchY;
@@ -51,7 +52,7 @@ public class MenuKeyboardList extends MenuItem
 		super(null, font);
 		this.flags = 3;
 		this.cfg = cfg;
-		this.keynames = cfg.keynames;
+		this.keynames = cfg.keymap;
 		this.nItems = keynames.length;
 		this.x = x;
 		this.y = y;
@@ -66,7 +67,7 @@ public class MenuKeyboardList extends MenuItem
 		int px = x, py = y;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
 			int shade = handler.getShade(null);
-			String text = keynames[i];
+			String text = keynames[i].getName();
 			String key;
 			
 			if(cfg.primarykeys[i] != 0)
@@ -166,10 +167,10 @@ public class MenuKeyboardList extends MenuItem
 				cfg.secondkeys[l_nFocus] = 0;
 				cfg.mousekeys[l_nFocus] = 0;
 				
-				if(l_nFocus == Show_Console) {
-					Console.setCaptureKey(cfg.primarykeys[Show_Console], 0);
-					Console.setCaptureKey(cfg.secondkeys[Show_Console], 1);
-					Console.setCaptureKey(cfg.mousekeys[Show_Console], 2);
+				if(l_nFocus == GameKeys.Show_Console.getNum()) {
+					Console.setCaptureKey(cfg.primarykeys[l_nFocus], 0);
+					Console.setCaptureKey(cfg.secondkeys[l_nFocus], 1);
+					Console.setCaptureKey(cfg.mousekeys[l_nFocus], 2);
 				}
 				return false;
 			default:
@@ -182,7 +183,7 @@ public class MenuKeyboardList extends MenuItem
 			if(callback != null)
 				callback.run(handler, this);
 			
-			if(l_nFocus == Menu_open) 
+			if(l_nFocus == MenuKeys.Menu_Open.getNum()) 
 				getInput().resetKeyStatus();
 
 			return false;

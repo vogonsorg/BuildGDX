@@ -50,7 +50,7 @@ public abstract class BuildControls {
 		this.cfg = cfg;
 		this.gpmanager = gpmanager;
 		this.gpmanager.setDeadZone(cfg.gJoyDeadZone / 65536f);
-		this.maxisstatus = new boolean[cfg.keynames.length];
+		this.maxisstatus = new boolean[cfg.keymap.length];
 		this.mouseMove = new Vector2();
 		this.stick1 = new Vector2();
 		this.stick2 = new Vector2();
@@ -149,14 +149,14 @@ public abstract class BuildControls {
 		return stick2;
 	}
 
-	public boolean ctrlPadStatusOnce(int buttonCode)
+	public boolean ctrlPadStatusOnce(KeyType buttonCode)
 	{
-		return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatusOnce(cfg.gJoyDevice, cfg.gpadkeys[buttonCode]);
+		return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatusOnce(cfg.gJoyDevice, cfg.gpadkeys[buttonCode.getNum()]);
 	}
 	
-	public boolean ctrlPadStatus(int buttonCode)
+	public boolean ctrlPadStatus(KeyType buttonCode)
 	{
-		return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatus(cfg.gJoyDevice, cfg.gpadkeys[buttonCode]);
+		return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatus(cfg.gJoyDevice, cfg.gpadkeys[buttonCode.getNum()]);
 	}
 
 	public boolean ctrlAxisStatusOnce(int keyId)
@@ -195,25 +195,24 @@ public abstract class BuildControls {
 		return getInput().keyPressed(keyId);
 	}
 	
-	public boolean ctrlGetInputKey(int keyName, boolean once) {
+	public boolean ctrlGetInputKey(KeyType keyName, boolean once) {
 		final KeyInput input = getInput();
-		final int key1 = cfg.primarykeys[keyName];
-		final int key2 = cfg.secondkeys[keyName];
-		final int keyM = cfg.mousekeys[keyName];
-		final int keyG = cfg.gpadkeys[keyName];
-
+		final int key1 = cfg.primarykeys[keyName.getNum()];
+		final int key2 = cfg.secondkeys[keyName.getNum()];
+		final int keyM = cfg.mousekeys[keyName.getNum()];
+		
 		if (once) {
 			return input.keyStatusOnce(key1)
 					|| input.keyStatusOnce(key2)
 					|| input.keyStatusOnce(keyM)
-					|| ctrlAxisStatusOnce(keyName)
-					|| keyName > Turn_Right && ctrlPadStatusOnce(keyG);
+					|| ctrlAxisStatusOnce(keyName.getNum())
+					|| /* keyName > Turn_Right && */ctrlPadStatusOnce(keyName);
 		} else {
 			return input.keyStatus(key1)
 					|| input.keyStatus(key2)
 					|| input.keyStatus(keyM)
-					|| ctrlAxisStatus(keyName)
-					|| keyName > Turn_Right && ctrlPadStatus(keyG);
+					|| ctrlAxisStatus(keyName.getNum())
+					|| /* keyName > Turn_Right && */ctrlPadStatus(keyName);
 		}
 	}
 	

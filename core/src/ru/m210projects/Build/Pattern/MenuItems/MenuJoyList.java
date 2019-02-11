@@ -48,34 +48,34 @@ public class MenuJoyList extends MenuKeyboardList {
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
 			int pal = 0;
 			int shade = handler.getShade(null);
-			String text = keynames[i];
+			String text = keynames[i].getName();
 			String key;
 			
-			if(i == Move_Forward) {
+			if(i == GameKeys.Move_Forward.getNum()) {
 				text = "Menu_up";
 				pal = menupal;
 			}
-			if(i == Move_Backward) {
+			if(i == GameKeys.Move_Backward.getNum()) {
 				text = "Menu_down";
 				pal = menupal;
 			}
-			if(i == Turn_Left) {
+			if(i == GameKeys.Turn_Left.getNum()) {
 				text = "Menu_left";
 				pal = menupal;
 			}
-			if(i == Turn_Right) {
+			if(i == GameKeys.Turn_Right.getNum()) {
 				text = "Menu_right";
 				pal = menupal;
 			}
-			if(i == Turn_Around) 
+			if(i == GameKeys.Turn_Around.getNum()) 
 				py += 4;
 			
-			if(i == Open) {
+			if(i == GameKeys.Open.getNum()) {
 				text += " / Menu_enter";
 				pal = menupal;
 			}
 			
-			if(i == Menu_open) 
+			if(i == MenuKeys.Menu_Open.getNum()) 
 				pal = menupal;
 			
 			if(cfg.gpadkeys[i] >= 0)
@@ -157,8 +157,8 @@ public class MenuJoyList extends MenuKeyboardList {
 				return false;
 			case DELETE:
 				cfg.gpadkeys[l_nFocus] = -1;
-				if(l_nFocus == Show_Console) {
-					Console.setCaptureKey(cfg.gpadkeys[Show_Console], 3);
+				if(l_nFocus == GameKeys.Show_Console.getNum()) {
+					Console.setCaptureKey(cfg.gpadkeys[l_nFocus], 3);
 				}
 				return false;
 			default:
@@ -171,12 +171,12 @@ public class MenuJoyList extends MenuKeyboardList {
 			if(callback != null)
 				callback.run(handler, this);
 
-			if(l_nFocus == Menu_open 
-					|| l_nFocus == Open
-					|| l_nFocus == Move_Forward
-					|| l_nFocus == Move_Backward
-					|| l_nFocus == Turn_Left
-					|| l_nFocus == Turn_Right) {
+			if(l_nFocus == MenuKeys.Menu_Open.getNum() 
+					|| l_nFocus == GameKeys.Open.getNum()
+					|| l_nFocus == GameKeys.Move_Forward.getNum()
+					|| l_nFocus == GameKeys.Move_Backward.getNum()
+					|| l_nFocus == GameKeys.Turn_Left.getNum()
+					|| l_nFocus == GameKeys.Turn_Right.getNum()) {
 				gpmanager.resetButtonStatus();
 			}
 

@@ -70,7 +70,7 @@ import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Types.BConfig;
+import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.desktop.audio.midi.MidiMusicModule;
 
 public class DesktopFrame {
@@ -102,10 +102,10 @@ public class DesktopFrame {
 	private String appname;
 	private String appversion;
 	
-	private BConfig cfg;
+	private BuildConfig cfg;
 	private boolean portableAvailable = false;
 	private boolean portableMode;
-	private BConfig portableCFG;
+	private BuildConfig portableCFG;
 	private String userHomePath;
 	private String portablePath;
 	private LaunchCallback cLaunch;
@@ -516,7 +516,7 @@ public class DesktopFrame {
 		aboutInited = true;
 	}
 	
-	private void launchPort(final String title, final BConfig cfg)
+	private void launchPort(final String title, final BuildConfig cfg)
 	{	
 		startButton.setEnabled(false);
     	tabbedPane.setEnabledAt(0, false);

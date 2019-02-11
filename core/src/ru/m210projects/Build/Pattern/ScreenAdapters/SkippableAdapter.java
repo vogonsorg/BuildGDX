@@ -16,12 +16,11 @@
 
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
-import static ru.m210projects.Build.Pattern.BuildConfig.*;
-
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Pattern.BuildGame;
+import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
 
 public abstract class SkippableAdapter extends ScreenAdapter {
 	
@@ -64,8 +63,8 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 	}
 	
 	private boolean skippingHandler() {
-		if((escSkip && (game.input.ctrlGetInputKey(Menu_open, true) 
-				|| game.input.ctrlPadStatusOnce(Menu_open))) 
+		if((escSkip && (game.input.ctrlGetInputKey(MenuKeys.Menu_Open, true) 
+				|| game.input.ctrlPadStatusOnce(MenuKeys.Menu_Open))) 
 				|| (!escSkip && game.input.ctrlKeyPressed())) {
 			
 			skip();

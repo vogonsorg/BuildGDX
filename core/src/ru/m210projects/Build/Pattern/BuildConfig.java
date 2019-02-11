@@ -16,16 +16,125 @@
 
 package ru.m210projects.Build.Pattern;
 
-import ru.m210projects.Build.Types.BConfig;
+import static ru.m210projects.Build.FileHandle.Compat.Bwrite;
+import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
-public class BuildConfig extends BConfig {
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Arrays;
 
-	public String[] keynames;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Pattern.Tools.IniFile;
+
+public abstract class BuildConfig extends IniFile {
+
+	public interface KeyType {
+		
+		public int getNum();
+		
+		public KeyType setNum(int num);
+		
+		public String getName();
+		
+	}
+	
+	public KeyType[] joymap = {
+		MenuKeys.Menu_Open.setJoyNum(0),
+		MenuKeys.Menu_Enter.setJoyNum(1),
+		MenuKeys.Menu_Up.setJoyNum(2),
+		MenuKeys.Menu_Down.setJoyNum(3),
+		MenuKeys.Menu_Left.setJoyNum(4),
+		MenuKeys.Menu_Right.setJoyNum(5),
+	};
+	
+	public enum MenuKeys implements KeyType { 
+		Menu_Open,
+		Menu_Enter,
+		Menu_Up,
+		Menu_Down,
+		Menu_Left,
+		Menu_Right;
+	
+		private int num = -1;
+		private int joynum = -1;
+
+		public int getNum() { return num; }
+		
+		public String getName() { return name(); }
+		
+		public KeyType setNum(int num) { this.num = num; return this; }
+		
+		public int getJoyNum() { return joynum; }
+		
+		public KeyType setJoyNum(int num) { this.joynum = num; return this; }
+	}
+	
+	public enum GameKeys implements KeyType { 
+		
+		Move_Forward,
+		Move_Backward,
+		Turn_Left,
+		Turn_Right,
+		Turn_Around,
+		Strafe,
+		Strafe_Left,
+		Strafe_Right,
+		Jump,
+		Crouch,
+		Run,
+		Open,
+		Weapon_Fire,
+		Next_Weapon,
+		Previous_Weapon,
+		Look_Up,
+		Look_Down,
+		Map_Toggle,
+		Enlarge_Screen,
+		Shrink_Screen,
+		Send_Message,
+		Mouse_Aiming,
+		Show_Console;
+		
+		private int num = -1;
+
+		public int getNum() { return num; }
+		
+		public String getName() { return name(); }
+		
+		public KeyType setNum(int num) { this.num = num; return this; }
+	}
+
+	public String path;
+	public String soundBank = "";
+	public boolean startup = true;
+	public boolean autoloadFolder = true;
+	public boolean userfolder = false;
+	public boolean checkVersion = true;
+	
+	public int fullscreen = 0;
+	public int ScreenWidth = 640;
+	public int ScreenHeight = 400;
+	public boolean gVSync = false;
+	public int fpslimit = 0;
+	
+	public int snddrv = 1;
+	public int middrv = 1;
+	public String midiSynth = "None";
+	
+	public float gamma = 1;
+	public float brightness = 0;
+	public float contrast = 1;
+	public float gFpsScale = 1.0f;
+
+	public KeyType[] keymap;
 	public int[] primarykeys;
 	public int[] secondkeys;
 	public int[] mousekeys;
 	public int[] gpadkeys;
-	
+
 	public  int gJoyMoveAxis = 0; //Stick1Y
 	public  int gJoyStrafeAxis = 1; //Stick1X
 	public  int gJoyLookAxis = 2; //Stick2Y
@@ -35,6 +144,7 @@ public class BuildConfig extends BConfig {
 	public  int gJoyDeadZone = 6144;
 	public  boolean gJoyInvert = false;
 	public  int gJoyDevice = -1;
+	public int[] gJoyMenukeys = new int[joymap.length];
 
 	public boolean useMouse = true;
 	public boolean menuMouse = true;
@@ -62,34 +172,53 @@ public class BuildConfig extends BConfig {
 	public int maxvoices = 32;
 	public int musicType = 0;
 	
-	public  int anisotropy = 0;
+	public  int glanisotropy = 0;
 	public int widescreen = 1;
+	public int glfilter = 0;
 	public boolean gShowFPS = true;
-	
-	public static final int Show_Console = 0;
-	public static final int Menu_open = 1;
-	public static final int Move_Forward = 2;
-	public static final int Move_Backward = 3;
-	public static final int Turn_Left = 4;
-	public static final int Turn_Right = 5;
-	public static final int Turn_Around = 6;
-	public static final int Open = 7;
-	
-	public BuildConfig(String[] keynames)
-	{
-		this.keynames = keynames;
-		this.primarykeys = new int[keynames.length];
-		this.secondkeys = new int[keynames.length];
-		this.mousekeys = new int[keynames.length];
-		this.gpadkeys = new int[keynames.length];
-	}
 
-	@Override
-	public void saveConfig(String path) {
+	public BuildConfig(String path, String name, KeyType[] keymap) {
+		super();	
+
+		for(int i = 0; i < keymap.length; i++)
+			keymap[i].setNum(i);
+
+		this.name = toLowerCase(name);
+		byte[] data = null;
 		
+		try {
+			RandomAccessFile raf = new RandomAccessFile(path + name, "r");
+			data = new byte[(int)raf.length()];
+			raf.read(data);
+			init(data);
+			raf.close();
+		} catch(FileNotFoundException e) { 
+			Console.Println("File not found: " + path + name, OSDTEXT_YELLOW);
+		} catch (IOException e) {
+			Console.Println("Read file error: " + e.getMessage(), OSDTEXT_YELLOW);
+		}
+		
+		this.keymap = keymap;
+		this.primarykeys = new int[keymap.length];
+		this.secondkeys = new int[keymap.length];
+		this.mousekeys = new int[keymap.length];
+		this.gpadkeys = new int[keymap.length];
+		
+		Arrays.fill(mouseaxis, -1);
+		Arrays.fill(gpadkeys, -1);
+		Arrays.fill(gJoyMenukeys, -1);
+
+		InitConfig(data);
 	}
 
-	public void setKey(int index, int keyId) {
+	public abstract void saveConfig(String path);
+	
+	public abstract void InitConfig(byte[] data);
+	
+	
+
+	public void setKey(int index, int keyId)
+	{
 		if(primarykeys[index] == 0 && secondkeys[index] == 0)
 			primarykeys[index] = keyId;
 		else if(primarykeys[index] != 0 && secondkeys[index] == 0 ) {
@@ -126,13 +255,64 @@ public class BuildConfig extends BConfig {
 		}
 	}
 
-	public void setButton(int index, int button) {
-	
+	public void setButton(KeyType key, int button) {
+		if(key instanceof MenuKeys) {
+			MenuKeys mk = (MenuKeys) key;
+			gJoyMenukeys[mk.getJoyNum()] = button;
+		}
+		else gpadkeys[key.getNum() - joymap.length] = button;
 	}
 
 	public int checkFps(int fpslimit) {
+		int num = -1;
+		switch(fpslimit) {
+			case 0: num = 0; break;
+			case 30: num = 1; break;
+			case 60: num = 2; break;
+			case 120: num = 3; break;
+			case 144: num = 4; break;
+		}
 		
-		return 0;
+		if(num < 0 || num >= 5) {
+			num = 0;
+			fpslimit = 0;
+			BuildGdx.app.setMaxFramerate(0);
+		}
+		
+		return num;
 	}
 
+	public int getKeyIndex(String keyname)
+	{
+		keyname = keyname.replaceAll("[^a-zA-Z_-]", "");
+		for(int i = 0; i < keymap.length; i++)
+		{
+			if(keyname.equals(keymap[i].getName()))
+				return i;
+		}	
+		return -1;
+	}
+	
+	public void saveBoolean(int fil, String name, boolean var)
+	{
+		String line =  name + " = " + (var?1:0) +"\r\n";
+		Bwrite(fil, line.toCharArray(), line.length());
+	}
+	
+	public void saveInteger(int fil, String name, int var)
+	{
+		String line =  name + " = " + var +"\r\n";
+		Bwrite(fil, line.toCharArray(), line.length());
+	}
+	
+	public void saveString(int fil, String text)
+	{
+		Bwrite(fil, text.toCharArray(), text.length());
+	}
+	
+	public void saveString(int fil, String name, String var)
+	{
+		String line =  name + " = " + var +"\r\n";
+		Bwrite(fil, line.toCharArray(), line.length());
+	}
 }

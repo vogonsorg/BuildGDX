@@ -21,8 +21,8 @@ import com.badlogic.gdx.ScreenAdapter;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildGame;
+import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
-import static ru.m210projects.Build.Pattern.BuildConfig.*;
 
 public abstract class MenuAdapter extends ScreenAdapter {
 	
@@ -56,7 +56,7 @@ public abstract class MenuAdapter extends ScreenAdapter {
 			menu.mKeyHandler(game.input, delta);
 			menu.mDrawMenu();
 		} else {
-			if (game.input.ctrlGetInputKey(Menu_open, true))
+			if (game.input.ctrlGetInputKey(MenuKeys.Menu_Open, true))
 				menu.mOpen(menu.mMenus[0], -1);
 		}
 

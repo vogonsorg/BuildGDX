@@ -140,7 +140,7 @@ public abstract class BuildEngine extends Engine {
 	{
 		glanisotropy = anisotropy;
 		render.gltexapplyprops();
-		cfg.anisotropy = glanisotropy;
+		cfg.glanisotropy = glanisotropy;
 	}
 	
 	public void setwidescreen(BuildConfig cfg, boolean widescreen)

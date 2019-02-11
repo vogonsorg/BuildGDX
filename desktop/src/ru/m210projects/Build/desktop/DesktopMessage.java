@@ -26,14 +26,14 @@ import javax.swing.UIManager;
 import com.badlogic.gdx.Gdx;
 
 import ru.m210projects.Build.Architecture.BuildMessage;
-import ru.m210projects.Build.Types.BConfig;
+import ru.m210projects.Build.Pattern.BuildConfig;
 
 public class DesktopMessage implements BuildMessage {
 	private JOptionPane frame;
 	private URL icon;
-	private BConfig cfg;
+	private BuildConfig cfg;
 
-	public DesktopMessage(URL icon, BConfig cfg)
+	public DesktopMessage(URL icon, BuildConfig cfg)
 	{
 		try {
 			this.icon = icon;

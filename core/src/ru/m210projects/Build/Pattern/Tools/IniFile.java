@@ -28,51 +28,23 @@ import ru.m210projects.Build.Types.PropertyIgnoreCase;
 
 public class IniFile {
 	
-	private Map<String, Integer> context;
-	private List<Integer> pointer;
-	private List<Integer> length;
-	private int nContext = -1;
-	private PropertyIgnoreCase ini;
-	private StringReader reader;
-	private String name;
-	private byte[] data;
+	protected Map<String, Integer> context;
+	protected List<Integer> pointer;
+	protected List<Integer> length;
+	protected int nContext = -1;
+	protected PropertyIgnoreCase ini;
+	protected StringReader reader;
+	protected String name;
+	protected byte[] data;
 	private FileEntry file;
+	
+	protected IniFile() { /* extends */	}
 
-	public IniFile(byte[] data, String name, FileEntry file) {
-		this.data = data;
+ 	public IniFile(byte[] data, String name, FileEntry file) {
 		this.name = toLowerCase(name);
 		this.file = file;
 		
-		ini = new PropertyIgnoreCase();
-		context = new HashMap<String, Integer>();
-		pointer = new ArrayList<Integer>();
-		length = new ArrayList<Integer>();
-
-	    String line;
-	    char c;
-	    int ptr = 0;
-	    while(ptr < data.length) {
-	    	line = "";
-	    	while(ptr < data.length && (c = (char)data[ptr++]) != '\n') {
-	    		line += c;
-	    	}
-	    	
-	    	if(isContext(line)) {
-	    		pointer.add(ptr-line.length()-1);
-	    		line = toLowerCase(line.replaceAll("[^a-zA-Z0-9_-]", ""));
-	    		context.put(line, pointer.size()-1);
-			}
-	    }
-
-	    if(pointer.size() > 0)
-		{
-			for( int i = 0; i < pointer.size() - 1; i++) {
-				if(i + 1 < pointer.size()) {
-					length.add(pointer.get(i + 1) - pointer.get(i));
-				}
-			}
-			length.add((int) (data.length - pointer.get(pointer.size() - 1)));
-		}
+		init(data);
 	}
 	
 	public FileEntry getFile()
@@ -202,9 +174,44 @@ public class IniFile {
 	    return result;
 	}
 	
-	private static boolean isContext(String line) {
+	protected boolean isContext(String line) {
 		line = line.trim();
 		return line.startsWith("[") && line.endsWith("]");
+	}
+	
+	protected void init(byte[] data) {
+		this.data = data;
+	
+		ini = new PropertyIgnoreCase();
+		context = new HashMap<String, Integer>();
+		pointer = new ArrayList<Integer>();
+		length = new ArrayList<Integer>();
+
+	    String line;
+	    char c;
+	    int ptr = 0;
+	    while(ptr < data.length) {
+	    	line = "";
+	    	while(ptr < data.length && (c = (char)data[ptr++]) != '\n') {
+	    		line += c;
+	    	}
+	    	
+	    	if(isContext(line)) {
+	    		pointer.add(ptr-line.length()-1);
+	    		line = toLowerCase(line.replaceAll("[^a-zA-Z0-9_-]", ""));
+	    		context.put(line, pointer.size()-1);
+			}
+	    }
+
+	    if(pointer.size() > 0)
+		{
+			for( int i = 0; i < pointer.size() - 1; i++) {
+				if(i + 1 < pointer.size()) {
+					length.add(pointer.get(i + 1) - pointer.get(i));
+				}
+			}
+			length.add((int) (data.length - pointer.get(pointer.size() - 1)));
+		}
 	}
 	
 	public void close() {

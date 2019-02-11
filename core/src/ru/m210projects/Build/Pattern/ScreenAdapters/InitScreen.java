@@ -16,7 +16,6 @@
 
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
-import static ru.m210projects.Build.Pattern.BuildConfig.Show_Console;
 import static ru.m210projects.Build.Engine.fullscreen;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
@@ -26,20 +25,21 @@ import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 
-import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
+import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
+import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
 public class InitScreen extends ScreenAdapter {
 	
 	private int frames;
-	private Engine engine;
+	private BuildEngine engine;
 	
 	private BuildFactory factory;
 
@@ -100,11 +100,16 @@ public class InitScreen extends ScreenAdapter {
 		
 		BuildConfig cfg = game.cfg;
 		game.fonts = factory.fonts();
-
+		
 		engine.setrendermode(factory.renderer());
 		if(!engine.setgamemode(cfg.fullscreen, cfg.ScreenWidth, cfg.ScreenHeight))
 			cfg.fullscreen = 0;
 		fullscreen = cfg.fullscreen;
+		
+		cfg.checkFps(cfg.fpslimit);
+		engine.setanisotropy(cfg, cfg.glanisotropy);
+		engine.setwidescreen(cfg, cfg.widescreen != 0);
+		Console.Set("r_texturemode", game.cfg.glfilter);
 		
 		new Thread(new Runnable() {
 			@Override
@@ -120,10 +125,12 @@ public class InitScreen extends ScreenAdapter {
 					BuildGdx.audio.setDriver(Driver.Sound, cfg.snddrv);
 					BuildGdx.audio.setDriver(Driver.Music, cfg.middrv);
 					
-					Console.setCaptureKey(cfg.primarykeys[Show_Console], 0);
-					Console.setCaptureKey(cfg.secondkeys[Show_Console], 1);
-					Console.setCaptureKey(cfg.mousekeys[Show_Console], 2);
-					Console.setCaptureKey(cfg.gpadkeys[Show_Console], 3);
+					int consolekey = GameKeys.Show_Console.getNum();
+					
+					Console.setCaptureKey(cfg.primarykeys[consolekey], 0);
+					Console.setCaptureKey(cfg.secondkeys[consolekey], 1);
+					Console.setCaptureKey(cfg.mousekeys[consolekey], 2);
+					Console.setCaptureKey(cfg.gpadkeys[consolekey], 3);
 
 					game.init();
 				} catch (Exception e) {
