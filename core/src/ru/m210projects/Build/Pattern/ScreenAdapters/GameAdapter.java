@@ -53,6 +53,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 		this.cfg = game.cfg;
 		this.load = load;
 	}
+	
+	public void PreFrame(BuildNet net) { /* nothing */ }
 
 	public abstract void ProcessFrame(BuildNet net);
 	
@@ -109,6 +111,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 				net.UpdatePrediction(net.gFifoInput[net.gPredictTail & kFifoMask][myconnectindex]); 
 
 		} else net.bufferJitter = 0;
+		
+		PreFrame(net);
 
 		int i;
 		while (net.gNetFifoHead[myconnectindex] - net.gNetFifoTail > net.bufferJitter && !game.gExit) {

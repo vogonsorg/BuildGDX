@@ -100,19 +100,29 @@ public class Gameutils {
 		return i >= 0 && i < MAXWALLS;
 	}
 	
-	public static int coordsConvertXScaled(int coord, int bits)
+	public enum ConvertType { Normal, AlignLeft, AlignRight, Stretch };
+	
+	public static int coordsConvertXScaled(int coord, ConvertType type)
 	{
 		int oxdim = xdim;
 		int xdim = (4 * ydim) / 3;
 		int offset = oxdim - xdim;
+		
+		int buildim = 320;
+		if(type == ConvertType.Stretch)
+			buildim = buildim * xdim / oxdim;
 	
-		int normxofs = coord - (320 << 15);
-		int wx = (xdim << 15) + scale(normxofs, xdim, 320);
+		int normxofs = coord - (buildim << 15);
+		int wx = (xdim << 15) + scale(normxofs, xdim, buildim);
+		
+		if(type == ConvertType.Stretch)
+			return wx;
+		
 		wx += (oxdim - xdim) / 2;
 		
-		if((bits & 256) == 256)
+		if(type == ConvertType.AlignLeft)
 			return wx - offset / 2 - 1;
-		if((bits & 512) == 512)
+		if(type == ConvertType.AlignRight)
 			return wx + offset / 2 - 1;
 
 		return wx - 1;

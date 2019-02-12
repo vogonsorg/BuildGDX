@@ -25,6 +25,7 @@ import ru.m210projects.Build.Pattern.Tools.Interpolation;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Script.DefScript;
 
+import static ru.m210projects.Build.FileHandle.Compat.FilePath;
 import static ru.m210projects.Build.OnSceenDisplay.Console.CloseLogFile;
 
 import com.badlogic.gdx.Game;
@@ -89,9 +90,18 @@ public abstract class BuildGame extends Game {
 	public abstract BuildFactory getFactory();
 
 	public abstract void init() throws Exception;
-
+	
 	@Override
-	public abstract void dispose();
+	public void dispose() {
+		if(getScreen() instanceof InitScreen)
+			((InitScreen) getScreen()).dispose();
+		
+		if(engine != null)
+			engine.uninit();
+
+		cfg.saveConfig(FilePath);
+		System.out.println("disposed");
+	}
 	
 	public BuildFont getFont(int i)
 	{

@@ -29,6 +29,7 @@ import com.badlogic.gdx.math.Vector2;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.Input.KeyInput;
+import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
 import ru.m210projects.Build.Pattern.BuildNet.NetInput;
 
 public abstract class BuildControls {
@@ -151,11 +152,17 @@ public abstract class BuildControls {
 
 	public boolean ctrlPadStatusOnce(KeyType buttonCode)
 	{
+		if(buttonCode instanceof MenuKeys) 
+			return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatusOnce(cfg.gJoyDevice, cfg.gJoyMenukeys[((MenuKeys) buttonCode).getJoyNum()]);
+		
 		return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatusOnce(cfg.gJoyDevice, cfg.gpadkeys[buttonCode.getNum()]);
 	}
 	
 	public boolean ctrlPadStatus(KeyType buttonCode)
 	{
+		if(buttonCode instanceof MenuKeys) 
+			return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatus(cfg.gJoyDevice, cfg.gJoyMenukeys[((MenuKeys) buttonCode).getJoyNum()]);
+		
 		return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatus(cfg.gJoyDevice, cfg.gpadkeys[buttonCode.getNum()]);
 	}
 
@@ -224,6 +231,11 @@ public abstract class BuildControls {
 	public void ctrlResetInput() {
 		ctrlResetKeyStatus();
 		Arrays.fill(getInput().hitkey, false);
+	}
+	
+	public boolean ctrlMenuMouse()
+	{
+		return cfg.menuMouse;
 	}
 	
 	public abstract void ctrlGetInput(NetInput input);

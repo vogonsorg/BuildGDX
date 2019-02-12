@@ -42,6 +42,8 @@ public class InitScreen extends ScreenAdapter {
 	private BuildEngine engine;
 	
 	private BuildFactory factory;
+	
+	private Thread thread;
 
 	@Override
 	public void show()
@@ -111,7 +113,7 @@ public class InitScreen extends ScreenAdapter {
 		engine.setwidescreen(cfg, cfg.widescreen != 0);
 		Console.Set("r_texturemode", game.cfg.glfilter);
 		
-		new Thread(new Runnable() {
+		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -137,7 +139,15 @@ public class InitScreen extends ScreenAdapter {
 					game.ThrowError("InitScreen error", e);
 				}
 			}
-		}).start();
+		});
+		thread.start();
+	}
+
+	public void dispose()
+	{
+		try { 
+			thread.join();
+		} catch (InterruptedException e) { }
 	}
 
 	@Override

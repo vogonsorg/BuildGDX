@@ -16,13 +16,18 @@ import static ru.m210projects.Build.Gameutils.*;
 //
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
-
+import static ru.m210projects.Build.Input.Keymap.MOUSE_LBUTTON;
+import static ru.m210projects.Build.Input.Keymap.MOUSE_RBUTTON;
+import static ru.m210projects.Build.Input.Keymap.MOUSE_WHELLDN;
+import static ru.m210projects.Build.Input.Keymap.MOUSE_WHELLUP;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Pattern.BuildConfig.*;
+import static ru.m210projects.Build.Pragmas.*;
 
 import java.util.Arrays;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -79,13 +84,90 @@ public abstract class MenuHandler {
 	public abstract int getShade(MenuItem item);
 	
 	public abstract int getPal(BuildFont font, MenuItem item);
-	
-	public abstract MenuOpt mUpdateMouse();
-	
+
 	public abstract void mDrawMouse(int x, int y);
 	
 	public abstract int mDrawSlider(int x, int y, int nPos, int len, boolean focus);
 	
+	public MenuOpt mUpdateMouse(BuildControls input) {
+		if(Gdx.input.getDeltaX() != 0 || Gdx.input.getDeltaY() != 0)
+			mUseMouse = true;
+
+		if(!mUseMouse)
+			return null;
+
+		int mx = BClipRange(Gdx.input.getX(), 0, xdim);
+		int my = BClipRange(Gdx.input.getY(), 0, ydim);
+
+		if(!input.ctrlMenuMouse())
+			return null;
+		
+		BuildMenu pMenu = mMenuHistory[0];
+		
+		if(mCount > 1) {
+			//Back button XXX
+//			int bzoom = (int) divscale(16384, gViewX1Scaled, 16);
+//			int size = mulscale(tilesizy[40], bzoom, 16);
+//			int bx = 0;
+//			int by = ydim - size;
+//			if(mx >= bx && mx < bx + size)
+//				if(my >= by && my < by + size)
+//					if(input.ctrlKeyStatusOnce(MOUSE_LBUTTON)) {
+//						mMenuBack();
+//						return null;
+//					}
+		}
+		
+		MenuOpt opt = null;
+
+		//Sliders
+		if(pMenu.m_nFocus != -1 && pMenu.mCheckItemsFlags(pMenu.m_nFocus)) {
+			if(pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuSlider 
+//				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuFileBrowser
+				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuResolutionList
+//				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuSlotList
+				|| (pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuKeyboardList 
+						&& ((MenuKeyboardList)pMenu.m_pItems[pMenu.m_nFocus]).l_set == 0))
+			{
+				if(input.ctrlKeyStatus(MOUSE_LBUTTON)) 
+					opt = MenuOpt.LMB;
+			} 
+			else if(input.ctrlKeyStatusOnce(MOUSE_LBUTTON)) 
+				opt = MenuOpt.LMB;
+		}
+		
+		if(input.ctrlKeyStatusOnce(MOUSE_RBUTTON)) 
+			opt = MenuOpt.RMB;
+		if(input.ctrlKeyStatusOnce(MOUSE_WHELLUP)) 
+			opt = MenuOpt.MWUP;
+		if(input.ctrlKeyStatusOnce(MOUSE_WHELLDN)) 
+			opt = MenuOpt.MWDW;
+
+		short focus = mCheckButton(pMenu, input, mx, my);
+		if(focus != -1 && mUseMouse)
+			pMenu.m_nFocus = focus;
+
+		return opt;
+	}
+	
+	private short mCheckButton(BuildMenu pMenu, BuildControls input, int x, int y)
+	{
+		int oxdim = xdim;
+		int xdim = (4 * ydim) / 3;
+		int normxofs = x - oxdim / 2;
+		int touchX = scale(normxofs, 320, xdim) + 320 / 2;
+		int touchY = (int) mulscale(y, divscale(200, ydim, 16), 16);
+
+		for(short i = 0; i < pMenu.m_pItems.length; i++)
+		{
+			if(pMenu.m_pItems[i] != null && pMenu.mCheckItemsFlags(i) && 
+					pMenu.m_pItems[i].mouseAction(touchX, touchY) && !input.ctrlKeyStatus(MOUSE_LBUTTON))
+				return i;
+		}
+		return -1;
+	}
+	
+
 	public void mKeyHandler(BuildControls input, float delta) {
 
 		BuildMenu pMenu = mMenuHistory[0];
@@ -121,7 +203,7 @@ public abstract class MenuHandler {
 				opt = MenuOpt.END;
 
 			if(opt != MenuOpt.ANY) mUseMouse = false;
-			MenuOpt mopt = mUpdateMouse();
+			MenuOpt mopt = mUpdateMouse(input);
 			if(mopt != null) opt = mopt;
 			
 			if(pMenu.mLoadRes(this, opt)) 

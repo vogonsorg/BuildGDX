@@ -16,9 +16,6 @@
 
 package ru.m210projects.Build.Pattern.MenuItems;
 
-import static ru.m210projects.Build.Engine.tilesizx;
-import static ru.m210projects.Build.Engine.xdim;
-import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Strhandler.Bitoa;
 import static ru.m210projects.Build.Strhandler.buildString;
@@ -28,67 +25,72 @@ import java.util.Arrays;
 import com.badlogic.gdx.Gdx;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Gameutils.ConvertType;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
+import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
+import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
+import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
 
-public class MenuSlider extends MenuItem
-{
+public abstract class MenuSlider extends MenuItem {
+
+	public int min;
+	public int max;
+	public int step;
 	public int value;
-	public int min, max, step;
-	public int background, slider;
-	public MenuProc callback;
 	public boolean digital;
 	public float digitalMax;
 	public char[] dbuff; 
-	public boolean textShadow;
+	public MenuProc callback;
+	public int nSliderWidth;
+	public int nSliderRange;
 	
 	private int touchX;
 	private boolean isTouched;
 	private MenuSlider touchedObj;
-	protected Engine draw;
 	
-	public MenuSlider(Engine draw, Object text, BuildFont font, boolean textShadow, int x, int y, int width, int value, int min, int max, 
-			int step, MenuProc callback, int background, int slider, boolean digital) 
-	{
-		super(text, font);
-		
+	public MenuSlider(Object text, BuildFont textStyle, int x, int y, int width, int value, int min, int max, 
+			int step, MenuProc callback, boolean digital, int nSliderWidth, int nSliderRange) {
+		super(text, textStyle);
+
 		this.flags = 3 | 4;
 		this.x = x;
 		this.y = y;
+		
 		this.width = width;
 		this.min = min;
 		this.max = max;
 		this.step = step;
 		this.value = BClipRange(value, min, max);
-		this.callback = callback;
-		dbuff = new char[10];
-
-		this.digital = digital;
-		digitalMax = 0;
-		if(background >= 0)
-			this.background = background;
-		if(slider >= 0)
-			this.slider = slider;
 		
-		this.textShadow = textShadow;
-		this.draw = draw;
+		this.nSliderWidth = nSliderWidth;
+		this.nSliderRange = nSliderRange;
+		
+		this.digital = digital;
+		this.digitalMax = 0;
+		
+		dbuff = new char[10];
 	}
 	
+	public abstract void drawBackground(int x, int y, int shade, int pal);
+	
+	public abstract void drawSlider(int x, int y, int shade, int pal);
+
 	@Override
 	public void draw(MenuHandler handler) {
-		int aly = font.getAlign(text).y;
 		int shade = handler.getShade(this);
 		int pal = handler.getPal(font, this);
 
 		if ( text != null )
-			font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, textShadow);
-		   
-		int cx = x + width - 1 - tilesizx[background] / 2;
-		draw.rotatesprite(cx << 16, (aly / 2 + y) << 16, 65536, 0, background, 0, pal, 10, 0, 0, xdim - 1, ydim - 1);
+			font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, false);
+
+		drawBackground(x + width - nSliderRange, y, 0, pal);
+
 		if(digital)
 		{
+			Arrays.fill(dbuff, (char)0);
 			if(digitalMax == 0)
 				Bitoa(value, dbuff);
 			else {
@@ -98,53 +100,53 @@ public class MenuSlider extends MenuItem
 				Arrays.fill(dbuff, index + 4, dbuff.length, (char)0);
 			}
 
-			font.drawText(x + width - tilesizx[background] - font.getAlign(dbuff).x - 10, y, dbuff, shade, pal, TextAlign.Left, 0, false);
+			font.drawText(x + width - nSliderRange - font.getAlign(dbuff).x - 10, y, dbuff, shade, pal, TextAlign.Left, 0, false);
 		}
 		
+		int xRange = nSliderRange - nSliderWidth;
 		int nRange = max - min;
-		int xrange = tilesizx[background] - 8;
-		int dx = xrange * (value - min) / nRange - xrange / 2;
-		draw.rotatesprite(  (cx + dx) << 16, (aly / 2 + y) << 16, 65536, 0, slider, 0, pal, 10, 0, 0, xdim - 1, ydim - 1);
-	}
-
-	@Override
-	public void open() {
-		
+		int dx = xRange * (value - min) / nRange - nSliderRange;
+	
+		drawSlider((x + width + dx), y, shade, pal);
 	}
 	
-	@Override
-	public void close() {
+	public void dbDrawBackground(Engine draw, int x, int y, int col)
+	{
+		int x1 = coordsConvertXScaled(x, ConvertType.Normal);
+		int y1 = coordsConvertYScaled(y);
+		int x2 = coordsConvertXScaled(x + nSliderRange, ConvertType.Normal);
+		int y2 = coordsConvertYScaled(y + font.nHeigth);
 		
+		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
+		draw.getrender().drawline256(x1 * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x1 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
 	}
-
-	@Override
-	public boolean mouseAction(int mx, int my) {
-		touchX = mx;
-		isTouched = false;
-
-		if(!Gdx.input.isTouched() && touchedObj != this)
-			touchedObj = null;
+	
+	public void dbDrawSlider(Engine draw, int x, int y, int col)
+	{
+		int x1 = coordsConvertXScaled(x, ConvertType.Normal);
+		int y1 = coordsConvertYScaled(y);
+		int x2 = coordsConvertXScaled(x + nSliderWidth, ConvertType.Normal);
+		int y2 = coordsConvertYScaled(y + font.nHeigth);
 		
-		if(text != null)
-		{
-			Align align = font.getAlign(text);
-			if(mx > x && mx < x + align.x)
-			{
-				if(my > y && my < y + align.y) 
-					return true;
-			}
-		}
-
-		int cx = x + width - 1 - tilesizx[background];
-		Align align = font.getAlign(null);
-		if(mx > cx && mx < cx + tilesizx[background] )
-			if(my > y && my < y + align.y) {
-				isTouched = true;
-				if(Gdx.input.isTouched())
-					touchedObj = this;
-			}
+		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
+		draw.getrender().drawline256(x1 * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x1 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
+	}
+	
+	public void dbDrawDimensions(Engine draw, int col)
+	{
+		int x = coordsConvertXScaled(this.x - 1, ConvertType.Normal);
+		int y = coordsConvertYScaled(this.y - 1);
+		int x2 = coordsConvertXScaled(this.x + width + 1, ConvertType.Normal);
+		int y2 = coordsConvertYScaled(this.y + font.nHeigth + 1);
 		
-		return isTouched;
+		draw.getrender().drawline256(x * 4096, y * 4096, x2 * 4096, y * 4096, col);
+		draw.getrender().drawline256(x * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x * 4096, y * 4096, x * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x2 * 4096, y * 4096, x2 * 4096, y2 * 4096, col);
 	}
 
 	@Override
@@ -204,9 +206,9 @@ public class MenuSlider extends MenuItem
 		case LMB:
 			if(touchedObj == this)
 			{
-				int x1 = x + width - tilesizx[background] + 2;
-				float dr = (float)(touchX - x1) / (tilesizx[background] - 4);
-				value = (int) BClipRange(dr * max, min, max);
+				int startx = x + width - nSliderRange + nSliderWidth / 2;
+				float dr = (float)(touchX - startx) / (nSliderRange - nSliderWidth - 1);
+				value = BClipRange((int) (dr * (max - min) + min), min, max);
 				if(callback != null) 
 					callback.run(handler, this);
 			} 
@@ -216,4 +218,41 @@ public class MenuSlider extends MenuItem
 		
 		return false;
 	}
+
+	@Override
+	public boolean mouseAction(int mx, int my) {
+		touchX = mx;
+		isTouched = false;
+		if(!Gdx.input.isTouched() && touchedObj != this)
+			touchedObj = null;
+		
+		if(text != null)
+		{
+			Align align = font.getAlign(text);
+			if(mx > x && mx < x + align.x)
+			{
+				if(my > y && my < y + align.y) 
+					return true;
+			}
+		}
+
+		int cx = x + width - nSliderRange;
+		if(mx > cx && mx < cx + nSliderRange)
+			if(my > y && my < y + font.nHeigth) {
+				isTouched = true;
+				if(Gdx.input.isTouched())
+					touchedObj = this;
+			}
+		
+		return isTouched;
+	}
+
+	@Override
+	public void open() {
+	}
+
+	@Override
+	public void close() {
+	}
+
 }

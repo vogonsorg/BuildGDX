@@ -26,6 +26,7 @@ import java.util.List;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Gameutils.ConvertType;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
@@ -67,7 +68,7 @@ public class MenuResolutionList extends MenuList {
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		draw.rotatesprite((x - 10) << 16, (y - 8) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 33, 0, 0, coordsConvertXScaled(x+width+12, 0), coordsConvertYScaled(y+114));
+		draw.rotatesprite((x - 10) << 16, (y - 8) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 33, 0, 0, coordsConvertXScaled(x+width+12, ConvertType.Normal), coordsConvertYScaled(y+114));
 		Align ali = font.getAlign(null);
 		
 		if(text.size() > 0) {
