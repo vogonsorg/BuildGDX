@@ -21,7 +21,6 @@ import static ru.m210projects.Build.Engine.ydim;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
@@ -46,11 +45,11 @@ public class MenuTitle extends MenuItem {
 	public void draw(MenuHandler handler) {
 		if ( text != null )
 		{
-			Align align = font.getAlign(null);
 		    if(nTile != -1)
 		    	draw.rotatesprite(160 << 16, y << 16, 65536, 0, nTile, -128, 0, 78, 0, 0, xdim - 1, ydim - 1);
-		    font.drawText(x, y - align.y / 2, text, -128, pal, TextAlign.Center, 0, false);
+		    font.drawText(x, y - font.nHeight / 2, text, -128, pal, TextAlign.Center, 0, false);
 		}
+		handler.mPostDraw(this);
 	}
 
 	@Override

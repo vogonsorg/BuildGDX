@@ -18,17 +18,13 @@ package ru.m210projects.Build.Pattern.MenuItems;
 
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Engine.totalclock;
-import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Pattern.BuildConfig.*;
-
-import com.badlogic.gdx.Gdx;
 
 import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
@@ -42,10 +38,6 @@ public class MenuKeyboardList extends MenuItem
 	public MenuProc callback;
 	protected KeyType[] keynames;
 	protected BuildConfig cfg;
-	
-	protected int touchY;
-	protected int scrollX, scrollY;
-	protected boolean scrollTouch;
 
 	public MenuKeyboardList(BuildConfig cfg, BuildFont font, int x, int y, int width, int len, MenuProc callback)
 	{
@@ -63,7 +55,6 @@ public class MenuKeyboardList extends MenuItem
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		Align ali = font.getAlign(null);
 		int px = x, py = y;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
 			int shade = handler.getShade(null);
@@ -85,7 +76,7 @@ public class MenuKeyboardList extends MenuItem
 			char[] k = key.toCharArray();
 			font.drawText(px, py, text.toCharArray(), shade, 0, TextAlign.Left, 0, false);
 
-			font.drawText(x + width - 1 - font.getAlign(k).x, py, k, shade, 0, TextAlign.Left, 0, false);		
+			font.drawText(x + width - 1 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);		
 			
 			if(cfg.mousekeys[i] != 0)
 				key = Keymap.toString(cfg.mousekeys[i]);
@@ -98,16 +89,12 @@ public class MenuKeyboardList extends MenuItem
 				}
 			}
 			k = key.toCharArray();
-			font.drawText(x + width - 1 - font.getAlign(k).x + 60, py, k, shade, 0, TextAlign.Left, 0, false);	
+			font.drawText(x + width - 1 - font.getWidth(k) + 60, py, k, shade, 0, TextAlign.Left, 0, false);	
 				
-			py += ali.y;
+			py += font.nHeight;
 		}
-		
-		int nList = BClipLow(len - nItems, 1);
-		int posy = (((nItems) * ali.y - 13)) * l_nMin / nList;
 
-		scrollX = x + width + 65;
-		handler.mDrawSlider(scrollX, y, posy, 87, true);
+		handler.mPostDraw(this);
 	}
 
 	@Override
@@ -144,17 +131,6 @@ public class MenuKeyboardList extends MenuItem
 				return false;
 			case ENTER:
 			case LMB:
-				if(opt == MenuOpt.LMB && scrollTouch)
-				{
-					l_nFocus = -1;
-					int nList = BClipLow(len - nItems, 1);
-					int nRange = nItems * font.getAlign(null).y - 13;
-					int py = y + 4;
-					float dr = (float)(touchY - py) / nRange;
-					l_nMin = (int) BClipRange(dr * nList, 0, nList);
-					
-					return false;
-				}
 				if(l_nFocus != -1 && callback != null) 
 					callback.run(handler, this);
 				
@@ -202,34 +178,18 @@ public class MenuKeyboardList extends MenuItem
 	public boolean mouseAction(int mx, int my) {
 		if(l_set != 0)
 			return false;
-		
-		if(!Gdx.input.isTouched()) 
-			scrollTouch= false;
-		
-		touchY = my;
-		if(mx > scrollX && mx < scrollX + 14) 
-		{
-			if(Gdx.input.isTouched())
-				scrollTouch = true;
-			else scrollTouch = false;
-			return true;
-		}
-		
-		if(!scrollTouch) {
-			Align align = font.getAlign(null);
-			int py = y;
-	
-			for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
-				if(my > py && my < py + align.y)
-				{
-					l_nFocus = i;
-					return true;
-				}
-			    
-				py += align.y;
+
+		int py = y;
+		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
+			if(my > py && my < py + font.nHeight)
+			{
+				l_nFocus = i;
+				return true;
 			}
+		    
+			py += font.nHeight;
 		}
-		
+
 		return false;
 	}
 }

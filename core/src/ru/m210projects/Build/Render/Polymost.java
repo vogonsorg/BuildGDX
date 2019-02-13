@@ -2763,7 +2763,6 @@ public abstract class Polymost implements Renderer {
 		float x0, y0, x1, y1, sc0, sf0, sc1, sf1, xv, yv, t0, t1;
 		int i, j, spritenum, xoff = 0, yoff = 0, method, npoints;
 		SPRITE tspr;
-		int posx, posy;
 		int oldsizx, oldsizy;
 		int tsizx, tsizy;
 
@@ -2813,8 +2812,12 @@ public abstract class Polymost implements Renderer {
 		}
 		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 		
-		posx = tspr.x;
-		posy = tspr.y;
+		tspr.x += spriteext[tspr.owner].xoff;
+		tspr.y += spriteext[tspr.owner].yoff;
+		tspr.z += spriteext[tspr.owner].zoff;
+		
+		int posx = tspr.x;
+		int posy = tspr.y;
 
 		while ((spriteext[tspr.owner].flags & SPREXT_NOTMD) == 0) {
 
@@ -4621,6 +4624,11 @@ public abstract class Polymost implements Renderer {
 		System.err.println("Preload");
 		for(int i = 0; i < MAXSPRITES; i++)
 		{
+			spriteext[i].angoff = 0;
+			spriteext[i].xoff = 0;
+			spriteext[i].yoff = 0;
+			spriteext[i].zoff = 0;
+			
 			removeSpriteCorr(i);
 			SPRITE spr = sprite[i];
 			if(((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS) 

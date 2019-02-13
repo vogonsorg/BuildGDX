@@ -16,25 +16,21 @@
 
 package ru.m210projects.Build.Pattern.MenuItems;
 
-import static ru.m210projects.Build.Engine.totalclock;
-
 import java.util.List;
 
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public class MenuList extends MenuItem
 {
-	int l_nMin = 0;
+	public int l_nMin = 0;
 	public int l_nFocus;
-	int nListItems;
-	int align;
-	List<char[]> text;
-	MenuProc specialCall;
+	public int nListItems;
+	public List<char[]> text;
+	public MenuProc specialCall;
 	public BuildMenu nextMenu;
-	int nItemHeight = 10;
+	public int nItemHeight = 10;
 	
 	public MenuList(List<char[]> text, BuildFont font, int x, int y, int width,
 			int align, int nItemHeight, BuildMenu nextMenu, MenuProc specialCall,
@@ -57,37 +53,35 @@ public class MenuList extends MenuItem
 	@Override
 	public void draw(MenuHandler handler) {
 		if(text.size() > 0) {
-			Align ali = font.getAlign(null);
 			int px = x, py = y;
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < text.size(); i++) {	
-				int pal = 0;
-				int shade = 32;
-				if ( i == l_nFocus ) {
-					if(m_pMenu.mGetFocusedItem(this))
-						shade = 32 - (totalclock & 0x3F);
-					else { shade = 0; pal = 8; }
-				}
+				int pal = this.pal; //handler.getPal(font, i == l_nFocus ? this : null);
+				if(i == l_nFocus) pal = handler.getPal(font, this);
+				int shade = handler.getShade(i == l_nFocus ? this : null);
+			
 			    if(align == 1) 
-			        px = width / 2 + x - font.getAlign(text.get(i)).x / 2;
+			        px = width / 2 + x - font.getWidth(text.get(i)) / 2;
 			    if(align == 2) 
-			        px = x + width - 1 - font.getAlign(text.get(i)).x;
+			        px = x + width - 1 - font.getWidth(text.get(i));
 			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 0, false);
-				py += ali.y + nItemHeight;
+				py += font.nHeight + nItemHeight;
 			}
 		} else {
-			int pal = 0;
+			int pal = handler.getPal(font, this);
 
 			String text = "List is empty";
-			Align ali = font.getAlign(text.toCharArray());
+			int fontx = font.getWidth(text.toCharArray());
 			int px = x, py = y;		
 			if(align == 1) 
-		        px = width / 2 + x - ali.x / 2;
+		        px = width / 2 + x - fontx / 2;
 		    if(align == 2) 
-		        px = x + width - 1 - ali.x;   
+		        px = x + width - 1 - fontx;   
 
 		    int shade = handler.getShade(this);
 		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, true);
 		}
+		
+		handler.mPostDraw(this);
 	}
 
 	@Override
@@ -148,26 +142,22 @@ public class MenuList extends MenuItem
 	@Override
 	public boolean mouseAction(int mx, int my) {
 		if(text.size() > 0) {
-			Align ali = font.getAlign(null);
 			int px = x, py = y;
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < text.size(); i++) {	
-			    if(align == 1) {
-			    	ali = font.getAlign(text.get(i));
-			        px = width / 2 + x - ali.x / 2;
-			    }
-			    if(align == 2) {
-			    	ali = font.getAlign(text.get(i));
-			        px = x + width - 1 - ali.x;
-			    }
+				int wd = font.getWidth(text.get(i));
+			    if(align == 1) 
+			        px = width / 2 + x - wd / 2;
+			    if(align == 2) 
+			        px = x + width - 1 - wd;
 
-			    if(mx > px && mx < px + ali.x)
-					if(my > py && my < py + ali.y)
+			    if(mx > px && mx < px + wd)
+					if(my > py && my < py + font.nHeight)
 					{
 						l_nFocus = i;
 						return true;
 					}
 			    
-				py += ali.y + nItemHeight;
+				py += font.nHeight + nItemHeight;
 			}
 		}
 		return false;

@@ -25,12 +25,7 @@ public class BuildFont {
 
 	public enum TextAlign { Left, Center, Rigth };
 
-	private Align align = new Align();
 	public static final int nSpace = -2;
-
-	public class Align {
-		public int x, y;
-	}
 
 	protected class BuildChar {
 		public int nTile = -1;
@@ -38,7 +33,7 @@ public class BuildFont {
 		public short xOffset, yOffset;
 	}
 
-	public final int nHeigth;
+	public final int nHeight;
 	public final int nScale;
 	public final int nFlags;
 	public BuildChar[] charInfo;
@@ -46,7 +41,7 @@ public class BuildFont {
 
 	public BuildFont(Engine draw, int nHeigth, int nScale, int nFlags) {
 		this.draw = draw;
-		this.nHeigth = nHeigth;
+		this.nHeight = nHeigth;
 		this.nScale = nScale;
 		this.nFlags = nFlags;
 		charInfo = new BuildChar[256];
@@ -61,18 +56,17 @@ public class BuildFont {
 		charInfo[ch].nWidth = (short) nWidth;
 	}
 
-	public Align getAlign(char[] text) {
-		align.x = 0;
-		align.y = nHeigth;
-
+	public int getWidth(char[] text) {
+		int width = 0;
+	
 		if (text != null) {
 			int pos = 0;
 			while (pos < text.length && text[pos] != 0) {
-				align.x += charInfo[text[pos++]].nWidth;
+				width += charInfo[text[pos++]].nWidth;
 			}
 		}
 
-		return align;
+		return width;
 	}
 
 	public int drawChar(int x, int y, char ch, int shade, int pal, int nBits, boolean shadow) {
@@ -91,7 +85,7 @@ public class BuildFont {
 		
 		if ( align != TextAlign.Left )
 		{
-			int nWidth = getAlign(text).x;
+			int nWidth = getWidth(text);
 			if ( align == TextAlign.Center ) 
 				nWidth >>= 1;
 			x -= nWidth;

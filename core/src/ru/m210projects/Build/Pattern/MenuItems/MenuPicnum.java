@@ -61,6 +61,8 @@ public class MenuPicnum extends MenuItem
 		}
 
 		draw.rotatesprite(100 << 16, 107 << 16, 0x8000, ang, picnum, 0, 0, stat, 0, 0, xdim - 1, ydim - 1);
+		
+		handler.mPostDraw(this);
 	}
 
 	@Override

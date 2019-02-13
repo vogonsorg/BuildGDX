@@ -24,17 +24,14 @@ import java.util.Arrays;
 
 import com.badlogic.gdx.Gdx;
 
-import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Gameutils.ConvertType;
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
 
-public abstract class MenuSlider extends MenuItem {
+public class MenuSlider extends MenuItem {
 
 	public int min;
 	public int max;
@@ -44,17 +41,17 @@ public abstract class MenuSlider extends MenuItem {
 	public float digitalMax;
 	public char[] dbuff; 
 	public MenuProc callback;
-	public int nSliderWidth;
-	public int nSliderRange;
-	
+
 	private int touchX;
 	private boolean isTouched;
 	private MenuSlider touchedObj;
+	private SliderDrawable slider;
 	
-	public MenuSlider(Object text, BuildFont textStyle, int x, int y, int width, int value, int min, int max, 
-			int step, MenuProc callback, boolean digital, int nSliderWidth, int nSliderRange) {
+	public MenuSlider(SliderDrawable slider, Object text, BuildFont textStyle, int x, int y, int width, int value, int min, int max, 
+			int step, MenuProc callback, boolean digital) {
 		super(text, textStyle);
 
+		this.slider = slider;
 		this.flags = 3 | 4;
 		this.x = x;
 		this.y = y;
@@ -64,19 +61,12 @@ public abstract class MenuSlider extends MenuItem {
 		this.max = max;
 		this.step = step;
 		this.value = BClipRange(value, min, max);
-		
-		this.nSliderWidth = nSliderWidth;
-		this.nSliderRange = nSliderRange;
-		
+
 		this.digital = digital;
 		this.digitalMax = 0;
 		
 		dbuff = new char[10];
 	}
-	
-	public abstract void drawBackground(int x, int y, int shade, int pal);
-	
-	public abstract void drawSlider(int x, int y, int shade, int pal);
 
 	@Override
 	public void draw(MenuHandler handler) {
@@ -86,7 +76,7 @@ public abstract class MenuSlider extends MenuItem {
 		if ( text != null )
 			font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, false);
 
-		drawBackground(x + width - nSliderRange, y, 0, pal);
+		slider.drawBackground(x + width - slider.range, y, 0, pal);
 
 		if(digital)
 		{
@@ -100,53 +90,15 @@ public abstract class MenuSlider extends MenuItem {
 				Arrays.fill(dbuff, index + 4, dbuff.length, (char)0);
 			}
 
-			font.drawText(x + width - nSliderRange - font.getAlign(dbuff).x - 10, y, dbuff, shade, pal, TextAlign.Left, 0, false);
+			font.drawText(x + width - slider.range - font.getWidth(dbuff) - 10, y, dbuff, shade, pal, TextAlign.Left, 0, false);
 		}
 		
-		int xRange = nSliderRange - nSliderWidth;
+		int xRange = slider.range - slider.width;
 		int nRange = max - min;
-		int dx = xRange * (value - min) / nRange - nSliderRange;
+		int dx = xRange * (value - min) / nRange - slider.range;
 	
-		drawSlider((x + width + dx), y, shade, pal);
-	}
-	
-	public void dbDrawBackground(Engine draw, int x, int y, int col)
-	{
-		int x1 = coordsConvertXScaled(x, ConvertType.Normal);
-		int y1 = coordsConvertYScaled(y);
-		int x2 = coordsConvertXScaled(x + nSliderRange, ConvertType.Normal);
-		int y2 = coordsConvertYScaled(y + font.nHeigth);
-		
-		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
-		draw.getrender().drawline256(x1 * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
-		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x1 * 4096, y2 * 4096, col);
-		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
-	}
-	
-	public void dbDrawSlider(Engine draw, int x, int y, int col)
-	{
-		int x1 = coordsConvertXScaled(x, ConvertType.Normal);
-		int y1 = coordsConvertYScaled(y);
-		int x2 = coordsConvertXScaled(x + nSliderWidth, ConvertType.Normal);
-		int y2 = coordsConvertYScaled(y + font.nHeigth);
-		
-		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
-		draw.getrender().drawline256(x1 * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
-		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x1 * 4096, y2 * 4096, col);
-		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
-	}
-	
-	public void dbDrawDimensions(Engine draw, int col)
-	{
-		int x = coordsConvertXScaled(this.x - 1, ConvertType.Normal);
-		int y = coordsConvertYScaled(this.y - 1);
-		int x2 = coordsConvertXScaled(this.x + width + 1, ConvertType.Normal);
-		int y2 = coordsConvertYScaled(this.y + font.nHeigth + 1);
-		
-		draw.getrender().drawline256(x * 4096, y * 4096, x2 * 4096, y * 4096, col);
-		draw.getrender().drawline256(x * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
-		draw.getrender().drawline256(x * 4096, y * 4096, x * 4096, y2 * 4096, col);
-		draw.getrender().drawline256(x2 * 4096, y * 4096, x2 * 4096, y2 * 4096, col);
+		slider.drawSlider((x + width + dx), y, shade, pal);
+		handler.mPostDraw(this);
 	}
 
 	@Override
@@ -206,8 +158,8 @@ public abstract class MenuSlider extends MenuItem {
 		case LMB:
 			if(touchedObj == this)
 			{
-				int startx = x + width - nSliderRange + nSliderWidth / 2;
-				float dr = (float)(touchX - startx) / (nSliderRange - nSliderWidth - 1);
+				int startx = x + width - slider.range + slider.width / 2;
+				float dr = (float)(touchX - startx) / (slider.range - slider.width - 1);
 				value = BClipRange((int) (dr * (max - min) + min), min, max);
 				if(callback != null) 
 					callback.run(handler, this);
@@ -228,17 +180,16 @@ public abstract class MenuSlider extends MenuItem {
 		
 		if(text != null)
 		{
-			Align align = font.getAlign(text);
-			if(mx > x && mx < x + align.x)
+			if(mx > x && mx < x + font.getWidth(text))
 			{
-				if(my > y && my < y + align.y) 
+				if(my > y && my < y + font.nHeight) 
 					return true;
 			}
 		}
 
-		int cx = x + width - nSliderRange;
-		if(mx > cx && mx < cx + nSliderRange)
-			if(my > y && my < y + font.nHeigth) {
+		int cx = x + width - slider.range;
+		if(mx > cx && mx < cx + slider.range)
+			if(my > y && my < y + font.nHeight) {
 				isTouched = true;
 				if(Gdx.input.isTouched())
 					touchedObj = this;

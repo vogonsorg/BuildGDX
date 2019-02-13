@@ -20,6 +20,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
+import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
 import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.Tools.Interpolation;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
@@ -56,6 +57,7 @@ public abstract class BuildGame extends Game {
 	public BuildNet net;
 	public Interpolation gInt;
 	public SaveManager savemgr;
+	public SliderDrawable slider;
 	
 	public boolean gExit = false;
 	public boolean gPaused = false;

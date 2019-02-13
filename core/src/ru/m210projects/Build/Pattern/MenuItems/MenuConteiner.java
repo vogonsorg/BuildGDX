@@ -17,7 +17,6 @@
 package ru.m210projects.Build.Pattern.MenuItems;
 
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
@@ -68,7 +67,9 @@ public class MenuConteiner extends MenuItem
 		
 		if(key == null) return;
 
-		listFont.drawText(x + width - 1 - listFont.getAlign(key).x, py, key, shade, pal, TextAlign.Left, 0, false);
+		listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, pal, TextAlign.Left, 0, false);
+		
+		handler.mPostDraw(this);
 	}
 
 	@Override
@@ -110,9 +111,8 @@ public class MenuConteiner extends MenuItem
 	public boolean mouseAction(int mx, int my) {
 		if(text != null)
 		{
-			Align align = font.getAlign(text);
-			if(mx > x && mx < x + align.x)
-				if(my > y && my < y + align.y)
+			if(mx > x && mx < x + font.getWidth(text))
+				if(my > y && my < y + font.nHeight)
 					return true;
 		}
 		
@@ -120,10 +120,10 @@ public class MenuConteiner extends MenuItem
 		char[] key = null;
 		if(num != -1 && num < list.length) {
 			key = list[num];
-			Align align =  listFont.getAlign(key);
-			int px = x + width - 1 - align.x;
-			if(mx > px && mx < px + align.x)
-				if(my > y && my < y + align.y)
+			int fontx =  listFont.getWidth(key);
+			int px = x + width - 1 - fontx;
+			if(mx > px && mx < px + fontx)
+				if(my > y && my < y + font.nHeight)
 					return true;
 		}
 		

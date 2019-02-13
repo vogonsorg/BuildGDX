@@ -20,6 +20,7 @@ import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.OSDFunc;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
+import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
 
 public abstract class BuildFactory {
 	
@@ -48,5 +49,7 @@ public abstract class BuildFactory {
 	public abstract FontHandler fonts();
 	
 	public abstract BuildNet net();
+	
+	public abstract SliderDrawable slider();
 
 }

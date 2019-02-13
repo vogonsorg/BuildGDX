@@ -28,7 +28,6 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Gameutils.ConvertType;
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
@@ -69,44 +68,41 @@ public class MenuResolutionList extends MenuList {
 	@Override
 	public void draw(MenuHandler handler) {
 		draw.rotatesprite((x - 10) << 16, (y - 8) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 33, 0, 0, coordsConvertXScaled(x+width+12, ConvertType.Normal), coordsConvertYScaled(y+114));
-		Align ali = font.getAlign(null);
-		
+
 		if(text.size() > 0) {
 			int px = x, py = y;
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < text.size(); i++) {	
-				int pal = handler.getPal(font, this);
+				int pal = handler.getPal(font, null);
 				int shade = handler.getShade(null);
-				if ( i == l_nFocus ) 
+				if ( i == l_nFocus ) {
 					shade = handler.getShade(this);
+					pal = handler.getPal(font, this);
+				}
 			    if(align == 1) 
-			        px = width / 2 + x - font.getAlign(text.get(i)).x / 2;
+			        px = width / 2 + x - font.getWidth(text.get(i)) / 2;
 			    if(align == 2) 
-			        px = x + width - 1 - font.getAlign(text.get(i)).x;
+			        px = x + width - 1 - font.getWidth(text.get(i));
 			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 0, true);
 
-				py += ali.y + nItemHeight;
+				py += font.nHeight + nItemHeight;
 			}
-		} else 
+		}
+		else 
 		{
 			int pal = handler.getPal(font, this);
 			String text = "List is empty";
 			
 			int px = x, py = y;		
 			if(align == 1) 
-		        px = width / 2 + x - font.getAlign(text.toCharArray()).x / 2;
+		        px = width / 2 + x - font.getWidth(text.toCharArray()) / 2;
 		    if(align == 2) 
-		        px = x + width - 1 - font.getAlign(text.toCharArray()).x;
+		        px = x + width - 1 - font.getWidth(text.toCharArray());
 		    int shade = handler.getShade(this);
 		    
 		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, true);
 		}
-		
-		//Scroller
-		int nList = BClipLow(text.size() - nListItems, 1);
-		int posy = ((nListItems * ali.y - 13)) * l_nMin / nList;
 
-		scrollX = x + width;
-		handler.mDrawSlider(scrollX, y, posy, 87, true);
+		handler.mPostDraw(this);
 	}
 	
 	@Override
@@ -154,7 +150,7 @@ public class MenuResolutionList extends MenuList {
 				{
 					l_nFocus = -1;
 					int nList = BClipLow(text.size() - nListItems, 1);
-					int nRange = nListItems * font.getAlign(null).y - 16;
+					int nRange = nListItems * font.nHeight - 16;
 					int py = y;
 					float dr = (float)(touchY - py) / nRange;
 
@@ -195,26 +191,22 @@ public class MenuResolutionList extends MenuList {
 		}
 		
 		if(!scrollTouch && text.size() > 0) {
-			Align ali = font.getAlign(null);
 			int px = x, py = y;
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < text.size(); i++) {	
-				if(align == 1) {
-			    	ali = font.getAlign(text.get(i));
-			        px = width / 2 + x - ali.x / 2;
-			    }
-			    if(align == 2) {
-			    	ali = font.getAlign(text.get(i));
-			        px = x + width - 1 - ali.x;
-			    }
-
-			    if(mx > px && mx < px + ali.x)
-					if(my > py && my < py + ali.y)
+				int fontx = font.getWidth(text.get(i));
+				if(align == 1) 
+			        px = width / 2 + x - fontx / 2;
+			    if(align == 2) 
+			        px = x + width - 1 - fontx;
+	
+			    if(mx > px && mx < px + fontx)
+					if(my > py && my < py + font.nHeight)
 					{
 						l_nFocus = i;
 						return true;
 					}
 			    
-				py += ali.y + nItemHeight;
+				py += font.nHeight + nItemHeight;
 			}
 		}
 		return false;

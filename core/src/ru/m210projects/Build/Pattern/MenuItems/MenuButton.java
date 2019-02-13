@@ -17,13 +17,12 @@
 package ru.m210projects.Build.Pattern.MenuItems;
 
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public class MenuButton extends MenuItem
 {
-	public int align;
+
 	public BuildMenu nextMenu;
 	public int nItem;
 	public MenuProc specialCall;
@@ -55,12 +54,14 @@ public class MenuButton extends MenuItem
 		    int pal = handler.getPal(font, this);
 		    
 		    if(align == 1) 
-		        px = width / 2 + x - font.getAlign(text).x / 2;
+		        px = width / 2 + x - font.getWidth(text) / 2;
 		    if(align == 2) 
-		        px = x + width - 1 - font.getAlign(text).x;
+		        px = x + width - 1 - font.getWidth(text);
 
 		    font.drawText(px, y, text, shade, pal, TextAlign.Left, 0, false);
 		}
+		
+		handler.mPostDraw(this);
 	}
 
 	@Override
@@ -92,16 +93,16 @@ public class MenuButton extends MenuItem
 	public boolean mouseAction(int mx, int my) {
 		if(text != null)
 		{
-			Align mAlign = font.getAlign(text);
+			int wd = font.getWidth(text);
 			int px = x;
 			if(align == 1) 
-		        px = width / 2 + x - mAlign.x / 2;
+		        px = width / 2 + x - wd / 2;
 		    
 			if(align == 2) 
-				px = x + width - 1 - mAlign.x;
+				px = x + width - 1 - wd;
 
-			if(mx > px && mx < px + mAlign.x)
-				if(my > y && my < y + mAlign.y)
+			if(mx > px && mx < px + wd)
+				if(my > y && my < y + font.nHeight)
 					return true;
 		}
 		return false;

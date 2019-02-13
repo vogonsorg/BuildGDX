@@ -16,6 +16,11 @@
 
 package ru.m210projects.Build.Pattern.MenuItems;
 
+import static ru.m210projects.Build.Gameutils.coordsConvertXScaled;
+import static ru.m210projects.Build.Gameutils.coordsConvertYScaled;
+
+import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Gameutils.ConvertType;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
@@ -29,6 +34,7 @@ public abstract class MenuItem {
 	public int width = 0;
 	public int flags = 0;
 	public int pal = 0;
+	public int align;
 	
 	public MenuItem(Object text, BuildFont textStyle) {
 		if(text != null) {
@@ -54,6 +60,19 @@ public abstract class MenuItem {
 	public boolean isFocused()
 	{
 		return m_pMenu.mGetFocusedItem(this);
+	}
+	
+	public void dbDrawDimensions(Engine draw, int col)
+	{
+		int x = coordsConvertXScaled(this.x - 1, ConvertType.Normal);
+		int y = coordsConvertYScaled(this.y - 1);
+		int x2 = coordsConvertXScaled(this.x + width + 1, ConvertType.Normal);
+		int y2 = coordsConvertYScaled(this.y + font.nHeight + 1);
+		
+		draw.getrender().drawline256(x * 4096, y * 4096, x2 * 4096, y * 4096, col);
+		draw.getrender().drawline256(x * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x * 4096, y * 4096, x * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x2 * 4096, y * 4096, x2 * 4096, y2 * 4096, col);
 	}
 
 	public abstract void draw(MenuHandler handler);

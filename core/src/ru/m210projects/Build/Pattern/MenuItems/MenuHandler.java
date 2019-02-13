@@ -84,11 +84,11 @@ public abstract class MenuHandler {
 	public abstract int getShade(MenuItem item);
 	
 	public abstract int getPal(BuildFont font, MenuItem item);
+	
+	public abstract void mPostDraw(MenuItem item);
 
 	public abstract void mDrawMouse(int x, int y);
-	
-	public abstract int mDrawSlider(int x, int y, int nPos, int len, boolean focus);
-	
+
 	public MenuOpt mUpdateMouse(BuildControls input) {
 		if(Gdx.input.getDeltaX() != 0 || Gdx.input.getDeltaY() != 0)
 			mUseMouse = true;

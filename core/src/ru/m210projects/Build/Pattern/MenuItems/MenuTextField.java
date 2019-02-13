@@ -28,7 +28,6 @@ import com.badlogic.gdx.Input.Keys;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Input.InputCallback;
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
@@ -136,10 +135,11 @@ public class MenuTextField extends MenuItem {
 				px -= 4;
 			}
 
-			font.drawText(px - font.getAlign(typingBuf).x, y, typingBuf, shade, pal, TextAlign.Left, 0, false);
+			font.drawText(px - font.getWidth(typingBuf), y, typingBuf, shade, pal, TextAlign.Left, 0, false);
 		    if(typing && (totalclock & 0x20) != 0) 
 		    	font.drawChar(px, y, '_', shade, pal, 0, false);
 		}
+		handler.mPostDraw(this);
 	}
 
 	@Override
@@ -200,14 +200,12 @@ public class MenuTextField extends MenuItem {
 	public boolean mouseAction(int mx, int my) {
 		if(text != null)
 		{
-			Align align = font.getAlign(text);
-			if(mx > x && mx < x + align.x)
-				if(my > y && my < y + align.y)
+			if(mx > x && mx < x + font.getWidth(text))
+				if(my > y && my < y + font.nHeight)
 					return true;
-			
-			align = font.getAlign(typingBuf);
-			if(mx > x + width - align.x && mx < x + width - 1)
-				if(my > y && my < y + align.y)
+
+			if(mx > x + width - font.getWidth(typingBuf) && mx < x + width - 1)
+				if(my > y && my < y + font.nHeight)
 					return true;
 		}
 

@@ -121,6 +121,7 @@ public class InitScreen extends ScreenAdapter {
 					game.input = factory.input(new GPManager());
 					game.menu = factory.menus();
 					game.net = factory.net();
+					game.slider = factory.slider();
 
 					uninitmultiplayer();
 					

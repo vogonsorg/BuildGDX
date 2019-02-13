@@ -18,14 +18,12 @@ package ru.m210projects.Build.Pattern.MenuItems;
 
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Engine.totalclock;
-import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Pattern.BuildConfig.*;
 import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
@@ -43,7 +41,6 @@ public class MenuJoyList extends MenuKeyboardList {
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		Align align = font.getAlign(null);
 		int px = x, py = y;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
 			int pal = 0;
@@ -93,16 +90,12 @@ public class MenuJoyList extends MenuKeyboardList {
 			char[] k = key.toCharArray();
 			
 			font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, false);		
-			font.drawText(x + width - 1 - font.getAlign(k).x, py, k, shade, 0, TextAlign.Left, 0, false);		
+			font.drawText(x + width - 1 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);		
 	
-			py += align.y;
+			py += font.nHeight;
 		}
-		
-		int nList = BClipLow(len - nItems, 1);
-		int posy = (((nItems) * align.y - 13)) * l_nMin / nList;
 
-		scrollX = x + width + 15;
-		handler.mDrawSlider(scrollX, y, posy, 87, true);
+		handler.mPostDraw(this);
 	}
 
 	@Override
@@ -139,17 +132,6 @@ public class MenuJoyList extends MenuKeyboardList {
 				return false;
 			case ENTER:
 			case LMB:
-				if(opt == MenuOpt.LMB && scrollTouch)
-				{
-					l_nFocus = -1;
-					int nList = BClipLow(len - nItems, 1);
-					int nRange = nItems * font.getAlign(null).y - 13;
-					int py = y + 4;
-					float dr = (float)(touchY - py) / nRange;
-					l_nMin = (int) BClipRange(dr * nList, 0, nList);
-					
-					return false;
-				}
 				if(l_nFocus != -1 && callback != null) 
 					callback.run(handler, this);
 				

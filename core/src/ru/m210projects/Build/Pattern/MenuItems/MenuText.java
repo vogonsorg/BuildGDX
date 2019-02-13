@@ -17,14 +17,11 @@
 package ru.m210projects.Build.Pattern.MenuItems;
 
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public class MenuText extends MenuItem
 {
-	public int align;
-	
 	public MenuText(Object text, BuildFont font, int x, int y, int align) {
 		super(text, font);
 		this.flags = 1;
@@ -40,17 +37,14 @@ public class MenuText extends MenuItem
 		if ( text != null )
 		{
 		    int px = x;
-		    if(align == 1) {
-		    	Align ali = font.getAlign(text);
-		        px = width / 2 + x - ali.x / 2;
-		    }
-		    if(align == 2) {
-		    	Align ali = font.getAlign(text);
-		        px = x + width - 1 - ali.x;
-		    }
+		    if(align == 1) 
+		        px = width / 2 + x - font.getWidth(text) / 2;
+		    if(align == 2) 
+		        px = x + width - 1 - font.getWidth(text);
 
 		    font.drawText(px, y, text, -128, pal, TextAlign.Left, 0, false);
 		}
+		handler.mPostDraw(this);
 	}
 
 	@Override

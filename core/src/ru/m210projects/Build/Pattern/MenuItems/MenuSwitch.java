@@ -17,7 +17,6 @@
 package ru.m210projects.Build.Pattern.MenuItems;
 
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.Align;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
@@ -57,7 +56,8 @@ public class MenuSwitch extends MenuItem
 		char[] sw = offMessage;
 		if(value) sw = onMessage;
 		
-		font.drawText(x + width - 1 - font.getAlign(sw).x, y, sw, shade, pal, TextAlign.Left, 0, false);
+		font.drawText(x + width - 1 - font.getWidth(sw), y, sw, shade, pal, TextAlign.Left, 0, false);
+		handler.mPostDraw(this);
 	}
 	
 	@Override
@@ -75,19 +75,18 @@ public class MenuSwitch extends MenuItem
 	public boolean mouseAction(int mx, int my) {
 		if(text != null)
 		{
-			Align align = font.getAlign(text);
-			if(mx > x && mx < x + align.x)
-				if(my > y && my < y + align.y)
+			if(mx > x && mx < x + font.getWidth(text))
+				if(my > y && my < y + font.nHeight)
 					return true;
 		}
 		
 		char[] sw = offMessage;
 		if(value) sw = onMessage;
 
-		Align align = font.getAlign(sw);
-		int px = x + width - 1 - align.x;
-		if(mx > px && mx < px + align.x)
-			if(my > y && my < y + align.y)
+		int fontx = font.getWidth(sw);
+		int px = x + width - 1 - fontx;
+		if(mx > px && mx < px + fontx)
+			if(my > y && my < y + font.nHeight)
 				return true;
 		
 		return false;
