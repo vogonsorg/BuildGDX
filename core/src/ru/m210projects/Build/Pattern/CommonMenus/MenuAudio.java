@@ -1,3 +1,19 @@
+//This file is part of BuildGDX.
+//Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+//BuildGDX is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//BuildGDX is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+//
+//You should have received a copy of the GNU General Public License
+//along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
 package ru.m210projects.Build.Pattern.CommonMenus;
 
 import java.util.ArrayList;
@@ -5,6 +21,7 @@ import java.util.List;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
+import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
@@ -17,10 +34,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuSlider;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 
-public abstract class MenuSound extends BuildMenu {
-
-	protected BuildFont textStyle;
-	protected BuildGame app;
+public abstract class MenuAudio extends BuildMenu {
 	
 	public int snddriver;
 	public int middriver;
@@ -33,12 +47,11 @@ public abstract class MenuSound extends BuildMenu {
 	public int cdaudio;
 	public int ocdaudio;
 	
-	public MenuSound(final BuildGame app,  int posx, int posy, int width, int menuHeight, int separatorHeight, BuildFont menuItems, BuildFont drvStyle, BuildFont applyButton)
+	public MenuAudio(BuildGame app,  int posx, int posy, int width, int menuHeight, int separatorHeight, BuildFont menuItems, BuildFont drvStyle, BuildFont applyButton)
 	{
-		this.app = app;
-		this.textStyle = menuItems;
+		addItem(getTitle(app, "Audio setup"), false);
 		
-		addItem(title("Sound setup"), false);
+		final BuildConfig cfg = app.cfg;
 
 		final MenuConteiner sSoundDrv = new MenuConteiner("Sound driver:", menuItems, drvStyle, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
@@ -57,7 +70,7 @@ public abstract class MenuSound extends BuildMenu {
 					for (int i = 0; i < list.length; i++)
 						this.list[i] = names.get(i).toCharArray();
 				}
-				num = snddriver = osnddriver = app.cfg.snddrv;
+				num = snddriver = osnddriver = cfg.snddrv;
 				if (BuildGdx.audio.IsInited(Driver.Sound))
 					list[num] = BuildGdx.audio.getSound().getName().toCharArray();
 				else
@@ -82,7 +95,7 @@ public abstract class MenuSound extends BuildMenu {
 					for (int i = 0; i < list.length; i++)
 						this.list[i] = names.get(i).toCharArray();
 				}
-				num = middriver = omiddriver = app.cfg.middrv;
+				num = middriver = omiddriver = cfg.middrv;
 				if (BuildGdx.audio.IsInited(Driver.Music)) {
 					list[num] = BuildGdx.audio.getMusic().getName().toCharArray();
 				} else
@@ -105,9 +118,9 @@ public abstract class MenuSound extends BuildMenu {
 					for (int i = 0; i < list.length; i++)
 						this.list[i] = BuildGdx.audio.getSound().getSoftResamplerName(i).toCharArray();
 				}
-				if(app.cfg.resampler_num < 0 || app.cfg.resampler_num >= BuildGdx.audio.getSound().getNumResamplers())
-					app.cfg.resampler_num = 0;
-				num = resampler = oresampler = app.cfg.resampler_num;
+				if(cfg.resampler_num < 0 || cfg.resampler_num >= BuildGdx.audio.getSound().getNumResamplers())
+					cfg.resampler_num = 0;
+				num = resampler = oresampler = cfg.resampler_num;
 			}
 		};
 
@@ -115,20 +128,20 @@ public abstract class MenuSound extends BuildMenu {
 		int oposy = posy;
 		posy += menuHeight;
 
-		final MenuSlider sSound = new MenuSlider(app.slider, "Sound volume:", menuItems, posx, posy += menuHeight, width, (int) (app.cfg.soundVolume * 256),
+		final MenuSlider sSound = new MenuSlider(app.slider, "Sound volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.soundVolume * 256),
 				0, 256, 16, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSlider slider = (MenuSlider) pItem;
-						app.cfg.soundVolume = slider.value / 256.0f;
-						BuildGdx.audio.setVolume(Driver.Sound, app.cfg.soundVolume);
+						cfg.soundVolume = slider.value / 256.0f;
+						BuildGdx.audio.setVolume(Driver.Sound, cfg.soundVolume);
 						soundVolumeChange();
 					}
 				}, false) {
 
 				@Override
 				public void open() {
-					mCheckEnableItem(!app.cfg.noSound && BuildGdx.audio.IsInited(Driver.Sound));
+					mCheckEnableItem(!cfg.noSound && BuildGdx.audio.IsInited(Driver.Sound));
 				}
 		};
 		
@@ -141,19 +154,19 @@ public abstract class MenuSound extends BuildMenu {
 		}, true) {
 			@Override
 			public void open() {
-				value = voices = ovoices = app.cfg.maxvoices;
-				mCheckEnableItem(!app.cfg.noSound && BuildGdx.audio.IsInited(Driver.Sound));
+				value = voices = ovoices = cfg.maxvoices;
+				mCheckEnableItem(!cfg.noSound && BuildGdx.audio.IsInited(Driver.Sound));
 			}
 		};
 		
-		MenuSwitch sSoundSwitch = new MenuSwitch("Sound:", menuItems, posx, oposy += menuHeight, width, !app.cfg.noSound, new MenuProc() {
+		MenuSwitch sSoundSwitch = new MenuSwitch("Sound:", menuItems, posx, oposy += menuHeight, width, !cfg.noSound, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
 				
-				app.cfg.noSound = !sw.value;
-				sSound.mCheckEnableItem(!app.cfg.noSound);
-				sVoices.mCheckEnableItem(!app.cfg.noSound);
+				cfg.noSound = !sw.value;
+				sSound.mCheckEnableItem(!cfg.noSound);
+				sVoices.mCheckEnableItem(!cfg.noSound);
 				if(sw.value) {
 					soundOn();
 				} else {
@@ -166,32 +179,32 @@ public abstract class MenuSound extends BuildMenu {
 		oposy = posy;
 		posy += menuHeight;
 		
-		final MenuSlider sMusic = new MenuSlider(app.slider, "Music volume:", menuItems, posx, posy += menuHeight, width, (int) (app.cfg.musicVolume * 256), 0, 256, 8,
+		final MenuSlider sMusic = new MenuSlider(app.slider, "Music volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.musicVolume * 256), 0, 256, 8,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSlider slider = (MenuSlider) pItem;
-						app.cfg.musicVolume = slider.value / 256.0f;
-						BuildGdx.audio.setVolume(Driver.Music, app.cfg.musicVolume);				
+						cfg.musicVolume = slider.value / 256.0f;
+						BuildGdx.audio.setVolume(Driver.Music, cfg.musicVolume);				
 					}
 				}, false) {
 			@Override
 			public void open() {
-				mCheckEnableItem(!app.cfg.muteMusic && BuildGdx.audio.IsInited(Driver.Music));
+				mCheckEnableItem(!cfg.muteMusic && BuildGdx.audio.IsInited(Driver.Music));
 			}
 		};
 		
-		MenuSwitch sMusicSwitch = new MenuSwitch("Music:", menuItems, posx, oposy += menuHeight, width, !app.cfg.muteMusic, new MenuProc() {
+		MenuSwitch sMusicSwitch = new MenuSwitch("Music:", menuItems, posx, oposy += menuHeight, width, !cfg.muteMusic, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
-				app.cfg.muteMusic = !sw.value;
-				if (app.cfg.muteMusic)
+				cfg.muteMusic = !sw.value;
+				if (cfg.muteMusic)
 					BuildGdx.audio.setVolume(Driver.Music, 0);	
 				else
-					BuildGdx.audio.setVolume(Driver.Music, app.cfg.musicVolume);
+					BuildGdx.audio.setVolume(Driver.Music, cfg.musicVolume);
 				
-				sMusic.mCheckEnableItem(!app.cfg.muteMusic);
+				sMusic.mCheckEnableItem(!cfg.muteMusic);
 			}
 		}, null, null);
 
@@ -210,13 +223,13 @@ public abstract class MenuSound extends BuildMenu {
 					this.list[1] = "external".toCharArray();
 					this.list[2] = "cd audio".toCharArray();
 				}
-				cdaudio = ocdaudio = num = app.cfg.musicType;
+				cdaudio = ocdaudio = num = cfg.musicType;
 			}
 			
 			@Override
 			public void draw(MenuHandler handler) {
 				super.draw(handler);
-				mCheckEnableItem(!app.cfg.muteMusic);
+				mCheckEnableItem(!cfg.muteMusic);
 			}
 		};
 		
@@ -231,12 +244,12 @@ public abstract class MenuSound extends BuildMenu {
 					if (snddriver != osnddriver)
 						BuildGdx.audio.setDriver(Driver.Sound, snddriver);
 					if (voices != ovoices)
-						app.cfg.maxvoices = voices;
+						cfg.maxvoices = voices;
 					if(resampler != oresampler)
-						app.cfg.resampler_num = resampler;
+						cfg.resampler_num = resampler;
 
-					if (soundRestart(app.cfg.maxvoices, app.cfg.resampler_num)) {
-						app.cfg.snddrv = osnddriver = snddriver;
+					if (soundRestart(cfg.maxvoices, cfg.resampler_num)) {
+						cfg.snddrv = osnddriver = snddriver;
 						
 						sSoundDrv.list[sSoundDrv.num] = BuildGdx.audio.getSound().getName().toCharArray();
 						ovoices = voices;
@@ -245,9 +258,9 @@ public abstract class MenuSound extends BuildMenu {
 						sResampler.list = new char[BuildGdx.audio.getSound().getNumResamplers()][];
 						for (int i = 0; i < sResampler.list.length; i++)
 							sResampler.list[i] = BuildGdx.audio.getSound().getSoftResamplerName(i).toCharArray();
-						if(app.cfg.resampler_num < 0 || app.cfg.resampler_num >= BuildGdx.audio.getSound().getNumResamplers())
-							app.cfg.resampler_num = 0;
-						sResampler.num = resampler = oresampler = app.cfg.resampler_num;
+						if(cfg.resampler_num < 0 || cfg.resampler_num >= BuildGdx.audio.getSound().getNumResamplers())
+							cfg.resampler_num = 0;
+						sResampler.num = resampler = oresampler = cfg.resampler_num;
 					
 					} else {
 						sSoundDrv.list[sSoundDrv.num] = "initialization failed".toCharArray();
@@ -259,7 +272,7 @@ public abstract class MenuSound extends BuildMenu {
 					int olddrv = BuildGdx.audio.getDriver(Driver.Music);
 					BuildGdx.audio.setDriver(Driver.Music, middriver);
 					if (musicRestart()) {
-						app.cfg.middrv = omiddriver = middriver;
+						cfg.middrv = omiddriver = middriver;
 						sMusicDrv.list[sMusicDrv.num] = BuildGdx.audio.getMusic().getName().toCharArray();
 					} else {
 						sMusicDrv.list[sMusicDrv.num] = "initialization failed".toCharArray();
@@ -268,7 +281,7 @@ public abstract class MenuSound extends BuildMenu {
 				}
 
 				if (cdaudio != ocdaudio) {
-					app.cfg.musicType = cdaudio;
+					cfg.musicType = cdaudio;
 					ocdaudio = cdaudio;
 				}
 
@@ -297,7 +310,7 @@ public abstract class MenuSound extends BuildMenu {
 		addItem(mApplyChanges, false);
 	}
 	
-	public abstract MenuTitle title(String text);
+	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
 	public abstract void soundPreDrvChange();
 	
