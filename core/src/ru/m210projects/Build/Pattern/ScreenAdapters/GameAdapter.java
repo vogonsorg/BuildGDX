@@ -150,8 +150,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 		if (cfg.gShowFPS)
 			engine.printfps(cfg.gFpsScale);
 
-		engine.nextpage();
 		engine.sampletimer();
+		engine.nextpage();
 	}
 	
 	public void capture(final int width, final int height) {

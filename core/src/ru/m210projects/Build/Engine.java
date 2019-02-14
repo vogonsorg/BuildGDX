@@ -4117,13 +4117,13 @@ public abstract class Engine {
     	return defs;
     }
     
-    protected void updatesmoothticks()
+    public void updatesmoothticks()
 	{
 		timernexttick = getticks();
 	}
     
     public int getsmoothratio()
 	{
-		return (int) (((System.currentTimeMillis() - timernexttick) / (float) timerskipticks) * 65536);
+		return (int) (((getticks() - timernexttick) / (float) timerskipticks) * 65536);
 	}
 }
