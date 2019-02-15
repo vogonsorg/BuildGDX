@@ -30,7 +30,7 @@ public class MenuList extends MenuItem
 	public List<char[]> text;
 	public MenuProc specialCall;
 	public BuildMenu nextMenu;
-	public int nItemHeight = 10;
+	public int nItemHeight;
 	
 	public MenuList(List<char[]> text, BuildFont font, int x, int y, int width,
 			int align, int nItemHeight, BuildMenu nextMenu, MenuProc specialCall,

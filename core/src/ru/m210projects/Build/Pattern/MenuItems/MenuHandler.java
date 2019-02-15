@@ -69,8 +69,8 @@ public abstract class MenuHandler {
 		MWDW, //17 mouse wheel down
 		RMB, //18
 		
-		Open,
-		Close
+		Open, //0x8000
+		Close //0x8001
 	}
 	
 	public MenuHandler(int nMaxMenus)

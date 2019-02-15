@@ -238,6 +238,31 @@ public abstract class BuildControls {
 		return cfg.menuMouse;
 	}
 	
+	public GPManager ctrlGetGamepadManager()
+	{
+		return gpmanager;
+	}
+	
+	public void ctrlSetDeadZone(float value)
+	{
+		gpmanager.setDeadZone(value);
+	}
+	
+	public boolean ctrlIsValidDevice(int deviceIndex)
+	{
+		return gpmanager.isValidDevice(deviceIndex) && gpmanager.getControllers() > 0;
+	}
+	
+	public int ctrlGetControllers()
+	{
+		return gpmanager.getControllers();
+	}
+	
+	public String ctrlGetControllerName(int num)
+	{
+		return gpmanager.getControllerName(num);
+	}
+	
 	public abstract void ctrlGetInput(NetInput input);
 
 }

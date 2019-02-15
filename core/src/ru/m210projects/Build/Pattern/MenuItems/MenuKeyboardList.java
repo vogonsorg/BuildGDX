@@ -45,12 +45,16 @@ public class MenuKeyboardList extends MenuItem
 		this.flags = 3;
 		this.cfg = cfg;
 		this.keynames = cfg.keymap;
-		this.nItems = keynames.length;
+		this.nItems = len;
 		this.x = x;
 		this.y = y;
 		this.width = width;
-		this.len = len;
+		this.len = keynames.length;
 		this.callback = callback;
+	}
+	
+	public int mFontOffset() {
+		return font.nHeight + 2;
 	}
 	
 	@Override
@@ -91,7 +95,7 @@ public class MenuKeyboardList extends MenuItem
 			k = key.toCharArray();
 			font.drawText(x + width - 1 - font.getWidth(k) + 60, py, k, shade, 0, TextAlign.Left, 0, false);	
 				
-			py += font.nHeight;
+			py += mFontOffset();
 		}
 
 		handler.mPostDraw(this);

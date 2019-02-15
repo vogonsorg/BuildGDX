@@ -38,7 +38,7 @@ public class MenuJoyList extends MenuKeyboardList {
 		this.menupal = menupal;
 		this.gpmanager = gpmanager;
 	}
-	
+
 	@Override
 	public void draw(MenuHandler handler) {
 		int px = x, py = y;
@@ -92,7 +92,7 @@ public class MenuJoyList extends MenuKeyboardList {
 			font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, false);		
 			font.drawText(x + width - 1 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);		
 	
-			py += font.nHeight;
+			py += mFontOffset();
 		}
 
 		handler.mPostDraw(this);
