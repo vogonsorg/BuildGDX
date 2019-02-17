@@ -51,7 +51,7 @@ public abstract class MenuAudio extends BuildMenu {
 	{
 		addItem(getTitle(app, "Audio setup"), false);
 		
-		final BuildConfig cfg = app.cfg;
+		final BuildConfig cfg = app.pCfg;
 
 		final MenuConteiner sSoundDrv = new MenuConteiner("Sound driver:", menuItems, drvStyle, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
@@ -128,7 +128,7 @@ public abstract class MenuAudio extends BuildMenu {
 		int oposy = posy;
 		posy += menuHeight;
 
-		final MenuSlider sSound = new MenuSlider(app.slider, "Sound volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.soundVolume * 256),
+		final MenuSlider sSound = new MenuSlider(app.pSlider, "Sound volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.soundVolume * 256),
 				0, 256, 16, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -145,7 +145,7 @@ public abstract class MenuAudio extends BuildMenu {
 				}
 		};
 		
-		final MenuSlider sVoices = new MenuSlider(app.slider, "Voices:", menuItems, posx, posy += menuHeight, width, 0, 8, 256, 8, new MenuProc() {
+		final MenuSlider sVoices = new MenuSlider(app.pSlider, "Voices:", menuItems, posx, posy += menuHeight, width, 0, 8, 256, 8, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSlider slider = (MenuSlider) pItem;
@@ -179,7 +179,7 @@ public abstract class MenuAudio extends BuildMenu {
 		oposy = posy;
 		posy += menuHeight;
 		
-		final MenuSlider sMusic = new MenuSlider(app.slider, "Music volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.musicVolume * 256), 0, 256, 8,
+		final MenuSlider sMusic = new MenuSlider(app.pSlider, "Music volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.musicVolume * 256), 0, 256, 8,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -295,6 +295,13 @@ public abstract class MenuAudio extends BuildMenu {
 			public void draw(MenuHandler handler) {
 				super.draw(handler);
 				mCheckEnableItem(snddriver != osnddriver || middriver != omiddriver || resampler != oresampler || voices != ovoices || cdaudio != ocdaudio);
+			}
+			
+			@Override
+			public void mCheckEnableItem(boolean nEnable) {
+				if (nEnable) 
+					flags = 3 | 4;
+				else flags = 3;
 			}
 		};
 		

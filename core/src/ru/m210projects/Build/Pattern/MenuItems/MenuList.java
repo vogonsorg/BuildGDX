@@ -24,37 +24,42 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public class MenuList extends MenuItem
 {
+	public int len;
 	public int l_nMin = 0;
 	public int l_nFocus;
 	public int nListItems;
 	public List<char[]> text;
-	public MenuProc specialCall;
+	public MenuProc callback;
 	public BuildMenu nextMenu;
-	public int nItemHeight;
-	
+
 	public MenuList(List<char[]> text, BuildFont font, int x, int y, int width,
-			int align, int nItemHeight, BuildMenu nextMenu, MenuProc specialCall,
+			int align, BuildMenu nextMenu, MenuProc callback,
 			int nListItems) {
 		
 		super(null, font);
 		this.text = text;
 		this.align = align;
-		this.flags = 3;
+		this.flags = 3 | 4;
 		this.m_pMenu = null;
 		this.x = x;
 		this.y = y;
 		this.width = width;
-		this.nItemHeight = nItemHeight;
 		this.nListItems = nListItems;
 		this.nextMenu = nextMenu;
-		this.specialCall = specialCall;
+		this.callback = callback;
+		if(text != null)
+			this.len = text.size();
+	}
+	
+	public int mFontOffset() {
+		return font.nHeight + 2;
 	}
 
 	@Override
 	public void draw(MenuHandler handler) {
 		if(text.size() > 0) {
 			int px = x, py = y;
-			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < text.size(); i++) {	
+			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
 				int pal = this.pal; //handler.getPal(font, i == l_nFocus ? this : null);
 				if(i == l_nFocus) pal = handler.getPal(font, this);
 				int shade = handler.getShade(i == l_nFocus ? this : null);
@@ -64,7 +69,7 @@ public class MenuList extends MenuItem
 			    if(align == 2) 
 			        px = x + width - 1 - font.getWidth(text.get(i));
 			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 0, false);
-				py += font.nHeight + nItemHeight;
+				py += mFontOffset();
 			}
 		} else {
 			int pal = handler.getPal(font, this);
@@ -94,7 +99,7 @@ public class MenuList extends MenuItem
 				return false;
 			case MWDW:
 				if(text != null)
-					if(l_nMin < text.size() - nListItems)
+					if(l_nMin < len - nListItems)
 						l_nMin++;
 				return false;
 			case UP:
@@ -102,16 +107,16 @@ public class MenuList extends MenuItem
 				if(l_nFocus >= 0 && l_nFocus < l_nMin)
 					if(l_nMin > 0) l_nMin--;
 				if(l_nFocus < 0) {
-					l_nFocus = text.size() - 1;
-					l_nMin = text.size() - nListItems;
+					l_nFocus = len - 1;
+					l_nMin = len - nListItems;
 					if(l_nMin < 0) l_nMin = 0;
 				}
 				return false;
 			case DW:
 				l_nFocus++;
-				if(l_nFocus >= l_nMin + nListItems && l_nFocus < text.size())
+				if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
 					l_nMin++;
-				if(l_nFocus >= text.size()) {
+				if(l_nFocus >= len) {
 					l_nFocus = 0;
 					l_nMin = 0;
 				}
@@ -124,8 +129,11 @@ public class MenuList extends MenuItem
 				return false;
 			case ENTER:
 			case LMB:
-				if(text.size() > 0) {
-					specialCall.run(handler, this);
+				if ( (flags & 4) == 0 ) return false;
+				
+				if(len > 0) {
+					if(callback != null)
+						callback.run(handler, this);
 					if ( nextMenu != null )
 				    	handler.mOpen(nextMenu, -1);
 				}
@@ -134,6 +142,36 @@ public class MenuList extends MenuItem
 			case RMB:
 				//l_nFocus = l_nMin = 0;
 				return true;
+			case PGUP:
+				l_nFocus -= (nListItems - 1);
+				if(l_nFocus >= 0 && l_nFocus < l_nMin)
+					if(l_nMin > 0) l_nMin -= (nListItems - 1);
+				if(l_nFocus < 0 || l_nMin < 0) {
+					l_nFocus = 0;
+					l_nMin = 0;
+				}
+				return false;
+			case PGDW:
+				l_nFocus += (nListItems - 1);
+				if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
+					l_nMin += (nListItems - 1);
+				if(l_nFocus >= len || l_nMin > len - nListItems) {
+					l_nFocus = len - 1;
+					if(len >= nListItems)
+						l_nMin = len - nListItems;
+					else l_nMin = len - 1;
+				}
+				return false;
+			case HOME:
+				l_nFocus = 0;
+				l_nMin = 0;
+				return false;
+			case END:
+				l_nFocus = len - 1;
+				if(len >= nListItems)
+					l_nMin = len - nListItems;
+				else l_nMin = len - 1;
+				return false;
 			default:
 				return false;
 		}
@@ -141,9 +179,9 @@ public class MenuList extends MenuItem
 
 	@Override
 	public boolean mouseAction(int mx, int my) {
-		if(text.size() > 0) {
+		if(len > 0) {
 			int px = x, py = y;
-			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < text.size(); i++) {	
+			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
 				int wd = font.getWidth(text.get(i));
 			    if(align == 1) 
 			        px = width / 2 + x - wd / 2;
@@ -157,7 +195,7 @@ public class MenuList extends MenuItem
 						return true;
 					}
 			    
-				py += font.nHeight + nItemHeight;
+				py += mFontOffset();
 			}
 		}
 		return false;

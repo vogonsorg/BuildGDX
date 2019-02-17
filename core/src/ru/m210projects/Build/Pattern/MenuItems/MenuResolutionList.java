@@ -25,25 +25,21 @@ import static ru.m210projects.Build.Gameutils.*;
 import java.util.List;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Gameutils.ConvertType;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public class MenuResolutionList extends MenuList {
-	
-	private int touchY;
-	private int scrollX;
-	public boolean scrollTouch;
-	
+
 	private int nBackground;
 	protected Engine draw;
+	public int transparent = 1;
 
 	public MenuResolutionList(Engine draw, List<char[]> text, BuildFont font, int x, int y,
-			int width, int align, int nItemHeight, BuildMenu nextMenu,
+			int width, int align, BuildMenu nextMenu,
 			MenuProc specialCall, int nListItems, int nBackground) {
-		super(text, font, x, y, width, align, nItemHeight, nextMenu, specialCall, nListItems);
+		super(text, font, x, y, width, align, nextMenu, specialCall, nListItems);
 		this.nBackground = nBackground;
 		this.draw = draw;
 	}
@@ -51,6 +47,7 @@ public class MenuResolutionList extends MenuList {
 	@Override
 	public void open() {
 		l_nFocus = -1;
+		l_nMin = 0;
 		for (int m = 0; m < validmodes.size(); m++) {
 			if ((validmodes.get(m).xdim == xdim)
 					&& (validmodes.get(m).ydim == ydim)) {
@@ -58,7 +55,7 @@ public class MenuResolutionList extends MenuList {
 				break;
 			}
 		}
-		
+
 		if (l_nFocus != -1) {
 			if (l_nFocus >= l_nMin + nListItems)
 				l_nMin = l_nFocus - nListItems + 1;
@@ -67,7 +64,7 @@ public class MenuResolutionList extends MenuList {
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		draw.rotatesprite((x - 10) << 16, (y - 8) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 33, 0, 0, coordsConvertXScaled(x+width+12, ConvertType.Normal), coordsConvertYScaled(y+114));
+		draw.rotatesprite((x - 10) << 16, (y - 8) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x+width+12, ConvertType.Normal), coordsConvertYScaled(y+114));
 
 		if(text.size() > 0) {
 			int px = x, py = y;
@@ -84,7 +81,7 @@ public class MenuResolutionList extends MenuList {
 			        px = x + width - 1 - font.getWidth(text.get(i));
 			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 0, true);
 
-				py += font.nHeight + nItemHeight;
+				py += mFontOffset();
 			}
 		}
 		else 
@@ -145,22 +142,10 @@ public class MenuResolutionList extends MenuList {
 				return false;
 			case ENTER:
 			case LMB:
+				if ( (flags & 4) == 0 ) return false;
 				
-				if(opt == MenuOpt.LMB && scrollTouch)
-				{
-					l_nFocus = -1;
-					int nList = BClipLow(text.size() - nListItems, 1);
-					int nRange = nListItems * font.nHeight - 16;
-					int py = y;
-					float dr = (float)(touchY - py) / nRange;
-
-					l_nMin = (int) BClipRange(dr * nList, 0, nList);
-					
-					return false;
-				}
-
-				if(l_nFocus != -1 && text.size() > 0) {
-					specialCall.run(handler, this);
+				if(l_nFocus != -1 && text.size() > 0 && callback != null) {
+					callback.run(handler, this);
 					if ( nextMenu != null )
 				    	handler.mOpen(nextMenu, -1);
 				}
@@ -170,6 +155,36 @@ public class MenuResolutionList extends MenuList {
 			case RMB:
 				//l_nFocus = l_nMin = 0;
 				return true;
+			case PGUP:
+				l_nFocus -= (nListItems - 1);
+				if(l_nFocus >= 0 && l_nFocus < l_nMin)
+					if(l_nMin > 0) l_nMin -= (nListItems - 1);
+				if(l_nFocus < 0 || l_nMin < 0) {
+					l_nFocus = 0;
+					l_nMin = 0;
+				}
+				return false;
+			case PGDW:
+				l_nFocus += (nListItems - 1);
+				if(l_nFocus >= l_nMin + nListItems && l_nFocus < text.size())
+					l_nMin += (nListItems - 1);
+				if(l_nFocus >= text.size() || l_nMin > text.size() - nListItems) {
+					l_nFocus = text.size() - 1;
+					if(text.size() >= nListItems)
+						l_nMin = text.size() - nListItems;
+					else l_nMin = text.size() - 1;
+				}
+				return false;
+			case HOME:
+				l_nFocus = 0;
+				l_nMin = 0;
+				return false;
+			case END:
+				l_nFocus = text.size() - 1;
+				if(text.size() >= nListItems)
+					l_nMin = text.size() - nListItems;
+				else l_nMin = text.size() - 1;
+				return false;
 			default: 
 				return false;
 		}
@@ -177,20 +192,8 @@ public class MenuResolutionList extends MenuList {
 
 	@Override
 	public boolean mouseAction(int mx, int my) {
-		
-		if(!BuildGdx.input.isTouched()) 
-			scrollTouch= false;
-		
-		touchY = my;
-		if(mx > scrollX && mx < scrollX + 14) 
-		{
-			if(BuildGdx.input.isTouched())
-				scrollTouch = true;
-			else scrollTouch = false;
-			return true;
-		}
-		
-		if(!scrollTouch && text.size() > 0) {
+
+		if(text.size() > 0) {
 			int px = x, py = y;
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < text.size(); i++) {	
 				int fontx = font.getWidth(text.get(i));
@@ -206,7 +209,7 @@ public class MenuResolutionList extends MenuList {
 						return true;
 					}
 			    
-				py += font.nHeight + nItemHeight;
+				py += mFontOffset();
 			}
 		}
 		return false;

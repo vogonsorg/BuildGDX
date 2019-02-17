@@ -36,9 +36,9 @@ public abstract class MenuColorCorr extends BuildMenu {
 	public MenuColorCorr(final BuildGame app, int posx, int posy, int width, int menuHeight, BuildFont style, BuildFont reset) {
 		addItem(getTitle(app, "Color correction"), false);
 		
-		final BuildConfig cfg = app.cfg;
+		final BuildConfig cfg = app.pCfg;
 
-		final MenuSlider mGamma = new MenuSlider(app.slider, "GAMMA:", style, posx, posy += menuHeight, width, (int) ((1 - cfg.gamma) * 4096), 0, 4096, 64,
+		final MenuSlider mGamma = new MenuSlider(app.pSlider, "GAMMA:", style, posx, posy += menuHeight, width, (int) ((1 - cfg.gamma) * 4096), 0, 4096, 64,
 		new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
@@ -53,7 +53,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 		}, true);
 		mGamma.digitalMax = 4096;
 		
-		final MenuSlider mBrightness = new MenuSlider(app.slider, "Brightness:", style, posx, posy += menuHeight, width,(int) (cfg.brightness * 4096), -4096, 4096, 64,
+		final MenuSlider mBrightness = new MenuSlider(app.pSlider, "Brightness:", style, posx, posy += menuHeight, width,(int) (cfg.brightness * 4096), -4096, 4096, 64,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -67,7 +67,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 				}, true);
 		mBrightness.digitalMax = 4096;
 		
-		final MenuSlider mContrast = new MenuSlider(app.slider, "Contrast:", style, posx, posy += menuHeight, width, (int) (cfg.contrast * 4096), 0, 8192, 64,
+		final MenuSlider mContrast = new MenuSlider(app.pSlider, "Contrast:", style, posx, posy += menuHeight, width, (int) (cfg.contrast * 4096), 0, 8192, 64,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -87,7 +87,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 				cfg.gamma = 1.0f;
 				cfg.brightness = 0.0f;
 				cfg.contrast = 1.0f;
-				
+
 				mGamma.value = (int) ((1 - cfg.gamma) * 4096);
 				mBrightness.value = (int) (cfg.brightness * 4096);
 				mContrast.value = (int) (cfg.contrast * 4096);

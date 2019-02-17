@@ -89,7 +89,7 @@ public class InitScreen extends ScreenAdapter {
 
 		try {
 			Console.Println("Initializing Build 3D engine");
-			this.engine = game.engine = factory.engine();
+			this.engine = game.pEngine = factory.engine();
 		} catch (Exception e) { 
 			BuildGdx.message.show("Build Engine Initialization Error!", "There was a problem initialising the Build engine: \r\n" + e.getMessage(), MessageType.Info);
 			Gdx.app.exit();
@@ -100,8 +100,8 @@ public class InitScreen extends ScreenAdapter {
 
 		engine.loadpics("tiles000.art");
 		
-		BuildConfig cfg = game.cfg;
-		game.fonts = factory.fonts();
+		BuildConfig cfg = game.pCfg;
+		game.pFonts = factory.fonts();
 		
 		engine.setrendermode(factory.renderer());
 		if(!engine.setgamemode(cfg.fullscreen, cfg.ScreenWidth, cfg.ScreenHeight))
@@ -111,17 +111,17 @@ public class InitScreen extends ScreenAdapter {
 		cfg.checkFps(cfg.fpslimit);
 		engine.setanisotropy(cfg, cfg.glanisotropy);
 		engine.setwidescreen(cfg, cfg.widescreen != 0);
-		Console.Set("r_texturemode", game.cfg.glfilter);
+		Console.Set("r_texturemode", game.pCfg.glfilter);
 		
 		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					BuildConfig cfg = game.cfg;
-					game.input = factory.input(new GPManager());
-					game.menu = factory.menus();
-					game.net = factory.net();
-					game.slider = factory.slider();
+					BuildConfig cfg = game.pCfg;
+					game.pInput = factory.input(new GPManager());
+					game.pMenu = factory.menus();
+					game.pNet = factory.net();
+					game.pSlider = factory.slider();
 
 					uninitmultiplayer();
 					

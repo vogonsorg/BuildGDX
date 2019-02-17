@@ -42,7 +42,7 @@ public abstract class MenuMouse extends BuildMenu {
 	{
 		addItem(getTitle(app, "Mouse setup"), false);
 		
-		final BuildConfig cfg = app.cfg;
+		final BuildConfig cfg = app.pCfg;
 		
 		advancedMenu = buildAdvancedAxisMenu(app, posx, posy, width, menuHeight, style);
 		
@@ -64,7 +64,7 @@ public abstract class MenuMouse extends BuildMenu {
 				}, "Yes", "No");
 		
 		posy += separatorHeight;
-		MenuSlider mSens = new MenuSlider(app.slider, "Mouse Sensitivity:", style, posx, posy += menuHeight, width, cfg.gSensitivity, 0x1000,
+		MenuSlider mSens = new MenuSlider(app.pSlider, "Mouse Sensitivity:", style, posx, posy += menuHeight, width, cfg.gSensitivity, 0x1000,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -73,7 +73,7 @@ public abstract class MenuMouse extends BuildMenu {
 					}
 				}, false);
 
-		MenuSlider mTurn = new MenuSlider(app.slider, "Turning speed:", style, posx, posy += menuHeight, width, cfg.gMouseTurnSpeed, 0,
+		MenuSlider mTurn = new MenuSlider(app.pSlider, "Turning speed:", style, posx, posy += menuHeight, width, cfg.gMouseTurnSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -82,7 +82,7 @@ public abstract class MenuMouse extends BuildMenu {
 					}
 				}, false);
 
-		MenuSlider mLook = new MenuSlider(app.slider, "aiming up/down speed:", style, posx, posy += menuHeight, width, cfg.gMouseLookSpeed, 0,
+		MenuSlider mLook = new MenuSlider(app.pSlider, "aiming up/down speed:", style, posx, posy += menuHeight, width, cfg.gMouseLookSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -91,7 +91,7 @@ public abstract class MenuMouse extends BuildMenu {
 					}
 		}, false);
 
-		MenuSlider mMove = new MenuSlider(app.slider, "Forward/Backward speed:", style, posx, posy += menuHeight, width, cfg.gMouseMoveSpeed,
+		MenuSlider mMove = new MenuSlider(app.pSlider, "Forward/Backward speed:", style, posx, posy += menuHeight, width, cfg.gMouseMoveSpeed,
 				0, 0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -100,7 +100,7 @@ public abstract class MenuMouse extends BuildMenu {
 					}
 		}, false);
 
-		MenuSlider mStrafe = new MenuSlider(app.slider, "Strafing speed:", style, posx, posy += menuHeight, width, cfg.gMouseStrafeSpeed, 0,
+		MenuSlider mStrafe = new MenuSlider(app.pSlider, "Strafing speed:", style, posx, posy += menuHeight, width, cfg.gMouseStrafeSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -149,7 +149,7 @@ public abstract class MenuMouse extends BuildMenu {
 		BuildMenu advancedMenu = new BuildMenu();
 		
 		advancedMenu.addItem(getTitle(app, "Digital axis"), false);
-		final BuildConfig cfg = app.cfg;
+		final BuildConfig cfg = app.pCfg;
 
 		char[][] keymaplist = new char[cfg.keymap.length + 1][];
 		keymaplist[0] = "None".toCharArray();

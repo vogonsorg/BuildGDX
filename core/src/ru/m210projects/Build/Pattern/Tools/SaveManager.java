@@ -1,6 +1,8 @@
 package ru.m210projects.Build.Pattern.Tools;
 
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.FileHandle.Compat.Bcheck;
+
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ public class SaveManager {
 
 	private List<SaveInfo> SavList = new ArrayList<SaveInfo>();
 	private HashMap<String, SaveInfo> SavHash = new HashMap<String, SaveInfo>();
+	public static final int Screenshot = MAXTILES - 1;
 	
 	public class SaveInfo implements Comparable<SaveInfo> {
 		public String name;

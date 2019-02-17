@@ -18,11 +18,13 @@ package ru.m210projects.Build.Pattern.MenuItems;
 
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Engine.totalclock;
-import static ru.m210projects.Build.Pattern.BuildConfig.*;
+
 import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
+import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
+import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
@@ -31,56 +33,46 @@ public class MenuJoyList extends MenuKeyboardList {
 
 	private final GPManager gpmanager;
 	private final int menupal;
-	
+
 	public MenuJoyList(GPManager gpmanager, BuildConfig cfg, int menupal, BuildFont font, int x, int y, int width,
 			int len, MenuProc callback) {
 		super(cfg, font, x, y, width, len, callback);
 		this.menupal = menupal;
 		this.gpmanager = gpmanager;
+		this.len += cfg.joymap.length;
 	}
 
 	@Override
 	public void draw(MenuHandler handler) {
 		int px = x, py = y;
-		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
+		boolean offset = false;
+		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
 			int pal = 0;
-			int shade = handler.getShade(null);
-			String text = keynames[i].getName();
+			int shade = handler.getShade(i == l_nFocus? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
+			String text;
 			String key;
+
+			if(i < cfg.joymap.length) {
+				text = cfg.joymap[i].getName();
+				pal = menupal;
+			} else text = keynames[i - cfg.joymap.length].getName();
 			
-			if(i == GameKeys.Move_Forward.getNum()) {
-				text = "Menu_up";
-				pal = menupal;
+			if(l_nMin < cfg.joymap.length && i == cfg.joymap.length) {
+				py += mFontOffset();
+				offset = true;
 			}
-			if(i == GameKeys.Move_Backward.getNum()) {
-				text = "Menu_down";
-				pal = menupal;
-			}
-			if(i == GameKeys.Turn_Left.getNum()) {
-				text = "Menu_left";
-				pal = menupal;
-			}
-			if(i == GameKeys.Turn_Right.getNum()) {
-				text = "Menu_right";
-				pal = menupal;
-			}
-			if(i == GameKeys.Turn_Around.getNum()) 
-				py += 4;
-			
-			if(i == GameKeys.Open.getNum()) {
-				text += " / Menu_enter";
-				pal = menupal;
-			}
-			
-			if(i == MenuKeys.Menu_Open.getNum()) 
-				pal = menupal;
-			
-			if(cfg.gpadkeys[i] >= 0)
+
+			if(offset && i >= l_nMin + nListItems - 1)
+				break;
+				
+			if(i < cfg.joymap.length)
+			{
+				key = ButtonMap.buttonName(cfg.gJoyMenukeys[((MenuKeys)cfg.joymap[i]).getJoyNum()]);
+			} else if(cfg.gpadkeys[i - cfg.joymap.length] >= 0)
 				key = ButtonMap.buttonName(cfg.gpadkeys[i]);
 			else key = "N/A";
 
 			if ( i == l_nFocus ) {
-				shade = handler.getShade(m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 				if(l_set == 1 && (totalclock & 0x20) != 0)
 				{
 					key = "____";
@@ -108,7 +100,7 @@ public class MenuJoyList extends MenuKeyboardList {
 					l_nMin--;
 				return false;
 			case MWDW:
-				if(l_nMin < len - nItems)
+				if(l_nMin < len - nListItems)
 					l_nMin++;
 				return false;
 			case UP:
@@ -117,21 +109,28 @@ public class MenuJoyList extends MenuKeyboardList {
 					l_nMin--;
 				if(l_nFocus < 0) {
 					l_nFocus = len - 1;
-					l_nMin = len - nItems;
+					l_nMin = len - nListItems;
 				}
 				
 				return false;
 			case DW:
 				l_nFocus++;
-				if(l_nFocus >= l_nMin + nItems && l_nFocus < len)
+				if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
 					l_nMin++;
 				if(l_nFocus >= len) {
 					l_nFocus = 0;
 					l_nMin = 0;
 				}
+				
+				if(l_nMin < cfg.joymap.length && l_nFocus == l_nMin + nListItems - 1) {
+					l_nMin++;
+				}
+
 				return false;
 			case ENTER:
 			case LMB:
+				if ( (flags & 4) == 0 ) return false;
+				
 				if(l_nFocus != -1 && callback != null) 
 					callback.run(handler, this);
 				
@@ -143,6 +142,36 @@ public class MenuJoyList extends MenuKeyboardList {
 					Console.setCaptureKey(cfg.gpadkeys[l_nFocus], 3);
 				}
 				return false;
+			case PGUP:
+				l_nFocus -= (nListItems - 1);
+				if(l_nFocus >= 0 && l_nFocus < l_nMin)
+					if(l_nMin > 0) l_nMin -= (nListItems - 1);
+				if(l_nFocus < 0 || l_nMin < 0) {
+					l_nFocus = 0;
+					l_nMin = 0;
+				}
+				return false;
+			case PGDW:
+				l_nFocus += (nListItems - 1);
+				if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
+					l_nMin += (nListItems - 1);
+				if(l_nFocus >= len || l_nMin > len - nListItems) {
+					l_nFocus = len - 1;
+					if(len >= nListItems)
+						l_nMin = len - nListItems;
+					else l_nMin = len - 1;
+				}
+				return false;
+			case HOME:
+				l_nFocus = 0;
+				l_nMin = 0;
+				return false;
+			case END:
+				l_nFocus = len - 1;
+				if(len >= nListItems)
+					l_nMin = len - nListItems;
+				else l_nMin = len - 1;
+				return false;
 			default:
 				return m_pMenu.mNavigation(opt);
 			}
@@ -150,19 +179,38 @@ public class MenuJoyList extends MenuKeyboardList {
 		else
 		{
 			l_pressedId = opt;
-			if(callback != null)
+			if((flags & 4) != 0 && callback != null)
 				callback.run(handler, this);
 
-			if(l_nFocus == MenuKeys.Menu_Open.getNum() 
-					|| l_nFocus == GameKeys.Open.getNum()
-					|| l_nFocus == GameKeys.Move_Forward.getNum()
-					|| l_nFocus == GameKeys.Move_Backward.getNum()
-					|| l_nFocus == GameKeys.Turn_Left.getNum()
-					|| l_nFocus == GameKeys.Turn_Right.getNum()) {
+			if(l_nFocus == MenuKeys.Menu_Open.getNum())
 				gpmanager.resetButtonStatus();
-			}
 
 			return false;
 		}
+	}
+
+	@Override
+	public boolean mouseAction(int mx, int my) {
+		if(l_set != 0)
+			return false;
+
+		int py = y;
+		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
+			if(my >= py && my < py + font.nHeight)
+			{
+				if(l_nMin < cfg.joymap.length && i == cfg.joymap.length) 
+					return false;
+
+				l_nFocus = i;
+				if(l_nMin < cfg.joymap.length && i > cfg.joymap.length) 
+					l_nFocus--;
+
+				return true;
+			}
+		    
+			py += mFontOffset();
+		}
+
+		return false;
 	}
 }

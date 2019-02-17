@@ -38,9 +38,9 @@ public abstract class LoadingAdapter extends ScreenAdapter {
 	public LoadingAdapter(BuildGame game)
 	{
 		this.game = game;
-		this.engine = game.engine;
-		this.net = game.net;
-		this.menu = game.menu;
+		this.engine = game.pEngine;
+		this.net = game.pNet;
+		this.menu = game.pMenu;
 	}
 	
 	@Override

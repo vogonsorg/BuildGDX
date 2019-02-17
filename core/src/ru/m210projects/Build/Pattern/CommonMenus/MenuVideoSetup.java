@@ -50,7 +50,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 	{
 		addItem(getTitle(app, "Video setup"), false);
 		
-		final BuildConfig cfg = app.cfg;
+		final BuildConfig cfg = app.pCfg;
 
 		MenuButton mVideoMode = new MenuButton("Video mode", style, 0, posy += menuHeight, 320, 1, 0, getVideoModeMenu(app), -1, null, 0);
 
@@ -65,7 +65,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 					filter = 5;
 
 				Console.Set("r_texturemode", filter);
-				app.engine.render.gltexapplyprops();
+				app.pEngine.render.gltexapplyprops();
 			}
 		}) {
 			@Override
@@ -88,7 +88,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
-				app.engine.setanisotropy(cfg, pow2long[item.num]);
+				app.pEngine.setanisotropy(cfg, pow2long[item.num]);
 			}
 		}) {
 			@Override
@@ -100,7 +100,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 						this.list[i] = (Integer.toString(pow2long[i]) + "x").toCharArray();
 				}
 				if (cfg.glanisotropy > GLInfo.maxanisotropy)
-					app.engine.setanisotropy(cfg, (int) GLInfo.maxanisotropy);
+					app.pEngine.setanisotropy(cfg, (int) GLInfo.maxanisotropy);
 				num = calcAnisotropy(cfg.glanisotropy);
 			}
 		};
@@ -110,7 +110,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSwitch sw = (MenuSwitch) pItem;
-						app.engine.setwidescreen(cfg, sw.value);
+						app.pEngine.setwidescreen(cfg, sw.value);
 					}
 				}, null, null);
 		
@@ -188,7 +188,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
 				usehightile = sw.value;
-				app.engine.getrender().gltexinvalidateall(1);
+				app.pEngine.getrender().gltexinvalidateall(1);
 			}
 		}, null, null) {
 			@Override

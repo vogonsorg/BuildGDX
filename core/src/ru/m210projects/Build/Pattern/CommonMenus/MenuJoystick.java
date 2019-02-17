@@ -44,7 +44,7 @@ public abstract class MenuJoystick extends BuildMenu {
 	{
 		addItem(getTitle(app, "Joystick setup"), false);
 		
-		final BuildConfig cfg = app.cfg;
+		final BuildConfig cfg = app.pCfg;
 		
 		joyButtons = getJoyButtonsMenu(this, app, width, style, posx, posy, 12, menupal);
 		
@@ -58,12 +58,12 @@ public abstract class MenuJoystick extends BuildMenu {
 				}) {
 			@Override
 			public void open() {
-				int controllers = app.input.ctrlGetControllers();
+				int controllers = app.pInput.ctrlGetControllers();
 				if (this.list == null) {
 					if (controllers > 0) {
 						this.list = new char[controllers][];
 						for (int i = 0; i < controllers; i++) {
-							this.list[i] = app.input.ctrlGetControllerName(i).toCharArray();
+							this.list[i] = app.pInput.ctrlGetControllerName(i).toCharArray();
 						}
 					} else {
 						this.list = new char[][]{"No joystick devices found".toCharArray()};
@@ -83,7 +83,7 @@ public abstract class MenuJoystick extends BuildMenu {
 			@Override
 			public void draw(MenuHandler handler) {
 				super.draw(handler);
-				//mCheckEnableItem(app.input.ctrlIsValidDevice(cfg.gJoyDevice));
+				mCheckEnableItem(app.pInput.ctrlIsValidDevice(cfg.gJoyDevice));
 			}
 		};
 		
@@ -147,17 +147,17 @@ public abstract class MenuJoystick extends BuildMenu {
 		mJoyMove.list = StickName;
 
 		posy += 5;
-		MenuSlider mDeadZone = new MenuSlider(app.slider, "Dead zone:", style, posx, posy += menuHeight, width, cfg.gJoyDeadZone, 0, 0x8000,
+		MenuSlider mDeadZone = new MenuSlider(app.pSlider, "Dead zone:", style, posx, posy += menuHeight, width, cfg.gJoyDeadZone, 0, 0x8000,
 				2048, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSlider slider = (MenuSlider) pItem;
 						cfg.gJoyDeadZone = slider.value;
-						app.input.ctrlSetDeadZone(cfg.gJoyDeadZone / 65536f);
+						app.pInput.ctrlSetDeadZone(cfg.gJoyDeadZone / 65536f);
 					}
 				}, false);
 
-		MenuSlider mLookSpeed = new MenuSlider(app.slider, "Look speed:", style, posx, posy += menuHeight, width, cfg.gJoyLookSpeed, 0,
+		MenuSlider mLookSpeed = new MenuSlider(app.pSlider, "Look speed:", style, posx, posy += menuHeight, width, cfg.gJoyLookSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -166,7 +166,7 @@ public abstract class MenuJoystick extends BuildMenu {
 					}
 				}, false);
 
-		MenuSlider mTurnSpeed = new MenuSlider(app.slider, "Turn speed:", style, posx, posy += menuHeight, width, cfg.gJoyTurnSpeed, 0,
+		MenuSlider mTurnSpeed = new MenuSlider(app.pSlider, "Turn speed:", style, posx, posy += menuHeight, width, cfg.gJoyTurnSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -201,8 +201,8 @@ public abstract class MenuJoystick extends BuildMenu {
 		
 		menu.addItem(parent.getTitle(app, "Config. buttons"), false);
 		
-		final BuildConfig cfg = app.cfg;
-		final GPManager gpmanager = app.input.ctrlGetGamepadManager();
+		final BuildConfig cfg = app.pCfg;
+		final GPManager gpmanager = app.pInput.ctrlGetGamepadManager();
 
 		MenuProc callback = new MenuProc() {
 			@Override
@@ -220,6 +220,7 @@ public abstract class MenuJoystick extends BuildMenu {
 					case RIGHT:
 					case ENTER:
 					case ESC:
+						item.l_set = 0;
 						if(!gpmanager.isValidDevice(cfg.gJoyDevice)) break;
 						for (int kb = 0; kb < gpmanager.getButtonCount(cfg.gJoyDevice); kb++) {
 							if (gpmanager.buttonPressed(cfg.gJoyDevice, kb)) {
@@ -228,7 +229,6 @@ public abstract class MenuJoystick extends BuildMenu {
 								else cfg.setButton(cfg.keymap[item.l_nFocus - cfg.joymap.length], kb);
 							}
 						}
-						item.l_set = 0;
 						break;
 					default:
 						if(!gpmanager.isValidDevice(cfg.gJoyDevice)) break;
@@ -244,13 +244,13 @@ public abstract class MenuJoystick extends BuildMenu {
 					}
 				}
 				if (item.l_nFocus == GameKeys.Show_Console.getNum()) {
-					app.input.ctrlResetKeyStatus();
+					app.pInput.ctrlResetKeyStatus();
 					Console.setCaptureKey(cfg.gpadkeys[item.l_nFocus], 3);
 				}
 			}
 		};
 
-		MenuJoyList mList = new MenuJoyList(gpmanager, app.cfg, menupal, style, posx, posy, width, list_len, callback);
+		MenuJoyList mList = new MenuJoyList(gpmanager, app.pCfg, menupal, style, posx, posy, width, list_len, callback);
 		
 		posy += mList.mFontOffset() * list_len;
 

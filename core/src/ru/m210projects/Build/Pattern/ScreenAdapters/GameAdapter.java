@@ -47,10 +47,10 @@ public abstract class GameAdapter extends ScreenAdapter {
 	public GameAdapter(final BuildGame game, LoadingAdapter load)
 	{
 		this.game = game;
-		this.net = game.net;
-		this.menu = game.menu;
-		this.engine = game.engine;
-		this.cfg = game.cfg;
+		this.net = game.pNet;
+		this.menu = game.pMenu;
+		this.engine = game.pEngine;
+		this.cfg = game.pCfg;
 		this.load = load;
 	}
 	
@@ -119,7 +119,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
 				if (net.gNetFifoTail == net.gNetFifoHead[i]) break;
 			if (i >= 0) break;
-			game.gInt.updateinterpolations();
+			game.pInt.updateinterpolations();
 			ProcessFrame(net);
 		}
 		
@@ -134,9 +134,9 @@ public abstract class GameAdapter extends ScreenAdapter {
 			}
 		}
 
-		game.gInt.dointerpolations(smoothratio);
+		game.pInt.dointerpolations(smoothratio);
 		DrawWorld(smoothratio); //smooth sprites
-		game.gInt.restoreinterpolations();
+		game.pInt.restoreinterpolations();
 		
 		if (gScreenCapture != null) {
 			gScreenCapture.run();

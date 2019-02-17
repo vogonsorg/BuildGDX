@@ -82,11 +82,19 @@ public class BuildMenu {
 	}
 	
 	public boolean mCheckItemsFlags(int nItem) {
-		if ( nItem < 0 || nItem >= nMaxGameMenuItems) 
+		if ( nItem < 0 || nItem >= nMaxGameMenuItems || m_pItems[nItem] == null ) 
 			return false;
 			
 		MenuItem pItem = m_pItems[nItem];
 		return (pItem.flags & 1) != 0 && (pItem.flags & 2) != 0;
+	}
+	
+	public boolean mCheckMouseFlag(int nItem) {
+		if ( nItem < 0 || nItem >= nMaxGameMenuItems || m_pItems[nItem] == null ) 
+			return false;
+			
+		MenuItem pItem = m_pItems[nItem];
+		return (pItem.flags & 2) != 0;
 	}
 	
 	public boolean mGetFocusedItem(MenuItem m_pItem) {

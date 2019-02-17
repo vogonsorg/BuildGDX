@@ -44,7 +44,7 @@ public class MenuSlider extends MenuItem {
 
 	private int touchX;
 	private boolean isTouched;
-	private MenuSlider touchedObj;
+	private static MenuSlider touchedObj;
 	private SliderDrawable slider;
 	
 	public MenuSlider(SliderDrawable slider, Object text, BuildFont textStyle, int x, int y, int width, int value, int min, int max, 
@@ -64,6 +64,7 @@ public class MenuSlider extends MenuItem {
 
 		this.digital = digital;
 		this.digitalMax = 0;
+		this.callback = callback;
 		
 		dbuff = new char[10];
 	}
@@ -76,7 +77,7 @@ public class MenuSlider extends MenuItem {
 		if ( text != null )
 			font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, false);
 
-		slider.drawBackground(x + width - slider.range, y, 0, pal);
+		slider.drawSliderBackground(x + width - slider.getSliderRange(), y, 0, pal);
 
 		if(digital)
 		{
@@ -90,12 +91,12 @@ public class MenuSlider extends MenuItem {
 				Arrays.fill(dbuff, index + 4, dbuff.length, (char)0);
 			}
 
-			font.drawText(x + width - slider.range - font.getWidth(dbuff) - 10, y, dbuff, shade, pal, TextAlign.Left, 0, false);
+			font.drawText(x + width - slider.getSliderRange() - font.getWidth(dbuff) - 10, y, dbuff, shade, pal, TextAlign.Left, 0, false);
 		}
 		
-		int xRange = slider.range - slider.width;
+		int xRange = slider.getSliderRange() - slider.getSliderWidth();
 		int nRange = max - min;
-		int dx = xRange * (value - min) / nRange - slider.range;
+		int dx = xRange * (value - min) / nRange - slider.getSliderRange();
 	
 		slider.drawSlider((x + width + dx), y, shade, pal);
 		handler.mPostDraw(this);
@@ -114,6 +115,8 @@ public class MenuSlider extends MenuItem {
 			break;
 		case LEFT:
 		case MWDW:
+			if ( (flags & 4) == 0 ) return false;
+			
 			if(value <= 0) {
 				int dv = (value - step) % -step;
 		        val = value - step - dv;
@@ -134,6 +137,8 @@ public class MenuSlider extends MenuItem {
 			break;
 		case RIGHT:
 		case MWUP:
+			if ( (flags & 4) == 0 ) return false;
+			
 			if ( value < 0 )
 		    {
 		        int dv = (value - 1) % -step;
@@ -152,14 +157,18 @@ public class MenuSlider extends MenuItem {
 				callback.run(handler, this);
 			break;
 		case ENTER:
+			if ( (flags & 4) == 0 ) return false;
+			
 			if(callback != null) 
 				callback.run(handler, this);
 			break;
 		case LMB:
+			if ( (flags & 4) == 0 ) return false;
+			
 			if(touchedObj == this)
 			{
-				int startx = x + width - slider.range + slider.width / 2;
-				float dr = (float)(touchX - startx) / (slider.range - slider.width - 1);
+				int startx = x + width - slider.getSliderRange() + slider.getSliderWidth() / 2;
+				float dr = (float)(touchX - startx) / (slider.getSliderRange() - slider.getSliderWidth() - 1);
 				value = BClipRange((int) (dr * (max - min) + min), min, max);
 				if(callback != null) 
 					callback.run(handler, this);
@@ -187,8 +196,8 @@ public class MenuSlider extends MenuItem {
 			}
 		}
 
-		int cx = x + width - slider.range;
-		if(mx > cx && mx < cx + slider.range)
+		int cx = x + width - slider.getSliderRange();
+		if(mx > cx && mx < cx + slider.getSliderRange())
 			if(my > y && my < y + font.nHeight) {
 				isTouched = true;
 				if(Gdx.input.isTouched())

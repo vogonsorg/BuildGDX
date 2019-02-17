@@ -30,7 +30,7 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 	public SkippableAdapter(BuildGame game)
 	{
 		this.game = game;
-		this.engine = game.engine;
+		this.engine = game.pEngine;
 	}
 	
 	
@@ -63,16 +63,16 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 	}
 	
 	private boolean skippingHandler() {
-		if((escSkip && (game.input.ctrlGetInputKey(MenuKeys.Menu_Open, true) 
-				|| game.input.ctrlPadStatusOnce(MenuKeys.Menu_Open))) 
-				|| (!escSkip && game.input.ctrlKeyPressed())) {
+		if((escSkip && (game.pInput.ctrlGetInputKey(MenuKeys.Menu_Open, true) 
+				|| game.pInput.ctrlPadStatusOnce(MenuKeys.Menu_Open))) 
+				|| (!escSkip && game.pInput.ctrlKeyPressed())) {
 			
 			skip();
 			if(skipCallback != null) {
 				skipCallback.run();
 				skipCallback = null;
 			}
-			game.input.ctrlResetKeyStatus();
+			game.pInput.ctrlResetKeyStatus();
 			return true;
 		}
 		

@@ -1,6 +1,5 @@
 package ru.m210projects.Build.Pattern.MenuItems;
 
-import static ru.m210projects.Build.Gameutils.*;
 //This file is part of BuildGDX.
 //Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
 //
@@ -16,6 +15,9 @@ import static ru.m210projects.Build.Gameutils.*;
 //
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
+import static ru.m210projects.Build.Gameutils.*;
+
 import static ru.m210projects.Build.Input.Keymap.MOUSE_LBUTTON;
 import static ru.m210projects.Build.Input.Keymap.MOUSE_RBUTTON;
 import static ru.m210projects.Build.Input.Keymap.MOUSE_WHELLDN;
@@ -37,9 +39,7 @@ import ru.m210projects.Build.Pattern.BuildFont;
 public abstract class MenuHandler {
 	
 	public int mCount = 0;
-	public final int kMaxGameMenus;
 	public BuildMenu[] mMenuHistory;
-	public BuildMenu[] mMenus;
 	public boolean gShowMenu;
 
 	protected boolean mUseMouse;
@@ -73,10 +73,8 @@ public abstract class MenuHandler {
 		Close //0x8001
 	}
 	
-	public MenuHandler(int nMaxMenus)
+	public MenuHandler()
 	{
-		this.kMaxGameMenus = nMaxMenus;
-		mMenus = new BuildMenu[kMaxGameMenus];
 		mMenuHistory = new BuildMenu[10];
 	}
 
@@ -121,13 +119,14 @@ public abstract class MenuHandler {
 		MenuOpt opt = null;
 
 		//Sliders
-		if(pMenu.m_nFocus != -1 && pMenu.mCheckItemsFlags(pMenu.m_nFocus)) {
-			if(pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuSlider 
+		if(pMenu.m_nFocus != -1 && pMenu.mCheckMouseFlag(pMenu.m_nFocus)) {
+			if(pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuSlider
+					|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuScroller)
 //				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuFileBrowser
-				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuResolutionList
+//				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuResolutionList
 //				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuSlotList
-				|| (pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuKeyboardList 
-						&& ((MenuKeyboardList)pMenu.m_pItems[pMenu.m_nFocus]).l_set == 0))
+//				|| (pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuKeyboardList 
+//						&& ((MenuKeyboardList)pMenu.m_pItems[pMenu.m_nFocus]).l_set == 0))
 			{
 				if(input.ctrlKeyStatus(MOUSE_LBUTTON)) 
 					opt = MenuOpt.LMB;
@@ -144,7 +143,7 @@ public abstract class MenuHandler {
 			opt = MenuOpt.MWDW;
 
 		short focus = mCheckButton(pMenu, input, mx, my);
-		if(focus != -1 && mUseMouse)
+		if(focus != -1 && pMenu.mCheckItemsFlags(focus) && mUseMouse)
 			pMenu.m_nFocus = focus;
 
 		return opt;
@@ -160,14 +159,13 @@ public abstract class MenuHandler {
 
 		for(short i = 0; i < pMenu.m_pItems.length; i++)
 		{
-			if(pMenu.m_pItems[i] != null && pMenu.mCheckItemsFlags(i) && 
+			if(pMenu.mCheckMouseFlag(i) && 
 					pMenu.m_pItems[i].mouseAction(touchX, touchY) && !input.ctrlKeyStatus(MOUSE_LBUTTON))
 				return i;
 		}
 		return -1;
 	}
 	
-
 	public void mKeyHandler(BuildControls input, float delta) {
 
 		BuildMenu pMenu = mMenuHistory[0];
@@ -196,7 +194,7 @@ public abstract class MenuHandler {
 			if(input.ctrlKeyStatusOnce(Keys.PAGE_UP)) 
 				opt = MenuOpt.PGUP;
 			if(input.ctrlKeyStatusOnce(Keys.PAGE_DOWN)) 
-				opt = MenuOpt.DW;
+				opt = MenuOpt.PGDW;
 			if(input.ctrlKeyStatusOnce(Keys.HOME)) 
 				opt = MenuOpt.HOME;
 			if(input.ctrlKeyStatusOnce(Keys.END)) 
@@ -212,6 +210,7 @@ public abstract class MenuHandler {
 			if(!BuildGdx.input.isTouched() && input.ctrlKeyPressed()
 					&& !input.ctrlKeyPressed(Keys.ENTER) 
 					&& !input.ctrlKeyPressed(Keys.ESCAPE)) {
+
 				keycount += delta;
 				if(keycount >= hitTime) {
 					if(keycount >= (hitTime + changeTime)) {
@@ -273,9 +272,14 @@ public abstract class MenuHandler {
 		}
 	}
 
+	public BuildMenu getCurrentMenu()
+	{
+		return mMenuHistory[0];
+	}
+	
 	public boolean isOpened(BuildMenu pMenu)
 	{
-		return mMenuHistory[0] == pMenu;
+		return getCurrentMenu() == pMenu;
 	}
 
 	public void mDrawMenu() {

@@ -23,23 +23,26 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils.ConvertType;
 
 public abstract class SliderDrawable {
-	public int width = -1;
-	public int range = -1;
 	
-	public SliderDrawable(int width, int range) {
-		this.width = width;
-		this.range = range;
-	}
+	public abstract int getSliderWidth();
 	
-	public abstract void drawBackground(int x, int y, int shade, int pal);
+	public abstract int getSliderRange();
+	
+	public abstract int getScrollerHeight();
+	
+	public abstract void drawSliderBackground(int x, int y, int shade, int pal);
 	
 	public abstract void drawSlider(int x, int y, int shade, int pal);
+	
+	public abstract void drawScrollerBackground(int x, int y, int len, int shade, int pal);
+	
+	public abstract void drawScroller(int x, int y, int shade, int pal);
 
-	public void dbDrawBackground(Engine draw, int x, int y, int height, int col)
+	protected void drawSliderBackground(Engine draw, int x, int y, int height, int col)
 	{
 		int x1 = coordsConvertXScaled(x, ConvertType.Normal);
 		int y1 = coordsConvertYScaled(y);
-		int x2 = coordsConvertXScaled(x + range, ConvertType.Normal);
+		int x2 = coordsConvertXScaled(x + getSliderRange(), ConvertType.Normal);
 		int y2 = coordsConvertYScaled(y + height);
 		
 		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
@@ -48,12 +51,38 @@ public abstract class SliderDrawable {
 		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
 	}
 	
-	public void dbDrawSlider(Engine draw, int x, int y, int height, int col)
+	protected void drawSlider(Engine draw, int x, int y, int height, int col)
+	{
+		int x1 = coordsConvertXScaled(x, ConvertType.Normal);
+		int y1 = coordsConvertYScaled(y);
+		int x2 = coordsConvertXScaled(x + getSliderWidth(), ConvertType.Normal);
+		int y2 = coordsConvertYScaled(y + height);
+		
+		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
+		draw.getrender().drawline256(x1 * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x1 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
+	}
+	
+	protected void drawScrollerBackground(Engine draw, int x, int y, int width, int height, int col)
+	{
+		int x1 = coordsConvertXScaled(x - 1, ConvertType.Normal);
+		int y1 = coordsConvertYScaled(y - 1);
+		int x2 = coordsConvertXScaled(x + width + 1, ConvertType.Normal);
+		int y2 = coordsConvertYScaled(y + height + 1);
+		
+		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
+		draw.getrender().drawline256(x1 * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x1 * 4096, y2 * 4096, col);
+		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
+	}
+	
+	protected void drawScroller(Engine draw, int x, int y, int width, int col)
 	{
 		int x1 = coordsConvertXScaled(x, ConvertType.Normal);
 		int y1 = coordsConvertYScaled(y);
 		int x2 = coordsConvertXScaled(x + width, ConvertType.Normal);
-		int y2 = coordsConvertYScaled(y + height);
+		int y2 = coordsConvertYScaled(y + getScrollerHeight());
 		
 		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
 		draw.getrender().drawline256(x1 * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);

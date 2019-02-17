@@ -53,7 +53,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 	
 	public abstract void setMode(BuildConfig cfg);
 	
-	public BuildMenu getResolutionListMenu(final MenuVideoMode parent, final BuildGame app, int posx, int posy, int width, int listHeightOffset, int nListItems, BuildFont style, int nListBackground) {
+	public BuildMenu getResolutionListMenu(final MenuVideoMode parent, final BuildGame app, int posx, int posy, int width, int nListItems, BuildFont style, int nListBackground) {
 		BuildMenu menu = new BuildMenu();
 		
 		menu.addItem(parent.getTitle(app, "Resolution"), false);
@@ -72,13 +72,13 @@ public abstract class MenuVideoMode extends BuildMenu {
 					return;
 
 				currentMode = choosedMode = validmodes.get(item.l_nFocus);
-				setMode(app.cfg);
-				parent.mLoadRes(app.menu, MenuOpt.Open);
-				app.menu.mMenuBack();
+				setMode(app.pCfg);
+				parent.mLoadRes(app.pMenu, MenuOpt.Open);
+				app.pMenu.mMenuBack();
 			}
 		};
 
-		MenuList mSlot = new MenuResolutionList(app.engine, list, style, posx, posy, width, 1, listHeightOffset, null, callback, nListItems, nListBackground);
+		MenuList mSlot = new MenuResolutionList(app.pEngine, list, style, posx, posy, width, 1, null, callback, nListItems, nListBackground);
 
 		menu.addItem(mSlot, true);
 		
@@ -89,16 +89,17 @@ public abstract class MenuVideoMode extends BuildMenu {
 		
 		addItem(getTitle(app, "Video mode"), false);
 		
-		final BuildConfig cfg = app.cfg;
+		final BuildConfig cfg = app.pCfg;
 		MenuProc callback = new MenuProc() {
 			public void run(MenuHandler handler, MenuItem pItem) {
+				System.err.println("ah");
 				cfg.fullscreen = isFullscreen ? 1 : 0;
 				currentMode = choosedMode;
 				setMode(cfg);
 			}
 		};
 		
-		final BuildMenu mResList = getResolutionListMenu(this, app, posx, posy, width, 2, nListItems, style, nBackground);
+		final BuildMenu mResList = getResolutionListMenu(this, app, posx, posy, width, nListItems, style, nBackground);
 		
 		MenuConteiner mResolution = new MenuConteiner("Resolution: ", style, conteiner, posx,
 				posy += itemHeight, width, strvmodes, 0, new MenuProc() {
@@ -110,7 +111,6 @@ public abstract class MenuVideoMode extends BuildMenu {
 			
 			@Override
 			public boolean callback(MenuHandler handler, MenuOpt opt) {
-				
 				switch(opt)
 				{
 				case LEFT:
@@ -129,9 +129,6 @@ public abstract class MenuVideoMode extends BuildMenu {
 					return false;
 				case ENTER:
 				case LMB:
-					if(num < list.length - 1) {
-						num++;
-					} else num = 0;
 					handler.mOpen(mResList, -1);
 					return false;
 				default:
@@ -149,6 +146,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 						break;
 					}
 				}
+				
 				if (num != -1) {
 					currentMode = validmodes.get(num);
 					choosedMode = currentMode;
@@ -185,6 +183,13 @@ public abstract class MenuVideoMode extends BuildMenu {
 				super.draw(handler);
 				mCheckEnableItem(false);
 			}
+			
+			@Override
+			public void mCheckEnableItem(boolean nEnable) {
+				if (nEnable) 
+					flags = 3 | 4;
+				else flags = 3;
+			}
 		};
 
 		MenuSwitch mFullscreen = new MenuSwitch("Fullscreen:", style, posx,
@@ -205,6 +210,13 @@ public abstract class MenuVideoMode extends BuildMenu {
 			public void draw(MenuHandler handler) {
 				super.draw(handler);
 				mCheckEnableItem(choosedMode != null && (choosedMode != currentMode || isFullscreen != (cfg.fullscreen == 1)));
+			}
+			
+			@Override
+			public void mCheckEnableItem(boolean nEnable) {
+				if (nEnable) 
+					flags = 3 | 4;
+				else flags = 3;
 			}
 		};
 

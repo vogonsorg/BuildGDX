@@ -28,7 +28,7 @@ public abstract class BuildEngine extends Engine {
 	
 	@Override
 	public void faketimerhandler() {
-		BuildNet net = game.net;
+		BuildNet net = game.pNet;
 		if(net == null) return; //not initialized yet
 
 		if (!game.getScreen().getClass().getSuperclass().equals(GameAdapter.class) 
@@ -52,7 +52,7 @@ public abstract class BuildEngine extends Engine {
 	
 	@Override
 	public void dragpoint(short pointhighlight, int dax, int day) {
-		game.gInt.setwallinterpolate(pointhighlight, wall[pointhighlight]);
+		game.pInt.setwallinterpolate(pointhighlight, wall[pointhighlight]);
 		wall[pointhighlight].x = dax;
 		wall[pointhighlight].y = day;
 
@@ -63,7 +63,7 @@ public abstract class BuildEngine extends Engine {
 			if (wall[tempshort].nextwall >= 0)
 			{
 				tempshort = wall[wall[tempshort].nextwall].point2;
-				game.gInt.setwallinterpolate(tempshort, wall[tempshort]);
+				game.pInt.setwallinterpolate(tempshort, wall[tempshort]);
 				wall[tempshort].x = dax;
 				wall[tempshort].y = day;
 			}
@@ -75,7 +75,7 @@ public abstract class BuildEngine extends Engine {
 					if (wall[lastwall(tempshort)].nextwall >= 0)
 					{
 						tempshort = wall[lastwall(tempshort)].nextwall;
-						game.gInt.setwallinterpolate(tempshort, wall[tempshort]);
+						game.pInt.setwallinterpolate(tempshort, wall[tempshort]);
 						wall[tempshort].x = dax;
 						wall[tempshort].y = day;
 					}
@@ -94,7 +94,7 @@ public abstract class BuildEngine extends Engine {
 	@Override
 	public void handleevents() {
 		super.handleevents();
-		game.input.gpmanager.handler();
+		game.pInput.gpmanager.handler();
 	}
 	
 	protected void GetInput(BuildNet net) {
@@ -105,11 +105,11 @@ public abstract class BuildEngine extends Engine {
 			if (i != myconnectindex && net.gNetFifoHead[myconnectindex] - 200 > net.gNetFifoHead[i])
 				return;
 
-		if(!game.menu.gShowMenu && !Console.IsShown()) {
-			game.input.ctrlMouseHandler();
-			game.input.ctrlJoyHandler();
+		if(!game.pMenu.gShowMenu && !Console.IsShown()) {
+			game.pInput.ctrlMouseHandler();
+			game.pInput.ctrlJoyHandler();
 		}
-		game.input.ctrlGetInput(game.net.gInput);
+		game.pInput.ctrlGetInput(game.pNet.gInput);
 
 		if((net.gNetFifoHead[myconnectindex] & (net.MovesPerPacket - 1)) != 0)
 		{

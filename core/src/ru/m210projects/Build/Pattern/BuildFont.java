@@ -92,7 +92,7 @@ public class BuildFont {
 		}
 		
 		int alignx = 0;
-		for(int i = 0; i < text.length; i++)
+		for(int i = 0; i < text.length && text[i] != 0; i++)
 			alignx += drawChar(x + alignx, y, text[i], shade, pal, nBits, shadow);
 		return alignx;
 	}

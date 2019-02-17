@@ -33,7 +33,6 @@ import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
 import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
-import ru.m210projects.Build.Pattern.MenuItems.MenuJoyList;
 import ru.m210projects.Build.Pattern.MenuItems.MenuKeyboardList;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
 import ru.m210projects.Build.Pattern.MenuItems.MenuText;
@@ -45,12 +44,12 @@ public abstract class MenuKeyboard extends BuildMenu {
 	
 	public MenuKeyboard(final BuildGame app, int posx, int posy, int width, int list_len, BuildFont style) {
 		addItem(getTitle(app, "Configure keys"), false);
-		final BuildConfig cfg = app.cfg;
+		final BuildConfig cfg = app.pCfg;
 		
 		MenuProc callback = new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
-				MenuJoyList item = (MenuJoyList) pItem;
+				MenuKeyboardList item = (MenuKeyboardList) pItem;
 				
 				if (item.l_set == 0) {
 					item.l_pressedId = null;
@@ -82,7 +81,7 @@ public abstract class MenuKeyboard extends BuildMenu {
 					case ESC:
 						if (item.l_nFocus == MenuKeys.Menu_Open.getNum())
 							cfg.setKey(item.l_nFocus, Keys.ESCAPE);
-						app.input.ctrlResetKeyStatus();
+						app.pInput.ctrlResetKeyStatus();
 						item.l_set = 0;
 						break;
 					case SPACE:
@@ -153,7 +152,7 @@ public abstract class MenuKeyboard extends BuildMenu {
 					default:
 						for (int kb = 0; kb < 256; kb++) {
 							if (kb >= MOUSE_WHELLUP && kb <= MOUSE_BUTTON11) {
-								if (app.input.ctrlKeyStatus(kb)) {
+								if (app.pInput.ctrlKeyStatus(kb)) {
 									mousekeys[item.l_nFocus] = kb;
 
 									for (int i = 0; i < mousekeys.length; i++) {
@@ -163,7 +162,7 @@ public abstract class MenuKeyboard extends BuildMenu {
 
 									item.l_set = 0;
 								}
-							} else if (app.input.ctrlKeyStatus(kb)) {
+							} else if (app.pInput.ctrlKeyStatus(kb)) {
 								cfg.setKey(item.l_nFocus, kb);
 								item.l_set = 0;
 							}
@@ -173,7 +172,7 @@ public abstract class MenuKeyboard extends BuildMenu {
 				}
 
 				if (item.l_nFocus == GameKeys.Show_Console.getNum()) {
-					app.input.ctrlResetKeyStatus();
+					app.pInput.ctrlResetKeyStatus();
 					Console.setCaptureKey(cfg.primarykeys[item.l_nFocus], 0);
 					Console.setCaptureKey(cfg.secondkeys[item.l_nFocus], 1);
 					Console.setCaptureKey(cfg.mousekeys[item.l_nFocus], 2);
@@ -181,7 +180,7 @@ public abstract class MenuKeyboard extends BuildMenu {
 			}
 		};
 
-		MenuKeyboardList mList = new MenuKeyboardList(app.cfg, style, posx, posy, width, list_len, callback);
+		MenuKeyboardList mList = new MenuKeyboardList(app.pCfg, style, posx, posy, width, list_len, callback);
 		
 		posy += mList.mFontOffset() * list_len;
 

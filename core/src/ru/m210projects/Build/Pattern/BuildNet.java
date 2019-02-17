@@ -303,7 +303,7 @@ public abstract class BuildNet {
 	            else if (klabs(i) > 2) i = ksgn(i);
 	            else i = 0;
 
-				totalclock -= game.engine.ticks * i;
+				totalclock -= game.pEngine.ticks * i;
 	            otherMinLag += i;
 
 				for ( int nPlayer = connecthead; nPlayer >= 0; nPlayer = connectpoint2[nPlayer] )
@@ -402,7 +402,7 @@ public abstract class BuildNet {
 	
 	public void ResetTimers()
 	{
-		game.engine.sampletimer(); //update timer before reset
+		game.pEngine.sampletimer(); //update timer before reset
 		
 		totalclock = 0;
 		ototalclock = 0;
@@ -441,7 +441,7 @@ public abstract class BuildNet {
 		long starttime = System.currentTimeMillis();
 		while (true)
 		{
-			game.engine.handleevents();
+			game.pEngine.handleevents();
 			long time = System.currentTimeMillis() - starttime;
 			
 			if (/*ctrlKeyStatusOnce(Keys.ESCAPE) || */(timeout != 0 && time > timeout)) 

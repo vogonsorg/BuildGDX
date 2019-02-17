@@ -30,7 +30,7 @@ public class MenuSwitch extends MenuItem
 			MenuProc callback, String onMessage, String offMessage) 
 	{
 		super(text, font);
-		this.flags = 3;
+		this.flags = 3 | 4;
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -64,6 +64,8 @@ public class MenuSwitch extends MenuItem
 	public boolean callback(MenuHandler handler, MenuOpt opt) {
 		if(opt == MenuOpt.LEFT || opt == MenuOpt.RIGHT || opt == MenuOpt.ENTER || opt == MenuOpt.LMB)
 		{
+			if ( (flags & 4) == 0 ) return false;
+			
 			value = !value;
 			if(callback != null) 
 				callback.run(handler, this);

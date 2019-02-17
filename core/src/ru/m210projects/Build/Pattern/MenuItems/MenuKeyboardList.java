@@ -28,29 +28,19 @@ import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
-public class MenuKeyboardList extends MenuItem
+public class MenuKeyboardList extends MenuList
 {
-	public int len;
-	public int l_nMin = 0;
-	public int l_nFocus, nItems;
 	public int l_set = 0; 
 	public MenuOpt l_pressedId;
-	public MenuProc callback;
 	protected KeyType[] keynames;
 	protected BuildConfig cfg;
 
 	public MenuKeyboardList(BuildConfig cfg, BuildFont font, int x, int y, int width, int len, MenuProc callback)
 	{
-		super(null, font);
-		this.flags = 3;
+		super(null, font, x, y, width, 0, null, callback, len);
 		this.cfg = cfg;
 		this.keynames = cfg.keymap;
-		this.nItems = len;
-		this.x = x;
-		this.y = y;
-		this.width = width;
 		this.len = keynames.length;
-		this.callback = callback;
 	}
 	
 	public int mFontOffset() {
@@ -60,8 +50,8 @@ public class MenuKeyboardList extends MenuItem
 	@Override
 	public void draw(MenuHandler handler) {
 		int px = x, py = y;
-		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
-			int shade = handler.getShade(null);
+		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
+			int shade = handler.getShade(i == l_nFocus? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
 			String text = keynames[i].getName();
 			String key;
 			
@@ -80,20 +70,19 @@ public class MenuKeyboardList extends MenuItem
 			char[] k = key.toCharArray();
 			font.drawText(px, py, text.toCharArray(), shade, 0, TextAlign.Left, 0, false);
 
-			font.drawText(x + width - 1 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);		
+			font.drawText(x + width - 1 - font.getWidth(k) - 60, py, k, shade, 0, TextAlign.Left, 0, false);		
 			
 			if(cfg.mousekeys[i] != 0)
 				key = Keymap.toString(cfg.mousekeys[i]);
 			else key = " - ";
 			if ( i == l_nFocus ) {
-				shade = handler.getShade(m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 				if(l_set == 1 && (totalclock & 0x20) != 0)
 				{
 					key = "____";
 				}
 			}
 			k = key.toCharArray();
-			font.drawText(x + width - 1 - font.getWidth(k) + 60, py, k, shade, 0, TextAlign.Left, 0, false);	
+			font.drawText(x + width - 1 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);	
 				
 			py += mFontOffset();
 		}
@@ -111,7 +100,7 @@ public class MenuKeyboardList extends MenuItem
 					l_nMin--;
 				return false;
 			case MWDW:
-				if(l_nMin < len - nItems)
+				if(l_nMin < len - nListItems)
 					l_nMin++;
 				return false;
 			case UP:
@@ -120,13 +109,13 @@ public class MenuKeyboardList extends MenuItem
 					l_nMin--;
 				if(l_nFocus < 0) {
 					l_nFocus = len - 1;
-					l_nMin = len - nItems;
+					l_nMin = len - nListItems;
 				}
 				
 				return false;
 			case DW:
 				l_nFocus++;
-				if(l_nFocus >= l_nMin + nItems && l_nFocus < len)
+				if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
 					l_nMin++;
 				if(l_nFocus >= len) {
 					l_nFocus = 0;
@@ -135,6 +124,8 @@ public class MenuKeyboardList extends MenuItem
 				return false;
 			case ENTER:
 			case LMB:
+				if ( (flags & 4) == 0 ) return false;
+				
 				if(l_nFocus != -1 && callback != null) 
 					callback.run(handler, this);
 				
@@ -153,6 +144,36 @@ public class MenuKeyboardList extends MenuItem
 					Console.setCaptureKey(cfg.mousekeys[l_nFocus], 2);
 				}
 				return false;
+			case PGUP:
+				l_nFocus -= (nListItems - 1);
+				if(l_nFocus >= 0 && l_nFocus < l_nMin)
+					if(l_nMin > 0) l_nMin -= (nListItems - 1);
+				if(l_nFocus < 0 || l_nMin < 0) {
+					l_nFocus = 0;
+					l_nMin = 0;
+				}
+				return false;
+			case PGDW:
+				l_nFocus += (nListItems - 1);
+				if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
+					l_nMin += (nListItems - 1);
+				if(l_nFocus >= len || l_nMin > len - nListItems) {
+					l_nFocus = len - 1;
+					if(len >= nListItems)
+						l_nMin = len - nListItems;
+					else l_nMin = len - 1;
+				}
+				return false;
+			case HOME:
+				l_nFocus = 0;
+				l_nMin = 0;
+				return false;
+			case END:
+				l_nFocus = len - 1;
+				if(len >= nListItems)
+					l_nMin = len - nListItems;
+				else l_nMin = len - 1;
+				return false;
 			default:
 				return m_pMenu.mNavigation(opt);
 			}
@@ -160,7 +181,7 @@ public class MenuKeyboardList extends MenuItem
 		else
 		{
 			l_pressedId = opt;
-			if(callback != null)
+			if((flags & 4) != 0 && callback != null)
 				callback.run(handler, this);
 			
 			if(l_nFocus == MenuKeys.Menu_Open.getNum()) 
@@ -184,14 +205,14 @@ public class MenuKeyboardList extends MenuItem
 			return false;
 
 		int py = y;
-		for(int i = l_nMin; i >= 0 && i < l_nMin + nItems && i < len; i++) {	
-			if(my > py && my < py + font.nHeight)
+		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
+			if(my >= py && my < py + font.nHeight)
 			{
 				l_nFocus = i;
 				return true;
 			}
 		    
-			py += font.nHeight;
+			py += mFontOffset();
 		}
 
 		return false;

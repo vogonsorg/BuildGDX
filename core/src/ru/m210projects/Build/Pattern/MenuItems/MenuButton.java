@@ -66,7 +66,7 @@ public class MenuButton extends MenuItem
 
 	@Override
 	public boolean callback(MenuHandler handler, MenuOpt opt) {
-		if ( opt == MenuOpt.ENTER || opt == MenuOpt.LMB )
+		if ( (flags & 4) != 0 && (opt == MenuOpt.ENTER || opt == MenuOpt.LMB) )
 		{
 			if ( specialCall != null )
 				specialCall.run(handler, this);

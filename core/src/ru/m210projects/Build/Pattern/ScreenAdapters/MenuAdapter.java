@@ -20,8 +20,9 @@ import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Pattern.BuildConfig;
-import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
+import ru.m210projects.Build.Pattern.BuildGame;
+import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 
 public abstract class MenuAdapter extends ScreenAdapter {
@@ -30,17 +31,19 @@ public abstract class MenuAdapter extends ScreenAdapter {
 	protected MenuHandler menu;
 	protected Engine engine;
 	protected BuildConfig cfg;
+	protected BuildMenu mainMenu;
 
 	public abstract void draw(float delta);
 	
 	public void process(float delta) { }
 	
-	public MenuAdapter(final BuildGame game)
+	public MenuAdapter(final BuildGame game, BuildMenu mainMenu)
 	{
 		this.game = game;
-		this.menu = game.menu;
-		this.engine = game.engine;
-		this.cfg = game.cfg;
+		this.menu = game.pMenu;
+		this.engine = game.pEngine;
+		this.cfg = game.pCfg;
+		this.mainMenu = mainMenu;
 	}
 	
 	@Override
@@ -53,11 +56,11 @@ public abstract class MenuAdapter extends ScreenAdapter {
 		engine.handleevents();
 		
 		if (menu.gShowMenu) {
-			menu.mKeyHandler(game.input, delta);
+			menu.mKeyHandler(game.pInput, delta);
 			menu.mDrawMenu();
 		} else {
-			if (game.input.ctrlGetInputKey(MenuKeys.Menu_Open, true))
-				menu.mOpen(menu.mMenus[0], -1);
+			if (game.pInput.ctrlGetInputKey(MenuKeys.Menu_Open, true))
+				menu.mOpen(mainMenu, -1);
 		}
 
 		process(delta);

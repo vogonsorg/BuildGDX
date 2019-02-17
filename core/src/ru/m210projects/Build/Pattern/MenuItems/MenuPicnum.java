@@ -20,47 +20,31 @@ import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public class MenuPicnum extends MenuItem
 {
 	public int nTile;
 	public final int defTile;
+	public int nScale;
 	protected Engine draw;
 	
-	public MenuPicnum(Engine draw, Object text, BuildFont font, int x, int y, int nTile, int defTile) 
+	public MenuPicnum(Engine draw, int x, int y, int nTile, int defTile, int nScale) 
 	{
-		super(text, font);
+		super(null, null);
 		this.flags = 1;
 		this.x = x;
 		this.y = y;
 		this.nTile = nTile;
 		this.defTile = defTile;
+		this.nScale = nScale;
 		
 		this.draw = draw;
 	}
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		int shade = handler.getShade(this);
-		
-		if ( text != null ) 
-			font.drawText(x, y, text, shade, 0, TextAlign.Left, 0, false);
-
-		int stat, picnum, ang;
-		if(m_pMenu != null) {
-			stat = 64 | 2 | 8;
-			picnum = nTile;
-		    ang = 0;
-		} else {
-			stat = 64 | 2 | 4 | 8; //70
-			picnum = 0; //nextMenu->nTile
-		    ang = 512;
-		}
-
-		draw.rotatesprite(100 << 16, 107 << 16, 0x8000, ang, picnum, 0, 0, stat, 0, 0, xdim - 1, ydim - 1);
+		draw.rotatesprite(x << 16, y << 16, nScale, 0, nTile, 0, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
 		
 		handler.mPostDraw(this);
 	}

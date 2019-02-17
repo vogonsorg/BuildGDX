@@ -49,15 +49,15 @@ public abstract class BuildGame extends Game {
 	public final String OS = System.getProperty("os.name");
 	public final Date date;
 	
-	public BuildEngine engine;
-	public BuildControls input;
-	public BuildConfig cfg;
-	public MenuHandler menu;
-	public FontHandler fonts;
-	public BuildNet net;
-	public Interpolation gInt;
-	public SaveManager savemgr;
-	public SliderDrawable slider;
+	public BuildEngine pEngine;
+	public BuildControls pInput;
+	public BuildConfig pCfg;
+	public MenuHandler pMenu;
+	public FontHandler pFonts;
+	public BuildNet pNet;
+	public Interpolation pInt;
+	public SaveManager pSavemgr;
+	public SliderDrawable pSlider;
 	
 	public boolean gExit = false;
 	public boolean gPaused = false;
@@ -77,11 +77,11 @@ public abstract class BuildGame extends Game {
 		this.sversion = sversion;
 		this.release = release;
 		this.version = sversion.toCharArray();
-		this.cfg = cfg;
+		this.pCfg = cfg;
 		this.date = new Date("MMM dd, yyyy HH:mm:ss");
 		this.baseDef = new DefScript(false);
-		this.gInt = new Interpolation();
-		this.savemgr = new SaveManager();
+		this.pInt = new Interpolation();
+		this.pSavemgr = new SaveManager();
 	}
 
 	@Override
@@ -98,16 +98,16 @@ public abstract class BuildGame extends Game {
 		if(getScreen() instanceof InitScreen)
 			((InitScreen) getScreen()).dispose();
 		
-		if(engine != null)
-			engine.uninit();
+		if(pEngine != null)
+			pEngine.uninit();
 
-		cfg.saveConfig(FilePath);
+		pCfg.saveConfig(FilePath);
 		System.out.println("disposed");
 	}
 	
 	public BuildFont getFont(int i)
 	{
-		return fonts.getFont(i);
+		return pFonts.getFont(i);
 	}
 	
 	@Override
@@ -156,7 +156,7 @@ public abstract class BuildGame extends Game {
 	{
 		if(currentDef != script) {
 			currentDef = script;
-			engine.setDefs(script);
+			pEngine.setDefs(script);
 		}
 	}
 	

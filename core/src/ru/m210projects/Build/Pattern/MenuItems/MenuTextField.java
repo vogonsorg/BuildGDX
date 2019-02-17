@@ -174,6 +174,8 @@ public class MenuTextField extends MenuItem {
 			{
 			case ENTER:
 			case LMB:
+				if ( (flags & 4) == 0 ) return false;
+				
 				getInput().initMessageInput(null);		
 				System.arraycopy(typingBuf, 0, otypingBuf, 0, 16);
 				oinputlen = inputlen;
