@@ -58,6 +58,7 @@ import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.AtlasFont;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
@@ -5156,11 +5157,75 @@ public abstract class Polymost implements Renderer {
 			}
 		}
 	}
+
+	public void printext(AtlasFont font, int xpos, int ypos, int col, char[] text, float scale) {
+		if (waloff[font.atlas] == null && engine.loadtile(font.atlas) == null)
+			return;
+		
+		Pthtyp pth = textureCache.cache(font.atlas, col, (short) 0, false, true);
+		if(pth == null)
+			return;
+		
+		bindTexture(pth.glpic);
+		
+		setpolymost2dview();
+		gl.glDisable(GL_FOG);
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
+		
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_BLEND);
+	
+		gl.glColor4ub(255, 255, 255, 255);
+
+		int c = 0, line = 0;
+		int x, y, yoffs;
+		float txc = font.charsizx / (float) tilesizx[font.atlas], tx;
+		float tyc = font.charsizy / (float) tilesizy[font.atlas], ty;
+
+		int oxpos = xpos;
+		while (c < text.length && text[c] != 0) {
+			if(text[c] == '\n')
+			{
+				text[c] = 0;
+				line += 1;
+				xpos = oxpos - (int) (scale * font.charsizx);
+			}
+			
+			if(text[c] == '\r')
+				text[c] = 0;
+	
+			tx = (text[c] % font.cols) / (float) font.cols;
+			ty = (text[c] / font.cols) / (float) font.rows;
+
+			yoffs = (int) (scale * line * font.charsizy);
+
+			x = xpos + (int) (scale * font.charsizx);
+			y = ypos + (int) (scale * font.charsizy);
+
+			gl.glBegin(GL_TRIANGLE_STRIP);
+			gl.glTexCoord2f(tx, ty);
+			gl.glVertex2i(xpos, ypos + yoffs);
+			gl.glTexCoord2f(tx, ty + tyc);
+			gl.glVertex2i(xpos, y + yoffs);
+			gl.glTexCoord2f(tx + txc, ty);
+			gl.glVertex2i(x, ypos + yoffs);
+			gl.glTexCoord2f(tx + txc, ty + tyc);
+			gl.glVertex2i(x, y + yoffs);
+			gl.glEnd();
+
+			xpos += scale * font.charsizx;
+			c++;
+		}
+
+		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+
+		EnableFog();
+	}
 	
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int oxpos = xpos;
-		
 		if(textureCache.isUseShader())
 			gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
@@ -5204,7 +5269,7 @@ public abstract class Polymost implements Renderer {
 			{
 				text[c] = 0;
 				line += 1;
-				xpos = oxpos - (8 >> fontsize);
+				xpos = oxpos - (int) (scale * (8 >> fontsize));
 			}
 			if(text[c] == '\r')
 				text[c] = 0;
@@ -5212,7 +5277,7 @@ public abstract class Polymost implements Renderer {
 			tx = (text[c] % 32) / 32.0f;
 			ty = ((text[c] / 32) + (fontsize * 8)) / 16.0f;
 
-			yoffs = line * (fontsize != 0 ? 6 : 8);
+			yoffs = (int) (scale * line * (fontsize != 0 ? 6 : 8));
 
 			x = xpos + (int) (scale * (8 >> fontsize));
 			y = ypos + (int) (scale * (fontsize != 0 ? 6 : 8));
