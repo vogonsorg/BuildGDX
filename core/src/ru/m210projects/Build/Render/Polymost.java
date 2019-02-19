@@ -58,10 +58,11 @@ import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
-import ru.m210projects.Build.Types.AtlasFont;
+import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
+import ru.m210projects.Build.Types.TileFont.FontType;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
@@ -5158,16 +5159,22 @@ public abstract class Polymost implements Renderer {
 		}
 	}
 
-	public void printext(AtlasFont font, int xpos, int ypos, int col, char[] text, float scale) {
-		if (waloff[font.atlas] == null && engine.loadtile(font.atlas) == null)
-			return;
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale) {
+		if(font.type == FontType.Tilemap) {
+			if (palookup[col] == null)
+				col = 0;
+			
+			int nTile = (Integer) font.ptr;
+			if (waloff[nTile] == null && engine.loadtile(nTile) == null)
+				return;
+		}
 		
-		Pthtyp pth = textureCache.cache(font.atlas, col, (short) 0, false, true);
+		Pthtyp pth = font.getGL(textureCache, col);
 		if(pth == null)
 			return;
-		
+
 		bindTexture(pth.glpic);
-		
+
 		setpolymost2dview();
 		gl.glDisable(GL_FOG);
 		gl.glDisable(GL_ALPHA_TEST);
@@ -5175,13 +5182,23 @@ public abstract class Polymost implements Renderer {
 		
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
-	
-		gl.glColor4ub(255, 255, 255, 255);
+		
+		float alpha = 1.0f, f = getshadefactor(shade);
+		if(bit == Transparent.Bit1) 
+			alpha = TRANSLUSCENT1;
+		if(bit == Transparent.Bit2)
+			alpha = TRANSLUSCENT2;
+
+		if(font.type == FontType.Tilemap)
+			gl.glColor4f(f, f, f, alpha);
+		else 
+			gl.glColor4ub(curpalette[3 * col] & 0xFF, curpalette[3 * col + 1] & 0xFF, curpalette[3 * col + 2] & 0xFF, (int) (alpha * 255));
 
 		int c = 0, line = 0;
 		int x, y, yoffs;
-		float txc = font.charsizx / (float) tilesizx[font.atlas], tx;
-		float tyc = font.charsizy / (float) tilesizy[font.atlas], ty;
+
+		float txc = font.charsizx / (float) font.sizx, tx;
+		float tyc = font.charsizy / (float) font.sizy, ty;
 
 		int oxpos = xpos;
 		while (c < text.length && text[c] != 0) {

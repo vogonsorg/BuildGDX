@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
@@ -41,6 +42,9 @@ import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Neartag;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.SmallTextFont;
+import ru.m210projects.Build.Types.TextFont;
+import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
 import com.badlogic.gdx.Gdx;
@@ -152,6 +156,8 @@ public abstract class Engine {
 	
 	public Renderer render;
 	private static KeyInput input;
+	
+	public static TileFont pTextfont, pSmallTextfont;
 
 	public static boolean offscreenrendering;
 	
@@ -465,6 +471,9 @@ public abstract class Engine {
 
 				kRead(fil, textfont, 1024);
 				kRead(fil, smalltextfont, 1024);
+				
+				pTextfont = new TextFont();
+				pSmallTextfont = new SmallTextFont();
 
 				/* kread(fil, britable, 1024); */
 
@@ -1051,7 +1060,11 @@ public abstract class Engine {
 
 	public void uninit() //gdxBuild
 	{
-		int i;
+		Iterator<TileFont> it;
+	    while((it = TileFont.managedFont.iterator()).hasNext()) {
+	    	TileFont font = (TileFont) it.next();
+	    	font.dispose();
+	    }
 
 		if(render != null)
 			render.uninit();
@@ -1059,7 +1072,7 @@ public abstract class Engine {
 		if (artfil != -1)
 			kClose(artfil);
 
-		for (i = 0; i < MAXPALOOKUPS; i++)
+		for (int i = 0; i < MAXPALOOKUPS; i++)
 			if (palookup[i] != null) 
 				palookup[i] = null;
 

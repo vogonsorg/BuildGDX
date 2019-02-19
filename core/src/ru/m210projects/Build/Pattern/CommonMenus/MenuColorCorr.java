@@ -38,7 +38,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 		
 		final BuildConfig cfg = app.pCfg;
 
-		final MenuSlider mGamma = new MenuSlider(app.pSlider, "GAMMA:", style, posx, posy += menuHeight, width, (int) ((1 - cfg.gamma) * 4096), 0, 4096, 64,
+		final MenuSlider mGamma = new MenuSlider(app.pSlider, "Gamma:", style, posx, posy += menuHeight, width, (int) ((1 - cfg.gamma) * 4096), 0, 4096, 64,
 		new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {

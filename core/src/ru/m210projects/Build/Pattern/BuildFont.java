@@ -22,8 +22,10 @@ import static ru.m210projects.Build.Engine.ydim;
 import ru.m210projects.Build.Engine;
 
 public class BuildFont {
+	
+	public byte[] atlas;
 
-	public enum TextAlign { Left, Center, Rigth };
+	public enum TextAlign { Left, Center, Right };
 
 	public static final int nSpace = -2;
 
@@ -49,7 +51,7 @@ public class BuildFont {
 			charInfo[i] = new BuildChar();
 	}
 
-	public void addChar(char ch, int nTile, int nWidth, int nScale, int xOffset, int yOffset) {
+	protected void addChar(char ch, int nTile, int nWidth, int nScale, int xOffset, int yOffset) {
 		charInfo[ch].nTile = nTile;
 		charInfo[ch].xOffset = (short) xOffset;
 		charInfo[ch].yOffset = (short) yOffset;

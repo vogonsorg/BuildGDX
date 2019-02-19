@@ -105,6 +105,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
 public class Software implements Renderer {
@@ -3037,6 +3038,12 @@ public class Software implements Renderer {
 	@Override
 	public void drawmapview(int dax, int day, int zoome, int ang) {
 		
+	}
+	
+	@Override
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
+			float scale) {
+		//XXX
 	}
 
 	@Override
