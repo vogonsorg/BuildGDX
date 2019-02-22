@@ -155,7 +155,8 @@ public abstract class MenuJoystick extends BuildMenu {
 						cfg.gJoyDeadZone = slider.value;
 						app.pInput.ctrlSetDeadZone(cfg.gJoyDeadZone / 65536f);
 					}
-				}, false);
+				}, true);
+		mDeadZone.digitalMax = 65536.0f;
 
 		MenuSlider mLookSpeed = new MenuSlider(app.pSlider, "Look speed:", style, posx, posy += menuHeight, width, cfg.gJoyLookSpeed, 0,
 				0x28000, 4096, new MenuProc() {
@@ -164,7 +165,8 @@ public abstract class MenuJoystick extends BuildMenu {
 						MenuSlider slider = (MenuSlider) pItem;
 						cfg.gJoyLookSpeed = slider.value;
 					}
-				}, false);
+				}, true);
+		mLookSpeed.digitalMax = 65536.0f;
 
 		MenuSlider mTurnSpeed = new MenuSlider(app.pSlider, "Turn speed:", style, posx, posy += menuHeight, width, cfg.gJoyTurnSpeed, 0,
 				0x28000, 4096, new MenuProc() {
@@ -173,7 +175,8 @@ public abstract class MenuJoystick extends BuildMenu {
 						MenuSlider slider = (MenuSlider) pItem;
 						cfg.gJoyTurnSpeed = slider.value;
 					}
-				}, false);
+				}, true);
+		mTurnSpeed.digitalMax = 65536.0f;
 
 		MenuSwitch mInvert = new MenuSwitch("Invert look axis:", style, posx, posy += separatorHeight, width, cfg.gJoyInvert, new MenuProc() {
 			@Override
@@ -250,7 +253,7 @@ public abstract class MenuJoystick extends BuildMenu {
 			}
 		};
 
-		MenuJoyList mList = new MenuJoyList(gpmanager, app.pCfg, menupal, style, posx, posy, width, list_len, callback);
+		MenuJoyList mList = new MenuJoyList(app, menupal, style, posx, posy, width, list_len, callback);
 		
 		posy += mList.mFontOffset() * list_len;
 

@@ -38,6 +38,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
 import ru.m210projects.Build.Pattern.MenuItems.MenuList;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
 import ru.m210projects.Build.Pattern.MenuItems.MenuResolutionList;
+import ru.m210projects.Build.Pattern.MenuItems.MenuScroller;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
@@ -80,26 +81,28 @@ public abstract class MenuVideoMode extends BuildMenu {
 
 		MenuList mSlot = new MenuResolutionList(app.pEngine, list, style, posx, posy, width, 1, null, callback, nListItems, nListBackground);
 
+		MenuScroller slider = new MenuScroller(app.pSlider, mSlot, width + posx - app.pSlider.getScrollerWidth());
+		
 		menu.addItem(mSlot, true);
+		menu.addItem(slider, false);
 		
 		return menu;
 	}
 	
-	public MenuVideoMode(final BuildGame app, int posx, int posy, int width, int itemHeight, BuildFont style, BuildFont conteiner, BuildFont apply, int nListItems, int nBackground) {
+	public MenuVideoMode(final BuildGame app, int posx, int posy, int width, int itemHeight, BuildFont style, BuildFont conteiner, BuildFont apply, int nListItems, int nListWidth, int nBackground) {
 		
 		addItem(getTitle(app, "Video mode"), false);
 		
 		final BuildConfig cfg = app.pCfg;
 		MenuProc callback = new MenuProc() {
 			public void run(MenuHandler handler, MenuItem pItem) {
-				System.err.println("ah");
 				cfg.fullscreen = isFullscreen ? 1 : 0;
 				currentMode = choosedMode;
 				setMode(cfg);
 			}
 		};
 		
-		final BuildMenu mResList = getResolutionListMenu(this, app, posx, posy, width, nListItems, style, nBackground);
+		final BuildMenu mResList = getResolutionListMenu(this, app, posx + (width - nListWidth) / 2, posy + 2 * style.nHeight, nListWidth, nListItems, style, nBackground);
 		
 		MenuConteiner mResolution = new MenuConteiner("Resolution: ", style, conteiner, posx,
 				posy += itemHeight, width, strvmodes, 0, new MenuProc() {

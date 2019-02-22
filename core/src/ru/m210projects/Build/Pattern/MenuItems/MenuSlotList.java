@@ -80,7 +80,8 @@ public class MenuSlotList extends MenuList
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		int pal = 0, len = displayed.size();
+		int pal = 0;
+		this.len = displayed.size();
 		
 		draw.rotatesprite((x + width / 2 - 5) << 16, (y - 3) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
 		
@@ -134,9 +135,10 @@ public class MenuSlotList extends MenuList
 				}
 			} else rtext = toCharArray("List is empty");
 
-			font.drawText(x + width / 2, py, rtext,shade, pal, TextAlign.Left, 0, false);
+			font.drawText(x + width / 2, py, rtext,shade, 0, TextAlign.Left, 0, false);
 		}
 
+		pal = 0;
 		if(deleteQuestion)
 		{
 			draw.setpalettefade(0, 0, 0, 48);
@@ -269,22 +271,22 @@ public class MenuSlotList extends MenuList
 				case RMB:
 					return true;
 				case PGUP:
-					l_nFocus -= (len - 1);
+					l_nFocus -= (nListItems - 1);
 					if(l_nFocus >= 0 && l_nFocus < l_nMin)
-						if(l_nMin > 0) l_nMin -= (len - 1);
+						if(l_nMin > 0) l_nMin -= (nListItems - 1);
 					if(l_nFocus < 0 || l_nMin < 0) {
 						l_nFocus = 0;
 						l_nMin = 0;
 					}
 					return false;
 				case PGDW:
-					l_nFocus += (len - 1);
-					if(l_nFocus >= l_nMin + len && l_nFocus < len)
-						l_nMin += (len - 1);
-					if(l_nFocus >= len || l_nMin > len - len) {
+					l_nFocus += (nListItems - 1);
+					if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
+						l_nMin += (nListItems - 1);
+					if(l_nFocus >= len || l_nMin > len - nListItems) {
 						l_nFocus = len - 1;
-						if(len >= len)
-							l_nMin = len - len;
+						if(len >= nListItems)
+							l_nMin = len - nListItems;
 						else l_nMin = len - 1;
 					}
 					return false;
@@ -294,8 +296,8 @@ public class MenuSlotList extends MenuList
 					return false;
 				case END:
 					l_nFocus = len - 1;
-					if(len >= len)
-						l_nMin = len - len;
+					if(len >= nListItems)
+						l_nMin = len - nListItems;
 					else l_nMin = len - 1;
 					return false;
 				default:

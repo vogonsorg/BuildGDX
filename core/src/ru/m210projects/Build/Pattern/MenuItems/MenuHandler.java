@@ -86,6 +86,8 @@ public abstract class MenuHandler {
 	public abstract void mPostDraw(MenuItem item);
 
 	public abstract void mDrawMouse(int x, int y);
+	
+	public abstract void mSound(MenuItem item, MenuOpt opt);
 
 	public MenuOpt mUpdateMouse(BuildControls input) {
 		if(Gdx.input.getDeltaX() != 0 || Gdx.input.getDeltaY() != 0)
@@ -121,12 +123,10 @@ public abstract class MenuHandler {
 		//Sliders
 		if(pMenu.m_nFocus != -1 && pMenu.mCheckMouseFlag(pMenu.m_nFocus)) {
 			if(pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuSlider
-					|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuScroller)
-//				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuFileBrowser
-//				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuResolutionList
-//				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuSlotList
-//				|| (pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuKeyboardList 
-//						&& ((MenuKeyboardList)pMenu.m_pItems[pMenu.m_nFocus]).l_set == 0))
+					|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuScroller
+				|| pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuFileBrowser
+				|| (pMenu.m_pItems[pMenu.m_nFocus] instanceof MenuKeyboardList 
+						&& ((MenuKeyboardList)pMenu.m_pItems[pMenu.m_nFocus]).l_set == 0))
 			{
 				if(input.ctrlKeyStatus(MOUSE_LBUTTON)) 
 					opt = MenuOpt.LMB;

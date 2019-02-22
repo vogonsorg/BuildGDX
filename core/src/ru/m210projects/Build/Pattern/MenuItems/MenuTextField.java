@@ -182,7 +182,7 @@ public class MenuTextField extends MenuItem {
 				typing = true;
 				break;
 			case ESC:
-			case RMB: //esc
+			case RMB:
 				return true;
 			case UP:
 				m_pMenu.mNavUp();

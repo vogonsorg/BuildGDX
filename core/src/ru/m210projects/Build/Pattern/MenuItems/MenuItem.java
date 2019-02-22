@@ -54,7 +54,7 @@ public abstract class MenuItem {
 	
 	public boolean isEnabled()
 	{
-		return (flags & 3) == 3;
+		return (flags & 7) == 7;
 	}
 	
 	public boolean isFocused()

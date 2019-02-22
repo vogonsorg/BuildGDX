@@ -32,7 +32,7 @@ import ru.m210projects.Build.Pattern.Tools.SaveManager;
 
 public abstract class MenuLoadSave extends BuildMenu {
 
-	public MenuLoadSave(BuildGame app, BuildFont style, int posx, int posy, int posyHelp, int width, int scrollerWidth, int nItems, int specPal, int nBackground, MenuProc confirm, boolean saveMenu)
+	public MenuLoadSave(BuildGame app, BuildFont style, int posx, int posy, int posyHelp, int width, int nItems, int specPal, int nBackground, MenuProc confirm, boolean saveMenu)
 	{
 		addItem(getTitle(app, saveMenu ? "Save game" : "Load game"), false);
 
@@ -50,7 +50,7 @@ public abstract class MenuLoadSave extends BuildMenu {
 		};
 		
 		MenuSlotList list = new MenuSlotList(app.pEngine, app.pSavemgr, style, posx, posy, posyHelp, width, nItems, updateCallback, confirm, specPal, nBackground, saveMenu);
-		MenuScroller slider = new MenuScroller(app.pSlider, list, width + posx - scrollerWidth, scrollerWidth);
+		MenuScroller slider = new MenuScroller(app.pSlider, list, width + posx - app.pSlider.getScrollerWidth());
 		MenuText mInfo = getInfo(app, posx, posy);
 		
 		addItem(picnum, false);

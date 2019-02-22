@@ -138,7 +138,7 @@ public class MenuFileBrowser extends MenuItem {
 		int yColNames = y + 3;
 		int yPath = yColNames + font.nHeight + 2;
 		int yList = yPath + font.nHeight + 2;
-		int scrollerWidth = 10;
+		int scrollerWidth = slider.getScrollerWidth();
 	
 		nBackground = 321; //XXX
 		draw.rotatesprite(x << 16, y << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 1, 0, 0, coordsConvertXScaled(x+width, ConvertType.Normal), coordsConvertYScaled(yList + nListItems * mFontOffset() + 6));
@@ -163,7 +163,7 @@ public class MenuFileBrowser extends MenuItem {
 			text = toCharArray(list[DIRECTORY].get(i));
 			if(list[DIRECTORY].get(i).equals(back))
 				pal = 7; //XXX
-			brDrawText(font, text, px, py, shade, pal, 0, this.x + this.width / 2 - 4); //XXX font0
+			brDrawText(font, text, px + 3, py, shade, pal, 0, this.x + this.width / 2 - 4); //XXX font0
 			py += mFontOffset();
 		}
 		
@@ -180,7 +180,7 @@ public class MenuFileBrowser extends MenuItem {
 			String filename = list[FILE].get(i);
 			text = toCharArray(filename);
 			
-	        px = x + width - font.getWidth(text) - scrollerWidth - 3; 
+	        px = x + width - font.getWidth(text) - scrollerWidth - 5; 
 	        brDrawText(font, text, px, py, shade, pal, this.x + this.width / 2 + 4, this.x + this.width); // XXX font 0
 			py += mFontOffset();
 		}
@@ -189,18 +189,18 @@ public class MenuFileBrowser extends MenuItem {
 
 		//Files scroll
 		int nList = BClipLow(list[FILE].size() - nListItems, 1);
-		int posy = yList + scrollerHeight * l_nMin[FILE] / nList;
+		int posy = yList + (scrollerHeight - slider.getScrollerHeight()) * l_nMin[FILE] / nList;
 		
-		scrollX[FILE] = x + width - scrollerWidth + 1;
-		slider.drawScrollerBackground(scrollX[FILE], yList, scrollerHeight + slider.getScrollerHeight(), 0, 0);
+		scrollX[FILE] = x + width - scrollerWidth - 1;
+		slider.drawScrollerBackground(scrollX[FILE], yList, scrollerHeight, 0, 0);
 		slider.drawScroller(scrollX[FILE], posy, handler.getShade(currColumn == FILE ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null), 0);
 		
 		//Directory scroll
 		nList = BClipLow(list[DIRECTORY].size() - nListItems, 1);
-		posy = yList + scrollerHeight * l_nMin[DIRECTORY] / nList;
+		posy = yList + (scrollerHeight - slider.getScrollerHeight()) * l_nMin[DIRECTORY] / nList;
 		
 		scrollX[DIRECTORY] = x + 2;
-		slider.drawScrollerBackground(scrollX[DIRECTORY], yList, scrollerHeight + slider.getScrollerHeight(), 0, 0);
+		slider.drawScrollerBackground(scrollX[DIRECTORY], yList, scrollerHeight, 0, 0);
 		slider.drawScroller(scrollX[DIRECTORY], posy, handler.getShade(currColumn == DIRECTORY ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null), 0);
 	}
 	
@@ -350,7 +350,7 @@ public class MenuFileBrowser extends MenuItem {
 		}
 		
 		touchY = my;
-		if(mx > scrollX[currColumn] && mx < scrollX[currColumn] + 14) 
+		if(mx > scrollX[currColumn] && mx < scrollX[currColumn] + slider.getScrollerWidth()) 
 		{
 			if(Gdx.input.isTouched())
 				scrollTouch[currColumn] = true;

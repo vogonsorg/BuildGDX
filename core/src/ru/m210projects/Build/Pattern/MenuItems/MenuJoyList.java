@@ -18,15 +18,19 @@ package ru.m210projects.Build.Pattern.MenuItems;
 
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Engine.totalclock;
+import static ru.m210projects.Build.Gameutils.BClipLow;
+import static ru.m210projects.Build.Gameutils.BClipRange;
+
+import com.badlogic.gdx.Gdx;
 
 import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
+import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public class MenuJoyList extends MenuKeyboardList {
@@ -34,11 +38,11 @@ public class MenuJoyList extends MenuKeyboardList {
 	private final GPManager gpmanager;
 	private final int menupal;
 
-	public MenuJoyList(GPManager gpmanager, BuildConfig cfg, int menupal, BuildFont font, int x, int y, int width,
+	public MenuJoyList(BuildGame app, int menupal, BuildFont font, int x, int y, int width,
 			int len, MenuProc callback) {
-		super(cfg, font, x, y, width, len, callback);
+		super(app.pSlider, app.pCfg, font, x, y, width, len, callback);
 		this.menupal = menupal;
-		this.gpmanager = gpmanager;
+		this.gpmanager = app.pInput.ctrlGetGamepadManager();
 		this.len += cfg.joymap.length;
 	}
 
@@ -82,11 +86,21 @@ public class MenuJoyList extends MenuKeyboardList {
 			char[] k = key.toCharArray();
 			
 			font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, false);		
-			font.drawText(x + width - 1 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);		
+			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);		
 	
 			py += mFontOffset();
 		}
 
+		scrollerHeight = nListItems * mFontOffset();
+
+		//Files scroll
+		int nList = BClipLow(len - nListItems, 1);
+		int posy = y + (scrollerHeight - slider.getScrollerHeight()) * l_nMin / nList;
+		
+		scrollerX = x + width - slider.getScrollerWidth() + 5;
+		slider.drawScrollerBackground(scrollerX, y, scrollerHeight, 0, 0);
+		slider.drawScroller(scrollerX, posy, handler.getShade(isTouched ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null), 0);
+		
 		handler.mPostDraw(this);
 	}
 
@@ -130,6 +144,21 @@ public class MenuJoyList extends MenuKeyboardList {
 			case ENTER:
 			case LMB:
 				if ( (flags & 4) == 0 ) return false;
+				
+				if(opt == MenuOpt.LMB && isTouched)
+				{
+					if(len <= nListItems)
+						return false;
+
+					int nList = BClipLow(len - nListItems, 1);
+					int nRange = scrollerHeight;
+					int py = y;
+
+					l_nFocus = -1;
+					l_nMin = BClipRange(((touchY - py) * nList) / nRange, 0, nList);
+					
+					return false;
+				}
 				
 				if(l_nFocus != -1 && callback != null) 
 					callback.run(handler, this);
@@ -193,22 +222,36 @@ public class MenuJoyList extends MenuKeyboardList {
 	public boolean mouseAction(int mx, int my) {
 		if(l_set != 0)
 			return false;
+		
+		if(!Gdx.input.isTouched()) 
+			isTouched = false;
+				
+		touchY = my;
+		if(mx > scrollerX && mx < scrollerX + slider.getScrollerWidth()) 
+		{
+			if(Gdx.input.isTouched())
+				isTouched = true;
+			else isTouched = false;
+			return true;
+		}
 
-		int py = y;
-		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
-			if(my >= py && my < py + font.nHeight)
-			{
-				if(l_nMin < cfg.joymap.length && i == cfg.joymap.length) 
-					return false;
-
-				l_nFocus = i;
-				if(l_nMin < cfg.joymap.length && i > cfg.joymap.length) 
-					l_nFocus--;
-
-				return true;
+		if(!isTouched) {
+			int py = y;
+			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
+				if(my >= py && my < py + font.nHeight)
+				{
+					if(l_nMin < cfg.joymap.length && i == cfg.joymap.length) 
+						return false;
+	
+					l_nFocus = i;
+					if(l_nMin < cfg.joymap.length && i > cfg.joymap.length) 
+						l_nFocus--;
+	
+					return true;
+				}
+			    
+				py += mFontOffset();
 			}
-		    
-			py += mFontOffset();
 		}
 
 		return false;

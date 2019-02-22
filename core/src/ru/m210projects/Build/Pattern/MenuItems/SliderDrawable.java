@@ -28,6 +28,8 @@ public abstract class SliderDrawable {
 	
 	public abstract int getSliderRange();
 	
+	public abstract int getScrollerWidth();
+	
 	public abstract int getScrollerHeight();
 	
 	public abstract void drawSliderBackground(int x, int y, int shade, int pal);

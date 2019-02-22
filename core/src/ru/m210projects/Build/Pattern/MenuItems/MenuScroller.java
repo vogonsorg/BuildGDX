@@ -14,11 +14,9 @@ public class MenuScroller extends MenuItem {
 	protected static MenuScroller touchedObj;
 	
 	protected SliderDrawable slider;
-
-	protected int max;
 	protected int height;
 	
-	public MenuScroller(SliderDrawable slider, MenuList parent, int x, int width) {
+	public MenuScroller(SliderDrawable slider, MenuList parent, int x) {
 		super(null, null);
 		
 		this.flags = 2;
@@ -27,19 +25,17 @@ public class MenuScroller extends MenuItem {
 		this.x = x;
 		this.y = parent.y;
 
-		this.max = parent.len;
 		this.height = parent.nListItems * parent.mFontOffset();
-		this.width = width;
+		this.width = slider.getScrollerWidth();
 	}
 
 	@Override
 	public void draw(MenuHandler handler) {
-		int nList = BClipLow(max - parent.nListItems, 1);
+		int nList = BClipLow(parent.len - parent.nListItems, 1);
 		int nRange = height - slider.getScrollerHeight();
 		int posy = y + nRange * parent.l_nMin / nList;
 		
 		slider.drawScrollerBackground(x, y, height, 0, 0);
-		
 		slider.drawScroller(x, posy, 0, pal);
 
 		if(touchedObj == this) {
@@ -59,10 +55,17 @@ public class MenuScroller extends MenuItem {
 		if(!Gdx.input.isTouched())
 			touchedObj = null;
 
-		if(mx > x && mx < x + width)
+		if(mx >= x && mx < x + width)
 		{
-			if(my > y && my < y + height) {
-				if(Gdx.input.isTouched())
+			if(my >= y && my < y + height) {
+				if(m_pMenu.m_pItems[m_pMenu.m_nFocus] != this)
+				{
+					for ( short i = 0; i < m_pMenu.m_nItems; ++i )
+						if(m_pMenu.m_pItems[i] == this)
+							m_pMenu.m_nFocus = i; //autofocus to scroller
+				}
+				
+				if(Gdx.input.isTouched()) 
 					touchedObj = this;
 			}
 		}

@@ -71,7 +71,8 @@ public abstract class MenuMouse extends BuildMenu {
 						MenuSlider slider = (MenuSlider) pItem;
 						cfg.gSensitivity = slider.value;
 					}
-				}, false);
+				}, true);
+		mSens.digitalMax = 65536f;
 
 		MenuSlider mTurn = new MenuSlider(app.pSlider, "Turning speed:", style, posx, posy += menuHeight, width, cfg.gMouseTurnSpeed, 0,
 				0x28000, 4096, new MenuProc() {
@@ -80,7 +81,8 @@ public abstract class MenuMouse extends BuildMenu {
 						MenuSlider slider = (MenuSlider) pItem;
 						cfg.gMouseTurnSpeed = slider.value;
 					}
-				}, false);
+				}, true);
+		mTurn.digitalMax = 65536f;
 
 		MenuSlider mLook = new MenuSlider(app.pSlider, "aiming up/down speed:", style, posx, posy += menuHeight, width, cfg.gMouseLookSpeed, 0,
 				0x28000, 4096, new MenuProc() {
@@ -89,7 +91,8 @@ public abstract class MenuMouse extends BuildMenu {
 						MenuSlider slider = (MenuSlider) pItem;
 						cfg.gMouseLookSpeed = slider.value;
 					}
-		}, false);
+		}, true);
+		mLook.digitalMax = 65536f;
 
 		MenuSlider mMove = new MenuSlider(app.pSlider, "Forward/Backward speed:", style, posx, posy += menuHeight, width, cfg.gMouseMoveSpeed,
 				0, 0x28000, 4096, new MenuProc() {
@@ -98,7 +101,8 @@ public abstract class MenuMouse extends BuildMenu {
 						MenuSlider slider = (MenuSlider) pItem;
 						cfg.gMouseMoveSpeed = slider.value;
 					}
-		}, false);
+		}, true);
+		mMove.digitalMax = 65536f;
 
 		MenuSlider mStrafe = new MenuSlider(app.pSlider, "Strafing speed:", style, posx, posy += menuHeight, width, cfg.gMouseStrafeSpeed, 0,
 				0x28000, 4096, new MenuProc() {
@@ -107,7 +111,8 @@ public abstract class MenuMouse extends BuildMenu {
 						MenuSlider slider = (MenuSlider) pItem;
 						cfg.gMouseStrafeSpeed = slider.value;
 					}
-		}, false);
+		}, true);
+		mStrafe.digitalMax = 65536f;
 
 		posy += separatorHeight;
 
@@ -164,7 +169,7 @@ public abstract class MenuMouse extends BuildMenu {
 			
 			@Override
 			public boolean callback(MenuHandler handler, MenuOpt opt) {
-				return mAdvancedCallback(cfg, this, opt, AXISUP);
+				return mAdvancedCallback(handler, cfg, this, opt, AXISUP);
 			}
 		};
 		
@@ -176,7 +181,7 @@ public abstract class MenuMouse extends BuildMenu {
 			
 			@Override
 			public boolean callback(MenuHandler handler, MenuOpt opt) {
-				return mAdvancedCallback(cfg, this, opt, AXISDOWN);
+				return mAdvancedCallback(handler, cfg, this, opt, AXISDOWN);
 			}
 		};
 		
@@ -188,7 +193,7 @@ public abstract class MenuMouse extends BuildMenu {
 			
 			@Override
 			public boolean callback(MenuHandler handler, MenuOpt opt) {
-				return mAdvancedCallback(cfg, this, opt, AXISLEFT);
+				return mAdvancedCallback(handler, cfg, this, opt, AXISLEFT);
 			}
 		};
 		
@@ -200,7 +205,7 @@ public abstract class MenuMouse extends BuildMenu {
 			
 			@Override
 			public boolean callback(MenuHandler handler, MenuOpt opt) {
-				return mAdvancedCallback(cfg, this, opt, AXISRIGHT);
+				return mAdvancedCallback(handler, cfg, this, opt, AXISRIGHT);
 			}
 		};
 		
@@ -214,7 +219,7 @@ public abstract class MenuMouse extends BuildMenu {
 		return advancedMenu;
 	}
 	
-	private boolean mAdvancedCallback(BuildConfig cfg, MenuConteiner item, MenuOpt opt, int nAxis) {
+	private boolean mAdvancedCallback(MenuHandler handler, BuildConfig cfg, MenuConteiner item, MenuOpt opt, int nAxis) {
 		switch(opt)
 		{
 		case LEFT:

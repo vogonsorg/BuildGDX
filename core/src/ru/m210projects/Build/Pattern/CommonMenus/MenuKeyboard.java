@@ -180,7 +180,7 @@ public abstract class MenuKeyboard extends BuildMenu {
 			}
 		};
 
-		MenuKeyboardList mList = new MenuKeyboardList(app.pCfg, style, posx, posy, width, list_len, callback);
+		MenuKeyboardList mList = new MenuKeyboardList(app.pSlider, app.pCfg, style, posx, posy, width, list_len, callback);
 		
 		posy += mList.mFontOffset() * list_len;
 

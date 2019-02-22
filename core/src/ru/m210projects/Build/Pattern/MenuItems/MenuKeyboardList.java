@@ -18,7 +18,11 @@ package ru.m210projects.Build.Pattern.MenuItems;
 
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Engine.totalclock;
+import static ru.m210projects.Build.Gameutils.BClipLow;
+import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Pattern.BuildConfig.*;
+
+import com.badlogic.gdx.Gdx;
 
 import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -34,10 +38,16 @@ public class MenuKeyboardList extends MenuList
 	public MenuOpt l_pressedId;
 	protected KeyType[] keynames;
 	protected BuildConfig cfg;
-
-	public MenuKeyboardList(BuildConfig cfg, BuildFont font, int x, int y, int width, int len, MenuProc callback)
+	
+	protected SliderDrawable slider;
+	protected int scrollerX, scrollerHeight;
+	protected int touchY;
+	protected boolean isTouched;
+	
+	public MenuKeyboardList(SliderDrawable slider, BuildConfig cfg, BuildFont font, int x, int y, int width, int len, MenuProc callback)
 	{
 		super(null, font, x, y, width, 0, null, callback, len);
+		this.slider = slider;
 		this.cfg = cfg;
 		this.keynames = cfg.keymap;
 		this.len = keynames.length;
@@ -70,7 +80,7 @@ public class MenuKeyboardList extends MenuList
 			char[] k = key.toCharArray();
 			font.drawText(px, py, text.toCharArray(), shade, 0, TextAlign.Left, 0, false);
 
-			font.drawText(x + width - 1 - font.getWidth(k) - 60, py, k, shade, 0, TextAlign.Left, 0, false);		
+			font.drawText(x + width / 2 - 1 - font.getWidth(k) + 40, py, k, shade, 0, TextAlign.Left, 0, false);		
 			
 			if(cfg.mousekeys[i] != 0)
 				key = Keymap.toString(cfg.mousekeys[i]);
@@ -82,11 +92,21 @@ public class MenuKeyboardList extends MenuList
 				}
 			}
 			k = key.toCharArray();
-			font.drawText(x + width - 1 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);	
+			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);	
 				
 			py += mFontOffset();
 		}
+		
+		scrollerHeight = nListItems * mFontOffset();
 
+		//Files scroll
+		int nList = BClipLow(len - nListItems, 1);
+		int posy = y + (scrollerHeight - slider.getScrollerHeight()) * l_nMin / nList;
+		
+		scrollerX = x + width - slider.getScrollerWidth() + 5;
+		slider.drawScrollerBackground(scrollerX, y, scrollerHeight, 0, 0);
+		slider.drawScroller(scrollerX, posy, handler.getShade(isTouched ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null), 0);
+		
 		handler.mPostDraw(this);
 	}
 
@@ -125,6 +145,21 @@ public class MenuKeyboardList extends MenuList
 			case ENTER:
 			case LMB:
 				if ( (flags & 4) == 0 ) return false;
+				
+				if(opt == MenuOpt.LMB && isTouched)
+				{
+					if(len <= nListItems)
+						return false;
+
+					int nList = BClipLow(len - nListItems, 1);
+					int nRange = scrollerHeight;
+					int py = y;
+
+					l_nFocus = -1;
+					l_nMin = BClipRange(((touchY - py) * nList) / nRange, 0, nList);
+					
+					return false;
+				}
 				
 				if(l_nFocus != -1 && callback != null) 
 					callback.run(handler, this);
@@ -203,16 +238,31 @@ public class MenuKeyboardList extends MenuList
 	public boolean mouseAction(int mx, int my) {
 		if(l_set != 0)
 			return false;
+		
+		if(!Gdx.input.isTouched()) 
+			isTouched = false;
+				
+		touchY = my;
+		if(mx > scrollerX && mx < scrollerX + slider.getScrollerWidth()) 
+		{
+			if(Gdx.input.isTouched())
+				isTouched = true;
+			else isTouched = false;
+			return true;
+		}
 
-		int py = y;
-		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
-			if(my >= py && my < py + font.nHeight)
-			{
-				l_nFocus = i;
-				return true;
+		if(!isTouched)
+		{
+			int py = y;
+			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
+				if(my >= py && my < py + font.nHeight)
+				{
+					l_nFocus = i;
+					return true;
+				}
+			    
+				py += mFontOffset();
 			}
-		    
-			py += mFontOffset();
 		}
 
 		return false;
