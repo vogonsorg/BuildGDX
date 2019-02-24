@@ -40,6 +40,20 @@ public class Gameutils {
 		return value;
 	}
 	
+	public static short BClipLow(short value, short min) {
+		if(value < min)
+			value = min;
+		
+		return value;
+	}
+	
+	public static short BClipHigh(short value, short max) {
+		if(value > max)
+			value = max;
+		
+		return value;
+	}
+	
 	public static int BClipLow(int value, int min) {
 		if(value < min)
 			value = min;
