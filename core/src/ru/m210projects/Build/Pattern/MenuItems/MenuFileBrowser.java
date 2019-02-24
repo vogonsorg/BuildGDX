@@ -44,7 +44,7 @@ public class MenuFileBrowser extends MenuItem {
 	final int nItemHeight;
 	
 	DirectoryEntry currDir;
-	FileEntry currFile;
+	public FileEntry currFile;
 
 	StringList[] list = new StringList[2];
 	
@@ -379,7 +379,7 @@ public class MenuFileBrowser extends MenuItem {
 	@Override
 	public void open() {
 		boolean ostate = showmain;
-		if(numplayers > 1 /*|| mFakeMultiplayer*/) 
+		if(numplayers > 1) 
 			showmain = true;
 		else showmain = false;
 

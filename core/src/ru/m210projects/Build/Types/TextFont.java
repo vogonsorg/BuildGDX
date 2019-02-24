@@ -37,6 +37,14 @@ public class TextFont extends TileFont {
 	public TextFont() {
 		super(FontType.Bitmap, textfont, 8, 8, 16, 16);
 	}
+	
+	@Override
+	public Pthtyp getGL(TextureCache textureCache, int col) {
+		if(atlas == null)
+			init(textureCache, col);
+		
+		return atlas;
+	}
 
 	@Override
 	public Pthtyp init(TextureCache textureCache, int col) {

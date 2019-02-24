@@ -39,6 +39,14 @@ public class SmallTextFont extends TileFont {
 	}
 	
 	@Override
+	public Pthtyp getGL(TextureCache textureCache, int col) {
+		if(atlas == null)
+			init(textureCache, col);
+		
+		return atlas;
+	}
+	
+	@Override
 	public Pthtyp init(TextureCache textureCache, int col) {
 		// construct a 8-bit alpha-only texture for the font glyph matrix
 		byte[] tbuf;

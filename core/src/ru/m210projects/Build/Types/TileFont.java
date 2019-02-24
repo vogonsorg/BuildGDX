@@ -66,7 +66,6 @@ public class TileFont {
 	
 	public void dispose()
 	{
-		System.err.println("Font dispose");
 		if(atlas != null)
 			atlas.glpic.dispose();
 		
