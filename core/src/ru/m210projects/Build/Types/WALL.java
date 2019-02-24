@@ -18,6 +18,7 @@ import java.nio.ByteOrder;
 
 public class WALL {
 	public static final int sizeof = 32;
+	private static final ByteBuffer buffer = ByteBuffer.allocate(sizeof).order( ByteOrder.LITTLE_ENDIAN);
 
 	public int x, y; //8
 	public short point2, nextwall, nextsector, cstat; //8
@@ -81,15 +82,10 @@ public class WALL {
     	extra = src.extra;
 	}
 	
-	private ByteBuffer buffer;
 	public byte[] getBytes()
 	{
-		if(buffer == null) {
-			buffer = ByteBuffer.allocate(sizeof); 
-			buffer.order( ByteOrder.LITTLE_ENDIAN);
-		}
-		
 		buffer.clear();
+		
 		buffer.putInt(this.x);
     	buffer.putInt(this.y);
     	buffer.putShort(this.point2);

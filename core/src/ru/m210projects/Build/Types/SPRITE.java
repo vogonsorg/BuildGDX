@@ -17,6 +17,7 @@ import java.nio.ByteOrder;
 
 public class SPRITE {
 	public static final int sizeof = 44;
+	private static final ByteBuffer buffer = ByteBuffer.allocate(sizeof).order( ByteOrder.LITTLE_ENDIAN);
 	
 	public int x, y, z; //12
 	public short cstat = 0, picnum; //4
@@ -71,13 +72,8 @@ public class SPRITE {
     	extra = bb.getShort();
 	}
 	
-	private ByteBuffer buffer;
 	public byte[] getBytes()
 	{
-		if(buffer == null) {
-			buffer = ByteBuffer.allocate(sizeof); 
-			buffer.order( ByteOrder.LITTLE_ENDIAN);
-		}
 		buffer.clear();
 		
 		buffer.putInt(this.x);
