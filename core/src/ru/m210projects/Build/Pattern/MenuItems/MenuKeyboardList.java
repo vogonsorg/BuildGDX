@@ -43,14 +43,17 @@ public class MenuKeyboardList extends MenuList
 	protected int scrollerX, scrollerHeight;
 	protected int touchY;
 	protected boolean isTouched;
-	
-	public MenuKeyboardList(SliderDrawable slider, BuildConfig cfg, BuildFont font, int x, int y, int width, int len, MenuProc callback)
+	protected int pal2;
+
+	public MenuKeyboardList(SliderDrawable slider, BuildConfig cfg, BuildFont font, int x, int y, int width, int len, int list_pal_left, int list_pal_right, MenuProc callback)
 	{
 		super(null, font, x, y, width, 0, null, callback, len);
 		this.slider = slider;
 		this.cfg = cfg;
 		this.keynames = cfg.keymap;
 		this.len = keynames.length;
+		this.pal = list_pal_left;
+		this.pal2 = list_pal_right;
 	}
 	
 	public int mFontOffset() {
@@ -62,6 +65,12 @@ public class MenuKeyboardList extends MenuList
 		int px = x, py = y;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
 			int shade = handler.getShade(i == l_nFocus? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
+			int pal1 = this.pal; 
+			int pal2 = this.pal2; 
+			
+			if(i == l_nFocus)
+				pal2 = pal1 = handler.getPal(font, m_pMenu.m_pItems[m_pMenu.m_nFocus]);
+			
 			String text = keynames[i].getName();
 			String key;
 			
@@ -78,9 +87,9 @@ public class MenuKeyboardList extends MenuList
 			}
 
 			char[] k = key.toCharArray();
-			font.drawText(px, py, text.toCharArray(), shade, 0, TextAlign.Left, 0, false);
+			font.drawText(px, py, text.toCharArray(), shade, pal1, TextAlign.Left, 0, false);
 
-			font.drawText(x + width / 2 - 1 - font.getWidth(k) + 40, py, k, shade, 0, TextAlign.Left, 0, false);		
+			font.drawText(x + width / 2 - 1 - font.getWidth(k) + 40, py, k, shade, pal2, TextAlign.Left, 0, false);		
 			
 			if(cfg.mousekeys[i] != 0)
 				key = Keymap.toString(cfg.mousekeys[i]);
@@ -92,7 +101,7 @@ public class MenuKeyboardList extends MenuList
 				}
 			}
 			k = key.toCharArray();
-			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);	
+			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, pal2, TextAlign.Left, 0, false);	
 				
 			py += mFontOffset();
 		}

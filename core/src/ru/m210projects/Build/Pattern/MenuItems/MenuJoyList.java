@@ -39,8 +39,8 @@ public class MenuJoyList extends MenuKeyboardList {
 	private final int menupal;
 
 	public MenuJoyList(BuildGame app, int menupal, BuildFont font, int x, int y, int width,
-			int len, MenuProc callback) {
-		super(app.pSlider, app.pCfg, font, x, y, width, len, callback);
+			int len, int list_pal_left, int list_pal_right, MenuProc callback) {
+		super(app.pSlider, app.pCfg, font, x, y, width, len, list_pal_left, list_pal_right, callback);
 		this.menupal = menupal;
 		this.gpmanager = app.pInput.ctrlGetGamepadManager();
 		this.len += cfg.joymap.length;

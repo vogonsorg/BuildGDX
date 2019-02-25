@@ -58,6 +58,9 @@ public abstract class GameAdapter extends ScreenAdapter {
 
 	public abstract void ProcessFrame(BuildNet net);
 	
+	/** 
+	 * Don't use DrawWorld() for save game!
+	 */
 	public abstract void DrawWorld(float smooth);
 	
 	public abstract void DrawHud();

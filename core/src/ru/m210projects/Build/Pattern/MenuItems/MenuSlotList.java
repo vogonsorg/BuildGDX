@@ -39,9 +39,10 @@ public class MenuSlotList extends MenuList
 	protected SaveManager saveManager;
 	protected Engine draw;
 	protected int nBackground;
+	protected int listPal;
 	
 	public MenuSlotList(Engine draw, SaveManager saveManager, BuildFont font, int x, int y, int yHelpText, int width, 
-			int nListItems, MenuProc updateCallback, MenuProc confirmCallback, int specPal, int nBackground, boolean saveList ) {
+			int nListItems, MenuProc updateCallback, MenuProc confirmCallback, int listPal, int specPal, int nBackground, boolean saveList ) {
 		
 		super(null, font, x, y, width, 0, null, null, nListItems);
 		this.draw = draw;
@@ -58,6 +59,7 @@ public class MenuSlotList extends MenuList
 		this.displayed = new ArrayList<SaveInfo>();
 		this.yHelpText = yHelpText;
 		this.specPal = specPal;
+		this.listPal = listPal;
 	}
 	
 	public String FileName()
@@ -80,13 +82,12 @@ public class MenuSlotList extends MenuList
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		int pal = 0;
 		this.len = displayed.size();
 		
 		draw.rotatesprite((x + width / 2 - 5) << 16, (y - 3) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
 		
 		if(displayed.size() > 0) {
-			int py = y;
+			int py = y, pal;
 			if(saveList) len += 1;
 
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
@@ -102,7 +103,7 @@ public class MenuSlotList extends MenuList
 				if(ptr >= 0 && (displayed.get(ptr).filename.equals("autosave.sav") 
 						|| displayed.get(ptr).filename.startsWith("quicksav")))
 					pal = specPal;
-				else pal = 0;
+				else pal = listPal;
 				
 				if ( i == l_nFocus ) {
 					if(m_pMenu.mGetFocusedItem(this)) {
@@ -135,7 +136,7 @@ public class MenuSlotList extends MenuList
 				}
 			} else rtext = toCharArray("List is empty");
 
-			font.drawText(x + width / 2, py, rtext,shade, 0, TextAlign.Left, 0, false);
+			font.drawText(x + width / 2, py, rtext,shade, listPal, TextAlign.Left, 0, false);
 		}
 
 		pal = 0;

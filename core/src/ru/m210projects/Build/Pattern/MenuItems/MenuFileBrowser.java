@@ -27,7 +27,7 @@ public class MenuFileBrowser extends MenuItem {
 
 	private final int DIRECTORY = 0;
 	private final int FILE = 1;
-	private String back = "..";
+	public String back = "..";
 	private char[] dirs = "Directories".toCharArray();
 	private char[] ffs = "Files".toCharArray();
 	private class StringList extends LinkedList<String> { private static final long serialVersionUID = 1L; }
@@ -55,10 +55,12 @@ public class MenuFileBrowser extends MenuItem {
 	private SliderDrawable slider;
 	private int nBackground = 0;
 	private int scrollerHeight;
-	
-	public MenuFileBrowser(BuildEngine draw, SliderDrawable slider, BuildFont font, int x, int y, int width,
+	private BuildFont topFont, pathFont;
+	public int topPal, pathPal, listPal, backPal;
+
+	public MenuFileBrowser(BuildEngine draw, SliderDrawable slider, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
 			int nItemHeight, MenuProc specialCall,
-			int nListItems) {
+			int nListItems, int nBackground) {
 		
 		super(null, font);
 		
@@ -72,6 +74,10 @@ public class MenuFileBrowser extends MenuItem {
 		this.nItemHeight = nItemHeight;
 		this.nListItems = nListItems;
 		this.specialCall = specialCall;
+		
+		this.topFont = topFont;
+		this.pathFont = pathFont;
+		this.nBackground = nBackground;
 		
 		this.l_nMin = new int[2];
 		this.l_nFocus = new int[2];
@@ -136,47 +142,41 @@ public class MenuFileBrowser extends MenuItem {
 	public void draw(MenuHandler handler) {
 		
 		int yColNames = y + 3;
-		int yPath = yColNames + font.nHeight + 2;
-		int yList = yPath + font.nHeight + 2;
+		int yPath = yColNames + topFont.nHeight + 2;
+		int yList = yPath + pathFont.nHeight + 2;
 		int scrollerWidth = slider.getScrollerWidth();
-	
-		nBackground = 321; //XXX
+
 		draw.rotatesprite(x << 16, y << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 1, 0, 0, coordsConvertXScaled(x+width, ConvertType.Normal), coordsConvertYScaled(yList + nListItems * mFontOffset() + 6));
 
 		int px = x + 3;
-		/*directories*/ font.drawText(px, yColNames, dirs, -32, 10, TextAlign.Left, 0, false); //pal = 10 XXX
-		/*files*/ font.drawText(x - 3 + width - font.getWidth(ffs), yColNames, ffs, -32, 10, TextAlign.Left, 0, false); //pal = 10 XXX
+		/*directories*/ topFont.drawText(px, yColNames, dirs, -32, topPal, TextAlign.Left, 0, false);
+		/*files*/ topFont.drawText(x - 3 + width - topFont.getWidth(ffs), yColNames, ffs, -32, topPal, TextAlign.Left, 0, false);
 		
-		px += scrollerWidth;
+		px += scrollerWidth + 3;
 		
-		/*path*/ brDrawText(font, toCharArray("path: " + path), px, yPath, -32, 7, 0, this.x + this.width); //XXX font0
+		/*path*/ brDrawText(pathFont, toCharArray("path: " + path), px, yPath, -32, pathPal, 0, this.x + this.width);
 
 		int py = yList;
 		for(int i = l_nMin[DIRECTORY]; i >= 0 && i < l_nMin[DIRECTORY] + nListItems && i < list[DIRECTORY].size(); i++) {	
-			int pal = 0;
-			int shade = 16;
-			if ( currColumn == DIRECTORY && i == l_nFocus[DIRECTORY] ) {
-				if(m_pMenu.mGetFocusedItem(this))
-					shade = 16 - (totalclock & 0x3F);
-				else shade = 0;
-			}
+			int pal = listPal; //handler.getPal(font, item); //listPal;
+			int shade = handler.getShade(currColumn == DIRECTORY && i == l_nFocus[DIRECTORY]? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
+			if(currColumn == DIRECTORY && i == l_nFocus[DIRECTORY])
+				pal = handler.getPal(font, m_pMenu.m_pItems[m_pMenu.m_nFocus]);
+
 			text = toCharArray(list[DIRECTORY].get(i));
 			if(list[DIRECTORY].get(i).equals(back))
-				pal = 7; //XXX
-			brDrawText(font, text, px + 3, py, shade, pal, 0, this.x + this.width / 2 - 4); //XXX font0
+				pal = backPal;
+			brDrawText(font, text, px, py, shade, pal, 0, this.x + this.width / 2 - 4);
 			py += mFontOffset();
 		}
 		
 		py = yList;
 		for(int i = l_nMin[FILE]; i >= 0 && i < l_nMin[FILE] + nListItems && i < list[FILE].size(); i++) {	
-			int pal = 0;
-			int shade = 16;
-			if ( currColumn == FILE && i == l_nFocus[FILE] ) {
-				if(m_pMenu.mGetFocusedItem(this))
-					shade = 16 - (totalclock & 0x3F);
-				else shade = 0;
-			}
-
+			int pal = listPal;
+			if(currColumn == FILE && i == l_nFocus[FILE])
+				pal = handler.getPal(font, m_pMenu.m_pItems[m_pMenu.m_nFocus]);
+			int shade = handler.getShade(currColumn == FILE && i == l_nFocus[FILE] ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
+			
 			String filename = list[FILE].get(i);
 			text = toCharArray(filename);
 			
@@ -265,7 +265,8 @@ public class MenuFileBrowser extends MenuItem {
 
 					int nList = BClipLow(list[currColumn].size() - nListItems, 1);
 					int nRange = scrollerHeight;
-					int py = y;
+					
+					int py = y + 3 + pathFont.nHeight + 2 + topFont.nHeight + 2;
 
 					l_nFocus[currColumn] = -1;
 					l_nMin[currColumn] = BClipRange(((touchY - py) * nList) / nRange, 0, nList);
@@ -360,8 +361,8 @@ public class MenuFileBrowser extends MenuItem {
 
 		if((!scrollTouch[DIRECTORY] && !scrollTouch[FILE]) && list[currColumn].size() > 0)
 		{
-			int py = y + font.nHeight + 3;
-
+			int py = y + 3 + pathFont.nHeight + 2 + topFont.nHeight + 2;
+			
 			for(int i = l_nMin[currColumn]; i >= 0 && i < l_nMin[currColumn] + nListItems && i < list[currColumn].size(); i++) {	
 			    if(mx > x && mx < scrollX[FILE])
 					if(my > py && my < py + font.nHeight)

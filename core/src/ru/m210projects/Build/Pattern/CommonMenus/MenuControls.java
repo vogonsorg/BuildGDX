@@ -44,7 +44,7 @@ public abstract class MenuControls extends BuildMenu {
 	
 	public abstract void mResetClassic(BuildConfig cfg, MenuHandler menu);
 	
-	public MenuControls(BuildGame app, int posy, int questionPos, int menuHeight, int separatorHeight, BuildFont style, int pal)
+	public MenuControls(BuildGame app, int posy, int questionPos, int menuHeight, int separatorHeight, BuildFont style, int pal, int questionPal)
 	{
 		addItem(getTitle(app, "Controls setup"), false);
 
@@ -54,8 +54,8 @@ public abstract class MenuControls extends BuildMenu {
 		
 		posy += separatorHeight;
 		
-		ResetDefaultMenu = getResetDefaultMenu(app, style, questionPos, menuHeight);
-		ResetClassicMenu = getResetClassicMenu(app, style, questionPos, menuHeight);
+		ResetDefaultMenu = getResetDefaultMenu(app, style, questionPos, menuHeight, questionPal);
+		ResetClassicMenu = getResetClassicMenu(app, style, questionPos, menuHeight, questionPal);
 		
 		MenuButton mKeyReset = new MenuButton("Reset Keys to default", style, 0, posy += menuHeight, 320, 1, pal, ResetDefaultMenu, -1, null, 0);
 		MenuButton mKeyReset2 = new MenuButton("Reset Keys to classic", style, 0, posy += menuHeight, 320, 1, pal, ResetClassicMenu, -1, null, 0);
@@ -67,37 +67,39 @@ public abstract class MenuControls extends BuildMenu {
 		addItem(mKeyReset2, false);
 	}
 	
-	protected BuildMenu getResetDefaultMenu(final BuildGame app, BuildFont style, int posy, int menuHeight)
+	protected BuildMenu getResetDefaultMenu(final BuildGame app, BuildFont style, int posy, int menuHeight, int pal)
 	{
 		BuildMenu menu = new BuildMenu();
 		
 		MenuText QuitQuestion = new MenuText("Do you really want to reset keys?", style, 160, posy, 1);
-		
+		QuitQuestion.pal = pal;
 		MenuVariants QuitVariants = new MenuVariants(app.pEngine, "[Y/N]", style, 160, posy += menuHeight) {
 			@Override
 			public void positive(MenuHandler menu) {
 				mResetDefault(app.pCfg, menu);
 			}
 		};
-
+		QuitVariants.pal = pal;
+		
 		menu.addItem(QuitQuestion, false);
 		menu.addItem(QuitVariants, true);
 		
 		return menu;
 	}
 	
-	protected BuildMenu getResetClassicMenu(final BuildGame app, BuildFont style, int posy, int menuHeight)
+	protected BuildMenu getResetClassicMenu(final BuildGame app, BuildFont style, int posy, int menuHeight, int pal)
 	{
 		BuildMenu menu = new BuildMenu();
 		
 		MenuText QuitQuestion = new MenuText("Do you really want reset to classic keys?", style, 160, posy, 1);
-		
+		QuitQuestion.pal = pal;
 		MenuVariants QuitVariants = new MenuVariants(app.pEngine, "[Y/N]", style, 160, posy += menuHeight) {
 			@Override
 			public void positive(MenuHandler menu) {
 				mResetClassic(app.pCfg, menu);
 			}
 		};
+		QuitVariants.pal = pal;
 
 		menu.addItem(QuitQuestion, false);
 		menu.addItem(QuitVariants, true);

@@ -40,15 +40,15 @@ public abstract class MenuJoystick extends BuildMenu {
 
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 
-	public MenuJoystick(final BuildGame app, int posx, int posy, int width, int menuHeight, int separatorHeight, BuildFont style, BuildFont conteiner, int menupal)
+	public MenuJoystick(final BuildGame app, int posx, int posy, int width, int menuHeight, int separatorHeight, BuildFont list, BuildFont buttons, BuildFont conteiner, BuildFont helpFont, int menupal, int list_len, int list_pal_left, int list_pal_right, int help_pal)
 	{
 		addItem(getTitle(app, "Joystick setup"), false);
 		
 		final BuildConfig cfg = app.pCfg;
 		
-		joyButtons = getJoyButtonsMenu(this, app, width, style, posx, posy, 12, menupal);
+		joyButtons = getJoyButtonsMenu(this, app, width, list, helpFont, posx, posy, list_len, list_pal_left, list_pal_right, menupal, help_pal);
 		
-		MenuConteiner mJoyDevices = new MenuConteiner("Device:", style, conteiner, posx, posy, width, null, 0,
+		MenuConteiner mJoyDevices = new MenuConteiner("Device:", buttons, conteiner, posx, posy, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -78,7 +78,7 @@ public abstract class MenuJoystick extends BuildMenu {
 			}
 		};
 
-		MenuButton mJoyKey = new MenuButton("Configure buttons", style, posx, posy += separatorHeight, width, 1, 0, joyButtons, -1,
+		MenuButton mJoyKey = new MenuButton("Configure buttons", buttons, posx, posy += separatorHeight, width, 1, 0, joyButtons, -1,
 				null, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
@@ -90,7 +90,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		final char[][] StickName = { "Stick1_Y".toCharArray(), "Stick1_X".toCharArray(), "Stick2_Y".toCharArray(),
 				"Stick2_X".toCharArray(), };
 
-		MenuConteiner mJoyTurn = new MenuConteiner("Turn axis:", style, posx, posy += separatorHeight, width, null, 0, new MenuProc() {
+		MenuConteiner mJoyTurn = new MenuConteiner("Turn axis:", buttons, posx, posy += separatorHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -104,7 +104,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		};
 		mJoyTurn.list = StickName;
 
-		MenuConteiner mJoyLook = new MenuConteiner("Look axis:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		MenuConteiner mJoyLook = new MenuConteiner("Look axis:", buttons, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -118,7 +118,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		};
 		mJoyLook.list = StickName;
 
-		MenuConteiner mJoyStrafe = new MenuConteiner("Strafe axis:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		MenuConteiner mJoyStrafe = new MenuConteiner("Strafe axis:", buttons, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -132,7 +132,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		};
 		mJoyStrafe.list = StickName;
 
-		MenuConteiner mJoyMove = new MenuConteiner("Move axis:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		MenuConteiner mJoyMove = new MenuConteiner("Move axis:", buttons, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -147,7 +147,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		mJoyMove.list = StickName;
 
 		posy += 5;
-		MenuSlider mDeadZone = new MenuSlider(app.pSlider, "Dead zone:", style, posx, posy += menuHeight, width, cfg.gJoyDeadZone, 0, 0x8000,
+		MenuSlider mDeadZone = new MenuSlider(app.pSlider, "Dead zone:", buttons, posx, posy += menuHeight, width, cfg.gJoyDeadZone, 0, 0x8000,
 				2048, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -158,7 +158,7 @@ public abstract class MenuJoystick extends BuildMenu {
 				}, true);
 		mDeadZone.digitalMax = 65536.0f;
 
-		MenuSlider mLookSpeed = new MenuSlider(app.pSlider, "Look speed:", style, posx, posy += menuHeight, width, cfg.gJoyLookSpeed, 0,
+		MenuSlider mLookSpeed = new MenuSlider(app.pSlider, "Look speed:", buttons, posx, posy += menuHeight, width, cfg.gJoyLookSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -168,7 +168,7 @@ public abstract class MenuJoystick extends BuildMenu {
 				}, true);
 		mLookSpeed.digitalMax = 65536.0f;
 
-		MenuSlider mTurnSpeed = new MenuSlider(app.pSlider, "Turn speed:", style, posx, posy += menuHeight, width, cfg.gJoyTurnSpeed, 0,
+		MenuSlider mTurnSpeed = new MenuSlider(app.pSlider, "Turn speed:", buttons, posx, posy += menuHeight, width, cfg.gJoyTurnSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -178,7 +178,7 @@ public abstract class MenuJoystick extends BuildMenu {
 				}, true);
 		mTurnSpeed.digitalMax = 65536.0f;
 
-		MenuSwitch mInvert = new MenuSwitch("Invert look axis:", style, posx, posy += separatorHeight, width, cfg.gJoyInvert, new MenuProc() {
+		MenuSwitch mInvert = new MenuSwitch("Invert look axis:", buttons, posx, posy += separatorHeight, width, cfg.gJoyInvert, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
@@ -198,7 +198,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		addItem(mInvert, false);
 	}
 
-	public BuildMenu getJoyButtonsMenu(MenuJoystick parent, final BuildGame app, int width, BuildFont style, int posx, int posy, int list_len, int menupal)
+	public BuildMenu getJoyButtonsMenu(MenuJoystick parent, final BuildGame app, int width, BuildFont style, BuildFont helpFont, int posx, int posy, int list_len, int list_pal_left, int list_pal_right, int joymenupal, int help_pal)
 	{
 		BuildMenu menu = new BuildMenu();
 		
@@ -253,13 +253,15 @@ public abstract class MenuJoystick extends BuildMenu {
 			}
 		};
 
-		MenuJoyList mList = new MenuJoyList(app, menupal, style, posx, posy, width, list_len, callback);
+		MenuJoyList mList = new MenuJoyList(app, joymenupal, style, posx, posy, width, list_len, list_pal_left, list_pal_right, callback);
 		
 		posy += mList.mFontOffset() * list_len;
 
-		MenuText mText = new MenuText("UP/DOWN = Select action", style, 160, posy += 2 * mList.mFontOffset(), 1);
-		MenuText mText2 = new MenuText("Enter = modify  Delete = clear", style, 160, posy += mList.mFontOffset(), 1);
-
+		MenuText mText = new MenuText("UP/DOWN = Select action", helpFont, 160, posy += 2 * mList.mFontOffset(), 1);
+		mText.pal = help_pal;
+		MenuText mText2 = new MenuText("Enter = modify  Delete = clear", helpFont, 160, posy += mList.mFontOffset(), 1);
+		mText2.pal = help_pal;
+		
 		menu.addItem(mList, true);
 		menu.addItem(mText, false);
 		menu.addItem(mText2, false);
