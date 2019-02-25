@@ -33,7 +33,7 @@ import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
-public class MenuJoyList extends MenuKeyboardList {
+public abstract class MenuJoyList extends MenuKeyboardList {
 
 	private final GPManager gpmanager;
 	private final int menupal;

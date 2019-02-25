@@ -40,6 +40,8 @@ public abstract class MenuJoystick extends BuildMenu {
 
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 
+	public abstract String keyNames(int keycode);
+	
 	public MenuJoystick(final BuildGame app, int posx, int posy, int width, int menuHeight, int separatorHeight, BuildFont list, BuildFont buttons, BuildFont conteiner, BuildFont helpFont, int menupal, int list_len, int list_pal_left, int list_pal_right, int help_pal)
 	{
 		addItem(getTitle(app, "Joystick setup"), false);
@@ -253,7 +255,13 @@ public abstract class MenuJoystick extends BuildMenu {
 			}
 		};
 
-		MenuJoyList mList = new MenuJoyList(app, joymenupal, style, posx, posy, width, list_len, list_pal_left, list_pal_right, callback);
+		MenuJoyList mList = new MenuJoyList(app, joymenupal, style, posx, posy, width, list_len, list_pal_left, list_pal_right, callback) {
+			@Override
+			public String getKeyName(int keycode) {
+				return keyNames(keycode);
+			}
+		};
+		
 		
 		posy += mList.mFontOffset() * list_len;
 

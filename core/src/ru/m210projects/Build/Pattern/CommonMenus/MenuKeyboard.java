@@ -42,6 +42,8 @@ public abstract class MenuKeyboard extends BuildMenu {
 	
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
+	public abstract String keyNames(int keycode);
+	
 	public MenuKeyboard(final BuildGame app, int posx, int posy, int width, int list_len, int list_pal_left, int list_pal_right, BuildFont style, BuildFont helpFont, int help_pal) {
 		addItem(getTitle(app, "Configure keys"), false);
 		final BuildConfig cfg = app.pCfg;
@@ -180,7 +182,12 @@ public abstract class MenuKeyboard extends BuildMenu {
 			}
 		};
 
-		MenuKeyboardList mList = new MenuKeyboardList(app.pSlider, app.pCfg, style, posx, posy, width, list_len, list_pal_left, list_pal_right, callback);
+		MenuKeyboardList mList = new MenuKeyboardList(app.pSlider, app.pCfg, style, posx, posy, width, list_len, list_pal_left, list_pal_right, callback) {
+			@Override
+			public String getKeyName(int keycode) {
+				return keyNames(keycode);
+			}
+		};
 		
 		posy += mList.mFontOffset() * list_len;
 

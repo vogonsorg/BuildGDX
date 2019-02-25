@@ -24,7 +24,6 @@ import static ru.m210projects.Build.Pattern.BuildConfig.*;
 
 import com.badlogic.gdx.Gdx;
 
-import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
@@ -32,7 +31,7 @@ import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
-public class MenuKeyboardList extends MenuList
+public abstract class MenuKeyboardList extends MenuList
 {
 	public int l_set = 0; 
 	public MenuOpt l_pressedId;
@@ -56,6 +55,8 @@ public class MenuKeyboardList extends MenuList
 		this.pal2 = list_pal_right;
 	}
 	
+	public abstract String getKeyName(int keycode);
+	
 	public int mFontOffset() {
 		return font.nHeight + 2;
 	}
@@ -72,14 +73,10 @@ public class MenuKeyboardList extends MenuList
 				pal2 = pal1 = handler.getPal(font, m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 			
 			String text = keynames[i].getName();
-			String key;
-			
-			if(cfg.primarykeys[i] != 0)
-				key = Keymap.toString(cfg.primarykeys[i]);
-			else key = "N/A";
-			
+			String key = getKeyName(cfg.primarykeys[i]);
+		
 			if(cfg.secondkeys[i] != 0)
-				key += " or " + Keymap.toString(cfg.secondkeys[i]);
+				key += " or " + getKeyName(cfg.secondkeys[i]);
 
 			if ( i == l_nFocus ) {
 				if(l_set == 1 && (totalclock & 0x20) != 0)
@@ -92,7 +89,7 @@ public class MenuKeyboardList extends MenuList
 			font.drawText(x + width / 2 - 1 - font.getWidth(k) + 40, py, k, shade, pal2, TextAlign.Left, 0, false);		
 			
 			if(cfg.mousekeys[i] != 0)
-				key = Keymap.toString(cfg.mousekeys[i]);
+				key = getKeyName(cfg.mousekeys[i]);
 			else key = " - ";
 			if ( i == l_nFocus ) {
 				if(l_set == 1 && (totalclock & 0x20) != 0)
