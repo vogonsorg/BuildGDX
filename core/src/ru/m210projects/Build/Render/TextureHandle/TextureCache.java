@@ -130,7 +130,7 @@ public class TextureCache {
 
 		if (doalloc) {
 			try {
-				pth.glpic = new BTexture();
+				pth.glpic = new BTexture(xsiz, ysiz);
 			} catch(Exception e) { return null; }
 		}
 		

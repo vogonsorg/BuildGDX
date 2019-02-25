@@ -132,8 +132,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 		if (!gPaused && (!menu.gShowMenu || game.nNetMode != NetMode.Single) && !Console.IsShown()) {
 			smoothratio = engine.getsmoothratio();
 			if (smoothratio < 0 || smoothratio > 0x10000) {
+//				System.err.println("Interpolation error " + smoothratio);
 				smoothratio = BClipRange(smoothratio, 0, 0x10000);
-//				System.err.println("Interpolation error");
 			}
 		}
 

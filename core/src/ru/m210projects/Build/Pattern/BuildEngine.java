@@ -27,6 +27,13 @@ public abstract class BuildEngine extends Engine {
 	}
 	
 	@Override
+	public int getsmoothratio()
+	{
+//		return ((totalclock - game.pNet.ototalclock + ticks) << 16) / ticks;
+		return (int) (((getticks() - timernexttick) / (float) timerskipticks) * 65536);
+	}
+	
+	@Override
 	public void faketimerhandler() {
 		BuildNet net = game.pNet;
 		if(net == null) return; //not initialized yet
