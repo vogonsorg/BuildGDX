@@ -87,6 +87,10 @@ public abstract class MenuHandler {
 
 	public abstract void mDrawMouse(int x, int y);
 	
+	public abstract void mDrawBackButton();
+	
+	public abstract boolean mCheckBackButton(int x, int y);
+	
 	public abstract void mSound(MenuItem item, MenuOpt opt);
 
 	public MenuOpt mUpdateMouse(BuildControls input) {
@@ -105,17 +109,10 @@ public abstract class MenuHandler {
 		BuildMenu pMenu = mMenuHistory[0];
 		
 		if(mCount > 1) {
-			//Back button XXX
-//			int bzoom = (int) divscale(16384, gViewX1Scaled, 16);
-//			int size = mulscale(tilesizy[40], bzoom, 16);
-//			int bx = 0;
-//			int by = ydim - size;
-//			if(mx >= bx && mx < bx + size)
-//				if(my >= by && my < by + size)
-//					if(input.ctrlKeyStatusOnce(MOUSE_LBUTTON)) {
-//						mMenuBack();
-//						return null;
-//					}
+			if(mCheckBackButton(mx, my) && input.ctrlKeyStatusOnce(MOUSE_LBUTTON)) {
+				mMenuBack();
+				return null;
+			}
 		}
 		
 		MenuOpt opt = null;
@@ -285,6 +282,8 @@ public abstract class MenuHandler {
 	public void mDrawMenu() {
 		if(mMenuHistory[0] != null) 
 			mMenuHistory[0].mDraw(this);
+		
+		mDrawBackButton();
 		
 		if(mUseMouse)
 			mDrawMouse(BuildGdx.input.getX(), BuildGdx.input.getY());

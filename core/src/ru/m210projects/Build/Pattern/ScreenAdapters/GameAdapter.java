@@ -55,6 +55,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 	}
 	
 	public void PreFrame(BuildNet net) { /* nothing */ }
+	
+	public void PostFrame(BuildNet net) { /* nothing */ }
 
 	public abstract void ProcessFrame(BuildNet net);
 	
@@ -139,16 +141,19 @@ public abstract class GameAdapter extends ScreenAdapter {
 
 		game.pInt.dointerpolations(smoothratio);
 		DrawWorld(smoothratio); //smooth sprites
-		game.pInt.restoreinterpolations();
-		
+
 		if (gScreenCapture != null) {
 			gScreenCapture.run();
 			gScreenCapture = null;
 		}
 		
 		DrawHud();
+		game.pInt.restoreinterpolations();
+		
 		if(menu.gShowMenu)
 			menu.mDrawMenu();
+		
+		PostFrame(net);
 
 		if (cfg.gShowFPS)
 			engine.printfps(cfg.gFpsScale);
