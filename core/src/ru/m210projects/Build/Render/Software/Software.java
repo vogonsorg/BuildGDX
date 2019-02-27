@@ -3056,7 +3056,9 @@ public class Software implements Renderer {
 		for(int i=0; i < text.length && text[i] != 0;i++)
 		{
 			int ptr = bytesperline*(ypos+7)+(stx-fontsize);
-			
+			if(ptr < 0) 
+				continue;
+
 			for(int y=7;y>=0;y--)
 			{
 				for(int x=charxsiz-1;x>=0;x--)

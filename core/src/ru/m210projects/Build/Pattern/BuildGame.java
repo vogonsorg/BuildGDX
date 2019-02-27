@@ -34,13 +34,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 public abstract class BuildGame extends Game {
-	
-	/*
-	 * Вместо callback можно использовать пустые методы в классах, как в MenuSound или abstarct методы (переделать остальные)
-	 * MenuVideo отключены настройки anisotropy
-	 * MenuScreen handler если меню выключено
-	 * MenuList, ResolutionList - getShade
-	 */
 
 	public final String appname;
 	public final String sversion;

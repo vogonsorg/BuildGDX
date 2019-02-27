@@ -584,7 +584,8 @@ public class Console {
 		else osdrowscur = -1;
 		
 		showDisplay(show?1:0);
-		func.showosd(show?1:0);
+		if(func != null)
+			func.showosd(show?1:0);
 	}
 	
 	static boolean lastmatch;
@@ -1064,7 +1065,7 @@ public class Console {
 	        osdscrtime = func.getticksfunc();
 	    }
 
-	    if ((osdflags & OSD_DRAW) == 0 || osdrowscur == 0) return;
+	    if ((osdflags & OSD_DRAW) == 0 || osdrowscur <= 0) return;
 
 	    int topoffs = osdhead;
 	    int row = osdrowscur-1;

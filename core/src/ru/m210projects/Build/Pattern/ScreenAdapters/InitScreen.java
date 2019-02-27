@@ -111,13 +111,14 @@ public class InitScreen extends ScreenAdapter {
 		cfg.checkFps(cfg.fpslimit);
 		engine.setanisotropy(cfg, cfg.glanisotropy);
 		engine.setwidescreen(cfg, cfg.widescreen != 0);
-		Console.Set("r_texturemode", game.pCfg.glfilter);
+		Console.Set("r_texturemode", cfg.glfilter);
 		
 		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					BuildConfig cfg = game.pCfg;
+					cfg.isInited = cfg.InitConfig(!cfg.isExist());
 					game.pInput = factory.input(new GPManager());
 					game.pMenu = factory.menus();
 					game.pNet = factory.net();
@@ -147,7 +148,8 @@ public class InitScreen extends ScreenAdapter {
 	public void dispose()
 	{
 		try { 
-			thread.join();
+			if(thread != null)
+				thread.join();
 		} catch (InterruptedException e) { }
 	}
 

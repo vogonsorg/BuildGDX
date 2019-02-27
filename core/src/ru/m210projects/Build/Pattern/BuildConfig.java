@@ -16,10 +16,15 @@
 
 package ru.m210projects.Build.Pattern;
 
+import static ru.m210projects.Build.FileHandle.Compat.Bcheck;
+import static ru.m210projects.Build.FileHandle.Compat.Bopen;
 import static ru.m210projects.Build.FileHandle.Compat.Bwrite;
+import static ru.m210projects.Build.FileHandle.Compat.FilePath;
+import static ru.m210projects.Build.FileHandle.Compat.FileUserdir;
 import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -31,6 +36,8 @@ import ru.m210projects.Build.Pattern.Tools.IniFile;
 
 public abstract class BuildConfig extends IniFile {
 
+	public boolean isInited;
+	
 	public interface KeyType {
 		
 		public int getNum();
@@ -180,6 +187,8 @@ public abstract class BuildConfig extends IniFile {
 	public BuildConfig(String path, String name, KeyType[] keymap) {
 		super();	
 
+		FilePath = path;
+		
 		for(int i = 0; i < keymap.length; i++)
 			keymap[i].setNum(i);
 
@@ -207,16 +216,72 @@ public abstract class BuildConfig extends IniFile {
 		Arrays.fill(mouseaxis, -1);
 		Arrays.fill(gpadkeys, -1);
 		Arrays.fill(gJoyMenukeys, -1);
-
-		InitConfig(data);
+		
+		LoadMain();
+	}
+	
+	public boolean isExist()
+	{
+		return path != null;
+	}
+	
+	public void LoadMain()
+	{
+		if(data != null)
+		{
+			if(set("Main")) {
+				startup = GetKeyInt("Startup") == 1;
+				String respath = GetKeyString("Path");
+				if(respath != null && !respath.isEmpty())
+					FilePath = this.path = respath;
+				String bank = GetKeyString("SoundBank");
+				if(bank != null && !bank.isEmpty())
+					this.soundBank = bank;
+				int check = GetKeyInt("CheckNewVersion");
+				if(check != -1)
+					checkVersion = (check == 1);
+			}
+			
+			if(set("ScreenSetup")) {
+				fullscreen = GetKeyInt("Fullscreen");
+				ScreenWidth = GetKeyInt("ScreenWidth");
+				ScreenHeight = GetKeyInt("ScreenHeight");
+				fpslimit = GetKeyInt("FPSLimit");
+				glfilter = GetKeyInt("GLFilterMode"); 
+				glanisotropy = GetKeyInt("GLAnisotropy");
+				widescreen = GetKeyInt("WideScreen");
+			}
+			
+			if(set("SoundSetup")) {
+				noSound = GetKeyInt("NoSound") == 1;
+				muteMusic = GetKeyInt("NoMusic") == 1;
+				int snd = GetKeyInt("SoundDriver");
+				if(snd != -1) snddrv = snd;
+				int mid = GetKeyInt("MidiDriver");
+				if(mid != -1) middrv = mid;
+				midiSynth = GetKeyString("MidiSynth");
+				int type = GetKeyInt("MusicType");
+				if(type != -1) musicType = type;
+			}
+		}
+		
+		isInited = false;
+	}
+	
+	public void saveConfig(String path)
+	{
+		if(!isInited) 
+			return;
+		File file = Bcheck(FileUserdir+name, "R");
+		if(file != null) 
+			file.delete();
+		save(Bopen(FileUserdir+name, "RW"), path);
 	}
 
-	public abstract void saveConfig(String path);
+	public abstract void save(int fil, String path);
 	
-	public abstract void InitConfig(byte[] data);
+	public abstract boolean InitConfig(boolean isDefault);
 	
-	
-
 	public void setKey(int index, int keyId)
 	{
 		if(primarykeys[index] == 0 && secondkeys[index] == 0)

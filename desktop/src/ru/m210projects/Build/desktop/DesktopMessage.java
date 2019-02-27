@@ -35,17 +35,15 @@ public class DesktopMessage implements BuildMessage {
 
 	public DesktopMessage(URL icon, BuildConfig cfg)
 	{
-		try {
-			this.icon = icon;
-			this.cfg = cfg;
-			frame = new JOptionPane();
-			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) { e.printStackTrace(); }
+		this.icon = icon;
+		this.cfg = cfg;
 	}
 	
 	@Override
 	public boolean show(String header, String message, MessageType type) {
+		if(frame == null && (frame = InitFrame()) == null)
+			return false;
+		
 		if(message.length() >= 384)
 		{
 			message = message.substring(0, 384);
@@ -61,48 +59,56 @@ public class DesktopMessage implements BuildMessage {
 		{
 		case Question:
 		case Crash:
-			if(frame != null) {
-				if(type == MessageType.Crash) {
-					frame.setMessageType(JOptionPane.ERROR_MESSAGE);
-					frame.setMessage(message + "\r\n \r\n      Do you want to send a crash report?");
-				} else {
-					frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-					frame.setMessage(message);
-				}
-				frame.setOptionType(JOptionPane.YES_NO_OPTION);
-				JDialog dialog = frame.createDialog(header);
-				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
-				frame.setBackground(dialog.getBackground());
-				
-				dialog.setAlwaysOnTop(true);
-		        dialog.setVisible(true);
-		        dialog.dispose();
-		        
-		        Object selectedValue = frame.getValue();
-		        if (selectedValue instanceof Integer) {
-		        	if(((Integer)selectedValue).intValue() == JOptionPane.YES_OPTION)
-						return true;
-	            }
+			if(type == MessageType.Crash) {
+				frame.setMessageType(JOptionPane.ERROR_MESSAGE);
+				frame.setMessage(message + "\r\n \r\n      Do you want to send a crash report?");
+			} else {
+				frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+				frame.setMessage(message);
 			}
+			frame.setOptionType(JOptionPane.YES_NO_OPTION);
+			JDialog dialog = frame.createDialog(header);
+			dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
+			frame.setBackground(dialog.getBackground());
+			
+			dialog.setAlwaysOnTop(true);
+	        dialog.setVisible(true);
+	        dialog.dispose();
+	        
+	        Object selectedValue = frame.getValue();
+	        if (selectedValue instanceof Integer) {
+	        	if(((Integer)selectedValue).intValue() == JOptionPane.YES_OPTION)
+					return true;
+            }
 
 			return false;
 		case Info:
-			if(frame != null) {
-				frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-				frame.setMessage(message);
-				frame.setOptionType(JOptionPane.DEFAULT_OPTION);
-				final JDialog dlog = frame.createDialog(header);
-				dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
-				frame.setBackground(dlog.getBackground());
-				
-				dlog.setAlwaysOnTop(true);
-				dlog.setVisible(true);
-				dlog.dispose();
-			}
+			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+			frame.setMessage(message);
+			frame.setOptionType(JOptionPane.DEFAULT_OPTION);
+			final JDialog dlog = frame.createDialog(header);
+			dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
+			frame.setBackground(dlog.getBackground());
+			
+			dlog.setAlwaysOnTop(true);
+			dlog.setVisible(true);
+			dlog.dispose();
+			
 			return false;
 		}
 		
 		return false;
+	}
+	
+	protected JOptionPane InitFrame()
+	{
+		JOptionPane frame = null;
+		try {
+			frame = new JOptionPane();
+			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) { e.printStackTrace(); }
+		return frame;
 	}
 
 	@Override

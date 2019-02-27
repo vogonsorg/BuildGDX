@@ -18,6 +18,7 @@ package ru.m210projects.Build.Pattern.CommonMenus;
 
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.Render.VideoMode.strvmodes;
 import static ru.m210projects.Build.Render.VideoMode.validmodes;
 
@@ -165,7 +166,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 				if (num != -1 && list != null)
 					key = list[num];
 				else
-					key = new String(cfg.ScreenWidth + " x " + cfg.ScreenHeight + " 32bpp").toCharArray();	//XXX	
+					key = toCharArray(cfg.ScreenWidth + " x " + cfg.ScreenHeight + " 32bpp");
 
 				int pal = handler.getPal(font, this);
 				int shade = handler.getShade(this);
