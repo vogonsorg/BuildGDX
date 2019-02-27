@@ -68,7 +68,8 @@ public class DesktopMessage implements BuildMessage {
 			}
 			frame.setOptionType(JOptionPane.YES_NO_OPTION);
 			JDialog dialog = frame.createDialog(header);
-			dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
+			if(icon != null)
+				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
 			frame.setBackground(dialog.getBackground());
 			
 			dialog.setAlwaysOnTop(true);
@@ -87,7 +88,8 @@ public class DesktopMessage implements BuildMessage {
 			frame.setMessage(message);
 			frame.setOptionType(JOptionPane.DEFAULT_OPTION);
 			final JDialog dlog = frame.createDialog(header);
-			dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
+			if(icon != null)
+				dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
 			frame.setBackground(dlog.getBackground());
 			
 			dlog.setAlwaysOnTop(true);

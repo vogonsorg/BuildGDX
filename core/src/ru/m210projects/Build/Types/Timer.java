@@ -29,7 +29,7 @@ public class Timer {
 	
 	public static long result() {
 		spentTime = System.nanoTime() - startTime;
-		System.out.println(spentTime / 1000f +" nsec");
+		System.out.println(spentTime / 1000f +" microsec");
 		return spentTime;
 	}
 	
@@ -39,14 +39,14 @@ public class Timer {
 		summTime += (spentTime / 1000f);
 		long result = (summTime / count);
 		if((count % 255) == 1)
-		System.out.println(result +" nsec");
+		System.out.println(result +" microsec");
 		return result;
 	}
 	
 	public static long result(String comment) {
 		spentTime = System.nanoTime() - startTime;
 		
-		System.out.println(comment + " : " + spentTime / 1000f +" nsec");
+		System.out.println(comment + " : " + spentTime / 1000f +" microsec");
 		return spentTime;
 	}
 	
