@@ -17,38 +17,26 @@
 package ru.m210projects.Build.desktop.Launcher;
 
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.net.URL;
 
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 public class ImagePanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
-	private BufferedImage image;
-	private Thread thread;
-
+	private Image image;
+	private URL resource;
+	
     public ImagePanel(final URL resource) {
-    	thread = new Thread(new Runnable() 
-		{
-			public void run()
-			{
-				try {         
-			           image = ImageIO.read(resource);
-			        } catch (Exception ex) {}
-			}
-		});
-    	thread.start();
+    	this.resource = resource;
 	}
 
 	@Override
     public void paintComponent(Graphics g) {
-        g.drawImage(image, 0, 0, null); 
+		if(image == null) 
+			 image = Toolkit.getDefaultToolkit().createImage(resource);
+        g.drawImage(image, 0, 0, this); 
     }
-	
-	public boolean isLoaded()
-	{
-		return !thread.isAlive();
-	}
 }

@@ -212,15 +212,6 @@ public class DesktopFrame {
 
 		startButtonStatus(checkResources(path, resources) != -1, appname, resources[0]);
 
-		new Thread(new Runnable() 
-		{
-			public void run()
-			{
-				while(!logo.isLoaded());
-				logo.repaint(); //draw logo after load
-			}
-		}).start();
-
 		frmPropFrame.setResizable(false);
 		frmPropFrame.pack();
 		frmPropFrame.setVisible(true);
@@ -510,9 +501,7 @@ public class DesktopFrame {
 		lblAlexanderM.setBounds(98, 50, 250, 14);
 		lblAlexanderM.setFont(font);
 		about.add(lblAlexanderM);
-		
-		while(!icon.isLoaded());
-		
+
 		aboutInited = true;
 	}
 	
