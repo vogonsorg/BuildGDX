@@ -17,6 +17,7 @@
 package ru.m210projects.Build.Pattern;
 
 import static ru.m210projects.Build.FileHandle.Compat.Bcheck;
+import static ru.m210projects.Build.FileHandle.Compat.Bclose;
 import static ru.m210projects.Build.FileHandle.Compat.Bopen;
 import static ru.m210projects.Build.FileHandle.Compat.Bwrite;
 import static ru.m210projects.Build.FileHandle.Compat.FilePath;
@@ -115,7 +116,7 @@ public abstract class BuildConfig extends IniFile {
 	}
 
 	public String path;
-	public String soundBank = "";
+	public File soundBank;
 	public boolean startup = true;
 	public boolean autoloadFolder = true;
 	public boolean userfolder = false;
@@ -126,10 +127,11 @@ public abstract class BuildConfig extends IniFile {
 	public int ScreenHeight = 400;
 	public boolean gVSync = false;
 	public int fpslimit = 0;
+	public boolean borderless = false;
 	
 	public int snddrv = 1;
-	public int middrv = 1;
-	public String midiSynth = "None";
+	public int middrv = 0;
+	public int midiSynth = 0;
 	
 	public float gamma = 1;
 	public float brightness = 0;
@@ -222,7 +224,7 @@ public abstract class BuildConfig extends IniFile {
 	
 	public boolean isExist()
 	{
-		return path != null;
+		return data != null;
 	}
 	
 	public void LoadMain()
@@ -231,35 +233,40 @@ public abstract class BuildConfig extends IniFile {
 		{
 			if(set("Main")) {
 				startup = GetKeyInt("Startup") == 1;
+				int check = GetKeyInt("CheckNewVersion");
+				if(check != -1)
+					checkVersion = (check == 1);
+				int afolder = GetKeyInt("AutoloadFolder");
+				if(afolder != -1)
+					autoloadFolder = (afolder == 1);
+				userfolder = GetKeyInt("UseHomeFolder") == 1;
 				String respath = GetKeyString("Path");
 				if(respath != null && !respath.isEmpty())
 					FilePath = this.path = respath;
 				String bank = GetKeyString("SoundBank");
-				if(bank != null && !bank.isEmpty())
-					this.soundBank = bank;
-				int check = GetKeyInt("CheckNewVersion");
-				if(check != -1)
-					checkVersion = (check == 1);
-			}
-			
-			if(set("ScreenSetup")) {
+				if(bank != null && !bank.isEmpty()) {
+					File fbank = new File(bank);
+					if(fbank.exists())
+						this.soundBank = fbank;
+				}
+
 				fullscreen = GetKeyInt("Fullscreen");
 				ScreenWidth = GetKeyInt("ScreenWidth");
 				ScreenHeight = GetKeyInt("ScreenHeight");
+				borderless = GetKeyInt("BorderlessMode") == 1;
 				fpslimit = GetKeyInt("FPSLimit");
 				glfilter = GetKeyInt("GLFilterMode"); 
 				glanisotropy = GetKeyInt("GLAnisotropy");
 				widescreen = GetKeyInt("WideScreen");
-			}
-			
-			if(set("SoundSetup")) {
+				
 				noSound = GetKeyInt("NoSound") == 1;
 				muteMusic = GetKeyInt("NoMusic") == 1;
 				int snd = GetKeyInt("SoundDriver");
 				if(snd != -1) snddrv = snd;
 				int mid = GetKeyInt("MidiDriver");
 				if(mid != -1) middrv = mid;
-				midiSynth = GetKeyString("MidiSynth");
+				int mids = GetKeyInt("MidiSynth");
+				if(mids != -1) midiSynth = mids;
 				int type = GetKeyInt("MusicType");
 				if(type != -1) musicType = type;
 			}
@@ -275,10 +282,52 @@ public abstract class BuildConfig extends IniFile {
 		File file = Bcheck(FileUserdir+name, "R");
 		if(file != null) 
 			file.delete();
-		save(Bopen(FileUserdir+name, "RW"), path);
+		int fil = Bopen(FileUserdir+name, "RW");
+		SaveMain(fil, path);
+		SaveConfig(fil);
+		Bclose(fil);
+	}
+	
+	public void SaveMain(int fil, String path)
+	{
+		saveString(fil, "[Main]\r\n");
+		String line =  "; Always show configuration options on startup\r\n" +
+				";   0 - No\r\n" +
+				";   1 - Yes\r\n";
+		saveString(fil, line);
+		saveBoolean(fil, "Startup", startup);
+		saveBoolean(fil, "CheckNewVersion", checkVersion);
+		saveBoolean(fil, "AutoloadFolder", autoloadFolder);
+		saveBoolean(fil, "UseHomeFolder", userfolder);
+		saveString(fil, "Path = ");
+			byte[] buf = path.getBytes(); //without this path can be distorted
+			Bwrite(fil, buf, buf.length);
+			
+		if(soundBank != null)	
+			saveString(fil, "\r\nSoundBank = " + soundBank.getAbsolutePath() + "\r\n");
+		else saveString(fil, "\r\nSoundBank = \r\n");
+		saveInteger(fil, "Fullscreen", fullscreen);
+		saveInteger(fil, "ScreenWidth", ScreenWidth);
+		saveInteger(fil, "ScreenHeight", ScreenHeight);
+		saveBoolean(fil, "BorderlessMode", borderless);
+		saveInteger(fil, "FPSLimit", fpslimit);
+		if(Console.IsInited())
+			saveInteger(fil, "GLFilterMode", Console.Geti("r_texturemode"));
+		else saveInteger(fil, "GLFilterMode", glfilter);
+		saveInteger(fil, "GLAnisotropy", glanisotropy);
+		saveInteger(fil, "WideScreen", widescreen);
+		
+		saveBoolean(fil, "NoSound", noSound);
+		saveBoolean(fil, "NoMusic", muteMusic);
+		saveInteger(fil, "SoundDriver", snddrv);
+		
+		saveInteger(fil, "MidiDriver", middrv);
+		saveInteger(fil, "MidiSynth", midiSynth);
+		saveInteger(fil, "MusicType", musicType);
+		saveString(fil, ";\r\n;\r\n");
 	}
 
-	public abstract void save(int fil, String path);
+	public abstract void SaveConfig(int fil);
 	
 	public abstract boolean InitConfig(boolean isDefault);
 	

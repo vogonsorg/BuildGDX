@@ -118,7 +118,9 @@ public class InitScreen extends ScreenAdapter {
 			public void run() {
 				try {
 					BuildConfig cfg = game.pCfg;
-					cfg.isInited = cfg.InitConfig(!cfg.isExist());
+					if(!cfg.isInited) 
+						cfg.isInited = cfg.InitConfig(!cfg.isExist());
+					
 					game.pInput = factory.input(new GPManager());
 					game.pMenu = factory.menus();
 					game.pNet = factory.net();
