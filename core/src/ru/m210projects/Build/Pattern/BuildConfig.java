@@ -189,8 +189,6 @@ public abstract class BuildConfig extends IniFile {
 	public BuildConfig(String path, String name, KeyType[] keymap) {
 		super();	
 
-		FilePath = path;
-		
 		for(int i = 0; i < keymap.length; i++)
 			keymap[i].setNum(i);
 
