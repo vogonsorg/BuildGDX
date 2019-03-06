@@ -17,11 +17,11 @@
 package ru.m210projects.Build.Types;
 
 public class Timer {
-	public static long startTime;
-	public static long spentTime;
+	private static long startTime;
+	private static long spentTime;
 	
-	public static long summTime;
-	public static long count;
+	private static long summTime;
+	private static long count;
 	
 	public static void start() {
 		startTime = System.nanoTime();

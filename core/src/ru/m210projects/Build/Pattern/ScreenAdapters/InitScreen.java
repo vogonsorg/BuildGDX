@@ -118,6 +118,7 @@ public class InitScreen extends ScreenAdapter {
 			public void run() {
 				try {
 					BuildConfig cfg = game.pCfg;
+					cfg.InitKeymap();
 					if(!cfg.isInited) 
 						cfg.isInited = cfg.InitConfig(!cfg.isExist());
 					

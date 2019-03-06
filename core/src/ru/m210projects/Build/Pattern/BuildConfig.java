@@ -20,8 +20,6 @@ import static ru.m210projects.Build.FileHandle.Compat.Bcheck;
 import static ru.m210projects.Build.FileHandle.Compat.Bclose;
 import static ru.m210projects.Build.FileHandle.Compat.Bopen;
 import static ru.m210projects.Build.FileHandle.Compat.Bwrite;
-import static ru.m210projects.Build.FileHandle.Compat.FilePath;
-import static ru.m210projects.Build.FileHandle.Compat.FileUserdir;
 import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
@@ -116,6 +114,7 @@ public abstract class BuildConfig extends IniFile {
 	}
 
 	public String path;
+	public String cfgPath;
 	public File soundBank;
 	public boolean startup = true;
 	public boolean autoloadFolder = true;
@@ -186,12 +185,11 @@ public abstract class BuildConfig extends IniFile {
 	public int glfilter = 0;
 	public boolean gShowFPS = true;
 
-	public BuildConfig(String path, String name, KeyType[] keymap) {
+	public BuildConfig(String path, String name) {
 		super();	
 
-		for(int i = 0; i < keymap.length; i++)
-			keymap[i].setNum(i);
-
+		this.cfgPath = path;
+		this.keymap = getKeyMap();
 		this.name = toLowerCase(name);
 		byte[] data = null;
 		
@@ -206,8 +204,7 @@ public abstract class BuildConfig extends IniFile {
 		} catch (IOException e) {
 			Console.Println("Read file error: " + e.getMessage(), OSDTEXT_YELLOW);
 		}
-		
-		this.keymap = keymap;
+
 		this.primarykeys = new int[keymap.length];
 		this.secondkeys = new int[keymap.length];
 		this.mousekeys = new int[keymap.length];
@@ -240,7 +237,7 @@ public abstract class BuildConfig extends IniFile {
 				userfolder = GetKeyInt("UseHomeFolder") == 1;
 				String respath = GetKeyString("Path");
 				if(respath != null && !respath.isEmpty())
-					FilePath = this.path = respath;
+					this.path = respath;
 				String bank = GetKeyString("SoundBank");
 				if(bank != null && !bank.isEmpty()) {
 					File fbank = new File(bank);
@@ -277,10 +274,10 @@ public abstract class BuildConfig extends IniFile {
 	{
 		if(!isInited) 
 			return;
-		File file = Bcheck(FileUserdir+name, "R");
+		File file = Bcheck(cfgPath+name, "R");
 		if(file != null) 
 			file.delete();
-		int fil = Bopen(FileUserdir+name, "RW");
+		int fil = Bopen(cfgPath+name, "RW");
 		SaveMain(fil, path);
 		SaveConfig(fil);
 		Bclose(fil);
@@ -328,6 +325,14 @@ public abstract class BuildConfig extends IniFile {
 	public abstract void SaveConfig(int fil);
 	
 	public abstract boolean InitConfig(boolean isDefault);
+	
+	public void InitKeymap()
+	{
+		for(int i = 0; i < keymap.length; i++)
+			keymap[i].setNum(i);
+	}
+	
+	public abstract KeyType[] getKeyMap();
 	
 	public void setKey(int index, int keyId)
 	{
