@@ -27,8 +27,7 @@ public abstract class BuildFactory {
 	public BuildFactory() {
 		throw new UnsupportedOperationException("not implemented"); 
 	}
-	
-	
+
 	public String[] resources;
 	public BuildFactory(String... resources) {
 		this.resources = resources;

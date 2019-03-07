@@ -36,6 +36,17 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 
 public abstract class MenuAudio extends BuildMenu {
 	
+	public MenuButton mApplyChanges;
+	public MenuConteiner sSoundDrv;
+	public MenuConteiner sMusicDrv;
+	public MenuConteiner sResampler;
+	public MenuSlider sSound;
+	public MenuSlider sVoices;
+	public MenuSwitch sSoundSwitch;
+	public MenuSlider sMusic;
+	public MenuSwitch sMusicSwitch;
+	public MenuConteiner sMusicType;
+	
 	public int snddriver;
 	public int middriver;
 	public int resampler;
@@ -53,7 +64,7 @@ public abstract class MenuAudio extends BuildMenu {
 		
 		final BuildConfig cfg = app.pCfg;
 
-		final MenuConteiner sSoundDrv = new MenuConteiner("Sound driver:", menuItems, drvStyle, posx, posy += menuHeight, width, null, 0,
+		sSoundDrv = new MenuConteiner("Sound driver:", menuItems, drvStyle, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -78,7 +89,7 @@ public abstract class MenuAudio extends BuildMenu {
 			}
 		};
 		
-		final MenuConteiner sMusicDrv = new MenuConteiner("Midi driver:", menuItems, drvStyle, posx, posy += menuHeight, width, null, 0,
+		sMusicDrv = new MenuConteiner("Midi driver:", menuItems, drvStyle, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -103,7 +114,7 @@ public abstract class MenuAudio extends BuildMenu {
 			}
 		};
 		
-		final MenuConteiner sResampler = new MenuConteiner("Resampler:", menuItems, posx, posy += menuHeight, width, null, 0,
+		sResampler = new MenuConteiner("Resampler:", menuItems, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -128,7 +139,7 @@ public abstract class MenuAudio extends BuildMenu {
 		int oposy = posy;
 		posy += menuHeight;
 
-		final MenuSlider sSound = new MenuSlider(app.pSlider, "Sound volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.soundVolume * 256),
+		sSound = new MenuSlider(app.pSlider, "Sound volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.soundVolume * 256),
 				0, 256, 16, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -145,7 +156,7 @@ public abstract class MenuAudio extends BuildMenu {
 				}
 		};
 		
-		final MenuSlider sVoices = new MenuSlider(app.pSlider, "Voices:", menuItems, posx, posy += menuHeight, width, 0, 8, 256, 8, new MenuProc() {
+		sVoices = new MenuSlider(app.pSlider, "Voices:", menuItems, posx, posy += menuHeight, width, 0, 8, 256, 8, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSlider slider = (MenuSlider) pItem;
@@ -159,7 +170,7 @@ public abstract class MenuAudio extends BuildMenu {
 			}
 		};
 		
-		MenuSwitch sSoundSwitch = new MenuSwitch("Sound:", menuItems, posx, oposy += menuHeight, width, !cfg.noSound, new MenuProc() {
+		sSoundSwitch = new MenuSwitch("Sound:", menuItems, posx, oposy += menuHeight, width, !cfg.noSound, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
@@ -179,7 +190,7 @@ public abstract class MenuAudio extends BuildMenu {
 		oposy = posy;
 		posy += menuHeight;
 		
-		final MenuSlider sMusic = new MenuSlider(app.pSlider, "Music volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.musicVolume * 256), 0, 256, 8,
+		sMusic = new MenuSlider(app.pSlider, "Music volume:", menuItems, posx, posy += menuHeight, width, (int) (cfg.musicVolume * 256), 0, 256, 8,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -194,7 +205,7 @@ public abstract class MenuAudio extends BuildMenu {
 			}
 		};
 		
-		MenuSwitch sMusicSwitch = new MenuSwitch("Music:", menuItems, posx, oposy += menuHeight, width, !cfg.muteMusic, new MenuProc() {
+		sMusicSwitch = new MenuSwitch("Music:", menuItems, posx, oposy += menuHeight, width, !cfg.muteMusic, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
@@ -208,7 +219,7 @@ public abstract class MenuAudio extends BuildMenu {
 			}
 		}, null, null);
 
-		MenuConteiner sMusicType = new MenuConteiner("Music type:", menuItems, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		sMusicType = new MenuConteiner("Music type:", menuItems, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -290,7 +301,7 @@ public abstract class MenuAudio extends BuildMenu {
 		};
 		
 		posy += 2 * separatorHeight;
-		MenuButton mApplyChanges = new MenuButton("Apply changes", applyButton, 0, posy, 320, 1, 0, null, -1, callback, 0) {
+		mApplyChanges = new MenuButton("Apply changes", applyButton, 0, posy, 320, 1, 0, null, -1, callback, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
 				super.draw(handler);

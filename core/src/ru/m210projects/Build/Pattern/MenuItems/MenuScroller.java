@@ -35,7 +35,7 @@ public class MenuScroller extends MenuItem {
 		int nRange = height - slider.getScrollerHeight();
 		int posy = y + nRange * parent.l_nMin / nList;
 		
-		slider.drawScrollerBackground(x, y, height, 0, 0);
+		slider.drawScrollerBackground(x, y, height, 0, pal);
 		slider.drawScroller(x, posy, 0, pal);
 
 		if(touchedObj == this) {

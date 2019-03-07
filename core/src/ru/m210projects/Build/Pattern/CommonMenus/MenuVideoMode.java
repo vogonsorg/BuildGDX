@@ -47,6 +47,13 @@ import ru.m210projects.Build.Render.VideoMode;
 
 public abstract class MenuVideoMode extends BuildMenu {
 	
+	protected MenuConteiner mResolution;
+	protected MenuConteiner mRenderer;
+	protected MenuSwitch mFullscreen;
+	protected MenuButton mApplyChanges;
+	protected MenuList mSlot;
+	protected MenuScroller slider;
+	
 	protected VideoMode choosedMode;
 	protected VideoMode currentMode;
 	protected boolean isFullscreen;
@@ -80,9 +87,9 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 
-		MenuList mSlot = new MenuResolutionList(app.pEngine, list, style, posx, posy, width, 1, null, callback, nListItems, nListBackground);
+		mSlot = new MenuResolutionList(app.pEngine, list, style, posx, posy, width, 1, null, callback, nListItems, nListBackground);
 
-		MenuScroller slider = new MenuScroller(app.pSlider, mSlot, width + posx - app.pSlider.getScrollerWidth());
+		slider = new MenuScroller(app.pSlider, mSlot, width + posx - app.pSlider.getScrollerWidth());
 		
 		menu.addItem(mSlot, true);
 		menu.addItem(slider, false);
@@ -105,7 +112,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 		
 		final BuildMenu mResList = getResolutionListMenu(this, app, posx + (width - nListWidth) / 2, posy + 2 * style.nHeight, nListWidth, nListItems, style, nBackground);
 		
-		MenuConteiner mResolution = new MenuConteiner("Resolution: ", style, conteiner, posx,
+		mResolution = new MenuConteiner("Resolution: ", style, conteiner, posx,
 				posy += itemHeight, width, strvmodes, 0, new MenuProc() {
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuConteiner item = (MenuConteiner) pItem;
@@ -174,29 +181,22 @@ public abstract class MenuVideoMode extends BuildMenu {
 				
 				if(key == null) return;
 
-				listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, pal, TextAlign.Left, 0, false);
+				listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, handler.getPal(listFont, this), TextAlign.Left, 0, false);
 				
 				handler.mPostDraw(this);
 			}
 		};
 		
-		MenuConteiner mRenderer = new MenuConteiner("Renderer: ", style, conteiner, posx,
+		mRenderer = new MenuConteiner("Renderer: ", style, conteiner, posx,
 				posy += itemHeight, width, new String[] { "Polymost" }, 0, null) {
 			@Override
 			public void draw(MenuHandler handler) {
 				super.draw(handler);
 				mCheckEnableItem(false);
 			}
-			
-			@Override
-			public void mCheckEnableItem(boolean nEnable) {
-				if (nEnable) 
-					flags = 3 | 4;
-				else flags = 3;
-			}
 		};
 
-		MenuSwitch mFullscreen = new MenuSwitch("Fullscreen:", style, posx,
+		mFullscreen = new MenuSwitch("Fullscreen:", style, posx,
 				posy += itemHeight, width, cfg.fullscreen == 1, new MenuProc() {
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSwitch sw = (MenuSwitch) pItem;
@@ -209,7 +209,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
-		MenuButton mApplyChanges = new MenuButton("Apply changes", apply, 0, posy += 2 * itemHeight, 320, 1, 0, null, -1, callback, 0) {
+		mApplyChanges = new MenuButton("Apply changes", apply, 0, posy += 2 * itemHeight, 320, 1, 0, null, -1, callback, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
 				super.draw(handler);

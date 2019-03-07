@@ -63,7 +63,8 @@ public class BuildMenu {
 		if ( m_nItems <= 0 )
 			return true;
 		
-		handler.mSound(m_pItems[m_nFocus], opt);
+		if(m_nFocus >= 0 && m_pItems[m_nFocus] != null)
+			handler.mSound(m_pItems[m_nFocus], opt);
 		
 		switch(opt) {
 		case Open:

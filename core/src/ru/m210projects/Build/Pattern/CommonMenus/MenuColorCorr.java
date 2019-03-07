@@ -31,6 +31,11 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 
 public abstract class MenuColorCorr extends BuildMenu {
 
+	public MenuSlider mGamma;
+	public MenuSlider mBrightness;
+	public MenuSlider mContrast;
+	public MenuButton mDefault;
+	
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
 	public MenuColorCorr(final BuildGame app, int posx, int posy, int width, int menuHeight, BuildFont style, BuildFont reset) {
@@ -38,7 +43,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 		
 		final BuildConfig cfg = app.pCfg;
 
-		final MenuSlider mGamma = new MenuSlider(app.pSlider, "Gamma:", style, posx, posy += menuHeight, width, (int) ((1 - cfg.gamma) * 4096), 0, 4096, 64,
+		mGamma = new MenuSlider(app.pSlider, "Gamma:", style, posx, posy += menuHeight, width, (int) ((1 - cfg.gamma) * 4096), 0, 4096, 64,
 		new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
@@ -53,7 +58,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 		}, true);
 		mGamma.digitalMax = 4096;
 		
-		final MenuSlider mBrightness = new MenuSlider(app.pSlider, "Brightness:", style, posx, posy += menuHeight, width,(int) (cfg.brightness * 4096), -4096, 4096, 64,
+		mBrightness = new MenuSlider(app.pSlider, "Brightness:", style, posx, posy += menuHeight, width,(int) (cfg.brightness * 4096), -4096, 4096, 64,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -67,7 +72,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 				}, true);
 		mBrightness.digitalMax = 4096;
 		
-		final MenuSlider mContrast = new MenuSlider(app.pSlider, "Contrast:", style, posx, posy += menuHeight, width, (int) (cfg.contrast * 4096), 0, 8192, 64,
+		mContrast = new MenuSlider(app.pSlider, "Contrast:", style, posx, posy += menuHeight, width, (int) (cfg.contrast * 4096), 0, 8192, 64,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -81,7 +86,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 				}, true);
 		mContrast.digitalMax = 4096;
 
-		MenuButton mDefault = new MenuButton("Set to default", reset, 0, posy += 2 * menuHeight, 320, 1, 0, null, -1, new MenuProc() {
+		mDefault = new MenuButton("Set to default", reset, 0, posy += 2 * menuHeight, 320, 1, 0, null, -1, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				cfg.gamma = 1.0f;

@@ -40,6 +40,17 @@ import ru.m210projects.Build.Render.GLInfo;
 
 public abstract class MenuVideoSetup extends BuildMenu {
 	
+	public MenuButton mVideoMode;
+	public MenuButton mColorMode;
+	public MenuConteiner sFilter;		
+	public MenuConteiner sAnisotropy;
+	public MenuSwitch sWidescreen;
+	public MenuConteiner mMenuFPS;
+	public MenuSwitch sVSync;
+	public  MenuSwitch UseVoxels;
+	public MenuSwitch UseModels;
+	public MenuSwitch Usehrp;
+	
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
 	public abstract MenuColorCorr getColorCorrectionMenu(BuildGame app);
@@ -52,11 +63,11 @@ public abstract class MenuVideoSetup extends BuildMenu {
 		
 		final BuildConfig cfg = app.pCfg;
 
-		MenuButton mVideoMode = new MenuButton("Video mode", style, 0, posy += menuHeight, 320, 1, 0, getVideoModeMenu(app), -1, null, 0);
+		mVideoMode = new MenuButton("Video mode", style, 0, posy += menuHeight, 320, 1, 0, getVideoModeMenu(app), -1, null, 0);
 
-		MenuButton mColorMode = new MenuButton("Color correction", style, posx, posy += menuHeight, width, 1, 0, getColorCorrectionMenu(app), -1, null, 0);
+		mColorMode = new MenuButton("Color correction", style, posx, posy += menuHeight, width, 1, 0, getColorCorrectionMenu(app), -1, null, 0);
 
-		MenuConteiner sFilter = new MenuConteiner("Texture mode:", style, conteiner, posx, posy += 2 * menuHeight, width, null, 0, new MenuProc() {
+		sFilter = new MenuConteiner("Texture mode:", style, conteiner, posx, posy += 2 * menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -84,7 +95,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			}
 		};
 		
-		MenuConteiner sAnisotropy = new MenuConteiner("Anisotropy: ", style, conteiner, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		sAnisotropy = new MenuConteiner("Anisotropy: ", style, conteiner, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -105,7 +116,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			}
 		};
 
-		MenuSwitch sWidescreen = new MenuSwitch("Widescreen:", style, posx, posy += menuHeight, width, cfg.widescreen == 1,
+		sWidescreen = new MenuSwitch("Widescreen:", style, posx, posy += menuHeight, width, cfg.widescreen == 1,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -114,7 +125,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 					}
 				}, null, null);
 		
-		MenuConteiner mMenuFPS = new MenuConteiner("Framerate limit:", style, conteiner, posx, posy += menuHeight, width, null, 0,
+		mMenuFPS = new MenuConteiner("Framerate limit:", style, conteiner, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -147,7 +158,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			}
 		};
 
-		MenuSwitch sVSync = new MenuSwitch("VSync:", style, posx, posy += menuHeight, width, cfg.gVSync, new MenuProc() {
+		sVSync = new MenuSwitch("VSync:", style, posx, posy += menuHeight, width, cfg.gVSync, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
@@ -159,7 +170,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			}
 		}, null, null);
 		posy += 5;
-		MenuSwitch UseVoxels = new MenuSwitch("Voxels:", style, posx, posy += menuHeight, width, usevoxels, new MenuProc() {
+		UseVoxels = new MenuSwitch("Voxels:", style, posx, posy += menuHeight, width, usevoxels, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
@@ -171,7 +182,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 				value = usevoxels;
 			}
 		};
-		MenuSwitch UseModels = new MenuSwitch("3d models:", style, posx, posy += menuHeight, width, usemodels, new MenuProc() {
+		UseModels = new MenuSwitch("3d models:", style, posx, posy += menuHeight, width, usemodels, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
@@ -183,7 +194,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 				value = usemodels;
 			}
 		};
-		MenuSwitch Usehrp = new MenuSwitch("True color textures:", style, posx, posy += menuHeight, width, usehightile, new MenuProc() {
+		Usehrp = new MenuSwitch("True color textures:", style, posx, posy += menuHeight, width, usehightile, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;

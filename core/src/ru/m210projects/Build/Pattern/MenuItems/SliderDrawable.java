@@ -36,7 +36,7 @@ public abstract class SliderDrawable {
 	
 	public abstract void drawSlider(int x, int y, int shade, int pal);
 	
-	public abstract void drawScrollerBackground(int x, int y, int len, int shade, int pal);
+	public abstract void drawScrollerBackground(int x, int y, int height, int shade, int pal);
 	
 	public abstract void drawScroller(int x, int y, int shade, int pal);
 
@@ -66,11 +66,11 @@ public abstract class SliderDrawable {
 		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
 	}
 	
-	protected void drawScrollerBackground(Engine draw, int x, int y, int width, int height, int col)
+	protected void drawScrollerBackground(Engine draw, int x, int y, int height, int col)
 	{
 		int x1 = coordsConvertXScaled(x - 1, ConvertType.Normal);
 		int y1 = coordsConvertYScaled(y - 1);
-		int x2 = coordsConvertXScaled(x + width + 1, ConvertType.Normal);
+		int x2 = coordsConvertXScaled(x + getScrollerWidth() + 1, ConvertType.Normal);
 		int y2 = coordsConvertYScaled(y + height + 1);
 		
 		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);
@@ -79,11 +79,11 @@ public abstract class SliderDrawable {
 		draw.getrender().drawline256(x2 * 4096, y1 * 4096, x2 * 4096, y2 * 4096, col);
 	}
 	
-	protected void drawScroller(Engine draw, int x, int y, int width, int col)
+	protected void drawScroller(Engine draw, int x, int y, int col)
 	{
 		int x1 = coordsConvertXScaled(x, ConvertType.Normal);
 		int y1 = coordsConvertYScaled(y);
-		int x2 = coordsConvertXScaled(x + width, ConvertType.Normal);
+		int x2 = coordsConvertXScaled(x + getScrollerWidth(), ConvertType.Normal);
 		int y2 = coordsConvertYScaled(y + getScrollerHeight());
 		
 		draw.getrender().drawline256(x1 * 4096, y1 * 4096, x2 * 4096, y1 * 4096, col);

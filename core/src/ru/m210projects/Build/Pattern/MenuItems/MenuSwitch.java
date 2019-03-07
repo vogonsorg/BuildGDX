@@ -25,6 +25,7 @@ public class MenuSwitch extends MenuItem
 	public boolean value;
 	public MenuProc callback;
 	char[] onMessage, offMessage;
+	public BuildFont switchFont;
 	
 	public MenuSwitch(Object text, BuildFont font, int x, int y, int width, boolean value, 
 			MenuProc callback, String onMessage, String offMessage) 
@@ -44,6 +45,8 @@ public class MenuSwitch extends MenuItem
 			this.offMessage = offMessage.toCharArray();
 		else
 			this.offMessage = new char[]{ 'O', 'f', 'f' };
+		
+		this.switchFont = font;
 	}
 	
 	@Override
@@ -56,7 +59,7 @@ public class MenuSwitch extends MenuItem
 		char[] sw = offMessage;
 		if(value) sw = onMessage;
 		
-		font.drawText(x + width - 1 - font.getWidth(sw), y, sw, shade, pal, TextAlign.Left, 0, false);
+		switchFont.drawText(x + width - 1 - switchFont.getWidth(sw), y + (font.nHeight - switchFont.nHeight) / 2, sw, shade, handler.getPal(switchFont, this), TextAlign.Left, 0, false);
 		handler.mPostDraw(this);
 	}
 	

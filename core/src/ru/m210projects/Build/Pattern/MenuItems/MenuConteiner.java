@@ -67,7 +67,7 @@ public class MenuConteiner extends MenuItem
 		
 		if(key == null) return;
 
-		listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, pal, TextAlign.Left, 0, false);
+		listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, handler.getPal(listFont, this), TextAlign.Left, 0, false);
 		
 		handler.mPostDraw(this);
 	}

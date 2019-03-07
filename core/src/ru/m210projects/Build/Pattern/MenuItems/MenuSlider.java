@@ -41,6 +41,7 @@ public class MenuSlider extends MenuItem {
 	public float digitalMax;
 	public char[] dbuff; 
 	public MenuProc callback;
+	public BuildFont sliderNumbers;
 
 	private int touchX;
 	private boolean isTouched;
@@ -65,6 +66,7 @@ public class MenuSlider extends MenuItem {
 		this.digital = digital;
 		this.digitalMax = 0;
 		this.callback = callback;
+		this.sliderNumbers = font;
 		
 		dbuff = new char[10];
 	}
@@ -77,7 +79,7 @@ public class MenuSlider extends MenuItem {
 		if ( text != null )
 			font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, false);
 
-		slider.drawSliderBackground(x + width - slider.getSliderRange(), y, 0, pal);
+		slider.drawSliderBackground(x + width - slider.getSliderRange(), y, shade, pal);
 
 		if(digital)
 		{
@@ -91,7 +93,7 @@ public class MenuSlider extends MenuItem {
 				Arrays.fill(dbuff, index + 4, dbuff.length, (char)0);
 			}
 
-			font.drawText(x + width - slider.getSliderRange() - font.getWidth(dbuff) - 10, y, dbuff, shade, pal, TextAlign.Left, 0, false);
+			sliderNumbers.drawText(x + width - slider.getSliderRange() - sliderNumbers.getWidth(dbuff) - 5, y + (font.nHeight - sliderNumbers.nHeight) / 2, dbuff, shade, handler.getPal(sliderNumbers, this), TextAlign.Left, 0, false);
 		}
 		
 		int xRange = slider.getSliderRange() - slider.getSliderWidth();
