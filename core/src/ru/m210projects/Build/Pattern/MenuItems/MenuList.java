@@ -68,7 +68,7 @@ public class MenuList extends MenuItem
 			        px = width / 2 + x - font.getWidth(text.get(i)) / 2;
 			    if(align == 2) 
 			        px = x + width - 1 - font.getWidth(text.get(i));
-			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 0, false);
+			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 2, false);
 				py += mFontOffset();
 			}
 		} else {
@@ -83,7 +83,7 @@ public class MenuList extends MenuItem
 		        px = x + width - 1 - fontx;   
 
 		    int shade = handler.getShade(this);
-		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, true);
+		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, true);
 		}
 		
 		handler.mPostDraw(this);

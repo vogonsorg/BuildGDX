@@ -48,11 +48,11 @@ public class Interpolation {
 	private int InterpolationCount = 0;
 	private IData[] gInterpolationData = new IData[MAXINTERPOLATIONS];
 
-	private int gWallLoc[] = new int[MAXWALLS << 3];
-	private int gSectorLoc[] = new int[MAXSECTORS << 3];
-	private int gFloorLoc[] = new int[MAXSECTORS << 3];
-	private int gCeilLoc[] = new int[MAXSECTORS << 3];
-	private int gSpriteLoc[] = new int[MAXSPRITES << 3];
+	private int gWallLoc[] = new int[MAXWALLS >> 3];
+	private int gSectorLoc[] = new int[MAXSECTORS >> 3];
+	private int gFloorLoc[] = new int[MAXSECTORS >> 3];
+	private int gCeilLoc[] = new int[MAXSECTORS >> 3];
+	private int gSpriteLoc[] = new int[MAXSPRITES >> 3];
 
 	public Interpolation() {
 		for (int i = 0; i < MAXINTERPOLATIONS; i++)

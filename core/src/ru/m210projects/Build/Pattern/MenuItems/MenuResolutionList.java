@@ -79,7 +79,7 @@ public class MenuResolutionList extends MenuList {
 			        px = width / 2 + x - font.getWidth(text.get(i)) / 2;
 			    if(align == 2) 
 			        px = x + width - 1 - font.getWidth(text.get(i));
-			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 0, true);
+			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 2, true);
 
 				py += mFontOffset();
 			}
@@ -96,7 +96,7 @@ public class MenuResolutionList extends MenuList {
 		        px = x + width - 1 - font.getWidth(text.toCharArray());
 		    int shade = handler.getShade(this);
 		    
-		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, true);
+		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, true);
 		}
 
 		handler.mPostDraw(this);

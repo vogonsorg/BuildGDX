@@ -149,8 +149,8 @@ public class MenuFileBrowser extends MenuItem {
 		draw.rotatesprite(x << 16, y << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 1, 0, 0, coordsConvertXScaled(x+width, ConvertType.Normal), coordsConvertYScaled(yList + nListItems * mFontOffset() + 6));
 
 		int px = x + 3;
-		/*directories*/ topFont.drawText(px, yColNames, dirs, -32, topPal, TextAlign.Left, 0, false);
-		/*files*/ topFont.drawText(x - 3 + width - topFont.getWidth(ffs), yColNames, ffs, -32, topPal, TextAlign.Left, 0, false);
+		/*directories*/ topFont.drawText(px, yColNames, dirs, -32, topPal, TextAlign.Left, 2, false);
+		/*files*/ topFont.drawText(x - 3 + width - topFont.getWidth(ffs), yColNames, ffs, -32, topPal, TextAlign.Left, 2, false);
 		
 		px += scrollerWidth + 3;
 		
@@ -210,7 +210,7 @@ public class MenuFileBrowser extends MenuItem {
 	    while(tptr < text.length && text[tptr] != 0)
 	    {
         	if(tx + x > x1 && tx + x <= x2) 
-        		x += font.drawChar(x, y, text[tptr], shade, pal, 0, false);
+        		x += font.drawChar(x, y, text[tptr], shade, pal, 2, false);
         	else break;
 
 	        tptr++;

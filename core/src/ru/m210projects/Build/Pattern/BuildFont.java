@@ -18,6 +18,7 @@ package ru.m210projects.Build.Pattern;
 
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Pragmas.*;
 
 import ru.m210projects.Build.Engine;
 
@@ -70,7 +71,7 @@ public class BuildFont {
 
 		return width;
 	}
-
+	
 	public int drawChar(int x, int y, char ch, int shade, int pal, int nBits, boolean shadow) {
 		if(charInfo[ch].nTile == -1) return 0;
 		
@@ -96,6 +97,52 @@ public class BuildFont {
 		int alignx = 0;
 		for(int i = 0; i < text.length && text[i] != 0; i++)
 			alignx += drawChar(x + alignx, y, text[i], shade, pal, nBits, shadow);
+		return alignx;
+	}
+	
+	// Scale font
+	
+	public int getWidth(char[] text, int scale) {
+		int width = 0;
+	
+		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
+		
+		if (text != null) {
+			int pos = 0;
+			while (pos < text.length && text[pos] != 0) {
+				width += scale(charInfo[text[pos++]].nWidth, zoom, nScale);
+			}
+		}
+
+		return width;
+	}
+	
+	public int drawChar(int x, int y, char ch, int scale, int shade, int pal, int nBits, boolean shadow) {
+		if(charInfo[ch].nTile == -1) return 0;
+
+		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
+		if(charInfo[ch].nTile != nSpace) {
+			if(shadow)
+				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, zoom, 0, charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
+			draw.rotatesprite((x + charInfo[ch].xOffset) << 16, (y + charInfo[ch].yOffset) << 16, zoom, 0, charInfo[ch].nTile, shade, pal, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
+		}
+		return scale(charInfo[ch].nWidth, zoom, nScale); 
+	}
+	
+	public int drawText(int x, int y, char[] text, int scale, int shade, int pal, TextAlign align, int nBits, boolean shadow) {
+		if(text == null) return 0;
+		
+		if ( align != TextAlign.Left )
+		{
+			int nWidth = getWidth(text, scale);
+			if ( align == TextAlign.Center ) 
+				nWidth >>= 1;
+			x -= nWidth;
+		}
+	
+		int alignx = 0;
+		for(int i = 0; i < text.length && text[i] != 0; i++)
+			alignx += drawChar(x + alignx, y, text[i], scale, shade, pal, nBits, shadow);
 		return alignx;
 	}
 

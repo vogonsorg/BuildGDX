@@ -84,9 +84,9 @@ public abstract class MenuKeyboardList extends MenuList
 			}
 
 			char[] k = key.toCharArray();
-			font.drawText(px, py, text.toCharArray(), shade, pal1, TextAlign.Left, 0, false);
+			font.drawText(px, py, text.toCharArray(), shade, pal1, TextAlign.Left, 2, false);
 
-			font.drawText(x + width / 2 - 1 - font.getWidth(k) + 40, py, k, shade, pal2, TextAlign.Left, 0, false);		
+			font.drawText(x + width / 2 - 1 - font.getWidth(k) + 40, py, k, shade, pal2, TextAlign.Left, 2, false);		
 			
 			if(cfg.mousekeys[i] != 0)
 				key = getKeyName(cfg.mousekeys[i]);
@@ -98,7 +98,7 @@ public abstract class MenuKeyboardList extends MenuList
 				}
 			}
 			k = key.toCharArray();
-			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, pal2, TextAlign.Left, 0, false);	
+			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, pal2, TextAlign.Left, 2, false);	
 				
 			py += mFontOffset();
 		}

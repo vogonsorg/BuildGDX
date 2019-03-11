@@ -63,11 +63,11 @@ public class MenuConteiner extends MenuItem
 
 		int pal = handler.getPal(font, this);
 		int shade = handler.getShade(this);
-		font.drawText(px, py, text, shade, pal, TextAlign.Left, 0, false);
+		font.drawText(px, py, text, shade, pal, TextAlign.Left, 2, false);
 		
 		if(key == null) return;
 
-		listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, handler.getPal(listFont, this), TextAlign.Left, 0, false);
+		listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, handler.getPal(listFont, this), TextAlign.Left, 2, false);
 		
 		handler.mPostDraw(this);
 	}

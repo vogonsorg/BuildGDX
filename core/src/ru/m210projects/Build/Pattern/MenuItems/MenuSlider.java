@@ -77,7 +77,7 @@ public class MenuSlider extends MenuItem {
 		int pal = handler.getPal(font, this);
 
 		if ( text != null )
-			font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, false);
+			font.drawText(x, y, text, shade, pal, TextAlign.Left, 2, false);
 
 		slider.drawSliderBackground(x + width - slider.getSliderRange(), y, shade, pal);
 
@@ -93,7 +93,7 @@ public class MenuSlider extends MenuItem {
 				Arrays.fill(dbuff, index + 4, dbuff.length, (char)0);
 			}
 
-			sliderNumbers.drawText(x + width - slider.getSliderRange() - sliderNumbers.getWidth(dbuff) - 5, y + (font.nHeight - sliderNumbers.nHeight) / 2, dbuff, shade, handler.getPal(sliderNumbers, this), TextAlign.Left, 0, false);
+			sliderNumbers.drawText(x + width - slider.getSliderRange() - sliderNumbers.getWidth(dbuff) - 5, y + (font.nHeight - sliderNumbers.nHeight) / 2, dbuff, shade, handler.getPal(sliderNumbers, this), TextAlign.Left, 2, false);
 		}
 		
 		int xRange = slider.getSliderRange() - slider.getSliderWidth();

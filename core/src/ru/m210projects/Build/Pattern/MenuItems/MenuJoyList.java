@@ -85,8 +85,8 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 
 			char[] k = key.toCharArray();
 			
-			font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 0, false);		
-			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 0, false);		
+			font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, false);		
+			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 2, false);		
 	
 			py += mFontOffset();
 		}

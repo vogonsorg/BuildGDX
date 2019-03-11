@@ -127,7 +127,7 @@ public class MenuTextField extends MenuItem {
 		    if ( !m_pMenu.mGetFocusedItem(this) )
 		     	typing = false;
 
-		    font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, false);
+		    font.drawText(x, y, text, shade, pal, TextAlign.Left, 2, false);
 
 	    	int px = x + width - 1;
 			if(typing) {
@@ -135,7 +135,7 @@ public class MenuTextField extends MenuItem {
 				px -= 4;
 			}
 
-			font.drawText(px - font.getWidth(typingBuf), y, typingBuf, shade, pal, TextAlign.Left, 0, false);
+			font.drawText(px - font.getWidth(typingBuf), y, typingBuf, shade, pal, TextAlign.Left, 2, false);
 		    if(typing && (totalclock & 0x20) != 0) 
 		    	font.drawChar(px, y, '_', shade, pal, 0, false);
 		}

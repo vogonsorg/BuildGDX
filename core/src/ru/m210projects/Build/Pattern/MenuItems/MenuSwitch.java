@@ -55,11 +55,11 @@ public class MenuSwitch extends MenuItem
 		int pal = handler.getPal(font, this);
 		
 		if ( text != null )
-			font.drawText(x, y, text, shade, pal, TextAlign.Left, 0, false);
+			font.drawText(x, y, text, shade, pal, TextAlign.Left, 2, false);
 		char[] sw = offMessage;
 		if(value) sw = onMessage;
 		
-		switchFont.drawText(x + width - 1 - switchFont.getWidth(sw), y + (font.nHeight - switchFont.nHeight) / 2, sw, shade, handler.getPal(switchFont, this), TextAlign.Left, 0, false);
+		switchFont.drawText(x + width - 1 - switchFont.getWidth(sw), y + (font.nHeight - switchFont.nHeight) / 2, sw, shade, handler.getPal(switchFont, this), TextAlign.Left, 2, false);
 		handler.mPostDraw(this);
 	}
 	
