@@ -48,6 +48,6 @@ public interface Sound {
 	public void setVolume(float vol);
 	public void stopAllSounds();
 	public boolean isAvailable(int priority);
-	public Source newSound(ByteBuffer data, int rate, int bits, int priority);
+	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority);
 	public void update();
 }

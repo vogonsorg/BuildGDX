@@ -191,7 +191,7 @@ public class ALSoundDrv implements Sound {
 	}
 	
 	@Override
-	public Source newSound(ByteBuffer data, int rate, int bits, int priority) {
+	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority) {
 		if(noDevice) return null;
 		
 		Source source = sourceManager.obtainSource(priority);
@@ -209,7 +209,7 @@ public class ALSoundDrv implements Sound {
 
 		source.setVolume(0.0f);
 
-		int format = toALFormat(0, bits);
+		int format = toALFormat(channels, bits);
 		if(format == -1) {
 			Console.Println("OpenAL Error wrong bits: " + bits, OSDTEXT_RED);
 			source.dispose();

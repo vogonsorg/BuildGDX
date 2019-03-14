@@ -47,6 +47,8 @@ public class InitScreen extends ScreenAdapter {
 	
 	private Thread thread;
 
+	private BuildGame game;
+	
 	@Override
 	public void show()
 	{
@@ -61,6 +63,7 @@ public class InitScreen extends ScreenAdapter {
 
 	public InitScreen(final BuildGame game)
 	{
+		this.game = game;
 		factory = game.getFactory();
 		
 		Console.SetLogFile(game.appname + ".log");
@@ -151,7 +154,7 @@ public class InitScreen extends ScreenAdapter {
 		});
 		thread.start();
 	}
-	
+
 	public void updateColorCorrection(BuildConfig cfg) {
 		if (BuildGdx.app.getFrameType() == FrameType.GL) {
 			if (!((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.gamma, cfg.brightness, cfg.contrast)) {
@@ -179,26 +182,8 @@ public class InitScreen extends ScreenAdapter {
 
 		if(frames > 3)
 		{
-//			BuildConfig cfg = game.cfg;
-//			game.input = factory.input(new GPManager());
-//			game.menu = factory.menus();
-//			game.net = factory.net();
-//
-//			uninitmultiplayer();
-//			
-//			BuildGdx.audio.setDriver(Driver.Sound, cfg.snddrv);
-//			BuildGdx.audio.setDriver(Driver.Music, cfg.middrv);
-
-//			new Thread(new Runnable() {
-//				@Override
-//				public void run() {
-//					try {
-//						game.init();
-//					} catch (Exception e) {
-//						game.ThrowError("InitScreen error", e);
-//					}
-//				}
-//			}).start();
+			if(!thread.isAlive()) 
+				game.show();
 		}
 
 		engine.nextpage();

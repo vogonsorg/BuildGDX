@@ -86,6 +86,8 @@ public abstract class BuildGame extends Game {
 
 	public abstract void init() throws Exception;
 	
+	public abstract void show();
+	
 	@Override
 	public void dispose() {
 		if(getScreen() instanceof InitScreen)

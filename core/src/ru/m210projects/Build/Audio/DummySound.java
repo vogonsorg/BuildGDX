@@ -66,7 +66,7 @@ public class DummySound implements Sound {
 	}
 
 	@Override
-	public Source newSound(ByteBuffer data, int rate, int bits, int priority) {
+	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority) {
 		return null;
 	}
 

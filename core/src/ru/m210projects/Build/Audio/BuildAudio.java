@@ -214,7 +214,13 @@ public class BuildAudio implements Disposable {
 	public Source newSound(ByteBuffer data, int rate, int bits, int priority)
 	{
 		if(priority == 0) priority = 1;
-		return fx.newSound(data, rate, bits, priority);
+		return fx.newSound(data, rate, bits, 1, priority);
+	}
+	
+	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority)
+	{
+		if(priority == 0) priority = 1;
+		return fx.newSound(data, rate, bits, channels, priority);
 	}
 	
 	public MusicSource newMusic(MusicType type, String file) {

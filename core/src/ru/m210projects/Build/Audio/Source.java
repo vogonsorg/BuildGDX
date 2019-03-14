@@ -22,7 +22,7 @@ import java.nio.ByteBuffer;
 public abstract class Source implements Comparable<Source> {
 	
 	public static final int Locked = 1;
-	
+
 	public int bufferId;
 	public int sourceId;
 	public int priority;
