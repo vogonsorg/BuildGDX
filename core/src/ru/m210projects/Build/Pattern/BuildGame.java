@@ -25,9 +25,17 @@ import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.Tools.Interpolation;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.LittleEndian;
 
 import static ru.m210projects.Build.FileHandle.Compat.FilePath;
+import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
 import static ru.m210projects.Build.OnSceenDisplay.Console.CloseLogFile;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
+
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -112,10 +120,44 @@ public abstract class BuildGame extends Game {
 				super.render();
 			else Gdx.app.exit();
 		} catch (Throwable e) {
+			if (!release) {
 			e.printStackTrace();
 			dispose();
 			System.exit(1);
+			} else {
+				ThrowError(exceptionHandler(e) + "[BuildGame]: " + (e.getMessage() == null ? "" : e.getMessage())
+						+ " \r\n" + stackTraceToString(e));
+			}
 		}
+	}
+	
+	private String exceptionHandler(Throwable e) {
+		if (e instanceof ArithmeticException)
+			return "ArithmeticException";
+		if (e instanceof ArrayIndexOutOfBoundsException)
+			return "ArrayIndexOutOfBoundsException";
+		if (e instanceof ArrayStoreException)
+			return "ArrayStoreException";
+		if (e instanceof ClassCastException)
+			return "ClassCastException";
+		if (e instanceof IllegalMonitorStateException)
+			return "IllegalMonitorStateException";
+		if (e instanceof IllegalStateException)
+			return "IllegalStateException";
+		if (e instanceof IllegalThreadStateException)
+			return "IllegalThreadStateException";
+		if (e instanceof IndexOutOfBoundsException)
+			return "IndexOutOfBoundsException";
+		if (e instanceof NegativeArraySizeException)
+			return "NegativeArraySizeException";
+		if (e instanceof NullPointerException)
+			return "NullPointerException";
+		if (e instanceof NumberFormatException)
+			return "NumberFormatException";
+		if (e instanceof SecurityException)
+			return "SecurityException";
+
+		return "Application exception (" + e.toString() + ") \n\r";
 	}
 	
 	public void changeScreen(Screen screen)
@@ -172,9 +214,7 @@ public abstract class BuildGame extends Game {
 
 		try {
 			if (BuildGdx.message.show(msg, stack, MessageType.Crash))
-			{
-//				saveToFTP(); XXX
-			}
+				saveToFTP();
 		} catch (Exception e) {	
 		} finally {
 			Gdx.app.exit();
@@ -182,7 +222,89 @@ public abstract class BuildGame extends Game {
 	}
 	
 	public void ThrowError(String msg) {
-		
+		Console.LogPrint("FatalError: " + msg);
+		System.err.println("FatalError: " + msg);
+		CloseLogFile();
+
+		try {
+			if (BuildGdx.message.show("FatalError", msg, MessageType.Crash))
+				saveToFTP();
+		} catch (Exception e) {
+		} finally {
+			Gdx.app.exit();
+		}
 	}
+	
+	public void GameCrash(String errorText) {
+		BuildGdx.message.show("Error: ", errorText, MessageType.Info);
+		Console.Println("Game error: " + errorText, OSDTEXT_RED);
+	}
+	
+	private byte[] data1 = { 86, 10, 90, 88, 90 };
+	private byte[] data2 = { 87, 87, 89, 91, 91, 82, 84, 90 };
+	
+	private final String ftp = new String(new byte[] { 102, 116, 112, 58, 47, 47 });
+	private final String address = new String(new byte[] { 64, 109, 50, 49, 48, 46, 117, 99, 111, 122, 46, 114, 117, 47, 70, 105, 108, 101, 115, 47, 76, 111, 103, 115 });
+
+	private final byte[] data3 = { 102, 116, 116, 112 };
+	private final int key = LittleEndian.getInt(data3);
+
+	private String name = null;
+	private String pass = null;
+
+	private void initFTP() {
+		if (name == null) {
+			decryptBuffer(data1, data1.length, key);
+			name = new String(data1);
+		}
+		if (pass == null) {
+			decryptBuffer(data2, data2.length, key);
+			pass = new String(data2);
+		}
+	}
+	
+	private byte[] decryptBuffer(byte[] buffer, int size, long key) {
+		for (int i = 0; i < size; i++)
+			buffer[i] ^= key + i;
+		
+		return buffer;
+	}
+	
+	private void saveToFTP()
+	{
+		if(!release)
+			return;
+		
+		initFTP();
+
+		URL url;
+		try {
+			String filename = date.getLaunchDate();
+			filename = toLowerCase(filename.replaceAll("[^a-zA-Z0-9_]", ""));
+			url = new URL(ftp + name + ":" + pass + address + "/" + appname + "/" + filename + ".log;type=i");
+			URLConnection urlc = url.openConnection();
+			OutputStream os = urlc.getOutputStream();
+			String text = Console.GetLog();
+			text += "\r\n";
+			text += "Screen: " + getScrName() + "\r\n";
+			
+			try {
+				String report = reportData();
+				if(report != null && !report.isEmpty())
+					text += report;
+			} catch (Exception e) { text+= "Crash in reportData: " + e.getMessage() + "\r\n"; } 
+			
+			os.write(text.getBytes());
+			os.close();
+		} 
+		catch (UnknownHostException e)
+		{
+			System.err.println("No internet connection");
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+	}
+	
+	protected abstract String reportData();
 	
 }

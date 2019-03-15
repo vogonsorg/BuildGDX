@@ -3403,7 +3403,7 @@ public abstract class Polymost implements Renderer {
 			return;
 
 //		Console.Println("precached " + dapicnum + " " + dapalnum + " type " + datype);
-		textureCache.cache(dapicnum, dapalnum, (short) 0, clampingMode((datype & 1) << 2), datype == 1);
+		textureCache.cache(dapicnum, dapalnum, (short) 0, clampingMode((datype & 1) << 2), true);
 
 		if (datype == 0 || defs == null)
 			return;

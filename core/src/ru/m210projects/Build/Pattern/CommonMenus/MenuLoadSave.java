@@ -32,11 +32,16 @@ import ru.m210projects.Build.Pattern.Tools.SaveManager;
 
 public abstract class MenuLoadSave extends BuildMenu {
 
+	public MenuPicnum picnum;
+	public MenuSlotList list;
+	public MenuScroller slider;
+	public MenuText mInfo;
+	
 	public MenuLoadSave(BuildGame app, BuildFont style, int posx, int posy, int posyHelp, int width, int nItems, int listPal, int specPal, int nBackground, MenuProc confirm, boolean saveMenu)
 	{
 		addItem(getTitle(app, saveMenu ? "Save game" : "Load game"), false);
 
-		final MenuPicnum picnum = getPicnum(app.pEngine, posx, posy);
+		picnum = getPicnum(app.pEngine, posx, posy);
 		
 		MenuProc updateCallback = new MenuProc() {
 			@Override
@@ -49,9 +54,9 @@ public abstract class MenuLoadSave extends BuildMenu {
 			}
 		};
 		
-		MenuSlotList list = new MenuSlotList(app.pEngine, app.pSavemgr, style, posx, posy, posyHelp, width, nItems, updateCallback, confirm, listPal, specPal, nBackground, saveMenu);
-		MenuScroller slider = new MenuScroller(app.pSlider, list, width + posx - app.pSlider.getScrollerWidth());
-		MenuText mInfo = getInfo(app, posx, posy);
+		list = new MenuSlotList(app.pEngine, app.pSavemgr, style, posx, posy, posyHelp, width, nItems, updateCallback, confirm, listPal, specPal, nBackground, saveMenu);
+		slider = new MenuScroller(app.pSlider, list, width + posx - app.pSlider.getScrollerWidth());
+		mInfo = getInfo(app, posx, posy);
 		
 		addItem(picnum, false);
 		addItem(mInfo, false);

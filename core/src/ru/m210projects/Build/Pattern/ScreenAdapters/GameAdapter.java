@@ -37,12 +37,13 @@ public abstract class GameAdapter extends ScreenAdapter {
 	protected MenuHandler menu;
 	protected Engine engine;
 	protected BuildConfig cfg;
+	protected Runnable gScreenCapture;
+	protected LoadingAdapter load;
 	
 	public boolean gPaused;
-	public Runnable gScreenCapture;
 	public byte[] captBuffer;
 	
-	LoadingAdapter load;
+	
 
 	public GameAdapter(final BuildGame game, LoadingAdapter load)
 	{
