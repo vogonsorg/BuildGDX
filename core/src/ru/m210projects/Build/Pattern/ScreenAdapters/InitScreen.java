@@ -26,8 +26,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.GLFrame;
-import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
 import ru.m210projects.Build.Input.GPManager;
@@ -144,7 +142,7 @@ public class InitScreen extends ScreenAdapter {
 					Console.setCaptureKey(cfg.mousekeys[consolekey], 2);
 					Console.setCaptureKey(cfg.gpadkeys[consolekey], 3);
 					
-					updateColorCorrection(cfg);
+					game.updateColorCorrection();
 
 					game.init();
 				} catch (Exception e) {
@@ -153,17 +151,6 @@ public class InitScreen extends ScreenAdapter {
 			}
 		});
 		thread.start();
-	}
-
-	public void updateColorCorrection(BuildConfig cfg) {
-		if (BuildGdx.app.getFrameType() == FrameType.GL) {
-			if (!((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.gamma, cfg.brightness, cfg.contrast)) {
-				((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
-				cfg.gamma = 1.0f;
-				cfg.brightness = 0.0f;
-				cfg.contrast = 1.0f;
-			}
-		}
 	}
 
 	public void dispose()

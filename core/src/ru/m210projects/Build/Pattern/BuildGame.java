@@ -17,6 +17,8 @@
 package ru.m210projects.Build.Pattern;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -127,6 +129,17 @@ public abstract class BuildGame extends Game {
 			} else {
 				ThrowError(exceptionHandler(e) + "[BuildGame]: " + (e.getMessage() == null ? "" : e.getMessage())
 						+ " \r\n" + stackTraceToString(e));
+			}
+		}
+	}
+	
+	public void updateColorCorrection() {
+		if (BuildGdx.app.getFrameType() == FrameType.GL) {
+			if (!((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(pCfg.gamma, pCfg.brightness, pCfg.contrast)) {
+				((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+				pCfg.gamma = 1.0f;
+				pCfg.brightness = 0.0f;
+				pCfg.contrast = 1.0f;
 			}
 		}
 	}

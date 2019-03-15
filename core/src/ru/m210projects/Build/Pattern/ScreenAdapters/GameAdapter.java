@@ -17,12 +17,16 @@
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
 import static ru.m210projects.Build.Gameutils.*;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Net.Mmulti.*;
 import static ru.m210projects.Build.Pattern.BuildNet.*;
 
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildGame;
@@ -39,11 +43,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 	protected BuildConfig cfg;
 	protected Runnable gScreenCapture;
 	protected LoadingAdapter load;
-	
-	public boolean gPaused;
 	public byte[] captBuffer;
-	
-	
 
 	public GameAdapter(final BuildGame game, LoadingAdapter load)
 	{
@@ -69,6 +69,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 	public abstract void DrawHud();
 	
 	public abstract void KeyHandler();
+	
+	public abstract void sndHandlePause(boolean pause);
 	
 	protected abstract boolean prepareboard(String map);
 	
@@ -113,7 +115,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 			engine.faketimerhandler();
 			
 			net.GetPackets();
-			while (net.gPredictTail < net.gNetFifoHead[myconnectindex] && !gPaused) 
+			while (net.gPredictTail < net.gNetFifoHead[myconnectindex] && !game.gPaused) 
 				net.UpdatePrediction(net.gFifoInput[net.gPredictTail & kFifoMask][myconnectindex]); 
 
 		} else net.bufferJitter = 0;
@@ -132,7 +134,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		net.CheckSync();
 		
 		float smoothratio = 65536;
-		if (!gPaused && (!menu.gShowMenu || game.nNetMode != NetMode.Single) && !Console.IsShown()) {
+		if (!game.gPaused && (!menu.gShowMenu || game.nNetMode != NetMode.Single) && !Console.IsShown()) {
 			smoothratio = engine.getsmoothratio();
 			if (smoothratio < 0 || smoothratio > 0x10000) {
 //				System.err.println("Interpolation error " + smoothratio);
@@ -170,6 +172,29 @@ public abstract class GameAdapter extends ScreenAdapter {
 				captBuffer = engine.screencapture(width, height);
 			}
 		};
+	}
+	
+	@Override
+	public void pause () {
+		if (game.nNetMode == NetMode.Single && numplayers < 2) {
+			game.gPaused = true;
+			sndHandlePause(game.gPaused);
+		}
+
+		if (BuildGdx.app.getFrameType() == FrameType.GL)
+			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+	}
+
+	@Override
+	public void resume () {
+		if (game.nNetMode == NetMode.Single && numplayers < 2) {
+			{
+				game.gPaused = false;
+				net.ototalclock = totalclock;
+			}
+			sndHandlePause(game.gPaused);
+		}
+		game.updateColorCorrection();
 	}
 
 }
