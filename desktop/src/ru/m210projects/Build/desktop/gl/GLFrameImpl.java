@@ -139,4 +139,14 @@ public class GLFrameImpl implements GLFrame, Frame {
 	public void repaint() {
 		Display.update(false);
 	}
+
+	@Override
+	public int getX() {
+		return graphics.config.x;
+	}
+
+	@Override
+	public int getY() {
+		return graphics.config.y;
+	}
 }

@@ -25,6 +25,7 @@ import javax.swing.UIManager;
 
 import com.badlogic.gdx.Gdx;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage;
 import ru.m210projects.Build.Pattern.BuildConfig;
 
@@ -54,7 +55,7 @@ public class DesktopMessage implements BuildMessage {
 			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 			cfg.fullscreen = 0;
 		}
-		
+
 		switch(type)
 		{
 		case Question:
@@ -71,7 +72,8 @@ public class DesktopMessage implements BuildMessage {
 			if(icon != null)
 				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
 			frame.setBackground(dialog.getBackground());
-			
+			dialog.setLocation(BuildGdx.app.getFrame().getX() + (BuildGdx.graphics.getWidth() - dialog.getWidth()) / 2, 
+					BuildGdx.app.getFrame().getY() + (BuildGdx.graphics.getHeight() - dialog.getHeight()) / 2);
 			dialog.setAlwaysOnTop(true);
 	        dialog.setVisible(true);
 	        dialog.dispose();
@@ -91,7 +93,8 @@ public class DesktopMessage implements BuildMessage {
 			if(icon != null)
 				dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
 			frame.setBackground(dlog.getBackground());
-			
+			dlog.setLocation(BuildGdx.app.getFrame().getX() + (BuildGdx.graphics.getWidth() - dlog.getWidth()) / 2, 
+					BuildGdx.app.getFrame().getY() + (BuildGdx.graphics.getHeight() - dlog.getHeight()) / 2);
 			dlog.setAlwaysOnTop(true);
 			dlog.setVisible(true);
 			dlog.dispose();

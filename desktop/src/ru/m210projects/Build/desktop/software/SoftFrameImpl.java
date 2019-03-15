@@ -126,4 +126,14 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 	public void repaint() {
 		graphics.getCanvas().repaint();
 	}
+	
+	@Override
+	public int getX() {
+		return graphics.config.x;
+	}
+
+	@Override
+	public int getY() {
+		return graphics.config.y;
+	}
 }

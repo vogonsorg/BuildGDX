@@ -13,5 +13,9 @@ public interface BuildFrame {
 	public FrameType getType();
 	
 	public void setMaxFramerate(int fps);
+	
+	public int getX();
+	
+	public int getY();
 
 }
