@@ -207,7 +207,7 @@ public class MenuSlotList extends MenuList
 			switch(opt)
 			{
 				case DELETE:
-					if((!saveList && displayed.size() > 0) || l_nFocus != 0)
+					if(!saveList && (displayed.size() > 0 && l_nFocus != -1))
 						deleteQuestion = true;
 					return false;
 				case MWUP:
