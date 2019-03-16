@@ -23,21 +23,16 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import com.badlogic.gdx.Gdx;
-
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage;
-import ru.m210projects.Build.Pattern.BuildConfig;
 
 public class DesktopMessage implements BuildMessage {
 	private JOptionPane frame;
 	private URL icon;
-	private BuildConfig cfg;
-
-	public DesktopMessage(URL icon, BuildConfig cfg)
+	
+	public DesktopMessage(URL icon)
 	{
 		this.icon = icon;
-		this.cfg = cfg;
 	}
 	
 	@Override
@@ -51,10 +46,10 @@ public class DesktopMessage implements BuildMessage {
 			message += "...";
 		}
 
-		if(Gdx.graphics != null) {
-			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-			cfg.fullscreen = 0;
-		}
+//		if(Gdx.graphics != null) {
+//			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//			cfg.fullscreen = 0;
+//		}
 
 		switch(type)
 		{
