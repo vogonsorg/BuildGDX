@@ -170,15 +170,15 @@ public abstract class MenuHandler {
 		if(pMenu != null) {
 			MenuOpt opt = MenuOpt.ANY;
 
-			if(input.ctrlKeyStatusOnce(Keys.UP) || input.ctrlPadStatusOnce(GameKeys.Move_Forward))
+			if(input.ctrlKeyStatusOnce(Keys.UP) || input.ctrlPadStatusOnce(MenuKeys.Menu_Up))
 				opt = MenuOpt.UP;
-			if(input.ctrlKeyStatusOnce(Keys.DOWN) || input.ctrlPadStatusOnce(GameKeys.Move_Backward)) 
+			if(input.ctrlKeyStatusOnce(Keys.DOWN) || input.ctrlPadStatusOnce(MenuKeys.Menu_Down)) 
 				opt = MenuOpt.DW;
-			if(input.ctrlKeyStatusOnce(Keys.LEFT) || input.ctrlPadStatusOnce(GameKeys.Turn_Left)) 
+			if(input.ctrlKeyStatusOnce(Keys.LEFT) || input.ctrlPadStatusOnce(MenuKeys.Menu_Left)) 
 				opt = MenuOpt.LEFT;
-			if(input.ctrlKeyStatusOnce(Keys.RIGHT) || input.ctrlPadStatusOnce(GameKeys.Turn_Right)) 
+			if(input.ctrlKeyStatusOnce(Keys.RIGHT) || input.ctrlPadStatusOnce(MenuKeys.Menu_Right)) 
 				opt = MenuOpt.RIGHT;
-			if(input.ctrlKeyStatusOnce(Keys.ENTER) || input.ctrlPadStatusOnce(GameKeys.Open)) 
+			if(input.ctrlKeyStatusOnce(Keys.ENTER) || input.ctrlPadStatusOnce(MenuKeys.Menu_Enter)) 
 				opt = MenuOpt.ENTER;
 			if(input.ctrlGetInputKey(MenuKeys.Menu_Open, true)) 
 				opt = MenuOpt.ESC;

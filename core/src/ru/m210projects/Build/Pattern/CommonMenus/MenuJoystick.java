@@ -68,7 +68,7 @@ public abstract class MenuJoystick extends BuildMenu {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuConteiner item = (MenuConteiner) pItem;
-						cfg.gJoyDevice = item.num;
+						cfg.gJoyDevice = item.num - 1;
 					}
 				}) {
 			@Override
@@ -76,9 +76,10 @@ public abstract class MenuJoystick extends BuildMenu {
 				int controllers = app.pInput.ctrlGetControllers();
 				if (this.list == null) {
 					if (controllers > 0) {
-						this.list = new char[controllers][];
+						this.list = new char[controllers + 1][];
+						this.list[0] = "Disabled".toCharArray();
 						for (int i = 0; i < controllers; i++) {
-							this.list[i] = app.pInput.ctrlGetControllerName(i).toCharArray();
+							this.list[i + 1] = app.pInput.ctrlGetControllerName(i).toCharArray();
 						}
 					} else {
 						this.list = new char[][]{"No joystick devices found".toCharArray()};
@@ -87,8 +88,8 @@ public abstract class MenuJoystick extends BuildMenu {
 
 				// handles unplugged device(s) between runs
 				int min = 0;
-				int max = Math.max(0, controllers - 1);
-				int val = cfg.gJoyDevice;
+				int max = Math.max(0, controllers);
+				int val = cfg.gJoyDevice + 1;
 				this.num = val < min ? min : (val > max ? max : val);
 			}
 		};
@@ -98,7 +99,7 @@ public abstract class MenuJoystick extends BuildMenu {
 			@Override
 			public void draw(MenuHandler handler) {
 				super.draw(handler);
-				mCheckEnableItem(app.pInput.ctrlIsValidDevice(cfg.gJoyDevice));
+				mCheckEnableItem(app.pInput.ctrlGetControllers() > 0 && app.pInput.ctrlIsValidDevice(cfg.gJoyDevice));
 			}
 		};
 		
@@ -231,7 +232,6 @@ public abstract class MenuJoystick extends BuildMenu {
 					item.l_set = 1;
 				} else if (item.l_set == 1) {
 					switch (item.l_pressedId) {
-
 					case UP:
 					case DW:
 					case LEFT:
@@ -261,8 +261,8 @@ public abstract class MenuJoystick extends BuildMenu {
 						break;
 					}
 				}
+				app.pInput.ctrlResetKeyStatus();
 				if (item.l_nFocus == GameKeys.Show_Console.getNum()) {
-					app.pInput.ctrlResetKeyStatus();
 					Console.setCaptureKey(cfg.gpadkeys[item.l_nFocus], 3);
 				}
 			}

@@ -51,7 +51,8 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 		int px = x, py = y;
 		boolean offset = false;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
-			int pal = 0;
+			int pal = this.pal; 
+			int pal2 = this.pal2; 
 			int shade = handler.getShade(i == l_nFocus? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
 			String text;
 			String key;
@@ -65,6 +66,9 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 				py += mFontOffset();
 				offset = true;
 			}
+			
+			if(i == l_nFocus)
+				pal2 = pal = handler.getPal(font, m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 
 			if(offset && i >= l_nMin + nListItems - 1)
 				break;
@@ -72,9 +76,13 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 			if(i < cfg.joymap.length)
 			{
 				key = ButtonMap.buttonName(cfg.gJoyMenukeys[((MenuKeys)cfg.joymap[i]).getJoyNum()]);
-			} else if(cfg.gpadkeys[i - cfg.joymap.length] >= 0)
-				key = ButtonMap.buttonName(cfg.gpadkeys[i]);
-			else key = "N/A";
+			} else {
+				if(cfg.keymap[i - cfg.joymap.length] instanceof MenuKeys)
+					key = ButtonMap.buttonName(cfg.gJoyMenukeys[((MenuKeys)cfg.keymap[i - cfg.joymap.length]).getJoyNum()]);
+				else if(cfg.gpadkeys[i - cfg.joymap.length] >= 0)
+					key = ButtonMap.buttonName(cfg.gpadkeys[i - cfg.joymap.length]);
+				else key = "N/A";
+			}
 
 			if ( i == l_nFocus ) {
 				if(l_set == 1 && (totalclock & 0x20) != 0)
@@ -86,7 +94,7 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 			char[] k = key.toCharArray();
 			
 			font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, false);		
-			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, 0, TextAlign.Left, 2, false);		
+			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, pal2, TextAlign.Left, 2, false);		
 	
 			py += mFontOffset();
 		}
@@ -166,10 +174,19 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 				getInput().resetKeyStatus();
 				return false;
 			case DELETE:
-				cfg.gpadkeys[l_nFocus] = -1;
-				if(l_nFocus == GameKeys.Show_Console.getNum()) {
-					Console.setCaptureKey(cfg.gpadkeys[l_nFocus], 3);
+				if(l_nFocus == -1) return false;
+				
+				if(l_nFocus < cfg.joymap.length)
+					cfg.gJoyMenukeys[((MenuKeys)cfg.joymap[l_nFocus]).getJoyNum()] = -1;
+				else
+				{
+					int focus = l_nFocus - cfg.joymap.length;
+					cfg.gpadkeys[focus] = -1;
+					if(focus == GameKeys.Show_Console.getNum()) {
+						Console.setCaptureKey(-1, 3);
+					}
 				}
+
 				return false;
 			case PGUP:
 				l_nFocus -= (nListItems - 1);

@@ -249,6 +249,7 @@ public abstract class BuildConfig extends IniFile {
 				ScreenWidth = GetKeyInt("ScreenWidth");
 				ScreenHeight = GetKeyInt("ScreenHeight");
 				borderless = GetKeyInt("BorderlessMode") == 1;
+				gVSync = GetKeyInt("VSync") == 1;
 				fpslimit = GetKeyInt("FPSLimit");
 				glfilter = GetKeyInt("GLFilterMode"); 
 				glanisotropy = GetKeyInt("GLAnisotropy");
@@ -305,6 +306,7 @@ public abstract class BuildConfig extends IniFile {
 		saveInteger(fil, "ScreenWidth", ScreenWidth);
 		saveInteger(fil, "ScreenHeight", ScreenHeight);
 		saveBoolean(fil, "BorderlessMode", borderless);
+		saveBoolean(fil, "VSync", gVSync);
 		saveInteger(fil, "FPSLimit", fpslimit);
 		if(Console.IsInited())
 			saveInteger(fil, "GLFilterMode", Console.Geti("r_texturemode"));
@@ -377,7 +379,7 @@ public abstract class BuildConfig extends IniFile {
 			MenuKeys mk = (MenuKeys) key;
 			gJoyMenukeys[mk.getJoyNum()] = button;
 		}
-		else gpadkeys[key.getNum() - joymap.length] = button;
+		else gpadkeys[key.getNum()] = button;
 	}
 
 	public int checkFps(int fpslimit) {

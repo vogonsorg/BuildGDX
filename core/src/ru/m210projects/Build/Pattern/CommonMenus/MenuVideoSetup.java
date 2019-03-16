@@ -165,8 +165,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 				cfg.gVSync = sw.value;
 				try { // crash if hires textures loaded
 					Gdx.graphics.setVSync(cfg.gVSync);
-				} catch (Exception e) {
-				}
+				} catch (Exception e) {}
 			}
 		}, null, null);
 		posy += 5;
