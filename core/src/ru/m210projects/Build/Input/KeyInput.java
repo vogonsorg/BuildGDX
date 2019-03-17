@@ -75,7 +75,7 @@ public class KeyInput {
 	}
 	
 	public int handleevents() { 
-		if(Gdx.input == null) //not initialized
+		if(BuildGdx.input == null) //not initialized
 			return 0;
 
 		BuildGdx.input.processMessages();
@@ -88,7 +88,7 @@ public class KeyInput {
 			if(kb >= MOUSE_WHELLUP && kb <= MOUSE_BUTTON11)
 				continue;
 			
-			if (Gdx.input.isKeyPressed(kb)) {
+			if (BuildGdx.input.isKeyPressed(kb)) {
 				keyPressed = true;
 				if (!hitkey[kb]) {
 					keystatus[ANYKEY] = 1;

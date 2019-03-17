@@ -40,12 +40,9 @@ public class JDisplay
 		canvas.setMaximumSize(size);
 
 		m_frame = new JFrame(MouseInfo.getPointerInfo().getDevice().getDefaultConfiguration());
+		m_frame.setResizable(false);
 		m_frame.add(canvas);
-		m_frame.pack();
 		m_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		m_frame.setLocationRelativeTo(null);
-		m_frame.setVisible(true);
-
 		m_frame.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -53,6 +50,10 @@ public class JDisplay
 		    }
 		});
 
+		m_frame.pack();
+		m_frame.setLocationRelativeTo(null);
+		m_frame.setVisible(true);
+		
 		canvas.setFocusable(true);
 		canvas.requestFocus();
 	}

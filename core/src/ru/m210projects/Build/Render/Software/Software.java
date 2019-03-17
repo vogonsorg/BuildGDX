@@ -2698,11 +2698,12 @@ public class Software implements Renderer {
 		//  bit RS_CENTERORIGIN: see dorotspr_handle_bit2
 		////////////////////
 		
+		
 		if (((dastat&128) == 0) || (numpages < 2) || (beforedrawrooms != 0))
 		{
 			dorotatesprite(sx,sy,z,a,picnum,dashade,dapalnum,dastat,cx1,cy1,cx2,cy2,guniqhudid);
 		}
-		
+
 		if (((dastat&64) != 0) && (cx1 <= 0) && (cy1 <= 0) && (cx2 >= xdim-1) && (cy2 >= ydim-1) &&
 		      (sx == (160<<16)) && (sy == (100<<16)) && (z == 65536L) && (a == 0) && ((dastat&1) == 0))
 		  permhead = permtail = 0;
@@ -2942,8 +2943,9 @@ public class Software implements Renderer {
 
 			if ((dastat&1) == 0)
 			{
-				if ((dastat&64) != 0) 
+				if ((dastat&64) != 0) {
 					a.spritevline(bx&65535,by&65535,y2-y1+1,bufplc,(bx>>16)*ysiz+(by>>16),p);
+				}
 				else {
 					a.mspritevline(bx&65535,by&65535,y2-y1+1,bufplc,(bx>>16)*ysiz+(by>>16),p);
 				}

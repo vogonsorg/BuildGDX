@@ -262,7 +262,7 @@ public class SoftInput implements BuildInput {
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
 			@Override
 			public boolean dispatchKeyEvent(KeyEvent ke) {
-				synchronized (SoftInput.class) {
+//				synchronized (SoftInput.class) {
 					int code;
 					switch (ke.getID()) {
 					case KeyEvent.KEY_PRESSED:
@@ -276,7 +276,7 @@ public class SoftInput implements BuildInput {
 						break;
 					}
 					return false;
-				}
+//				}
 			}
 		});
 
@@ -408,19 +408,19 @@ public class SoftInput implements BuildInput {
 
 	@Override
 	public boolean isKeyPressed(int key) {
-		synchronized (SoftInput.class) {
+		//synchronized (SoftInput.class) {
 			return pressedKeys[key];
-		}
+		//}
 	}
 
 	@Override
 	public boolean isKeyJustPressed(int key) {
-		synchronized (SoftInput.class) {
+		//synchronized (SoftInput.class) {
 			boolean pressed = justPressedKeys[key];
 			if(pressed) 
 				justPressedKeys[key] = false;
 			return pressed;
-		}
+		//}
 	}
 
 	@Override
@@ -445,9 +445,14 @@ public class SoftInput implements BuildInput {
 					new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB), new Point(0, 0), "emptyCursor");
 		}
 		
-		if (emptyCursor != null && display.m_frame.isActive() && display.m_frame.isFocused()) 
-			display.m_frame.getContentPane().setCursor(emptyCursor);
-		else display.m_frame.getContentPane().setCursor(defCursor);
+		if (emptyCursor != null && display.m_frame.isActive() && display.m_frame.isFocused()) {
+			if(display.m_frame.getContentPane().getCursor() != emptyCursor)
+				display.m_frame.getContentPane().setCursor(emptyCursor);
+		}
+		else { 
+			if(display.m_frame.getContentPane().getCursor() != defCursor) 
+				display.m_frame.getContentPane().setCursor(defCursor);
+		}
 
 		return false;
 	}
