@@ -65,6 +65,10 @@ public class BuildFont {
 		if (text != null) {
 			int pos = 0;
 			while (pos < text.length && text[pos] != 0) {
+				if(text[pos] >= 256) {
+					pos++;
+					continue;
+				}
 				width += charInfo[text[pos++]].nWidth;
 			}
 		}
@@ -95,8 +99,11 @@ public class BuildFont {
 		}
 		
 		int alignx = 0;
-		for(int i = 0; i < text.length && text[i] != 0; i++)
+		for(int i = 0; i < text.length && text[i] != 0; i++) {
+			if(text[i] >= 256)
+				continue;
 			alignx += drawChar(x + alignx, y, text[i], shade, pal, nBits, shadow);
+		}
 		return alignx;
 	}
 	
@@ -110,6 +117,10 @@ public class BuildFont {
 		if (text != null) {
 			int pos = 0;
 			while (pos < text.length && text[pos] != 0) {
+				if(text[pos] >= 256) {
+					pos++;
+					continue;
+				}
 				width += scale(charInfo[text[pos++]].nWidth, zoom, nScale);
 			}
 		}
@@ -141,8 +152,11 @@ public class BuildFont {
 		}
 	
 		int alignx = 0;
-		for(int i = 0; i < text.length && text[i] != 0; i++)
+		for(int i = 0; i < text.length && text[i] != 0; i++) {
+			if(text[i] >= 256)
+				continue;
 			alignx += drawChar(x + alignx, y, text[i], scale, shade, pal, nBits, shadow);
+		}
 		return alignx;
 	}
 
