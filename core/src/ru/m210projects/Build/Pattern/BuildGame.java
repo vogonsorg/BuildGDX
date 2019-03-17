@@ -44,6 +44,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 public abstract class BuildGame extends Game {
+	
+	/*
+	 * BuildFont draw non-standart symbols crash fix
+	 */
 
 	public final String appname;
 	public final String sversion;
