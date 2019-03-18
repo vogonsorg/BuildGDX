@@ -43,16 +43,16 @@ public class Interpolation {
 		public short ang;
 	}
 
-	private final int MAXINTERPOLATIONS = 4096;
-	private ILoc gOldSpriteLoc[] = new ILoc[MAXSPRITES];
-	private int InterpolationCount = 0;
-	private IData[] gInterpolationData = new IData[MAXINTERPOLATIONS];
+	protected final int MAXINTERPOLATIONS = 4096;
+	protected ILoc gOldSpriteLoc[] = new ILoc[MAXSPRITES];
+	protected int InterpolationCount = 0;
+	protected IData[] gInterpolationData = new IData[MAXINTERPOLATIONS];
 
-	private int gWallLoc[] = new int[MAXWALLS >> 3];
-	private int gSectorLoc[] = new int[MAXSECTORS >> 3];
-	private int gFloorLoc[] = new int[MAXSECTORS >> 3];
-	private int gCeilLoc[] = new int[MAXSECTORS >> 3];
-	private int gSpriteLoc[] = new int[MAXSPRITES >> 3];
+	protected int gWallLoc[] = new int[MAXWALLS >> 3];
+	protected int gSectorLoc[] = new int[MAXSECTORS >> 3];
+	protected int gFloorLoc[] = new int[MAXSECTORS >> 3];
+	protected int gCeilLoc[] = new int[MAXSECTORS >> 3];
+	protected int gSpriteLoc[] = new int[MAXSPRITES >> 3];
 
 	public Interpolation() {
 		for (int i = 0; i < MAXINTERPOLATIONS; i++)
@@ -61,7 +61,7 @@ public class Interpolation {
 			gOldSpriteLoc[i] = new ILoc();
 	}
 
-	private void setinterpolation(Object obj, InterpolationType type) {
+	protected void setinterpolation(Object obj, InterpolationType type) {
 		if (InterpolationCount == MAXINTERPOLATIONS)
 			Console.Println("Too many interpolations", Console.OSDTEXT_RED);
 
@@ -89,7 +89,7 @@ public class Interpolation {
 		}
 	}
 
-	private void stopinterpolation(Object obj, InterpolationType type) {
+	protected void stopinterpolation(Object obj, InterpolationType type) {
 		for (int i = InterpolationCount - 1; i >= 0; i--) {
 			IData data = gInterpolationData[i];
 			if (obj == data.ptr && data.type == type) {
