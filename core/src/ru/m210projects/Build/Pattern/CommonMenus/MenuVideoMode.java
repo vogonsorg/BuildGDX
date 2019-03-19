@@ -110,7 +110,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
-		final BuildMenu mResList = getResolutionListMenu(this, app, posx + (width - nListWidth) / 2, posy + 2 * style.nHeight, nListWidth, nListItems, style, nBackground);
+		final BuildMenu mResList = getResolutionListMenu(this, app, posx + (width - nListWidth) / 2, posy + 2 * style.getHeight(), nListWidth, nListItems, style, nBackground);
 		
 		mResolution = new MenuConteiner("Resolution: ", style, conteiner, posx,
 				posy += itemHeight, width, strvmodes, 0, new MenuProc() {

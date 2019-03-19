@@ -116,7 +116,7 @@ public class MenuSlotList extends MenuList
 					}
 				}
 				
-				font.drawText(x + width / 2, py, rtext,shade, pal, TextAlign.Left, 2, true);
+				font.drawText(x + width / 2, py, rtext,shade, pal, TextAlign.Left, 2, fontShadow);
 
 				py += mFontOffset();
 			}
@@ -136,7 +136,7 @@ public class MenuSlotList extends MenuList
 				}
 			} else rtext = toCharArray("List is empty");
 
-			font.drawText(x + width / 2, py, rtext,shade, listPal, TextAlign.Left, 2, false);
+			font.drawText(x + width / 2, py, rtext,shade, listPal, TextAlign.Left, 2, fontShadow);
 		}
 
 		pal = 0;
@@ -148,13 +148,13 @@ public class MenuSlotList extends MenuList
 			int shade = handler.getShade(m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 			
 			char[] ctext = toCharArray("Do you want to delete \"" + SaveName() + "\"");
-			font.drawText(160 - font.getWidth(ctext) / 2, 100, ctext, shade, pal, TextAlign.Left, 2, false);
+			font.drawText(160 - font.getWidth(ctext) / 2, 100, ctext, shade, pal, TextAlign.Left, 2, fontShadow);
 			ctext = toCharArray("[Y/N]");
-			font.drawText(160 - font.getWidth(ctext) / 2, 110, ctext, shade, pal, TextAlign.Left, 2, false);
+			font.drawText(160 - font.getWidth(ctext) / 2, 110, ctext, shade, pal, TextAlign.Left, 2, fontShadow);
 		} else {
 			char[] ctext = toCharArray("Press \"DELETE\" to remove the savegame file");
 			
-			font.drawText(160 - font.getWidth(ctext) / 2, yHelpText, ctext, 0, pal, TextAlign.Left, 2, false);
+			font.drawText(160 - font.getWidth(ctext) / 2, yHelpText, ctext, 0, pal, TextAlign.Left, 2, fontShadow);
 		}
 	}
 
@@ -361,7 +361,7 @@ public class MenuSlotList extends MenuList
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
 			    
 				if(mx > px && mx < px + width - 14)
-					if(my > py && my < py + font.nHeight)
+					if(my > py && my < py + font.getHeight())
 					{
 						l_nFocus = i;
 						if(ol_nFocus != i && updateCallback != null)

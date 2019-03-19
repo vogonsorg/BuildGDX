@@ -225,8 +225,8 @@ public abstract class BuildGame extends Game {
 	
 	public void ThrowError(String msg, Exception ex) {
 		String stack = stackTraceToString(ex);
-		Console.LogPrint(exceptionHandler(ex) + ": " + msg + " - " + stack);
-		System.err.println(exceptionHandler(ex) + ": " + msg + " - " + stack);
+		Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
+		System.err.println(msg + "[" + exceptionHandler(ex) + "]: " + stack);
 		CloseLogFile();
 
 		try {

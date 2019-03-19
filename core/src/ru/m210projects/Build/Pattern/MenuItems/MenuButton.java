@@ -58,7 +58,7 @@ public class MenuButton extends MenuItem
 		    if(align == 2) 
 		        px = x + width - 1 - font.getWidth(text);
 
-		    font.drawText(px, y, text, shade, pal, TextAlign.Left, 2, false);
+		    font.drawText(px, y, text, shade, pal, TextAlign.Left, 2, fontShadow);
 		}
 		
 		handler.mPostDraw(this);
@@ -102,7 +102,7 @@ public class MenuButton extends MenuItem
 				px = x + width - 1 - wd;
 
 			if(mx > px && mx < px + wd)
-				if(my > y && my < y + font.nHeight)
+				if(my > y && my < y + font.getHeight())
 					return true;
 		}
 		return false;

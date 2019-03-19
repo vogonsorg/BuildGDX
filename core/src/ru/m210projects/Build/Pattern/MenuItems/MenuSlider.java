@@ -77,7 +77,7 @@ public class MenuSlider extends MenuItem {
 		int pal = handler.getPal(font, this);
 
 		if ( text != null )
-			font.drawText(x, y, text, shade, pal, TextAlign.Left, 2, false);
+			font.drawText(x, y, text, shade, pal, TextAlign.Left, 2, fontShadow);
 
 		slider.drawSliderBackground(x + width - slider.getSliderRange(), y, shade, pal);
 
@@ -93,7 +93,7 @@ public class MenuSlider extends MenuItem {
 				Arrays.fill(dbuff, index + 4, dbuff.length, (char)0);
 			}
 
-			sliderNumbers.drawText(x + width - slider.getSliderRange() - sliderNumbers.getWidth(dbuff) - 5, y + (font.nHeight - sliderNumbers.nHeight) / 2, dbuff, shade, handler.getPal(sliderNumbers, this), TextAlign.Left, 2, false);
+			sliderNumbers.drawText(x + width - slider.getSliderRange() - sliderNumbers.getWidth(dbuff) - 5, y + (font.getHeight() - sliderNumbers.getHeight()) / 2, dbuff, shade, handler.getPal(sliderNumbers, this), TextAlign.Left, 2, fontShadow);
 		}
 		
 		int xRange = slider.getSliderRange() - slider.getSliderWidth();
@@ -193,14 +193,14 @@ public class MenuSlider extends MenuItem {
 		{
 			if(mx > x && mx < x + font.getWidth(text))
 			{
-				if(my > y && my < y + font.nHeight) 
+				if(my > y && my < y + font.getHeight()) 
 					return true;
 			}
 		}
 
 		int cx = x + width - slider.getSliderRange();
 		if(mx > cx && mx < cx + slider.getSliderRange())
-			if(my > y && my < y + font.nHeight) {
+			if(my > y && my < y + font.getHeight()) {
 				isTouched = true;
 				if(Gdx.input.isTouched())
 					touchedObj = this;

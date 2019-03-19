@@ -79,7 +79,7 @@ public class MenuResolutionList extends MenuList {
 			        px = width / 2 + x - font.getWidth(text.get(i)) / 2;
 			    if(align == 2) 
 			        px = x + width - 1 - font.getWidth(text.get(i));
-			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 2, true);
+			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 2, fontShadow);
 
 				py += mFontOffset();
 			}
@@ -96,7 +96,7 @@ public class MenuResolutionList extends MenuList {
 		        px = x + width - 1 - font.getWidth(text.toCharArray());
 		    int shade = handler.getShade(this);
 		    
-		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, true);
+		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, fontShadow);
 		}
 
 		handler.mPostDraw(this);
@@ -203,7 +203,7 @@ public class MenuResolutionList extends MenuList {
 			        px = x + width - 1 - fontx;
 	
 			    if(mx > px && mx < px + fontx)
-					if(my > py && my < py + font.nHeight)
+					if(my > py && my < py + font.getHeight())
 					{
 						l_nFocus = i;
 						return true;

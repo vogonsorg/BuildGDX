@@ -28,7 +28,8 @@ public abstract class MenuItem {
 
 	public BuildMenu m_pMenu;
 	public char[] text;          
-	public BuildFont font;      
+	public BuildFont font;     
+	public boolean fontShadow;
 	public int x = 0;              
 	public int y = 0;             
 	public int width = 0;
@@ -67,7 +68,7 @@ public abstract class MenuItem {
 		int x = coordsConvertXScaled(this.x - 1, ConvertType.Normal);
 		int y = coordsConvertYScaled(this.y - 1);
 		int x2 = coordsConvertXScaled(this.x + width + 1, ConvertType.Normal);
-		int y2 = coordsConvertYScaled(this.y + font.nHeight + 1);
+		int y2 = coordsConvertYScaled(this.y + font.getHeight() + 1);
 		
 		draw.getrender().drawline256(x * 4096, y * 4096, x2 * 4096, y * 4096, col);
 		draw.getrender().drawline256(x * 4096, y2 * 4096, x2 * 4096, y2 * 4096, col);

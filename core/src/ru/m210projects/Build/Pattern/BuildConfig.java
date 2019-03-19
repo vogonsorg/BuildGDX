@@ -229,11 +229,9 @@ public abstract class BuildConfig extends IniFile {
 			if(set("Main")) {
 				startup = GetKeyInt("Startup") == 1;
 				int check = GetKeyInt("CheckNewVersion");
-				if(check != -1)
-					checkVersion = (check == 1);
+				if(check != -1) checkVersion = (check == 1);
 				int afolder = GetKeyInt("AutoloadFolder");
-				if(afolder != -1)
-					autoloadFolder = (afolder == 1);
+				if(afolder != -1) autoloadFolder = (afolder == 1);
 				userfolder = GetKeyInt("UseHomeFolder") == 1;
 				String respath = GetKeyString("Path");
 				if(respath != null && !respath.isEmpty())
@@ -245,16 +243,22 @@ public abstract class BuildConfig extends IniFile {
 						this.soundBank = fbank;
 				}
 
-				fullscreen = GetKeyInt("Fullscreen");
-				ScreenWidth = GetKeyInt("ScreenWidth");
-				ScreenHeight = GetKeyInt("ScreenHeight");
+				int value = GetKeyInt("Fullscreen");
+				if(value != -1) fullscreen = value;
+				value = GetKeyInt("ScreenWidth");
+				if(value != -1 && value >= 640) ScreenWidth = value;
+				value = GetKeyInt("ScreenHeight");
+				if(value != -1 && value >= 400) ScreenHeight = value;
 				borderless = GetKeyInt("BorderlessMode") == 1;
 				gVSync = GetKeyInt("VSync") == 1;
-				fpslimit = GetKeyInt("FPSLimit");
-				glfilter = GetKeyInt("GLFilterMode"); 
-				glanisotropy = GetKeyInt("GLAnisotropy");
-				widescreen = GetKeyInt("WideScreen");
-				
+				value = GetKeyInt("FPSLimit");
+				if(value != -1) fpslimit = value;
+				value = GetKeyInt("GLFilterMode");
+				if(value != -1) glfilter = value;
+				value = GetKeyInt("GLAnisotropy");
+				if(value != -1) glanisotropy = value;
+				value = GetKeyInt("WideScreen");
+				if(value != -1) widescreen = value;
 				noSound = GetKeyInt("NoSound") == 1;
 				muteMusic = GetKeyInt("NoMusic") == 1;
 				int snd = GetKeyInt("SoundDriver");

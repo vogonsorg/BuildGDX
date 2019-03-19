@@ -16,6 +16,8 @@
 
 package ru.m210projects.Build.Pattern;
 
+import static ru.m210projects.Build.Engine.tilesizx;
+import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Pragmas.*;
@@ -36,13 +38,20 @@ public class BuildFont {
 		public short xOffset, yOffset;
 	}
 
-	public final int nHeight;
-	public final int nScale;
-	public final int nFlags;
-	public BuildChar[] charInfo;
+	protected int nHeight;
+	protected int nScale;
+	protected int nFlags;
+	protected BuildChar[] charInfo;
 	protected final Engine draw;
-
-	public BuildFont(Engine draw, int nHeigth, int nScale, int nFlags) {
+	
+	protected BuildFont(Engine draw) {
+		this.draw = draw;
+		charInfo = new BuildChar[256];
+		for (int i = 0; i < 256; i++)
+			charInfo[i] = new BuildChar();
+	}
+	
+	protected BuildFont(Engine draw, int nHeigth, int nScale, int nFlags) {
 		this.draw = draw;
 		this.nHeight = nHeigth;
 		this.nScale = nScale;
@@ -76,10 +85,15 @@ public class BuildFont {
 		return width;
 	}
 	
+	public int getHeight()
+	{
+		return nHeight;
+	}
+	
 	public int drawChar(int x, int y, char ch, int shade, int pal, int nBits, boolean shadow) {
 		if(charInfo[ch].nTile == -1) return 0;
 		
-		if(charInfo[ch].nTile != nSpace) {
+		if(charInfo[ch].nTile != nSpace && tilesizx[charInfo[ch].nTile] != 0 && tilesizy[charInfo[ch].nTile] != 0) {
 			if(shadow)
 				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, nScale, 0, charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
 			draw.rotatesprite((x + charInfo[ch].xOffset) << 16, (y + charInfo[ch].yOffset) << 16, nScale, 0, charInfo[ch].nTile, shade, pal, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
@@ -128,11 +142,17 @@ public class BuildFont {
 		return width;
 	}
 	
+	public int getHeight(int scale)
+	{
+		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
+		return scale(nHeight, zoom, nScale);
+	}
+	
 	public int drawChar(int x, int y, char ch, int scale, int shade, int pal, int nBits, boolean shadow) {
 		if(charInfo[ch].nTile == -1) return 0;
 
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
-		if(charInfo[ch].nTile != nSpace) {
+		if(charInfo[ch].nTile != nSpace && tilesizx[charInfo[ch].nTile] != 0 && tilesizy[charInfo[ch].nTile] != 0) {
 			if(shadow)
 				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, zoom, 0, charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
 			draw.rotatesprite((x + charInfo[ch].xOffset) << 16, (y + charInfo[ch].yOffset) << 16, zoom, 0, charInfo[ch].nTile, shade, pal, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);

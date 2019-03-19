@@ -63,11 +63,11 @@ public class MenuConteiner extends MenuItem
 
 		int pal = handler.getPal(font, this);
 		int shade = handler.getShade(this);
-		font.drawText(px, py, text, shade, pal, TextAlign.Left, 2, false);
+		font.drawText(px, py, text, shade, pal, TextAlign.Left, 2, fontShadow);
 		
 		if(key == null) return;
 
-		listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, handler.getPal(listFont, this), TextAlign.Left, 2, false);
+		listFont.drawText(x + width - 1 - listFont.getWidth(key), py, key, shade, handler.getPal(listFont, this), TextAlign.Left, 2, fontShadow);
 		
 		handler.mPostDraw(this);
 	}
@@ -112,7 +112,7 @@ public class MenuConteiner extends MenuItem
 		if(text != null)
 		{
 			if(mx > x && mx < x + font.getWidth(text))
-				if(my > y && my < y + font.nHeight)
+				if(my > y && my < y + font.getHeight())
 					return true;
 		}
 		
@@ -123,7 +123,7 @@ public class MenuConteiner extends MenuItem
 			int fontx =  listFont.getWidth(key);
 			int px = x + width - 1 - fontx;
 			if(mx > px && mx < px + fontx)
-				if(my > y && my < y + font.nHeight)
+				if(my > y && my < y + font.getHeight())
 					return true;
 		}
 		

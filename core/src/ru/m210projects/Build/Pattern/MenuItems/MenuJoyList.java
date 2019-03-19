@@ -93,8 +93,8 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 
 			char[] k = key.toCharArray();
 			
-			font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, false);		
-			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, pal2, TextAlign.Left, 2, false);		
+			font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, fontShadow);		
+			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, pal2, TextAlign.Left, 2, fontShadow);		
 	
 			py += mFontOffset();
 		}
@@ -255,7 +255,7 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 		if(!isTouched) {
 			int py = y;
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
-				if(my >= py && my < py + font.nHeight)
+				if(my >= py && my < py + font.getHeight())
 				{
 					if(l_nMin < cfg.joymap.length && i == cfg.joymap.length) 
 						return false;

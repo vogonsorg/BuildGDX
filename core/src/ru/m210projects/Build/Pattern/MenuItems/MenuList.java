@@ -52,7 +52,7 @@ public class MenuList extends MenuItem
 	}
 	
 	public int mFontOffset() {
-		return font.nHeight + 2;
+		return font.getHeight() + 2;
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class MenuList extends MenuItem
 			        px = width / 2 + x - font.getWidth(text.get(i)) / 2;
 			    if(align == 2) 
 			        px = x + width - 1 - font.getWidth(text.get(i));
-			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 2, false);
+			    font.drawText(px, py, text.get(i), shade, pal, TextAlign.Left, 2, fontShadow);
 				py += mFontOffset();
 			}
 		} else {
@@ -83,7 +83,7 @@ public class MenuList extends MenuItem
 		        px = x + width - 1 - fontx;   
 
 		    int shade = handler.getShade(this);
-		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, true);
+		    font.drawText(px, py, text.toCharArray(), shade, pal, TextAlign.Left, 2, fontShadow);
 		}
 		
 		handler.mPostDraw(this);
@@ -189,7 +189,7 @@ public class MenuList extends MenuItem
 			        px = x + width - 1 - wd;
 
 			    if(mx > px && mx < px + wd)
-					if(my > py && my < py + font.nHeight)
+					if(my > py && my < py + font.getHeight())
 					{
 						l_nFocus = i;
 						return true;

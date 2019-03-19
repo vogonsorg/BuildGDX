@@ -58,7 +58,7 @@ public abstract class MenuKeyboardList extends MenuList
 	public abstract String getKeyName(int keycode);
 	
 	public int mFontOffset() {
-		return font.nHeight + 2;
+		return font.getHeight() + 2;
 	}
 	
 	@Override
@@ -84,9 +84,9 @@ public abstract class MenuKeyboardList extends MenuList
 			}
 
 			char[] k = key.toCharArray();
-			font.drawText(px, py, text.toCharArray(), shade, pal1, TextAlign.Left, 2, false);
+			font.drawText(px, py, text.toCharArray(), shade, pal1, TextAlign.Left, 2, fontShadow);
 
-			font.drawText(x + width / 2 - 1 - font.getWidth(k) + 40, py, k, shade, pal2, TextAlign.Left, 2, false);		
+			font.drawText(x + width / 2 - 1 - font.getWidth(k) + 40, py, k, shade, pal2, TextAlign.Left, 2, fontShadow);		
 			
 			if(cfg.mousekeys[i] != 0)
 				key = getKeyName(cfg.mousekeys[i]);
@@ -98,7 +98,7 @@ public abstract class MenuKeyboardList extends MenuList
 				}
 			}
 			k = key.toCharArray();
-			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, pal2, TextAlign.Left, 2, false);	
+			font.drawText(x + width - slider.getScrollerWidth() - 2 - font.getWidth(k), py, k, shade, pal2, TextAlign.Left, 2, fontShadow);	
 				
 			py += mFontOffset();
 		}
@@ -261,7 +261,7 @@ public abstract class MenuKeyboardList extends MenuList
 		{
 			int py = y;
 			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
-				if(my >= py && my < py + font.nHeight)
+				if(my >= py && my < py + font.getHeight())
 				{
 					l_nFocus = i;
 					return true;

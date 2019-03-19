@@ -1541,8 +1541,6 @@ public abstract class Engine {
 			String name = String.copyValueOf(artfilename);
 
 			if ((fil = kOpen(name, 0)) != -1) {
-				if (render == null) //first load
-					Console.Println("Loading " + name + "...");
 				kRead(fil, buf, 4);
 				artversion = LittleEndian.getInt(buf);
 				if (artversion != 1)

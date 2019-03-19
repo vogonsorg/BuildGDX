@@ -23,6 +23,7 @@ import ru.m210projects.Build.Types.LittleEndian;
 public abstract class BuildNet {
 	
 	public BuildGame game;
+	public boolean gNetDisconnect;
 	
 	public interface NetInput {
 		

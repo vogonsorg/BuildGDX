@@ -42,7 +42,7 @@ public class MenuText extends MenuItem
 		    if(align == 2) 
 		        px = x + width - 1 - font.getWidth(text);
 
-		    font.drawText(px, y, text, -128, pal, TextAlign.Left, 2, false);
+		    font.drawText(px, y, text, -128, pal, TextAlign.Left, 2, fontShadow);
 		}
 		handler.mPostDraw(this);
 	}

@@ -58,13 +58,13 @@ public abstract class MenuAudio extends BuildMenu {
 	public int cdaudio;
 	public int ocdaudio;
 	
-	public MenuAudio(BuildGame app,  int posx, int posy, int width, int menuHeight, int separatorHeight, BuildFont menuItems, BuildFont drvStyle, BuildFont applyButton)
+	public MenuAudio(BuildGame app,  int posx, int posy, int width, int menuHeight, int separatorHeight, BuildFont menuItems)
 	{
 		addItem(getTitle(app, "Audio setup"), false);
 		
 		final BuildConfig cfg = app.pCfg;
 
-		sSoundDrv = new MenuConteiner("Sound driver:", menuItems, drvStyle, posx, posy += menuHeight, width, null, 0,
+		sSoundDrv = new MenuConteiner("Sound driver:", menuItems, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -89,7 +89,7 @@ public abstract class MenuAudio extends BuildMenu {
 			}
 		};
 		
-		sMusicDrv = new MenuConteiner("Midi driver:", menuItems, drvStyle, posx, posy += menuHeight, width, null, 0,
+		sMusicDrv = new MenuConteiner("Midi driver:", menuItems, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -301,7 +301,7 @@ public abstract class MenuAudio extends BuildMenu {
 		};
 		
 		posy += 2 * separatorHeight;
-		mApplyChanges = new MenuButton("Apply changes", applyButton, 0, posy, 320, 1, 0, null, -1, callback, 0) {
+		mApplyChanges = new MenuButton("Apply changes", menuItems, 0, posy, 320, 1, 0, null, -1, callback, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
 				super.draw(handler);

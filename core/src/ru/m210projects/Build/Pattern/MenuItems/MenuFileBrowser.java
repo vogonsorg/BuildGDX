@@ -87,7 +87,7 @@ public class MenuFileBrowser extends MenuItem {
 	}
 	
 	public int mFontOffset() {
-		return font.nHeight + nItemHeight;
+		return font.getHeight() + nItemHeight;
 	}
 
 	List<String> tmpList;
@@ -142,15 +142,15 @@ public class MenuFileBrowser extends MenuItem {
 	public void draw(MenuHandler handler) {
 		
 		int yColNames = y + 3;
-		int yPath = yColNames + topFont.nHeight + 2;
-		int yList = yPath + pathFont.nHeight + 2;
+		int yPath = yColNames + topFont.getHeight() + 2;
+		int yList = yPath + pathFont.getHeight() + 2;
 		int scrollerWidth = slider.getScrollerWidth();
 
 		draw.rotatesprite(x << 16, y << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 1, 0, 0, coordsConvertXScaled(x+width, ConvertType.Normal), coordsConvertYScaled(yList + nListItems * mFontOffset() + 6));
 
 		int px = x + 3;
-		/*directories*/ topFont.drawText(px, yColNames, dirs, -32, topPal, TextAlign.Left, 2, false);
-		/*files*/ topFont.drawText(x - 3 + width - topFont.getWidth(ffs), yColNames, ffs, -32, topPal, TextAlign.Left, 2, false);
+		/*directories*/ topFont.drawText(px, yColNames, dirs, -32, topPal, TextAlign.Left, 2, fontShadow);
+		/*files*/ topFont.drawText(x - 3 + width - topFont.getWidth(ffs), yColNames, ffs, -32, topPal, TextAlign.Left, 2, fontShadow);
 		
 		px += scrollerWidth + 3;
 		
@@ -210,7 +210,7 @@ public class MenuFileBrowser extends MenuItem {
 	    while(tptr < text.length && text[tptr] != 0)
 	    {
         	if(tx + x > x1 && tx + x <= x2) 
-        		x += font.drawChar(x, y, text[tptr], shade, pal, 2, false);
+        		x += font.drawChar(x, y, text[tptr], shade, pal, 2, fontShadow);
         	else break;
 
 	        tptr++;
@@ -266,7 +266,7 @@ public class MenuFileBrowser extends MenuItem {
 					int nList = BClipLow(list[currColumn].size() - nListItems, 1);
 					int nRange = scrollerHeight;
 					
-					int py = y + 3 + pathFont.nHeight + 2 + topFont.nHeight + 2;
+					int py = y + 3 + pathFont.getHeight() + 2 + topFont.getHeight() + 2;
 
 					l_nFocus[currColumn] = -1;
 					l_nMin[currColumn] = BClipRange(((touchY - py) * nList) / nRange, 0, nList);
@@ -361,11 +361,11 @@ public class MenuFileBrowser extends MenuItem {
 
 		if((!scrollTouch[DIRECTORY] && !scrollTouch[FILE]) && list[currColumn].size() > 0)
 		{
-			int py = y + 3 + pathFont.nHeight + 2 + topFont.nHeight + 2;
+			int py = y + 3 + pathFont.getHeight() + 2 + topFont.getHeight() + 2;
 			
 			for(int i = l_nMin[currColumn]; i >= 0 && i < l_nMin[currColumn] + nListItems && i < list[currColumn].size(); i++) {	
 			    if(mx > x && mx < scrollX[FILE])
-					if(my > py && my < py + font.nHeight)
+					if(my > py && my < py + font.getHeight())
 					{
 						l_nFocus[currColumn] = i;
 						return true;
