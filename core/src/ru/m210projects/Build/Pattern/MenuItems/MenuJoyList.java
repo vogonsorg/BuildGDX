@@ -36,12 +36,11 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 public abstract class MenuJoyList extends MenuKeyboardList {
 
 	private final GPManager gpmanager;
-	private final int menupal;
+	public int menupal;
 
-	public MenuJoyList(BuildGame app, int menupal, BuildFont font, int x, int y, int width,
-			int len, int list_pal_left, int list_pal_right, MenuProc callback) {
-		super(app.pSlider, app.pCfg, font, x, y, width, len, list_pal_left, list_pal_right, callback);
-		this.menupal = menupal;
+	public MenuJoyList(BuildGame app, BuildFont font, int x, int y, int width,
+			int len, MenuProc callback) {
+		super(app.pSlider, app.pCfg, font, x, y, width, len, callback);
 		this.gpmanager = app.pInput.ctrlGetGamepadManager();
 		this.len += cfg.joymap.length;
 	}
@@ -51,8 +50,8 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 		int px = x, py = y;
 		boolean offset = false;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
-			int pal = this.pal; 
-			int pal2 = this.pal2; 
+			int pal = this.pal_left; 
+			int pal2 = this.pal_right; 
 			int shade = handler.getShade(i == l_nFocus? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
 			String text;
 			String key;

@@ -42,17 +42,17 @@ public abstract class MenuKeyboardList extends MenuList
 	protected int scrollerX, scrollerHeight;
 	protected int touchY;
 	protected boolean isTouched;
-	protected int pal2;
+	
+	public int pal_left;
+	public int pal_right;
 
-	public MenuKeyboardList(SliderDrawable slider, BuildConfig cfg, BuildFont font, int x, int y, int width, int len, int list_pal_left, int list_pal_right, MenuProc callback)
+	public MenuKeyboardList(SliderDrawable slider, BuildConfig cfg, BuildFont font, int x, int y, int width, int len, MenuProc callback)
 	{
 		super(null, font, x, y, width, 0, null, callback, len);
 		this.slider = slider;
 		this.cfg = cfg;
 		this.keynames = cfg.keymap;
 		this.len = keynames.length;
-		this.pal = list_pal_left;
-		this.pal2 = list_pal_right;
 	}
 	
 	public abstract String getKeyName(int keycode);
@@ -66,8 +66,8 @@ public abstract class MenuKeyboardList extends MenuList
 		int px = x, py = y;
 		for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
 			int shade = handler.getShade(i == l_nFocus? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
-			int pal1 = this.pal; 
-			int pal2 = this.pal2; 
+			int pal1 = this.pal_left; 
+			int pal2 = this.pal_right; 
 			
 			if(i == l_nFocus)
 				pal2 = pal1 = handler.getPal(font, m_pMenu.m_pItems[m_pMenu.m_nFocus]);

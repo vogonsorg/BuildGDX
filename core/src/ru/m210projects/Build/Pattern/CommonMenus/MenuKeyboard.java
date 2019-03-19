@@ -40,11 +40,15 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 
 public abstract class MenuKeyboard extends BuildMenu {
 	
+	public MenuKeyboardList mList;
+	public MenuText mText;
+	public MenuText mText2;
+	
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
 	public abstract String keyNames(int keycode);
 	
-	public MenuKeyboard(final BuildGame app, int posx, int posy, int width, int list_len, int list_pal_left, int list_pal_right, BuildFont style, BuildFont helpFont, int help_pal) {
+	public MenuKeyboard(final BuildGame app, int posx, int posy, int width, int list_len, BuildFont style) {
 		addItem(getTitle(app, "Configure keys"), false);
 		final BuildConfig cfg = app.pCfg;
 		
@@ -182,7 +186,7 @@ public abstract class MenuKeyboard extends BuildMenu {
 			}
 		};
 
-		MenuKeyboardList mList = new MenuKeyboardList(app.pSlider, app.pCfg, style, posx, posy, width, list_len, list_pal_left, list_pal_right, callback) {
+		mList = new MenuKeyboardList(app.pSlider, app.pCfg, style, posx, posy, width, list_len, callback) {
 			@Override
 			public String getKeyName(int keycode) {
 				return keyNames(keycode);
@@ -191,10 +195,8 @@ public abstract class MenuKeyboard extends BuildMenu {
 		
 		posy += mList.mFontOffset() * list_len;
 
-		MenuText mText = new MenuText("UP/DOWN = Select action", helpFont, 160, posy += 2 * mList.mFontOffset(), 1);
-		mText.pal = help_pal;
-		MenuText mText2 = new MenuText("Enter = modify  Delete = clear", helpFont, 160, posy += mList.mFontOffset(), 1);
-		mText2.pal = help_pal;
+		mText = new MenuText("UP/DOWN = Select action", style, 160, posy += 2 * mList.mFontOffset(), 1);
+		mText2 = new MenuText("Enter = modify  Delete = clear", style, 160, posy += mList.mFontOffset(), 1);
 		
 		addItem(mList, true);
 		addItem(mText, false);
