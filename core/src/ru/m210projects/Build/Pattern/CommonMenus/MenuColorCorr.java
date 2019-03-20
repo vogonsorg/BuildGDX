@@ -38,7 +38,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 	
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
-	public MenuColorCorr(final BuildGame app, int posx, int posy, int width, int menuHeight, BuildFont style, BuildFont reset) {
+	public MenuColorCorr(final BuildGame app, int posx, int posy, int width, int menuHeight, BuildFont style) {
 		addItem(getTitle(app, "Color correction"), false);
 		
 		final BuildConfig cfg = app.pCfg;
@@ -86,7 +86,7 @@ public abstract class MenuColorCorr extends BuildMenu {
 				}, true);
 		mContrast.digitalMax = 4096;
 
-		mDefault = new MenuButton("Set to default", reset, 0, posy += 2 * menuHeight, 320, 1, 0, null, -1, new MenuProc() {
+		mDefault = new MenuButton("Set to default", style, 0, posy += 2 * menuHeight, 320, 1, 0, null, -1, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				cfg.gamma = 1.0f;

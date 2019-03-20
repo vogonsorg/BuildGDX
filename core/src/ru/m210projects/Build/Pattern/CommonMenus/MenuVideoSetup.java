@@ -57,7 +57,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 	
 	public abstract MenuVideoMode getVideoModeMenu(BuildGame app);
 	
-	public MenuVideoSetup(final BuildGame app, int posx, int posy, int width, int menuHeight, BuildFont style, BuildFont conteiner, BuildFont reset)
+	public MenuVideoSetup(final BuildGame app, int posx, int posy, int width, int menuHeight, BuildFont style)
 	{
 		addItem(getTitle(app, "Video setup"), false);
 		
@@ -67,7 +67,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 
 		mColorMode = new MenuButton("Color correction", style, posx, posy += menuHeight, width, 1, 0, getColorCorrectionMenu(app), -1, null, 0);
 
-		sFilter = new MenuConteiner("Texture mode:", style, conteiner, posx, posy += 2 * menuHeight, width, null, 0, new MenuProc() {
+		sFilter = new MenuConteiner("Texture mode:", style, posx, posy += 2 * menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -95,7 +95,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			}
 		};
 		
-		sAnisotropy = new MenuConteiner("Anisotropy: ", style, conteiner, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		sAnisotropy = new MenuConteiner("Anisotropy: ", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -125,7 +125,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 					}
 				}, null, null);
 		
-		mMenuFPS = new MenuConteiner("Framerate limit:", style, conteiner, posx, posy += menuHeight, width, null, 0,
+		mMenuFPS = new MenuConteiner("Framerate limit:", style, posx, posy += menuHeight, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {

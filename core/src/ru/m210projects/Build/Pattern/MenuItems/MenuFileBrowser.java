@@ -28,8 +28,8 @@ public class MenuFileBrowser extends MenuItem {
 	private final int DIRECTORY = 0;
 	private final int FILE = 1;
 	public String back = "..";
-	private char[] dirs = "Directories".toCharArray();
-	private char[] ffs = "Files".toCharArray();
+	protected char[] dirs = "Directories".toCharArray();
+	protected char[] ffs = "Files".toCharArray();
 	private class StringList extends LinkedList<String> { private static final long serialVersionUID = 1L; }
 
 	private int touchY;
@@ -37,26 +37,27 @@ public class MenuFileBrowser extends MenuItem {
 	public boolean scrollTouch[] = new boolean[2];
 	public boolean showmain;
 	
-	int[] l_nMin;
-	int[] l_nFocus;
-	final int nListItems;
-	final MenuProc specialCall;
-	final int nItemHeight;
+	protected int[] l_nMin;
+	protected int[] l_nFocus;
+	protected final int nListItems;
+	protected final MenuProc specialCall;
+	protected final int nItemHeight;
 	
-	DirectoryEntry currDir;
+	public DirectoryEntry currDir;
 	public FileEntry currFile;
 
-	StringList[] list = new StringList[2];
+	protected StringList[] list = new StringList[2];
 	
-	String path;
-	int currColumn;
+	public String path;
+	protected int currColumn;
 	
 	private BuildEngine draw;
 	private SliderDrawable slider;
 	private int nBackground = 0;
 	private int scrollerHeight;
-	private BuildFont topFont, pathFont;
+	protected BuildFont topFont, pathFont;
 	public int topPal, pathPal, listPal, backPal;
+	public int transparent = 1;
 
 	public MenuFileBrowser(BuildEngine draw, SliderDrawable slider, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
 			int nItemHeight, MenuProc specialCall,
@@ -90,7 +91,7 @@ public class MenuFileBrowser extends MenuItem {
 		return font.getHeight() + nItemHeight;
 	}
 
-	List<String> tmpList;
+	protected List<String> tmpList;
 	private void changeDir(DirectoryEntry dir)
 	{
 		if(list[DIRECTORY] == null)
@@ -138,6 +139,17 @@ public class MenuFileBrowser extends MenuItem {
 			path += currDir.getRelativePath();
 	}
 
+	protected void drawHeader(int x1, int x2, int y)
+	{
+		/*directories*/ topFont.drawText(x1, y, dirs, -32, topPal, TextAlign.Left, 2, fontShadow);
+		/*files*/ topFont.drawText(x2, y, ffs, -32, topPal, TextAlign.Left, 2, fontShadow);
+	}
+	
+	protected void drawPath(int x, int y)
+	{
+		brDrawText(pathFont, toCharArray("path: " + path), x, y, -32, pathPal, 0, this.x + this.width);
+	}
+	
 	@Override
 	public void draw(MenuHandler handler) {
 		
@@ -146,15 +158,12 @@ public class MenuFileBrowser extends MenuItem {
 		int yList = yPath + pathFont.getHeight() + 2;
 		int scrollerWidth = slider.getScrollerWidth();
 
-		draw.rotatesprite(x << 16, y << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | 1, 0, 0, coordsConvertXScaled(x+width, ConvertType.Normal), coordsConvertYScaled(yList + nListItems * mFontOffset() + 6));
+		draw.rotatesprite(x << 16, y << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x+width, ConvertType.Normal), coordsConvertYScaled(yList + nListItems * mFontOffset() + 6));
 
 		int px = x + 3;
-		/*directories*/ topFont.drawText(px, yColNames, dirs, -32, topPal, TextAlign.Left, 2, fontShadow);
-		/*files*/ topFont.drawText(x - 3 + width - topFont.getWidth(ffs), yColNames, ffs, -32, topPal, TextAlign.Left, 2, fontShadow);
-		
+		drawHeader(px, x - 3 + width - topFont.getWidth(ffs), yColNames);
 		px += scrollerWidth + 3;
-		
-		/*path*/ brDrawText(pathFont, toCharArray("path: " + path), px, yPath, -32, pathPal, 0, this.x + this.width);
+		drawPath(px, yPath);
 
 		int py = yList;
 		for(int i = l_nMin[DIRECTORY]; i >= 0 && i < l_nMin[DIRECTORY] + nListItems && i < list[DIRECTORY].size(); i++) {	
@@ -204,7 +213,7 @@ public class MenuFileBrowser extends MenuItem {
 		slider.drawScroller(scrollX[DIRECTORY], posy, handler.getShade(currColumn == DIRECTORY ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null), 0);
 	}
 	
-	private void brDrawText( BuildFont font, char[] text, int x, int y, int shade, int pal, int x1, int x2 )
+	protected void brDrawText( BuildFont font, char[] text, int x, int y, int shade, int pal, int x1, int x2 )
 	{
 		int tptr = 0, tx = 0;
 	    while(tptr < text.length && text[tptr] != 0)

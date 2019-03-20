@@ -51,12 +51,14 @@ public abstract class MenuVideoMode extends BuildMenu {
 	protected MenuConteiner mRenderer;
 	protected MenuSwitch mFullscreen;
 	protected MenuButton mApplyChanges;
-	protected MenuList mSlot;
+	protected MenuResolutionList mSlot;
 	protected MenuScroller slider;
 	
 	protected VideoMode choosedMode;
 	protected VideoMode currentMode;
 	protected boolean isFullscreen;
+	
+	protected final BuildMenu mResList;
 
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
@@ -97,7 +99,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 		return menu;
 	}
 	
-	public MenuVideoMode(final BuildGame app, int posx, int posy, int width, int itemHeight, BuildFont style, BuildFont conteiner, BuildFont apply, int nListItems, int nListWidth, int nBackground) {
+	public MenuVideoMode(final BuildGame app, int posx, int posy, int width, int itemHeight, BuildFont style, int nListItems, int nListWidth, int nBackground) {
 		
 		addItem(getTitle(app, "Video mode"), false);
 		
@@ -110,9 +112,9 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
-		final BuildMenu mResList = getResolutionListMenu(this, app, posx + (width - nListWidth) / 2, posy + 2 * style.getHeight(), nListWidth, nListItems, style, nBackground);
+		mResList = getResolutionListMenu(this, app, posx + (width - nListWidth) / 2, posy + 2 * style.getHeight(), nListWidth, nListItems, style, nBackground);
 		
-		mResolution = new MenuConteiner("Resolution: ", style, conteiner, posx,
+		mResolution = new MenuConteiner("Resolution: ", style, posx,
 				posy += itemHeight, width, strvmodes, 0, new MenuProc() {
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuConteiner item = (MenuConteiner) pItem;
@@ -187,7 +189,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
-		mRenderer = new MenuConteiner("Renderer: ", style, conteiner, posx,
+		mRenderer = new MenuConteiner("Renderer: ", style, posx,
 				posy += itemHeight, width, new String[] { "Polymost" }, 0, null) {
 			@Override
 			public void draw(MenuHandler handler) {
@@ -209,7 +211,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
-		mApplyChanges = new MenuButton("Apply changes", apply, 0, posy += 2 * itemHeight, 320, 1, 0, null, -1, callback, 0) {
+		mApplyChanges = new MenuButton("Apply changes", style, 0, posy += 2 * itemHeight, 320, 1, 0, null, -1, callback, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
 				super.draw(handler);
