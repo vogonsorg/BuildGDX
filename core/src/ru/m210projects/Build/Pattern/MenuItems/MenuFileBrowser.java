@@ -87,6 +87,11 @@ public class MenuFileBrowser extends MenuItem {
 
 		changeDir(cache);
 	}
+	
+	public String getFile()
+	{
+		return list[FILE].get(l_nFocus[FILE]);
+	}
 
 	public int mFontOffset() {
 		return font.getHeight() + nItemHeight;
