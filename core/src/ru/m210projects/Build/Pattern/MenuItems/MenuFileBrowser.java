@@ -8,7 +8,9 @@ import static ru.m210projects.Build.FileHandle.Compat.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,11 +22,15 @@ import ru.m210projects.Build.Gameutils.ConvertType;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
+import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 
 public class MenuFileBrowser extends MenuItem {
-
+	
+	protected List<BrowserFileType[]> group;
+	protected HashMap<String, BrowserFileType> btypes = new HashMap<String, BrowserFileType>();
+	
 	private final int DIRECTORY = 0;
 	private final int FILE = 1;
 	public String back = "..";
@@ -40,16 +46,13 @@ public class MenuFileBrowser extends MenuItem {
 	protected int[] l_nMin;
 	protected int[] l_nFocus;
 	protected final int nListItems;
-	protected final MenuProc specialCall;
 	protected final int nItemHeight;
-	
-	public DirectoryEntry currDir;
-	public FileEntry currFile;
 
 	protected StringList[] list = new StringList[2];
 	
 	public String path;
 	protected int currColumn;
+	protected DirectoryEntry currDir;
 	
 	private BuildEngine draw;
 	private SliderDrawable slider;
@@ -58,24 +61,22 @@ public class MenuFileBrowser extends MenuItem {
 	protected BuildFont topFont, pathFont;
 	public int topPal, pathPal, listPal, backPal;
 	public int transparent = 1;
-
-	public MenuFileBrowser(BuildEngine draw, SliderDrawable slider, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
-			int nItemHeight, MenuProc specialCall,
-			int nListItems, int nBackground) {
-		
+	
+	public MenuFileBrowser(List<BrowserFileType[]> group, BuildGame app, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
+			int nItemHeight, int nListItems, int nBackground)
+	{
 		super(null, font);
 		
+		this.group = group;
 		this.flags = 3 | 4;
-		this.draw = draw;
-		this.slider = slider;
+		this.draw = app.pEngine;
+		this.slider = app.pSlider;
 
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.nItemHeight = nItemHeight;
 		this.nListItems = nListItems;
-		this.specialCall = specialCall;
-		
 		this.topFont = topFont;
 		this.pathFont = pathFont;
 		this.nBackground = nBackground;
@@ -86,7 +87,7 @@ public class MenuFileBrowser extends MenuItem {
 
 		changeDir(cache);
 	}
-	
+
 	public int mFontOffset() {
 		return font.getHeight() + nItemHeight;
 	}
@@ -121,17 +122,32 @@ public class MenuFileBrowser extends MenuItem {
 		Collections.sort(tmpList);
 		list[DIRECTORY].addAll(tmpList);
 		tmpList.clear();
+		btypes.clear();
 		
-		for (Iterator<FileEntry> it = dir.getFiles().values().iterator(); it.hasNext(); ) {
-			FileEntry file = it.next();
-			String name = file.getFile().getName();
-			if(file.getExtension().equals("map"))
-				tmpList.add(toLowerCase(name));
+		if(group != null)
+		{
+			for(int i = 0, t; i < group.size(); i++)
+			{
+				BrowserFileType[] types = group.get(i);
+				for(t = 0; t < types.length; t++)
+				{
+					BrowserFileType ftype = types[t];
+					for (Iterator<FileEntry> it = dir.getFiles().values().iterator(); it.hasNext(); ) {
+						FileEntry file = it.next();
+						String name;
+						if(file.getExtension().equals(ftype.extension) && (name = ftype.init(file)) != null) {
+							name = toLowerCase(name);
+							tmpList.add(name);
+							btypes.put(name, ftype);
+						}
+					}
+				}
+
+				Collections.sort(tmpList);
+				list[FILE].addAll(tmpList);
+				tmpList.clear();
+			}
 		}
-		
-		Collections.sort(tmpList);
-		list[FILE].addAll(tmpList);
-		tmpList.clear();
 
 		currDir = dir;
 		path = File.separator;
@@ -182,15 +198,19 @@ public class MenuFileBrowser extends MenuItem {
 		py = yList;
 		for(int i = l_nMin[FILE]; i >= 0 && i < l_nMin[FILE] + nListItems && i < list[FILE].size(); i++) {	
 			int pal = listPal;
-			if(currColumn == FILE && i == l_nFocus[FILE])
+			if(currColumn == FILE && i == l_nFocus[FILE]) 
 				pal = handler.getPal(font, m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 			int shade = handler.getShade(currColumn == FILE && i == l_nFocus[FILE] ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
 			
 			String filename = list[FILE].get(i);
-			text = toCharArray(filename);
+			text = toChars(filename);
+			
+			int itemPal = btypes.get(filename).pal;
+			if(itemPal != 0)
+				pal = itemPal;
 			
 	        px = x + width - font.getWidth(text) - scrollerWidth - 5; 
-	        brDrawText(font, text, px, py, shade, pal, this.x + this.width / 2 + 4, this.x + this.width); // XXX font 0
+	        brDrawText(font, text, px, py, shade, pal, this.x + this.width / 2 + 4, this.x + this.width);
 			py += mFontOffset();
 		}
 		
@@ -216,15 +236,42 @@ public class MenuFileBrowser extends MenuItem {
 	protected void brDrawText( BuildFont font, char[] text, int x, int y, int shade, int pal, int x1, int x2 )
 	{
 		int tptr = 0, tx = 0;
+
 	    while(tptr < text.length && text[tptr] != 0)
 	    {
         	if(tx + x > x1 && tx + x <= x2) 
         		x += font.drawChar(x, y, text[tptr], shade, pal, 2, fontShadow);
-        	else break;
-
+        	else x += font.getWidth(text[tptr]);
+        	
 	        tptr++;
 	    }
 	}
+	
+	protected char[] buffer = new char[40];
+	protected char[] toChars(String text)
+	{
+		int symbols = 0;
+		int pos = text.length() - 1;
+		int len = Math.min(text.length(), buffer.length - 1);
+		Arrays.fill(buffer, (char) 0); 
+		while(pos >= 1 && symbols < len - 1 && text.charAt(pos - 1) != File.separatorChar) {
+			symbols++; pos--;
+		}
+		text.getChars(pos, pos + symbols + 1, buffer, 0);
+		
+//		int symbols = 0;
+//		int pos = text.length();
+//		int len = Math.min(text.length(), buffer.length - 1);
+//		Arrays.fill(buffer, (char) 0); 
+//		while(pos-- >= 0 && ++symbols < len && text.charAt(pos) != File.separatorChar);
+//		if(text.charAt(pos) == File.separatorChar) { pos++; symbols--; }
+//		System.err.println(pos + " " + symbols);
+//		text.getChars(pos, pos + symbols, buffer, 0);
+//		System.err.println(new String(buffer));
+		
+		return buffer;
+	}
+	
 
 	@Override
 	public boolean callback(MenuHandler handler, MenuOpt opt) {
@@ -296,8 +343,8 @@ public class MenuFileBrowser extends MenuItem {
 
 					if(l_nFocus[FILE] == -1) return false;
 					filename = list[FILE].get(l_nFocus[FILE]);
-					currFile = currDir.checkFile(filename);
-					specialCall.run(handler, this);
+					BrowserFileType typ = btypes.get(filename);
+					typ.callback(currDir, filename);
 				}
 				getInput().resetKeyStatus();
 				return false;

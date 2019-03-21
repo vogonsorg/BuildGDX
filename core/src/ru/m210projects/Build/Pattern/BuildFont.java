@@ -67,6 +67,11 @@ public class BuildFont {
 		charInfo[ch].yOffset = (short) yOffset;
 		charInfo[ch].nWidth = (short) nWidth;
 	}
+	
+	public int getWidth(char ch)
+	{
+		return charInfo[ch].nWidth;
+	}
 
 	public int getWidth(char[] text) {
 		int width = 0;
@@ -100,7 +105,7 @@ public class BuildFont {
 		}
 		return charInfo[ch].nWidth;
 	}
-
+	
 	public int drawText(int x, int y, char[] text, int shade, int pal, TextAlign align, int nBits, boolean shadow) {
 		if(text == null) return 0;
 		
@@ -122,6 +127,12 @@ public class BuildFont {
 	}
 	
 	// Scale font
+	
+	public int getWidth(char ch, int scale)
+	{
+		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
+		return  scale(charInfo[ch].nWidth, zoom, nScale);
+	}
 	
 	public int getWidth(char[] text, int scale) {
 		int width = 0;
