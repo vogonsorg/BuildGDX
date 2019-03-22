@@ -37,10 +37,10 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 public abstract class GameAdapter extends ScreenAdapter {
 	
 	protected BuildGame game;
-	protected BuildNet net;
-	protected MenuHandler menu;
-	protected Engine engine;
-	protected BuildConfig cfg;
+	protected BuildNet pNet;
+	protected MenuHandler pMenu;
+	protected Engine pEngine;
+	protected BuildConfig pCfg;
 	protected Runnable gScreenCapture;
 	protected LoadingAdapter load;
 	public byte[] captBuffer;
@@ -48,10 +48,10 @@ public abstract class GameAdapter extends ScreenAdapter {
 	public GameAdapter(final BuildGame game, LoadingAdapter load)
 	{
 		this.game = game;
-		this.net = game.pNet;
-		this.menu = game.pMenu;
-		this.engine = game.pEngine;
-		this.cfg = game.pCfg;
+		this.pNet = game.pNet;
+		this.pMenu = game.pMenu;
+		this.pEngine = game.pEngine;
+		this.pCfg = game.pCfg;
 		this.load = load;
 	}
 	
@@ -74,9 +74,15 @@ public abstract class GameAdapter extends ScreenAdapter {
 	
 	protected abstract boolean prepareboard(String map);
 	
-	public void loadboard(final String map, final Runnable prestart)
+	public GameAdapter setTitle(String title)
 	{
-		net.ready2send = false;
+		load.setTitle(title);
+		return this;
+	}
+	
+	public GameAdapter loadboard(final String map, final Runnable prestart)
+	{
+		pNet.ready2send = false;
 		game.changeScreen(load);
 		load.init(new Runnable() {
 			@Override
@@ -88,23 +94,25 @@ public abstract class GameAdapter extends ScreenAdapter {
 				}
 			}
 		});
+		
+		return this;
 	}
 
 	protected void startboard() 
 	{
-		net.WaitForAllPlayers(0);
+		pNet.WaitForAllPlayers(0);
 		System.gc();
 		
-		net.ResetTimers();
-		net.ready2send = true;
+		pNet.ResetTimers();
+		pNet.ready2send = true;
 		game.changeScreen(this);
 		
-		engine.faketimerhandler();
+		pEngine.faketimerhandler();
 	}
 	
 	@Override
 	public void show() {
-		menu.mClose();
+		pMenu.mClose();
 	}
 	
 	@Override
@@ -112,30 +120,30 @@ public abstract class GameAdapter extends ScreenAdapter {
 		KeyHandler();
 
 		if (numplayers > 1) {
-			engine.faketimerhandler();
+			pEngine.faketimerhandler();
 			
-			net.GetPackets();
-			while (net.gPredictTail < net.gNetFifoHead[myconnectindex] && !game.gPaused) 
-				net.UpdatePrediction(net.gFifoInput[net.gPredictTail & kFifoMask][myconnectindex]); 
+			pNet.GetPackets();
+			while (pNet.gPredictTail < pNet.gNetFifoHead[myconnectindex] && !game.gPaused) 
+				pNet.UpdatePrediction(pNet.gFifoInput[pNet.gPredictTail & kFifoMask][myconnectindex]); 
 
-		} else net.bufferJitter = 0;
+		} else pNet.bufferJitter = 0;
 		
-		PreFrame(net);
+		PreFrame(pNet);
 
 		int i;
-		while (net.gNetFifoHead[myconnectindex] - net.gNetFifoTail > net.bufferJitter && !game.gExit) {
+		while (pNet.gNetFifoHead[myconnectindex] - pNet.gNetFifoTail > pNet.bufferJitter && !game.gExit) {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
-				if (net.gNetFifoTail == net.gNetFifoHead[i]) break;
+				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
 			if (i >= 0) break;
 			game.pInt.updateinterpolations();
-			ProcessFrame(net);
+			ProcessFrame(pNet);
 		}
 		
-		net.CheckSync();
+		pNet.CheckSync();
 		
 		float smoothratio = 65536;
-		if (!game.gPaused && (!menu.gShowMenu || game.nNetMode != NetMode.Single) && !Console.IsShown()) {
-			smoothratio = engine.getsmoothratio();
+		if (!game.gPaused && (!pMenu.gShowMenu || game.nNetMode != NetMode.Single) && !Console.IsShown()) {
+			smoothratio = pEngine.getsmoothratio();
 			if (smoothratio < 0 || smoothratio > 0x10000) {
 //				System.err.println("Interpolation error " + smoothratio);
 				smoothratio = BClipRange(smoothratio, 0, 0x10000);
@@ -153,23 +161,23 @@ public abstract class GameAdapter extends ScreenAdapter {
 		DrawHud();
 		game.pInt.restoreinterpolations();
 		
-		if(menu.gShowMenu)
-			menu.mDrawMenu();
+		if(pMenu.gShowMenu)
+			pMenu.mDrawMenu();
 		
-		PostFrame(net);
+		PostFrame(pNet);
 
-		if (cfg.gShowFPS)
-			engine.printfps(cfg.gFpsScale);
+		if (pCfg.gShowFPS)
+			pEngine.printfps(pCfg.gFpsScale);
 
-		engine.sampletimer();
-		engine.nextpage();
+		pEngine.sampletimer();
+		pEngine.nextpage();
 	}
 	
 	public void capture(final int width, final int height) {
 		gScreenCapture = new Runnable() {
 			@Override
 			public void run() {
-				captBuffer = engine.screencapture(width, height);
+				captBuffer = pEngine.screencapture(width, height);
 			}
 		};
 	}
@@ -190,7 +198,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		if (game.nNetMode == NetMode.Single && numplayers < 2) {
 			{
 				game.gPaused = false;
-				net.ototalclock = totalclock;
+				pNet.ototalclock = totalclock;
 			}
 			sndHandlePause(game.gPaused);
 		}

@@ -42,13 +42,13 @@ public abstract class BuildControls {
 	public Vector2 stick2;
 	
 	protected GPManager gpmanager;
-	protected BuildConfig cfg;
+	protected BuildConfig pCfg;
 	
 	public enum JoyStick { Turning, Moving };
 	
 	public BuildControls(BuildConfig cfg, GPManager gpmanager)
 	{
-		this.cfg = cfg;
+		this.pCfg = cfg;
 		this.gpmanager = gpmanager;
 		this.gpmanager.setDeadZone(cfg.gJoyDeadZone / 65536f);
 		this.maxisstatus = new boolean[cfg.keymap.length];
@@ -69,7 +69,7 @@ public abstract class BuildControls {
 		mouseMove.set(0, 0);
 		Arrays.fill(maxisstatus, false);
 		
-		if (cfg.useMouse) {
+		if (pCfg.useMouse) {
 			
 			int dx = Gdx.input.getX() - oldPosX;
 			int dy = Gdx.input.getY() - oldPosY;
@@ -77,12 +77,12 @@ public abstract class BuildControls {
 			if(dx != 0) {
 				if(dx > 0)
 				{
-					if(cfg.mouseaxis[AXISRIGHT] != -1) {
-						maxisstatus[cfg.mouseaxis[AXISRIGHT]] = true;
+					if(pCfg.mouseaxis[AXISRIGHT] != -1) {
+						maxisstatus[pCfg.mouseaxis[AXISRIGHT]] = true;
 					}
 				} else {
-					if(cfg.mouseaxis[AXISLEFT] != -1) {
-						maxisstatus[cfg.mouseaxis[AXISLEFT]] = true;
+					if(pCfg.mouseaxis[AXISLEFT] != -1) {
+						maxisstatus[pCfg.mouseaxis[AXISLEFT]] = true;
 					}
 				}
 			}
@@ -90,17 +90,17 @@ public abstract class BuildControls {
 			if(dy != 0) {
 				if(dy > 0)
 				{
-					if(cfg.mouseaxis[AXISDOWN] != -1) {
-						maxisstatus[cfg.mouseaxis[AXISDOWN]] = true;
+					if(pCfg.mouseaxis[AXISDOWN] != -1) {
+						maxisstatus[pCfg.mouseaxis[AXISDOWN]] = true;
 					}
 				} else {
-					if(cfg.mouseaxis[AXISUP] != -1) {	
-						maxisstatus[cfg.mouseaxis[AXISUP]] = true;
+					if(pCfg.mouseaxis[AXISUP] != -1) {	
+						maxisstatus[pCfg.mouseaxis[AXISUP]] = true;
 					}
 				}
 			}
 
-			float sensscale = cfg.gSensitivity / 65536.0f;
+			float sensscale = pCfg.gSensitivity / 65536.0f;
 
 			float xscale = sensscale * 4;
 			float yscale = sensscale / 4;
@@ -113,32 +113,32 @@ public abstract class BuildControls {
 	
 	public float ctrlGetMouseMove()
 	{
-		return mouseMove.y * cfg.gMouseMoveSpeed / 65536f;
+		return mouseMove.y * pCfg.gMouseMoveSpeed / 65536f;
 	}
 	
 	public float ctrlGetMouseLook(boolean invert)
 	{
 		if(invert) 
-			return -mouseMove.y * cfg.gMouseLookSpeed / 65536f;
-		return mouseMove.y * cfg.gMouseLookSpeed / 65536f;
+			return -mouseMove.y * pCfg.gMouseLookSpeed / 65536f;
+		return mouseMove.y * pCfg.gMouseLookSpeed / 65536f;
 	}
 	
 	public float ctrlGetMouseTurn()
 	{
-		return mouseMove.x * cfg.gMouseTurnSpeed / 65536f;
+		return mouseMove.x * pCfg.gMouseTurnSpeed / 65536f;
 	}
 	
 	public float ctrlGetMouseStrafe()
 	{
-		return mouseMove.x * cfg.gMouseStrafeSpeed / 2097152f;
+		return mouseMove.x * pCfg.gMouseStrafeSpeed / 2097152f;
 	}
 
 	public void ctrlJoyHandler() {
 		stick1.set(0, 0);
 		stick2.set(0, 0);
-		if(gpmanager.isValidDevice(cfg.gJoyDevice)) {
-			stick1.set(gpmanager.getStickValue(cfg.gJoyDevice, cfg.gJoyTurnAxis, cfg.gJoyLookAxis));
-			stick2.set(gpmanager.getStickValue(cfg.gJoyDevice, cfg.gJoyStrafeAxis, cfg.gJoyMoveAxis));
+		if(gpmanager.isValidDevice(pCfg.gJoyDevice)) {
+			stick1.set(gpmanager.getStickValue(pCfg.gJoyDevice, pCfg.gJoyTurnAxis, pCfg.gJoyLookAxis));
+			stick2.set(gpmanager.getStickValue(pCfg.gJoyDevice, pCfg.gJoyStrafeAxis, pCfg.gJoyMoveAxis));
         }
 	}
 	
@@ -153,17 +153,17 @@ public abstract class BuildControls {
 	public boolean ctrlPadStatusOnce(KeyType buttonCode)
 	{
 		if(buttonCode instanceof MenuKeys) 
-			return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatusOnce(cfg.gJoyDevice, cfg.gJoyMenukeys[((MenuKeys) buttonCode).getJoyNum()]);
+			return gpmanager.isValidDevice(pCfg.gJoyDevice) && gpmanager.buttonStatusOnce(pCfg.gJoyDevice, pCfg.gJoyMenukeys[((MenuKeys) buttonCode).getJoyNum()]);
 		
-		return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatusOnce(cfg.gJoyDevice, cfg.gpadkeys[buttonCode.getNum()]);
+		return gpmanager.isValidDevice(pCfg.gJoyDevice) && gpmanager.buttonStatusOnce(pCfg.gJoyDevice, pCfg.gpadkeys[buttonCode.getNum()]);
 	}
 	
 	public boolean ctrlPadStatus(KeyType buttonCode)
 	{
 		if(buttonCode instanceof MenuKeys) 
-			return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatus(cfg.gJoyDevice, cfg.gJoyMenukeys[((MenuKeys) buttonCode).getJoyNum()]);
+			return gpmanager.isValidDevice(pCfg.gJoyDevice) && gpmanager.buttonStatus(pCfg.gJoyDevice, pCfg.gJoyMenukeys[((MenuKeys) buttonCode).getJoyNum()]);
 		
-		return gpmanager.isValidDevice(cfg.gJoyDevice) && gpmanager.buttonStatus(cfg.gJoyDevice, cfg.gpadkeys[buttonCode.getNum()]);
+		return gpmanager.isValidDevice(pCfg.gJoyDevice) && gpmanager.buttonStatus(pCfg.gJoyDevice, pCfg.gpadkeys[buttonCode.getNum()]);
 	}
 
 	public boolean ctrlAxisStatusOnce(int keyId)
@@ -204,9 +204,9 @@ public abstract class BuildControls {
 	
 	public boolean ctrlGetInputKey(KeyType keyName, boolean once) {
 		final KeyInput input = getInput();
-		final int key1 = cfg.primarykeys[keyName.getNum()];
-		final int key2 = cfg.secondkeys[keyName.getNum()];
-		final int keyM = cfg.mousekeys[keyName.getNum()];
+		final int key1 = pCfg.primarykeys[keyName.getNum()];
+		final int key2 = pCfg.secondkeys[keyName.getNum()];
+		final int keyM = pCfg.mousekeys[keyName.getNum()];
 		
 		if (once) {
 			return input.keyStatusOnce(key1)
@@ -235,7 +235,7 @@ public abstract class BuildControls {
 	
 	public boolean ctrlMenuMouse()
 	{
-		return cfg.menuMouse;
+		return pCfg.menuMouse;
 	}
 	
 	public GPManager ctrlGetGamepadManager()
