@@ -16,7 +16,6 @@
 
 package ru.m210projects.Build.Pattern.MenuItems;
 
-import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.FileEntry;
 
 public abstract class BrowserFileType {
@@ -30,7 +29,7 @@ public abstract class BrowserFileType {
 		this.pal = pal;
 	}
 	
-	public abstract void callback(DirectoryEntry dir, String filename);
+	public abstract void callback(MenuFileBrowser item);
 	
 	public abstract String init(FileEntry file);
 }

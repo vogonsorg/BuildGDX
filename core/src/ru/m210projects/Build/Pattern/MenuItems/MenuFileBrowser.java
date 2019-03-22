@@ -88,9 +88,37 @@ public class MenuFileBrowser extends MenuItem {
 		changeDir(cache);
 	}
 	
-	public String getFile()
+	public MenuFileBrowser(final BuildGame app, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
+			int nItemHeight, final MenuProc callback, int nListItems, int nBackground)
+	{
+		this(null, app, font, topFont, pathFont, x, y, width, nItemHeight, nListItems, nBackground);
+		
+		group = new ArrayList<BrowserFileType[]>();
+		group.add(
+			new BrowserFileType[] {
+				new BrowserFileType("map", 0) {
+					@Override
+					public void callback(MenuFileBrowser item) {
+						callback.run(app.pMenu, item);
+					}
+
+					@Override
+					public String init(FileEntry file) { return file.getName(); }
+				}	
+			}
+		);
+		
+		changeDir(cache);
+	}
+	
+	public String getFileName()
 	{
 		return list[FILE].get(l_nFocus[FILE]);
+	}
+	
+	public DirectoryEntry getDirectory()
+	{
+		return currDir;
 	}
 
 	public int mFontOffset() {
@@ -112,7 +140,7 @@ public class MenuFileBrowser extends MenuItem {
 			tmpList = new ArrayList<String>();
 		else tmpList.clear();
 		
-		if(currDir == dir)
+		if(group == null || currDir == dir)
 			return;
 
 		if(dir.getParent() != null)
@@ -128,30 +156,27 @@ public class MenuFileBrowser extends MenuItem {
 		list[DIRECTORY].addAll(tmpList);
 		tmpList.clear();
 		btypes.clear();
-		
-		if(group != null)
+
+		for(int i = 0, t; i < group.size(); i++)
 		{
-			for(int i = 0, t; i < group.size(); i++)
+			BrowserFileType[] types = group.get(i);
+			for(t = 0; t < types.length; t++)
 			{
-				BrowserFileType[] types = group.get(i);
-				for(t = 0; t < types.length; t++)
-				{
-					BrowserFileType ftype = types[t];
-					for (Iterator<FileEntry> it = dir.getFiles().values().iterator(); it.hasNext(); ) {
-						FileEntry file = it.next();
-						String name;
-						if(file.getExtension().equals(ftype.extension) && (name = ftype.init(file)) != null) {
-							name = toLowerCase(name);
-							tmpList.add(name);
-							btypes.put(name, ftype);
-						}
+				BrowserFileType ftype = types[t];
+				for (Iterator<FileEntry> it = dir.getFiles().values().iterator(); it.hasNext(); ) {
+					FileEntry file = it.next();
+					String name;
+					if(file.getExtension().equals(ftype.extension) && (name = ftype.init(file)) != null) {
+						name = toLowerCase(name);
+						tmpList.add(name);
+						btypes.put(name, ftype);
 					}
 				}
-
-				Collections.sort(tmpList);
-				list[FILE].addAll(tmpList);
-				tmpList.clear();
 			}
+
+			Collections.sort(tmpList);
+			list[FILE].addAll(tmpList);
+			tmpList.clear();
 		}
 
 		currDir = dir;
@@ -349,7 +374,7 @@ public class MenuFileBrowser extends MenuItem {
 					if(l_nFocus[FILE] == -1) return false;
 					filename = list[FILE].get(l_nFocus[FILE]);
 					BrowserFileType typ = btypes.get(filename);
-					typ.callback(currDir, filename);
+					typ.callback(this);
 				}
 				getInput().resetKeyStatus();
 				return false;
