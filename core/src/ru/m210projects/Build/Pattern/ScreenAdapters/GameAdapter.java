@@ -104,6 +104,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		System.gc();
 		
 		pNet.ResetTimers();
+		game.pInput.resetMousePos();
 		pNet.ready2send = true;
 		game.changeScreen(this);
 		

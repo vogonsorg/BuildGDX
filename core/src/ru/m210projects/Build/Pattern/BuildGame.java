@@ -223,6 +223,17 @@ public abstract class BuildGame extends Game {
 		return sb.toString();
 	}
 	
+	protected String getStackTrace()
+	{
+		StringBuilder sb = new StringBuilder();
+		for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+			sb.append("\t" + element.toString());
+			sb.append("\r\n");
+		}
+		
+		return sb.toString();
+	}
+	
 	public void ThrowError(String msg, Exception ex) {
 		String stack = stackTraceToString(ex);
 		Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
@@ -239,6 +250,10 @@ public abstract class BuildGame extends Game {
 	}
 	
 	public void ThrowError(String msg) {
+		
+		msg += "\r\nFull stack trace: ";
+		msg += getStackTrace();
+
 		Console.LogPrint("FatalError: " + msg);
 		System.err.println("FatalError: " + msg);
 		CloseLogFile();
