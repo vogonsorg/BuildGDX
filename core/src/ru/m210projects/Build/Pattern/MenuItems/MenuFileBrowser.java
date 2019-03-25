@@ -3,7 +3,6 @@ package ru.m210projects.Build.Pattern.MenuItems;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Net.Mmulti.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 
 import java.io.File;
@@ -41,8 +40,7 @@ public class MenuFileBrowser extends MenuItem {
 	private int touchY;
 	private int[] scrollX = new int[2];
 	public boolean scrollTouch[] = new boolean[2];
-	public boolean showmain;
-	
+
 	protected int[] l_nMin;
 	protected int[] l_nFocus;
 	protected final int nListItems;
@@ -103,7 +101,11 @@ public class MenuFileBrowser extends MenuItem {
 					}
 
 					@Override
-					public String init(FileEntry file) { return file.getName(); }
+					public void init(FileEntry file, List<String> list, HashMap<String, BrowserFileType> typeHash) { 
+						String name = file.getName();
+						list.add(name);
+						typeHash.put(name, this);
+					}
 				}	
 			}
 		);
@@ -165,11 +167,9 @@ public class MenuFileBrowser extends MenuItem {
 				BrowserFileType ftype = types[t];
 				for (Iterator<FileEntry> it = dir.getFiles().values().iterator(); it.hasNext(); ) {
 					FileEntry file = it.next();
-					String name;
-					if(file.getExtension().equals(ftype.extension) && (name = ftype.init(file)) != null) {
-						name = toLowerCase(name);
-						tmpList.add(name);
-						btypes.put(name, ftype);
+				
+					if(file.getExtension().equals(ftype.extension)) {
+						ftype.init(file, tmpList, btypes);
 					}
 				}
 			}
@@ -462,20 +462,16 @@ public class MenuFileBrowser extends MenuItem {
 		}
 		return false;
 	}
+	
+	public void refreshList()
+	{
+		DirectoryEntry dir = currDir;
+		currDir = null;
+		changeDir(dir);
+	}
 
 	@Override
-	public void open() {
-		boolean ostate = showmain;
-		if(numplayers > 1) 
-			showmain = true;
-		else showmain = false;
-
-		if(currDir == cache && ostate != showmain)
-		{
-			currDir = null; //force to update filelist
-			changeDir(cache);
-		}
-	}
+	public void open() { }
 
 	@Override
 	public void close() {

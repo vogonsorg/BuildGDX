@@ -479,7 +479,10 @@ public class Console {
 			public void execute() {
 				osdrows = Integer.parseInt(osd_argv[1]);
 				
-				if (osdrows > osdmaxrows) osdrows = osdmaxrows;
+				if (osdrows > osdmaxrows) {
+					osdrows = osdmaxrows;
+					Set("osdrows", osdrows);
+				}
 	            if (osdrowscur!=-1) osdrowscur = osdrows;
 			}
 		}, 0, MAXPALOOKUPS-1));
@@ -497,8 +500,10 @@ public class Console {
 					try {
 						float value = Float.parseFloat(osd_argv[1]);
 						if(value > 0.5) {
+							setTextScale((int) (value * 65536.0f));
 							osdtextscale = (int) (value * 65536.0f);
 							Console.ResizeDisplay(xdim, ydim);
+							if (osdrowscur!=-1) osdrowscur = osdrows;
 						} else Console.Println("osdtextscale: out of range");
 					}  catch(Exception e) {
 						Console.Println("osdtextscale: out of range");
@@ -509,7 +514,11 @@ public class Console {
 	
 	public static void setTextScale(int scale)
 	{
+		boolean isFullscreen = osdrowscur == osdmaxrows;
 		osdtextscale = scale;
+		Console.ResizeDisplay(xdim, ydim);
+		if(isFullscreen)
+			fullscreen(true);
 	}
 	
 	public static int getTextScale()
@@ -1018,10 +1027,12 @@ public class Console {
 		osdfmt = newosdfmt;
 		osdlines = newline;
 	    osdcols = newcols;
-	    osdmaxrows = func.getrowheight(mulscale(h, osdtextscale, 16))-2;
-
-	    if (osdrows > osdmaxrows) osdrows = osdmaxrows;
-
+	    osdmaxrows = func.getrowheight((int) divscale(h, osdtextscale, 16))-2;
+	    if (osdrows > osdmaxrows) {
+	    	osdrows = osdmaxrows;
+	    	Set("osdrows", osdrows);
+	    }
+	    
 	    osdpos = 0;
 	    osdhead = 0;
 	    osdeditwinstart = 0;

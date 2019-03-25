@@ -56,8 +56,8 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 		engine.clearview(0);
 		engine.sampletimer();
 
-		if(!skippingHandler()) 
-			process(delta);
+		skippingHandler();
+		process(delta);
 
 		engine.nextpage();
 	}

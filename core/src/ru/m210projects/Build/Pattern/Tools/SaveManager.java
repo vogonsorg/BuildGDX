@@ -70,9 +70,8 @@ public class SaveManager {
 		SaveInfo info;
 		if((info = SavHash.get(filename)) != null) {
 			File file = Bcheck(filename, "R");
-			if(file != null) {
+			if(file != null && file.delete()) {
 				SavList.remove(info);
-				file.delete();
 			}
 		} 
 	}

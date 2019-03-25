@@ -207,7 +207,7 @@ public class MenuSlotList extends MenuList
 			switch(opt)
 			{
 				case DELETE:
-					if(!saveList && (displayed.size() > 0 && l_nFocus != -1))
+					if((!saveList && (displayed.size() > 0 && l_nFocus != -1)) || saveList && l_nFocus != 0)
 						deleteQuestion = true;
 					return false;
 				case MWUP:
@@ -226,7 +226,10 @@ public class MenuSlotList extends MenuList
 					if(l_nFocus < 0) {
 						l_nFocus = len - 1;
 						l_nMin = len - nListItems;
-						if(l_nMin < 0) l_nMin = 0;
+						if(l_nFocus < 0 || l_nMin < 0) {
+							l_nFocus = 0;
+							l_nMin = 0;
+						}
 					}
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
@@ -279,6 +282,8 @@ public class MenuSlotList extends MenuList
 						l_nFocus = 0;
 						l_nMin = 0;
 					}
+					if(updateCallback != null)
+						updateCallback.run(handler, this);
 					return false;
 				case PGDW:
 					l_nFocus += (nListItems - 1);
@@ -289,17 +294,31 @@ public class MenuSlotList extends MenuList
 						if(len >= nListItems)
 							l_nMin = len - nListItems;
 						else l_nMin = len - 1;
+						if(l_nFocus < 0 || l_nMin < 0) {
+							l_nFocus = 0;
+							l_nMin = 0;
+						}
 					}
+					if(updateCallback != null)
+						updateCallback.run(handler, this);
 					return false;
 				case HOME:
 					l_nFocus = 0;
 					l_nMin = 0;
+					if(updateCallback != null)
+						updateCallback.run(handler, this);
 					return false;
 				case END:
 					l_nFocus = len - 1;
 					if(len >= nListItems)
 						l_nMin = len - nListItems;
 					else l_nMin = len - 1;
+					if(l_nFocus < 0 || l_nMin < 0) {
+						l_nFocus = 0;
+						l_nMin = 0;
+					}
+					if(updateCallback != null)
+						updateCallback.run(handler, this);
 					return false;
 				default:
 					return false;
