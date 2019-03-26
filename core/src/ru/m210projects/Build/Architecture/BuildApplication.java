@@ -29,8 +29,6 @@ public interface BuildApplication extends Application {
 		public boolean checkRender(boolean shouldRender);
 
 		public boolean isCloseRequested();
-		
-		public boolean isActive();
 
 		public void destroy();
 		

@@ -59,6 +59,9 @@ public abstract class BuildControls {
 	
 	public void resetMousePos()
 	{
+		if(!BuildGdx.app.getFrame().isActive())
+			return;
+		
 		BuildGdx.input.setCursorPosition(xdim / 2, ydim / 2);
 		oldPosX = BuildGdx.input.getX();
 		oldPosY = BuildGdx.input.getY();
@@ -192,11 +195,7 @@ public abstract class BuildControls {
 	{
 		return getInput().keyStatus(keyId);
 	}
-	
-	public boolean ctrlKeyPressed() {
-		return getInput().keyPressed();
-	}
-	
+
 	public boolean ctrlKeyPressed(int keyId)
 	{
 		return getInput().keyPressed(keyId);

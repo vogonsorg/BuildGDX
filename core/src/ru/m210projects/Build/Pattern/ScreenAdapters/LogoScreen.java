@@ -54,7 +54,7 @@ public class LogoScreen extends SkippableAdapter {
 	}
 
 	@Override
-	public void process(float delta) {
+	public void draw(float delta) {
 		
 		if( (gTicks += delta) >= gShowTime && callback != null)
 		{

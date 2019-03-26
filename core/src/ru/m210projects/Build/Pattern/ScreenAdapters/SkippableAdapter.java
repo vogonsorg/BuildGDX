@@ -16,6 +16,7 @@
 
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
+import static ru.m210projects.Build.Input.Keymap.*;
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
@@ -26,18 +27,17 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 	
 	protected BuildGame game;
 	protected Engine engine;
+	protected boolean escSkip;
+	protected Runnable skipCallback;
 	
 	public SkippableAdapter(BuildGame game)
 	{
 		this.game = game;
 		this.engine = game.pEngine;
 	}
-	
-	
-	protected Runnable skipCallback;
-	protected boolean escSkip;
 
 	public SkippableAdapter setSkipping(Runnable skipCallback) {
+		game.pInput.ctrlResetKeyStatus();
 		this.skipCallback = skipCallback;
 		return this;
 	}
@@ -47,9 +47,15 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 		return this;
 	}
 	
-	public abstract void process(float delta);
+	public abstract void draw(float delta);
 
-	public abstract void skip();
+	public void skip() {
+		if(skipCallback != null) {
+			skipCallback.run();
+			skipCallback = null;
+		}
+		game.pInput.ctrlResetKeyStatus();
+	}
 	
 	@Override
 	public final void render(float delta) {
@@ -57,7 +63,7 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 		engine.sampletimer();
 
 		skippingHandler();
-		process(delta);
+		draw(delta);
 
 		engine.nextpage();
 	}
@@ -65,14 +71,9 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 	private boolean skippingHandler() {
 		if((escSkip && (game.pInput.ctrlGetInputKey(MenuKeys.Menu_Open, true) 
 				|| game.pInput.ctrlPadStatusOnce(MenuKeys.Menu_Open))) 
-				|| (!escSkip && game.pInput.ctrlKeyPressed())) {
+				|| (!escSkip && game.pInput.ctrlKeyStatusOnce(ANYKEY))) {
 			
 			skip();
-			if(skipCallback != null) {
-				skipCallback.run();
-				skipCallback = null;
-			}
-			game.pInput.ctrlResetKeyStatus();
 			return true;
 		}
 		

@@ -33,8 +33,7 @@ public class KeyInput {
 		keyfifo[] = new byte[KEYFIFOSIZ], keyfifoplc, keyfifoend;
 	public int locmessagelen;
 	public static final char[] lockeybuf = new char[40]; 
-	
-	public boolean keyPressed = false;
+
 	public boolean[] hitkey = new boolean[256];
 	
 	public static char gdxscantoasc[] = { 0, 0, 0, 0, 0, 0, 0, '0', '1', '2',
@@ -82,8 +81,7 @@ public class KeyInput {
 		BuildGdx.input.cursorHandler();
 
 		int rv = 0;
-		keyPressed = false;
-		keystatus[ANYKEY] = 0;
+		boolean keyPressed = false;
 		for (int kb = 1; kb < 256; kb++) {
 			if(kb >= MOUSE_WHELLUP && kb <= MOUSE_BUTTON11)
 				continue;
@@ -140,7 +138,9 @@ public class KeyInput {
 			setKey(MOUSE_WHELLDN, 0);
 			hitkey[MOUSE_WHELLDN] = false;
 		}
-
+		
+		if(!keyPressed)
+			keystatus[ANYKEY] = 0;
 		return rv;
 	}
 	
@@ -160,12 +160,7 @@ public class KeyInput {
 
 		return false;
 	}
-	
-	public boolean keyPressed()
-	{
-		return keyPressed;
-	}
-	
+
 	public boolean keyPressed(int kb)
 	{
 		return hitkey[kb];

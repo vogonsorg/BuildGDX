@@ -17,7 +17,7 @@ package ru.m210projects.Build.Pattern.MenuItems;
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
 import static ru.m210projects.Build.Gameutils.*;
-
+import static ru.m210projects.Build.Input.Keymap.ANYKEY;
 import static ru.m210projects.Build.Input.Keymap.MOUSE_LBUTTON;
 import static ru.m210projects.Build.Input.Keymap.MOUSE_RBUTTON;
 import static ru.m210projects.Build.Input.Keymap.MOUSE_WHELLDN;
@@ -204,7 +204,7 @@ public abstract class MenuHandler {
 			if(pMenu.mLoadRes(this, opt)) 
 				mMenuBack();
 
-			if(!BuildGdx.input.isTouched() && input.ctrlKeyPressed()
+			if(!BuildGdx.input.isTouched() && input.ctrlKeyStatus(ANYKEY)
 					&& !input.ctrlKeyPressed(Keys.ENTER) 
 					&& !input.ctrlKeyPressed(Keys.ESCAPE)) {
 
@@ -238,6 +238,10 @@ public abstract class MenuHandler {
 		mCount = 0;
 		
 		gShowMenu = false;
+		
+		if(!BuildGdx.app.getFrame().isActive())
+			return;
+		
     	BuildGdx.input.setCursorCatched(true);
     	BuildGdx.input.setCursorPosition(xdim / 2, ydim / 2);
 	}
