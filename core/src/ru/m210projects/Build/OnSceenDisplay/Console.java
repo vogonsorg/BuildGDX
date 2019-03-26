@@ -795,7 +795,7 @@ public class Console {
 		
 		getInput().putMessage(osdcallback, false);
 
-		if(getInput().keyStatus(Keymap.ANYKEY)) {
+		if(getInput().keyStatusOnce(Keymap.ANYKEY)) {
 			if(getInput().keyStatusOnce(Keys.TAB)) {
 				ListCommands();
 			} else lastmatch = false;
