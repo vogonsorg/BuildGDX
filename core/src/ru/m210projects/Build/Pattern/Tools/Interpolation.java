@@ -172,6 +172,10 @@ public class Interpolation {
 		}
 	}
 	
+	public void clearspriteinterpolate(int nSprite) {
+		gSpriteLoc[nSprite >> 3] &= ~pow2char[nSprite & 7];
+	}
+	
 	public ILoc getsprinterpolate(int nSprite)
 	{
 		if((gSpriteLoc[nSprite >> 3] & pow2char[nSprite & 7]) != 0)

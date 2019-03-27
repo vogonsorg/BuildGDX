@@ -21,6 +21,7 @@ import static ru.m210projects.Build.FileHandle.Compat.Bclose;
 import static ru.m210projects.Build.FileHandle.Compat.Bopen;
 import static ru.m210projects.Build.FileHandle.Compat.Bwrite;
 import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.Net.Mmulti.NETPORT;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.io.File;
@@ -184,6 +185,10 @@ public abstract class BuildConfig extends IniFile {
 	public int widescreen = 1;
 	public int glfilter = 0;
 	public boolean gShowFPS = true;
+	
+	public String pName = "Caleb";
+	public String mAddress = "localhost";
+	public int mPort = NETPORT;
 
 	public BuildConfig(String path, String name) {
 		super();	

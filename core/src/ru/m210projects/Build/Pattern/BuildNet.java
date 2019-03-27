@@ -6,6 +6,7 @@ import static ru.m210projects.Build.Net.Mmulti.canSend;
 import static ru.m210projects.Build.Net.Mmulti.connecthead;
 import static ru.m210projects.Build.Net.Mmulti.connectpoint2;
 import static ru.m210projects.Build.Net.Mmulti.getpacket;
+import static ru.m210projects.Build.Net.Mmulti.inet;
 import static ru.m210projects.Build.Net.Mmulti.myconnectindex;
 import static ru.m210projects.Build.Net.Mmulti.numplayers;
 import static ru.m210projects.Build.Net.Mmulti.otherpacket;
@@ -98,13 +99,13 @@ public abstract class BuildNet {
 			nPlayer = otherpacket;
 			p = packbuf;
 			
-			switch( p[ptr++] )
+			switch( p[ptr] )
 			{
 				case kPacketMasterFrame:
-					ptr = GetMasterPacket(p, ptr, packbufleng);
+					ptr = GetMasterPacket(p, ptr + 1, packbufleng);
 					break;
 				case kPacketSlaveFrame:
-					ptr = GetSlavePacket(p, ptr, packbufleng, nPlayer);
+					ptr = GetSlavePacket(p, ptr + 1, packbufleng, nPlayer);
 					break;
 				default:
 					ptr = GetPackets(p, ptr, packbufleng, nPlayer);
@@ -116,6 +117,8 @@ public abstract class BuildNet {
 	}
 
 	public abstract void UpdatePrediction(NetInput input);
+	
+	public abstract void CorrectPrediction();
 	
 	public abstract void CalcChecksum();
 	
@@ -190,7 +193,8 @@ public abstract class BuildNet {
 		
 		WaitForAllPlayers(1000);
 
-		disconnect.run();
+		if(disconnect != null)
+			disconnect.run();
 		
 		if ( nPlayer == connecthead ) {
 			connecthead = connectpoint2[connecthead];
@@ -466,7 +470,10 @@ public abstract class BuildNet {
 				if (playerReady[i] < playerReady[myconnectindex]) break;
 				if (myconnectindex != connecthead) { i = -1; break; } //slaves in M/S mode only wait for master
 			}
-			if (i < 0) return true;
+			if (i < 0) {
+				Arrays.fill(playerReady, (byte)0);
+				return true;
+			}
 		}
 	}
 	
@@ -512,6 +519,19 @@ public abstract class BuildNet {
 
 			gCheckTail++;
 		}
+	}
+	
+	public void StartWaiting(final int timeout)
+	{
+		inet.waitThread = new Thread(new Runnable() 
+		{
+			public void run()
+			{
+				if(!WaitForAllPlayers(timeout)) 
+					game.pNet.NetDisconnect(myconnectindex);
+			}
+		});
+		inet.waitThread.start();
 	}
 
 }
