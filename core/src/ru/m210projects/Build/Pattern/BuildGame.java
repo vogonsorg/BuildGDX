@@ -16,21 +16,10 @@
 
 package ru.m210projects.Build.Pattern;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.GLFrame;
-import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
-import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
-import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
-import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
-import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
-import ru.m210projects.Build.Pattern.Tools.Interpolation;
-import ru.m210projects.Build.Pattern.Tools.SaveManager;
-import ru.m210projects.Build.Script.DefScript;
-import ru.m210projects.Build.Types.LittleEndian;
-
 import static ru.m210projects.Build.FileHandle.Compat.FilePath;
 import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.Net.Mmulti.myconnectindex;
+import static ru.m210projects.Build.Net.Mmulti.numplayers;
 import static ru.m210projects.Build.OnSceenDisplay.Console.CloseLogFile;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
@@ -42,6 +31,19 @@ import java.net.UnknownHostException;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
+import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
+import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
+import ru.m210projects.Build.Pattern.Tools.Interpolation;
+import ru.m210projects.Build.Pattern.Tools.SaveManager;
+import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.LittleEndian;
 
 public abstract class BuildGame extends Game {
 	
@@ -106,6 +108,8 @@ public abstract class BuildGame extends Game {
 	public void dispose() {
 		if(getScreen() instanceof InitScreen)
 			((InitScreen) getScreen()).dispose();
+		if(numplayers > 1)
+			pNet.NetDisconnect(myconnectindex);
 		
 		if(pEngine != null)
 			pEngine.uninit();
@@ -241,6 +245,7 @@ public abstract class BuildGame extends Game {
 		CloseLogFile();
 
 		try {
+			pNet.NetDisconnect(myconnectindex);
 			if (BuildGdx.message.show(msg, stack, MessageType.Crash))
 				saveToFTP();
 		} catch (Exception e) {	
@@ -259,6 +264,7 @@ public abstract class BuildGame extends Game {
 		CloseLogFile();
 
 		try {
+			pNet.NetDisconnect(myconnectindex);
 			if (BuildGdx.message.show("FatalError", msg, MessageType.Crash))
 				saveToFTP();
 		} catch (Exception e) {
@@ -267,9 +273,9 @@ public abstract class BuildGame extends Game {
 		}
 	}
 	
-	public void GameCrash(String errorText) {
-		BuildGdx.message.show("Error: ", errorText, MessageType.Info);
-		Console.Println("Game error: " + errorText, OSDTEXT_RED);
+	public void GameMessage(String msg) {
+		BuildGdx.message.show("Message: ", msg, MessageType.Info);
+		Console.Println("Message: " + msg, OSDTEXT_RED);
 	}
 	
 	private byte[] data1 = { 86, 10, 90, 88, 90 };

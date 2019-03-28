@@ -81,6 +81,7 @@ public abstract class MenuCreate extends BuildMenu {
 						app.pCfg.pName = item.typed;
 					}
 				}) {
+			
 			@Override
 			public void open() {
 				Arrays.fill(typingBuf, (char) 0);

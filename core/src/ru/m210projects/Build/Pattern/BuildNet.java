@@ -7,6 +7,7 @@ import static ru.m210projects.Build.Net.Mmulti.connecthead;
 import static ru.m210projects.Build.Net.Mmulti.connectpoint2;
 import static ru.m210projects.Build.Net.Mmulti.getpacket;
 import static ru.m210projects.Build.Net.Mmulti.inet;
+import static ru.m210projects.Build.Net.Mmulti.kPacketTick;
 import static ru.m210projects.Build.Net.Mmulti.myconnectindex;
 import static ru.m210projects.Build.Net.Mmulti.numplayers;
 import static ru.m210projects.Build.Net.Mmulti.otherpacket;
@@ -18,14 +19,14 @@ import static ru.m210projects.Build.Pragmas.ksgn;
 
 import java.util.Arrays;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Pattern.BuildGame.NetMode;
 import ru.m210projects.Build.Types.LittleEndian;
 
 public abstract class BuildNet {
 	
 	public BuildGame game;
-	public boolean gNetDisconnect;
-	
 	public interface NetInput {
 		
 		public int GetInput(byte[] p, int offset);
@@ -107,6 +108,17 @@ public abstract class BuildNet {
 				case kPacketSlaveFrame:
 					ptr = GetSlavePacket(p, ptr + 1, packbufleng, nPlayer);
 					break;
+				case kPacketEmpty:
+					break;
+					// ready/profile packet
+				case kPacketSlaveProfile: 
+					playerReady[nPlayer]++;
+					break;
+		
+				case kPacketTick:
+					nConnected = p[ptr++];
+					inet.message = "Waiting for other players [" + nConnected + " / " + numplayers + "]";
+					return 2;
 				default:
 					ptr = GetPackets(p, ptr, packbufleng, nPlayer);
 					break;
@@ -121,7 +133,7 @@ public abstract class BuildNet {
 	public abstract void CorrectPrediction();
 	
 	public abstract void CalcChecksum();
-	
+
  	protected int GetMasterPacket(byte[] p, int ptr, int len)
 	{
 		for (int i = connecthead; i >= 0; i = connectpoint2[i])
@@ -183,21 +195,27 @@ public abstract class BuildNet {
 		return ptr;
 	}
 	
-	public int GetDisconnectPacket(byte[] p, int ptr, int len, int nPlayer, Runnable disconnect)
+	public int GetDisconnectPacket(byte[] p, int ptr, int len, int nPlayer, Runnable deletePlayerSprite)
 	{
 		retransmit(nPlayer, packbuf, len);
 		
 		nPlayer = LittleEndian.getInt(p, ptr);
 		if(nPlayer == myconnectindex)
-			game.ThrowError("nPlayer != myconnectindex", null);
+			game.ThrowError("nPlayer != myconnectindex");
 		
 		WaitForAllPlayers(1000);
 
-		if(disconnect != null)
-			disconnect.run();
+		if(deletePlayerSprite != null)
+			deletePlayerSprite.run();
 		
 		if ( nPlayer == connecthead ) {
 			connecthead = connectpoint2[connecthead];
+			BuildGdx.app.postRunnable(new Runnable() {
+				@Override
+				public void run() {
+					NetDisconnect(myconnectindex);
+				}
+			});
 			return 1;
 		}
 		else
@@ -389,6 +407,7 @@ public abstract class BuildNet {
 		    ResetNetwork();
 		}
 		
+		game.nNetMode = NetMode.Single;
 		ready2send = false;
 	}
 	

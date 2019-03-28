@@ -123,6 +123,7 @@ public class MenuTextField extends MenuItem {
 	public void draw(MenuHandler handler) {
 		if ( text != null )
 		{
+			int pal = handler.getPal(font, this);
 			int shade = handler.getShade(this);
 		    if ( !m_pMenu.mGetFocusedItem(this) )
 		     	typing = false;
@@ -137,7 +138,7 @@ public class MenuTextField extends MenuItem {
 
 			font.drawText(px - font.getWidth(typingBuf), y, typingBuf, shade, pal, TextAlign.Left, 2, fontShadow);
 		    if(typing && (totalclock & 0x20) != 0) 
-		    	font.drawChar(px, y, '_', shade, pal, 0, false);
+		    	font.drawChar(px, y, '_', shade, pal, 2, false);
 		}
 		handler.mPostDraw(this);
 	}

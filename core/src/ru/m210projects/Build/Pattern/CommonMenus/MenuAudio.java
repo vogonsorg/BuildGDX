@@ -239,8 +239,8 @@ public abstract class MenuAudio extends BuildMenu {
 			
 			@Override
 			public void draw(MenuHandler handler) {
-				super.draw(handler);
 				mCheckEnableItem(!cfg.muteMusic);
+				super.draw(handler);
 			}
 		};
 		
@@ -304,8 +304,8 @@ public abstract class MenuAudio extends BuildMenu {
 		mApplyChanges = new MenuButton("Apply changes", menuItems, 0, posy, 320, 1, 0, null, -1, callback, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
-				super.draw(handler);
 				mCheckEnableItem(snddriver != osnddriver || middriver != omiddriver || resampler != oresampler || voices != ovoices || cdaudio != ocdaudio);
+				super.draw(handler);
 			}
 			
 			@Override

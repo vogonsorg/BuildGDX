@@ -278,6 +278,13 @@ public abstract class MenuHandler {
 		return mMenuHistory[0];
 	}
 	
+	public BuildMenu getLastMenu()
+	{
+		if(mCount > 0)
+			return mMenuHistory[mCount - 1];
+		return getCurrentMenu();
+	}
+	
 	public boolean isOpened(BuildMenu pMenu)
 	{
 		return getCurrentMenu() == pMenu;

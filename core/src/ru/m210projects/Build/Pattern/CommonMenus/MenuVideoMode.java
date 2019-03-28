@@ -193,8 +193,8 @@ public abstract class MenuVideoMode extends BuildMenu {
 				posy += itemHeight, width, new String[] { "Polymost" }, 0, null) {
 			@Override
 			public void draw(MenuHandler handler) {
-				super.draw(handler);
 				mCheckEnableItem(false);
+				super.draw(handler);
 			}
 		};
 
@@ -214,8 +214,8 @@ public abstract class MenuVideoMode extends BuildMenu {
 		mApplyChanges = new MenuButton("Apply changes", style, 0, posy += 2 * itemHeight, 320, 1, 0, null, -1, callback, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
-				super.draw(handler);
 				mCheckEnableItem(choosedMode != null && (choosedMode != currentMode || isFullscreen != (cfg.fullscreen == 1)));
+				super.draw(handler);
 			}
 			
 			@Override

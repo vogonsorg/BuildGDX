@@ -100,8 +100,8 @@ public abstract class MenuJoystick extends BuildMenu {
 				null, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
-				super.draw(handler);
 				mCheckEnableItem(app.pInput.ctrlGetControllers() > 0 && app.pInput.ctrlIsValidDevice(cfg.gJoyDevice));
+				super.draw(handler);
 			}
 		};
 		

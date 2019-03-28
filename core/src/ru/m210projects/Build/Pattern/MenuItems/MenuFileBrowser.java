@@ -183,6 +183,9 @@ public class MenuFileBrowser extends MenuItem {
 		path = File.separator;
 		if(dir.getRelativePath() != null)
 			path += currDir.getRelativePath();
+
+		l_nFocus[DIRECTORY] = l_nMin[DIRECTORY] = 0;
+		l_nFocus[FILE] = l_nMin[FILE] = 0;
 	}
 
 	protected void drawHeader(int x1, int x2, int y)
@@ -366,8 +369,6 @@ public class MenuFileBrowser extends MenuItem {
 					if(dirName.equals(back))
 						changeDir(currDir.getParent());
 					else changeDir(currDir.checkDirectory(dirName));
-					l_nFocus[DIRECTORY] = l_nMin[DIRECTORY] = 0;
-					l_nFocus[FILE] = l_nMin[FILE] = 0;
 				} else if(list[FILE].size() > 0 && currColumn == FILE) {
 					String filename = null;
 
@@ -380,15 +381,11 @@ public class MenuFileBrowser extends MenuItem {
 				return false;
 			case ESC: 
 			case RMB:
-				//l_nFocus = l_nMin = 0;
 				return true;
 			case BSPACE:
 				if(currDir.getParent() != null)
 				{
 					changeDir(currDir.getParent());
-					
-					l_nFocus[DIRECTORY] = l_nMin[DIRECTORY] = 0;
-					l_nFocus[FILE] = l_nMin[FILE] = 0;
 				}
 				return false;
 			case PGUP:
