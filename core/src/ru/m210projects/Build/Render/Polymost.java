@@ -930,8 +930,10 @@ public abstract class Polymost implements Renderer {
 					du1 = f;
 			}
 			
-			if((tsizx|tsizy) == 0) 
-				return;
+			if((tsizx|tsizy) == 0)  {
+				tsizx = tsizy = 1; //XXX Wall mirror fix
+				//return;
+			}
 
 			f = 1.0 / (double) tsizx;
 			ix0 = (int) floor(du0 * f);
