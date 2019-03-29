@@ -437,17 +437,19 @@ public class ALSoundDrv implements Sound {
 		if(error != AL_NO_ERROR) 
 			Console.Println("OpenAL Error " + error, OSDTEXT_RED);
 
-		Iterator<Source> i = loopedSource.iterator();
-		while (i.hasNext()) {
-			Source s = i.next();
-			if(!s.isPlaying() && s.loopInfo.looped) {
-				int bufferID = al.alSourceUnqueueBuffers(s.sourceId);
-				al.alBufferData(bufferID, s.loopInfo.format, s.loopInfo.getData(), s.loopInfo.sampleRate);
-				al.alSourceQueueBuffers(s.sourceId, bufferID);
-				al.alSourcei(s.sourceId, AL_LOOPING, AL_TRUE);
-				al.alSourcePlay(s.sourceId);
-				i.remove();
-			} 
+		if(loopedSource.size() > 0) {
+			Iterator<Source> i = loopedSource.iterator();
+			while (i.hasNext()) {
+				Source s = i.next();
+				if(!s.isPlaying() && s.loopInfo.looped) {
+					int bufferID = al.alSourceUnqueueBuffers(s.sourceId);
+					al.alBufferData(bufferID, s.loopInfo.format, s.loopInfo.getData(), s.loopInfo.sampleRate);
+					al.alSourceQueueBuffers(s.sourceId, bufferID);
+					al.alSourcei(s.sourceId, AL_LOOPING, AL_TRUE);
+					al.alSourcePlay(s.sourceId);
+					i.remove();
+				} 
+			}
 		}
 	}
 

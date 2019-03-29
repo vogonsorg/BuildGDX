@@ -230,6 +230,8 @@ public abstract class Engine {
 	public static short[] prevspritesect, prevspritestat;
 	public static short[] nextspritesect, nextspritestat;
 	private final char[] fpsbuffer = new char[15];
+	private long fpstime = 0;
+	private int fpsx, fpsy;
 	
 	public static byte[] gotpic;
 	public static byte[] gotsector;
@@ -4099,16 +4101,21 @@ public abstract class Engine {
 		input = new KeyInput();
 	}
 
-    public void printfps(float scale) { 
-    	int fps = Gdx.graphics.getFramesPerSecond();
-    	int rate = (int)(Gdx.graphics.getDeltaTime() * 1000);
-    	if(fps <= 9999 && rate <= 9999) {
-	    	int chars = Bitoa(rate, fpsbuffer);
-			chars = buildString(fpsbuffer, chars, "ms ", fps);
-			chars = buildString(fpsbuffer, chars, "fps");
-
-			render.printext(windowx2 - (int) ((chars << 3) * scale), windowy1 + 1, 31, -1, fpsbuffer, 0, scale);
-    	}
+    public void printfps(float scale) {
+    	if(System.currentTimeMillis() - fpstime >= 1000)
+    	{
+    		int fps = Gdx.graphics.getFramesPerSecond();
+        	int rate = (int)(Gdx.graphics.getDeltaTime() * 1000);
+        	if(fps <= 9999 && rate <= 9999) {
+    	    	int chars = Bitoa(rate, fpsbuffer);
+    			chars = buildString(fpsbuffer, chars, "ms ", fps);
+    			chars = buildString(fpsbuffer, chars, "fps");
+    			fpsx = windowx2 - (int) ((chars << 3) * scale);
+    			fpsy = windowy1 + 1;
+        	}
+    		fpstime = System.currentTimeMillis();
+    	} 
+    	render.printext(fpsx, fpsy, 31, -1, fpsbuffer, 0, scale);
     }
 
     private DefScript defs;

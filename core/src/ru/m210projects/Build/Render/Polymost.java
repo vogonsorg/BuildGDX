@@ -4857,7 +4857,7 @@ public abstract class Polymost implements Renderer {
 	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 
 	protected void setpolymost2dview() {
-		if (gloy1 != -1) {
+		if (gloy1 != -1 || gloy1 != windowy1) {
 			gl.glViewport(0, 0, xdim, ydim);
 			gl.glMatrixMode(GL_PROJECTION);
 			gl.glLoadIdentity();
