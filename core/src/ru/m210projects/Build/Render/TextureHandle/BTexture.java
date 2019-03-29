@@ -41,19 +41,13 @@ public class BTexture extends GLTexture {
 	
 	public BTexture (Pixmap pixmap, boolean useMipMaps) {
 		super(GL_TEXTURE_2D, Gdx.gl.glGenTexture());
-		this.width = 0;
-		this.height = 0;
+		this.width = pixmap.getWidth();
+		this.height = pixmap.getHeight();
 		data = new PixmapTextureData(pixmap, null, useMipMaps, false);
 		load(data);
 		if (data.isManaged()) addManagedTexture(Gdx.app, this);
 	}
-	
-	public BTexture() {
-		super(GL_TEXTURE_2D);
-		this.width = 0;
-		this.height = 0;
-	}
-	
+
 	public BTexture(int width, int height) {
 		super(GL_TEXTURE_2D);
 		this.width = width;

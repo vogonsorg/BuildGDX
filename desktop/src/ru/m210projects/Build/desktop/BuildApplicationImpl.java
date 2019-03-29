@@ -164,6 +164,11 @@ public class BuildApplicationImpl implements BuildApplication {
 
 		boolean wasActive = true;
 		while (running) {
+			if(!frame.isReady()) {
+				// Try to solve a problem "Display is not created" when resolution changed
+				continue;
+			}
+			
 			frame.getInput().processMessages();
 			if (frame.isCloseRequested()) exit();
 

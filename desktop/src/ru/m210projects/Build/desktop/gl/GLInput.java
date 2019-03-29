@@ -115,7 +115,7 @@ public class GLInput implements BuildInput {
 
 	@Override
 	public boolean isKeyPressed(int key) {
-		if (!Keyboard.isCreated()) return false;
+//		if (!Keyboard.isCreated()) return false;  // isReady must be enough
 		return Keyboard.isKeyDown(getLwjglKeyCode(key));
 	}
 

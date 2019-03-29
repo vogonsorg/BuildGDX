@@ -68,6 +68,11 @@ public class GLFrameImpl implements GLFrame, Frame {
 	}
 
 	@Override
+	public boolean isReady() {
+		return Display.isCreated();
+	}
+	
+	@Override
 	public void destroy() {
 		// Workaround for bug in LWJGL whereby resizable state is lost on DisplayMode change
 		Display.setResizable(false);

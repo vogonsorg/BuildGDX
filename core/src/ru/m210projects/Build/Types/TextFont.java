@@ -53,7 +53,7 @@ public class TextFont extends TileFont {
 		int tptr;
 		int h, i, j;
 		atlas = new Pthtyp();
-		atlas.glpic = new BTexture();
+		atlas.glpic = new BTexture(128, 128);
 		
 		sizx = atlas.sizx = 128;
 		sizy = atlas.sizy = 128;

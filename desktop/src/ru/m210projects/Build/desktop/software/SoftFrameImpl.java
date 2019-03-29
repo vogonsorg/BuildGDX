@@ -136,4 +136,9 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 	public int getY() {
 		return graphics.config.y;
 	}
+
+	@Override
+	public boolean isReady() {
+		return true;
+	}
 }

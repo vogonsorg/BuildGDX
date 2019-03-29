@@ -16,6 +16,8 @@
 
 package ru.m210projects.Build.desktop.audio.midi;
 
+import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
+import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 
 import java.io.File;
@@ -88,7 +90,8 @@ public class MidiMusicModule implements Music {
 	
 	@Override
 	public MusicSource newMusic(String name) {
-		return null;
+		if(!kExist(name, 0)) return null;
+		return newMusic(kGetBytes(name, 0));
 	}
 
 	@Override

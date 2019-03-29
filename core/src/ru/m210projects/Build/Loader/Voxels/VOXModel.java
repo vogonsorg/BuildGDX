@@ -100,7 +100,7 @@ public class VOXModel extends Model {
 			}
 		}
 
-		BTexture rtexid = new BTexture();
+		BTexture rtexid = new BTexture(mytexx, mytexy);
 		bindTexture(rtexid);
 		uploadBoundTexture(true, mytexx, mytexy, GL_RGBA, GL_RGBA, buffer, mytexx, mytexy);
 		setupBoundTexture(0, 0);

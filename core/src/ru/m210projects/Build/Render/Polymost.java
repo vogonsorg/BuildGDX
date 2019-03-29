@@ -1315,14 +1315,15 @@ public abstract class Polymost implements Renderer {
 			if(!dopancor) //texture scaled, it's need to fix
 				t *= (float)tilesizy[globalpicnum] / i;
 	        i = tilesizy[globalpicnum];
-	    } else if (dopancor && defs != null && defs.texInfo.isHighTile(globalpicnum)) {
-			// Carry out panning "correction" to make it look like classic in some
-	        // cases, but failing in the general case.
-			
-	    	int yoffs = (int) ((i - tilesizy[globalpicnum]) * (255.0f / i));
-			if (ypan > 256 - yoffs) 
-				ypan -= yoffs;
-		}
+	    } 
+//		else if (dopancor && defs != null && defs.texInfo.isHighTile(globalpicnum)) {
+//			// Carry out panning "correction" to make it look like classic in some
+//	        // cases, but failing in the general case.
+//			
+//	    	int yoffs = (int) ((i - tilesizy[globalpicnum]) * (255.0f / i));
+//			if (ypan > 256 - yoffs) 
+//				ypan -= yoffs;
+//		}
 
 		float fy = ypan * i / 256.0f;
 		gvx = (t0 - t1) * t;
@@ -3695,7 +3696,7 @@ public abstract class Polymost implements Renderer {
 			if(frameTexture == null || framew != xdim || frameh != ydim)
 			{
 				if(frameTexture != null) frameTexture.dispose();
-				frameTexture = new BTexture();
+				frameTexture = new BTexture(xdim, ydim);
 				bindTexture(frameTexture);
 				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
 				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
@@ -4423,6 +4424,9 @@ public abstract class Polymost implements Renderer {
 			matrix[3][3] = 1.f;
 			gl.glLoadMatrixf(matrix);
 		}
+		
+		if((m.flags & MD_ROTATE)!= 0)
+			gl.glRotatef(totalclock % 360, 0, 1, 0);
 
 		// transform to Build coords
 		if ((tspr.cstat & 48) == 32) {
@@ -4437,8 +4441,7 @@ public abstract class Polymost implements Renderer {
 			gl.glTranslatef(-m.xpiv, -m.ypiv, -(m.zpiv + m.zsiz * 0.5f));
 		}
 		
-		if((m.flags & MD_ROTATE)!= 0)
-			gl.glRotatef(totalclock % 360, 0, 0, 1);
+		
 
 		ru = 1.f / ((float) m.mytexx);
 		rv = 1.f / ((float) m.mytexy);
