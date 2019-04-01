@@ -46,10 +46,6 @@ import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.LittleEndian;
 
 public abstract class BuildGame extends Game {
-	
-	/*
-	 * BuildFont draw non-standart symbols crash fix
-	 */
 
 	public final String appname;
 	public final String sversion;

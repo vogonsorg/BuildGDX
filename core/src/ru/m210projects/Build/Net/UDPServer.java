@@ -19,7 +19,7 @@ package ru.m210projects.Build.Net;
 import java.net.InetSocketAddress;
 
 public class UDPServer extends UDPSocket {
-	public UDPServer(int port) throws Exception {
+	public UDPServer(int port) throws Throwable {
 		super(port);
 		sock.bind(new InetSocketAddress(port));
 	}

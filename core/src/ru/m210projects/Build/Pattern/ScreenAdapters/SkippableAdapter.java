@@ -69,8 +69,8 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 	}
 	
 	private boolean skippingHandler() {
-		if((escSkip && (game.pInput.ctrlGetInputKey(MenuKeys.Menu_Open, true) 
-				|| game.pInput.ctrlPadStatusOnce(MenuKeys.Menu_Open))) 
+		if((escSkip && (game.pInput.ctrlGetInputKey(MenuKeys.Menu_Open_Close, true) 
+				|| game.pInput.ctrlPadStatusOnce(MenuKeys.Menu_Open_Close))) 
 				|| (!escSkip && game.pInput.ctrlKeyStatusOnce(ANYKEY))) {
 			
 			skip();

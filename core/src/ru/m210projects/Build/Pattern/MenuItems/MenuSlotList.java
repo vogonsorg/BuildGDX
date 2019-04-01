@@ -195,7 +195,7 @@ public class MenuSlotList extends MenuList
 		if(typing) 
 		{
 			if(opt != MenuOpt.ESC) {
-				if(getInput().putMessage(typingBuf.length, true, false, false) == 1)
+				if(getInput().putMessage(typingBuf.length, true, false, false) == 1 || opt == MenuOpt.ENTER)
 				{
 					typed = new String(getInput().getMessageBuffer(), 0, getInput().getMessageLength());
 					typing = false;

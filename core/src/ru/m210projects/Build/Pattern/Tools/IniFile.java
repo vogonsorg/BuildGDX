@@ -156,7 +156,7 @@ public class IniFile {
 	public int GetKeyInt(String key) {
 		String s;
 		if((s = ini.getPropertyIgnoreCase(key)) != null && !s.isEmpty()) {
-			s = s.replaceAll("[^0-9]", ""); 
+			s = s.replaceAll("-[^0-9]", ""); 
 			if(!s.isEmpty())
 				return Integer.parseInt(s);
 			else return 0;

@@ -640,8 +640,8 @@ public abstract class Polymost implements Renderer {
 	protected void drawpoly(Surface[] dm, int n, int method) {
 		double ngdx = 0.0, ngdy = 0.0, ngdo = 0.0, ngux = 0.0, nguy = 0.0, nguo = 0.0;
 		double ngvx = 0.0, ngvy = 0.0, ngvo = 0.0, dp, up, vp, du0 = 0.0, du1 = 0.0, dui, duj;
-		double f, r, ox, oy, oz, ox2, oy2, oz2, uoffs;
-		int i, j, k, nn, ix0, ix1, tsizx, tsizy, xx, yy;
+		double f, r, ox, oy, oz, ox2, oy2, oz2, uoffs, ix0, ix1;
+		int i, j, k, nn, tsizx, tsizy, xx, yy;
 
 		boolean dorot;
 
@@ -680,8 +680,10 @@ public abstract class Polymost implements Renderer {
 			if(TexDebug != -1)
 				TexDebug = System.nanoTime();
 
-			if (engine.loadtile(globalpicnum) == null)
+			if (engine.loadtile(globalpicnum) == null) {
+				tsizx = tsizy = 1;
 				HOM = true;
+			}
 
 			if(TexDebug != -1)
 				System.out.println("Loading tile " + globalpicnum + " [" + ((System.nanoTime() - TexDebug) / 1000000f) + " ms]");
@@ -929,19 +931,14 @@ public abstract class Polymost implements Renderer {
 				else if (f > du1)
 					du1 = f;
 			}
-			
-			if((tsizx|tsizy) == 0)  {
-				tsizx = tsizy = 1; //XXX Wall mirror fix
-				//return;
-			}
 
-			f = 1.0 / (double) tsizx;
-			ix0 = (int) floor(du0 * f);
-			ix1 = (int) floor(du1 * f);
+			f = 1.0 / tsizx;
+			ix0 = floor(du0 * f);
+			ix1 = floor(du1 * f);
 
 			for (; ix0 <= ix1; ix0++) {
-				du0 = (double) ((ix0) * tsizx);
-				du1 = (double) ((ix0 + 1) * tsizx);
+				du0 = (ix0) * tsizx;
+				du1 = (ix0 + 1) * tsizx;
 
 				i = 0;
 				nn = 0;
