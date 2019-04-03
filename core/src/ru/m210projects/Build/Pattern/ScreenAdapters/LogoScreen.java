@@ -25,10 +25,10 @@ import ru.m210projects.Build.Pattern.BuildGame;
 
 public class LogoScreen extends SkippableAdapter {
 	
-	private int nTile;
-	private float gTicks;
-	private float gShowTime;
-	private Runnable callback;
+	protected int nTile;
+	protected float gTicks;
+	protected float gShowTime;
+	protected Runnable callback;
 	
 	public LogoScreen(BuildGame game, float gShowTime)
 	{
@@ -65,8 +65,5 @@ public class LogoScreen extends SkippableAdapter {
 		engine.clearview(0);
 		engine.rotatesprite(160 << 16, 100 << 16, 65536, 0, nTile, 0, 0, 10 | 64, 0, 0, xdim - 1, ydim - 1);
 	}
-
-	@Override
-	public void skip() { /* nothing */ }
 
 }

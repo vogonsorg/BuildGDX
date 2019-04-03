@@ -17,6 +17,8 @@
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
 import static ru.m210projects.Build.Input.Keymap.*;
+
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
@@ -51,7 +53,7 @@ public abstract class SkippableAdapter extends ScreenAdapter {
 
 	public void skip() {
 		if(skipCallback != null) {
-			skipCallback.run();
+			Gdx.app.postRunnable(skipCallback);
 			skipCallback = null;
 		}
 		game.pInput.ctrlResetKeyStatus();

@@ -106,13 +106,13 @@ public class BuildFont {
 		return charInfo[ch].nWidth;
 	}
 	
-	public int drawText(int x, int y, char[] text, int shade, int pal, TextAlign align, int nBits, boolean shadow) {
+	public int drawText(int x, int y, char[] text, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
 		if(text == null) return 0;
 		
-		if ( align != TextAlign.Left )
+		if ( textAlign != TextAlign.Left )
 		{
 			int nWidth = getWidth(text);
-			if ( align == TextAlign.Center ) 
+			if ( textAlign == TextAlign.Center ) 
 				nWidth >>= 1;
 			x -= nWidth;
 		}
@@ -171,13 +171,13 @@ public class BuildFont {
 		return scale(charInfo[ch].nWidth, zoom, nScale); 
 	}
 	
-	public int drawText(int x, int y, char[] text, int scale, int shade, int pal, TextAlign align, int nBits, boolean shadow) {
+	public int drawText(int x, int y, char[] text, int scale, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
 		if(text == null) return 0;
 		
-		if ( align != TextAlign.Left )
+		if ( textAlign != TextAlign.Left )
 		{
 			int nWidth = getWidth(text, scale);
-			if ( align == TextAlign.Center ) 
+			if ( textAlign == TextAlign.Center ) 
 				nWidth >>= 1;
 			x -= nWidth;
 		}

@@ -1,5 +1,7 @@
 package ru.m210projects.Build.desktop.gl;
 
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.Gdx;
@@ -69,7 +71,7 @@ public class GLFrameImpl implements GLFrame, Frame {
 
 	@Override
 	public boolean isReady() {
-		return Display.isCreated();
+		return Display.isCreated() && Mouse.isCreated() && Keyboard.isCreated();
 	}
 	
 	@Override

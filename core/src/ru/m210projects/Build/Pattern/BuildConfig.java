@@ -186,7 +186,7 @@ public abstract class BuildConfig extends IniFile {
 	public int glfilter = 0;
 	public boolean gShowFPS = true;
 	
-	public String pName = "Caleb";
+	public String pName;
 	public String mAddress = "localhost";
 	public int mPort = NETPORT;
 
