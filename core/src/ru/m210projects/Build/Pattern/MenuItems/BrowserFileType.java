@@ -16,23 +16,13 @@
 
 package ru.m210projects.Build.Pattern.MenuItems;
 
-import java.util.HashMap;
-import java.util.List;
-
-import ru.m210projects.Build.FileHandle.FileEntry;
-
 public abstract class BrowserFileType {
 
 	public final int pal;
-	public final String extension;
-
-	public BrowserFileType(String extension, int pal)
+	public BrowserFileType(int pal)
 	{
-		this.extension = extension;
 		this.pal = pal;
 	}
 	
 	public abstract void callback(MenuFileBrowser item);
-	
-	public abstract void init(FileEntry file, List<String> list, HashMap<String, BrowserFileType> typeHash);
 }

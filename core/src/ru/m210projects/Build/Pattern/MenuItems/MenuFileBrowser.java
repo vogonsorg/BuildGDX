@@ -16,7 +16,6 @@ import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 
-import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.Gameutils.ConvertType;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildFont;
@@ -24,10 +23,10 @@ import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
+import ru.m210projects.Build.FileHandle.FileEntry;
 
 public class MenuFileBrowser extends MenuItem {
 	
-	protected List<BrowserFileType[]> group;
 	protected HashMap<String, BrowserFileType> btypes = new HashMap<String, BrowserFileType>();
 	
 	private final int DIRECTORY = 0;
@@ -59,13 +58,12 @@ public class MenuFileBrowser extends MenuItem {
 	protected BuildFont topFont, pathFont;
 	public int topPal, pathPal, listPal, backPal;
 	public int transparent = 1;
-	
-	public MenuFileBrowser(List<BrowserFileType[]> group, BuildGame app, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
+
+	public MenuFileBrowser(BuildGame app, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
 			int nItemHeight, int nListItems, int nBackground)
 	{
 		super(null, font);
-		
-		this.group = group;
+
 		this.flags = 3 | 4;
 		this.draw = app.pEngine;
 		this.slider = app.pSlider;
@@ -86,31 +84,35 @@ public class MenuFileBrowser extends MenuItem {
 		changeDir(cache);
 	}
 	
+	private BrowserFileType mapType;
+	private void InitMapType(DirectoryEntry dir)
+	{
+		if(mapType == null) 
+			return;
+		
+		tmpList.clear();
+		btypes.clear();
+		for (Iterator<FileEntry> it = dir.getFiles().values().iterator(); it.hasNext(); ) {
+			FileEntry file = it.next();
+			String name = file.getName();
+			if(file.getExtension().equals("map"))
+				addFile(name, mapType);
+		}
+	}
+	
 	public MenuFileBrowser(final BuildGame app, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
 			int nItemHeight, final MenuProc callback, int nListItems, int nBackground)
 	{
-		this(null, app, font, topFont, pathFont, x, y, width, nItemHeight, nListItems, nBackground);
+		this(app, font, topFont, pathFont, x, y, width, nItemHeight, nListItems, nBackground);
 		
-		group = new ArrayList<BrowserFileType[]>();
-		group.add(
-			new BrowserFileType[] {
-				new BrowserFileType("map", 0) {
-					@Override
-					public void callback(MenuFileBrowser item) {
-						callback.run(app.pMenu, item);
-					}
-
-					@Override
-					public void init(FileEntry file, List<String> list, HashMap<String, BrowserFileType> typeHash) { 
-						String name = file.getName();
-						list.add(name);
-						typeHash.put(name, this);
-					}
-				}	
+		mapType = new BrowserFileType(0) {
+			@Override
+			public void callback(MenuFileBrowser item) {
+				callback.run(app.pMenu, item);
 			}
-		);
-		
-		changeDir(cache);
+		};
+
+		prepareList(currDir);
 	}
 	
 	public String getFileName()
@@ -142,7 +144,7 @@ public class MenuFileBrowser extends MenuItem {
 			tmpList = new ArrayList<String>();
 		else tmpList.clear();
 		
-		if(group == null || currDir == dir)
+		if(currDir == dir)
 			return;
 
 		if(dir.getParent() != null)
@@ -158,27 +160,9 @@ public class MenuFileBrowser extends MenuItem {
 		list[DIRECTORY].addAll(tmpList);
 		tmpList.clear();
 		btypes.clear();
-
-		for(int i = 0, t; i < group.size(); i++)
-		{
-			BrowserFileType[] types = group.get(i);
-			for(t = 0; t < types.length; t++)
-			{
-				BrowserFileType ftype = types[t];
-				for (Iterator<FileEntry> it = dir.getFiles().values().iterator(); it.hasNext(); ) {
-					FileEntry file = it.next();
-				
-					if(file.getExtension().equals(ftype.extension)) {
-						ftype.init(file, tmpList, btypes);
-					}
-				}
-			}
-
-			Collections.sort(tmpList);
-			list[FILE].addAll(tmpList);
-			tmpList.clear();
-		}
-
+		
+		prepareList(dir);
+		
 		currDir = dir;
 		path = File.separator;
 		if(dir.getRelativePath() != null)
@@ -186,6 +170,25 @@ public class MenuFileBrowser extends MenuItem {
 
 		l_nFocus[DIRECTORY] = l_nMin[DIRECTORY] = 0;
 		l_nFocus[FILE] = l_nMin[FILE] = 0;
+	}
+	
+	public void addFile(String name, BrowserFileType type)
+	{
+		tmpList.add(name);
+		btypes.put(name, type);
+	}
+	
+	public void sortFiles()
+	{
+		Collections.sort(tmpList);
+		list[FILE].addAll(tmpList);
+		tmpList.clear();
+	}
+
+	protected void prepareList(DirectoryEntry dir)
+	{
+		InitMapType(dir);
+		sortFiles();
 	}
 
 	protected void drawHeader(int x1, int x2, int y)
@@ -238,9 +241,11 @@ public class MenuFileBrowser extends MenuItem {
 			String filename = list[FILE].get(i);
 			text = toChars(filename);
 			
-			int itemPal = btypes.get(filename).pal;
-			if(itemPal != 0)
-				pal = itemPal;
+			if(btypes.get(filename) != null) {
+				int itemPal = btypes.get(filename).pal;
+				if(itemPal != 0)
+					pal = itemPal;
+			}
 			
 	        px = x + width - font.getWidth(text) - scrollerWidth - 5; 
 	        brDrawText(font, text, px, py, shade, pal, this.x + this.width / 2 + 4, this.x + this.width);
