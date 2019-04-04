@@ -66,7 +66,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 	 */
 	public abstract void DrawWorld(float smooth);
 	
-	public abstract void DrawHud();
+	public abstract void DrawHud(float smooth);
 	
 	public abstract void KeyHandler();
 	
@@ -159,7 +159,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 			gScreenCapture = null;
 		}
 		
-		DrawHud();
+		DrawHud(smoothratio);
 		game.pInt.restoreinterpolations();
 		
 		if(pMenu.gShowMenu)

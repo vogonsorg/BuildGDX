@@ -287,7 +287,7 @@ public abstract class MenuHandler {
 	
 	public boolean isOpened(BuildMenu pMenu)
 	{
-		return getCurrentMenu() == pMenu;
+		return pMenu != null && getCurrentMenu() == pMenu;
 	}
 
 	public void mDrawMenu() {
