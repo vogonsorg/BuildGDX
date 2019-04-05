@@ -574,7 +574,7 @@ public class Console {
 		}
 	};
 	
-	public static void show()
+	public static void toggle()
 	{
 		osdscroll = -osdscroll;
         if (osdrowscur == -1)
@@ -607,7 +607,7 @@ public class Console {
 		for(int i = 0; i < 4; i++) {
 			if(getInput().keyStatusOnce(osdkey[i]))
 			{
-				show();
+				toggle();
 	            return;
 			}
 		}

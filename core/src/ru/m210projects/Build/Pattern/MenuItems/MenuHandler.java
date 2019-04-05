@@ -205,8 +205,8 @@ public abstract class MenuHandler {
 				mMenuBack();
 
 			if(!BuildGdx.input.isTouched() && input.ctrlKeyStatus(ANYKEY)
-					&& !input.ctrlKeyPressed(Keys.ENTER) 
-					&& !input.ctrlKeyPressed(Keys.ESCAPE)) {
+					&& opt != MenuOpt.ENTER 
+					&& opt != MenuOpt.ESC) {
 
 				keycount += delta;
 				if(keycount >= hitTime) {

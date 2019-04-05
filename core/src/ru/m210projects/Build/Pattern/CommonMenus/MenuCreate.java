@@ -36,8 +36,8 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 
 public abstract class MenuCreate extends BuildMenu {
 	
-	private int mPlayers = 2;
-	private boolean mUseFakeMultiplayer = false;
+	protected int mPlayers = 2;
+	protected boolean mUseFakeMultiplayer = false;
 	
 	public MenuSlider mPlayerNum;
 	public MenuTextField mPortnum;

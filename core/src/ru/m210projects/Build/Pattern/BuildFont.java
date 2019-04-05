@@ -21,6 +21,7 @@ import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Pragmas.*;
+import static ru.m210projects.Build.Strhandler.toCharArray;
 
 import ru.m210projects.Build.Engine;
 
@@ -106,6 +107,12 @@ public class BuildFont {
 		return charInfo[ch].nWidth;
 	}
 	
+	public int drawText(int x, int y, String text, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
+		if(text == null) return 0;
+		
+		return drawText(x, y, toCharArray(text), shade, pal, textAlign, nBits, shadow);
+	}
+	
 	public int drawText(int x, int y, char[] text, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
 		if(text == null) return 0;
 		
@@ -189,6 +196,12 @@ public class BuildFont {
 			alignx += drawChar(x + alignx, y, text[i], scale, shade, pal, nBits, shadow);
 		}
 		return alignx;
+	}
+	
+	public int drawText(int x, int y, String text, int scale, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
+		if(text == null) return 0;
+		
+		return drawText(x, y, toCharArray(text), scale, shade, pal, textAlign, nBits, shadow);
 	}
 
 }

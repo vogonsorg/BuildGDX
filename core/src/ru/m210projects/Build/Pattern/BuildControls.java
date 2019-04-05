@@ -57,6 +57,16 @@ public abstract class BuildControls {
 		this.stick2 = new Vector2();
 	}
 	
+	public float getScaleX()
+	{
+		return 4.0f;
+	}
+	
+	public float getScaleY()
+	{
+		return 1 / 4.0f;
+	}
+	
 	public void resetMousePos()
 	{
 		if(BuildGdx.app.getFrame().isActive())
@@ -103,8 +113,8 @@ public abstract class BuildControls {
 
 			float sensscale = pCfg.gSensitivity / 65536.0f;
 
-			float xscale = sensscale * 4;
-			float yscale = sensscale / 4;
+			float xscale = sensscale * getScaleX();
+			float yscale = sensscale * getScaleY();
 
 			mouseMove.set(dx * xscale, dy * yscale);
 
@@ -204,7 +214,7 @@ public abstract class BuildControls {
 		final int key1 = pCfg.primarykeys[keyName.getNum()];
 		final int key2 = pCfg.secondkeys[keyName.getNum()];
 		final int keyM = pCfg.mousekeys[keyName.getNum()];
-		
+
 		if (once) {
 			return input.keyStatusOnce(key1)
 					|| input.keyStatusOnce(key2)

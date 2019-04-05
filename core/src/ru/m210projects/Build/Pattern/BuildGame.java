@@ -46,6 +46,11 @@ import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.LittleEndian;
 
 public abstract class BuildGame extends Game {
+	
+	/*
+	 * Common console cmds
+	 * SaveManager findSaves()
+	 */
 
 	public final String appname;
 	public final String sversion;
