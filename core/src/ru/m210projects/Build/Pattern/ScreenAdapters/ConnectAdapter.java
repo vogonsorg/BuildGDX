@@ -28,6 +28,7 @@ import static ru.m210projects.Build.Strhandler.toCharArray;
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.BuildGame;
 
@@ -37,14 +38,18 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 	private NetFlag gNetFlag;
 	private String[] gNetParam;
 	private int ConnectStep = 0;
-
+	private int nTile;
+	private BuildFont style;
+	
 	public enum NetFlag {
 		Create, Connect;
 	}
 	
-	public ConnectAdapter(BuildGame game)
+	public ConnectAdapter(BuildGame game, int nTile, BuildFont style)
 	{
 		this.game = game;
+		this.nTile = nTile;
+		this.style = style;
 	}
 
 	public abstract void back();
@@ -67,27 +72,27 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 	@Override
 	public void render(float delta) {
 		game.pEngine.clearview(0);
-		game.pEngine.rotatesprite(160 << 16, 100 << 16, 65536, 0, 2046, 0, 0, 2 | 8 | 64, 0, 0, xdim - 1, ydim - 1);
+		game.pEngine.rotatesprite(160 << 16, 100 << 16, 65536, 0, nTile, 0, 0, 2 | 8 | 64, 0, 0, xdim - 1, ydim - 1);
 
 		switch (gNetFlag) {
 		case Create:
 		case Connect:
 			if (inet.waiting()) {
 				if (myconnectindex == connecthead) {
-					game.getFont(3).drawText(160, 150, toCharArray("Local IP: " + inet.myip), -128, 0, TextAlign.Center, 2, false);
+					style.drawText(160, 150, toCharArray("Local IP: " + inet.myip), -128, 0, TextAlign.Center, 2, false);
 					if (inet.useUPnP) {
 						String extip = "Public IP: ";
 						if (inet.extip != null)
 							extip += inet.extip;
 
-						game.getFont(3).drawText(160, 160, toCharArray(extip), -128, 0, TextAlign.Center, 2, false);
+						style.drawText(160, 160, toCharArray(extip), -128, 0, TextAlign.Center, 2, false);
 					}
 				}
 
 				if (inet.message != null && !inet.message.isEmpty())
-					game.getFont(3).drawText(160, 180, toCharArray(inet.message), -128, 0, TextAlign.Center, 2, false);
+					style.drawText(160, 180, toCharArray(inet.message), -128, 0, TextAlign.Center, 2, false);
 				else
-					game.getFont(3).drawText(160, 180, toCharArray("Initializing..."), -128, 0, TextAlign.Center, 2, false);
+					style.drawText(160, 180, toCharArray("Initializing..."), -128, 0, TextAlign.Center, 2, false);
 					
 				return;
 			}
@@ -100,9 +105,9 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 
 			if (ConnectStep == 0) {
 				if (inet.message != null)
-					game.getFont(3).drawText(160, 180, toCharArray(inet.message), -128, 0, TextAlign.Center, 2, false);
+					style.drawText(160, 180, toCharArray(inet.message), -128, 0, TextAlign.Center, 2, false);
 				else
-					game.getFont(3).drawText(160, 180, toCharArray("Connected! Waiting for other players..."), -128, 0, TextAlign.Center, 2, false);
+					style.drawText(160, 180, toCharArray("Connected! Waiting for other players..."), -128, 0, TextAlign.Center, 2, false);
 				ConnectStep = 1;
 
 				game.pNet.StartWaiting(5000);

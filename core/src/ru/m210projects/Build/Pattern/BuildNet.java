@@ -29,9 +29,9 @@ public abstract class BuildNet {
 	public BuildGame game;
 	public interface NetInput {
 		
-		public int GetInput(byte[] p, int offset);
+		public int GetInput(byte[] p, int offset, NetInput oldInput);
 		
-		public int PutInput(byte[] p, int offset);
+		public int PutInput(byte[] p, int offset, NetInput oldInput);
 		
 		public void Reset();
 		
@@ -89,6 +89,8 @@ public abstract class BuildNet {
 	
 	public abstract int GetPackets(byte[] data, int ptr, int len, int nPlayer);
 	
+	public abstract void ComputerInput(int i);
+	
 	public int GetPackets()
 	{
 		int nPlayer, packbufleng;
@@ -141,13 +143,14 @@ public abstract class BuildNet {
 			if ( i != myconnectindex )
 			{
 				gFifoInput[gNetFifoHead[i] & kFifoMask][i].Reset();
-				ptr = gFifoInput[gNetFifoHead[i] & kFifoMask][i].GetInput(p, ptr);
+				ptr = gFifoInput[gNetFifoHead[i] & kFifoMask][i].GetInput(p, ptr, gFifoInput[(gNetFifoHead[i] - 1) & kFifoMask][i]);
 				gNetFifoHead[i]++;
 			}
 			else
 			{
 				// skip over my own input data
-				ptr = gInput.GetInput(p, ptr);
+				// was gInput GDX 06.04.2019
+				ptr = gFifoInput[gNetFifoHead[i] & kFifoMask][i].GetInput(p, ptr, gFifoInput[(gNetFifoHead[i] - 1) & kFifoMask][i]);
 			}
 		}
 
@@ -183,7 +186,7 @@ public abstract class BuildNet {
  	protected int GetSlavePacket(byte[] p, int ptr, int len, int nPlayer)
 	{
 		gFifoInput[gNetFifoHead[nPlayer] & kFifoMask][nPlayer].Reset();
-		ptr = gFifoInput[gNetFifoHead[nPlayer] & kFifoMask][nPlayer].GetInput(p, ptr);
+		ptr = gFifoInput[gNetFifoHead[nPlayer] & kFifoMask][nPlayer].GetInput(p, ptr, gFifoInput[(gNetFifoHead[nPlayer] - 1) & kFifoMask][nPlayer]);
 		gNetFifoHead[nPlayer]++;
 
 		while ( ptr < len )
@@ -230,6 +233,9 @@ public abstract class BuildNet {
 
 		if(numplayers > 1) 
 			numplayers--;
+		
+		if(numplayers < 2)
+			game.nNetMode = NetMode.Single;
 
 		if(!WaitForAllPlayers(0))
 			return -1;
@@ -316,7 +322,12 @@ public abstract class BuildNet {
 		{
 			// build slave packet
 			int ptr = PutPacketByte(packbuf, 0, kPacketSlaveFrame);
-			ptr = gInput.PutInput(packbuf, ptr);
+			ptr = gFifoInput[(gNetFifoHead[myconnectindex] - 1) & kFifoMask][myconnectindex].PutInput(packbuf, ptr, gFifoInput[(gNetFifoHead[myconnectindex]-2)&kFifoMask][myconnectindex]);
+			if(ptr == 0)
+			{
+				System.err.println("Error! Input.PutInput not implemented!");
+				ptr = 1;
+			}
 
 			// calculate timer lag info every 16 packets
 			if ( (gNetFifoHead[myconnectindex] & 15) == 0 )
@@ -343,7 +354,7 @@ public abstract class BuildNet {
 			sendpacket(connecthead, packbuf, ptr);
 			return;
 		}
-		
+
 		for ( int i = connecthead; i >= 0; i = connectpoint2[i] )
 		{
 			if ( gNetFifoHead[i] <= gNetFifoMasterTail )
@@ -368,7 +379,7 @@ public abstract class BuildNet {
 			int ptr = PutPacketByte(packbuf, 0, kPacketMasterFrame);
 
 			for ( int nPlayer = connecthead; nPlayer >= 0; nPlayer = connectpoint2[nPlayer] ) 
-				ptr = gFifoInput[gNetFifoMasterTail & kFifoMask][nPlayer].PutInput(packbuf, ptr);
+				ptr = gFifoInput[gNetFifoMasterTail & kFifoMask][nPlayer].PutInput(packbuf, ptr, gFifoInput[(gNetFifoMasterTail - 1) & kFifoMask][nPlayer]);
 
 			// include timer lag info every 16 packets
 			if ( (gNetFifoMasterTail & 15) == 0 )
@@ -403,10 +414,9 @@ public abstract class BuildNet {
 		    
 		    sendtoall(packbuf, 5);
 		    WaitForAllPlayers(1000);
-		    
-		    ResetNetwork();
 		}
 		
+		ResetNetwork();
 		game.nNetMode = NetMode.Single;
 		ready2send = false;
 	}

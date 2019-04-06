@@ -74,12 +74,11 @@ public class MenuSlider extends MenuItem {
 	@Override
 	public void draw(MenuHandler handler) {
 		int shade = handler.getShade(this);
-		int pal = handler.getPal(font, this);
-
+		
 		if ( text != null )
-			font.drawText(x, y, text, shade, pal, TextAlign.Left, 2, fontShadow);
+			font.drawText(x, y, text, shade, handler.getPal(font, this), TextAlign.Left, 2, fontShadow);
 
-		slider.drawSliderBackground(x + width - slider.getSliderRange(), y, shade, pal);
+		slider.drawSliderBackground(x + width - slider.getSliderRange(), y, shade, handler.getPal(null, this));
 
 		if(digital)
 		{
@@ -100,7 +99,7 @@ public class MenuSlider extends MenuItem {
 		int nRange = max - min;
 		int dx = xRange * (value - min) / nRange - slider.getSliderRange();
 	
-		slider.drawSlider((x + width + dx), y, shade, pal);
+		slider.drawSlider((x + width + dx), y, shade, handler.getPal(null, this));
 		handler.mPostDraw(this);
 	}
 

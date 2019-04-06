@@ -129,11 +129,10 @@ public abstract class BuildEngine extends Engine {
 		net.gFifoInput[net.gNetFifoHead[myconnectindex] & 0xFF][myconnectindex].Copy(net.gInput);
 		net.gNetFifoHead[myconnectindex]++;
 		
-		if ( game.nNetMode == NetMode.Single && numplayers < 2) {
+		if ( game.nNetMode == NetMode.Multiplayer && numplayers < 2) {
 			for (int i = connecthead; i >= 0; i = connectpoint2[i]) {
 				if (i != myconnectindex) {
-					net.gFifoInput[net.gNetFifoHead[i] & 0xFF][i].
-						Copy(net.gFifoInput[(net.gNetFifoHead[i] - 1) & 0xFF][i]);
+					net.ComputerInput(i);
 					net.gNetFifoHead[i]++;
 				}
 			}
