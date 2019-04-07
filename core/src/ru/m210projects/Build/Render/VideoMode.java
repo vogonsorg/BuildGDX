@@ -82,8 +82,8 @@ public class VideoMode {
 		for (int i = 0; i < validmodes.size(); i++) {
 			VideoMode mode = validmodes.get(i);
 			if(mode.xdim == DesktopDisplayMode.width && mode.ydim == DesktopDisplayMode.height)
-				strvmodes[i] = new String("* " + mode.xdim + " x " + mode.ydim + " 32bpp");
-			else strvmodes[i] = new String(mode.xdim + " x " + mode.ydim + " 32bpp");
+				strvmodes[i] = new String("* " + mode.xdim + " x " + mode.ydim + " " + mode.bpp + "bpp");
+			else strvmodes[i] = new String(mode.xdim + " x " + mode.ydim + " " + mode.bpp + "bpp");
 		}
 	}
 	

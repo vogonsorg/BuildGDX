@@ -132,6 +132,9 @@ public class InitScreen extends ScreenAdapter {
 
 					uninitmultiplayer();
 					
+					cfg.snddrv = BuildGdx.audio.checkNum(Driver.Sound, cfg.snddrv);
+					cfg.middrv = BuildGdx.audio.checkNum(Driver.Music, cfg.middrv);
+					
 					BuildGdx.audio.setDriver(Driver.Sound, cfg.snddrv);
 					BuildGdx.audio.setDriver(Driver.Music, cfg.middrv);
 					

@@ -27,6 +27,7 @@ import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
@@ -78,14 +79,19 @@ public abstract class MenuVideoMode extends BuildMenu {
 		MenuProc callback = new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
-				MenuList item = (MenuList) pItem;
+				final MenuList item = (MenuList) pItem;
 				if (item.l_nFocus == -1)
 					return;
-
-				currentMode = choosedMode = validmodes.get(item.l_nFocus);
-				setMode(app.pCfg);
-				parent.mLoadRes(app.pMenu, MenuOpt.Open);
-				app.pMenu.mMenuBack();
+				
+				BuildGdx.app.postRunnable(new Runnable() {
+					@Override
+					public void run() {
+						currentMode = choosedMode = validmodes.get(item.l_nFocus);
+						setMode(app.pCfg);
+						parent.mLoadRes(app.pMenu, MenuOpt.Open);
+						app.pMenu.mMenuBack();
+					}
+				});
 			}
 		};
 
@@ -106,9 +112,14 @@ public abstract class MenuVideoMode extends BuildMenu {
 		final BuildConfig cfg = app.pCfg;
 		MenuProc callback = new MenuProc() {
 			public void run(MenuHandler handler, MenuItem pItem) {
-				cfg.fullscreen = isFullscreen ? 1 : 0;
-				currentMode = choosedMode;
-				setMode(cfg);
+				BuildGdx.app.postRunnable(new Runnable() {
+					@Override
+					public void run() {
+						cfg.fullscreen = isFullscreen ? 1 : 0;
+						currentMode = choosedMode;
+						setMode(cfg);
+					}
+				});
 			}
 		};
 		
@@ -128,6 +139,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 				{
 				case LEFT:
 				case MWDW:
+					if(list == null) return false;
 					if(num > 0) num--;
 					else num = 0;
 					if(callback != null)
@@ -135,6 +147,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 					return false;
 				case RIGHT:
 				case MWUP:
+					if(list == null) return false;
 					if(num < list.length - 1) num++;
 					else num = list.length - 1;
 					if(callback != null)

@@ -120,6 +120,23 @@ public class BuildAudio implements Disposable {
 		return mx;
 	}
 
+	public int checkNum(Driver type, int drvnum)
+	{
+		if(type == Driver.Sound) 
+		{
+			if(drvnum < 0 || drvnum >= fxdrivers.size())
+				drvnum = 0;
+		}
+		
+		if(type == Driver.Music) 
+		{
+			if(drvnum < 0 || drvnum >= mxdrivers.size())
+				drvnum = 0;
+		}
+
+		return drvnum;
+	}
+	
 	public BuildAudio setDriver(Driver type, int drvnum)
 	{
 		if(type == Driver.Sound) 
