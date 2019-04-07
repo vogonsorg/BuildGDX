@@ -130,6 +130,7 @@ public class GLFrameImpl implements GLFrame, Frame {
 
 	@Override
 	public boolean setDisplayConfiguration(float gamma, float brightness, float contrast) {
+		if(!isReady()) return false;
 		try {
 			Display.setDisplayConfiguration(gamma, brightness, contrast);
 		} catch (Exception e) { e.printStackTrace(); return false; }
