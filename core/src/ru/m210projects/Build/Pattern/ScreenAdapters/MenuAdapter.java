@@ -62,7 +62,7 @@ public abstract class MenuAdapter extends ScreenAdapter {
 			menu.mKeyHandler(game.pInput, delta);
 			menu.mDrawMenu();
 		} else {
-			if (game.pInput.ctrlGetInputKey(MenuKeys.Menu_Open_Close, true))
+			if (game.pInput.ctrlGetInputKey(MenuKeys.Menu_Toggle, true))
 				menu.mOpen(mainMenu, -1);
 		}
 

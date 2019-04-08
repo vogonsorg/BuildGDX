@@ -2,6 +2,8 @@ package ru.m210projects.Build.Pattern;
 
 import static ru.m210projects.Build.Net.Mmulti.*;
 
+import com.badlogic.gdx.Gdx;
+
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildGame.NetMode;
@@ -30,7 +32,8 @@ public abstract class BuildEngine extends Engine {
 	public int getsmoothratio()
 	{
 //		return ((totalclock - game.pNet.ototalclock + ticks) << 16) / ticks;
-		return (int) (((getticks() - timernexttick) / (float) timerskipticks) * 65536);
+//		return (int) (((System.nanoTime() - timernexttick) * 65536.0f) / (timerskipticks * 1000000.0f));
+		return (int) ((frametime += Gdx.graphics.getDeltaTime() * 1000.0f * 65536.0f) / timerskipticks);
 	}
 	
 	@Override

@@ -28,11 +28,15 @@ public class MenuSlotList extends MenuList
 	public MenuProc confirmCallback;
 	public List<SaveInfo> displayed;
 	
-	public final boolean saveList;
+	protected final boolean saveList;
+	public int nListOffset;
 	public boolean typing;
 	public char[] typingBuf = new char[16];
 	public String typed;
 	public int yHelpText;
+	public int helpPal;
+	public BuildFont questionFont;
+	public BuildFont desriptionFont;
 	public int specPal;
 	public int transparent = 1;
 	
@@ -52,14 +56,19 @@ public class MenuSlotList extends MenuList
 		this.typing = false;
 		this.text = saveManager.getList();
 		this.nListItems = nListItems;
+		this.nListOffset = 0;
 	
 		this.updateCallback = updateCallback;
 		this.confirmCallback = confirmCallback;
 		this.saveList = saveList;
 		this.displayed = new ArrayList<SaveInfo>();
 		this.yHelpText = yHelpText;
+		this.questionFont = font;
+		this.helpPal = listPal;
 		this.specPal = specPal;
 		this.listPal = listPal;
+		
+		this.desriptionFont = font;
 	}
 	
 	public String FileName()
@@ -116,7 +125,7 @@ public class MenuSlotList extends MenuList
 					}
 				}
 				
-				font.drawText(x + width / 2, py, rtext,shade, pal, TextAlign.Left, 2, fontShadow);
+				font.drawText(x + width / 2 + nListOffset, py, rtext,shade, pal, TextAlign.Left, 2, fontShadow);
 
 				py += mFontOffset();
 			}
@@ -136,10 +145,10 @@ public class MenuSlotList extends MenuList
 				}
 			} else rtext = toCharArray("List is empty");
 
-			font.drawText(x + width / 2, py, rtext,shade, listPal, TextAlign.Left, 2, fontShadow);
+			font.drawText(x + width / 2 + nListOffset, py, rtext,shade, listPal, TextAlign.Left, 2, fontShadow);
 		}
 
-		pal = 0;
+		pal = helpPal;
 		if(deleteQuestion)
 		{
 			draw.setpalettefade(0, 0, 0, 48);
@@ -148,14 +157,16 @@ public class MenuSlotList extends MenuList
 			int shade = handler.getShade(m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 			
 			char[] ctext = toCharArray("Do you want to delete \"" + SaveName() + "\"");
-			font.drawText(160 - font.getWidth(ctext) / 2, 100, ctext, shade, pal, TextAlign.Left, 2, fontShadow);
+			questionFont.drawText(160 - questionFont.getWidth(ctext) / 2, 100, ctext, shade, pal, TextAlign.Left, 2, fontShadow);
 			ctext = toCharArray("[Y/N]");
-			font.drawText(160 - font.getWidth(ctext) / 2, 110, ctext, shade, pal, TextAlign.Left, 2, fontShadow);
+			questionFont.drawText(160 - questionFont.getWidth(ctext) / 2, 110, ctext, shade, pal, TextAlign.Left, 2, fontShadow);
 		} else {
 			char[] ctext = toCharArray("Press \"DELETE\" to remove the savegame file");
 			
-			font.drawText(160 - font.getWidth(ctext) / 2, yHelpText, ctext, 0, pal, TextAlign.Left, 2, fontShadow);
+			desriptionFont.drawText(160 - desriptionFont.getWidth(ctext) / 2, yHelpText, ctext, 0, pal, TextAlign.Left, 2, fontShadow);
 		}
+		
+		handler.mPostDraw(this);
 	}
 
 	@Override

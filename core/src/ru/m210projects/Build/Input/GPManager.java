@@ -33,7 +33,7 @@ public class GPManager {
 	private Array<Gamepad> gamepads;
 	private float deadZone = 0.01f;
 	
-//	boolean TestGamepad = false;
+	private boolean TestGamepad = false;
 	
 	public GPManager()
 	{
@@ -51,8 +51,8 @@ public class GPManager {
 			}
 		} catch (Exception e) { }
 		
-//		if(TestGamepad)
-//			gamepads.add(new Gamepad(new TestController()));
+		if(TestGamepad)
+			gamepads.add(new TestGamePad());
 	}
 	
 	public int getControllers()
@@ -124,14 +124,14 @@ public class GPManager {
 		return gamepads.get(deviceIndex).buttonStatus(buttonCode);
 	}
 	
-	public float getAxisValue(int aCode) {
-		float value = 0.0f;
-		for(int i = 0; i < gamepads.size; i++) {
-			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
-				return value;
-		}
-		return 0.0f;
-	}
+//	public float getAxisValue(int aCode) {
+//		float value = 0.0f;
+//		for(int i = 0; i < gamepads.size; i++) {
+//			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
+//				return value;
+//		}
+//		return 0.0f;
+//	}
 
 	public Vector2 getStickValue(int deviceIndex, int aCode1, int aCode2)
 	{

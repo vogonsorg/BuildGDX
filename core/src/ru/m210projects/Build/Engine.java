@@ -148,7 +148,8 @@ public abstract class Engine {
 	}
 
 	protected long timerskipticks;
-	protected long timernexttick;
+//	protected long timernexttick;
+	protected float frametime;
 	
 	private boolean releasedEngine;
 	public boolean compatibleMode;
@@ -1429,14 +1430,16 @@ public abstract class Engine {
 
 		timerfreq = 1000;
 		timerticspersec = tickspersecond;
-		timerlastsample = getticks() * timerticspersec / timerfreq;
+		timerlastsample = System.nanoTime() * timerticspersec / (timerfreq * 1000000); 
+		//getticks() * timerticspersec / timerfreq;
 	}
 
 	public void sampletimer() { //jfBuild
 		if (timerfreq == 0)
 			return;
 
-		long n = (getticks() * timerticspersec / timerfreq) - timerlastsample;  
+		long n = (System.nanoTime() * timerticspersec / (timerfreq * 1000000)) - timerlastsample;
+		//(getticks() * timerticspersec / timerfreq) - timerlastsample;  
 		if (n > 0) {
 			totalclock += n;
 			timerlastsample += n;
@@ -4137,11 +4140,12 @@ public abstract class Engine {
     
     public void updatesmoothticks()
 	{
-		timernexttick = getticks();
+//		timernexttick = System.nanoTime();
+		frametime = 0.0f;
 	}
     
     public int getsmoothratio()
 	{
-		return (int) (((getticks() - timernexttick) / (float) timerskipticks) * 65536);
+    	return (int) ((frametime += Gdx.graphics.getDeltaTime() * 1000.0f * 65536.0f) / timerskipticks);
 	}
 }

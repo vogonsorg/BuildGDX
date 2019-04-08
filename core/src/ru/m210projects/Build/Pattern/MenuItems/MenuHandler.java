@@ -180,7 +180,7 @@ public abstract class MenuHandler {
 				opt = MenuOpt.RIGHT;
 			if(input.ctrlKeyStatusOnce(Keys.ENTER) || input.ctrlPadStatusOnce(MenuKeys.Menu_Enter)) 
 				opt = MenuOpt.ENTER;
-			if(input.ctrlGetInputKey(MenuKeys.Menu_Open_Close, true)) 
+			if(input.ctrlGetInputKey(MenuKeys.Menu_Toggle, true)) 
 				opt = MenuOpt.ESC;
 			if(input.ctrlKeyStatusOnce(Keys.SPACE)) 
 				opt = MenuOpt.SPACE;

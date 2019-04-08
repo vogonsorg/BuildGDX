@@ -49,7 +49,7 @@ public abstract class BuildConfig extends IniFile {
 	}
 	
 	public KeyType[] joymap = {
-		MenuKeys.Menu_Open_Close.setJoyNum(0),
+		MenuKeys.Menu_Toggle.setJoyNum(0),
 		MenuKeys.Menu_Enter.setJoyNum(1),
 		MenuKeys.Menu_Up.setJoyNum(2),
 		MenuKeys.Menu_Down.setJoyNum(3),
@@ -58,7 +58,7 @@ public abstract class BuildConfig extends IniFile {
 	};
 	
 	public enum MenuKeys implements KeyType { 
-		Menu_Open_Close,
+		Menu_Toggle,
 		Menu_Enter,
 		Menu_Up,
 		Menu_Down,

@@ -225,7 +225,7 @@ public abstract class MenuKeyboardList extends MenuList
 			if((flags & 4) != 0 && callback != null)
 				callback.run(handler, this);
 			
-			if(l_nFocus == MenuKeys.Menu_Open_Close.getNum()) 
+			if(l_nFocus == MenuKeys.Menu_Toggle.getNum()) 
 				getInput().resetKeyStatus();
 
 			return false;

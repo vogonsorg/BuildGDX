@@ -227,7 +227,7 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 			if((flags & 4) != 0 && callback != null)
 				callback.run(handler, this);
 
-			if(l_nFocus == MenuKeys.Menu_Open_Close.getNum())
+			if(l_nFocus == MenuKeys.Menu_Toggle.getNum())
 				gpmanager.resetButtonStatus();
 
 			return false;
