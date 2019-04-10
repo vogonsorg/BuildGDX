@@ -104,7 +104,7 @@ public class DummySound implements Sound {
 
 	@Override
 	public String getSoftResamplerName(int num) {
-		return "Not support";
+		return "Not supported";
 	}
 
 	@Override

@@ -147,10 +147,6 @@ public abstract class Engine {
 		}
 	}
 
-	protected long timerskipticks;
-//	protected long timernexttick;
-	protected float frametime;
-	
 	private boolean releasedEngine;
 	public boolean compatibleMode;
 	public static boolean UseBloodPal = false;
@@ -4137,15 +4133,4 @@ public abstract class Engine {
     {
     	return defs;
     }
-    
-    public void updatesmoothticks()
-	{
-//		timernexttick = System.nanoTime();
-		frametime = 0.0f;
-	}
-    
-    public int getsmoothratio()
-	{
-    	return (int) ((frametime += Gdx.graphics.getDeltaTime() * 1000.0f * 65536.0f) / timerskipticks);
-	}
 }

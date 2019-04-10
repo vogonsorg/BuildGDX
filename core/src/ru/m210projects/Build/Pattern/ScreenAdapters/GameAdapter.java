@@ -23,12 +23,12 @@ import static ru.m210projects.Build.Pattern.BuildNet.*;
 
 import com.badlogic.gdx.ScreenAdapter;
 
-import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
+import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildNet;
 import ru.m210projects.Build.Pattern.BuildGame.NetMode;
@@ -39,7 +39,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 	protected BuildGame game;
 	protected BuildNet pNet;
 	protected MenuHandler pMenu;
-	protected Engine pEngine;
+	protected BuildEngine pEngine;
 	protected BuildConfig pCfg;
 	protected Runnable gScreenCapture;
 	protected LoadingAdapter load;
@@ -136,14 +136,14 @@ public abstract class GameAdapter extends ScreenAdapter {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
 				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
 			if (i >= 0) break;
-			game.pInt.updateinterpolations();
+//			game.pInt.updateinterpolations();
 			ProcessFrame(pNet);
 		}
 		
 		pNet.CheckSync();
 		
 		float smoothratio = 65536;
-		if (!game.gPaused && (!pMenu.gShowMenu || game.nNetMode != NetMode.Single) && !Console.IsShown()) {
+		if (game.nNetMode != NetMode.Single || !game.gPaused && !pMenu.gShowMenu && !Console.IsShown()) {
 			smoothratio = pEngine.getsmoothratio();
 			if (smoothratio < 0 || smoothratio > 0x10000) {
 //				System.err.println("Interpolation error " + smoothratio);

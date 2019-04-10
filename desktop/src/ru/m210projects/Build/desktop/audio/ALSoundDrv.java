@@ -260,7 +260,7 @@ public class ALSoundDrv implements Sound {
 	
 	@Override
 	public String getSoftResamplerName(int num) {
-		if(noDevice) return "Not support";
+		if(noDevice) return "Not supported";
 		return al.alGetSoftResamplerName(num);
 	}
 

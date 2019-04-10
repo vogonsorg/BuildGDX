@@ -13,6 +13,9 @@ import ru.m210projects.Build.Pattern.ScreenAdapters.LoadingAdapter;
 public abstract class BuildEngine extends Engine {
 	
 	protected int ticks;
+	protected long timerskipticks;
+	protected float frametime;
+	
 	private BuildGame game;
 
 	public BuildEngine(BuildGame game, int ticks, boolean releasedEngine) throws Exception {
@@ -28,7 +31,6 @@ public abstract class BuildEngine extends Engine {
 		updatesmoothticks();
 	}
 	
-	@Override
 	public int getsmoothratio()
 	{
 //		return ((totalclock - game.pNet.ototalclock + ticks) << 16) / ticks;
@@ -54,10 +56,15 @@ public abstract class BuildEngine extends Engine {
 			return;
 		
 		net.ototalclock += ticks;
-
 		updatesmoothticks();
 		handleevents();
 		GetInput(net);
+	}
+	
+	public void updatesmoothticks()
+	{
+		game.pInt.updateinterpolations();
+		frametime = 0.0f;
 	}
 	
 	@Override
