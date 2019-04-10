@@ -125,8 +125,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 			
 			pNet.GetPackets();
 			while (pNet.gPredictTail < pNet.gNetFifoHead[myconnectindex] && !game.gPaused) 
-				pNet.UpdatePrediction(pNet.gFifoInput[pNet.gPredictTail & kFifoMask][myconnectindex]); 
-
+				pNet.UpdatePrediction(pNet.gFifoInput[pNet.gPredictTail & kFifoMask][myconnectindex]);
 		} else pNet.bufferJitter = 0;
 		
 		PreFrame(pNet);
@@ -136,7 +135,6 @@ public abstract class GameAdapter extends ScreenAdapter {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
 				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
 			if (i >= 0) break;
-//			game.pInt.updateinterpolations();
 			ProcessFrame(pNet);
 		}
 		
