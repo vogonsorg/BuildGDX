@@ -118,7 +118,7 @@ public abstract class BuildNet {
 					break;
 		
 				case kPacketTick:
-					nConnected = p[ptr++];
+					nConnected = p[++ptr] & 0xFF;
 					inet.message = "Waiting for other players [" + nConnected + " / " + numplayers + "]";
 					return 2;
 				default:
@@ -208,7 +208,7 @@ public abstract class BuildNet {
 		
 		WaitForAllPlayers(1000);
 
-		if(deletePlayerSprite != null)
+		if(deletePlayerSprite != null && game.nNetMode != NetMode.Single)
 			deletePlayerSprite.run();
 		
 		if ( nPlayer == connecthead ) {

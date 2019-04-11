@@ -141,7 +141,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		pNet.CheckSync();
 		
 		float smoothratio = 65536;
-		if (game.nNetMode != NetMode.Single || !game.gPaused && !pMenu.gShowMenu && !Console.IsShown()) {
+		if (!game.gPaused && (game.nNetMode != NetMode.Single || !pMenu.gShowMenu && !Console.IsShown())) {
 			smoothratio = pEngine.getsmoothratio();
 			if (smoothratio < 0 || smoothratio > 0x10000) {
 //				System.err.println("Interpolation error " + smoothratio);
