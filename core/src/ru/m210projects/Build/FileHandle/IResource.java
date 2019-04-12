@@ -28,7 +28,7 @@ public abstract class IResource {
 	
 	public HashMap<String, Integer> lookup = new HashMap<String, Integer>();
 
-	class ResourceException extends Exception
+	public class ResourceException extends Exception
 	{
 		private static final long serialVersionUID = 1L;
 		public ResourceException(String message)

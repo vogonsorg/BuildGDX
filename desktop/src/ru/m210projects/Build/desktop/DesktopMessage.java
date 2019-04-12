@@ -36,7 +36,7 @@ public class DesktopMessage implements BuildMessage {
 	}
 	
 	@Override
-	public boolean show(String header, String message, MessageType type) {
+	public synchronized boolean show(String header, String message, MessageType type) {
 		if(frame == null && (frame = InitFrame()) == null)
 			return false;
 		

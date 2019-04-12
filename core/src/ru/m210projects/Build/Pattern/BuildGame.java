@@ -246,7 +246,8 @@ public abstract class BuildGame extends Game {
 		CloseLogFile();
 
 		try {
-			pNet.NetDisconnect(myconnectindex);
+			if(nNetMode == NetMode.Multiplayer)
+				pNet.NetDisconnect(myconnectindex);
 			if (BuildGdx.message.show(msg, stack, MessageType.Crash))
 				saveToFTP();
 		} catch (Exception e) {	
