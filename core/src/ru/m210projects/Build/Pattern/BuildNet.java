@@ -91,6 +91,15 @@ public abstract class BuildNet {
 	
 	public abstract void ComputerInput(int i);
 	
+	public void WaitForSend()
+	{
+		for(int i=connecthead;i>=0;i=connectpoint2[i])
+		{
+			if (i != myconnectindex) 
+				while(!canSend(i));
+		}
+	}
+	
 	public int GetPackets()
 	{
 		int nPlayer, packbufleng;
@@ -251,7 +260,7 @@ public abstract class BuildNet {
 		return pptr += size;
 	}
 	
-	public static int PutPacketByte(byte[] p, int ptr, int value)
+	public int PutPacketByte(byte[] p, int ptr, int value)
 	{
 		p[ptr] = (byte) value;
 		return ptr += 1;
