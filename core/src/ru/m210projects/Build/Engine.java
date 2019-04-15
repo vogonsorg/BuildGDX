@@ -371,6 +371,7 @@ public abstract class Engine {
 	    return(min(max(dashade+(davis>>8),0),numshades-1));
 	}
 
+	private ByteBuffer shortbuf = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN);
 	public int animateoffs(int tilenum, int nInfo) { //jfBuild + gdxBuild
 		long clock, index = 0;
 
@@ -378,7 +379,8 @@ public abstract class Engine {
 		if ((nInfo & 0xC000) == 0x8000) // sprite
 		{
 			// hash sprite frame by info variable
-			clock = (totalclocklock + CRC32.getCRC(CRC32.getBytes((short) nInfo), 2)) >> speed;
+			shortbuf.putShort(0, (short) nInfo); 
+			clock = (totalclocklock + CRC32.getChecksum(shortbuf.array())) >> speed;
 		} else
 			clock = totalclocklock >> speed;
 

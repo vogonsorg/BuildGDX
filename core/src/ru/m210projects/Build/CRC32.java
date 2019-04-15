@@ -7,6 +7,13 @@
 
 package ru.m210projects.Build;
 
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+
+import ru.m210projects.Build.FileHandle.FileEntry;
+
 public class CRC32 {
 	private static final int[] table = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
@@ -43,14 +50,7 @@ public class CRC32 {
 	0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
 	};
 	
-	public static final byte[] buf = new byte[2];
-	public static byte[] getBytes(short value) {
-		buf[0] = (byte) (value & 0xFF);
-		buf[1] = (byte) ((value >> 8) & 0xFF);
-		return buf;
-	}
-	
-	public static long getCRC(byte[] bytes, int len) {
+	public static long getChecksum(byte[] bytes) {
 		int crc = 0xffffffff;
         for (byte b : bytes) {
             crc = (crc >>> 8) ^ table[(crc ^ b) & 0xff];
@@ -60,5 +60,28 @@ public class CRC32 {
         crc = crc ^ 0xffffffff;
 
 		return crc & 0xFFFFFFFFL;
+	}
+	
+	public static long getChecksum(ByteBuffer bb) {
+		int crc = 0xffffffff;
+		while(bb.remaining() != 0) 
+			crc = (crc >>> 8) ^ table[(crc ^ bb.get()) & 0xff];
+
+        // flip bits
+        crc = crc ^ 0xffffffff;
+		return crc & 0xFFFFFFFFL;
+	}
+	
+	public static long getChecksum(FileEntry file)
+	{
+		long value = -1;
+		try {
+			FileInputStream inputStream = new FileInputStream(file.getFile());
+			FileChannel fileChannel = inputStream.getChannel();
+			MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+			value = getChecksum(buffer);
+			inputStream.close();
+		} catch (Exception e) {}
+		return value;
 	}
 }
