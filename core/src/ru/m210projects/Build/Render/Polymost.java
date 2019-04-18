@@ -932,68 +932,70 @@ public abstract class Polymost implements Renderer {
 					du1 = f;
 			}
 
-			f = 1.0 / tsizx;
-			ix0 = floor(du0 * f);
-			ix1 = floor(du1 * f);
-
-			for (; ix0 <= ix1; ix0++) {
-				du0 = (ix0) * tsizx;
-				du1 = (ix0 + 1) * tsizx;
-
-				i = 0;
-				nn = 0;
-				duj = (drawpoly[i].px * ngux + drawpoly[i].py * nguy + nguo)
-						/ (drawpoly[i].px * ngdx + drawpoly[i].py * ngdy + ngdo);
-				do {
-					j = i + 1;
-					if (j == n) j = 0;
-					dui = duj;
-					duj = (drawpoly[j].px * ngux + drawpoly[j].py * nguy + nguo)
-							/ (drawpoly[j].px * ngdx + drawpoly[j].py * ngdy + ngdo);
-
-					if ((du0 <= dui) && (dui <= du1)) {
-						drawpoly[nn].uu = drawpoly[i].px;
-						drawpoly[nn].vv = drawpoly[i].py;
-						nn++;
+			if(tsizx != 0) {
+				f = 1.0 / tsizx;
+				ix0 = floor(du0 * f);
+				ix1 = floor(du1 * f);
+	
+				for (; ix0 <= ix1; ix0++) {
+					du0 = (ix0) * tsizx;
+					du1 = (ix0 + 1) * tsizx;
+	
+					i = 0;
+					nn = 0;
+					duj = (drawpoly[i].px * ngux + drawpoly[i].py * nguy + nguo)
+							/ (drawpoly[i].px * ngdx + drawpoly[i].py * ngdy + ngdo);
+					do {
+						j = i + 1;
+						if (j == n) j = 0;
+						dui = duj;
+						duj = (drawpoly[j].px * ngux + drawpoly[j].py * nguy + nguo)
+								/ (drawpoly[j].px * ngdx + drawpoly[j].py * ngdy + ngdo);
+	
+						if ((du0 <= dui) && (dui <= du1)) {
+							drawpoly[nn].uu = drawpoly[i].px;
+							drawpoly[nn].vv = drawpoly[i].py;
+							nn++;
+						}
+						
+						if (duj <= dui) {
+							if ((du1 < duj) != (du1 < dui)) 
+								nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
+							if ((du0 < duj) != (du0 < dui)) 
+								nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
+						} else {
+							if ((du0 < duj) != (du0 < dui)) 
+								nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
+							if ((du1 < duj) != (du1 < dui)) 
+								nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
+						}
+						i = j;
+					} while (i != 0);
+					if (nn < 3)
+						continue;
+	
+					if(HOM) gl.glDisable(GL_TEXTURE_2D);
+					gl.glBegin(GL_TRIANGLE_FAN);
+					for (i = 0; i < nn; i++) {
+						Polygon dpoly = drawpoly[i];
+						ox = dpoly.uu;
+						oy = dpoly.vv;
+						dp = ox * ngdx + oy * ngdy + ngdo;
+						up = ox * ngux + oy * nguy + nguo;
+						vp = ox * ngvx + oy * ngvy + ngvo;
+						r = 1.0 / dp;
+						if (texunits > GL_TEXTURE0) {
+							j = GL_TEXTURE0;
+							while (j <= texunits)
+								gl.glMultiTexCoord2d(j++, (up * r - du0 + uoffs) * ox2, vp * r * oy2);
+						} else
+							gl.glTexCoord2d((up * r - du0 + uoffs) * ox2, vp * r * oy2);
+						gl.glVertex3d((ox - ghalfx) * r * grhalfxdown10x,
+								(ghoriz - oy) * r * grhalfxdown10, r * (1.0 / 1024.0));
 					}
-					
-					if (duj <= dui) {
-						if ((du1 < duj) != (du1 < dui)) 
-							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
-						if ((du0 < duj) != (du0 < dui)) 
-							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
-					} else {
-						if ((du0 < duj) != (du0 < dui)) 
-							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
-						if ((du1 < duj) != (du1 < dui)) 
-							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
-					}
-					i = j;
-				} while (i != 0);
-				if (nn < 3)
-					continue;
-
-				if(HOM) gl.glDisable(GL_TEXTURE_2D);
-				gl.glBegin(GL_TRIANGLE_FAN);
-				for (i = 0; i < nn; i++) {
-					Polygon dpoly = drawpoly[i];
-					ox = dpoly.uu;
-					oy = dpoly.vv;
-					dp = ox * ngdx + oy * ngdy + ngdo;
-					up = ox * ngux + oy * nguy + nguo;
-					vp = ox * ngvx + oy * ngvy + ngvo;
-					r = 1.0 / dp;
-					if (texunits > GL_TEXTURE0) {
-						j = GL_TEXTURE0;
-						while (j <= texunits)
-							gl.glMultiTexCoord2d(j++, (up * r - du0 + uoffs) * ox2, vp * r * oy2);
-					} else
-						gl.glTexCoord2d((up * r - du0 + uoffs) * ox2, vp * r * oy2);
-					gl.glVertex3d((ox - ghalfx) * r * grhalfxdown10x,
-							(ghoriz - oy) * r * grhalfxdown10, r * (1.0 / 1024.0));
+					gl.glEnd();
+					if(HOM) gl.glEnable(GL_TEXTURE_2D);
 				}
-				gl.glEnd();
-				if(HOM) gl.glEnable(GL_TEXTURE_2D);
 			}
 		} else {
 			ox2 *= hackscx;

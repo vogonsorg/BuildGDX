@@ -18,13 +18,9 @@ import ru.m210projects.Build.Render.Types.GLFilter;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
-import com.badlogic.gdx.utils.BufferUtils;
 
 public class TextureUtils {
 
-	private static final int TEX_MAX_SIZE = 1024;
-
-	private static ByteBuffer tmp_buffer;
 	private static int gltexmaxsize = 0;
 
 	private static GLFilter[] glfiltermodes = {
@@ -38,13 +34,6 @@ public class TextureUtils {
 	public static GLFilter getGlFilter(int mode) {
 		mode = mode < 0 ? 0 : mode >= glfiltermodes.length ? glfiltermodes.length - 1 : mode;
 		return glfiltermodes[mode];
-	}
-
-	public static ByteBuffer getTmpBuffer() {
-		if (tmp_buffer == null) {
-			tmp_buffer = BufferUtils.newByteBuffer(TEX_MAX_SIZE * TEX_MAX_SIZE * 4);
-		}
-		return tmp_buffer;
 	}
 
 	private static int getTextureMaxSize() {

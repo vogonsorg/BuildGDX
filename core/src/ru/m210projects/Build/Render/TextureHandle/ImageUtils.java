@@ -15,24 +15,28 @@ import static ru.m210projects.Build.Engine.curpalette;
 import static ru.m210projects.Build.Engine.gammabrightness;
 import static ru.m210projects.Build.Engine.globalshade;
 import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 
 import java.nio.ByteBuffer;
 
+import ru.m210projects.Build.Types.UnsafeBuffer;
+
 public class ImageUtils {
+	
+	private static final int TEX_MAX_SIZE = 1024;
+	private static UnsafeBuffer tmp_buffer;
 
 	public static class PicInfo {
 		public final ByteBuffer pic;
 		public final boolean hasalpha;
 
-		public PicInfo(ByteBuffer pic, boolean hasalpha) {
-			this.pic = pic;
+		public PicInfo(UnsafeBuffer unsafe, boolean hasalpha) {
+			this.pic = unsafe.getBuffer();
 			this.hasalpha = hasalpha;
 		}
 	}
 
 	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, boolean isPaletted) {
-		ByteBuffer buffer = getTmpBuffer();
+		UnsafeBuffer buffer = getTmpBuffer();
 		boolean hasalpha = false;
 		buffer.clear();
 		
@@ -123,7 +127,7 @@ public class ImageUtils {
 		return new PicInfo(buffer, hasalpha);
 	}
 	
-	private static void fixtransparency(ByteBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
+	private static void fixtransparency(UnsafeBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
 		int dox = daxsiz2 - 1;
 		int doy = daysiz2 - 1;
 		if (clamping) {
@@ -197,6 +201,13 @@ public class ImageUtils {
 				dapic.putInt(wp, rgb);
 			}
 		}
+	}
+	
+	public static UnsafeBuffer getTmpBuffer() {
+		if (tmp_buffer == null) {
+			tmp_buffer = new UnsafeBuffer(TEX_MAX_SIZE * TEX_MAX_SIZE * 4);
+		}
+		return tmp_buffer;
 	}
 
 }

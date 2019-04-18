@@ -26,6 +26,7 @@ public class MenuConteiner extends MenuItem
 	public MenuProc callback;
 	public char[][] list;
 	public BuildFont listFont;
+	public boolean listShadow;
 	
 	public MenuConteiner(Object text, BuildFont font, int x, int y, int width, String[] list, int num, MenuProc callback)
 	{
@@ -66,7 +67,7 @@ public class MenuConteiner extends MenuItem
 		font.drawText(px, py, text, shade, pal, TextAlign.Left, 2, fontShadow);
 		
 		if(key != null) 
-			listFont.drawText(x + width - 1 - listFont.getWidth(key), py + (font.getHeight() - listFont.getHeight()) / 2, key, shade, handler.getPal(listFont, this), TextAlign.Left, 2, fontShadow);
+			listFont.drawText(x + width - 1 - listFont.getWidth(key), py + (font.getHeight() - listFont.getHeight()) / 2, key, shade, handler.getPal(listFont, this), TextAlign.Left, 2, listShadow);
 		
 		handler.mPostDraw(this);
 	}
