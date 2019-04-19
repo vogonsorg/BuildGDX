@@ -83,7 +83,7 @@ public class ZIPResource extends IResource {
 	private ZipFile ZFile;
 	private List<ZRESHANDLE> files = new ArrayList<ZRESHANDLE>();
 
-	public ZIPResource(String FileName) throws Exception
+	public ZIPResource(String FileName) throws IOException
 	{
 		if(FileName != null && !FileName.isEmpty()) {
 			ZFile = new ZipFile(FilePath + FileName);

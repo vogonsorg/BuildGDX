@@ -22,7 +22,7 @@ import static ru.m210projects.Build.Strhandler.isdigit;
 
 import java.util.Arrays;
 
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -33,8 +33,7 @@ public class KeyInput {
 		keyfifo[] = new byte[KEYFIFOSIZ], keyfifoplc, keyfifoend;
 	public int locmessagelen;
 	public static final char[] lockeybuf = new char[40]; 
-	
-	public boolean keyPressed = false;
+
 	public boolean[] hitkey = new boolean[256];
 	
 	public static char gdxscantoasc[] = { 0, 0, 0, 0, 0, 0, 0, '0', '1', '2',
@@ -75,20 +74,19 @@ public class KeyInput {
 	}
 	
 	public int handleevents() { 
-		if(Gdx.input == null) //not initialized
+		if(BuildGdx.input == null) //not initialized
 			return 0;
 
-		BuildGDX.input.processMessages();
-		BuildGDX.input.cursorHandler();
+		BuildGdx.input.processMessages();
+		BuildGdx.input.cursorHandler();
 
 		int rv = 0;
-		keyPressed = false;
-		keystatus[ANYKEY] = 0;
+		boolean keyPressed = false;
 		for (int kb = 1; kb < 256; kb++) {
 			if(kb >= MOUSE_WHELLUP && kb <= MOUSE_BUTTON11)
 				continue;
 			
-			if (Gdx.input.isKeyPressed(kb)) {
+			if (BuildGdx.input.isKeyPressed(kb)) {
 				keyPressed = true;
 				if (!hitkey[kb]) {
 					keystatus[ANYKEY] = 1;
@@ -118,7 +116,7 @@ public class KeyInput {
 		}
 		
 		//Mouse wheel handler
-		int wheel = BuildGDX.input.getDWheel();
+		int wheel = BuildGdx.input.getDWheel();
 		if(wheel > 0) {
 			keyPressed = true;
 			if (!hitkey[MOUSE_WHELLUP]) {
@@ -140,7 +138,9 @@ public class KeyInput {
 			setKey(MOUSE_WHELLDN, 0);
 			hitkey[MOUSE_WHELLDN] = false;
 		}
-
+		
+		if(!keyPressed)
+			keystatus[ANYKEY] = 0;
 		return rv;
 	}
 	
@@ -160,12 +160,7 @@ public class KeyInput {
 
 		return false;
 	}
-	
-	public boolean keyPressed()
-	{
-		return keyPressed;
-	}
-	
+
 	public boolean keyPressed(int kb)
 	{
 		return hitkey[kb];

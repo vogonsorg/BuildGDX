@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Engine.Point;
 import ru.m210projects.Build.Loader.MDModel;
@@ -58,9 +58,11 @@ import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
+import ru.m210projects.Build.Types.TileFont.FontType;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
@@ -277,7 +279,7 @@ public abstract class Polymost implements Renderer {
 
 	private float gyxscale, gxyaspect, gviewxrange, ghalfx, grhalfxdown10,
 			grhalfxdown10x;
-	private double ghoriz;
+	private float ghoriz;
 	private float gcosang, gsinang, gcosang2, gsinang2;
 	private float gchang, gshang, ogshang, gctang, gstang;
 	private float gtang = 0.0f;
@@ -297,7 +299,7 @@ public abstract class Polymost implements Renderer {
 
 	private int srepeat = 0, trepeat = 0;
 
-	private double SCISDIST = 1.0; // 1.0: Close plane clipping distance
+	private float SCISDIST = 1.0f; // 1.0: Close plane clipping distance
 	// private final int USEZBUFFER = 1; //1:use zbuffer (slow, nice sprite
 	// rendering), 0:no zbuffer (fast, bad sprite rendering)
 	// private final int LINTERPSIZ = 4; //log2 of interpolation size. 4:pretty
@@ -323,8 +325,8 @@ public abstract class Polymost implements Renderer {
 	private boolean showlines = false;
 
 	public Polymost(Engine engine) {
-		BuildGDX.app.setFrame(FrameType.GL);
-		this.gl = BuildGDX.graphics.getGL10();
+		BuildGdx.app.setFrame(FrameType.GL);
+		this.gl = BuildGdx.graphics.getGL10();
 		this.engine = engine;
 		
 		this.textureCache = createTextureCache();
@@ -638,8 +640,8 @@ public abstract class Polymost implements Renderer {
 	protected void drawpoly(Surface[] dm, int n, int method) {
 		double ngdx = 0.0, ngdy = 0.0, ngdo = 0.0, ngux = 0.0, nguy = 0.0, nguo = 0.0;
 		double ngvx = 0.0, ngvy = 0.0, ngvo = 0.0, dp, up, vp, du0 = 0.0, du1 = 0.0, dui, duj;
-		double f, r, ox, oy, oz, ox2, oy2, oz2, uoffs;
-		int i, j, k, nn, ix0, ix1, tsizx, tsizy, xx, yy;
+		double f, r, ox, oy, oz, ox2, oy2, oz2, uoffs, ix0, ix1;
+		int i, j, k, nn, tsizx, tsizy, xx, yy;
 
 		boolean dorot;
 
@@ -678,8 +680,10 @@ public abstract class Polymost implements Renderer {
 			if(TexDebug != -1)
 				TexDebug = System.nanoTime();
 
-			if (engine.loadtile(globalpicnum) == null)
+			if (engine.loadtile(globalpicnum) == null) {
+				tsizx = tsizy = 1;
 				HOM = true;
+			}
 
 			if(TexDebug != -1)
 				System.out.println("Loading tile " + globalpicnum + " [" + ((System.nanoTime() - TexDebug) / 1000000f) + " ms]");
@@ -927,72 +931,71 @@ public abstract class Polymost implements Renderer {
 				else if (f > du1)
 					du1 = f;
 			}
-			
-			if((tsizx|tsizy) == 0) 
-				return;
 
-			f = 1.0 / (double) tsizx;
-			ix0 = (int) floor(du0 * f);
-			ix1 = (int) floor(du1 * f);
-
-			for (; ix0 <= ix1; ix0++) {
-				du0 = (double) ((ix0) * tsizx);
-				du1 = (double) ((ix0 + 1) * tsizx);
-
-				i = 0;
-				nn = 0;
-				duj = (drawpoly[i].px * ngux + drawpoly[i].py * nguy + nguo)
-						/ (drawpoly[i].px * ngdx + drawpoly[i].py * ngdy + ngdo);
-				do {
-					j = i + 1;
-					if (j == n) j = 0;
-					dui = duj;
-					duj = (drawpoly[j].px * ngux + drawpoly[j].py * nguy + nguo)
-							/ (drawpoly[j].px * ngdx + drawpoly[j].py * ngdy + ngdo);
-
-					if ((du0 <= dui) && (dui <= du1)) {
-						drawpoly[nn].uu = drawpoly[i].px;
-						drawpoly[nn].vv = drawpoly[i].py;
-						nn++;
+			if(tsizx != 0) {
+				f = 1.0 / tsizx;
+				ix0 = floor(du0 * f);
+				ix1 = floor(du1 * f);
+	
+				for (; ix0 <= ix1; ix0++) {
+					du0 = (ix0) * tsizx;
+					du1 = (ix0 + 1) * tsizx;
+	
+					i = 0;
+					nn = 0;
+					duj = (drawpoly[i].px * ngux + drawpoly[i].py * nguy + nguo)
+							/ (drawpoly[i].px * ngdx + drawpoly[i].py * ngdy + ngdo);
+					do {
+						j = i + 1;
+						if (j == n) j = 0;
+						dui = duj;
+						duj = (drawpoly[j].px * ngux + drawpoly[j].py * nguy + nguo)
+								/ (drawpoly[j].px * ngdx + drawpoly[j].py * ngdy + ngdo);
+	
+						if ((du0 <= dui) && (dui <= du1)) {
+							drawpoly[nn].uu = drawpoly[i].px;
+							drawpoly[nn].vv = drawpoly[i].py;
+							nn++;
+						}
+						
+						if (duj <= dui) {
+							if ((du1 < duj) != (du1 < dui)) 
+								nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
+							if ((du0 < duj) != (du0 < dui)) 
+								nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
+						} else {
+							if ((du0 < duj) != (du0 < dui)) 
+								nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
+							if ((du1 < duj) != (du1 < dui)) 
+								nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
+						}
+						i = j;
+					} while (i != 0);
+					if (nn < 3)
+						continue;
+	
+					if(HOM) gl.glDisable(GL_TEXTURE_2D);
+					gl.glBegin(GL_TRIANGLE_FAN);
+					for (i = 0; i < nn; i++) {
+						Polygon dpoly = drawpoly[i];
+						ox = dpoly.uu;
+						oy = dpoly.vv;
+						dp = ox * ngdx + oy * ngdy + ngdo;
+						up = ox * ngux + oy * nguy + nguo;
+						vp = ox * ngvx + oy * ngvy + ngvo;
+						r = 1.0 / dp;
+						if (texunits > GL_TEXTURE0) {
+							j = GL_TEXTURE0;
+							while (j <= texunits)
+								gl.glMultiTexCoord2d(j++, (up * r - du0 + uoffs) * ox2, vp * r * oy2);
+						} else
+							gl.glTexCoord2d((up * r - du0 + uoffs) * ox2, vp * r * oy2);
+						gl.glVertex3d((ox - ghalfx) * r * grhalfxdown10x,
+								(ghoriz - oy) * r * grhalfxdown10, r * (1.0 / 1024.0));
 					}
-					
-					if (duj <= dui) {
-						if ((du1 < duj) != (du1 < dui)) 
-							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
-						if ((du0 < duj) != (du0 < dui)) 
-							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
-					} else {
-						if ((du0 < duj) != (du0 < dui)) 
-							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du0);
-						if ((du1 < duj) != (du1 < dui)) 
-							nn = drawpoly_math(nn, i, j, ngux,  ngdx,  nguy,  ngdy,  nguo,  ngdo, du1);
-					}
-					i = j;
-				} while (i != 0);
-				if (nn < 3)
-					continue;
-
-				if(HOM) gl.glDisable(GL_TEXTURE_2D);
-				gl.glBegin(GL_TRIANGLE_FAN);
-				for (i = 0; i < nn; i++) {
-					Polygon dpoly = drawpoly[i];
-					ox = dpoly.uu;
-					oy = dpoly.vv;
-					dp = ox * ngdx + oy * ngdy + ngdo;
-					up = ox * ngux + oy * nguy + nguo;
-					vp = ox * ngvx + oy * ngvy + ngvo;
-					r = 1.0 / dp;
-					if (texunits > GL_TEXTURE0) {
-						j = GL_TEXTURE0;
-						while (j <= texunits)
-							gl.glMultiTexCoord2d(j++, (up * r - du0 + uoffs) * ox2, vp * r * oy2);
-					} else
-						gl.glTexCoord2d((up * r - du0 + uoffs) * ox2, vp * r * oy2);
-					gl.glVertex3d((ox - ghalfx) * r * grhalfxdown10x,
-							(ghoriz - oy) * r * grhalfxdown10, r * (1.0 / 1024.0));
+					gl.glEnd();
+					if(HOM) gl.glEnable(GL_TEXTURE_2D);
 				}
-				gl.glEnd();
-				if(HOM) gl.glEnable(GL_TEXTURE_2D);
 			}
 		} else {
 			ox2 *= hackscx;
@@ -1313,14 +1316,15 @@ public abstract class Polymost implements Renderer {
 			if(!dopancor) //texture scaled, it's need to fix
 				t *= (float)tilesizy[globalpicnum] / i;
 	        i = tilesizy[globalpicnum];
-	    } else if (dopancor && defs != null && defs.texInfo.isHighTile(globalpicnum)) {
-			// Carry out panning "correction" to make it look like classic in some
-	        // cases, but failing in the general case.
-			
-	    	int yoffs = (int) ((i - tilesizy[globalpicnum]) * (255.0f / i));
-			if (ypan > 256 - yoffs) 
-				ypan -= yoffs;
-		}
+	    } 
+//		else if (dopancor && defs != null && defs.texInfo.isHighTile(globalpicnum)) {
+//			// Carry out panning "correction" to make it look like classic in some
+//	        // cases, but failing in the general case.
+//			
+//	    	int yoffs = (int) ((i - tilesizy[globalpicnum]) * (255.0f / i));
+//			if (ypan > 256 - yoffs) 
+//				ypan -= yoffs;
+//		}
 
 		float fy = ypan * i / 256.0f;
 		gvx = (t0 - t1) * t;
@@ -1337,9 +1341,9 @@ public abstract class Polymost implements Renderer {
 	private void drawalls(int bunch) {
 		SECTOR sec, nextsec;
 		WALL wal, wal2;
-		double x0, x1, cy0, cy1, fy0, fy1, xp0, yp0, xp1, yp1, ryp0, ryp1, nx0, ny0, nx1, ny1;
-		double t, t0, t1, ocy0, ocy1, ofy0, ofy1, oxp0, oyp0;
-		double oguo, ogux, oguy, fwalxrepeat;
+		float x0, x1, cy0, cy1, fy0, fy1, xp0, yp0, xp1, yp1, ryp0, ryp1, nx0, ny0, nx1, ny1;
+		float t, t0, t1, ocy0, ocy1, ofy0, ofy1, oxp0, oyp0, fwalxrepeat;
+		double oguo, ogux, oguy;
 		int i, x, y, z, wallnum, sectnum, nextsectnum;
 
 		sectnum = thesector[bunchfirst[bunch]];
@@ -1356,17 +1360,17 @@ public abstract class Polymost implements Renderer {
 			nextsectnum = wal.nextsector;
 			nextsec = nextsectnum >= 0 ? sector[nextsectnum] : null;
 			
-			fwalxrepeat = (double) (wal.xrepeat & 0xFF);
+			fwalxrepeat = wal.xrepeat & 0xFF;
 
 			// Offset&Rotate 3D coordinates to screen 3D space
 			x = wal.x - globalposx;
 			y = wal.y - globalposy;
-			xp0 = (double) y * gcosang - (double) x * gsinang;
-			yp0 = (double) x * gcosang2 + (double) y * gsinang2;
+			xp0 = y * gcosang - x * gsinang;
+			yp0 = x * gcosang2 + y * gsinang2;
 			x = wal2.x - globalposx;
 			y = wal2.y - globalposy;
-			xp1 = (double) y * gcosang - (double) x * gsinang;
-			yp1 = (double) x * gcosang2 + (double) y * gsinang2;
+			xp1 = y * gcosang - x * gsinang;
+			yp1 = x * gcosang2 + y * gsinang2;
 
 			oxp0 = xp0;
 			oyp0 = yp0;
@@ -1433,7 +1437,7 @@ public abstract class Polymost implements Renderer {
 				
 				if ((globalorientation & 1) == 0) {
 					nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
-						(float) x0, (float) x1, (float) fy0, (float) fy1, 1,
+						x0, x1, fy0, fy1, 1,
 						sectnum, true);
 				} else if ((nextsectnum < 0) || ((sector[nextsectnum].floorstat & 1) == 0))
 					drawbackground(sectnum, x0, x1, fy0, fy1, true);
@@ -1443,7 +1447,7 @@ public abstract class Polymost implements Renderer {
 			{ //DRAW CEILING
 				globalpicnum = sec.ceilingpicnum;
 				globalshade = sec.ceilingshade;
-				globalpal = (int) (sec.ceilingpal & 0xFF);
+				globalpal = sec.ceilingpal & 0xFF;
 				globalorientation = sec.ceilingstat;
 				if ((picanm[globalpicnum] & 192) != 0)
 					globalpicnum += engine.animateoffs(globalpicnum, sectnum);
@@ -1457,7 +1461,7 @@ public abstract class Polymost implements Renderer {
 	
 				if ((globalorientation & 1) == 0) {
 					nonparallaxed(nx0, ny0, nx1, ny1, ryp0, ryp1,
-						(float) x0, (float) x1, (float) cy0, (float) cy1, 0,
+						x0, x1, cy0, cy1, 0,
 						sectnum, false);
 				} else if ((nextsectnum < 0) || ((sector[nextsectnum].ceilingstat & 1) == 0))
 					drawbackground(sectnum, x0, x1, cy0, cy1, false);
@@ -1469,8 +1473,8 @@ public abstract class Polymost implements Renderer {
 			gdo = ryp0 * gxyaspect - gdx * x0;
 			gux = (t0 * ryp0 - t1 * ryp1) * gxyaspect * fwalxrepeat * 8.0 / (x0 - x1);
 			guo = t0 * ryp0 * gxyaspect * fwalxrepeat * 8.0 - gux * x0;
-			guo += (float) wal.xpanning * gdo;
-			gux += (float) wal.xpanning * gdx;
+			guo += wal.xpanning * gdo;
+			gux += wal.xpanning * gdx;
 			guy = 0;
 			ogux = gux;
 			oguy = guy;
@@ -1491,7 +1495,7 @@ public abstract class Polymost implements Renderer {
 						&& (((sec.ceilingstat & sector[nextsectnum].ceilingstat) & 1)) == 0) {
 					globalpicnum = wal.picnum;
 					globalshade = wal.shade;
-					globalpal = (int) (wal.pal & 0xFF);
+					globalpal = wal.pal & 0xFF;
 					if ((picanm[globalpicnum] & 192) != 0)
 						globalpicnum += engine.animateoffs(globalpicnum,
 								wallnum + 16384);
@@ -1525,7 +1529,7 @@ public abstract class Polymost implements Renderer {
 					
 					if(surfaceType == 0)
 						pow2xsplit = 1;
-					clipper.domost((float) x1, (float) ocy1, (float) x0, (float) ocy0);
+					clipper.domost(x1, ocy1, x0, ocy0);
 					if ((wal.cstat & 8) != 0) {
 						gux = ogux;
 						guy = oguy;
@@ -1538,13 +1542,13 @@ public abstract class Polymost implements Renderer {
 						drawalls_nwal.set(wal);
 					} else {
 						drawalls_nwal.set(wall[wal.nextwall]);
-						guo += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdo;
-						gux += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdx;
-						guy += (float) (drawalls_nwal.xpanning - wal.xpanning) * gdy;
+						guo += (drawalls_nwal.xpanning - wal.xpanning) * gdo;
+						gux += (drawalls_nwal.xpanning - wal.xpanning) * gdx;
+						guy += (drawalls_nwal.xpanning - wal.xpanning) * gdy;
 					}
 					globalpicnum = drawalls_nwal.picnum;
 					globalshade = drawalls_nwal.shade;
-					globalpal = (int) (drawalls_nwal.pal & 0xFF);
+					globalpal = drawalls_nwal.pal & 0xFF;
 					if ((picanm[globalpicnum] & 192) != 0)
 						globalpicnum += engine.animateoffs(globalpicnum,
 								wallnum + 16384);
@@ -1579,7 +1583,7 @@ public abstract class Polymost implements Renderer {
 
 					if(surfaceType == 0)
 						pow2xsplit = 1;
-					clipper.domost((float) x0, (float) ofy0, (float) x1, (float) ofy1);
+					clipper.domost(x0, ofy0, x1, ofy1);
 					if ((wal.cstat & (2 + 8)) != 0) {
 						guo = oguo;
 						gux = ogux;
@@ -1601,7 +1605,7 @@ public abstract class Polymost implements Renderer {
 					
 					globalpicnum = (nextsectnum < 0) ? wal.picnum : wal.overpicnum;
 					globalshade = wal.shade;
-					globalpal = (int) (wal.pal & 0xFF);
+					globalpal = wal.pal & 0xFF;
 					if ((picanm[globalpicnum] & 192) != 0)
 						globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 
@@ -1633,14 +1637,14 @@ public abstract class Polymost implements Renderer {
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 					if(surfaceType == 0)
 						pow2xsplit = 1;
-					clipper.domost((float)x0, (float)cy0, (float)x1, (float)cy1);
+					clipper.domost(x0, cy0, x1, cy1);
 				} while (false);
 		
 			}
 
 			if (nextsectnum >= 0)
 				if (((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)
-						&& (clipper.testvisiblemost((float) x0, (float) x1) != 0))
+						&& (clipper.testvisiblemost(x0, x1) != 0))
 					polymost_scansector(nextsectnum); 
 		}
 	}
@@ -2403,7 +2407,7 @@ public abstract class Polymost implements Renderer {
 			drawrooms_sx[i] = drawrooms_px2[i] * r + ghalfx;
 			drawrooms_sy[i] = drawrooms_py2[i] * r + ghoriz;
 		}
-		
+
 		clipper.initmosts(drawrooms_sx, drawrooms_sy, n2);
 
 		numscans = numbunches = 0;
@@ -2420,7 +2424,7 @@ public abstract class Polymost implements Renderer {
 			if (globalcursectnum < 0)
 				globalcursectnum = (short) i;
 		}
-
+		
 		polymost_scansector(globalcursectnum);
 		
 		surfaces.clear();
@@ -2439,7 +2443,7 @@ public abstract class Polymost implements Renderer {
 				bunchlast[0] = bunchlast[numbunches];
 			}
 		} 
-
+		
 		while (numbunches > 0) {
 			Arrays.fill(ptempbuf, 0, numbunches+3, (byte)0);
 			ptempbuf[0] = 1;
@@ -2763,7 +2767,6 @@ public abstract class Polymost implements Renderer {
 		float x0, y0, x1, y1, sc0, sf0, sc1, sf1, xv, yv, t0, t1;
 		int i, j, spritenum, xoff = 0, yoff = 0, method, npoints;
 		SPRITE tspr;
-		int posx, posy;
 		int oldsizx, oldsizy;
 		int tsizx, tsizy;
 
@@ -2813,8 +2816,12 @@ public abstract class Polymost implements Renderer {
 		}
 		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 		
-		posx = tspr.x;
-		posy = tspr.y;
+		tspr.x += spriteext[tspr.owner].xoff;
+		tspr.y += spriteext[tspr.owner].yoff;
+		tspr.z += spriteext[tspr.owner].zoff;
+		
+		int posx = tspr.x;
+		int posy = tspr.y;
 
 		while ((spriteext[tspr.owner].flags & SPREXT_NOTMD) == 0) {
 
@@ -3398,7 +3405,7 @@ public abstract class Polymost implements Renderer {
 			return;
 
 //		Console.Println("precached " + dapicnum + " " + dapalnum + " type " + datype);
-		textureCache.cache(dapicnum, dapalnum, (short) 0, clampingMode((datype & 1) << 2), false);
+		textureCache.cache(dapicnum, dapalnum, (short) 0, clampingMode((datype & 1) << 2), true);
 
 		if (datype == 0 || defs == null)
 			return;
@@ -3690,7 +3697,7 @@ public abstract class Polymost implements Renderer {
 			if(frameTexture == null || framew != xdim || frameh != ydim)
 			{
 				if(frameTexture != null) frameTexture.dispose();
-				frameTexture = new BTexture();
+				frameTexture = new BTexture(xdim, ydim);
 				bindTexture(frameTexture);
 				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
 				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
@@ -4418,6 +4425,9 @@ public abstract class Polymost implements Renderer {
 			matrix[3][3] = 1.f;
 			gl.glLoadMatrixf(matrix);
 		}
+		
+		if((m.flags & MD_ROTATE)!= 0)
+			gl.glRotatef(totalclock % 360, 0, 1, 0);
 
 		// transform to Build coords
 		if ((tspr.cstat & 48) == 32) {
@@ -4432,8 +4442,7 @@ public abstract class Polymost implements Renderer {
 			gl.glTranslatef(-m.xpiv, -m.ypiv, -(m.zpiv + m.zsiz * 0.5f));
 		}
 		
-		if((m.flags & MD_ROTATE)!= 0)
-			gl.glRotatef(totalclock % 360, 0, 0, 1);
+		
 
 		ru = 1.f / ((float) m.mytexx);
 		rv = 1.f / ((float) m.mytexy);
@@ -4513,7 +4522,6 @@ public abstract class Polymost implements Renderer {
 
 	@Override
 	public void nextpage() {
-		int i;
 		engine.faketimerhandler();
 
 		if ((totalclock >= lastageclock + CACHEAGETIME) || (totalclock < lastageclock)) {
@@ -4523,13 +4531,12 @@ public abstract class Polymost implements Renderer {
 		omdtims = mdtims;
 		mdtims = engine.getticks();
 
-		for (i = 0; i < MAXSPRITES; i++)
+		for (int i = 0; i < MAXSPRITES; i++)
 			if ((mdpause != 0 && spriteext[i].mdanimtims != 0) || ((spriteext[i].flags & SPREXT_NOMDANIM) != 0)) 
 				spriteext[i].mdanimtims += mdtims - omdtims;
 
 		beforedrawrooms = 1;
 		ogshang = -1;
-		gl.glFlush();
 	}
 	
 	private ByteBuffer framebuffer;
@@ -4620,6 +4627,11 @@ public abstract class Polymost implements Renderer {
 		System.err.println("Preload");
 		for(int i = 0; i < MAXSPRITES; i++)
 		{
+			spriteext[i].angoff = 0;
+			spriteext[i].xoff = 0;
+			spriteext[i].yoff = 0;
+			spriteext[i].zoff = 0;
+			
 			removeSpriteCorr(i);
 			SPRITE spr = sprite[i];
 			if(((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS) 
@@ -4710,7 +4722,7 @@ public abstract class Polymost implements Renderer {
 		return sector[sectnum].ceilingz + sector[sectnum].ceilingheinum * j / i;
 	}
 	
-	private static double dceilzsofslope, dfloorzsofslope;
+	private static float dceilzsofslope, dfloorzsofslope;
 	public void polymost_getzsofslope(int sectnum, double dax, double day) {
 		SECTOR sec = sector[sectnum];
 		if(sec == null) return;
@@ -4846,7 +4858,7 @@ public abstract class Polymost implements Renderer {
 	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 
 	protected void setpolymost2dview() {
-		if (gloy1 != -1) {
+		if (gloy1 != -1 || gloy1 != windowy1) {
 			gl.glViewport(0, 0, xdim, ydim);
 			gl.glMatrixMode(GL_PROJECTION);
 			gl.glLoadIdentity();
@@ -5150,11 +5162,91 @@ public abstract class Polymost implements Renderer {
 			}
 		}
 	}
+
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale) {
+		if(font.type == FontType.Tilemap) {
+			if (palookup[col] == null)
+				col = 0;
+			
+			int nTile = (Integer) font.ptr;
+			if (waloff[nTile] == null && engine.loadtile(nTile) == null)
+				return;
+		}
+		
+		Pthtyp pth = font.getGL(textureCache, col);
+		if(pth == null)
+			return;
+
+		bindTexture(pth.glpic);
+
+		setpolymost2dview();
+		gl.glDisable(GL_FOG);
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
+		
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_BLEND);
+		
+		float alpha = 1.0f, f = getshadefactor(shade);
+		if(bit == Transparent.Bit1) 
+			alpha = TRANSLUSCENT1;
+		if(bit == Transparent.Bit2)
+			alpha = TRANSLUSCENT2;
+
+		if(font.type == FontType.Tilemap)
+			gl.glColor4f(f, f, f, alpha);
+		else 
+			gl.glColor4ub(curpalette[3 * col] & 0xFF, curpalette[3 * col + 1] & 0xFF, curpalette[3 * col + 2] & 0xFF, (int) (alpha * 255));
+
+		int c = 0, line = 0;
+		int x, y, yoffs;
+
+		float txc = font.charsizx / (float) font.sizx, tx;
+		float tyc = font.charsizy / (float) font.sizy, ty;
+
+		int oxpos = xpos;
+		while (c < text.length && text[c] != 0) {
+			if(text[c] == '\n')
+			{
+				text[c] = 0;
+				line += 1;
+				xpos = oxpos - (int) (scale * font.charsizx);
+			}
+			
+			if(text[c] == '\r')
+				text[c] = 0;
+	
+			tx = (text[c] % font.cols) / (float) font.cols;
+			ty = (text[c] / font.cols) / (float) font.rows;
+
+			yoffs = (int) (scale * line * font.charsizy);
+
+			x = xpos + (int) (scale * font.charsizx);
+			y = ypos + (int) (scale * font.charsizy);
+
+			gl.glBegin(GL_TRIANGLE_STRIP);
+			gl.glTexCoord2f(tx, ty);
+			gl.glVertex2i(xpos, ypos + yoffs);
+			gl.glTexCoord2f(tx, ty + tyc);
+			gl.glVertex2i(xpos, y + yoffs);
+			gl.glTexCoord2f(tx + txc, ty);
+			gl.glVertex2i(x, ypos + yoffs);
+			gl.glTexCoord2f(tx + txc, ty + tyc);
+			gl.glVertex2i(x, y + yoffs);
+			gl.glEnd();
+
+			xpos += scale * font.charsizx;
+			c++;
+		}
+
+		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+
+		EnableFog();
+	}
 	
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int oxpos = xpos;
-		
 		if(textureCache.isUseShader())
 			gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
@@ -5198,7 +5290,7 @@ public abstract class Polymost implements Renderer {
 			{
 				text[c] = 0;
 				line += 1;
-				xpos = oxpos - (8 >> fontsize);
+				xpos = oxpos - (int) (scale * (8 >> fontsize));
 			}
 			if(text[c] == '\r')
 				text[c] = 0;
@@ -5206,7 +5298,7 @@ public abstract class Polymost implements Renderer {
 			tx = (text[c] % 32) / 32.0f;
 			ty = ((text[c] / 32) + (fontsize * 8)) / 16.0f;
 
-			yoffs = line * (fontsize != 0 ? 6 : 8);
+			yoffs = (int) (scale * line * (fontsize != 0 ? 6 : 8));
 
 			x = xpos + (int) (scale * (8 >> fontsize));
 			y = ypos + (int) (scale * (fontsize != 0 ? 6 : 8));

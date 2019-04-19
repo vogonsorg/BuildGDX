@@ -26,7 +26,7 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Render.Types.GL10;
 
@@ -123,7 +123,7 @@ public class GLGraphics implements BuildGraphics {
 		this.gl20 = gl20;
 		if (gl30 == null) {
 			Gdx.gl20 = gl20;
-			BuildGDX.gl20 = gl20;
+			BuildGdx.gl20 = gl20;
 		}
 	}
 
@@ -145,8 +145,8 @@ public class GLGraphics implements BuildGraphics {
 			Gdx.gl20 = gl20;
 			Gdx.gl30 = gl30;
 			
-			BuildGDX.gl20 = gl20;
-			BuildGDX.gl30 = gl30;
+			BuildGdx.gl20 = gl20;
+			BuildGdx.gl30 = gl30;
 		}
 	}
 
@@ -652,8 +652,8 @@ public class GLGraphics implements BuildGraphics {
 			gl20 = (GL20) LwjglGL20.newInstance();
 		}
 
-		Gdx.gl = BuildGDX.gl = gl10;
-		Gdx.gl20 = BuildGDX.gl20 = gl20;
-		Gdx.gl30 = BuildGDX.gl30 = gl30;
+		Gdx.gl = BuildGdx.gl = gl10;
+		Gdx.gl20 = BuildGdx.gl20 = gl20;
+		Gdx.gl30 = BuildGdx.gl30 = gl30;
 	}
 }

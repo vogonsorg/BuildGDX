@@ -51,6 +51,9 @@ public class Gamepad {
 	protected int povNum;
 	protected int allButtonsCount;
 	protected boolean buttonPressed = false;
+	protected Vector2 stickVector = new Vector2();
+	
+	protected Gamepad() { /* for extends */ }
 
 	public Gamepad(int deviceIndex)
 	{
@@ -124,12 +127,12 @@ public class Gamepad {
 		return povNum;
 	}
 
-	public float getAxisValue(int aCode, float deadZone) {
-		float value = 0.0f;
-		if(Math.abs(value = Controllers.getControllers().get(deviceIndex).getAxis(aCode)) >= deadZone) return value;
-		
-		return 0.0f;
-	}
+//	public float getAxisValue(int aCode, float deadZone) {
+//		float value = 0.0f;
+//		if(Math.abs(value = Controllers.getControllers().get(deviceIndex).getAxis(aCode)) >= deadZone) return value;
+//		
+//		return 0.0f;
+//	}
 
 	public Vector2 getStickValue(int aCode1, int aCode2, float deadZone)
 	{
@@ -148,13 +151,13 @@ public class Gamepad {
 			nlm = mag / (1.0f - deadZone);
 			float x1 = nlx * nlm;
 			float y1 = nly * nlm;
-			return new Vector2(x1, y1);
+			return stickVector.set(x1, y1);
 		}
 		else
 		{
 			mag = 0.0f;
 			nlm = 0.0f;
-			return new Vector2(0.0f, 0.0f);
+			return stickVector.set(0.0f, 0.0f);
 		}
 	}
 

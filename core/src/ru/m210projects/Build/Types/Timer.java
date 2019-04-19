@@ -17,8 +17,11 @@
 package ru.m210projects.Build.Types;
 
 public class Timer {
-	public static long startTime;
-	public static long spentTime;
+	private static long startTime;
+	private static long spentTime;
+	
+	private static long summTime;
+	private static long count;
 	
 	public static void start() {
 		startTime = System.nanoTime();
@@ -26,14 +29,24 @@ public class Timer {
 	
 	public static long result() {
 		spentTime = System.nanoTime() - startTime;
-		System.out.println(spentTime / 1000f +" nsec");
+		System.out.println(spentTime / 1000f +" microsec");
 		return spentTime;
+	}
+	
+	public static long resultAverage() {
+		spentTime = System.nanoTime() - startTime;
+		count++;
+		summTime += (spentTime / 1000f);
+		long result = (summTime / count);
+		if((count % 255) == 1)
+		System.out.println(result +" microsec");
+		return result;
 	}
 	
 	public static long result(String comment) {
 		spentTime = System.nanoTime() - startTime;
 		
-		System.out.println(comment + " : " + spentTime / 1000f +" nsec");
+		System.out.println(comment + " : " + spentTime / 1000f +" microsec");
 		return spentTime;
 	}
 	

@@ -20,13 +20,12 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Audio.BMusic.Music;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class DummySound implements Sound {
 
 	@Override
-	public boolean init(int system, int kMaxSFXChannels, int softResampler) {
+	public boolean init(SystemType system, int kMaxSFXChannels, int softResampler) {
 		Console.Println(getName() + " initialized", OSDTEXT_GOLD);
 		return true;
 	}
@@ -37,7 +36,7 @@ public class DummySound implements Sound {
 	}
 
 	@Override
-	public void destroy() {
+	public void dispose() {
 	}
 
 	@Override
@@ -67,7 +66,7 @@ public class DummySound implements Sound {
 	}
 
 	@Override
-	public Source newSound(ByteBuffer data, int rate, int bits, int priority) {
+	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority) {
 		return null;
 	}
 
@@ -105,7 +104,7 @@ public class DummySound implements Sound {
 
 	@Override
 	public String getSoftResamplerName(int num) {
-		return "Not support";
+		return "Not supported";
 	}
 
 	@Override

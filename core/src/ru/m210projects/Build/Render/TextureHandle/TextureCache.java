@@ -35,6 +35,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
 import ru.m210projects.Build.Script.TextureHDInfo;
+import ru.m210projects.Build.Types.UnsafeBuffer;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.files.FileHandle;
@@ -42,6 +43,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
+import com.badlogic.gdx.graphics.Pixmap.Filter;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
@@ -130,7 +132,7 @@ public class TextureCache {
 
 		if (doalloc) {
 			try {
-				pth.glpic = new BTexture();
+				pth.glpic = new BTexture(xsiz, ysiz);
 			} catch(Exception e) { return null; }
 		}
 		
@@ -191,27 +193,40 @@ public class TextureCache {
 			if(data == null) return null;
 			try {
 				Pixmap pix = new Pixmap(data, 0, data.length);
-				
 				int psizx = calcSize(pix.getWidth());
 				int psizy = calcSize(pix.getHeight());
 				
 				pth.sizx = (short) pix.getWidth();
 				pth.sizy = (short) pix.getHeight();
-				
+
 				//Texture width and height must be powers of two
 				if(psizx != pix.getWidth() || psizy != pix.getHeight())
 				{
 					Pixmap npix = new Pixmap(psizx, psizy, pix.getFormat());
-					npix.drawPixmap(pix,
-					        0, 0, pix.getWidth(), pix.getHeight(),
-					        0, 0, psizx, psizy
-					);
+					npix.setFilter(Filter.NearestNeighbour);
+					
+					if(!clamping) {
+						for(int i = 0; i < 2; i++)
+						{
+							npix.drawPixmap(pix,
+							        0, 0, pth.sizx, pth.sizy,
+							        0, i * pth.sizy, psizx, pth.sizy
+							);
+						}
+						pth.sizx = (short) psizx;
+
+//						npix.drawPixmap(pix,
+//						        0, 0, pix.getWidth(), pix.getHeight(),
+//						        0, 0, psizx, psizy
+//						);
+//						pth.sizx = (short) psizx;
+//						pth.sizy = (short) psizy;
+					} else npix.drawPixmap(pix, 0, 0);
+					
 					pix.dispose();
 					pix = npix;
-					
-					pth.sizx = (short) psizx;
-					pth.sizy = (short) psizy;
 				}
+
 				pth.glpic = new BTexture(pix, true); 
 				pix.dispose();
 			} catch(Exception e) { 
@@ -305,6 +320,9 @@ public class TextureCache {
 			//
 			// { ... }  if (dapalnum >= (MAXPALOOKUPS - RESERVEDPALS))
 			//
+			
+			if(dapalnum != 0 && info.findTexture(dapicnum, 0, skybox) == si && (pth = get(dapicnum, 0, clamping, skybox)) != null)
+				return pth;
 
 			pth = gloadHighTileAlloc(dapicnum, dapalnum, clamping, alpha, skybox, si, new Pthtyp(), (si.palnum>0 || info == null) ? 0 : info.getPaletteEffect(dapalnum));
 			if (pth != null) {
@@ -378,7 +396,7 @@ public class TextureCache {
 	
 	private BTexture createPalette(byte[] paldata, int shade)
 	{
-		ByteBuffer buffer = getTmpBuffer();
+		UnsafeBuffer buffer = getTmpBuffer();
 		buffer.clear();
 		for(int p = 0; p < MAXPALOOKUPS; p++) {
 			int pal = p;
@@ -394,9 +412,9 @@ public class TextureCache {
 		}
 		buffer.flip();
 
-		BTexture palette = new BTexture();
+		BTexture palette = new BTexture(256, MAXPALOOKUPS);
 		palette.bind(1);
-		Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, MAXPALOOKUPS, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+		Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, palette.getWidth(), palette.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.getBuffer());
 		setupBoundTexture(0, 0);
 		
 		return palette;

@@ -37,16 +37,21 @@ public class BTexture extends GLTexture {
 
 	TextureData data;
 	final static Map<Application, Array<BTexture>> managedTextures = new HashMap<Application, Array<BTexture>>();
+	final int width, height;
 	
 	public BTexture (Pixmap pixmap, boolean useMipMaps) {
 		super(GL_TEXTURE_2D, Gdx.gl.glGenTexture());
+		this.width = pixmap.getWidth();
+		this.height = pixmap.getHeight();
 		data = new PixmapTextureData(pixmap, null, useMipMaps, false);
 		load(data);
 		if (data.isManaged()) addManagedTexture(Gdx.app, this);
 	}
-	
-	public BTexture() {
+
+	public BTexture(int width, int height) {
 		super(GL_TEXTURE_2D);
+		this.width = width;
+		this.height = height;
 	}
 	
 	private static void addManagedTexture (Application app, BTexture texture) {
@@ -73,12 +78,12 @@ public class BTexture extends GLTexture {
 
 	@Override
 	public int getWidth() {
-		return 0;
+		return width;
 	}
 
 	@Override
 	public int getHeight() {
-		return 0;
+		return height;
 	}
 
 	@Override

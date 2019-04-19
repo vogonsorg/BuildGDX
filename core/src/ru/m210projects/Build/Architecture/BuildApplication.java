@@ -17,7 +17,7 @@ public interface BuildApplication extends Application {
 	public BuildGraphics getGraphics();
 	
 	public void setMaxFramerate(int fps);
-	
+
 	public interface Frame extends BuildFrame
 	{
 		public void init();
@@ -29,8 +29,6 @@ public interface BuildApplication extends Application {
 		public boolean checkRender(boolean shouldRender);
 
 		public boolean isCloseRequested();
-		
-		public boolean isActive();
 
 		public void destroy();
 		

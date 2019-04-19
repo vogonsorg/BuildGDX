@@ -17,15 +17,13 @@
 package ru.m210projects.Build;
 
 import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Pragmas.scale;
 
 public class Gameutils {
 	
 	public static float BClampAngle(float angle)
     {
-        if (angle < 0) angle += 2048f;
-        if (angle >= 2048) angle -= 2048f;
-
-        return BClipRange(angle, 0, 2048);
+		return angle < 0 ? (angle % 2048) + 2048 : angle % 2048;
     }
 	
 	public static float BClipRange(float value, float min, float max) {
@@ -38,6 +36,20 @@ public class Gameutils {
 	public static int BClipRange(int value, int min, int max) {
 		if(value < min) value = min;
 		if(value > max) value = max;
+		
+		return value;
+	}
+	
+	public static short BClipLow(short value, short min) {
+		if(value < min)
+			value = min;
+		
+		return value;
+	}
+	
+	public static short BClipHigh(short value, short max) {
+		if(value > max)
+			value = max;
 		
 		return value;
 	}
@@ -56,7 +68,6 @@ public class Gameutils {
 		return value;
 	}
 
-	
 	public static float BClipLow(float value, int min) {
 		if(value < min)
 			value = min;
@@ -101,5 +112,44 @@ public class Gameutils {
 	public static boolean isValidWall(short i)
 	{
 		return i >= 0 && i < MAXWALLS;
+	}
+	
+	public enum ConvertType { Normal, AlignLeft, AlignRight, Stretch };
+	
+	public static int coordsConvertXScaled(int coord, ConvertType type)
+	{
+		int oxdim = xdim;
+		int xdim = (4 * ydim) / 3;
+		int offset = oxdim - xdim;
+		
+		int buildim = 320;
+		if(type == ConvertType.Stretch)
+			buildim = buildim * xdim / oxdim;
+	
+		int normxofs = coord - (buildim << 15);
+		int wx = (xdim << 15) + scale(normxofs, xdim, buildim);
+		
+		if(type == ConvertType.Stretch)
+			return wx;
+		
+		wx += (oxdim - xdim) / 2;
+		
+		if(type == ConvertType.AlignLeft)
+			return wx - offset / 2 - 1;
+		if(type == ConvertType.AlignRight)
+			return wx + offset / 2 - 1;
+
+		return wx - 1;
+	}
+	
+	public static int coordsConvertYScaled(int coord)
+	{
+		int oydim = ydim;
+		int ydim = (3 * xdim) / 4;
+		int buildim = 200 * ydim / oydim;
+		int normxofs = coord - (buildim << 15);
+		int wy = (ydim << 15) + scale(normxofs, ydim, buildim);
+
+		return wy;
 	}
 }

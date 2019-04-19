@@ -20,12 +20,14 @@ import static ru.m210projects.Build.FileHandle.Compat.*;
 
 import java.io.File;
 
+import ru.m210projects.Build.CRC32;
 
 public class FileEntry {
 	private File file;
 	private String extension;
 	private String relPath;
 	private DirectoryEntry parent;
+	private long checksum;
 	
 	public FileEntry(File file, DirectoryEntry parent, String relPath)
 	{
@@ -34,6 +36,15 @@ public class FileEntry {
 		String filename = file.getName();
 		this.extension = toLowerCase(filename.substring(filename.lastIndexOf('.') + 1));
 		this.relPath = relPath;
+		this.checksum = -1;
+	}
+	
+	public long getChecksum()
+	{
+		if(checksum == -1)
+			checksum = CRC32.getChecksum(this);
+		
+		return checksum;
 	}
 	
 	public File getFile()

@@ -53,12 +53,12 @@ public class RendererLoader {
 			    if(cls.getInterfaces()[0].equals(Renderer.class)) {
 				    if(cls.getConstructors().length != 0) {
 				    	for(int i = 0; i < cls.getConstructors().length; i++) {
-					    	if(cls.getConstructors()[i].getParameters()[0].getType().equals(Engine.class)) {
+					    	if(cls.getConstructors()[i].getParameterTypes()[0].equals(Engine.class)) {
 					    		if(renderMain == null)
 					    			renderMain = cls.getConstructors()[i];
 					    		else {
 					    			jarFile.close();
-					    			throw new Exception("Error: more then one renderer in library?");
+					    			throw new Exception("Error: more than one renderer in library?");
 					    		}
 					    	}
 				    	}

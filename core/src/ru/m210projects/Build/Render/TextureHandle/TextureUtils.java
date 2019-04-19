@@ -12,19 +12,15 @@ import static ru.m210projects.Build.Render.Types.GL10.*;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
-import com.badlogic.gdx.utils.BufferUtils;
 
 public class TextureUtils {
 
-	private static final int TEX_MAX_SIZE = 1024;
-
-	private static ByteBuffer tmp_buffer;
 	private static int gltexmaxsize = 0;
 
 	private static GLFilter[] glfiltermodes = {
@@ -40,16 +36,9 @@ public class TextureUtils {
 		return glfiltermodes[mode];
 	}
 
-	public static ByteBuffer getTmpBuffer() {
-		if (tmp_buffer == null) {
-			tmp_buffer = BufferUtils.newByteBuffer(TEX_MAX_SIZE * TEX_MAX_SIZE * 4);
-		}
-		return tmp_buffer;
-	}
-
 	private static int getTextureMaxSize() {
 		if (gltexmaxsize <= 0) {
-			int i = BuildGDX.gl.glGetInteger(GL_MAX_TEXTURE_SIZE);
+			int i = BuildGdx.gl.glGetInteger(GL_MAX_TEXTURE_SIZE);
 			if (i == 0) {
 				gltexmaxsize = 6; // 2^6 = 64 == default GL max texture size
 			} else {

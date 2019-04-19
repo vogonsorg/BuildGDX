@@ -23,66 +23,92 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage;
 
 public class DesktopMessage implements BuildMessage {
-	JOptionPane frame;
-	URL icon;
-
+	private JOptionPane frame;
+	private URL icon;
+	
 	public DesktopMessage(URL icon)
 	{
-		try {
-			this.icon = icon;
-			frame = new JOptionPane();
-			frame.setMessageType(JOptionPane.ERROR_MESSAGE);
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {}
+		this.icon = icon;
 	}
 	
 	@Override
-	public boolean show(String header, String message, boolean send) {
+	public synchronized boolean show(String header, String message, MessageType type) {
+		if(frame == null && (frame = InitFrame()) == null)
+			return false;
+		
 		if(message.length() >= 384)
 		{
 			message = message.substring(0, 384);
 			message += "...";
 		}
-	
-		if(send) {
-			if(frame != null) {
+
+//		if(Gdx.graphics != null) {
+//			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//			cfg.fullscreen = 0;
+//		}
+
+		switch(type)
+		{
+		case Question:
+		case Crash:
+			if(type == MessageType.Crash) {
+				frame.setMessageType(JOptionPane.ERROR_MESSAGE);
 				frame.setMessage(message + "\r\n \r\n      Do you want to send a crash report?");
-				frame.setOptionType(JOptionPane.YES_NO_OPTION);
-				JDialog dialog = frame.createDialog(header);
-				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
-				frame.setBackground(dialog.getBackground());
-				
-				dialog.setAlwaysOnTop(true);
-		        dialog.setVisible(true);
-		        dialog.dispose();
-		        
-		        Object selectedValue = frame.getValue();
-		        if (selectedValue instanceof Integer) {
-		        	if(((Integer)selectedValue).intValue() == JOptionPane.YES_OPTION)
-						return true;
-	            }
+			} else {
+				frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+				frame.setMessage(message);
 			}
+			frame.setOptionType(JOptionPane.YES_NO_OPTION);
+			JDialog dialog = frame.createDialog(header);
+			if(icon != null)
+				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
+			frame.setBackground(dialog.getBackground());
+			dialog.setLocation(BuildGdx.app.getFrame().getX() + (BuildGdx.graphics.getWidth() - dialog.getWidth()) / 2, 
+					BuildGdx.app.getFrame().getY() + (BuildGdx.graphics.getHeight() - dialog.getHeight()) / 2);
+			dialog.setAlwaysOnTop(true);
+	        dialog.setVisible(true);
+	        dialog.dispose();
+	        
+	        Object selectedValue = frame.getValue();
+	        if (selectedValue instanceof Integer) {
+	        	if(((Integer)selectedValue).intValue() == JOptionPane.YES_OPTION)
+					return true;
+            }
 
 			return false;
-		} 
-		else
-		{
-			if(frame != null) {
-				frame.setMessage(message);
-				frame.setOptionType(JOptionPane.DEFAULT_OPTION);
-				final JDialog dlog = frame.createDialog(header);
+		case Info:
+			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+			frame.setMessage(message);
+			frame.setOptionType(JOptionPane.DEFAULT_OPTION);
+			final JDialog dlog = frame.createDialog(header);
+			if(icon != null)
 				dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
-				frame.setBackground(dlog.getBackground());
-				
-				dlog.setAlwaysOnTop(true);
-				dlog.setVisible(true);
-				dlog.dispose();
-			}
+			frame.setBackground(dlog.getBackground());
+			dlog.setLocation(BuildGdx.app.getFrame().getX() + (BuildGdx.graphics.getWidth() - dlog.getWidth()) / 2, 
+					BuildGdx.app.getFrame().getY() + (BuildGdx.graphics.getHeight() - dlog.getHeight()) / 2);
+			dlog.setAlwaysOnTop(true);
+			dlog.setVisible(true);
+			dlog.dispose();
+			
 			return false;
 		}
+		
+		return false;
+	}
+	
+	protected JOptionPane InitFrame()
+	{
+		JOptionPane frame = null;
+		try {
+			frame = new JOptionPane();
+			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) { e.printStackTrace(); }
+		return frame;
 	}
 
 	@Override

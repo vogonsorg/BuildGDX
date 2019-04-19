@@ -96,7 +96,7 @@ import java.util.HashMap;
 import com.badlogic.gdx.Gdx;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.SoftFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Model;
@@ -105,6 +105,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
 public class Software implements Renderer {
@@ -213,7 +214,7 @@ public class Software implements Renderer {
 
 	public Software(Engine engine)
 	{
-		BuildGDX.app.setFrame(FrameType.Software);
+		BuildGdx.app.setFrame(FrameType.Software);
 		this.engine = engine;
 		a = new Ac(this);
 		
@@ -2674,8 +2675,8 @@ public class Software implements Renderer {
 
 	@Override
 	public void nextpage() { 
-		if(BuildGDX.app.getFrameType() == FrameType.Software)  
-			System.arraycopy(frameplace, 0, ((SoftFrame)BuildGDX.app.getFrame()).getFrame(), 0, frameplace.length);
+		if(BuildGdx.app.getFrameType() == FrameType.Software)  
+			System.arraycopy(frameplace, 0, ((SoftFrame)BuildGdx.app.getFrame()).getFrame(), 0, frameplace.length);
 	}
 
 	@Override
@@ -2697,11 +2698,12 @@ public class Software implements Renderer {
 		//  bit RS_CENTERORIGIN: see dorotspr_handle_bit2
 		////////////////////
 		
+		
 		if (((dastat&128) == 0) || (numpages < 2) || (beforedrawrooms != 0))
 		{
 			dorotatesprite(sx,sy,z,a,picnum,dashade,dapalnum,dastat,cx1,cy1,cx2,cy2,guniqhudid);
 		}
-		
+
 		if (((dastat&64) != 0) && (cx1 <= 0) && (cy1 <= 0) && (cx2 >= xdim-1) && (cy2 >= ydim-1) &&
 		      (sx == (160<<16)) && (sy == (100<<16)) && (z == 65536L) && (a == 0) && ((dastat&1) == 0))
 		  permhead = permtail = 0;
@@ -2941,8 +2943,9 @@ public class Software implements Renderer {
 
 			if ((dastat&1) == 0)
 			{
-				if ((dastat&64) != 0) 
+				if ((dastat&64) != 0) {
 					a.spritevline(bx&65535,by&65535,y2-y1+1,bufplc,(bx>>16)*ysiz+(by>>16),p);
+				}
 				else {
 					a.mspritevline(bx&65535,by&65535,y2-y1+1,bufplc,(bx>>16)*ysiz+(by>>16),p);
 				}
@@ -3038,18 +3041,26 @@ public class Software implements Renderer {
 	public void drawmapview(int dax, int day, int zoome, int ang) {
 		
 	}
+	
+	@Override
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
+			float scale) {
+		//XXX
+	}
 
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int stx = xpos;
 		int charxsiz = 8;
-		char[] fontptr = textfont;
+		byte[] fontptr = textfont;
 		if (fontsize != 0) { fontptr = smalltextfont; charxsiz = 4; }
 
 		for(int i=0; i < text.length && text[i] != 0;i++)
 		{
 			int ptr = bytesperline*(ypos+7)+(stx-fontsize);
-			
+			if(ptr < 0) 
+				continue;
+
 			for(int y=7;y>=0;y--)
 			{
 				for(int x=charxsiz-1;x>=0;x--)
@@ -3124,8 +3135,8 @@ public class Software implements Renderer {
 	public void precache(int dapicnum, int dapalnum, int datype) {}
 	public void gltexapplyprops() {}
 	public void gltexinvalidateall(int flags) { 
-		if(BuildGDX.app.getFrameType() == FrameType.Software)  
-			((SoftFrame)BuildGDX.app.getFrame()).changepalette(curpalette);
+		if(BuildGdx.app.getFrameType() == FrameType.Software)  
+			((SoftFrame)BuildGdx.app.getFrame()).changepalette(curpalette);
 	}
 	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {}
 	

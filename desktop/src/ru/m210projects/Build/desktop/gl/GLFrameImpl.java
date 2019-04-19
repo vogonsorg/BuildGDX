@@ -1,5 +1,7 @@
 package ru.m210projects.Build.desktop.gl;
 
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.Gdx;
@@ -7,7 +9,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import ru.m210projects.Build.Architecture.BuildApplication.Frame;
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 import ru.m210projects.Build.Architecture.GLFrame;
@@ -68,14 +70,19 @@ public class GLFrameImpl implements GLFrame, Frame {
 	}
 
 	@Override
+	public boolean isReady() {
+		return Display.isCreated() && Mouse.isCreated() && Keyboard.isCreated();
+	}
+	
+	@Override
 	public void destroy() {
 		// Workaround for bug in LWJGL whereby resizable state is lost on DisplayMode change
 		Display.setResizable(false);
 		Display.destroy();
 		
-		Gdx.gl = BuildGDX.gl = null;
-		Gdx.gl20 = BuildGDX.gl20 = null;
-		Gdx.gl30 = BuildGDX.gl30 = null;
+		Gdx.gl = BuildGdx.gl = null;
+		Gdx.gl20 = BuildGdx.gl20 = null;
+		Gdx.gl30 = BuildGdx.gl30 = null;
 	}
 
 	@Override
@@ -123,6 +130,7 @@ public class GLFrameImpl implements GLFrame, Frame {
 
 	@Override
 	public boolean setDisplayConfiguration(float gamma, float brightness, float contrast) {
+		if(!isReady()) return false;
 		try {
 			Display.setDisplayConfiguration(gamma, brightness, contrast);
 		} catch (Exception e) { e.printStackTrace(); return false; }
@@ -138,5 +146,15 @@ public class GLFrameImpl implements GLFrame, Frame {
 	@Override
 	public void repaint() {
 		Display.update(false);
+	}
+
+	@Override
+	public int getX() {
+		return graphics.config.x;
+	}
+
+	@Override
+	public int getY() {
+		return graphics.config.y;
 	}
 }

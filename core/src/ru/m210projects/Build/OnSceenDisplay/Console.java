@@ -479,7 +479,10 @@ public class Console {
 			public void execute() {
 				osdrows = Integer.parseInt(osd_argv[1]);
 				
-				if (osdrows > osdmaxrows) osdrows = osdmaxrows;
+				if (osdrows > osdmaxrows) {
+					osdrows = osdmaxrows;
+					Set("osdrows", osdrows);
+				}
 	            if (osdrowscur!=-1) osdrowscur = osdrows;
 			}
 		}, 0, MAXPALOOKUPS-1));
@@ -497,8 +500,10 @@ public class Console {
 					try {
 						float value = Float.parseFloat(osd_argv[1]);
 						if(value > 0.5) {
+							setTextScale((int) (value * 65536.0f));
 							osdtextscale = (int) (value * 65536.0f);
 							Console.ResizeDisplay(xdim, ydim);
+							if (osdrowscur!=-1) osdrowscur = osdrows;
 						} else Console.Println("osdtextscale: out of range");
 					}  catch(Exception e) {
 						Console.Println("osdtextscale: out of range");
@@ -509,7 +514,11 @@ public class Console {
 	
 	public static void setTextScale(int scale)
 	{
+		boolean isFullscreen = osdrowscur == osdmaxrows;
 		osdtextscale = scale;
+		Console.ResizeDisplay(xdim, ydim);
+		if(isFullscreen)
+			fullscreen(true);
 	}
 	
 	public static int getTextScale()
@@ -533,7 +542,8 @@ public class Console {
 
 	    func.showosd(cap?1:0);
 
-	    getInput().initMessageInput(null);
+	    if(getInput() != null)
+	    	getInput().initMessageInput(null);
 	}
 	
 	private static final InputCallback osdcallback = new InputCallback() {
@@ -564,7 +574,7 @@ public class Console {
 		}
 	};
 	
-	public static void show()
+	public static void toggle()
 	{
 		osdscroll = -osdscroll;
         if (osdrowscur == -1)
@@ -574,6 +584,17 @@ public class Console {
         osdrowscur += osdscroll;
         CaptureInput(osdscroll == 1);
         osdscrtime = func.getticksfunc();
+	}
+	
+	public static void fullscreen(boolean show)
+	{
+		if(show) 
+			osdrowscur = osdmaxrows;
+		else osdrowscur = -1;
+		
+		showDisplay(show?1:0);
+		if(func != null)
+			func.showosd(show?1:0);
 	}
 	
 	static boolean lastmatch;
@@ -586,7 +607,7 @@ public class Console {
 		for(int i = 0; i < 4; i++) {
 			if(getInput().keyStatusOnce(osdkey[i]))
 			{
-				show();
+				toggle();
 	            return;
 			}
 		}
@@ -774,7 +795,7 @@ public class Console {
 		
 		getInput().putMessage(osdcallback, false);
 
-		if(getInput().keyStatus(Keymap.ANYKEY)) {
+		if(getInput().keyStatusOnce(Keymap.ANYKEY)) {
 			if(getInput().keyStatusOnce(Keys.TAB)) {
 				ListCommands();
 			} else lastmatch = false;
@@ -1006,10 +1027,12 @@ public class Console {
 		osdfmt = newosdfmt;
 		osdlines = newline;
 	    osdcols = newcols;
-	    osdmaxrows = func.getrowheight(mulscale(h, osdtextscale, 16))-2;
-
-	    if (osdrows > osdmaxrows) osdrows = osdmaxrows;
-
+	    osdmaxrows = func.getrowheight((int) divscale(h, osdtextscale, 16))-2;
+	    if (osdrows > osdmaxrows) {
+	    	osdrows = osdmaxrows;
+	    	Set("osdrows", osdrows);
+	    }
+	    
 	    osdpos = 0;
 	    osdhead = 0;
 	    osdeditwinstart = 0;
@@ -1018,13 +1041,13 @@ public class Console {
 	
 	public static void draw()
 	{
-	    if ((osdflags & OSD_INITIALIZED) == 0)
+	    if ((osdflags & OSD_INITIALIZED) == 0 || func == null)
 	        return;
 
 	    if (osdrowscur == 0)
 	        showDisplay(((osdflags & OSD_DRAW) != 0) ? 0 : 1);
 
-	    if (osdrowscur == osdrows)
+	    if (osdrowscur == osdrows || osdrowscur == osdmaxrows)
 	        osdscroll = 0;
 	    else
 	    {
@@ -1053,7 +1076,7 @@ public class Console {
 	        osdscrtime = func.getticksfunc();
 	    }
 
-	    if ((osdflags & OSD_DRAW) == 0 || osdrowscur == 0) return;
+	    if ((osdflags & OSD_DRAW) == 0 || osdrowscur <= 0) return;
 
 	    int topoffs = osdhead;
 	    int row = osdrowscur-1;

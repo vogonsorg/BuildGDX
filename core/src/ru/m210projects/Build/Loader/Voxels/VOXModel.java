@@ -17,16 +17,16 @@ import static ru.m210projects.Build.Engine.gammabrightness;
 import static ru.m210projects.Build.Engine.globalshade;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.getTmpBuffer;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.bindTexture;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.getTmpBuffer;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.uploadBoundTexture;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
+import ru.m210projects.Build.Types.UnsafeBuffer;
 
 public class VOXModel extends Model {
 	
@@ -63,8 +63,8 @@ public class VOXModel extends Model {
 		if(texid[dapal] != null) 
 			return texid[dapal];
 
-		long startticks = System.currentTimeMillis();
-		ByteBuffer buffer = getTmpBuffer();
+//		long startticks = System.currentTimeMillis();
+		UnsafeBuffer buffer = getTmpBuffer();
 		
 		int rgb = 0, r, g, b, wpptr, wp, dacol;
 		for (int x, y = 0; y < mytexy; y++) {
@@ -100,15 +100,14 @@ public class VOXModel extends Model {
 			}
 		}
 
-		BTexture rtexid = new BTexture();
+		BTexture rtexid = new BTexture(mytexx, mytexy);
 		bindTexture(rtexid);
-		uploadBoundTexture(true, mytexx, mytexy, GL_RGBA, GL_RGBA, buffer, mytexx, mytexy);
+		uploadBoundTexture(true, mytexx, mytexy, GL_RGBA, GL_RGBA, buffer.getBuffer(), mytexx, mytexy);
 		setupBoundTexture(0, 0);
 		texid[dapal] = rtexid;
 		
-		long etime = System.currentTimeMillis()-startticks;
-		    
-		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
+//		long etime = System.currentTimeMillis()-startticks;
+//		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
 
 		return rtexid;
 	}

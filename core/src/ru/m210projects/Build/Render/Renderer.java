@@ -21,8 +21,11 @@ import java.util.HashMap;
 
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.TileFont;
 
 public interface Renderer {
+	
+	public enum Transparent { None, Bit1, Bit2 }
 	
 	public void init();
 	
@@ -53,6 +56,8 @@ public interface Renderer {
 	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 	
 	public abstract void drawmapview(int dax, int day, int zoome, int ang);
+	
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale);
 	
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 	

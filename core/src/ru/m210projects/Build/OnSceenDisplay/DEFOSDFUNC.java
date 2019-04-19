@@ -26,7 +26,7 @@ import ru.m210projects.Build.Engine;
 
 public class DEFOSDFUNC implements OSDFunc {
 	
-	private Engine engine;
+	protected Engine engine;
 	private int white = -1;
 	protected char[] charbuf = new char[1];
 	public DEFOSDFUNC(Engine engine){

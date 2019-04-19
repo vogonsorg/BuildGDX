@@ -113,7 +113,7 @@ public class Mmulti {
 				//mysock = new TCPClient(((InetSocketAddress)othersocket[connecthead]).getHostString(), portnum);
 			Console.Println("mmulti: This machine's IP is " + hostAddress);
 			return 1;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Console.Println(e.getMessage(), OSDTEXT_RED);
 			return 0;
 		}
@@ -321,7 +321,7 @@ public class Mmulti {
 						}
 						inet.netready = 1;
 					}
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					inet.message = e.getMessage();
 					uninitmultiplayer();
 				}

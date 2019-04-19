@@ -19,6 +19,14 @@ package ru.m210projects.Build;
 public class Strhandler {
 	//String handler
 	
+	static char[] tmp_buffer = new char[80];
+	public static char[] toCharArray(String... text)
+	{
+		buildString(tmp_buffer, 0, text);
+		
+		return tmp_buffer;
+	}
+	
 	public static int buildString(char[] buffer, int boffset, String... text)
 	{
 		int pos = boffset;
@@ -90,7 +98,6 @@ public class Strhandler {
         return -1;
     }
 	
-		static char[] tmp_buffer = new char[80];
 		public static int Bsprintf(char[] b, int slen, int num, int align) {
 			Bitoa(num, tmp_buffer);
 			int len = Bstrlen(tmp_buffer);

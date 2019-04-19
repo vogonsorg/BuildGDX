@@ -1,3 +1,19 @@
+// This file is part of BuildGDX.
+// Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+// BuildGDX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// BuildGDX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
 package ru.m210projects.Build.desktop;
 
 import java.io.File;
@@ -6,6 +22,7 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.ApplicationLogger;
 import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Files;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.LifecycleListener;
 import com.badlogic.gdx.Net;
@@ -27,9 +44,10 @@ import com.badlogic.gdx.utils.SnapshotArray;
 import ru.m210projects.Build.Architecture.BuildApplication;
 import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
-import ru.m210projects.Build.Architecture.BuildGDX;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
+import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.desktop.gl.GLFrameImpl;
 import ru.m210projects.Build.desktop.software.SoftFrameImpl;
 
@@ -49,7 +67,7 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
 
-	public BuildApplicationImpl (ApplicationListener listener, LwjglApplicationConfiguration config) {
+	public BuildApplicationImpl (Game listener, DesktopMessage message, LwjglApplicationConfiguration config) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 		
@@ -69,9 +87,11 @@ public class BuildApplicationImpl implements BuildApplication {
 		Gdx.files = files;
 		Gdx.net = net;
 		
-		BuildGDX.app = this;
-		BuildGDX.files = Gdx.files;
-		BuildGDX.net = Gdx.net;
+		BuildGdx.app = this;
+		BuildGdx.files = Gdx.files;
+		BuildGdx.net = Gdx.net;
+		BuildGdx.audio = new BuildAudio();
+		BuildGdx.message = message;
 		
 		initialize();
 	}
@@ -103,8 +123,8 @@ public class BuildApplicationImpl implements BuildApplication {
 			Gdx.graphics = frame.getGraphics();
 			Gdx.input = frame.getInput();
 			
-			BuildGDX.graphics = frame.getGraphics();
-			BuildGDX.input = frame.getInput();
+			BuildGdx.graphics = frame.getGraphics();
+			BuildGdx.input = frame.getInput();
 			frame.setVSync(config.vSyncEnabled);
 		}
 	}
@@ -121,6 +141,10 @@ public class BuildApplicationImpl implements BuildApplication {
 						listener.pause();
 						listener.dispose();
 					}
+					BuildGdx.audio.dispose();
+					BuildGdx.message.dispose();
+					frame.destroy();
+					
 					if (t instanceof RuntimeException)
 						throw (RuntimeException)t;
 					else
@@ -140,6 +164,11 @@ public class BuildApplicationImpl implements BuildApplication {
 
 		boolean wasActive = true;
 		while (running) {
+			if(!frame.isReady()) {
+				// Try to solve a problem "Display is not created" when resolution changed
+				continue;
+			}
+			
 			frame.getInput().processMessages();
 			if (frame.isCloseRequested()) exit();
 
@@ -190,10 +219,12 @@ public class BuildApplicationImpl implements BuildApplication {
 		}
 		listener.pause();
 		listener.dispose();
+		BuildGdx.audio.dispose();
+		BuildGdx.message.dispose();
 		frame.destroy();
 		if (config.forceExit) System.exit(-1);
 	}
-	
+
 	public boolean executeRunnables () {
 		synchronized (runnables) {
 			for (int i = runnables.size - 1; i >= 0; i--)
