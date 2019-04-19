@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Input.InputCallback;
 import ru.m210projects.Build.Input.Keymap;
 
@@ -86,7 +87,7 @@ public class Console {
 	// history display
 	static char[][] osdtext = new char[MAXLINES][]; 
 	static short[][] osdfmt = new short[MAXLINES][];
-	static char[] osdver = new char[32];
+	static char[] osdver = new char[64];
 	static int  osdverlen;
 	static int  osdvershade;
 	static int  osdverpal;
@@ -190,8 +191,9 @@ public class Console {
 
 	public static void setVersion(String version, int shade, int pal)
 	{
-		Bstrcpy(osdver,version);
-	    osdverlen = version.length();
+		String fullname = version + " (BuildGdx: " + Engine.version + ")";
+		Bstrcpy(osdver,fullname);
+	    osdverlen = fullname.length();
 	    osdvershade = shade;
 	    osdverpal = pal;
 	}
