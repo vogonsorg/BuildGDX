@@ -101,7 +101,7 @@ public abstract class Engine {
 	 * 
 	 */
 	
-	
+	public static final String version = "19.04";
 	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
