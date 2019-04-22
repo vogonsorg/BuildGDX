@@ -452,9 +452,13 @@ public abstract class BuildNet {
 		gNetFifoMasterTail = 0;
 		gPredictTail = 0;
 		gNetFifoTail = 0;
+		gInput.Reset();
 		Arrays.fill(gNetFifoHead, 0);
-		for(int i = 0; i < MAXPLAYERS; i++)
+		for(int i = 0; i < MAXPLAYERS; i++) {
 			Arrays.fill(gCheckFifo[i], (byte)0);
+			for(int j = 0; j < kNetFifoSize; j++)
+				gFifoInput[j][i].Reset();
+		}
 		Arrays.fill(gCheckHead, 0);
 		gCheckTail = 0;
 		gSendCheckTail = 0;
@@ -532,8 +536,10 @@ public abstract class BuildNet {
 	{
 		int nPlayer;
 
-		if ( numplayers == 1 || bOutOfSync)
+		if ( numplayers == 1 )
 			return;
+		
+		bOutOfSync = false;
 
 		while ( true )
 		{
