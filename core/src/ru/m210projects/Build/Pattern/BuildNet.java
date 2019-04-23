@@ -255,7 +255,7 @@ public abstract class BuildNet {
 	public int GetPacket(byte[] p, int pptr, byte[] v, int vptr, int size)
 	{
 		if(pptr + size >= p.length)
-			game.ThrowError("ptr + size < packbuf.length", null);
+			game.ThrowError("ptr + size < packbuf.length");
 		System.arraycopy(p, pptr, v, vptr, size); //memcpy(v, p, size);
 		return pptr += size;
 	}
@@ -269,7 +269,7 @@ public abstract class BuildNet {
 	public int PutPacket(byte[] p, int ptr, Object v, int vptr, int size)
 	{
 		if(ptr + size > p.length)
-			game.ThrowError("ptr + size < packbuf.length", null);
+			game.ThrowError("ptr + size < packbuf.length");
 		if(v instanceof byte[])
 		{
 			byte[] array = (byte[]) v;
@@ -538,8 +538,6 @@ public abstract class BuildNet {
 
 		if ( numplayers == 1 )
 			return;
-		
-		bOutOfSync = false;
 
 		while ( true )
 		{
@@ -548,6 +546,8 @@ public abstract class BuildNet {
 				if ( gCheckHead[nPlayer] <= gCheckTail )
 					return;
 			}
+			
+			bOutOfSync = false;
 			
 			for ( nPlayer = connectpoint2[connecthead]; nPlayer >= 0; nPlayer = connectpoint2[nPlayer] )
 			{
