@@ -61,7 +61,7 @@ public class TextureUtils {
 	}
 
 	public static void bindTexture(BTexture tex) {
-		tex.bind(0);
+		tex.bind(); //XXX bind(0) ломает detail текстуры, но без это не работает палитра в шейдере
 	}
 
 	public static void deleteTexture(BTexture tex) {
