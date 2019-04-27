@@ -95,6 +95,7 @@ public class GLFrameImpl implements GLFrame, Frame {
 		boolean isActive = Display.isActive();
 		input.update();
 		shouldRender |= graphics.shouldRender();
+		input.processEvents();
 		
 		if (!isActive && graphics.config.backgroundFPS == -1) shouldRender = false;
 		int frameRate = isActive ? graphics.config.foregroundFPS : graphics.config.backgroundFPS;

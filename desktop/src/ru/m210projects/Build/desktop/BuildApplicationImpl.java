@@ -66,8 +66,8 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglApplicationConfiguration config;
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
-
-	public BuildApplicationImpl (Game listener, DesktopMessage message, LwjglApplicationConfiguration config) {
+	
+	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, LwjglApplicationConfiguration config) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 		
@@ -92,10 +92,10 @@ public class BuildApplicationImpl implements BuildApplication {
 		BuildGdx.net = Gdx.net;
 		BuildGdx.audio = new BuildAudio();
 		BuildGdx.message = message;
-		
+
 		initialize();
 	}
-	
+
 	@Override
 	public FrameType getFrameType() {
 		return frame.getType();

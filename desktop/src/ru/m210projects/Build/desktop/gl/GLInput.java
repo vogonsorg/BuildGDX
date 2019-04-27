@@ -2,6 +2,8 @@ package ru.m210projects.Build.desktop.gl;
 
 import static ru.m210projects.Build.Input.Keymap.*;
 
+import java.lang.reflect.Method;
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Cursor;
 import org.lwjgl.input.Keyboard;
@@ -15,12 +17,19 @@ import ru.m210projects.Build.Architecture.BuildInput;
 
 public class GLInput implements BuildInput {
 	
-	Cursor emptyCursor;
-	Cursor defCursor = Mouse.getNativeCursor();
-	LwjglInput input;
+	protected Cursor emptyCursor;
+	protected Cursor defCursor = Mouse.getNativeCursor();
+	protected LwjglInput input;
+	private Method processEventsMethod;
+	
 	public GLInput()
 	{
 		input = new LwjglInput();
+
+		try {
+			processEventsMethod = input.getClass().getDeclaredMethod("processEvents");  
+			processEventsMethod.setAccessible(true);   
+		} catch (Exception e) {}
 	}
 
 	@Override
@@ -236,6 +245,13 @@ public class GLInput implements BuildInput {
 
 	public void update() {
 		input.update();
+	}
+	
+	public void processEvents()
+	{
+		if(processEventsMethod != null) try {
+			processEventsMethod.invoke(input);
+		} catch (Exception e) { }
 	}
 	
 	@Override
