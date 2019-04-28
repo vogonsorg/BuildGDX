@@ -98,7 +98,7 @@ public class GLInfo {
 				GLInfo.texcompr = 1;
 			} else if (p2.compareToIgnoreCase("GL_ARB_texture_non_power_of_two") == 0) {
 				// support non-power-of-two texture sizes
-//				if(Gdx.graphics.isGL20Available())
+//				if(BuildGdx.graphics.isGL20Available())
 //					GLInfo.texnpot = 1;
 			} else if (p2.compareToIgnoreCase("WGL_3DFX_gamma_control") == 0) {
 				// 3dfx cards have issues with fog

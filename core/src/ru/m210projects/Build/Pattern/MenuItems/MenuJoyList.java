@@ -21,8 +21,7 @@ import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Gameutils.BClipLow;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 
-import com.badlogic.gdx.Gdx;
-
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -239,13 +238,13 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 		if(l_set != 0)
 			return false;
 		
-		if(!Gdx.input.isTouched()) 
+		if(!BuildGdx.input.isTouched()) 
 			isTouched = false;
 				
 		touchY = my;
 		if(mx > scrollerX && mx < scrollerX + slider.getScrollerWidth()) 
 		{
-			if(Gdx.input.isTouched())
+			if(BuildGdx.input.isTouched())
 				isTouched = true;
 			else isTouched = false;
 			return true;

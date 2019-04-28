@@ -22,8 +22,7 @@ import static ru.m210projects.Build.Gameutils.BClipLow;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Pattern.BuildConfig.*;
 
-import com.badlogic.gdx.Gdx;
-
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
@@ -245,13 +244,13 @@ public abstract class MenuKeyboardList extends MenuList
 		if(l_set != 0)
 			return false;
 		
-		if(!Gdx.input.isTouched()) 
+		if(!BuildGdx.input.isTouched()) 
 			isTouched = false;
 				
 		touchY = my;
 		if(mx > scrollerX && mx < scrollerX + slider.getScrollerWidth()) 
 		{
-			if(Gdx.input.isTouched())
+			if(BuildGdx.input.isTouched())
 				isTouched = true;
 			else isTouched = false;
 			return true;

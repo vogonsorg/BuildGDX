@@ -29,7 +29,6 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
@@ -48,8 +47,16 @@ import ru.m210projects.Build.Types.LittleEndian;
 public abstract class BuildGame extends Game {
 	
 	/*
+	 * TODO:
+	 * 
 	 * Common console cmds
 	 * SaveManager findSaves()
+	 * VideoList refactoring
+	 * texture.bind(0) need fix (detail textures)
+	 * GLSettings
+	 * Renderer2D separate 3D
+	 * Disable mipmaps build in nearest filter
+	 * kOpen external file -> native bytebuffer (read only)
 	 */
 
 	public final String appname;
@@ -129,7 +136,7 @@ public abstract class BuildGame extends Game {
 		try {
 			if(!gExit)
 				super.render();
-			else Gdx.app.exit();
+			else BuildGdx.app.exit();
 		} catch (Throwable e) {
 			if (!release) {
 			e.printStackTrace();
@@ -205,7 +212,7 @@ public abstract class BuildGame extends Game {
 		if(gCurrScreen != null)
 			return gCurrScreen.getClass().getSimpleName();
 		
-		if(Gdx.app != null)
+		if(BuildGdx.app != null)
 			return "Create frame";
 		
 		return "Init frame";
@@ -252,7 +259,7 @@ public abstract class BuildGame extends Game {
 				saveToFTP();
 		} catch (Exception e) {	
 		} finally {
-			Gdx.app.exit();
+			BuildGdx.app.exit();
 		}
 	}
 	
@@ -271,7 +278,7 @@ public abstract class BuildGame extends Game {
 				saveToFTP();
 		} catch (Exception e) {
 		} finally {
-			Gdx.app.exit();
+			BuildGdx.app.exit();
 		}
 	}
 	

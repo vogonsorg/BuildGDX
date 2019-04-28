@@ -20,10 +20,10 @@ import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Input.Keymap.ANYKEY;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector2;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class TestGamePad extends Gamepad {
@@ -92,27 +92,27 @@ public class TestGamePad extends Gamepad {
 	
 	private boolean getTestButton(int i)
 	{
-		if(i == 0 && Gdx.input.isKeyPressed(Keys.K))
+		if(i == 0 && BuildGdx.input.isKeyPressed(Keys.K))
 			return true;
-		if(i == 1 && Gdx.input.isKeyPressed(Keys.L))
+		if(i == 1 && BuildGdx.input.isKeyPressed(Keys.L))
 			return true;
 		return false;
 	}
 	
 	private float getAxis(int value) {
 		if(value == 0) {
-			if(Gdx.input.isKeyPressed(Keys.UP))
+			if(BuildGdx.input.isKeyPressed(Keys.UP))
 				return -1.0f;
 			
-			if(Gdx.input.isKeyPressed(Keys.DOWN))
+			if(BuildGdx.input.isKeyPressed(Keys.DOWN))
 				return 1.0f;
 		}
 		
 		if(value == 1) {
-			if(Gdx.input.isKeyPressed(Keys.LEFT))
+			if(BuildGdx.input.isKeyPressed(Keys.LEFT))
 				return -1.0f;
 			
-			if(Gdx.input.isKeyPressed(Keys.RIGHT))
+			if(BuildGdx.input.isKeyPressed(Keys.RIGHT))
 				return 1.0f;
 		}
 		

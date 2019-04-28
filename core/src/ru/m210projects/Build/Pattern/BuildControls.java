@@ -23,7 +23,6 @@ import static ru.m210projects.Build.Pattern.BuildConfig.*;
 
 import java.util.Arrays;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -82,8 +81,8 @@ public abstract class BuildControls {
 		
 		if (pCfg.useMouse) {
 			
-			int dx = Gdx.input.getX() - oldPosX;
-			int dy = Gdx.input.getY() - oldPosY;
+			int dx = BuildGdx.input.getX() - oldPosX;
+			int dy = BuildGdx.input.getY() - oldPosY;
 			
 			if(dx != 0) {
 				if(dx > 0)

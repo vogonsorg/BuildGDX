@@ -47,7 +47,6 @@ import ru.m210projects.Build.Types.TextFont;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.files.FileHandle;
@@ -58,12 +57,6 @@ import com.badlogic.gdx.graphics.PixmapIO;
 public abstract class Engine {
 	
 	/*
-	 *  TODO:
-	 * 	Disable mipmaps build in nearest filter
-	 *  kOpen external file -> native bytebuffer
-	 *  
-	 * 
-	 * 
 	 * 	Engine
 	 * 		messages
 	 * 		filecache
@@ -93,12 +86,6 @@ public abstract class Engine {
 	 *  	def loader + common + scriptfile	-> texturecache / mdloader
 	 *  	pragmas
 	 *  	bithandler
-	 *  
-	 *  Game
-	 *  	config
-	 *  	
-	 *  
-	 * 
 	 */
 	
 	public static final String version = "19.04";
@@ -1395,29 +1382,29 @@ public abstract class Engine {
 		render.uninit();
 		render.init();
 		
-		if(Gdx.app.getType() == ApplicationType.Android) {
-			daxdim = Gdx.graphics.getWidth();
-			daydim = Gdx.graphics.getHeight();
-			Gdx.graphics.setWindowedMode(daxdim, daydim);
+		if(BuildGdx.app.getType() == ApplicationType.Android) {
+			daxdim = BuildGdx.graphics.getWidth();
+			daydim = BuildGdx.graphics.getHeight();
+			BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 			return true;
 		}
 		
 		if(davidoption == 1)
 		{
 			DisplayMode m = null;
-			for(DisplayMode mode: Gdx.graphics.getDisplayModes()) {
+			for(DisplayMode mode: BuildGdx.graphics.getDisplayModes()) {
 				if(mode.width == daxdim && mode.height == daydim)
-					if(m == null || m.refreshRate < Gdx.graphics.getDisplayMode().refreshRate) {
+					if(m == null || m.refreshRate < BuildGdx.graphics.getDisplayMode().refreshRate) {
 						m = mode;
 					}
 			}
 			
 			if(m == null) {
 				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not support", OSDTEXT_YELLOW);
-				Gdx.graphics.setWindowedMode(daxdim, daydim);
+				BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 				return false;
-			} else Gdx.graphics.setFullscreenMode(m);
-		} else Gdx.graphics.setWindowedMode(daxdim, daydim);
+			} else BuildGdx.graphics.setFullscreenMode(m);
+		} else BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 
 		return true;
 	}
@@ -4089,9 +4076,6 @@ public abstract class Engine {
 	}
 
 	public void handleevents() { //gdxBuild
-		if(Gdx.input == null) //not initialized
-			return;
-
 		input.handleevents();
 		Console.HandleScanCode();
 		
@@ -4105,8 +4089,8 @@ public abstract class Engine {
     public void printfps(float scale) {
     	if(System.currentTimeMillis() - fpstime >= 1000)
     	{
-    		int fps = Gdx.graphics.getFramesPerSecond();
-        	int rate = (int)(Gdx.graphics.getDeltaTime() * 1000);
+    		int fps = BuildGdx.graphics.getFramesPerSecond();
+        	int rate = (int)(BuildGdx.graphics.getDeltaTime() * 1000);
         	if(fps <= 9999 && rate <= 9999) {
     	    	int chars = Bitoa(rate, fpsbuffer);
     			chars = buildString(fpsbuffer, chars, "ms ", fps);

@@ -22,7 +22,6 @@ import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.FileHandle.Cache1D.initgroupfile;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -85,7 +84,7 @@ public class InitScreen extends ScreenAdapter {
 				initgroupfile(factory.resources[i]);
 			} catch (Exception e) { 
 				BuildGdx.message.show("Init error!", "Resource initialization error!", MessageType.Info);
-				Gdx.app.exit();
+				BuildGdx.app.exit();
 				return;
 			}
 		}
@@ -95,7 +94,7 @@ public class InitScreen extends ScreenAdapter {
 			this.engine = game.pEngine = factory.engine();
 		} catch (Exception e) { 
 			BuildGdx.message.show("Build Engine Initialization Error!", "There was a problem initialising the Build engine: \r\n" + e.getMessage(), MessageType.Info);
-			Gdx.app.exit();
+			BuildGdx.app.exit();
 			return;
 		}
 		

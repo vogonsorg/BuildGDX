@@ -2,12 +2,12 @@ package ru.m210projects.Build.Pattern;
 
 import static ru.m210projects.Build.Net.Mmulti.*;
 
-import com.badlogic.gdx.Gdx;
-
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildGame.NetMode;
 import ru.m210projects.Build.Pattern.ScreenAdapters.GameAdapter;
+import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.ScreenAdapters.LoadingAdapter;
 
 public abstract class BuildEngine extends Engine {
@@ -35,7 +35,7 @@ public abstract class BuildEngine extends Engine {
 	{
 //		return ((totalclock - game.pNet.ototalclock + ticks) << 16) / ticks;
 //		return (int) (((System.nanoTime() - timernexttick) * 65536.0f) / (timerskipticks * 1000000.0f));
-		return (int) ((frametime += Gdx.graphics.getDeltaTime() * 1000.0f * 65536.0f) / timerskipticks);
+		return (int) ((frametime += BuildGdx.graphics.getDeltaTime() * 1000.0f * 65536.0f) / timerskipticks);
 	}
 	
 	@Override
@@ -44,7 +44,8 @@ public abstract class BuildEngine extends Engine {
 		if(net == null) return; //not initialized yet
 
 		if (!game.getScreen().getClass().getSuperclass().equals(GameAdapter.class) 
-				&& !game.getScreen().getClass().getSuperclass().equals(LoadingAdapter.class))
+				&& !game.getScreen().getClass().getSuperclass().equals(LoadingAdapter.class) 
+				&& !game.getScreen().getClass().equals(InitScreen.class) )
 			handleevents();
 		
 //		if (totalclock < net.ototalclock + ticks || !net.ready2send)

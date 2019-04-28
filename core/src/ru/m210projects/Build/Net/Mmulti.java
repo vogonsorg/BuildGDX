@@ -21,11 +21,11 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.Arrays;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Net.WaifUPnp.UPnP;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 
 public class Mmulti {
@@ -316,7 +316,7 @@ public class Mmulti {
 							long time = System.currentTimeMillis() - starttime;
 							if (timeout != 0 && time > timeout) 
 								throw new Exception("Connection timed out!");
-							if(Gdx.input != null && Gdx.input.isKeyPressed(Keys.ESCAPE))
+							if(BuildGdx.input != null && BuildGdx.input.isKeyPressed(Keys.ESCAPE))
 								throw new Exception("Connection cancelled");
 						}
 						inet.netready = 1;

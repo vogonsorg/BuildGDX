@@ -24,7 +24,6 @@ import java.util.Arrays;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 
 public class KeyInput {
@@ -74,9 +73,6 @@ public class KeyInput {
 	}
 	
 	public int handleevents() { 
-		if(BuildGdx.input == null) //not initialized
-			return 0;
-
 		BuildGdx.input.processMessages();
 		BuildGdx.input.cursorHandler();
 
@@ -102,7 +98,7 @@ public class KeyInput {
 		//Mouse buttons handler
 		for (int kb = 0; kb < 10; kb++) {
 			int index = MOUSE_LBUTTON + kb;
-			if (Gdx.input.isButtonPressed(kb)) {
+			if (BuildGdx.input.isButtonPressed(kb)) {
 				keyPressed = true;
 				if (!hitkey[index]) {
 					keystatus[ANYKEY] = 1;
@@ -225,7 +221,7 @@ public class KeyInput {
 					return 1;
 				}
 				if (locmessagelen < (maxsize-1) && ch < 128) {
-                    if(specialSymbols && Gdx.input.isKeyPressed(Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Keys.SHIFT_RIGHT))
+                    if(specialSymbols && BuildGdx.input.isKeyPressed(Keys.SHIFT_LEFT) || BuildGdx.input.isKeyPressed(Keys.SHIFT_RIGHT))
                     	ch=gdxscantoascwithshift[ch];
                     else ch=gdxscantoasc[ch];
                     

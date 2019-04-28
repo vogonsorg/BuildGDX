@@ -14,9 +14,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.badlogic.gdx.Gdx;
-
 import ru.m210projects.Build.Gameutils.ConvertType;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
@@ -433,7 +432,7 @@ public class MenuFileBrowser extends MenuItem {
 		if(mx >= x + width / 2) currColumn = 1;
 		else currColumn = 0;
 
-		if(!Gdx.input.isTouched()) {
+		if(!BuildGdx.input.isTouched()) {
 			scrollTouch[DIRECTORY] = false;
 			scrollTouch[FILE] = false;
 		}
@@ -441,7 +440,7 @@ public class MenuFileBrowser extends MenuItem {
 		touchY = my;
 		if(mx > scrollX[currColumn] && mx < scrollX[currColumn] + slider.getScrollerWidth()) 
 		{
-			if(Gdx.input.isTouched())
+			if(BuildGdx.input.isTouched())
 				scrollTouch[currColumn] = true;
 			else scrollTouch[currColumn] = false;
 			return true;

@@ -21,8 +21,6 @@ import static ru.m210projects.Build.Engine.usehightile;
 import static ru.m210projects.Build.Engine.usemodels;
 import static ru.m210projects.Build.Engine.usevoxels;
 
-import com.badlogic.gdx.Gdx;
-
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
@@ -164,7 +162,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 				MenuSwitch sw = (MenuSwitch) pItem;
 				cfg.gVSync = sw.value;
 				try { // crash if hires textures loaded
-					Gdx.graphics.setVSync(cfg.gVSync);
+					BuildGdx.graphics.setVSync(cfg.gVSync);
 				} catch (Exception e) {}
 			}
 		}, null, null);
