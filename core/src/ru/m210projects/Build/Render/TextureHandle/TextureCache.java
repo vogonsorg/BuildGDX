@@ -351,6 +351,14 @@ public class TextureCache {
 		}
 	}
 	
+	public boolean clampingMode(int dameth) {
+		return ((dameth & 4) >> 2) == 1;
+	}
+
+	public boolean alphaMode(int dameth) {
+		return (dameth & 256) == 0;
+	}
+	
 	public boolean gltexmayhavealpha(int dapicnum, int dapalnum)
 	{
 		for (Pthtyp pth = cache[dapicnum]; pth != null; pth = pth.next)

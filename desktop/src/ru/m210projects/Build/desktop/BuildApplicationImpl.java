@@ -22,7 +22,6 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.ApplicationLogger;
 import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Files;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.LifecycleListener;
 import com.badlogic.gdx.Net;

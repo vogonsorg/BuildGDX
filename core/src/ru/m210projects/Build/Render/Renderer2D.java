@@ -16,68 +16,24 @@
 
 package ru.m210projects.Build.Render;
 
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-
-import ru.m210projects.Build.Render.Types.FadeEffect;
-import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Types.TileFont;
 
-public interface Renderer {
-	
-	public enum Transparent { None, Bit1, Bit2 }
+public interface Renderer2D {
 	
 	public void init();
 	
 	public void uninit();
 	
-	public void drawmasks();
-	
-	public void drawrooms();
-	
-	public void clearview(int dacol);
-	
-	public void palfade(HashMap<String, FadeEffect> fades);
-	
-	public void preload();
-	
-	public void precache(int dapicnum, int dapalnum, int datype);
-	
-	public void nextpage();
-	
-	public void gltexapplyprops();
-	
-	public void rotatesprite(int sx, int sy, int z, int a, int picnum,
-			int dashade, int dapalnum, int dastat,
-            int cx1, int cy1, int cx2, int cy2);
-	
-	public String getname();
-	
-	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
-	
 	public void drawmapview(int dax, int day, int zoome, int ang);
-	
+
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale);
 	
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 	
-	public void gltexinvalidateall(int flags);
-
-	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
-
-	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format);
-	
 	public void drawline256(int x1, int y1, int x2, int y2, int col);
 	
-	public void settiltang(int tilt);
-	
-	public void setdrunk(float intensive);
-	
-	public float getdrunk();
-	
-	public void addSpriteCorr(int snum);
-	
-	public void removeSpriteCorr(int snum);
-	
-	public void setDefs(DefScript defs);
+	public void rotatesprite(int sx, int sy, int z, int a, int picnum,
+			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
+			int cy2);
 }
