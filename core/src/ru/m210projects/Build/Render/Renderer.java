@@ -53,7 +53,7 @@ public interface Renderer {
 	
 	public String getname();
 	
-	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
+	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 	
 	public void drawmapview(int dax, int day, int zoome, int ang);
 	

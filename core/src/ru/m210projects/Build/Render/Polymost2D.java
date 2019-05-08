@@ -14,14 +14,11 @@ import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static java.lang.Math.*;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Net.Mmulti.connecthead;
-import static ru.m210projects.Build.Net.Mmulti.connectpoint2;
 import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Render.Polymost.*;
 import static ru.m210projects.Build.Strhandler.*;
-import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -45,7 +42,7 @@ import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Types.TileFont.FontType;
 
-public class Polymost2D implements Renderer2D {
+public class Polymost2D extends OrphoRenderer {
 
 	private Polymost parent;
 	private GL10 gl;
@@ -110,184 +107,6 @@ public class Polymost2D implements Renderer2D {
 		textures.put(new float[] { 0, 0, 1 - 0.0001f, 0, 1 - 0.0001f, 1 - 0.0001f, 0, 1 - 0.0001f });
 		vertices.rewind();
 		textures.rewind();
-	}
-
-	protected int getclipmask(int a, int b, int c, int d) { // Ken did this
-		int bA = a < 0 ? 1 : 0;
-		int bB = b < 0 ? 1 : 0;
-		int bC = c < 0 ? 1 : 0;
-		int bD = d < 0 ? 1 : 0;
-
-		d = (bA * 8) + (bB * 4) + (bC * 2) + bD;
-		return (((d << 4) ^ 0xf0) | d);
-	}
-
-	public void initoverheadmap(int redwallcol, int whitewallcol, int sprcol, boolean showredwalls, boolean showspr,
-			boolean showflspr) {
-		this.redwallcol = redwallcol;
-		this.whitewallcol = whitewallcol;
-		this.sprcol = sprcol;
-		this.showspr = showspr;
-		this.showflspr = showflspr;
-		this.showredwalls = showredwalls;
-	}
-
-	public void setoverheadmapsettings(boolean fullmap, boolean allplrs, boolean scrollmode, int viewindex,
-			int[] plrsprites) {
-		this.fullmap = fullmap;
-		this.allplrs = allplrs;
-		this.scrollmode = scrollmode;
-		this.viewindex = viewindex;
-		this.plrsprites = plrsprites;
-	}
-
-	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
-		int i, j, k, x1, y1, x2 = 0, y2 = 0, ox, oy;
-		int z1, z2, startwall, endwall;
-		int xvect, yvect, xvect2, yvect2;
-
-		WALL wal, wal2;
-
-		xvect = sintable[(-cang) & 2047] * czoom;
-		yvect = sintable[(1536 - cang) & 2047] * czoom;
-		xvect2 = mulscale(xvect, yxaspect, 16);
-		yvect2 = mulscale(yvect, yxaspect, 16);
-
-		// Draw red lines
-		for (i = 0; i < numsectors; i++) {
-			if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
-				continue;
-
-			startwall = sector[i].wallptr;
-			endwall = sector[i].wallptr + sector[i].wallnum;
-
-			z1 = sector[i].ceilingz;
-			z2 = sector[i].floorz;
-
-			if (startwall < 0 || endwall < 0)
-				continue;
-
-			for (j = startwall; j < endwall; j++) {
-				wal = wall[j];
-				if (wal == null)
-					continue;
-				k = wal.nextwall;
-				if (k < 0 || k > j)
-					continue;
-				if (wal.nextsector < 0)
-					continue;
-
-				if (sector[wal.nextsector] != null
-						&& ((sector[wal.nextsector].ceilingz != z1 || sector[wal.nextsector].floorz != z2
-								|| (wall[wal.nextwall] != null
-										&& ((wal.cstat | wall[wal.nextwall].cstat) & (16 + 32)) != 0)))
-						&& showredwalls
-						|| !fullmap && (show2dsector[wal.nextsector >> 3] & 1 << (wal.nextsector & 7)) == 0) {
-					ox = wal.x - cposx;
-					oy = wal.y - cposy;
-					x1 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
-					y1 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
-
-					wal2 = wall[wal.point2];
-					ox = wal2.x - cposx;
-					oy = wal2.y - cposy;
-					x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
-					y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
-
-					drawline256(x1, y1, x2, y2, redwallcol);
-				}
-			}
-		}
-
-		// Draw sprites
-		for (i = 0; i < numsectors; i++) {
-			if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
-				continue;
-
-			for (j = headspritesect[i]; j >= 0; j = nextspritesect[j]) {
-
-			}
-
-		}
-
-		// Draw white lines
-		for (i = 0; i < numsectors; i++) {
-
-			if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
-				continue;
-
-			startwall = sector[i].wallptr;
-			endwall = sector[i].wallptr + sector[i].wallnum;
-
-			if (startwall < 0 || endwall < 0)
-				continue;
-
-			k = -1;
-			for (j = startwall; j < endwall; j++) {
-				wal = wall[j];
-				if (wal == null)
-					continue;
-				if (wal.nextwall >= 0)
-					continue;
-				if (tilesizx[wal.picnum] == 0)
-					continue;
-				if (tilesizy[wal.picnum] == 0)
-					continue;
-
-				if (j == k) {
-					x1 = x2;
-					y1 = y2;
-				} else {
-					ox = wal.x - cposx;
-					oy = wal.y - cposy;
-					x1 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
-					y1 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
-				}
-
-				k = wal.point2;
-				wal2 = wall[k];
-				if (wal2 == null)
-					continue;
-
-				ox = wal2.x - cposx;
-				oy = wal2.y - cposy;
-				x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
-				y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
-
-				drawline256(x1, y1, x2, y2, whitewallcol);
-			}
-		}
-
-		// draw player
-		for (i = connecthead; i >= 0; i = connectpoint2[i]) {
-			if (plrsprites[i] == -1)
-				continue;
-
-			SPRITE pPlayer = sprite[plrsprites[i]];
-			ox = pPlayer.x - cposx;
-			oy = pPlayer.y - cposy;
-
-			int dx = mulscale(ox, xvect, 16) - mulscale(oy, yvect, 16);
-			int dy = mulscale(oy, xvect2, 16) + mulscale(ox, yvect2, 16);
-
-			int dang = (pPlayer.ang - cang) & 0x7FF;
-			if (i == viewindex && !scrollmode) {
-				dx = 0;
-				dy = viewindex ^ i;
-				dang = 0;
-			}
-
-			if (i == viewindex || allplrs) {
-				int nZoom = mulscale(yxaspect,
-						czoom * (klabs((sector[pPlayer.sectnum].floorz - pPlayer.z) >> 8) + pPlayer.yrepeat), 16);
-				nZoom = BClipRange(nZoom, 22000, 0x20000);
-				int sx = (dx << 4) + (xdim << 15);
-				int sy = (dy << 4) + (ydim << 15);
-
-				rotatesprite(sx, sy, nZoom, (short) dang, pPlayer.picnum, pPlayer.shade, pPlayer.pal,
-						(pPlayer.cstat & 2) >> 1, wx1, wy1, wx2, wy2);
-			}
-		}
 	}
 
 	@Override
@@ -1582,7 +1401,7 @@ public class Polymost2D implements Renderer2D {
 			fbuf.rewind();
 
 			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 256, 128, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);
+			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, 256, 128, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, fbuf);
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		}
@@ -1607,5 +1426,8 @@ public class Polymost2D implements Renderer2D {
 			this.xi = src.xi;
 			this.i = src.i;
 		}
-	};
+	}
+
+	@Override
+	public void nextpage() {};
 }

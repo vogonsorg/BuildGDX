@@ -1,3 +1,19 @@
+// This file is part of BuildGDX.
+// Copyright (C) 2017-2019  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+// BuildGDX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// BuildGDX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
 package ru.m210projects.Build.Render.GdxRender;
 
 import static ru.m210projects.Build.Engine.xdim;
@@ -74,7 +90,7 @@ public class GdxBatch {
 			new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
 			new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
 
-		projectionMatrix.setToOrtho(0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, 1);
+		projectionMatrix.setToOrtho(0, Gdx.graphics.getWidth() - 1, Gdx.graphics.getHeight() - 1, 0, 0, 1);
 
 		int VERTEX_SIZE = 2 + 1 + 2;
 		int SPRITE_SIZE = 4 * VERTEX_SIZE;
@@ -135,8 +151,8 @@ public class GdxBatch {
 			"void main()\n" + 
 			"{\n" + 
 			"	//rotatesprite clipping\n" + 
-			"	if( gl_FragCoord.x < cx1 || gl_FragCoord.x >= cx2\n" + 
-			"		|| gl_FragCoord.y >= cy1 || gl_FragCoord.y < cy2 ) \n" + 
+			"	if( gl_FragCoord.x < cx1 || gl_FragCoord.x > cx2 + 1.0\n" + 
+			"		|| gl_FragCoord.y > cy1 || gl_FragCoord.y < cy2 - 1.0 ) \n" + 
 			"		discard;\n" + 
 			"	gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" + 
 			"}\n";

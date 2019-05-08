@@ -67,12 +67,12 @@ public class Compat {
 			return null;
 		
 		//Debug XXX
-		String OS = System.getProperty("os.name");
-		if( (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 ) ) {
-			Console.LogPrint(parent + " " + new File(parent).getAbsolutePath());
-			
-			Console.LogPrint(toLowerCase(path));
-		}
+//		String OS = System.getProperty("os.name");
+//		if( (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 ) ) {
+//			Console.LogPrint(parent + " " + new File(parent).getAbsolutePath());
+//			
+//			Console.LogPrint(toLowerCase(path));
+//		}
 
 		return toLowerCase(path);
 	}
@@ -184,7 +184,7 @@ public class Compat {
 				raf_list[handle] = null;
 				var = 0;
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return var;
@@ -205,7 +205,7 @@ public class Compat {
 			}
 			
 			var = (int) fis.getChannel().position();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Couldn't load file " + handle);
 	    } 
 		return var;
@@ -247,7 +247,7 @@ public class Compat {
 		try {
 			out = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, position, len);
 			out.order(ByteOrder.LITTLE_ENDIAN);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Couldn't load file " + handle);
 	    }
 		
@@ -263,7 +263,7 @@ public class Compat {
 		try {
 			out = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, fis.length());
 			out.order(ByteOrder.LITTLE_ENDIAN);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Couldn't load file " + handle);
 	    }
 		
@@ -308,7 +308,7 @@ public class Compat {
 		try {
 			fis.write(buf, 0, len);
 			var = len;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Couldn't save file " + handle);
 	    } 
 		return var;
@@ -326,7 +326,7 @@ public class Compat {
 				buffer[i] = (byte) buf[i];
 			fis.write(buffer);
 			var = len;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Couldn't save file " + handle);
 	    } 
 		return var;
@@ -355,7 +355,7 @@ public class Compat {
 
 			fis.write(buf);
 			var = len;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Couldn't save file " + handle);
 	    } 
 		return var;
@@ -366,7 +366,7 @@ public class Compat {
 		RandomAccessFile fis = raf_list[handle];
 		try {
 			var = (int) fis.length();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Couldn't load file " + handle);
 		}
 		return var;
@@ -377,7 +377,7 @@ public class Compat {
 		RandomAccessFile fis = raf_list[handle];
 		try {
 			var = (int) fis.getChannel().position();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return var;
