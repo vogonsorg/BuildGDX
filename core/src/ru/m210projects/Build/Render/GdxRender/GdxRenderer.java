@@ -425,11 +425,14 @@ public class GdxRenderer implements Renderer {
 		Gdx.gl.glDisable(GL_ALPHA_TEST);
 		Gdx.gl.glDepthMask(false); // disable writing to the z-buffer
 		Gdx.gl.glEnable(GL_BLEND);
-		
+
 		bindBatch();
 		
 		int xsiz = (fontsize != 0 ? 4 : 8);
 		int ysiz = (fontsize != 0 ? 6 : 8);
+		
+		xpos <<= 16;
+		ypos <<= 16;
 
 		int c = 0, line = 0;
 		int x, y, yoffs;
@@ -448,7 +451,7 @@ public class GdxRenderer implements Renderer {
 			yoffs = (int) (scale * line * (8 >> fontsize));
 	
 			batch.setColor((curpalette[3 * col] & 0xFF) / 255.0f, (curpalette[3 * col + 1] & 0xFF) / 255.0f, (curpalette[3 * col + 2] & 0xFF) / 255.0f, 1.0f);
-			batch.draw(getFont(), x, y, xsiz, ysiz, 0, -yoffs, (text[c] % 32) * xsiz, (text[c] / 32) * ysiz, xsiz, ysiz, 0, 65536, 10, 0, 0, xdim - 1, ydim - 1);
+			batch.draw(getFont(), x, y, xsiz, ysiz, 0, -yoffs, (text[c] % 32) * xsiz, (text[c] / 32) * ysiz, xsiz, ysiz, 0, 65536, 8, 0, 0, xdim - 1, ydim - 1);
 
 			xpos += xsiz << 16;
 			c++;
