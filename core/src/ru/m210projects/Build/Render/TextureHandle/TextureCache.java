@@ -142,7 +142,7 @@ public class TextureCache {
 		if (Gdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
 
-		uploadBoundTexture(doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic, tsizx, tsizy);
+		uploadBoundTexture(doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic);
 		int gltexfiltermode = Console.Geti("r_texturemode"); //TODO: GL settings
 		setupBoundTexture(gltexfiltermode, anisotropy.get());
 		int wrap = !clamping ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP;
