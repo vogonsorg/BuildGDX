@@ -61,6 +61,7 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -342,7 +343,7 @@ public abstract class Polymost implements Renderer {
 		
 		init();
 
-		Console.Println(GLInfo.renderer + " " + GLInfo.version + " initialized", OSDTEXT_GOLD);
+		Console.Println(Gdx.graphics.getGLVersion().getRendererString() + " " + GLInfo.version + " initialized", OSDTEXT_GOLD);
 	}
 	
 	@Override
@@ -497,7 +498,7 @@ public abstract class Polymost implements Renderer {
 		polymost2d.init();
 		GLInfo.init(gl);
 
-		if (GLInfo.vendor.compareTo("NVIDIA Corporation") == 0) {
+		if (Gdx.graphics.getGLVersion().getVendorString().compareTo("NVIDIA Corporation") == 0) {
 			gl.glHint(GL_FOG_HINT, GL_NICEST);
 		} else {
 			gl.glHint(GL_FOG_HINT, GL_DONT_CARE);
@@ -1374,7 +1375,7 @@ public abstract class Polymost implements Renderer {
 			y = wal2.y - globalposy;
 			xp1 = y * gcosang - x * gsinang;
 			yp1 = x * gcosang2 + y * gsinang2;
-
+		
 			oxp0 = xp0;
 			oyp0 = yp0;
 

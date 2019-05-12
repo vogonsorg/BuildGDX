@@ -140,8 +140,10 @@ public class BuildApplicationImpl implements BuildApplication {
 						listener.pause();
 						listener.dispose();
 					}
-					BuildGdx.audio.dispose();
-					BuildGdx.message.dispose();
+					if(BuildGdx.audio != null)
+						BuildGdx.audio.dispose();
+					if(BuildGdx.message != null)
+						BuildGdx.message.dispose();
 					frame.destroy();
 					
 					if (t instanceof RuntimeException)
@@ -218,8 +220,10 @@ public class BuildApplicationImpl implements BuildApplication {
 		}
 		listener.pause();
 		listener.dispose();
-		BuildGdx.audio.dispose();
-		BuildGdx.message.dispose();
+		if(BuildGdx.audio != null)
+			BuildGdx.audio.dispose();
+		if(BuildGdx.message != null)
+			BuildGdx.message.dispose();
 		frame.destroy();
 		if (config.forceExit) System.exit(-1);
 	}
