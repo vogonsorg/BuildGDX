@@ -49,8 +49,8 @@ public abstract class BuildConfig extends IniFile {
 	}
 	
 	public KeyType[] joymap = {
-		MenuKeys.Menu_Toggle.setJoyNum(0),
-		MenuKeys.Menu_Enter.setJoyNum(1),
+		MenuKeys.Menu_Enter.setJoyNum(0),
+		MenuKeys.Menu_Cancel.setJoyNum(1),
 		MenuKeys.Menu_Up.setJoyNum(2),
 		MenuKeys.Menu_Down.setJoyNum(3),
 		MenuKeys.Menu_Left.setJoyNum(4),
@@ -58,8 +58,8 @@ public abstract class BuildConfig extends IniFile {
 	};
 	
 	public enum MenuKeys implements KeyType { 
-		Menu_Toggle,
 		Menu_Enter,
+		Menu_Cancel,
 		Menu_Up,
 		Menu_Down,
 		Menu_Left,
@@ -103,6 +103,7 @@ public abstract class BuildConfig extends IniFile {
 		Shrink_Screen,
 		Send_Message,
 		Mouse_Aiming,
+		Menu_Toggle,
 		Show_Console;
 		
 		private int num = -1;
@@ -399,9 +400,12 @@ public abstract class BuildConfig extends IniFile {
 			case 60: num = 2; break;
 			case 120: num = 3; break;
 			case 144: num = 4; break;
+			case 200: num = 5; break;
+			case 250: num = 6; break;
+			case 300: num = 7; break;
 		}
 		
-		if(num < 0 || num >= 5) {
+		if(num < 0 || num >= 8) {
 			num = 0;
 			fpslimit = 0;
 			BuildGdx.app.setMaxFramerate(0);

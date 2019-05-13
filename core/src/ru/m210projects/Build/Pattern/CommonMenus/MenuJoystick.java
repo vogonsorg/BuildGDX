@@ -26,6 +26,7 @@ import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
 import ru.m210projects.Build.Pattern.MenuItems.MenuButton;
 import ru.m210projects.Build.Pattern.MenuItems.MenuConteiner;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
+import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
 import ru.m210projects.Build.Pattern.MenuItems.MenuJoyList;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
@@ -165,7 +166,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		mJoyMove.list = StickName;
 
 		posy += 5;
-		mDeadZone = new MenuSlider(app.pSlider, "Dead zone:", style, posx, posy += menuHeight, width, cfg.gJoyDeadZone, 0, 0x8000,
+		mDeadZone = new MenuSlider(app.pSlider, "Dead zone:", style, posx, posy += menuHeight, width, cfg.gJoyDeadZone, 0, 65536,
 				2048, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -177,7 +178,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		mDeadZone.digitalMax = 65536.0f;
 
 		mLookSpeed = new MenuSlider(app.pSlider, "Look speed:", style, posx, posy += menuHeight, width, cfg.gJoyLookSpeed, 0,
-				0x28000, 4096, new MenuProc() {
+				999424, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSlider slider = (MenuSlider) pItem;
@@ -187,7 +188,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		mLookSpeed.digitalMax = 65536.0f;
 
 		mTurnSpeed = new MenuSlider(app.pSlider, "Turn speed:", style, posx, posy += menuHeight, width, cfg.gJoyTurnSpeed, 0,
-				0x28000, 4096, new MenuProc() {
+				999424, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSlider slider = (MenuSlider) pItem;
@@ -241,7 +242,7 @@ public abstract class MenuJoystick extends BuildMenu {
 					case ENTER:
 					case ESC:
 						item.l_set = 0;
-						if(!gpmanager.isValidDevice(cfg.gJoyDevice)) break;
+						if(!gpmanager.isValidDevice(cfg.gJoyDevice) || item.l_pressedId == MenuOpt.ESC) break;
 						for (int kb = 0; kb < gpmanager.getButtonCount(cfg.gJoyDevice); kb++) {
 							if (gpmanager.buttonPressed(cfg.gJoyDevice, kb)) {
 								if(item.l_nFocus < cfg.joymap.length)

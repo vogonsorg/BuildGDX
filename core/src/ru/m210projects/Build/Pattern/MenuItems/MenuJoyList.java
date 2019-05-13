@@ -58,8 +58,12 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 			if(i < cfg.joymap.length) {
 				text = cfg.joymap[i].getName();
 				pal = menupal;
-			} else text = keynames[i - cfg.joymap.length].getName();
-			
+			} else {
+				text = keynames[i - cfg.joymap.length].getName();
+				if( i - cfg.joymap.length == GameKeys.Menu_Toggle.getNum() )
+					pal = menupal;
+			}
+		
 			if(l_nMin < cfg.joymap.length && i == cfg.joymap.length) {
 				py += mFontOffset();
 				offset = true;
@@ -226,7 +230,7 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 			if((flags & 4) != 0 && callback != null)
 				callback.run(handler, this);
 
-			if(l_nFocus == MenuKeys.Menu_Toggle.getNum())
+			if(l_nFocus == GameKeys.Menu_Toggle.getNum())
 				gpmanager.resetButtonStatus();
 
 			return false;

@@ -1468,8 +1468,7 @@ public abstract class Engine {
 			int localtilestart = LittleEndian.getInt(buf);
 			kRead(fil, buf, 4);
 			int localtileend = LittleEndian.getInt(buf);
-			int k = localtilestart / (localtileend - localtilestart);
-
+			
 			for (int i = localtilestart; i <= localtileend; i++) {
 				kRead(fil, buf, 2);
 				tilesizx[i] = LittleEndian.getShort(buf);
@@ -1482,22 +1481,14 @@ public abstract class Engine {
 				kRead(fil, buf, 4);
 				picanm[i] = LittleEndian.getInt(buf);
 			}
-			int offscount = 4 + 4 + 4 + 4 + ((localtileend - localtilestart + 1) << 3);
-			for (int i = localtilestart; i <= localtileend; i++) {
-				tilefilenum[i] = k;
-				tilefileoffs[i] = offscount;
-				int dasiz = tilesizx[i] * tilesizy[i];
-				offscount += dasiz;
-				waloff[i] = null;
-			}
-			
-			klseek(fil, tilefileoffs[localtilestart], SEEK_SET);
+
 			for (int i = localtilestart; i <= localtileend; i++) {
 				int dasiz = tilesizx[i] * tilesizy[i];
 				waloff[i] = new byte[dasiz];
 				kRead(fil, waloff[i], dasiz);
 				setpicsiz(i);
 			}
+
 			kClose(fil);
 		}
 	}

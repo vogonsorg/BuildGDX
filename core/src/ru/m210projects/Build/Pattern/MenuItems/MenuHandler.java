@@ -168,6 +168,11 @@ public abstract class MenuHandler {
 
 		if(pMenu != null) {
 			MenuOpt opt = MenuOpt.ANY;
+			
+			if(input.ctrlPadStatusOnce(GameKeys.Menu_Toggle)) { //Gamepad menu_toggle special handling
+				mClose();
+				return;
+			}
 
 			if(input.ctrlKeyStatusOnce(Keys.UP) || input.ctrlPadStatusOnce(MenuKeys.Menu_Up))
 				opt = MenuOpt.UP;
@@ -179,7 +184,7 @@ public abstract class MenuHandler {
 				opt = MenuOpt.RIGHT;
 			if(input.ctrlKeyStatusOnce(Keys.ENTER) || input.ctrlPadStatusOnce(MenuKeys.Menu_Enter)) 
 				opt = MenuOpt.ENTER;
-			if(input.ctrlGetInputKey(MenuKeys.Menu_Toggle, true)) 
+			if(input.ctrlGetInputKey(GameKeys.Menu_Toggle, true) || mCount > 1 && input.ctrlPadStatusOnce(MenuKeys.Menu_Cancel)) 
 				opt = MenuOpt.ESC;
 			if(input.ctrlKeyStatusOnce(Keys.SPACE)) 
 				opt = MenuOpt.SPACE;

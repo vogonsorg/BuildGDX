@@ -4356,7 +4356,7 @@ public abstract class Polymost implements Renderer {
 			if((globalorientation & 128) != 0)
 				k0 -= ((m.zsiz * tspr.yrepeat) << 2);
 			
-			k0 += (yoff * tspr.yrepeat) << 2;
+			k0 -= (yoff * tspr.yrepeat) << 2;
 		}
 		
 		x0 += xoff * (tspr.xrepeat >> 2);
@@ -4621,11 +4621,7 @@ public abstract class Polymost implements Renderer {
 		System.err.println("Preload");
 		for(int i = 0; i < MAXSPRITES; i++)
 		{
-			spriteext[i].angoff = 0;
-			spriteext[i].xoff = 0;
-			spriteext[i].yoff = 0;
-			spriteext[i].zoff = 0;
-			
+			spriteext[i].clear();
 			removeSpriteCorr(i);
 			SPRITE spr = sprite[i];
 			if(((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS) 

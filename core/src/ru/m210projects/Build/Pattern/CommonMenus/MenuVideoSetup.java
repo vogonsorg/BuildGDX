@@ -144,12 +144,15 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			@Override
 			public void open() {
 				if (this.list == null) {
-					this.list = new char[5][];
+					this.list = new char[8][];
 					this.list[0] = "None".toCharArray();
 					this.list[1] = "30 fps".toCharArray();
 					this.list[2] = "60 fps".toCharArray();
 					this.list[3] = "120 fps".toCharArray();
 					this.list[4] = "144 fps".toCharArray();
+					this.list[5] = "200 fps".toCharArray();
+					this.list[6] = "250 fps".toCharArray();
+					this.list[7] = "300 fps".toCharArray();
 				}
 				
 				num = cfg.checkFps(cfg.fpslimit);

@@ -26,12 +26,12 @@ public class Scriptfile {
 	public int linenum;
 	public int[] lineoffs;
 
-	private void skipovertoken() {
+	protected void skipovertoken() {
 		while ((textptr < eof) && (textbuf.charAt(textptr)) != 0)
 			textptr++;
 	}
 
-	private void skipoverws() {
+	protected void skipoverws() {
 		if ((textptr < eof) && (textbuf.charAt(textptr)) == 0)
 			textptr++;
 	}
@@ -145,7 +145,7 @@ public class Scriptfile {
 						// numbers
 	}
 
-	private void preparse(byte[] data, int flen) {
+	protected void preparse(byte[] data, int flen) {
 		// Count number of lines
 		int numcr = 1;
 		for (int i = 0; i < flen; i++) {
