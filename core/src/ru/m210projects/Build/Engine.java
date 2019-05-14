@@ -88,7 +88,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 	
-	public static final String version = "19.04";
+	public static final String version = "19.05";
 	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
