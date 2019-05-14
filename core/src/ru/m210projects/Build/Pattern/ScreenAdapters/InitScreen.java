@@ -24,6 +24,7 @@ import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 
 import com.badlogic.gdx.ScreenAdapter;
 
+import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
@@ -66,7 +67,7 @@ public class InitScreen extends ScreenAdapter {
 		Console.SetLogFile(game.appname + ".log");
 		
 		Console.Println("BUILD engine by Ken Silverman (http://www.advsys.net/ken) \r\n"
-				+ game.appname + " " + game.sversion + " by [M210®] (http://m210.duke4.net)");
+				+ game.appname + " " + game.sversion + "(BuildGdx v" + Engine.version + ") by [M210®] (http://m210.duke4.net)");
 
 		
 		Console.Println("Current date " + game.date.getLaunchDate());
