@@ -75,7 +75,8 @@ public abstract class MenuVideoSetup extends BuildMenu {
 						cfg.gFov = (slider.value / 16384.0f);
 						app.pEngine.setFov(cfg.gFov);
 					}
-				}, false);
+				}, true);
+		sFov.digitalMax = 16384.0f; //182.04f
 		posy += 5;
 		
 		sFilter = new MenuConteiner("Texture mode:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {

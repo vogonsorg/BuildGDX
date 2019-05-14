@@ -136,7 +136,7 @@ public abstract class BuildConfig extends IniFile {
 	public boolean borderless = false;
 	
 	public int snddrv = 1;
-	public int middrv = 0;
+	public int middrv = 1;
 	public int midiSynth = 0;
 	
 	public float gamma = 1;
