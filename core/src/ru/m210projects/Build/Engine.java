@@ -233,6 +233,7 @@ public abstract class Engine {
 	public static Clip ray;
 	
 	private static int[] zofslope;
+	private float fovFactor = 1.0f;
 	
 	public static int rayx = 0;
 	public static int rayy = 0;
@@ -3434,13 +3435,19 @@ public abstract class Engine {
 	}
 
 	public void setaspect(int daxrange, int daaspect) { //jfBuild
-		viewingrange = daxrange;
-		viewingrangerecip = (int) divscale(1, daxrange, 32);
+		viewingrange = (int) (daxrange * fovFactor);
+		viewingrangerecip = (int) divscale(1, viewingrange, 32);
 
 		yxaspect = daaspect;
 		xyaspect = (int) divscale(1, yxaspect, 32);
 		xdimenscale = scale(xdimen, yxaspect, 320);
 		xdimscale = scale(320, xyaspect, xdimen);
+	}
+	
+	public void setFov(float fovFactor)
+	{
+		this.fovFactor = fovFactor;
+		setaspect_new();
 	}
 
 	//dastat&1    :translucence

@@ -48,13 +48,10 @@ public abstract class BuildGame extends Game {
 	
 	/*
 	 * TODO:
-	 * 
-	 * Common console cmds
 	 * SaveManager findSaves()
 	 * VideoList refactoring
 	 * texture.bind(0) need fix (detail textures)
 	 * GLSettings
-	 * Renderer2D separate 3D
 	 * Disable mipmaps build in nearest filter
 	 * kOpen external file -> native bytebuffer (read only)
 	 */

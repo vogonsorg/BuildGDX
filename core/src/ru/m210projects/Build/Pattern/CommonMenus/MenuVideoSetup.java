@@ -32,6 +32,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuConteiner;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
+import ru.m210projects.Build.Pattern.MenuItems.MenuSlider;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Render.GLInfo;
@@ -43,6 +44,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 	public MenuConteiner sFilter;		
 	public MenuConteiner sAnisotropy;
 	public MenuSwitch sWidescreen;
+	public MenuSlider sFov;
 	public MenuConteiner mMenuFPS;
 	public MenuSwitch sVSync;
 	public  MenuSwitch UseVoxels;
@@ -65,7 +67,18 @@ public abstract class MenuVideoSetup extends BuildMenu {
 
 		mColorMode = new MenuButton("Color correction", style, posx, posy += menuHeight, width, 1, 0, getColorCorrectionMenu(app), -1, null, 0);
 
-		sFilter = new MenuConteiner("Texture mode:", style, posx, posy += 2 * menuHeight, width, null, 0, new MenuProc() {
+		sFov = new MenuSlider(app.pSlider, "Field of view:", style, posx, posy += 2 * menuHeight, width, (int) (cfg.gFov * 16384.0f),
+				4096, 32768, 256, new MenuProc() {
+					@Override
+					public void run(MenuHandler handler, MenuItem pItem) {
+						MenuSlider slider = (MenuSlider) pItem;
+						cfg.gFov = (slider.value / 16384.0f);
+						app.pEngine.setFov(cfg.gFov);
+					}
+				}, false);
+		posy += 5;
+		
+		sFilter = new MenuConteiner("Texture mode:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -135,6 +148,9 @@ public abstract class MenuVideoSetup extends BuildMenu {
 							case 2: fps = 60; break;
 							case 3: fps = 120; break;
 							case 4: fps = 144; break;
+							case 5: fps = 200; break;
+							case 6: fps = 250; break;
+							case 7: fps = 300; break;
 						}
 						cfg.fpslimit = fps;
 
@@ -210,6 +226,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 
 		addItem(mVideoMode, true);
 		addItem(mColorMode, false);
+		addItem(sFov, false);
 		addItem(sFilter, false);
 		addItem(sAnisotropy, false);
 		addItem(sWidescreen, false);

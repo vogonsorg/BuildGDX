@@ -1885,7 +1885,8 @@ public abstract class Polymost implements Renderer {
 		SECTOR sec = sector[sectnum];
 		drawalls_dd[0] = xdimen * .0000001; // Adjust sky depth based on screen size!
 		t = tilesizx[globalpicnum] << dapskybits; //(1 << (picsiz[globalpicnum] & 15)) << dapskybits;
-		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * viewingrange) / (65536.0 * 65536.0);
+		
+		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * (double)viewingrange) / (65536.0 * 65536.0);
 		drawalls_vv[0] = drawalls_dd[0]
 				* ((tilesizy[globalpicnum] >> 1) + parallaxyoffs)
 				- drawalls_vv[1] * ghoriz;
@@ -1975,8 +1976,7 @@ public abstract class Polymost implements Renderer {
 		gdx = 0;
 		gdy = 0;
 		gdo = drawalls_dd[0];
-		gux = gdo //ширина текстуры
-				* (t * xdimscale * yxaspect * viewingrange)
+		gux = gdo * (t * xdimscale * yxaspect * viewingrange)
 				/ (16384.0 * 65536.0 * 65536.0 * 5.0 * 1024.0);
 		guy = 0; // guo calculated later
 		gvx = 0;
@@ -2237,7 +2237,6 @@ public abstract class Polymost implements Renderer {
 		if(floor) 
 			drawingskybox = 5;
 		
-
 		drawalls_ft[0] = 512 / 16;
 		drawalls_ft[1] = 512 / -16;
 		if(floor) 

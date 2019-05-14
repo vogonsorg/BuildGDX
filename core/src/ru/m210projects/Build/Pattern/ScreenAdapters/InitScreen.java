@@ -30,21 +30,21 @@ import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
+import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
+import ru.m210projects.Build.Types.MemLog;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
 public class InitScreen extends ScreenAdapter {
 	
 	private int frames;
 	private BuildEngine engine;
-	
 	private BuildFactory factory;
-	
 	private Thread thread;
-
 	private BuildGame game;
 	
 	@Override
@@ -59,6 +59,33 @@ public class InitScreen extends ScreenAdapter {
 		Console.fullscreen(false);
 	}
 
+	private void ConsoleInit()
+	{
+		Console.RegisterCvar(new OSDCOMMAND("memusage",
+				"mem usage / total", new OSDCVARFUNC() {
+					@Override
+					public void execute() {
+						Console.Println("Memory used: " + MemLog.used() + " / " + MemLog.total() + " mb");
+					}
+		}));
+		
+		Console.RegisterCvar(new OSDCOMMAND("net_bufferjitter",
+				"net_bufferjitter", new OSDCVARFUNC() {
+					@Override
+					public void execute() {
+						Console.Println("bufferjitter: " + game.pNet.bufferJitter);
+					}
+		}));
+		
+		Console.RegisterCvar(new OSDCOMMAND("quit",
+		null, new OSDCVARFUNC() {
+			@Override
+			public void execute() {
+				game.gExit = true;
+			}
+		}));
+	}
+	
 	public InitScreen(final BuildGame game)
 	{
 		this.game = game;
@@ -145,9 +172,12 @@ public class InitScreen extends ScreenAdapter {
 					Console.setCaptureKey(cfg.mousekeys[consolekey], 2);
 					Console.setCaptureKey(cfg.gpadkeys[consolekey], 3);
 					
+					engine.setFov(cfg.gFov);
+					
 					game.updateColorCorrection();
 
 					game.init();
+					ConsoleInit();
 				} catch (Exception e) {
 					game.ThrowError("InitScreen error", e);
 				}
