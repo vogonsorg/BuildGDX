@@ -134,6 +134,43 @@ public class DirectoryEntry {
 		return cache.get(dirName);
 	}
 	
+	public boolean checkCacheList()
+	{
+		if(!inited) return false;
+		int currentSize = files.size() + subDirectory.size();
+		boolean isMain = name.equals("<main>");
+		File directory = null;
+		
+		if(isMain) {
+			directory = new File(FilePath);
+			currentSize--; //because <userdir>
+		} else directory = new File(absolutePath);
+		
+		File[] fList = directory.listFiles();
+		if(fList != null && currentSize != fList.length)
+		{
+			DirectoryEntry userdir = null;
+			if(isMain) userdir = checkDirectory("<userdir>");
+			
+			subDirectory.clear();
+			files.clear();
+			
+			for (File file : fList) {
+		    	if (file.isFile()) 
+		    		addFile(file);
+		        else {
+		        	DirectoryEntry subDir = addDirectory(file.getName(), file.getAbsolutePath());
+		        	subDir.parentDir = this;
+		        }
+		    }
+			if(isMain) subDirectory.put("<userdir>", userdir);
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
 	public void InitDirectory(String directoryPath)
 	{
 		if(inited)
