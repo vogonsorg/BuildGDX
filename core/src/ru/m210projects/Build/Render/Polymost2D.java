@@ -796,6 +796,8 @@ public class Polymost2D extends OrphoRenderer {
 
 		float txc = font.charsizx / (float) font.sizx, tx;
 		float tyc = font.charsizy / (float) font.sizy, ty;
+		
+		gl.glBegin(GL_TRIANGLE_STRIP);
 
 		int oxpos = xpos;
 		while (c < text.length && text[c] != 0) {
@@ -816,7 +818,6 @@ public class Polymost2D extends OrphoRenderer {
 			x = xpos + (int) (scale * font.charsizx);
 			y = ypos + (int) (scale * font.charsizy);
 
-			gl.glBegin(GL_TRIANGLE_STRIP);
 			gl.glTexCoord2f(tx, ty);
 			gl.glVertex2i(xpos, ypos + yoffs);
 			gl.glTexCoord2f(tx, ty + tyc);
@@ -825,11 +826,12 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glVertex2i(x, ypos + yoffs);
 			gl.glTexCoord2f(tx + txc, ty + tyc);
 			gl.glVertex2i(x, y + yoffs);
-			gl.glEnd();
-
+			
 			xpos += scale * font.charsizx;
 			c++;
 		}
+		
+		gl.glEnd();
 
 		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
 	}

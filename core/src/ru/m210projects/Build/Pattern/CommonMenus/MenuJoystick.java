@@ -26,7 +26,6 @@ import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
 import ru.m210projects.Build.Pattern.MenuItems.MenuButton;
 import ru.m210projects.Build.Pattern.MenuItems.MenuConteiner;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
-import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
 import ru.m210projects.Build.Pattern.MenuItems.MenuJoyList;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
@@ -242,7 +241,6 @@ public abstract class MenuJoystick extends BuildMenu {
 					case ENTER:
 					case ESC:
 						item.l_set = 0;
-						if(!gpmanager.isValidDevice(cfg.gJoyDevice) || item.l_pressedId == MenuOpt.ESC) break;
 						for (int kb = 0; kb < gpmanager.getButtonCount(cfg.gJoyDevice); kb++) {
 							if (gpmanager.buttonPressed(cfg.gJoyDevice, kb)) {
 								if(item.l_nFocus < cfg.joymap.length)

@@ -54,6 +54,7 @@ public abstract class BuildGame extends Game {
 	 * GLSettings
 	 * Disable mipmaps build in nearest filter
 	 * kOpen external file -> native bytebuffer (read only)
+	 * Launcher parameter for start
 	 */
 
 	public final String appname;

@@ -436,7 +436,6 @@ public abstract class Polymost implements Renderer {
 
 	public void gltexinvalidate8() {
 		textureCache.invalidateall();
-		clearskins(true);
 	}
 
 	public void clearskins(boolean bit8only) {

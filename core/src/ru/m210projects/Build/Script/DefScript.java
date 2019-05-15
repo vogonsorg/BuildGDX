@@ -11,13 +11,8 @@
 
 package ru.m210projects.Build.Script;
 
-import static ru.m210projects.Build.Engine.DETAILPAL;
-import static ru.m210projects.Build.Engine.GLOWPAL;
-import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.NORMALPAL;
-import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.SPECULARPAL;
+import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Loader.Model.*;
 import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
 import static ru.m210projects.Build.FileHandle.Cache1D.kGetBuffer;
@@ -32,6 +27,8 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Pixmap.Filter;
 import com.badlogic.gdx.utils.Disposable;
 
 import ru.m210projects.Build.FileHandle.FileEntry;
@@ -126,6 +123,7 @@ public class DefScript implements Disposable {
 		MUSIC,
 		ROTATE,
 		ID,
+		T_TILEFROMTEXTURE,
 		
 		XOFFSET,
 		YOFFSET,
@@ -178,6 +176,9 @@ public class DefScript implements Disposable {
 			put("undefmodelof",      Token.UNDEFMODELOF      );
 			put("undeftexture",      Token.UNDEFTEXTURE      );
 			put("undeftexturerange", Token.UNDEFTEXTURERANGE );
+			
+			// other stuff
+			put("tilefromtexture",   Token.T_TILEFROMTEXTURE );
 			
 			//gdx
 			put("music", Token.MUSIC );
@@ -321,8 +322,23 @@ public class DefScript implements Disposable {
 	private final static Map<String , Token> texturetokens_pal = new HashMap<String , Token>() {
 		private static final long serialVersionUID = 1L;
 		{
-			put("file",     Token.FILE );put("name", Token.FILE );
+			put("file",     Token.FILE );
+			put("name", Token.FILE );
 			put("alphacut", Token.ALPHACUT );
+		}
+	};
+	
+	private final static Map<String , Token> tilefromtexturetokens = new HashMap<String , Token>() {
+		private static final long serialVersionUID = 1L;
+		{
+			 put( "file",            Token.FILE );
+			 put( "name",            Token.FILE );
+			 put( "alphacut",        Token.ALPHACUT );
+			 put( "xoffset",         Token.XOFFSET );
+			 put( "xoff",            Token.XOFFSET );
+			 put( "yoffset",         Token.YOFFSET );
+			 put( "yoff",            Token.YOFFSET );
+			 put( "texture",         Token.TEXTURE );
 		}
 	};
 
@@ -369,6 +385,37 @@ public class DefScript implements Disposable {
 		return Token.ERROR;
 	}
 	
+	private int ImportTileFromTexture(String fn, int tile, int alphacut, boolean istexture)
+	{
+		byte[] data = kGetBytes(fn, 0);
+		if (data == null)
+			return -1;
+
+		Pixmap pix = new Pixmap(data, 0, data.length);
+		pix.setFilter(Filter.NearestNeighbour);
+
+		int xsiz = pix.getWidth();
+		int ysiz = pix.getHeight();
+		
+		waloff[tile] = new byte[xsiz * ysiz];
+		tilesizx[tile] = (short) xsiz;
+		tilesizy[tile] = (short) ysiz;
+		
+		ByteBuffer bb = pix.getPixels();
+		
+		for(int y = 0; y < ysiz; y++)
+			for(int x = 0; x < xsiz; x++) {
+				waloff[tile][x * ysiz + y] = bb.get();
+				bb.get();
+				bb.get();
+			}
+
+		if (istexture)
+			texInfo.addTexture(tile, 0, fn, (float)(255 - alphacut) * (1.0f / 255.0f), 1.0f, 1.0f, 1.0f, 1.0f, 0); //HICR_ARTIMMUNITY
+
+		return 1;
+	}
+	
 	private void defsparser(Scriptfile script)
     {
 		String fn;
@@ -381,6 +428,85 @@ public class DefScript implements Disposable {
         {
 			switch(gettoken(script, basetokens))
 			{
+			case T_TILEFROMTEXTURE:
+				int ttexturetokptr = script.ltextptr, ttextureend;
+				fn = null;
+	            Integer tile = -1;
+	            int talphacut = 255;
+	            boolean havexoffset = false, haveyoffset =false;
+	            int xoffset = 0, yoffset = 0;
+	            boolean istexture = false;
+	            
+	            if ((tile = script.getsymbol()) == null) break;
+                if ((ttextureend = script.getbraces()) == -1) break;
+                
+                while (script.textptr < ttextureend)
+                {
+                	token = gettoken(script,tilefromtexturetokens);
+                	switch (token)
+                    {
+                    default: break;
+                    case FILE:
+                    	fn = script.getstring();
+                        break;
+                    case ALPHACUT:
+                    	talphacut = script.getsymbol();
+                        talphacut = BClipRange(talphacut, 0, 255);
+                        break;
+                    case XOFFSET:
+                        havexoffset = true;
+                        xoffset = script.getsymbol();
+                        xoffset = BClipRange(xoffset, -128, 127);
+                        break;
+                    case YOFFSET:
+                        haveyoffset = true;
+                        yoffset = script.getsymbol();
+                        yoffset = BClipRange(yoffset, -128, 127);
+                        break;
+                    case TEXTURE:
+                        istexture = true;
+                        break;
+                    }
+                }
+                
+                if(tile < 0 || tile >= MAXTILES)
+                {
+                	Console.Println("Error: missing or invalid 'tile number' for texture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
+                	break;
+                }
+                
+                if (fn == null)
+                {
+                    // tilefromtexture <tile> { texhitscan }  sets the bit but doesn't change tile data
+                    if (havexoffset)
+                    	picanm[tile] |= (xoffset & 0xFF) << 8;
+                    if (haveyoffset)
+                        picanm[tile] |= (yoffset & 0xFF) << 16;
+
+                    if (!havexoffset && !haveyoffset)
+                    	Console.Println("Error: missing 'file name' for tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
+                    break;
+                }
+
+                int texstatus = ImportTileFromTexture(fn, tile, talphacut, istexture);
+                if (texstatus == -3)
+                	Console.Println("Error: No palette loaded, in tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
+                if (texstatus == -(3<<8))
+                	Console.Println("Error: \"" + fn +  "\" has more than one tile, in tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
+                if (texstatus < 0)
+                    break;
+
+                if (havexoffset)
+                	picanm[tile] |= (xoffset & 0xFF) << 8;
+                else if (texstatus == 0)
+                    picanm[tile] &= ~0x0000FF00;
+
+                if (haveyoffset)
+                	 picanm[tile] |= (yoffset & 0xFF) << 16;
+                else if (texstatus == 0)
+                    picanm[tile] &= ~0x00FF0000;
+
+				break;
 			case INCLUDE:
     			if ((fn = script.getstring()) == null) break;
                 include(fn, script, script.ltextptr);
