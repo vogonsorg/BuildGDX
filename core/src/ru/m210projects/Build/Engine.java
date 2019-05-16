@@ -1880,6 +1880,8 @@ public abstract class Engine {
 
 		for (int dacnt = 0; dacnt < danum; dacnt++) {
 			short dasectnum = clipsectorlist[dacnt];
+			if(dasectnum < 0) continue;
+			
 			SECTOR sec = sector[dasectnum];
 
 			if(sec == null) continue;
@@ -1954,7 +1956,7 @@ public abstract class Engine {
 		hit.hitsect = -1;
 		hit.hitwall = -1;
 		hit.hitsprite = -1;
-		if (sectnum < 0)
+		if (sectnum < 0 || sectnum >= MAXSECTORS)
 			return (-1);
 
 		hit.hitx = hitscangoalx;
@@ -1968,8 +1970,9 @@ public abstract class Engine {
 		short tempshortnum = 1;
 		do {
 			dasector = clipsectorlist[tempshortcnt];
+			if(dasector < 0)  { tempshortcnt++; continue; }
 			SECTOR sec = sector[dasector];
-			if(sec == null) break;
+			if(sec == null) { tempshortcnt++; continue; }
 			x1 = 0x7fffffff;
 			if ((sec.ceilingstat & 2) != 0) {
 				WALL wal = wall[sec.wallptr];
@@ -2318,7 +2321,7 @@ public abstract class Engine {
 		near.tagsprite = -1;
 		near.taghitdist = 0;
 
-		if (sectnum < 0 || (tagsearch & 3) == 0)
+		if (sectnum < 0 || sectnum >= MAXSECTORS || (tagsearch & 3) == 0)
 			return 0;
 
 		int vx = mulscale(sintable[(ange + 2560) & 2047], neartagrange, 14);
@@ -2335,9 +2338,11 @@ public abstract class Engine {
 		Point out = null;
 		do {
 			dasector = clipsectorlist[tempshortcnt];
+			if(dasector < 0) { tempshortcnt++; continue; }
 
 			startwall = sector[dasector].wallptr;
 			endwall = (startwall + sector[dasector].wallnum - 1);
+			if(startwall < 0 || endwall < 0) { tempshortcnt++; continue; }
 			for (z = startwall; z <= endwall; z++) {
 				WALL wal = wall[z];
 				WALL  wal2 = wall[wal.point2];
@@ -2565,10 +2570,11 @@ public abstract class Engine {
 		clipsectnum = 1;
 		do {
 			dasect = clipsectorlist[clipsectcnt++];
+			if(dasect < 0) continue;
 			sec = sector[dasect];
 			startwall = sec.wallptr;
 			endwall = startwall + sec.wallnum;
-			if(startwall < 0 || endwall < 0) { clipsectcnt++; continue; }
+			if(startwall < 0 || endwall < 0) continue;
 			for (j = startwall; j < endwall; j++) {
 				wal = wall[j];
 				if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) continue;
@@ -2933,8 +2939,10 @@ public abstract class Engine {
 			clipsectcnt = 0;
 			clipsectnum = 1;
 			do {
-				if (clipsectorlist[clipsectcnt] == -1)
+				if (clipsectorlist[clipsectcnt] == -1) {
+					clipsectcnt++;
 					continue;
+				}
 
 				sec = sector[clipsectorlist[clipsectcnt]];
 				if (dir > 0) {
@@ -3140,7 +3148,7 @@ public abstract class Engine {
 		short cstat;
 		int clipyou;
 
-		if (sectnum < 0) {
+		if (sectnum < 0 || sectnum >= MAXSECTORS) {
 			zr_ceilz = 0x80000000;
 			zr_ceilhit = -1;
 			zr_florz = 0x7fffffff;
@@ -3171,7 +3179,9 @@ public abstract class Engine {
 
 		do //Collect sectors inside your square first
 		{
+			if(clipsectorlist[clipsectcnt] < 0)  { clipsectcnt++; continue; }
 			sec = sector[clipsectorlist[clipsectcnt]];
+
 			startwall = sec.wallptr;
 			endwall = startwall + sec.wallnum;
 			if(startwall < 0 || endwall < 0) { clipsectcnt++; continue; }

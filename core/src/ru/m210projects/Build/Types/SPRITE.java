@@ -50,7 +50,7 @@ public class SPRITE {
     	z = bb.getInt();
     	cstat = bb.getShort();
     	picnum = bb.getShort();
-    	if(picnum >= MAXTILES) picnum = 0;
+    	if(picnum < 0 || picnum >= MAXTILES) picnum = 0;
     	shade = bb.get();
     	pal = (short) (bb.get() & 0xFF);
     	clipdist = bb.get() & 0xFF;
@@ -60,7 +60,7 @@ public class SPRITE {
     	xoffset = bb.get();
     	yoffset = bb.get();
     	sectnum = bb.getShort();
-    	if(sectnum >= MAXSECTORS) sectnum = 0;
+    	if(sectnum < 0 || sectnum >= MAXSECTORS) sectnum = 0;
     	statnum = bb.getShort();
     	ang = bb.getShort();
     	owner = bb.getShort();

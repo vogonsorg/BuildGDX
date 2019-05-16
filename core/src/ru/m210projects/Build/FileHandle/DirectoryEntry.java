@@ -72,6 +72,8 @@ public class DirectoryEntry {
 
 	public FileEntry checkFile(String filepath)
 	{
+		if(filepath == null) return null;
+		
 		filepath = toLowerCase(filepath);
 		DirectoryEntry dir = this;
 		while(filepath.indexOf(File.separator) != -1)

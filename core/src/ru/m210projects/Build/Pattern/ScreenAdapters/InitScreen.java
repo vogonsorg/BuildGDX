@@ -46,12 +46,14 @@ public class InitScreen extends ScreenAdapter {
 	private BuildFactory factory;
 	private Thread thread;
 	private BuildGame game;
+	private boolean gameInitialized;
 	
 	@Override
 	public void show()
 	{
 		frames = 0;
 		Console.fullscreen(true);
+		gameInitialized = false;
 	}
 	
 	@Override
@@ -176,10 +178,11 @@ public class InitScreen extends ScreenAdapter {
 					
 					game.updateColorCorrection();
 
-					game.init();
+					gameInitialized = game.init();
+					
 					ConsoleInit();
-				} catch (Exception e) {
-					game.ThrowError("InitScreen error", e);
+				} catch (Throwable e) {
+					game.ThrowError("InitScreen error", e);	
 				}
 			}
 		});
@@ -202,8 +205,14 @@ public class InitScreen extends ScreenAdapter {
 
 		if(frames > 3)
 		{
-			if(!thread.isAlive()) 
-				game.show();
+			if(!thread.isAlive()) { 
+				if(gameInitialized)
+					game.show();	
+				else {
+					game.GameMessage("InitScreen unknown error!");
+					BuildGdx.app.exit();
+				}
+			}
 		}
 
 		engine.nextpage();

@@ -958,7 +958,6 @@ public class DefScript implements Disposable {
                     break;
         		}
         		buffer.order( ByteOrder.LITTLE_ENDIAN);
-        		
         		VOXModel vox = KVXLoader.load(buffer);  
                 if (vox == null)
                 {

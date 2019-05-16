@@ -106,7 +106,7 @@ public abstract class BuildGame extends Game {
 	
 	public abstract BuildFactory getFactory();
 
-	public abstract void init() throws Exception;
+	public abstract boolean init() throws Exception;
 	
 	public abstract void show();
 	
@@ -244,7 +244,7 @@ public abstract class BuildGame extends Game {
 		return sb.toString();
 	}
 	
-	public void ThrowError(String msg, Exception ex) {
+	public void ThrowError(String msg, Throwable ex) {
 		String stack = stackTraceToString(ex);
 		Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
 		System.err.println(msg + "[" + exceptionHandler(ex) + "]: " + stack);
