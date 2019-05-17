@@ -71,6 +71,7 @@ public class BuildFont {
 	
 	public int getWidth(char ch)
 	{
+		if(!charBounds(ch)) return 0;
 		return charInfo[ch].nWidth;
 	}
 
@@ -80,7 +81,7 @@ public class BuildFont {
 		if (text != null) {
 			int pos = 0;
 			while (pos < text.length && text[pos] != 0) {
-				if(text[pos] >= 256) {
+				if(!charBounds(text[pos])) {
 					pos++;
 					continue;
 				}
@@ -97,7 +98,7 @@ public class BuildFont {
 	}
 	
 	public int drawChar(int x, int y, char ch, int shade, int pal, int nBits, boolean shadow) {
-		if(charInfo[ch].nTile == -1) return 0;
+		if(!charBounds(ch) || charInfo[ch].nTile == -1) return 0;
 		
 		if(charInfo[ch].nTile != nSpace && tilesizx[charInfo[ch].nTile] != 0 && tilesizy[charInfo[ch].nTile] != 0) {
 			if(shadow)
@@ -126,7 +127,7 @@ public class BuildFont {
 		
 		int alignx = 0;
 		for(int i = 0; i < text.length && text[i] != 0; i++) {
-			if(text[i] >= 256)
+			if(!charBounds(text[i]))
 				continue;
 			alignx += drawChar(x + alignx, y, text[i], shade, pal, nBits, shadow);
 		}
@@ -149,7 +150,7 @@ public class BuildFont {
 		if (text != null) {
 			int pos = 0;
 			while (pos < text.length && text[pos] != 0) {
-				if(text[pos] >= 256) {
+				if(!charBounds(text[pos])) {
 					pos++;
 					continue;
 				}
@@ -167,7 +168,7 @@ public class BuildFont {
 	}
 	
 	public int drawChar(int x, int y, char ch, int scale, int shade, int pal, int nBits, boolean shadow) {
-		if(charInfo[ch].nTile == -1) return 0;
+		if(!charBounds(ch) || charInfo[ch].nTile == -1) return 0;
 
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
 		if(charInfo[ch].nTile != nSpace && tilesizx[charInfo[ch].nTile] != 0 && tilesizy[charInfo[ch].nTile] != 0) {
@@ -191,8 +192,7 @@ public class BuildFont {
 	
 		int alignx = 0;
 		for(int i = 0; i < text.length && text[i] != 0; i++) {
-			if(text[i] >= 256)
-				continue;
+			if(!charBounds(text[i])) continue;
 			alignx += drawChar(x + alignx, y, text[i], scale, shade, pal, nBits, shadow);
 		}
 		return alignx;
@@ -202,6 +202,11 @@ public class BuildFont {
 		if(text == null) return 0;
 		
 		return drawText(x, y, toCharArray(text), scale, shade, pal, textAlign, nBits, shadow);
+	}
+	
+	public boolean charBounds(int ch)
+	{
+		return ch >= 0 && ch < 256;
 	}
 
 }

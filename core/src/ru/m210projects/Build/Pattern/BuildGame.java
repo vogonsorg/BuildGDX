@@ -29,7 +29,6 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
@@ -48,8 +47,14 @@ import ru.m210projects.Build.Types.LittleEndian;
 public abstract class BuildGame extends Game {
 	
 	/*
-	 * Common console cmds
+	 * TODO:
 	 * SaveManager findSaves()
+	 * VideoList refactoring
+	 * texture.bind(0) need fix (detail textures)
+	 * GLSettings
+	 * Disable mipmaps build in nearest filter
+	 * kOpen external file -> native bytebuffer (read only)
+	 * Launcher parameter for start
 	 */
 
 	public final String appname;
@@ -101,7 +106,7 @@ public abstract class BuildGame extends Game {
 	
 	public abstract BuildFactory getFactory();
 
-	public abstract void init() throws Exception;
+	public abstract boolean init() throws Exception;
 	
 	public abstract void show();
 	
@@ -129,7 +134,7 @@ public abstract class BuildGame extends Game {
 		try {
 			if(!gExit)
 				super.render();
-			else Gdx.app.exit();
+			else BuildGdx.app.exit();
 		} catch (Throwable e) {
 			if (!release) {
 			e.printStackTrace();
@@ -205,7 +210,7 @@ public abstract class BuildGame extends Game {
 		if(gCurrScreen != null)
 			return gCurrScreen.getClass().getSimpleName();
 		
-		if(Gdx.app != null)
+		if(BuildGdx.app != null)
 			return "Create frame";
 		
 		return "Init frame";
@@ -239,7 +244,7 @@ public abstract class BuildGame extends Game {
 		return sb.toString();
 	}
 	
-	public void ThrowError(String msg, Exception ex) {
+	public void ThrowError(String msg, Throwable ex) {
 		String stack = stackTraceToString(ex);
 		Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
 		System.err.println(msg + "[" + exceptionHandler(ex) + "]: " + stack);
@@ -252,7 +257,7 @@ public abstract class BuildGame extends Game {
 				saveToFTP();
 		} catch (Exception e) {	
 		} finally {
-			Gdx.app.exit();
+			BuildGdx.app.exit();
 		}
 	}
 	
@@ -271,7 +276,7 @@ public abstract class BuildGame extends Game {
 				saveToFTP();
 		} catch (Exception e) {
 		} finally {
-			Gdx.app.exit();
+			BuildGdx.app.exit();
 		}
 	}
 	

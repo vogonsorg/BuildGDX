@@ -20,7 +20,7 @@ import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Pattern.BuildConfig;
-import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
+import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -59,7 +59,7 @@ public abstract class MenuAdapter extends ScreenAdapter {
 			menu.mKeyHandler(game.pInput, delta);
 			menu.mDrawMenu();
 		} else {
-			if (game.pInput.ctrlGetInputKey(MenuKeys.Menu_Toggle, true))
+			if (game.pInput.ctrlGetInputKey(GameKeys.Menu_Toggle, true))
 				menu.mOpen(mainMenu, -1);
 		}
 

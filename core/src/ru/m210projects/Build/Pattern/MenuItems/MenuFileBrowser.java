@@ -14,9 +14,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.badlogic.gdx.Gdx;
-
 import ru.m210projects.Build.Gameutils.ConvertType;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
@@ -58,6 +57,8 @@ public class MenuFileBrowser extends MenuItem {
 	protected BuildFont topFont, pathFont;
 	public int topPal, pathPal, listPal, backPal;
 	public int transparent = 1;
+	
+	private long checkDirectory;
 
 	public MenuFileBrowser(BuildGame app, BuildFont font, BuildFont topFont, BuildFont pathFont, int x, int y, int width,
 			int nItemHeight, int nListItems, int nBackground)
@@ -143,8 +144,8 @@ public class MenuFileBrowser extends MenuItem {
 		if(tmpList == null)
 			tmpList = new ArrayList<String>();
 		else tmpList.clear();
-		
-		if(currDir == dir)
+
+		if(!dir.checkCacheList() && currDir == dir)
 			return;
 
 		if(dir.getParent() != null)
@@ -162,7 +163,7 @@ public class MenuFileBrowser extends MenuItem {
 		btypes.clear();
 		
 		prepareList(dir);
-		
+
 		currDir = dir;
 		path = File.separator;
 		if(dir.getRelativePath() != null)
@@ -269,6 +270,13 @@ public class MenuFileBrowser extends MenuItem {
 		scrollX[DIRECTORY] = x + 2;
 		slider.drawScrollerBackground(scrollX[DIRECTORY], yList, scrollerHeight, 0, 0);
 		slider.drawScroller(scrollX[DIRECTORY], posy, handler.getShade(currColumn == DIRECTORY ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null), 0);
+		
+		if(System.currentTimeMillis() - checkDirectory >= 2000)
+		{
+			if(currDir.checkCacheList()) 
+				refreshList();
+			checkDirectory = System.currentTimeMillis();
+		}
 	}
 	
 	protected void brDrawText( BuildFont font, char[] text, int x, int y, int shade, int pal, int x1, int x2 )
@@ -433,7 +441,7 @@ public class MenuFileBrowser extends MenuItem {
 		if(mx >= x + width / 2) currColumn = 1;
 		else currColumn = 0;
 
-		if(!Gdx.input.isTouched()) {
+		if(!BuildGdx.input.isTouched()) {
 			scrollTouch[DIRECTORY] = false;
 			scrollTouch[FILE] = false;
 		}
@@ -441,7 +449,7 @@ public class MenuFileBrowser extends MenuItem {
 		touchY = my;
 		if(mx > scrollX[currColumn] && mx < scrollX[currColumn] + slider.getScrollerWidth()) 
 		{
-			if(Gdx.input.isTouched())
+			if(BuildGdx.input.isTouched())
 				scrollTouch[currColumn] = true;
 			else scrollTouch[currColumn] = false;
 			return true;

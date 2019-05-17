@@ -14,4 +14,20 @@ public class Spriteext {
 	public short flags;
 	public short xpanning, ypanning;
 	public float alpha;
+	
+	public void clear()
+	{
+		mdanimtims = 0;
+		mdanimcur = 0;
+		angoff = 0;
+		pitch = 0;
+		roll = 0;
+		xoff = 0;
+		yoff = 0;
+		zoff = 0;
+		flags = 0;
+		xpanning = 0;
+		ypanning = 0;
+		alpha = 0;
+	}
 }

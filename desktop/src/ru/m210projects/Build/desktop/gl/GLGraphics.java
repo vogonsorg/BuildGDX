@@ -261,27 +261,21 @@ public class GLGraphics implements BuildGraphics {
 	private void createDisplayPixelFormat (boolean useGL30, int gles30ContextMajor, int gles30ContextMinor) {
 		try {
 			if (useGL30) {
-				ContextAttribs context = new ContextAttribs(gles30ContextMajor, gles30ContextMinor).withForwardCompatible(false)
-					.withProfileCore(true);
+				ContextAttribs context = new ContextAttribs(gles30ContextMajor, gles30ContextMinor).withForwardCompatible(false).withProfileCore(true);
 				try {
-					Display.create(new PixelFormat(config.r + config.g + config.b, config.a, config.depth, config.stencil,
-						config.samples), context);
+					Display.create(new PixelFormat(config.r + config.g + config.b, config.a, config.depth, config.stencil, config.samples), context);
 				} catch (Exception e) {
-					System.out.println("BGraphics: OpenGL " + gles30ContextMajor + "." + gles30ContextMinor
-						+ "+ core profile (GLES 3.0) not supported.");
+					System.out.println("GLGraphics: OpenGL " + gles30ContextMajor + "." + gles30ContextMinor + "+ core profile (GLES 3.0) not supported.");
 					createDisplayPixelFormat(false, gles30ContextMajor, gles30ContextMinor);
 					return;
 				}
-				System.out.println("BGraphics: created OpenGL " + gles30ContextMajor + "." + gles30ContextMinor
-					+ "+ core profile (GLES 3.0) context. This is experimental!");
+				System.out.println("GLGraphics: created OpenGL " + gles30ContextMajor + "." + gles30ContextMinor + "+ core profile (GLES 3.0) context. This is experimental!");
 				usingGL30 = true;
 			} else {
-				Display
-					.create(new PixelFormat(config.r + config.g + config.b, config.a, config.depth, config.stencil, config.samples));
+				Display.create(new PixelFormat(config.r + config.g + config.b, config.a, config.depth, config.stencil, config.samples));
 				usingGL30 = false;
 			}
-			bufferFormat = new BufferFormat(config.r, config.g, config.b, config.a, config.depth, config.stencil, config.samples,
-				false);
+			bufferFormat = new BufferFormat(config.r, config.g, config.b, config.a, config.depth, config.stencil, config.samples, false);
 		} catch (Exception ex) {
 			Display.destroy();
 			try {

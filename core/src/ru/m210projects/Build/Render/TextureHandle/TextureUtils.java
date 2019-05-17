@@ -68,7 +68,7 @@ public class TextureUtils {
 		tex.dispose();
 	}
 
-	public static void uploadBoundTexture(boolean doalloc, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic, int tsizx, int tsizy) {
+	public static void uploadBoundTexture(boolean doalloc, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic) {
 		int mipLevel = calcMipLevel(xsiz, ysiz, getTextureMaxSize());
 		if (mipLevel == 0) {
 			if (doalloc) {

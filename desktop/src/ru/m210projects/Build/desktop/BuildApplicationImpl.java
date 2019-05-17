@@ -22,7 +22,6 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.ApplicationLogger;
 import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Files;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.LifecycleListener;
 import com.badlogic.gdx.Net;
@@ -66,8 +65,8 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglApplicationConfiguration config;
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
-
-	public BuildApplicationImpl (Game listener, DesktopMessage message, LwjglApplicationConfiguration config) {
+	
+	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, LwjglApplicationConfiguration config) {
 		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 		
@@ -92,10 +91,10 @@ public class BuildApplicationImpl implements BuildApplication {
 		BuildGdx.net = Gdx.net;
 		BuildGdx.audio = new BuildAudio();
 		BuildGdx.message = message;
-		
+
 		initialize();
 	}
-	
+
 	@Override
 	public FrameType getFrameType() {
 		return frame.getType();
@@ -141,8 +140,10 @@ public class BuildApplicationImpl implements BuildApplication {
 						listener.pause();
 						listener.dispose();
 					}
-					BuildGdx.audio.dispose();
-					BuildGdx.message.dispose();
+					if(BuildGdx.audio != null)
+						BuildGdx.audio.dispose();
+					if(BuildGdx.message != null)
+						BuildGdx.message.dispose();
 					frame.destroy();
 					
 					if (t instanceof RuntimeException)
@@ -219,8 +220,10 @@ public class BuildApplicationImpl implements BuildApplication {
 		}
 		listener.pause();
 		listener.dispose();
-		BuildGdx.audio.dispose();
-		BuildGdx.message.dispose();
+		if(BuildGdx.audio != null)
+			BuildGdx.audio.dispose();
+		if(BuildGdx.message != null)
+			BuildGdx.message.dispose();
 		frame.destroy();
 		if (config.forceExit) System.exit(-1);
 	}

@@ -29,7 +29,6 @@ import static ru.m210projects.Build.Pragmas.*;
 
 import java.util.Arrays;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -94,14 +93,14 @@ public abstract class MenuHandler {
 	public abstract void mSound(MenuItem item, MenuOpt opt);
 
 	public MenuOpt mUpdateMouse(BuildControls input) {
-		if(Gdx.input.getDeltaX() != 0 || Gdx.input.getDeltaY() != 0)
+		if(BuildGdx.input.getDeltaX() != 0 || BuildGdx.input.getDeltaY() != 0)
 			mUseMouse = true;
 
 		if(!mUseMouse)
 			return null;
 
-		int mx = BClipRange(Gdx.input.getX(), 0, xdim);
-		int my = BClipRange(Gdx.input.getY(), 0, ydim);
+		int mx = BClipRange(BuildGdx.input.getX(), 0, xdim);
+		int my = BClipRange(BuildGdx.input.getY(), 0, ydim);
 
 		if(!input.ctrlMenuMouse())
 			return null;
@@ -169,6 +168,11 @@ public abstract class MenuHandler {
 
 		if(pMenu != null) {
 			MenuOpt opt = MenuOpt.ANY;
+			
+			if(input.ctrlPadStatusOnce(GameKeys.Menu_Toggle)) { //Gamepad menu_toggle special handling
+				mClose();
+				return;
+			}
 
 			if(input.ctrlKeyStatusOnce(Keys.UP) || input.ctrlPadStatusOnce(MenuKeys.Menu_Up))
 				opt = MenuOpt.UP;
@@ -180,7 +184,7 @@ public abstract class MenuHandler {
 				opt = MenuOpt.RIGHT;
 			if(input.ctrlKeyStatusOnce(Keys.ENTER) || input.ctrlPadStatusOnce(MenuKeys.Menu_Enter)) 
 				opt = MenuOpt.ENTER;
-			if(input.ctrlGetInputKey(MenuKeys.Menu_Toggle, true)) 
+			if(input.ctrlGetInputKey(GameKeys.Menu_Toggle, true) || mCount > 1 && input.ctrlPadStatusOnce(MenuKeys.Menu_Cancel)) 
 				opt = MenuOpt.ESC;
 			if(input.ctrlKeyStatusOnce(Keys.SPACE)) 
 				opt = MenuOpt.SPACE;

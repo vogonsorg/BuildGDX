@@ -1,0 +1,246 @@
+// This file is part of BuildGDX.
+// Copyright (C) 2017-2019  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+// BuildGDX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// BuildGDX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
+package ru.m210projects.Build.Render.GdxRender;
+
+import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
+import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
+import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.RESERVEDPALS;
+import static ru.m210projects.Build.Engine.curpalette;
+import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Render.GLInfo.anisotropy;
+
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+
+import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Render.TextureHandle.BTexture;
+import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.ValueResolver;
+import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.TileFont;
+
+public class GdxRenderer implements Renderer {
+	
+	protected final TextureCache textureCache;
+	protected final Engine engine;
+	protected final GdxOrphoRen orphoRen;
+	protected BTexture textAtlas;
+	protected DefScript defs;
+	
+	public GdxRenderer(Engine engine) {
+		BuildGdx.app.setFrame(FrameType.GL);
+		this.engine = engine;
+		this.textureCache = createTextureCache();
+		
+		this.orphoRen = new GdxOrphoRen(engine, textureCache);
+	}
+
+	private TextureCache createTextureCache() {
+		return new TextureCache(new ValueResolver<Integer>() {
+			@Override
+			public Integer get() {
+				return anisotropy();
+			}
+		});
+	}
+
+	@Override
+	public void init() {
+		orphoRen.init();
+	}
+
+	@Override
+	public void uninit() {
+		orphoRen.uninit();
+	}
+
+	@Override
+	public void drawmasks() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void drawrooms() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void clearview(int dacol) {
+		BuildGdx.gl.glClearColor( (curpalette[3*dacol]&0xFF) / 255.0f,
+				(curpalette[3*dacol+1]&0xFF) / 255.0f,
+				(curpalette[3*dacol+2]&0xFF) / 255.0f,
+				0);
+		BuildGdx.gl.glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	@Override
+	public void palfade(HashMap<String, FadeEffect> fades) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void preload() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void precache(int dapicnum, int dapalnum, int datype) {
+		// dapicnum and dapalnum are like you'd expect
+		// datype is 0 for a wall/floor/ceiling and 1 for a sprite
+		// basically this just means walls are repeating
+		// while sprites are clamped
+
+		if ((palookup[dapalnum] == null)
+				&& (dapalnum < (MAXPALOOKUPS - RESERVEDPALS)))
+			return;
+
+		textureCache.cache(dapicnum, dapalnum, (short) 0, textureCache.clampingMode((datype & 1) << 2), true);
+	}
+
+	@Override
+	public void nextpage() {
+		orphoRen.nextpage();
+		engine.faketimerhandler();
+	}
+
+	@Override
+	public void gltexapplyprops() {
+		int gltexfiltermode = Console.Geti("r_texturemode");
+		textureCache.updateSettings(gltexfiltermode);
+
+		if(defs == null)
+			return;
+		
+		int anisotropy = anisotropy();
+		for (int i=MAXTILES-1; i>=0; i--) {
+			Model m = defs.mdInfo.getModel(i);
+	        if(m != null)
+	        	m.setSkinParams(gltexfiltermode, anisotropy);
+	    }
+	}
+
+	@Override
+	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
+			int cy1, int cx2, int cy2) {
+		orphoRen.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
+	}
+
+	@Override
+	public String getname() {
+		return "GdxRenderer";
+	}
+
+	@Override
+	public void drawmapview(int dax, int day, int zoome, int ang) {
+		orphoRen.drawmapview(dax, day, zoome, ang);
+	}
+	
+	@Override
+	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
+		orphoRen.drawoverheadmap(cposx, cposy, czoom, cang);
+	}
+
+	@Override
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
+			float scale) {
+		orphoRen.printext(font, xpos, ypos, text, col, shade, bit, scale);
+	}
+
+	@Override
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
+		orphoRen.printext(xpos, ypos, col, backcol, text, fontsize, scale);
+	}
+
+	@Override
+	public void gltexinvalidateall(int flags) {
+		if ((flags & 1) == 1)
+			textureCache.uninit();
+		if ((flags & 2) == 0)
+			gltexinvalidateall();
+	}
+	
+	public void gltexinvalidateall() {
+		textureCache.invalidateall();
+		textureCache.changePalette(curpalette);
+	}
+
+	@Override
+	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {
+		textureCache.invalidate(dapicnum, dapalnum, textureCache.clampingMode(dameth));
+	}
+
+	@Override
+	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void drawline256(int x1, int y1, int x2, int y2, int col) {
+		orphoRen.drawline256(x1, y1, x2, y2, col);
+	}
+
+	@Override
+	public void settiltang(int tilt) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setdrunk(float intensive) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public float getdrunk() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void addSpriteCorr(int snum) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeSpriteCorr(int snum) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setDefs(DefScript defs) {
+		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
+		if(this.defs != null)
+			gltexinvalidateall();
+		this.defs = defs;
+	}
+
+}

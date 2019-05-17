@@ -16,10 +16,10 @@
 
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildNet;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -77,7 +77,7 @@ public abstract class LoadingAdapter extends ScreenAdapter {
 
 		if(toLoad != null && frames > 10)
 		{
-			Gdx.app.postRunnable(toLoad);
+			BuildGdx.app.postRunnable(toLoad);
 			toLoad = null;
 		}
 		

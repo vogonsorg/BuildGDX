@@ -25,8 +25,6 @@ import static ru.m210projects.Build.Render.VideoMode.validmodes;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.badlogic.gdx.Gdx;
-
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
@@ -177,7 +175,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 					currentMode = validmodes.get(num);
 					choosedMode = currentMode;
 				} else {
-					currentMode = new VideoMode(Gdx.graphics.getDisplayMode());
+					currentMode = new VideoMode(BuildGdx.graphics.getDisplayMode());
 				}
 			}
 

@@ -139,15 +139,18 @@ public class KVXLoader {
 	            z1 = 0;
 	            while (voxptr < voxend)
 	            {
-	            	ztop = buf[cptr]; 
-	            	zleng = buf[cptr + 1];
+	            	ztop = buf[cptr] & 0xFF; 
+	            	zleng = buf[cptr + 1] & 0xFF;
 	                if ((buf[cptr + 2] & 16) == 0)
 	                	setzrange1(vbit,j+z1,j+ztop);
 	                z1 = ztop + zleng;
 	                setzrange1(vbit,j+ztop,j+z1);
 	                cptr += 3; //voxel color
-	                for (z = ztop; z < z1; z++) putvox(x,y,z,pal[buf[cptr++] & 0xFF]);
-
+	                for (z = ztop; z < z1; z++) {
+	                	if(cptr >= buf.length) break;
+	                	putvox(x,y,z,pal[buf[cptr++] & 0xFF]);
+	                }
+	                
 	                voxptr += zleng + 3; 
 	            }
 	        }

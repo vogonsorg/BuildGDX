@@ -19,8 +19,7 @@ package ru.m210projects.Build.Pattern.ScreenAdapters;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 
-import com.badlogic.gdx.Gdx;
-
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildGame;
 
 public class LogoScreen extends SkippableAdapter {
@@ -58,7 +57,7 @@ public class LogoScreen extends SkippableAdapter {
 		
 		if( (gTicks += delta) >= gShowTime && callback != null)
 		{
-			Gdx.app.postRunnable(callback);
+			BuildGdx.app.postRunnable(callback);
 			callback = null;
 		}
 

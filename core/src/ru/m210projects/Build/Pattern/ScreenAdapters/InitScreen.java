@@ -22,36 +22,38 @@ import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.FileHandle.Cache1D.initgroupfile;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 
+import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
+import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
+import ru.m210projects.Build.Types.MemLog;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
 public class InitScreen extends ScreenAdapter {
 	
 	private int frames;
 	private BuildEngine engine;
-	
 	private BuildFactory factory;
-	
 	private Thread thread;
-
 	private BuildGame game;
+	private boolean gameInitialized;
 	
 	@Override
 	public void show()
 	{
 		frames = 0;
 		Console.fullscreen(true);
+		gameInitialized = false;
 	}
 	
 	@Override
@@ -59,6 +61,33 @@ public class InitScreen extends ScreenAdapter {
 		Console.fullscreen(false);
 	}
 
+	private void ConsoleInit()
+	{
+		Console.RegisterCvar(new OSDCOMMAND("memusage",
+				"mem usage / total", new OSDCVARFUNC() {
+					@Override
+					public void execute() {
+						Console.Println("Memory used: " + MemLog.used() + " / " + MemLog.total() + " mb");
+					}
+		}));
+		
+		Console.RegisterCvar(new OSDCOMMAND("net_bufferjitter",
+				"net_bufferjitter", new OSDCVARFUNC() {
+					@Override
+					public void execute() {
+						Console.Println("bufferjitter: " + game.pNet.bufferJitter);
+					}
+		}));
+		
+		Console.RegisterCvar(new OSDCOMMAND("quit",
+		null, new OSDCVARFUNC() {
+			@Override
+			public void execute() {
+				game.gExit = true;
+			}
+		}));
+	}
+	
 	public InitScreen(final BuildGame game)
 	{
 		this.game = game;
@@ -67,7 +96,7 @@ public class InitScreen extends ScreenAdapter {
 		Console.SetLogFile(game.appname + ".log");
 		
 		Console.Println("BUILD engine by Ken Silverman (http://www.advsys.net/ken) \r\n"
-				+ game.appname + " " + game.sversion + " by [M210®] (http://m210.duke4.net)");
+				+ game.appname + " " + game.sversion + "(BuildGdx v" + Engine.version + ") by [M210®] (http://m210.duke4.net)");
 
 		
 		Console.Println("Current date " + game.date.getLaunchDate());
@@ -85,7 +114,7 @@ public class InitScreen extends ScreenAdapter {
 				initgroupfile(factory.resources[i]);
 			} catch (Exception e) { 
 				BuildGdx.message.show("Init error!", "Resource initialization error!", MessageType.Info);
-				Gdx.app.exit();
+				BuildGdx.app.exit();
 				return;
 			}
 		}
@@ -95,7 +124,7 @@ public class InitScreen extends ScreenAdapter {
 			this.engine = game.pEngine = factory.engine();
 		} catch (Exception e) { 
 			BuildGdx.message.show("Build Engine Initialization Error!", "There was a problem initialising the Build engine: \r\n" + e.getMessage(), MessageType.Info);
-			Gdx.app.exit();
+			BuildGdx.app.exit();
 			return;
 		}
 		
@@ -145,11 +174,15 @@ public class InitScreen extends ScreenAdapter {
 					Console.setCaptureKey(cfg.mousekeys[consolekey], 2);
 					Console.setCaptureKey(cfg.gpadkeys[consolekey], 3);
 					
+					engine.setFov(cfg.gFov);
+					
 					game.updateColorCorrection();
 
-					game.init();
-				} catch (Exception e) {
-					game.ThrowError("InitScreen error", e);
+					gameInitialized = game.init();
+					
+					ConsoleInit();
+				} catch (Throwable e) {
+					game.ThrowError("InitScreen error", e);	
 				}
 			}
 		});
@@ -172,8 +205,14 @@ public class InitScreen extends ScreenAdapter {
 
 		if(frames > 3)
 		{
-			if(!thread.isAlive()) 
-				game.show();
+			if(!thread.isAlive()) { 
+				if(gameInitialized)
+					game.show();	
+				else {
+					game.GameMessage("InitScreen unknown error!");
+					BuildGdx.app.exit();
+				}
+			}
 		}
 
 		engine.nextpage();

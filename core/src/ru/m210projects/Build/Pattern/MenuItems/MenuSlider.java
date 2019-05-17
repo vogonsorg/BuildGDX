@@ -22,8 +22,7 @@ import static ru.m210projects.Build.Strhandler.buildString;
 
 import java.util.Arrays;
 
-import com.badlogic.gdx.Gdx;
-
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -185,7 +184,7 @@ public class MenuSlider extends MenuItem {
 	public boolean mouseAction(int mx, int my) {
 		touchX = mx;
 		isTouched = false;
-		if(!Gdx.input.isTouched() && touchedObj != this)
+		if(!BuildGdx.input.isTouched() && touchedObj != this)
 			touchedObj = null;
 		
 		if(text != null)
@@ -201,7 +200,7 @@ public class MenuSlider extends MenuItem {
 		if(mx > cx && mx < cx + slider.getSliderRange())
 			if(my > y && my < y + font.getHeight()) {
 				isTouched = true;
-				if(Gdx.input.isTouched())
+				if(BuildGdx.input.isTouched())
 					touchedObj = this;
 			}
 		

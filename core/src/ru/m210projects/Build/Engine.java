@@ -47,7 +47,6 @@ import ru.m210projects.Build.Types.TextFont;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.files.FileHandle;
@@ -58,12 +57,6 @@ import com.badlogic.gdx.graphics.PixmapIO;
 public abstract class Engine {
 	
 	/*
-	 *  TODO:
-	 * 	Disable mipmaps build in nearest filter
-	 *  kOpen external file -> native bytebuffer
-	 *  
-	 * 
-	 * 
 	 * 	Engine
 	 * 		messages
 	 * 		filecache
@@ -93,15 +86,9 @@ public abstract class Engine {
 	 *  	def loader + common + scriptfile	-> texturecache / mdloader
 	 *  	pragmas
 	 *  	bithandler
-	 *  
-	 *  Game
-	 *  	config
-	 *  	
-	 *  
-	 * 
 	 */
 	
-	public static final String version = "19.04";
+	public static final String version = "19.05";
 	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -246,6 +233,7 @@ public abstract class Engine {
 	public static Clip ray;
 	
 	private static int[] zofslope;
+	private float fovFactor = 1.0f;
 	
 	public static int rayx = 0;
 	public static int rayy = 0;
@@ -1395,29 +1383,29 @@ public abstract class Engine {
 		render.uninit();
 		render.init();
 		
-		if(Gdx.app.getType() == ApplicationType.Android) {
-			daxdim = Gdx.graphics.getWidth();
-			daydim = Gdx.graphics.getHeight();
-			Gdx.graphics.setWindowedMode(daxdim, daydim);
+		if(BuildGdx.app.getType() == ApplicationType.Android) {
+			daxdim = BuildGdx.graphics.getWidth();
+			daydim = BuildGdx.graphics.getHeight();
+			BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 			return true;
 		}
 		
 		if(davidoption == 1)
 		{
 			DisplayMode m = null;
-			for(DisplayMode mode: Gdx.graphics.getDisplayModes()) {
+			for(DisplayMode mode: BuildGdx.graphics.getDisplayModes()) {
 				if(mode.width == daxdim && mode.height == daydim)
-					if(m == null || m.refreshRate < Gdx.graphics.getDisplayMode().refreshRate) {
+					if(m == null || m.refreshRate < BuildGdx.graphics.getDisplayMode().refreshRate) {
 						m = mode;
 					}
 			}
 			
 			if(m == null) {
 				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not support", OSDTEXT_YELLOW);
-				Gdx.graphics.setWindowedMode(daxdim, daydim);
+				BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 				return false;
-			} else Gdx.graphics.setFullscreenMode(m);
-		} else Gdx.graphics.setWindowedMode(daxdim, daydim);
+			} else BuildGdx.graphics.setFullscreenMode(m);
+		} else BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 
 		return true;
 	}
@@ -1481,8 +1469,7 @@ public abstract class Engine {
 			int localtilestart = LittleEndian.getInt(buf);
 			kRead(fil, buf, 4);
 			int localtileend = LittleEndian.getInt(buf);
-			int k = localtilestart / (localtileend - localtilestart);
-
+			
 			for (int i = localtilestart; i <= localtileend; i++) {
 				kRead(fil, buf, 2);
 				tilesizx[i] = LittleEndian.getShort(buf);
@@ -1495,22 +1482,14 @@ public abstract class Engine {
 				kRead(fil, buf, 4);
 				picanm[i] = LittleEndian.getInt(buf);
 			}
-			int offscount = 4 + 4 + 4 + 4 + ((localtileend - localtilestart + 1) << 3);
-			for (int i = localtilestart; i <= localtileend; i++) {
-				tilefilenum[i] = k;
-				tilefileoffs[i] = offscount;
-				int dasiz = tilesizx[i] * tilesizy[i];
-				offscount += dasiz;
-				waloff[i] = null;
-			}
-			
-			klseek(fil, tilefileoffs[localtilestart], SEEK_SET);
+
 			for (int i = localtilestart; i <= localtileend; i++) {
 				int dasiz = tilesizx[i] * tilesizy[i];
 				waloff[i] = new byte[dasiz];
 				kRead(fil, waloff[i], dasiz);
 				setpicsiz(i);
 			}
+
 			kClose(fil);
 		}
 	}
@@ -1901,6 +1880,8 @@ public abstract class Engine {
 
 		for (int dacnt = 0; dacnt < danum; dacnt++) {
 			short dasectnum = clipsectorlist[dacnt];
+			if(dasectnum < 0) continue;
+			
 			SECTOR sec = sector[dasectnum];
 
 			if(sec == null) continue;
@@ -1975,7 +1956,7 @@ public abstract class Engine {
 		hit.hitsect = -1;
 		hit.hitwall = -1;
 		hit.hitsprite = -1;
-		if (sectnum < 0)
+		if (sectnum < 0 || sectnum >= MAXSECTORS)
 			return (-1);
 
 		hit.hitx = hitscangoalx;
@@ -1989,8 +1970,9 @@ public abstract class Engine {
 		short tempshortnum = 1;
 		do {
 			dasector = clipsectorlist[tempshortcnt];
+			if(dasector < 0)  { tempshortcnt++; continue; }
 			SECTOR sec = sector[dasector];
-			if(sec == null) break;
+			if(sec == null) { tempshortcnt++; continue; }
 			x1 = 0x7fffffff;
 			if ((sec.ceilingstat & 2) != 0) {
 				WALL wal = wall[sec.wallptr];
@@ -2339,7 +2321,7 @@ public abstract class Engine {
 		near.tagsprite = -1;
 		near.taghitdist = 0;
 
-		if (sectnum < 0 || (tagsearch & 3) == 0)
+		if (sectnum < 0 || sectnum >= MAXSECTORS || (tagsearch & 3) == 0)
 			return 0;
 
 		int vx = mulscale(sintable[(ange + 2560) & 2047], neartagrange, 14);
@@ -2356,9 +2338,11 @@ public abstract class Engine {
 		Point out = null;
 		do {
 			dasector = clipsectorlist[tempshortcnt];
+			if(dasector < 0) { tempshortcnt++; continue; }
 
 			startwall = sector[dasector].wallptr;
 			endwall = (startwall + sector[dasector].wallnum - 1);
+			if(startwall < 0 || endwall < 0) { tempshortcnt++; continue; }
 			for (z = startwall; z <= endwall; z++) {
 				WALL wal = wall[z];
 				WALL  wal2 = wall[wal.point2];
@@ -2586,10 +2570,11 @@ public abstract class Engine {
 		clipsectnum = 1;
 		do {
 			dasect = clipsectorlist[clipsectcnt++];
+			if(dasect < 0) continue;
 			sec = sector[dasect];
 			startwall = sec.wallptr;
 			endwall = startwall + sec.wallnum;
-			if(startwall < 0 || endwall < 0) { clipsectcnt++; continue; }
+			if(startwall < 0 || endwall < 0) continue;
 			for (j = startwall; j < endwall; j++) {
 				wal = wall[j];
 				if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) continue;
@@ -2954,8 +2939,10 @@ public abstract class Engine {
 			clipsectcnt = 0;
 			clipsectnum = 1;
 			do {
-				if (clipsectorlist[clipsectcnt] == -1)
+				if (clipsectorlist[clipsectcnt] == -1) {
+					clipsectcnt++;
 					continue;
+				}
 
 				sec = sector[clipsectorlist[clipsectcnt]];
 				if (dir > 0) {
@@ -3161,7 +3148,7 @@ public abstract class Engine {
 		short cstat;
 		int clipyou;
 
-		if (sectnum < 0) {
+		if (sectnum < 0 || sectnum >= MAXSECTORS) {
 			zr_ceilz = 0x80000000;
 			zr_ceilhit = -1;
 			zr_florz = 0x7fffffff;
@@ -3192,7 +3179,9 @@ public abstract class Engine {
 
 		do //Collect sectors inside your square first
 		{
+			if(clipsectorlist[clipsectcnt] < 0)  { clipsectcnt++; continue; }
 			sec = sector[clipsectorlist[clipsectcnt]];
+
 			startwall = sec.wallptr;
 			endwall = startwall + sec.wallnum;
 			if(startwall < 0 || endwall < 0) { clipsectcnt++; continue; }
@@ -3456,13 +3445,19 @@ public abstract class Engine {
 	}
 
 	public void setaspect(int daxrange, int daaspect) { //jfBuild
-		viewingrange = daxrange;
-		viewingrangerecip = (int) divscale(1, daxrange, 32);
+		viewingrange = (int) (daxrange * fovFactor);
+		viewingrangerecip = (int) divscale(1, viewingrange, 32);
 
 		yxaspect = daaspect;
 		xyaspect = (int) divscale(1, yxaspect, 32);
 		xdimenscale = scale(xdimen, yxaspect, 320);
 		xdimscale = scale(320, xyaspect, xdimen);
+	}
+	
+	public void setFov(float fovFactor)
+	{
+		this.fovFactor = fovFactor;
+		setaspect_new();
 	}
 
 	//dastat&1    :translucence
@@ -4089,9 +4084,6 @@ public abstract class Engine {
 	}
 
 	public void handleevents() { //gdxBuild
-		if(Gdx.input == null) //not initialized
-			return;
-
 		input.handleevents();
 		Console.HandleScanCode();
 		
@@ -4105,8 +4097,8 @@ public abstract class Engine {
     public void printfps(float scale) {
     	if(System.currentTimeMillis() - fpstime >= 1000)
     	{
-    		int fps = Gdx.graphics.getFramesPerSecond();
-        	int rate = (int)(Gdx.graphics.getDeltaTime() * 1000);
+    		int fps = BuildGdx.graphics.getFramesPerSecond();
+        	int rate = (int)(BuildGdx.graphics.getDeltaTime() * 1000);
         	if(fps <= 9999 && rate <= 9999) {
     	    	int chars = Bitoa(rate, fpsbuffer);
     			chars = buildString(fpsbuffer, chars, "ms ", fps);

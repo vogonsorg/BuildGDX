@@ -30,7 +30,7 @@ public class AndroidMessage implements BuildMessage {
 	}
 	
 	@Override
-	public boolean show(final String header, final String text, boolean send) {
+	public boolean show(final String header, final String text, MessageType type) {
 		app.runOnUiThread(new Runnable(){
 			@Override
 			public void run() {

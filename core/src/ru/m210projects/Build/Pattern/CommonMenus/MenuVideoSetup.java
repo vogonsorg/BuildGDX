@@ -21,8 +21,6 @@ import static ru.m210projects.Build.Engine.usehightile;
 import static ru.m210projects.Build.Engine.usemodels;
 import static ru.m210projects.Build.Engine.usevoxels;
 
-import com.badlogic.gdx.Gdx;
-
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
@@ -34,6 +32,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuConteiner;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
+import ru.m210projects.Build.Pattern.MenuItems.MenuSlider;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Render.GLInfo;
@@ -45,6 +44,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 	public MenuConteiner sFilter;		
 	public MenuConteiner sAnisotropy;
 	public MenuSwitch sWidescreen;
+	public MenuSlider sFov;
 	public MenuConteiner mMenuFPS;
 	public MenuSwitch sVSync;
 	public  MenuSwitch UseVoxels;
@@ -67,7 +67,19 @@ public abstract class MenuVideoSetup extends BuildMenu {
 
 		mColorMode = new MenuButton("Color correction", style, posx, posy += menuHeight, width, 1, 0, getColorCorrectionMenu(app), -1, null, 0);
 
-		sFilter = new MenuConteiner("Texture mode:", style, posx, posy += 2 * menuHeight, width, null, 0, new MenuProc() {
+		sFov = new MenuSlider(app.pSlider, "Field of view:", style, posx, posy += 2 * menuHeight, width, (int) (cfg.gFov * 16384.0f),
+				4096, 32768, 256, new MenuProc() {
+					@Override
+					public void run(MenuHandler handler, MenuItem pItem) {
+						MenuSlider slider = (MenuSlider) pItem;
+						cfg.gFov = (slider.value / 16384.0f);
+						app.pEngine.setFov(cfg.gFov);
+					}
+				}, true);
+		sFov.digitalMax = 16384.0f; //182.04f
+		posy += 5;
+		
+		sFilter = new MenuConteiner("Texture mode:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -137,6 +149,9 @@ public abstract class MenuVideoSetup extends BuildMenu {
 							case 2: fps = 60; break;
 							case 3: fps = 120; break;
 							case 4: fps = 144; break;
+							case 5: fps = 200; break;
+							case 6: fps = 250; break;
+							case 7: fps = 300; break;
 						}
 						cfg.fpslimit = fps;
 
@@ -146,12 +161,15 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			@Override
 			public void open() {
 				if (this.list == null) {
-					this.list = new char[5][];
+					this.list = new char[8][];
 					this.list[0] = "None".toCharArray();
 					this.list[1] = "30 fps".toCharArray();
 					this.list[2] = "60 fps".toCharArray();
 					this.list[3] = "120 fps".toCharArray();
 					this.list[4] = "144 fps".toCharArray();
+					this.list[5] = "200 fps".toCharArray();
+					this.list[6] = "250 fps".toCharArray();
+					this.list[7] = "300 fps".toCharArray();
 				}
 				
 				num = cfg.checkFps(cfg.fpslimit);
@@ -164,7 +182,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 				MenuSwitch sw = (MenuSwitch) pItem;
 				cfg.gVSync = sw.value;
 				try { // crash if hires textures loaded
-					Gdx.graphics.setVSync(cfg.gVSync);
+					BuildGdx.graphics.setVSync(cfg.gVSync);
 				} catch (Exception e) {}
 			}
 		}, null, null);
@@ -209,6 +227,7 @@ public abstract class MenuVideoSetup extends BuildMenu {
 
 		addItem(mVideoMode, true);
 		addItem(mColorMode, false);
+		addItem(sFov, false);
 		addItem(sFilter, false);
 		addItem(sAnisotropy, false);
 		addItem(sWidescreen, false);

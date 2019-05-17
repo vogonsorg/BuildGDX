@@ -53,9 +53,9 @@ public interface Renderer {
 	
 	public String getname();
 	
-	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
+	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 	
-	public abstract void drawmapview(int dax, int day, int zoome, int ang);
+	public void drawmapview(int dax, int day, int zoome, int ang);
 	
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale);
 	

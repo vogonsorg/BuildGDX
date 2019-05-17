@@ -533,4 +533,8 @@ public class SoftInput implements BuildInput {
 	@Override
 	public int getRotation() {return 0;}
 
+	public void processEvents() {
+		
+	}
+
 }

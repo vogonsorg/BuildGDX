@@ -21,8 +21,7 @@ import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Gameutils.BClipLow;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 
-import com.badlogic.gdx.Gdx;
-
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -59,8 +58,12 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 			if(i < cfg.joymap.length) {
 				text = cfg.joymap[i].getName();
 				pal = menupal;
-			} else text = keynames[i - cfg.joymap.length].getName();
-			
+			} else {
+				text = keynames[i - cfg.joymap.length].getName();
+				if( i - cfg.joymap.length == GameKeys.Menu_Toggle.getNum() )
+					pal = menupal;
+			}
+		
 			if(l_nMin < cfg.joymap.length && i == cfg.joymap.length) {
 				py += mFontOffset();
 				offset = true;
@@ -227,7 +230,7 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 			if((flags & 4) != 0 && callback != null)
 				callback.run(handler, this);
 
-			if(l_nFocus == MenuKeys.Menu_Toggle.getNum())
+			if(l_nFocus == GameKeys.Menu_Toggle.getNum())
 				gpmanager.resetButtonStatus();
 
 			return false;
@@ -239,13 +242,13 @@ public abstract class MenuJoyList extends MenuKeyboardList {
 		if(l_set != 0)
 			return false;
 		
-		if(!Gdx.input.isTouched()) 
+		if(!BuildGdx.input.isTouched()) 
 			isTouched = false;
 				
 		touchY = my;
 		if(mx > scrollerX && mx < scrollerX + slider.getScrollerWidth()) 
 		{
-			if(Gdx.input.isTouched())
+			if(BuildGdx.input.isTouched())
 				isTouched = true;
 			else isTouched = false;
 			return true;

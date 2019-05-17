@@ -142,7 +142,7 @@ public class TextureCache {
 		if (Gdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
 
-		uploadBoundTexture(doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic, tsizx, tsizy);
+		uploadBoundTexture(doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic);
 		int gltexfiltermode = Console.Geti("r_texturemode"); //TODO: GL settings
 		setupBoundTexture(gltexfiltermode, anisotropy.get());
 		int wrap = !clamping ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP;
@@ -306,6 +306,11 @@ public class TextureCache {
 	    // load a replacement
 		Pthtyp pth = get(dapicnum, dapalnum, clamping, skybox);
 		
+		if(pth != null && pth.hicr == null) {
+			dispose(dapicnum); //old 8-bit texture
+			pth = null;
+		}
+		
 		if (pth != null) {
 			if (pth.isInvalidated()) {
 				pth.setInvalidated(false);
@@ -343,12 +348,20 @@ public class TextureCache {
 		}
 	}
 
-	private static void invalidate(Pthtyp pth) {
+	private void invalidate(Pthtyp pth) {
 		if (pth == null)
 			return;
 		if (pth.hicr == null) {
 			pth.setInvalidated(true);
 		}
+	}
+	
+	public boolean clampingMode(int dameth) {
+		return ((dameth & 4) >> 2) == 1;
+	}
+
+	public boolean alphaMode(int dameth) {
+		return (dameth & 256) == 0;
 	}
 	
 	public boolean gltexmayhavealpha(int dapicnum, int dapalnum)
@@ -364,13 +377,18 @@ public class TextureCache {
 
 	public void uninit() {
 		for (int i=MAXTILES-1; i>=0; i--) {
-			for (Pthtyp pth=cache[i]; pth != null;) {
-				Pthtyp next = pth.next;
-				pth.glpic.dispose();
-				pth = next;
-			}
-			cache[i] = null;
+			dispose(i);
 		}
+	}
+	
+	public void dispose(int tilenum)
+	{
+		for (Pthtyp pth=cache[tilenum]; pth != null;) {
+			Pthtyp next = pth.next;
+			pth.glpic.dispose();
+			pth = next;
+		}
+		cache[tilenum] = null;
 	}
 	
 	public void savetexture(ByteBuffer pixels, int tw, int th, int w, int h, int num) {
