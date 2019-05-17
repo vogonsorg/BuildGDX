@@ -75,6 +75,7 @@ public class Ac {
 		int bz = asm3; 
 		int bzinc = (asm1>>3);
 		int u, v;
+
 		try {
 			for(;cnt>0;cnt--)
 			{
@@ -332,6 +333,7 @@ public class Ac {
 	
 	public void setupdrawslab (int dabpl, int pal, int shade)
 	{ bpl = dabpl; gpal = pal; gshade = shade; }
+	
 	public void drawslab (int dx, int v, int dy, int vi, int vptr, int p)
 	{
 		int x;
@@ -351,6 +353,11 @@ public class Ac {
 		asm2 = (r.globaly2*rr);
 		hlineasm4(xr-r.lastx[yp],0,engine.getpalookup(mulscale(rr,r.globvis,16),globalshade)<<8,r.globalx2*rr+r.globalypanning,r.globaly1*rr+r.globalxpanning, r.ylookup[yp]+xr);
 	}	
+	
+	public void drawpixel(byte[] frameplace, int ptr, byte col)
+	{
+		frameplace[ptr] = col;
+	}
 }
 	
 	
