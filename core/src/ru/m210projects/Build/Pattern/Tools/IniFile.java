@@ -181,6 +181,8 @@ public class IniFile {
 	
 	protected void init(byte[] data) {
 		this.data = data;
+		
+		if(data == null) return;
 	
 		ini = new PropertyIgnoreCase();
 		context = new HashMap<String, Integer>();

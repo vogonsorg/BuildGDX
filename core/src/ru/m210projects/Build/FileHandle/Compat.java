@@ -180,9 +180,9 @@ public class Compat {
 		RandomAccessFile file = raf_list[handle];
 		try {
 			if (file != null) {
-				file.close();
 				raf_list[handle] = null;
 				var = 0;
+				file.close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -206,7 +206,7 @@ public class Compat {
 			
 			var = (int) fis.getChannel().position();
 		} catch (Exception e) {
-			throw new RuntimeException("Couldn't load file " + handle);
+			throw new RuntimeException("Couldn't read fileid " + handle + " \r\n " + e.getMessage());
 	    } 
 		return var;
 	}
@@ -231,7 +231,7 @@ public class Compat {
 		try {
 			var = fis.read(buf, 0, len);
 		} catch (IOException e) {
-			throw new RuntimeException("Couldn't load file " + handle);
+			throw new RuntimeException("Couldn't read fileid " + handle + " \r\n " + e.getMessage());
 	    } catch (IndexOutOfBoundsException e) {
 	    	return -1;
 	    }
@@ -248,7 +248,7 @@ public class Compat {
 			out = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, position, len);
 			out.order(ByteOrder.LITTLE_ENDIAN);
 		} catch (Exception e) {
-			throw new RuntimeException("Couldn't load file " + handle);
+			throw new RuntimeException("Couldn't read fileid " + handle + " \r\n " + e.getMessage());
 	    }
 		
 		return out;
@@ -264,7 +264,7 @@ public class Compat {
 			out = fis.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, fis.length());
 			out.order(ByteOrder.LITTLE_ENDIAN);
 		} catch (Exception e) {
-			throw new RuntimeException("Couldn't load file " + handle);
+			throw new RuntimeException("Couldn't read fileid " + handle + " \r\n " + e.getMessage());
 	    }
 		
 		return out;
@@ -293,7 +293,7 @@ public class Compat {
 			}
 		
 		} catch (IOException e) {
-			throw new RuntimeException("Couldn't load file " + handle);
+			throw new RuntimeException("Couldn't read fileid " + handle + " \r\n " + e.getMessage());
 	    } catch (IndexOutOfBoundsException e) {
 	    	return -1;
 	    }
@@ -309,7 +309,7 @@ public class Compat {
 			fis.write(buf, 0, len);
 			var = len;
 		} catch (Exception e) {
-			throw new RuntimeException("Couldn't save file " + handle);
+			throw new RuntimeException("Couldn't write to fileid " + handle + " \r\n " + e.getMessage());
 	    } 
 		return var;
 	}
@@ -327,7 +327,7 @@ public class Compat {
 			fis.write(buffer);
 			var = len;
 		} catch (Exception e) {
-			throw new RuntimeException("Couldn't save file " + handle);
+			throw new RuntimeException("Couldn't write to fileid " + handle + " \r\n " + e.getMessage());
 	    } 
 		return var;
 	}
@@ -356,7 +356,7 @@ public class Compat {
 			fis.write(buf);
 			var = len;
 		} catch (Exception e) {
-			throw new RuntimeException("Couldn't save file " + handle);
+			throw new RuntimeException("Couldn't write to fileid " + handle + " \r\n " + e.getMessage());
 	    } 
 		return var;
 	}
@@ -367,7 +367,7 @@ public class Compat {
 		try {
 			var = (int) fis.length();
 		} catch (Exception e) {
-			throw new RuntimeException("Couldn't load file " + handle);
+			throw new RuntimeException("Couldn't read fileid " + handle + " \r\n " + e.getMessage());
 		}
 		return var;
 	}

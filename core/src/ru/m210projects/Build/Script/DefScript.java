@@ -351,6 +351,9 @@ public class DefScript implements Disposable {
 		}
 		
 		byte[] data = kGetBytes(file.getPath(), 0);
+		if(data == null) {
+			Console.Println("File is exists, but data == null!" + file.getPath());
+		}
 		Scriptfile script = new Scriptfile(file.getPath(), data);
 		script.path = file.getParent().getRelativePath();
 		
