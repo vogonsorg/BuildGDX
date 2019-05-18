@@ -6,6 +6,7 @@ import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import ru.m210projects.Build.Architecture.BuildApplication.Frame;
@@ -21,6 +22,7 @@ public class GLFrameImpl implements GLFrame, Frame {
 
 	public GLFrameImpl(LwjglApplicationConfiguration config)
 	{
+		LwjglNativesLoader.load();
 		graphics = new GLGraphics(config);
 		input = new GLInput();
 	}

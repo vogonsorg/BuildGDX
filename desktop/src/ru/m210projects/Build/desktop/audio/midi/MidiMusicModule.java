@@ -42,7 +42,7 @@ public class MidiMusicModule implements Music {
 	private String name = "Midi Music Module";
 	private boolean inited;
 	private int nDevice;
-	private List<MidiDevice> devices;
+	private static List<MidiDevice> devices;
 	private MidiDevice device;
 	private Soundbank soundbank;
 	
@@ -60,8 +60,9 @@ public class MidiMusicModule implements Music {
 
 	public static List<MidiDevice> getDevices()
 	{
-		List<MidiDevice> devices = new ArrayList<MidiDevice>();
-       
+		if(devices != null) return devices;
+		
+		devices = new ArrayList<MidiDevice>();
 		Info[] dInfos = MidiSystem.getMidiDeviceInfo();
 		try {
 			for(Info dInfo : dInfos)

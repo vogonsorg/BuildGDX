@@ -51,6 +51,11 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class ALSoundDrv implements Sound {
+	
+	protected DriverCallback driverCallback;
+	public interface DriverCallback {
+		public ALAudio InitDriver() throws Throwable;
+	}
 
 	protected boolean noDevice = true;
 
@@ -87,14 +92,41 @@ public class ALSoundDrv implements Sound {
 		this.name = name;
 	}
 	
+	public ALSoundDrv(DriverCallback driverCallback, String name)
+	{
+		this.driverCallback = driverCallback;
+		this.name = name;
+	}
+
 	public ALAudio getALAudio()
 	{
+		if(driverCallback != null)
+		{
+			this.al = InitRegisteredDriver();
+			this.mus = new ALMusicDrv(this);
+		}
+		return al;
+	}
+	
+	private ALAudio InitRegisteredDriver()
+	{
+		if(driverCallback != null)
+		{
+			try {
+				this.al = driverCallback.InitDriver();
+				driverCallback = null;
+			} catch (Throwable e) {
+				e.printStackTrace();
+				Console.Println("Unable to initialize OpenAL! - " + e.getLocalizedMessage(), OSDTEXT_RED);
+			}
+		}
+		
 		return al;
 	}
 
 	@Override
 	public boolean init(SystemType system, int maxChannels, int softResampler) {
-		if(al == null) {
+		if(getALAudio() == null) {
 			noDevice = true;
 			return false;
 		}
@@ -128,7 +160,7 @@ public class ALSoundDrv implements Sound {
 		if(error != AL_NO_ERROR) 
 			Console.Println("OpenAL Init Error " + error, OSDTEXT_RED);
 		
-		mus.init();
+		getDigitalMusic().init();
 		
 		loopedSource.clear();
 		return true;

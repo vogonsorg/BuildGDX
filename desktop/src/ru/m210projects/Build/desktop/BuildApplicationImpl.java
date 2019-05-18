@@ -31,7 +31,6 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationLogger;
 import com.badlogic.gdx.backends.lwjgl.LwjglClipboard;
 import com.badlogic.gdx.backends.lwjgl.LwjglFileHandle;
 import com.badlogic.gdx.backends.lwjgl.LwjglFiles;
-import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.backends.lwjgl.LwjglNet;
 import com.badlogic.gdx.backends.lwjgl.LwjglPreferences;
 import com.badlogic.gdx.utils.Array;
@@ -67,7 +66,6 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglNet net;
 	
 	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, LwjglApplicationConfiguration config) {
-		LwjglNativesLoader.load();
 		setApplicationLogger(new LwjglApplicationLogger());
 		
 		if (config.title == null) config.title = listener.getClass().getSimpleName();
