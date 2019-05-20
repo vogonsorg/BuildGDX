@@ -271,6 +271,9 @@ public class SoftwareOrpho extends OrphoRenderer {
 			int cx1, int cy1, int cx2, int cy2, int uniqid) {
 		int xoff = 0, yoff = 0;
 		int x, y;
+		
+		if(palookup[dapalnum] == null)
+			dapalnum = 0;
 
 		if (cx1 < 0)
 			cx1 = 0;
@@ -416,7 +419,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			yv2 = -yv2;
 			by = (ysiz << 16) - 1 - by;
 		}
-
+		
 		if ((dastat & 1) == 0) {
 			if ((dastat & 64) != 0)
 				parent.a.setupspritevline(dapalnum, palookupshade, xv, yv, ysiz);
@@ -465,14 +468,11 @@ public class SoftwareOrpho extends OrphoRenderer {
 			}
 
 			int p = parent.ylookup[y1] + x;
-
 			if ((dastat & 1) == 0) {
 				if ((dastat & 64) != 0) {
-					parent.a.spritevline(bx & 65535, by & 65535, y2 - y1 + 1, bufplc, (bx >> 16) * ysiz + (by >> 16),
-							p);
+					parent.a.spritevline(bx & 65535, by & 65535, y2 - y1 + 1, bufplc, (bx >> 16) * ysiz + (by >> 16), p);
 				} else {
-					parent.a.mspritevline(bx & 65535, by & 65535, y2 - y1 + 1, bufplc, (bx >> 16) * ysiz + (by >> 16),
-							p);
+					parent.a.mspritevline(bx & 65535, by & 65535, y2 - y1 + 1, bufplc, (bx >> 16) * ysiz + (by >> 16),p);
 				}
 			} else {
 				parent.a.tspritevline(bx & 65535, by & 65535, y2 - y1 + 1, bufplc, (bx >> 16) * ysiz + (by >> 16), p);

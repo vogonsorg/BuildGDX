@@ -220,16 +220,17 @@ public abstract class Software implements Renderer {
 	
 	@Override
 	public void init() {
-		frameplace = new byte[Gdx.graphics.getWidth() * Gdx.graphics.getHeight()];
-		bytesperline = Gdx.graphics.getWidth();
+		if(xdim == 0 && ydim == 0) return;
+		frameplace = new byte[xdim * ydim];
+		bytesperline = xdim;
 		
-		int j = Gdx.graphics.getHeight()*4*4;
+		int j = ydim*4*4;
 		
 		lookups = new int[j<<1];
 		
 		horizlookup = 0;
 		horizlookup2 = j;
-		horizycent = ((Gdx.graphics.getHeight()*4)>>1);
+		horizycent = ((ydim*4)>>1);
 		
 		//Force drawrooms to call dosetaspect & recalculate stuff
 		oxyaspect = oxdimen = oviewingrange = -1;
@@ -244,7 +245,9 @@ public abstract class Software implements Renderer {
 		gltexinvalidateall(0);
 		
 		j = 0;
-		for(int i=0;i<=Gdx.graphics.getHeight();i++) { ylookup[i] = j; j += bytesperline; }
+		for(int i=0;i<=ydim;i++) { 
+			ylookup[i] = j; j += bytesperline; 	
+		}
 		
 		for(int i=0;i<2048;i++) reciptable[i] = (int) divscale(2048,i+2048, 30);
 		
@@ -456,8 +459,9 @@ public abstract class Software implements Renderer {
 		if (globalposz < cz) globparaceilclip = 0;
 		if (globalposz > fz) globparaflorclip = 0;
 
+		
 		scansector(globalcursectnum);
-
+		
 		if (inpreparemirror)
 		{
 			inpreparemirror = false;
@@ -485,6 +489,8 @@ public abstract class Software implements Renderer {
 			mirrorsy2 = Math.max(dmost[mirrorsx1],dmost[mirrorsx2]);
 		}
 		
+		
+
 		while ((numbunches > 0) && (numhits > 0))
 		{
 			Arrays.fill(tempbuf, 0, (numbunches+3)>>2, (byte)0);
@@ -2391,6 +2397,9 @@ public abstract class Software implements Renderer {
 		i = (dax1-halfxdimen)*xdimenrecip;
 		globalx2 = mulscale(cosglobalang<<4,viewingrangerecip,16) - mulscale(singlobalang,i,27);
 		globaly2 = mulscale(singlobalang<<4,viewingrangerecip,16) + mulscale(cosglobalang,i,27);
+		
+		
+		
 		globalzd = (xdimscale<<9);
 		globalzx = -dmulscale(wx,globaly2,-wy,globalx2,17) + mulscale(1-(int)globalhoriz,globalzd,10);
 		globalz = -dmulscale(wx,globaly,-wy,globalx,25);
@@ -2405,13 +2414,12 @@ public abstract class Software implements Renderer {
 			x = globalx; y = globaly;
 			globalx = dmulscale(x,dx,y,dy,16);
 			globaly = mulscale(dmulscale(-y,dx,x,dy,16),i,12);
-
 			x = ((wal.x-globalposx)<<8); y = ((wal.y-globalposy)<<8);
 			globalx1 = dmulscale(-x,dx,-y,dy,16);
 			globaly1 = mulscale(dmulscale(-y,dx,x,dy,16),i,12);
-
-			globalx2 = dmulscale(globalx2,dx,globaly2,dy,16);
-			globaly2 = mulscale(dmulscale(-globaly2,dx,globalx2,dy,16),i,12);
+			x = globalx2; y = globaly2;
+			globalx2 = dmulscale(x,dx,y,dy,16);
+			globaly2 = mulscale(dmulscale(-y,dx,x,dy,16),i,12);
 		}
 		if ((globalorientation&0x4) != 0)
 		{
@@ -2443,7 +2451,7 @@ public abstract class Software implements Renderer {
 		}
 
 		a.asm1 = -(globalzd>>(16-BITSOFPRECISION));
-
+	
 		globvis = globalvisibility;
 		if (sec.visibility != 0) globvis = mulscale(globvis,((sec.visibility+16)),4);
 		globvis = mulscale(globvis,daz,13);
@@ -2472,22 +2480,22 @@ public abstract class Software implements Renderer {
 			{
 				nptr1 = y1+(shoffs>>15);
 				nptr2 = y2+(shoffs>>15);
+
 				while (nptr1 <= mptr1)
 				{
-					slopalookup[mptr1--] = palookup[j][engine.getpalookup(mulscale(krecipasm(m1),globvis,24),globalshade)<<8];
+					slopalookup[mptr1--] = engine.getpalookup(mulscale(krecipasm(m1),globvis,24),globalshade)<<8;
 					m1 -= l;
 				}
 				while (nptr2 >= mptr2)
 				{
-					slopalookup[mptr2++] = palookup[j][engine.getpalookup(mulscale(krecipasm(m2),globvis,24),globalshade)<<8];
+					slopalookup[mptr2++] = engine.getpalookup(mulscale(krecipasm(m2),globvis,24),globalshade)<<8;
 					m2 += l;
 				}
 
 				globalx3 = (int) (globalx2>>10);
 				globaly3 = (int) (globaly2>>10);
 				a.asm3 = mulscale(y2,globalzd,16) + (globalzx>>6);
-				
-				a.slopevlin(ylookup[y2]+x+frameoffset,krecipasm(a.asm3>>3),nptr2,y2-y1+1,globalx1,globaly1);
+				a.slopevlin(ylookup[y2]+x+frameoffset,j, nptr2, y2-y1+1,globalx1,globaly1);
 
 				if ((x&15) == 0) engine.faketimerhandler();
 			}

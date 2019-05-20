@@ -1120,7 +1120,6 @@ public abstract class Engine {
 		globalposz = (int) daposz;
 
 		globalang = BClampAngle(daang);
-
 		globalhoriz = ((dahoriz - 100) * xdimenscale / viewingrange) + (ydimen >> 1);
 		pitch = (float)(-getangle(160, (int)(dahoriz-100))) / (2048.0f / 360.0f);
 

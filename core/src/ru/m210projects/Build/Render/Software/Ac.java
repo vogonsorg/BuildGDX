@@ -59,7 +59,7 @@ public class Ac {
 				by -= gbyinc;
 				p--;
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("hlineasm4"); }
 	}
 		
 	
@@ -70,13 +70,12 @@ public class Ac {
 		gbuf = bufplc; gpinc = pinc;
 	}
 	
-	public void slopevlin(int p, int i, int slopaloffs, int cnt, int bx, int by)
+	public void slopevlin(int p, int pal, int slopaloffs, int cnt, int bx, int by)
 	{
-		int bz = asm3; 
-		int bzinc = (asm1>>3);
-		int u, v;
-
 		try {
+			int bz = asm3; 
+			int bzinc = (asm1>>3);
+			int u, v, i;
 			for(;cnt>0;cnt--)
 			{
 				i = r.krecipasm(bz>>6); bz += bzinc;
@@ -84,11 +83,11 @@ public class Ac {
 				v = by+r.globaly3*i;
 	
 				index = ((u>>>(32-glogx))<<glogy)+(v>>>(32-glogy));
-				r.frameplace[p] = (byte) (r.slopalookup[slopaloffs] + (gbuf[index] & 0xFF));
+				r.frameplace[p] = palookup[pal][(gbuf[index] & 0xFF) + r.slopalookup[slopaloffs]];
 				slopaloffs--;
 				p += gpinc;
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("slopevlin"); }
 	}
 	
 	//Wall,face sprite/wall sprite vertical line functions
@@ -106,7 +105,7 @@ public class Ac {
 				p += bpl;
 				vplc += vinc;
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("vlineasm1"); }
 	}
 	
 	public void setupmvlineasm(int neglogy) { glogy = neglogy; }
@@ -125,7 +124,7 @@ public class Ac {
 				p += bpl;
 				vplc += vinc;
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("mvlineasm1"); }
 	}
 
 	public void setuptvlineasm(int neglogy) { glogy = neglogy; }
@@ -165,12 +164,12 @@ public class Ac {
 					vplc += vinc;
 				}
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("tvlineasm1"); }
 	}
 	
 	//Floor sprite horizontal line functions
 	public void msethlineshift(int logx, int logy) { glogx = logx; glogy = logy; }
-	public void mhline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p)
+	public void mhline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p) //check
 	{
 		gbuf = bufplc;
 		gpal = hlinepal;
@@ -186,11 +185,11 @@ public class Ac {
 				by += asm2;
 				p++;
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("mhline"); }
 	}
 	
 	public void tsethlineshift(int logx, int logy) { glogx = logx; glogy = logy; }
-	public void thline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p)
+	public void thline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p) //check
 	{
 		int dacol;
 		
@@ -228,7 +227,7 @@ public class Ac {
 					p++;
 				}
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("thline"); }
 	}
 	
 	//Rotatesprite vertical line functions
@@ -247,14 +246,14 @@ public class Ac {
 		try {
 			for(;cnt>1;cnt--)
 			{
-				index = bufoffs + (bx>>>16)*glogy+(by>>>16);
+				index = bufoffs + (bx>>16)*glogy+(by>>16);
 				r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
 				
 				bx += gbxinc;
 				by += gbyinc;
 				p += bpl;
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("rotatesprite spritevline"); }
 	}
 	
 	//Rotatesprite vertical line functions
@@ -273,7 +272,8 @@ public class Ac {
 		try {
 			for(;cnt>1;cnt--)
 			{
-				index = bufoffs + (bx>>>16)*glogy+(by>>>16);
+				index = bufoffs + (bx>>16)*glogy+(by>>16);
+				
 				ch = gbuf[index] & 0xFF;
 				if(ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
 	
@@ -281,7 +281,7 @@ public class Ac {
 				by += gbyinc;
 				p += bpl;
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("rotatesprite mspritevline"); }
 	}
 	
 	public void tsetupspritevline(int pal, int shade, int bxinc, int byinc, int ysiz)
@@ -328,13 +328,13 @@ public class Ac {
 					p += bpl;
 				}
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) { System.err.println("rotatesprite tspritevline"); }
 	}
 	
 	public void setupdrawslab (int dabpl, int pal, int shade)
 	{ bpl = dabpl; gpal = pal; gshade = shade; }
 	
-	public void drawslab (int dx, int v, int dy, int vi, int vptr, int p)
+	public void drawslab (int dx, int v, int dy, int vi, int vptr, int p) //check
 	{
 		int x;
 		while (dy > 0)
