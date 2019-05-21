@@ -3870,8 +3870,11 @@ public abstract class Engine {
 		if (capture == null || capture.length < width * heigth ) 
 			capture = new byte[width * heigth];
 
-		if(render.getname().equals("Classic"))
-			return null;
+		if(render.getname().equals("Classic")) {
+			ByteBuffer frame = render.getframebuffer(0, 0, width, heigth, GL10.GL_RGB);
+			frame.get(capture);
+			return capture;
+		}
 		ByteBuffer frame = render.getframebuffer(0, 0, xdim, ydim, GL10.GL_RGB);
 
 		long xf = divscale(xdim, width, 16);
@@ -3894,6 +3897,13 @@ public abstract class Engine {
 	public byte[] getframe(int width, int heigth) { //gdxBuild
 		if (capture == null || capture.length < width * heigth ) 
 			capture = new byte[width * heigth];
+		
+		if(render.getname().equals("Classic")) {
+			ByteBuffer frame = render.getframebuffer(0, 0, width, heigth, GL10.GL_RGB);
+			frame.get(capture);
+			return capture;
+		}
+		
 		ByteBuffer frame = render.getframebuffer(0, ydim - heigth, width, heigth, GL10.GL_RGB);
 		int r, g, b;
 		for (int x, y = heigth - 1; y >= 0; y--) {
