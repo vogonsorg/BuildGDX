@@ -34,6 +34,7 @@ import java.io.RandomAccessFile;
 import java.util.Arrays;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -196,6 +197,8 @@ public abstract class BuildConfig extends IniFile {
 	public String pName;
 	public String mAddress = "localhost";
 	public int mPort = NETPORT;
+	
+	public FrameType frameType = FrameType.GL;
 
 	public BuildConfig(String path, String name) {
 		super();	

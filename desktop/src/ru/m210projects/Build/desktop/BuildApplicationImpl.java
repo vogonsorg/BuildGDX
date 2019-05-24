@@ -65,13 +65,13 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
 	
-	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, LwjglApplicationConfiguration config) {
+	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, FrameType startFrame, LwjglApplicationConfiguration config) {
 		setApplicationLogger(new LwjglApplicationLogger());
 		
 		if (config.title == null) config.title = listener.getClass().getSimpleName();
 		this.config = config;
 		
-		setFrame(FrameType.GL);
+		setFrame(startFrame);
 
 		this.listener = listener;
 		this.preferencesdir = config.preferencesDirectory;

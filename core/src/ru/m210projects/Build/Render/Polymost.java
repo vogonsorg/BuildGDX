@@ -445,7 +445,7 @@ public abstract class Polymost implements Renderer {
 			Model m = defs.mdInfo.getModel(i);
 	        if(m != null && !bit8only) m.clearSkins();
 	        
-	        Model vox = defs.mdInfo.getVoxel(i);
+	        Model vox = defs.mdInfo.getVoxModel(i);
 	        if(vox != null && !textureCache.isUseShader()) 
 	        	vox.clearSkins();
 	    }
@@ -2847,15 +2847,15 @@ public abstract class Polymost implements Renderer {
 				Tile2model entry = defs != null ? defs.mdInfo.getParams(globalpicnum) : null;
 				if(entry != null) {
 					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
-					if(dist < 48000L * 48000L && entry.voxel != null) {
+					if(dist < 48000L * 48000L && entry.voxel != null && entry.voxel.getModel() != null) {
 						if ((tspr.cstat & 48) != 48) {
-							if (voxdraw(entry.voxel, tspr, xoff, yoff) != 0)
+							if (voxdraw(entry.voxel.getModel(), tspr, xoff, yoff) != 0)
 								return;
 							break; // else, render as flat sprite
 						}
 			
 						if ((tspr.cstat & 48) == 48) {
-							voxdraw(entry.voxel, tspr, xoff, yoff);
+							voxdraw(entry.voxel.getModel(), tspr, xoff, yoff);
 							return;
 						}
 					}
@@ -3414,7 +3414,7 @@ public abstract class Polymost implements Renderer {
 		
 		if(textureCache.isUseShader() && usevoxels)
 		{
-			VOXModel vox = defs.mdInfo.getVoxel(dapicnum);
+			VOXModel vox = defs.mdInfo.getVoxModel(dapicnum);
 			if(vox != null) vox.loadskin(dapalnum, true);
 		}
 		

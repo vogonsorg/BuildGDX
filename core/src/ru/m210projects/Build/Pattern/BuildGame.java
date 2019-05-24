@@ -47,6 +47,9 @@ import ru.m210projects.Build.Types.LittleEndian;
 public abstract class BuildGame extends Game {
 	
 	/*
+	 * OpenAL dispose method fixed for Linux
+	 * OpenAL init driver tweak
+	 *
 	 * TODO:
 	 * SaveManager findSaves()
 	 * VideoList refactoring
@@ -112,6 +115,7 @@ public abstract class BuildGame extends Game {
 	
 	@Override
 	public void dispose() {
+		pCfg.saveConfig(FilePath);
 		if(getScreen() instanceof InitScreen)
 			((InitScreen) getScreen()).dispose();
 		if(numplayers > 1)
@@ -119,8 +123,6 @@ public abstract class BuildGame extends Game {
 		
 		if(pEngine != null)
 			pEngine.uninit();
-
-		pCfg.saveConfig(FilePath);
 		System.out.println("disposed");
 	}
 	

@@ -82,17 +82,17 @@ public class LwjglAL implements ALAudio {
 	
 	@Override
 	public void dispose() {
+		if(alIsEFXSupport()) {
+			alDeleteEffects(alEffect);
+			alDeleteAuxiliaryEffectSlots(alEffectSlot);
+		}
+		
 		AL.destroy();
 		while (AL.isCreated()) {
 			try {
 				Thread.sleep(10);
 				} catch (InterruptedException e) {
 			}
-		}
-		
-		if(alIsEFXSupport()) {
-			alDeleteEffects(alEffect);
-			alDeleteAuxiliaryEffectSlots(alEffectSlot);
 		}
 	}
 

@@ -54,7 +54,7 @@ public class Ac {
 				by -= gbyinc;
 				p--;
 			}
-		} catch (Throwable e) { System.err.println("hlineasm4"); }
+		} catch (Throwable e) {  }
 	}
 		
 	
@@ -82,7 +82,7 @@ public class Ac {
 				slopaloffs--;
 				p += gpinc;
 			}
-		} catch (Throwable e) { System.err.println("slopevlin"); }
+		} catch (Throwable e) {  }
 	}
 	
 	//Wall,face sprite/wall sprite vertical line functions
@@ -100,7 +100,7 @@ public class Ac {
 				p += bpl;
 				vplc += vinc;
 			}
-		} catch (Throwable e) { System.err.println("vlineasm1"); }
+		} catch (Throwable e) {  }
 	}
 	
 	public void setupmvlineasm(int neglogy) { glogy = neglogy; }
@@ -159,7 +159,7 @@ public class Ac {
 					vplc += vinc;
 				}
 			}
-		} catch (Throwable e) { System.err.println("tvlineasm1"); }
+		} catch (Throwable e) { }
 	}
 	
 	//Floor sprite horizontal line functions
@@ -180,7 +180,7 @@ public class Ac {
 				by += asm2;
 				p++;
 			}
-		} catch (Throwable e) { System.err.println("mhline"); }
+		} catch (Throwable e) { }
 	}
 	
 	public void tsethlineshift(int logx, int logy) { glogx = logx; glogy = logy; }
@@ -222,7 +222,7 @@ public class Ac {
 					p++;
 				}
 			}
-		} catch (Throwable e) { System.err.println("thline"); }
+		} catch (Throwable e) { }
 	}
 	
 	//Rotatesprite vertical line functions
@@ -237,16 +237,18 @@ public class Ac {
 	
 	public void spritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p)
 	{
-		gbuf = bufplc;
-		for(;cnt>1;cnt--)
-		{
-			index = bufoffs + (bx>>16)*glogy+(by>>16);
-			r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
-			
-			bx += gbxinc;
-			by += gbyinc;
-			p += bpl;
-		}
+		try {
+			gbuf = bufplc;
+			for(;cnt>1;cnt--)
+			{
+				index = bufoffs + (bx>>16)*glogy+(by>>16);
+				r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
+				
+				bx += gbxinc;
+				by += gbyinc;
+				p += bpl;
+			}
+		} catch (Throwable e) {}
 	}
 	
 	//Rotatesprite vertical line functions
@@ -261,19 +263,20 @@ public class Ac {
 
 	public void mspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p)
 	{
-		gbuf = bufplc;
-		
-		for(;cnt>1;cnt--)
-		{
-			index = bufoffs + (bx>>16)*glogy+(by>>16);
-			
-			ch = gbuf[index] & 0xFF;
-			if(ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
-
-			bx += gbxinc;
-			by += gbyinc;
-			p += bpl;
-		}
+		try {
+			gbuf = bufplc;
+			for(;cnt>1;cnt--)
+			{
+				index = bufoffs + (bx>>16)*glogy+(by>>16);
+				
+				ch = gbuf[index] & 0xFF;
+				if(ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
+	
+				bx += gbxinc;
+				by += gbyinc;
+				p += bpl;
+			}
+		} catch (Throwable e) {}
 	}
 	
 	public void tsetupspritevline(int pal, int shade, int bxinc, int byinc, int ysiz)
@@ -287,50 +290,53 @@ public class Ac {
 	
 	public void tspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p)
 	{
+		
 		int dacol;
 		gbuf = bufplc;
-		if (transmode != 0)
-		{
-			for(;cnt>1;cnt--)
+		try {
+			if (transmode != 0)
 			{
-				index = bufoffs + (bx>>16)*glogy+(by>>16);
-				ch = gbuf[index] & 0xFF;
-				if(ch != 255) {
-					dacol = palookup[gpal][ch + gshade] & 0xFF;
-					r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
-				} 
-				bx += gbxinc;
-				by += gbyinc;
-				p += bpl;
-			}
-		}
-		else
-		{
-			for(;cnt>1;cnt--)
-			{
-				index = bufoffs + (bx>>16)*glogy+(by>>16);
-				ch = gbuf[index] & 0xFF;
-				if (ch != 255) {
-					dacol = palookup[gpal][ch + gshade] & 0xFF;
-					r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+				for(;cnt>1;cnt--)
+				{
+					index = bufoffs + (bx>>16)*glogy+(by>>16);
+					ch = gbuf[index] & 0xFF;
+					if(ch != 255) {
+						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
+					} 
+					bx += gbxinc;
+					by += gbyinc;
+					p += bpl;
 				}
-				bx += gbxinc;
-				by += gbyinc;
-				p += bpl;
 			}
-		}
+			else
+			{
+				for(;cnt>1;cnt--)
+				{
+					index = bufoffs + (bx>>16)*glogy+(by>>16);
+					ch = gbuf[index] & 0xFF;
+					if (ch != 255) {
+						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
+					}
+					bx += gbxinc;
+					by += gbyinc;
+					p += bpl;
+				}
+			}
+		} catch (Throwable e) {}
 	}
 	
 	public void setupdrawslab (int dabpl, int pal, int shade)
 	{ bpl = dabpl; gpal = pal; gshade = shade; }
 	
-	public void drawslab (int dx, int v, int dy, int vi, int vptr, int p)
+	public void drawslab (int dx, int v, int dy, int vi, byte[] data, int vptr, int p)
 	{
 		int x;
 		while (dy > 0)
 		{
 			for(x=0;x<dx;x++) 
-				r.frameplace[p+x] = palookup[gpal][((v>>>16)+vptr) + gshade];
+				r.frameplace[p+x] = palookup[gpal][(data[(v>>>16)+vptr] & 0xFF) + gshade];
 			p += bpl; v += vi; dy--;
 		}
 	}

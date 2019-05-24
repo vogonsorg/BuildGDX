@@ -26,6 +26,7 @@ import com.badlogic.gdx.utils.Disposable;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
+import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Tile2model;
 
@@ -76,10 +77,18 @@ public class ModelInfo implements Disposable {
 		return null;
 	}
 	
-	public VOXModel getVoxel(int picnum)
+	public Voxel getVoxel(int picnum)
 	{
 		if(cache[picnum] != null)
 			return cache[picnum].voxel;
+		
+		return null;
+	}
+	
+	public VOXModel getVoxModel(int picnum)
+	{
+		if(cache[picnum] != null && cache[picnum].voxel != null)
+			return cache[picnum].voxel.model;
 		
 		return null;
 	}
@@ -123,7 +132,7 @@ public class ModelInfo implements Disposable {
 	    return i;
 	}
 	
-	public int addVoxelInfo(VOXModel md, int picnum)
+	public int addVoxelInfo(Voxel md, int picnum)
 	{
 		if (picnum >= MAXTILES) return(-2);
 	    if(md == null) return -1;
@@ -131,13 +140,13 @@ public class ModelInfo implements Disposable {
 	    cache[picnum].voxel = md;
 	    return 0;
 	}
-	
+
 	public void removeModelInfo(Model md)
 	{
 		for (int i=MAXTILES-1; i>=0; i--) {
 	        if (cache[i].model == md) 
 	            cache[i].model = null;
-	        if (cache[i].voxel == md) 
+	        if (cache[i].voxel != null && cache[i].voxel.model == md) 
 	            cache[i].voxel = null;
 	    }
 	}
@@ -169,7 +178,8 @@ public class ModelInfo implements Disposable {
 	            cache[i].model = null;
 	        }
 	        if (cache[i].voxel != null) {
-	            cache[i].voxel.free();
+	        	if(cache[i].voxel.model != null)
+	        		cache[i].voxel.model.free();
 	            cache[i].voxel = null;
 	        }
 	    }

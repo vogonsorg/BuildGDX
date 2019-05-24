@@ -200,8 +200,8 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
-		mRenderer = new MenuConteiner("Renderer: ", style, posx,
-				posy += itemHeight, width, new String[] { "Polymost" }, 0, null) {
+		String[] renderers = new String[] { app.pEngine.getrender().getname() };
+		mRenderer = new MenuConteiner("Renderer: ", style, posx, posy += itemHeight, width, renderers, 0, null) {
 			@Override
 			public void draw(MenuHandler handler) {
 				mCheckEnableItem(false);

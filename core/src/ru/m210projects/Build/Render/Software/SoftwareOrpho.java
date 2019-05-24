@@ -32,13 +32,14 @@ public class SoftwareOrpho extends OrphoRenderer {
 	private final int MAXPERMS;
 
 	protected final int MAXNODESPERLINE = 42; // Warning: This depends on MAXYSAVES & MAXYDIM!
-	protected short dotp1[] = new short[MAXYDIM], dotp2[] = new short[MAXYDIM];
+	protected int dotp1[] = new int[MAXYDIM], dotp2[] = new int[MAXYDIM];
 
 	protected final int MAXWALLSB = ((MAXWALLS >> 2) + (MAXWALLS >> 3));
+	protected short[] p2 = new short[MAXWALLSB];
 	protected int[] xb1 = new int[MAXWALLSB];
 	protected int[] xb2 = new int[MAXWALLSB];
-	protected int[] rx1 = new int[MAXWALLSB];
-	protected int[] ry1 = new int[MAXWALLSB];
+	protected int[] rx1 = new int[MAXWALLSB], rx2 = new int[MAXWALLSB];
+	protected int[] ry1 = new int[MAXWALLSB], ry2 = new int[MAXWALLSB];
 
 	protected short globalpicnum;
 	protected int globalorientation;
@@ -48,6 +49,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 	protected int globaly2;
 	protected int asm1;
 	protected int asm2;
+	protected int globalpolytype;
 
 	public int[] nrx1 = new int[8], nry1 = new int[8], nrx2 = new int[8], nry2 = new int[8]; // JBF 20031206: Thanks Ken
 
@@ -261,8 +263,14 @@ public class SoftwareOrpho extends OrphoRenderer {
 				if ((i & 0xf0) != 0xf0)
 					continue;
 
-				bakx1 = (int) rx1[0];
-				baky1 = mulscale((int) ry1[0] - (ydim << 11), xyaspect, 16) + (ydim << 11);
+				bakx1 = rx1[0];
+				baky1 = mulscale(ry1[0] - (ydim << 11), xyaspect, 16) + (ydim << 11);
+
+				if ((i & 0x0f) != 0) {
+					npoints = clippoly(npoints, i);
+					if (npoints < 3)
+						continue;
+				}
 
 				if (showflspr) {
 					// Collect floor sprites to draw
@@ -286,6 +294,11 @@ public class SoftwareOrpho extends OrphoRenderer {
 				if ((globalorientation & 1) != 0)
 					continue;
 				globalpal = sec.floorpal;
+				if (sec.floorpal != parent.globalpalwritten)
+				{
+					parent.globalpalwritten = sec.floorpal;
+					parent.a.setpalookupaddress(parent.globalpalwritten);
+				}
 
 				globalpicnum = sec.floorpicnum;
 				if (globalpicnum >= MAXTILES)
@@ -299,6 +312,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 				if (waloff[globalpicnum] == null)
 					engine.loadtile(globalpicnum);
 
+				parent.globalbufplc = waloff[globalpicnum];
 				globalshade = max(min(sec.floorshade, numshades - 1), 0);
 
 				if ((globalorientation & 64) == 0) {
@@ -336,7 +350,11 @@ public class SoftwareOrpho extends OrphoRenderer {
 					globalxshift++;
 					globalyshift++;
 				}
-
+				
+				parent.globvis = parent.globalhisibility;
+				if (sec.visibility != 0) parent.globvis = mulscale(parent.globvis,(sec.visibility+16)&0xFF,4);
+				globalpolytype = 0;
+				
 				if ((globalorientation & 0x4) > 0) {
 					i = globalposx;
 					globalposx = -globalposy;
@@ -463,6 +481,12 @@ public class SoftwareOrpho extends OrphoRenderer {
 					bakx1 = (int) rx1[0];
 					baky1 = mulscale((int) ry1[0] - (ydim << 11), xyaspect, 16) + (ydim << 11);
 
+					if ((i & 0x0f) != 0) {
+						npoints = clippoly(npoints, i);
+						if (npoints < 3)
+							continue;
+					}
+
 					globalpicnum = spr.picnum;
 					globalpal = spr.pal; // GL needs this, software doesn't
 					if (globalpicnum >= MAXTILES)
@@ -474,6 +498,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 						globalpicnum += engine.animateoffs(globalpicnum, s);
 					if (waloff[globalpicnum] == null)
 						engine.loadtile(globalpicnum);
+					
+					parent.globalbufplc = waloff[globalpicnum];
 
 					// 'loading' the tile doesn't actually guarantee that it's there afterwards.
 					// This can really happen when drawing the second frame of a floor-aligned
@@ -485,6 +511,13 @@ public class SoftwareOrpho extends OrphoRenderer {
 						globalshade = ((int) sector[spr.sectnum].floorshade);
 					globalshade = max(min(globalshade + spr.shade + 6, numshades - 1), 0);
 
+					parent.globvis = parent.globalhisibility;
+					if (sec.visibility != 0) parent.globvis = mulscale(parent.globvis,(sec.visibility+16)&0xFF,4);
+					globalpolytype = ((spr.cstat&2)>>1)+1;
+					
+					parent.a.hlinepal = spr.pal;
+					parent.a.hlineshade = globalshade<<8;
+					
 					// relative alignment stuff
 					ox = x2 - x1;
 					oy = y2 - y1;
@@ -517,6 +550,13 @@ public class SoftwareOrpho extends OrphoRenderer {
 					globalposx = dmulscale(-baky1, globalx1, -bakx1, globaly1, 28);
 					globalposy = dmulscale(bakx1, globalx2, -baky1, globaly2, 28);
 
+					if ((spr.cstat&2) == 0)
+						parent.a.msethlineshift(ox,oy);
+					else {
+						if ((spr.cstat&512) != 0) parent.a.settransreverse(); else parent.a.settransnormal();
+						parent.a.tsethlineshift(ox,oy);
+					}
+					
 					if ((spr.cstat & 0x4) > 0) {
 						globalx1 = -globalx1;
 						globaly1 = -globaly1;
@@ -538,9 +578,264 @@ public class SoftwareOrpho extends OrphoRenderer {
 		}
 	}
 
+	private int clippoly(int npoints, int clipstat) {
+		int z, zz, s1, s2, t, npoints2, start2, z1, z2, z3, z4, splitcnt;
+		int cx1, cy1, cx2, cy2;
+
+		cx1 = windowx1;
+		cy1 = windowy1;
+		cx2 = windowx2 + 1;
+		cy2 = windowy2 + 1;
+		cx1 <<= 12;
+		cy1 <<= 12;
+		cx2 <<= 12;
+		cy2 <<= 12;
+
+		if ((clipstat & 0xa) != 0) // Need to clip top or left
+		{
+			npoints2 = 0;
+			start2 = 0;
+			z = 0;
+			splitcnt = 0;
+			do {
+				s2 = (cx1 - rx1[z]);
+				do {
+					zz = xb1[z];
+					xb1[z] = -1;
+					s1 = s2;
+					s2 = (cx1 - rx1[zz]);
+					if (s1 < 0) {
+						rx2[npoints2] = rx1[z];
+						ry2[npoints2] = ry1[z];
+						xb2[npoints2] = npoints2 + 1;
+						npoints2++;
+					}
+					if ((s1 ^ s2) < 0) {
+						rx2[npoints2] = rx1[z] + scale((rx1[zz] - rx1[z]), s1, s1 - s2);
+						ry2[npoints2] = ry1[z] + scale((ry1[zz] - ry1[z]), s1, s1 - s2);
+						if (s1 < 0)
+							p2[splitcnt++] = (short) npoints2;
+						xb2[npoints2] = npoints2 + 1;
+						npoints2++;
+					}
+					z = zz;
+				} while (xb1[z] >= 0);
+
+				if (npoints2 >= start2 + 3) {
+					xb2[npoints2 - 1] = start2;
+					start2 = npoints2;
+				} else
+					npoints2 = start2;
+
+				z = 1;
+				while ((z < npoints) && (xb1[z] < 0))
+					z++;
+			} while (z < npoints);
+			if (npoints2 <= 2)
+				return (0);
+
+			for (z = 1; z < splitcnt; z++)
+				for (zz = 0; zz < z; zz++) {
+					z1 = p2[z];
+					z2 = xb2[z1];
+					z3 = p2[zz];
+					z4 = xb2[z3];
+					s1 = (klabs(rx2[z1] - rx2[z2]) + klabs(ry2[z1] - ry2[z2]));
+					s1 += klabs(rx2[z3] - rx2[z4]) + klabs(ry2[z3] - ry2[z4]);
+					s2 = (klabs(rx2[z1] - rx2[z4]) + klabs(ry2[z1] - ry2[z4]));
+					s2 += klabs(rx2[z3] - rx2[z2]) + klabs(ry2[z3] - ry2[z2]);
+					if (s2 < s1) {
+						t = xb2[p2[z]];
+						xb2[p2[z]] = xb2[p2[zz]];
+						xb2[p2[zz]] = t;
+					}
+				}
+
+			npoints = 0;
+			start2 = 0;
+			z = 0;
+			splitcnt = 0;
+			do {
+				s2 = (cy1 - ry2[z]);
+				do {
+					zz = xb2[z];
+					xb2[z] = -1;
+					s1 = s2;
+					s2 = (cy1 - ry2[zz]);
+					if (s1 < 0) {
+						rx1[npoints] = rx2[z];
+						ry1[npoints] = ry2[z];
+						xb1[npoints] = npoints + 1;
+						npoints++;
+					}
+					if ((s1 ^ s2) < 0) {
+						rx1[npoints] = rx2[z] + scale((rx2[zz] - rx2[z]), s1, s1 - s2);
+						ry1[npoints] = ry2[z] + scale((ry2[zz] - ry2[z]), s1, s1 - s2);
+						if (s1 < 0)
+							p2[splitcnt++] = (short) npoints;
+						xb1[npoints] = npoints + 1;
+						npoints++;
+					}
+					z = zz;
+				} while (xb2[z] >= 0);
+
+				if (npoints >= start2 + 3) {
+					xb1[npoints - 1] = start2;
+					start2 = npoints;
+				} else
+					npoints = start2;
+
+				z = 1;
+				while ((z < npoints2) && (xb2[z] < 0))
+					z++;
+			} while (z < npoints2);
+			if (npoints <= 2)
+				return (0);
+
+			for (z = 1; z < splitcnt; z++)
+				for (zz = 0; zz < z; zz++) {
+					z1 = p2[z];
+					z2 = xb1[z1];
+					z3 = p2[zz];
+					z4 = xb1[z3];
+					s1 = (klabs(rx1[z1] - rx1[z2]) + klabs(ry1[z1] - ry1[z2]));
+					s1 += klabs(rx1[z3] - rx1[z4]) + klabs(ry1[z3] - ry1[z4]);
+					s2 = (klabs(rx1[z1] - rx1[z4]) + klabs(ry1[z1] - ry1[z4]));
+					s2 += klabs(rx1[z3] - rx1[z2]) + klabs(ry1[z3] - ry1[z2]);
+					if (s2 < s1) {
+						t = xb1[p2[z]];
+						xb1[p2[z]] = xb1[p2[zz]];
+						xb1[p2[zz]] = t;
+					}
+				}
+		}
+
+		if ((clipstat & 0x5) != 0) // Need to clip bottom or right
+		{
+			npoints2 = 0;
+			start2 = 0;
+			z = 0;
+			splitcnt = 0;
+			do {
+				s2 = (rx1[z] - cx2);
+				do {
+					zz = xb1[z];
+					xb1[z] = -1;
+					s1 = s2;
+					s2 = (rx1[zz] - cx2);
+					if (s1 < 0) {
+						rx2[npoints2] = rx1[z];
+						ry2[npoints2] = ry1[z];
+						xb2[npoints2] = npoints2 + 1;
+						npoints2++;
+					}
+					if ((s1 ^ s2) < 0) {
+						rx2[npoints2] = rx1[z] + scale((rx1[zz] - rx1[z]), s1, s1 - s2);
+						ry2[npoints2] = ry1[z] + scale((ry1[zz] - ry1[z]), s1, s1 - s2);
+						if (s1 < 0)
+							p2[splitcnt++] = (short) npoints2;
+						xb2[npoints2] = npoints2 + 1;
+						npoints2++;
+					}
+					z = zz;
+				} while (xb1[z] >= 0);
+
+				if (npoints2 >= start2 + 3) {
+					xb2[npoints2 - 1] = start2;
+					start2 = npoints2;
+				} else
+					npoints2 = start2;
+
+				z = 1;
+				while ((z < npoints) && (xb1[z] < 0))
+					z++;
+			} while (z < npoints);
+			if (npoints2 <= 2)
+				return (0);
+
+			for (z = 1; z < splitcnt; z++)
+				for (zz = 0; zz < z; zz++) {
+					z1 = p2[z];
+					z2 = xb2[z1];
+					z3 = p2[zz];
+					z4 = xb2[z3];
+					s1 = (klabs(rx2[z1] - rx2[z2]) + klabs(ry2[z1] - ry2[z2]));
+					s1 += klabs(rx2[z3] - rx2[z4]) + klabs(ry2[z3] - ry2[z4]);
+					s2 = (klabs(rx2[z1] - rx2[z4]) + klabs(ry2[z1] - ry2[z4]));
+					s2 += klabs(rx2[z3] - rx2[z2]) + klabs(ry2[z3] - ry2[z2]);
+					if (s2 < s1) {
+						t = xb2[p2[z]];
+						xb2[p2[z]] = xb2[p2[zz]];
+						xb2[p2[zz]] = t;
+					}
+				}
+
+			npoints = 0;
+			start2 = 0;
+			z = 0;
+			splitcnt = 0;
+			do {
+				s2 = (ry2[z] - cy2);
+				do {
+					zz = xb2[z];
+					xb2[z] = -1;
+					s1 = s2;
+					s2 = (ry2[zz] - cy2);
+					if (s1 < 0) {
+						rx1[npoints] = rx2[z];
+						ry1[npoints] = ry2[z];
+						xb1[npoints] = npoints + 1;
+						npoints++;
+					}
+					if ((s1 ^ s2) < 0) {
+						rx1[npoints] = rx2[z] + scale((rx2[zz] - rx2[z]), s1, s1 - s2);
+						ry1[npoints] = ry2[z] + scale((ry2[zz] - ry2[z]), s1, s1 - s2);
+						if (s1 < 0)
+							p2[splitcnt++] = (short) npoints;
+						xb1[npoints] = npoints + 1;
+						npoints++;
+					}
+					z = zz;
+				} while (xb2[z] >= 0);
+
+				if (npoints >= start2 + 3) {
+					xb1[npoints - 1] = start2;
+					start2 = npoints;
+				} else
+					npoints = start2;
+
+				z = 1;
+				while ((z < npoints2) && (xb2[z] < 0))
+					z++;
+			} while (z < npoints2);
+			if (npoints <= 2)
+				return (0);
+
+			for (z = 1; z < splitcnt; z++)
+				for (zz = 0; zz < z; zz++) {
+					z1 = p2[z];
+					z2 = xb1[z1];
+					z3 = p2[zz];
+					z4 = xb1[z3];
+					s1 = (klabs(rx1[z1] - rx1[z2]) + klabs(ry1[z1] - ry1[z2]));
+					s1 += klabs(rx1[z3] - rx1[z4]) + klabs(ry1[z3] - ry1[z4]);
+					s2 = (klabs(rx1[z1] - rx1[z4]) + klabs(ry1[z1] - ry1[z4]));
+					s2 += klabs(rx1[z3] - rx1[z2]) + klabs(ry1[z3] - ry1[z2]);
+					if (s2 < s1) {
+						t = xb1[p2[z]];
+						xb1[p2[z]] = xb1[p2[zz]];
+						xb1[p2[zz]] = t;
+					}
+				}
+		}
+		return (npoints);
+	}
+
 	private void fillpolygon(int npoints) {
 		int z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
 		int ox, oy, bx, by, p, day1, day2;
+		
+		parent.a.sethlinesizes(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4,parent.globalbufplc);
 
 		miny = 0x7fffffff;
 		maxy = 0x80000000;
@@ -558,8 +853,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		int ptr = 0; // They're pointers! - watch how you optimize this thing
 		for (y = miny; y <= maxy; y++) {
-			dotp1[y] = (short) ptr;
-			dotp2[y] = (short) (ptr + (MAXNODESPERLINE >> 1));
+			dotp1[y] = ptr;
+			dotp2[y] = ptr + (MAXNODESPERLINE >> 1);
 			ptr += MAXNODESPERLINE;
 		}
 
@@ -569,10 +864,11 @@ public class SoftwareOrpho extends OrphoRenderer {
 			day1 = (y1 >> 12);
 			y2 = ry1[zz];
 			day2 = (y2 >> 12);
+
 			if (day1 != day2) {
 				x1 = rx1[z];
 				x2 = rx1[zz];
-				xinc = (int) divscale(x2 - x1, y2 - y1, 12);
+				xinc = divscale(x2 - x1, y2 - y1, 12);
 				if (day2 > day1) {
 					x1 += mulscale((day1 << 12) + 4095 - y1, xinc, 12);
 					for (y = day1; y < day2; y++) {
@@ -582,7 +878,6 @@ public class SoftwareOrpho extends OrphoRenderer {
 				} else {
 					x2 += mulscale((day2 << 12) + 4095 - y2, xinc, 12);
 					for (y = day2; y < day1; y++) {
-						System.err.println(y);
 						parent.smost[dotp1[y]++] = (short) (x2 >> 12);
 						x2 += xinc;
 					}
@@ -620,17 +915,17 @@ public class SoftwareOrpho extends OrphoRenderer {
 				if (x1 > x2)
 					continue;
 
-//				if (globalpolytype < 1)
-//				{
-//						//maphline
-//					ox = x2+1-(xdim>>1);
-//					bx = ox*asm1 + globalposx;
-//					by = ox*asm2 - globalposy;
-//
-//					p = parent.ylookup[y]+x2;
-//					parent.a.hlineasm4(x2-x1,-1,globalshade<<8,by,bx,p);
-//				}
-//				else
+				if (globalpolytype < 1)
+				{
+						//maphline
+					ox = x2+1-(xdim>>1);
+					bx = ox*asm1 + globalposx;
+					by = ox*asm2 - globalposy;
+
+					p = parent.ylookup[y]+x2;
+					parent.a.hlineasm4(x2-x1,-1,globalshade<<8,by,bx,p);
+				}
+				else
 				{
 					// maphline
 					ox = x1 + 1 - (xdim >> 1);
@@ -638,9 +933,9 @@ public class SoftwareOrpho extends OrphoRenderer {
 					by = ox * asm2 - globalposy;
 
 					p = parent.ylookup[y] + x1;
-//					if (globalpolytype == 1)
-//						parent.a.mhline(parent.globalbufplc,bx,(x2-x1)<<16,0,by,p);
-//					else
+					if (globalpolytype == 1)
+						parent.a.mhline(parent.globalbufplc,bx,(x2-x1)<<16,0,by,p);
+					else
 					{
 						parent.a.thline(parent.globalbufplc, bx, (x2 - x1) << 16, 0, by, p);
 					}
@@ -775,7 +1070,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 		int xoff = 0, yoff = 0;
 		int x, y;
 
-		if (palookup[dapalnum] == null)
+		if(dapalnum < 0 || dapalnum >= palookup.length || palookup[dapalnum] == null)
 			dapalnum = 0;
 
 		if (cx1 < 0)

@@ -148,17 +148,17 @@ public class GdxAL implements ALAudio {
 	
 	@Override
 	public void dispose() {
+		if(alIsEFXSupport()) {
+			EXTEfx.alDeleteEffects(alEffect);
+			EXTEfx.alDeleteAuxiliaryEffectSlots(alEffectSlot);
+		}
+		
 		AL.destroy();
 		while (AL.isCreated()) {
 			try {
 				Thread.sleep(10);
 				} catch (InterruptedException e) {
 			}
-		}
-		
-		if(alIsEFXSupport()) {
-			EXTEfx.alDeleteEffects(alEffect);
-			EXTEfx.alDeleteAuxiliaryEffectSlots(alEffectSlot);
 		}
 	}
 

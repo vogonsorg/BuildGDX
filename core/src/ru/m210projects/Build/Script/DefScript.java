@@ -38,6 +38,7 @@ import ru.m210projects.Build.Loader.MD2.MD2Loader;
 import ru.m210projects.Build.Loader.MD3.MD3Loader;
 import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
+import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class DefScript implements Disposable {
@@ -546,7 +547,7 @@ public class DefScript implements Disposable {
         		        break; 
         		    default:
         		    	if (BfileExtension(modelfn).equalsIgnoreCase("kvx"))
-                		    m = KVXLoader.load(buffer);  
+                		    m = KVXLoader.load(buffer).model;  
         		    	break;
         	    }
 
@@ -961,7 +962,7 @@ public class DefScript implements Disposable {
                     break;
         		}
         		buffer.order( ByteOrder.LITTLE_ENDIAN);
-        		VOXModel vox = KVXLoader.load(buffer);  
+        		Voxel vox = KVXLoader.load(buffer);  
                 if (vox == null)
                 {
                 	Console.Println("Warning: Failed loading MD2/MD3 model " + fn, OSDTEXT_YELLOW);
@@ -1002,7 +1003,7 @@ public class DefScript implements Disposable {
                         	break;
                     }
                 }
-                vox.setMisc((float)vscale,0,0,0,vrotate ? MD_ROTATE : 0);
+//                vox.setMisc((float)vscale,0,0,0,vrotate ? MD_ROTATE : 0); XXX
       
 				break;
 			case SKYBOX:
