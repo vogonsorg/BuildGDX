@@ -67,16 +67,16 @@ public abstract class MenuVideoSetup extends BuildMenu {
 
 		mColorMode = new MenuButton("Color correction", style, posx, posy += menuHeight, width, 1, 0, getColorCorrectionMenu(app), -1, null, 0);
 
-		sFov = new MenuSlider(app.pSlider, "Field of view:", style, posx, posy += 2 * menuHeight, width, (int) (cfg.gFov * 16384.0f),
-				4096, 32768, 256, new MenuProc() {
+		sFov = new MenuSlider(app.pSlider, "Field of view:", style, posx, posy += 2 * menuHeight, width, cfg.gFov,
+				60, 130, 5, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSlider slider = (MenuSlider) pItem;
-						cfg.gFov = (slider.value / 16384.0f);
+						cfg.gFov = slider.value;
 						app.pEngine.setFov(cfg.gFov);
 					}
 				}, true);
-		sFov.digitalMax = 16384.0f; //182.04f
+		
 		posy += 5;
 		
 		sFilter = new MenuConteiner("Texture mode:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {

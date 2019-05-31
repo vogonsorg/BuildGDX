@@ -117,7 +117,8 @@ public abstract class Software implements Renderer {
 	 * frame byte buffer 
 	 * fix mirrors in game 
 	 * color correction
-	 * voxel animation
+	 * voxel depth bug
+	 * voxel scale + rotation
 	 */
 
 	public final int BITSOFPRECISION = 3;
@@ -930,6 +931,14 @@ public abstract class Software implements Renderer {
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
 
+		if ((picanm[tilenum] & 192) != 0)
+			tilenum += engine.animateoffs(tilenum, spritenum + 32768);
+		if ((tilesizx[tilenum] <= 0) || (tilesizy[tilenum] <= 0) || (spritenum < 0))
+			return;
+		
+		if ((tspr.xrepeat <= 0) || (tspr.yrepeat <= 0))
+			return;
+		
 		if (usevoxels) {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(tilenum) : null;
 			if (entry != null && entry.voxel != null) {
@@ -937,24 +946,6 @@ public abstract class Software implements Renderer {
 				cstat |= 48;
 			}
 		}
-
-//		if ((cstat&48)==48) vtilenum = tilenum;	// if the game wants voxels, it gets voxels
-//		else if ((cstat&48)!=48 && usevoxels && (defs != null && defs.mdInfo.getParams(tilenum) != null)) {
-//			int id = defs.mdInfo.getParams(tilenum).voxelindex;
-//			if(id != -1) {
-//				vtilenum = id;
-//				cstat |= 48;
-//			}
-//		}
-
-		if ((cstat & 48) != 48) {
-			if ((picanm[tilenum] & 192) != 0)
-				tilenum += engine.animateoffs(tilenum, spritenum + 32768);
-			if ((tilesizx[tilenum] <= 0) || (tilesizy[tilenum] <= 0) || (spritenum < 0))
-				return;
-		}
-		if ((tspr.xrepeat <= 0) || (tspr.yrepeat <= 0))
-			return;
 
 		short sectnum = tspr.sectnum;
 		SECTOR sec = sector[sectnum];

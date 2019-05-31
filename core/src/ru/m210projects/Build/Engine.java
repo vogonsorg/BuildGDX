@@ -1635,11 +1635,10 @@ public abstract class Engine {
 	public int clipinsidebox(int x, int y, short wallnum, int walldist) { //jfBuild
 		int r = (walldist << 1);
 		WALL wal = wall[wallnum];
-		if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) return 0;
+		if(wal == null || isCorruptWall(wal)) return 0;
 		int x1 = wal.x + walldist - x;
 		int y1 = wal.y + walldist - y;
 		wal = wall[wal.point2];
-		if(wal == null) return 0;
 		int x2 = wal.x + walldist - x;
 		int y2 = wal.y + walldist - y;
 
@@ -1718,7 +1717,7 @@ public abstract class Engine {
 		if(wallid < 0) return -1;
 		do {
 			WALL wal = wall[wallid];
-			if (wal == null || wal.point2 < 0 || wall[wal.point2] == null)
+			if(wal == null || isCorruptWall(wal))
 				return -1;
 			int y1 = wal.y - y;
 			int y2 = wall[wal.point2].y - y;
@@ -1889,9 +1888,8 @@ public abstract class Engine {
 			if(startwall < 0 || endwall < 0) continue;
 			for (int w = startwall; w <= endwall; w++) {
 				WALL wal = wall[w];
-				if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) continue;
+				if(wal == null || isCorruptWall(wal)) continue;
 				WALL wal2 = wall[wal.point2];
-				if(wal2 == null) continue;
 				int x31 = wal.x - x1;
 				int x34 = wal.x - wal2.x;
 				int y31 = wal.y - y1;
@@ -2063,9 +2061,8 @@ public abstract class Engine {
 			Point out;
 			for (z = startwall; z < endwall; z++) {
 				WALL wal = wall[z];
-				if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) continue;
+				if(wal == null || isCorruptWall(wal)) continue;
 				WALL wal2 = wall[wal.point2];
-				if(wal2 == null) continue;
 				x1 = wal.x;
 				y1 = wal.y;
 				x2 = wal2.x;
@@ -2576,9 +2573,8 @@ public abstract class Engine {
 			if(startwall < 0 || endwall < 0) continue;
 			for (j = startwall; j < endwall; j++) {
 				wal = wall[j];
-				if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) continue;
+				if(wal == null || isCorruptWall(wal)) continue;
 				wal2 = wall[wal.point2];
-				if(wal2 == null) continue;
 				if ((wal.x < xmin) && (wal2.x < xmin))
 					continue;
 				if ((wal.x > xmax) && (wal2.x > xmax))
@@ -3186,11 +3182,10 @@ public abstract class Engine {
 			if(startwall < 0 || endwall < 0) { clipsectcnt++; continue; }
 			for (j = startwall; j < endwall; j++) {
 				wal = wall[j];
-				if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) continue;
+				if(wal == null || isCorruptWall(wal)) continue;
 				k = wal.nextsector;
 				if (k >= 0) {
 					wal2 = wall[wal.point2];
-					if(wal2 == null) continue;
 					x1 = wal.x;
 					x2 = wal2.x;
 					if ((x1 < xmin) && (x2 < xmin))
@@ -3453,9 +3448,9 @@ public abstract class Engine {
 		xdimscale = scale(320, xyaspect, xdimen);
 	}
 	
-	public void setFov(float fovFactor)
+	public void setFov(int fov)
 	{
-		this.fovFactor = fovFactor;
+		this.fovFactor = (float) Math.tan(fov * Math.PI / 360.0);
 		setaspect_new();
 	}
 

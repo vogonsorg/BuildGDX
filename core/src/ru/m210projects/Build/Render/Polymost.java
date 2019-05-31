@@ -1648,7 +1648,7 @@ public abstract class Polymost implements Renderer {
 			if (nextsectnum >= 0)
 				if (((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)
 						&& (clipper.testvisiblemost(x0, x1) != 0))
-					polymost_scansector(nextsectnum); 
+					scansector(nextsectnum); 
 		}
 	}
 
@@ -1727,7 +1727,7 @@ public abstract class Polymost implements Renderer {
 		return (-2);
 	}
 
-	private void polymost_scansector(int sectnum) {
+	private void scansector(int sectnum) {
 		double d, xp1, yp1, xp2, yp2;
 		WALL wal, wal2;
 		SPRITE spr;
@@ -1783,9 +1783,9 @@ public abstract class Polymost implements Renderer {
 			if(startwall < 0 || endwall < 0) continue;
 			for (z = startwall; z < endwall; z++) {
 				wal = wall[z];
-				if(wal == null || wal.point2 < 0 || wal.point2 >= MAXWALLS) continue;
+				if(wal == null || isCorruptWall(wal)) continue;
+				
 				wal2 = wall[wal.point2];
-				if(wal2 == null) continue;
 				x1 = wal.x - globalposx;
 				y1 = wal.y - globalposy;
 				x2 = wal2.x - globalposx;
@@ -1798,8 +1798,8 @@ public abstract class Polymost implements Renderer {
 						&& sectorbordercnt < sectorborder.length
 						&& ((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)) {
 					d = x1 * y2 - x2 * y1;
-					xp1 = (double) (x2 - x1);
-					yp1 = (double) (y2 - y1);
+					xp1 = (x2 - x1);
+					yp1 = (y2 - y1);
 					if (d * d <= (xp1 * xp1 + yp1 * yp1) * (SCISDIST * SCISDIST * 260.0))
 					{
 						sectorborder[sectorbordercnt++] = nextsectnum;
@@ -1808,34 +1808,22 @@ public abstract class Polymost implements Renderer {
 				}
 
 				if ((z == startwall) || (wall[z - 1].point2 != z)) {
-					xp1 = ((double) y1 * (double) cosglobalang - (double) x1
-							* (double) singlobalang) / 64.0;
-					yp1 = ((double) x1 * (double) cosviewingrangeglobalang + (double) y1
-							* (double) sinviewingrangeglobalang) / 64.0;
+					xp1 = (y1 * cosglobalang - x1 * singlobalang) / 64.0;
+					yp1 = (x1 * cosviewingrangeglobalang + y1 * sinviewingrangeglobalang) / 64.0;
 				} else {
 					xp1 = xp2;
 					yp1 = yp2;
 				}
-				xp2 = ((double) y2 * (double) cosglobalang - (double) x2
-						* (double) singlobalang) / 64.0;
-				yp2 = ((double) x2 * (double) cosviewingrangeglobalang + (double) y2
-						* (double) sinviewingrangeglobalang) / 64.0;
+				xp2 = (y2 * cosglobalang - x2 * singlobalang) / 64.0;
+				yp2 = (x2 * cosviewingrangeglobalang + y2 * sinviewingrangeglobalang) / 64.0;
 
 				if ((yp1 >= SCISDIST) || (yp2 >= SCISDIST))
-					if ((double) xp1 * (double) yp2 < (double) xp2 * (double) yp1) // if wall is facing you...
+					/*crossProduct*/if (xp1 * yp2 < xp2 * yp1) // if wall is facing you...
 					{
-						if(numscans >= 3600) continue;
-						if (yp1 >= SCISDIST)
-							dxb1[numscans] = (double) xp1 * ghalfx / (double) yp1 + ghalfx;
-						else
-							dxb1[numscans] = -1e32;
+						if (inviewingrange(xp1, yp1, xp2, yp2)) {
+							if(numscans >= MAXWALLSB - 1) 
+								return;
 
-						if (yp2 >= SCISDIST)
-							dxb2[numscans] = (double) xp2 * ghalfx / (double) yp2 + ghalfx;
-						else
-							dxb2[numscans] = 1e32;
-
-						if (dxb1[numscans] < dxb2[numscans]) {
 							thesector[numscans] = (short) sectnum;
 							thewall[numscans] = (short) z;
 							p2[numscans] = (short) (numscans + 1);
@@ -1850,7 +1838,6 @@ public abstract class Polymost implements Renderer {
 			}
 
 			for (z = numscansbefore; z < numscans; z++) {
-				if(z >= MAXWALLSB || p2[z] >= MAXWALLSB) continue;
 				if ((wall[thewall[z]].point2 != thewall[p2[z]])
 						|| (dxb2[z] > dxb1[p2[z]])) {
 					bunchfirst[numbunches++] = p2[z];
@@ -1859,11 +1846,35 @@ public abstract class Polymost implements Renderer {
 			}
 
 			for (z = bunchfrst; z < numbunches; z++) {
-				if(p2[z] >= MAXWALLSB) continue;
 				for (zz = bunchfirst[z]; p2[zz] >= 0; zz = p2[zz]);
 				bunchlast[z] = (short) zz;
 			}
 		} while (sectorbordercnt > 0);		
+	}
+	
+	protected boolean inviewingrange(double xp1, double yp1, double xp2, double yp2)
+	{
+		if (yp1 >= SCISDIST) {
+//			if ((xp1 > yp1) || (yp1 == 0)) //disabled, viewving range is 180degs
+//				return false;
+			dxb1[numscans] = xp1 * ghalfx / yp1 + ghalfx;
+		}
+		else
+			dxb1[numscans] = -1e32;
+
+		if (yp2 >= SCISDIST) {
+//			if ((xp2 < -yp2) || (yp2 == 0))
+//				return false;
+
+			dxb2[numscans] = xp2 * ghalfx / yp2 + ghalfx;
+		}
+		else 
+			dxb2[numscans] = 1e32;
+
+		if (dxb1[numscans] < dxb2[numscans])
+			return true;
+		
+		return false;
 	}
 	
 	private void drawpapersky(int sectnum, double x0, double x1, double y0, double y1, boolean floor)
@@ -2331,8 +2342,8 @@ public abstract class Polymost implements Renderer {
 		gviewxrange = viewingrange * xdimen / (32768.0f * 1024.0f);
 		gcosang = cosglobalang / 262144.0f;
 		gsinang = singlobalang / 262144.0f;
-		gcosang2 = gcosang * (viewingrange / 65536.0f);
-		gsinang2 = gsinang * (viewingrange / 65536.0f);
+		gcosang2 = cosviewingrangeglobalang / 262144.0f;
+		gsinang2 = sinviewingrangeglobalang / 262144.0f;
 		ghalfx = halfxdimen;
 		grhalfxdown10 = 1.0f / (ghalfx * 1024.0f); //viewport
 		// global cos/sin height angle
@@ -2427,7 +2438,7 @@ public abstract class Polymost implements Renderer {
 				globalcursectnum = (short) i;
 		}
 		
-		polymost_scansector(globalcursectnum);
+		scansector(globalcursectnum);
 		
 		surfaces.clear();
 		

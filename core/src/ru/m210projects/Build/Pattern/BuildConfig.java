@@ -192,7 +192,7 @@ public abstract class BuildConfig extends IniFile {
 	public int widescreen = 1;
 	public int glfilter = 0;
 	public boolean gShowFPS = true;
-	public float gFov = 1.0f;
+	public int gFov = 90;
 	
 	public String pName;
 	public String mAddress = "localhost";
@@ -277,7 +277,8 @@ public abstract class BuildConfig extends IniFile {
 				value = GetKeyInt("WideScreen");
 				if(value != -1) widescreen = value;
 				value = GetKeyInt("FieldOfView");
-				if(value != -1) gFov = value / 16384.0f;
+				if(value != -1 && value >= 60 && value <= 130) 
+					gFov = value;
 			}
 				
 			if(set("SoundSetup")) {
@@ -531,7 +532,7 @@ public abstract class BuildConfig extends IniFile {
 		else saveInteger(fil, "GLFilterMode", glfilter);
 		saveInteger(fil, "GLAnisotropy", glanisotropy);
 		saveInteger(fil, "WideScreen", widescreen);
-		saveInteger(fil, "FieldOfView", (int) (gFov * 16384.0f));
+		saveInteger(fil, "FieldOfView", gFov);
 
 		saveBoolean(fil, "VSync", gVSync);
 		saveInteger(fil, "FpsScale", (int)(gFpsScale * 65536.0f));

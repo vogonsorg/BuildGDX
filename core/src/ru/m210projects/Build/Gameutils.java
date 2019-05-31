@@ -19,6 +19,8 @@ package ru.m210projects.Build;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Pragmas.scale;
 
+import ru.m210projects.Build.Types.WALL;
+
 public class Gameutils {
 	
 	public static float BClampAngle(float angle)
@@ -94,6 +96,11 @@ public class Gameutils {
 	public static boolean isValidWall(int i)
 	{
 		return i >= 0 && i < MAXWALLS;
+	}
+	
+	public static boolean isCorruptWall(WALL wal)
+	{
+		return !isValidWall(wal.point2) || wall[wal.point2] == null;
 	}
 	
 	public enum ConvertType { Normal, AlignLeft, AlignRight, Stretch };
