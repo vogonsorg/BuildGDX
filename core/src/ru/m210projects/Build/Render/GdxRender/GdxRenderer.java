@@ -32,6 +32,7 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
@@ -40,7 +41,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.TileFont;
 
-public class GdxRenderer implements Renderer {
+public class GdxRenderer implements GLRenderer {
 	
 	protected final TextureCache textureCache;
 	protected final Engine engine;
@@ -243,4 +244,14 @@ public class GdxRenderer implements Renderer {
 		this.defs = defs;
 	}
 
+	@Override
+	public FrameType getType() {
+		return FrameType.GL;
+	}
+
+	@Override
+	public void changepalette(byte[] palette) {
+		// TODO Auto-generated method stub
+		
+	}
 }

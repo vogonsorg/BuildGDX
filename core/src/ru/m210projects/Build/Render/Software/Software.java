@@ -85,7 +85,6 @@ import static ru.m210projects.Build.Loader.Voxels.Voxel.*;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.HashMap;
 
 import com.badlogic.gdx.utils.BufferUtils;
 
@@ -95,7 +94,6 @@ import ru.m210projects.Build.Architecture.SoftFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Renderer;
-import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.SECTOR;
@@ -107,11 +105,8 @@ public abstract class Software implements Renderer {
 
 	/*
 	 * fullscreen 
-	 * palette fade 
-	 * palette change 
 	 * sprites shade 
 	 * duke pal1 fix 
-	 * resolution change 
 	 * maskedwall 
 	 * widescreen fix 
 	 * frame byte buffer 
@@ -226,7 +221,6 @@ public abstract class Software implements Renderer {
 		a = new Ac(this);
 
 		orpho = new SoftwareOrpho(this);
-		init();
 	}
 
 	@Override
@@ -254,7 +248,7 @@ public abstract class Software implements Renderer {
 		globalpalwritten = 0;
 		a.setpalookupaddress(globalpalwritten);
 
-		gltexinvalidateall(0);
+		changepalette(curpalette);
 
 		j = 0;
 		for (int i = 0; i <= ydim; i++) {
@@ -568,6 +562,26 @@ public abstract class Software implements Renderer {
 
 	private int[] cz = new int[5];
 	private int[] fz = new int[5];
+	
+	public void completemirror() {
+		//Can't reverse with uninitialized data
+		if (inpreparemirror) { inpreparemirror = false; return; }
+		if (mirrorsx1 > 0) mirrorsx1--;
+		if (mirrorsx2 < windowx2-windowx1-1) mirrorsx2++;
+		if (mirrorsx2 < mirrorsx1) return;
+
+		int p = ylookup[windowy1+mirrorsy1]+windowx1+mirrorsx1;
+		int i = windowx2-windowx1-mirrorsx2-mirrorsx1; 
+		mirrorsx2 -= mirrorsx1;
+		for(int dy=mirrorsy2-mirrorsy1;dy>=0;dy--)
+		{
+			System.arraycopy(frameplace, p+1, tempbuf, 0, mirrorsx2+1);
+			tempbuf[mirrorsx2] = tempbuf[mirrorsx2-1];
+			copybufreverse(tempbuf, mirrorsx2,frameplace, p+i,mirrorsx2+1);
+			p += ylookup[1];
+			engine.faketimerhandler();
+		}
+	}
 
 	private void drawalls(int bunch) {
 		int z = bunchfirst[bunch];
@@ -3330,8 +3344,7 @@ public abstract class Software implements Renderer {
 
 	@Override
 	public void clearview(int dacol) {
-		if (frameplace != null)
-			Arrays.fill(frameplace, (byte) dacol);
+		Arrays.fill(frameplace, (byte) dacol);
 	}
 
 	@Override
@@ -3443,31 +3456,8 @@ public abstract class Software implements Renderer {
 	public void settiltang(int tilt) {
 	}
 
-	public void setdrunk(float intensive) {
-	}
-
-	public float getdrunk() {
-		return 0;
-	}
-
-	public void palfade(HashMap<String, FadeEffect> fades) {
-	}
-
-	public void preload() {
-	}
-
-	public void precache(int dapicnum, int dapalnum, int datype) {
-	}
-
-	public void gltexapplyprops() {
-	}
-
-	public void gltexinvalidateall(int flags) {
-		if (BuildGdx.app.getFrameType() == FrameType.Software)
-			((SoftFrame) BuildGdx.app.getFrame()).changepalette(curpalette);
-	}
-
-	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {
+	public void changepalette(byte[] palette) {
+		((SoftFrame) BuildGdx.app.getFrame()).changepalette(palette);
 	}
 
 	private void scansector(short sectnum) {
@@ -4017,13 +4007,15 @@ public abstract class Software implements Renderer {
 		a.thline(globalbufplc, globaly1 * r + globalxpanning - a.asm1 * (xr - xl), (xr - xl) << 16, 0,
 				globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl);
 	}
-
-	@Override
-	public void addSpriteCorr(int snum) {
+	
+	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c)
+	{
+		while((c--) > 0) s[sptr--] = d[dptr++];
 	}
-
+	
 	@Override
-	public void removeSpriteCorr(int snum) {
+	public FrameType getType() {
+		return FrameType.Software;
 	}
 
 	@Override

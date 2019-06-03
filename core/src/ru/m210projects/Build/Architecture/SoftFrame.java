@@ -5,5 +5,5 @@ public interface SoftFrame {
 	public byte[] getFrame();
 	
 	public void changepalette(byte[] palette);
-	
+
 }

@@ -9,6 +9,7 @@ import ru.m210projects.Build.Pattern.BuildGame.NetMode;
 import ru.m210projects.Build.Pattern.ScreenAdapters.GameAdapter;
 import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.ScreenAdapters.LoadingAdapter;
+import ru.m210projects.Build.Render.GLRenderer;
 
 public abstract class BuildEngine extends Engine {
 	
@@ -156,7 +157,8 @@ public abstract class BuildEngine extends Engine {
 	public void setanisotropy(BuildConfig cfg, int anisotropy)
 	{
 		glanisotropy = anisotropy;
-		render.gltexapplyprops();
+		GLRenderer gl = glrender();
+		if(gl != null) gl.gltexapplyprops();
 		cfg.glanisotropy = glanisotropy;
 	}
 	

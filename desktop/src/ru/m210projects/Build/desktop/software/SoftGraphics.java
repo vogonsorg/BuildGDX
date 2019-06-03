@@ -289,7 +289,8 @@ public class SoftGraphics implements BuildGraphics {
 
 	@Override
 	public boolean setWindowedMode(int width, int height) {
-		return false;
+		display.setSize(width, height);
+		return true;
 	}
 
 	@Override

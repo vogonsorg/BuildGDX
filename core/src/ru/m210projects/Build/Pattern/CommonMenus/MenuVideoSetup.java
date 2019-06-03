@@ -36,6 +36,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuSlider;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.GLRenderer;
 
 public abstract class MenuVideoSetup extends BuildMenu {
 	
@@ -88,7 +89,10 @@ public abstract class MenuVideoSetup extends BuildMenu {
 					filter = 5;
 
 				Console.Set("r_texturemode", filter);
-				app.pEngine.render.gltexapplyprops();
+				
+				GLRenderer gl = app.pEngine.glrender();
+				if(gl != null)
+					gl.gltexapplyprops();
 			}
 		}) {
 			@Override
@@ -216,7 +220,9 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
 				usehightile = sw.value;
-				app.pEngine.getrender().gltexinvalidateall(1);
+				GLRenderer gl = app.pEngine.glrender();
+				if(gl != null)
+					gl.gltexinvalidateall(1);
 			}
 		}, null, null) {
 			@Override

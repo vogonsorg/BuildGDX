@@ -12,6 +12,7 @@
 package ru.m210projects.Build.Render;
 
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
+import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
 import static java.lang.Math.*;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.*;
@@ -68,7 +69,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
-public abstract class Polymost implements Renderer {
+public abstract class Polymost implements GLRenderer {
 	
 	public static long TexDebug = -1;
 	class GLSurfaceArray {
@@ -340,10 +341,8 @@ public abstract class Polymost implements Renderer {
 		Arrays.fill(spritewall, -1);
 		
 		this.polymost2d = new Polymost2D(this);
-		
-		init();
-
-		Console.Println(Gdx.graphics.getGLVersion().getRendererString() + " " + GLInfo.version + " initialized", OSDTEXT_GOLD);
+	
+		Console.Println(Gdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION) + " initialized", OSDTEXT_GOLD);
 	}
 	
 	@Override
@@ -429,13 +428,18 @@ public abstract class Polymost implements Renderer {
 	public void gltexinvalidateall() {
 		textureCache.invalidateall();
 
-		textureCache.changePalette(curpalette);
+		changepalette(curpalette);
 		
 		clearskins(true);
 	}
 
 	public void gltexinvalidate8() {
 		textureCache.invalidateall();
+	}
+	
+	@Override
+	public void changepalette(byte[] palette) {
+		textureCache.changePalette(palette);
 	}
 
 	public void clearskins(boolean bit8only) {
@@ -4780,6 +4784,11 @@ public abstract class Polymost implements Renderer {
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
 		polymost2d.drawline256(x1, y1, x2, y2, col);
 		EnableFog();
+	}
+	
+	@Override
+	public FrameType getType() {
+		return FrameType.GL;
 	}
 }
 

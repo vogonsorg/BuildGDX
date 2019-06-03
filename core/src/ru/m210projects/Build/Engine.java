@@ -26,13 +26,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.DEFOSDFUNC;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
+import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Render.Software.Software;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -679,7 +682,8 @@ public abstract class Engine {
 
 	public short deletesprite(short spritenum) //jfBuild
 	{
-		getrender().removeSpriteCorr(spritenum);
+		GLRenderer gl = glrender();
+		if(gl != null) gl.removeSpriteCorr(spritenum);
 		deletespritestat(spritenum);
 		return(deletespritesect(spritenum));
 	}
@@ -1013,7 +1017,9 @@ public abstract class Engine {
 				@Override
 				public void execute() {
 					usehightile = Integer.parseInt(osd_argv[1]) == 1;
-					render.gltexinvalidateall(1);
+					GLRenderer gl = glrender();
+					if(gl != null) //XXX
+						gl.gltexinvalidateall(1);
 				}
 			}, 0, 1));
 		
@@ -1029,7 +1035,9 @@ public abstract class Engine {
 					int value = Integer.parseInt(osd_argv[1]);
 					if(value >= 2) value = 5; //set to trilinear
 					if(Console.Set("r_texturemode", value)) {
-						render.gltexapplyprops();
+						GLRenderer gl = glrender();
+						if(gl != null) //XXX
+							gl.gltexapplyprops();
 						Console.Println("Texture filtering mode changed to " + value);
 					} else Console.Println("Texture filtering mode out of range");
 				} 
@@ -1374,7 +1382,6 @@ public abstract class Engine {
 		ydim = daydim;
 
 		setview(0, 0, xdim - 1, ydim - 1);
-		clearview(0);
 		setbrightness(curbrightness, palette, 0);
 		
 		Console.ResizeDisplay(daxdim, daydim);
@@ -1449,7 +1456,8 @@ public abstract class Engine {
 	}
 
 	public void showfade() { //gdxBuild
-		render.palfade(fades);
+		GLRenderer gl = glrender();
+		if(gl != null) gl.palfade(fades);
 	}
 	
 	public void loadpic(String filename) //gdxBuild
@@ -3537,11 +3545,19 @@ public abstract class Engine {
 //		if ((flags&1) == 0)
 //			setpalette(0,256,(char*)tempbuf);
 
-		if ((flags & 2) != 0) 
-			render.gltexinvalidateall(flags);
+		if ((flags & 2) != 0) {
+			GLRenderer gl = glrender();
+			if(gl != null) gl.gltexinvalidateall(flags);
+		}
 
 		palfadergb.r = palfadergb.g = palfadergb.b = 0;
 		palfadergb.a = 0;
+	}
+	
+	public void changepalette(byte[] palette)
+	{
+		System.arraycopy(palette, 0, curpalette, 0, 768);
+		render.changepalette(palette);
 	}
 
 	public void setpalettefade(int r, int g, int b, int offset) { //jfBuild
@@ -3604,8 +3620,9 @@ public abstract class Engine {
 		inpreparemirror = true;
 	}
 
-	public void completemirror() { //jfBuild
-		//Software render
+	public void completemirror() { 
+		if(render.getType() == FrameType.Software) 
+			((Software) render).completemirror();
 	}
 
 	public short sectorofwall(short theline) { //jfBuild
@@ -3923,6 +3940,14 @@ public abstract class Engine {
 	{
 		return render;
 	}
+	
+	public GLRenderer glrender()
+	{
+		if(render != null && getrender().getType() == FrameType.GL)
+			return (GLRenderer) render;
+		
+		return null;
+	}
 
 	//
 	// invalidatetile
@@ -3940,8 +3965,8 @@ public abstract class Engine {
 	//
 	
 	public void invalidatetile(int tilenume, int pal, int how) { //jfBuild
-
-		if(render == null) //not initialized...
+		GLRenderer gl = glrender();
+		if(gl == null) //not initialized...
 			return;
 		
 		int numpal, firstpal, np;
@@ -3960,7 +3985,7 @@ public abstract class Engine {
 				continue;
 
 			for (np = firstpal; np < firstpal + numpal; np++) {
-				render.gltexinvalidate(tilenume, np, hp);
+				gl.gltexinvalidate(tilenume, np, hp);
 			}
 		}
 	}

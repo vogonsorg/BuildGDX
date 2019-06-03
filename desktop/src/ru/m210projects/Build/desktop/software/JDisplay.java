@@ -27,13 +27,11 @@ public class JDisplay
 {
 	protected final JFrame m_frame;
 	private final JCanvas canvas;
-	private Dimension size;
-	
 	private boolean isCloseRequested = false;
 	
 	public JDisplay(int width, int height)
 	{
-		size = new Dimension(width, height);
+		Dimension size = new Dimension(width, height);
 		canvas = new JCanvas(width, height);
 		canvas.setPreferredSize(size);
 		canvas.setMinimumSize(size);
@@ -69,8 +67,15 @@ public class JDisplay
 	
 	public void setSize(int width, int height)
 	{
-		//size = new Dimension(width, height); XXX
-		//canvas = new JCanvas(width, height);
+		canvas.setSize(width, height);
+		Dimension size = new Dimension(width, height);
+		canvas.setPreferredSize(size);
+		canvas.setMinimumSize(size);
+		canvas.setMaximumSize(size);
+		
+		canvas.revalidate();
+		m_frame.pack();
+		m_frame.setLocationRelativeTo(null);
 	}
 	
 	public boolean wasResized()
