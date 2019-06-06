@@ -35,7 +35,7 @@ import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
-import ru.m210projects.Build.Render.Software.Software;
+import ru.m210projects.Build.Render.Renderer.PFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -3540,6 +3540,7 @@ public abstract class Engine {
 
 		for (int i = 0; i < 768; i++) 
 			curpalette[i] = (byte) ((dapal[i]& 0xFF) << 2);
+		changepalette(curpalette);
 		
 //		copybufbyte(curpalette, curpalettefaded, curpalette.length);
 //		if ((flags&1) == 0)
@@ -3594,9 +3595,9 @@ public abstract class Engine {
 	    setviewcnt--;
 
 	    offscreenrendering = (setviewcnt>0);
-	    
+
 	    if (setviewcnt == 0) {
-	    	waloff[baktile] = getframe(tilesizx[baktile], tilesizy[baktile]);
+	    	waloff[baktile] = setviewbuf();
 	        invalidatetile(baktile,-1,-1);
 	    }
 	    setviewcnt = 0;
@@ -3621,8 +3622,7 @@ public abstract class Engine {
 	}
 
 	public void completemirror() { 
-		if(render.getType() == FrameType.Software) 
-			((Software) render).completemirror();
+		render.completemirror();
 	}
 
 	public short sectorofwall(short theline) { //jfBuild
@@ -3822,12 +3822,9 @@ public abstract class Engine {
 		render.printext(xpos, ypos, col, backcol, name, fontsize, 1.0f);
 	}
 	
-	public String screencapture(String fn) { //jfBuild + gdxBuild
+	public String screencapture(String fn) { //jfBuild + gdxBuild (screenshot)
 		int a, b, c, d;
 		
-		if(render.getname().equals("Classic"))
-			return null;
-
 		fn = fn.substring(0, Bstrrchr(fn, '.') - 4);
 		
 		DirectoryEntry userdir = cache.checkDirectory("<userdir>");
@@ -3850,27 +3847,16 @@ public abstract class Engine {
 		int w = xdim, h = ydim;
 		Pixmap capture = null;
 		try {
-			ByteBuffer frame = render.getframebuffer(0, 0, w, h, GL10.GL_RGB);
 			capture = new Pixmap(w, h, Format.RGB888);
 			ByteBuffer pixels = capture.getPixels();
-			
-			final int numBytes = w * h * 3;
-			byte[] lines = new byte[numBytes];
-			final int numBytesPerLine = w * 3;
-			for (int i = 0; i < h; i++) {
-				frame.position((h - i - 1) * numBytesPerLine);
-				frame.get(lines, i * numBytesPerLine, numBytesPerLine);
-			}
-			pixels.put(lines);
-			
+			pixels.put(render.getFrame(PFormat.RGB));
+
 			File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
-		
 			PixmapIO.writePNG(new FileHandle(pci), capture);
 			userdir.addFile(pci);
 			capture.dispose();
 			return fn + a + b + c + d + ".png";
-		} 
-		catch(Exception e) {
+		} catch(Exception e) {
 			if(capture != null)
 				capture.dispose();
 			return null;
@@ -3878,56 +3864,62 @@ public abstract class Engine {
 	}
 	
 	private byte[] capture;
-	public byte[] screencapture(int width, int heigth) { //gdxBuild
-		if (capture == null || capture.length < width * heigth ) 
-			capture = new byte[width * heigth];
+	public byte[] screencapture(int dwidth, int dheigth) { //gdxBuild (savegame file)
+		if (capture == null || capture.length < dwidth * dheigth ) 
+			capture = new byte[dwidth * dheigth];
+	
+		long xf = divscale(xdim, dwidth, 16);
+		long yf = divscale(ydim, dheigth, 16);
 
-		if(render.getname().equals("Classic")) {
-			ByteBuffer frame = render.getframebuffer(0, 0, width, heigth, GL10.GL_RGB);
-			frame.get(capture);
-			return capture;
-		}
-		ByteBuffer frame = render.getframebuffer(0, 0, xdim, ydim, GL10.GL_RGB);
-
-		long xf = divscale(xdim, width, 16);
-		long yf = divscale(ydim, heigth, 16);
-
-		int base, r, g, b;
-		for (int x, y = 0; y < heigth; y++) {
-			base = mulscale(heigth - y - 1, yf, 16) * xdim;
-			for (x = 0; x < width; x++) {
-				frame.position(3 * (base + mulscale(x, xf, 16)));
-				r = (frame.get() & 0xFF) >> 2;
-				g = (frame.get() & 0xFF) >> 2;
-				b = (frame.get() & 0xFF) >> 2;
-				capture[heigth * x + y] = getclosestcol(r, g, b);
+		ByteBuffer frame;
+		if(render.getType() == FrameType.Software) {
+			frame = render.getFrame(PFormat.Indexed);
+		} else frame = render.getFrame(PFormat.RGB);
+		
+		int base;
+		for (int fx, fy = 0; fy < dheigth; fy++) {
+			base = mulscale(fy, yf, 16) * xdim;
+			for (fx = 0; fx < dwidth; fx++) {
+				capture[dheigth * fx + fy] = getcol(frame, base + mulscale(fx, xf, 16), render.getType());
 			}
 		}
+
 		return capture;
 	}
 	
-	public byte[] getframe(int width, int heigth) { //gdxBuild
-		if (capture == null || capture.length < width * heigth ) 
-			capture = new byte[width * heigth];
-		
-		if(render.getname().equals("Classic")) {
-			ByteBuffer frame = render.getframebuffer(0, 0, width, heigth, GL10.GL_RGB);
-			frame.get(capture);
-			return capture;
+	private byte getcol(ByteBuffer frame, int pos, FrameType format)
+	{
+		switch(format)
+		{
+		case Software:
+			frame.position(pos);
+			return frame.get();
+		default:
+			frame.position(3 * pos);
+			int r = (frame.get() & 0xFF) >> 2;
+			int g = (frame.get() & 0xFF) >> 2;
+			int b = (frame.get() & 0xFF) >> 2;
+			return getclosestcol(r, g, b);
 		}
+	}
+	
+	private byte[] setviewbuf() { //gdxBuild
+		int width = tilesizx[baktile];
+		int heigth = tilesizy[baktile];
+		byte[] data = waloff[baktile];
+		if (data == null || data.length < width * heigth ) 
+			data = new byte[width * heigth];
 		
-		ByteBuffer frame = render.getframebuffer(0, ydim - heigth, width, heigth, GL10.GL_RGB);
-		int r, g, b;
-		for (int x, y = heigth - 1; y >= 0; y--) {
-			for (x = 0; x < width; x++) {
-				r = (frame.get() & 0xFF) >> 2;
-				g = (frame.get() & 0xFF) >> 2;
-				b = (frame.get() & 0xFF) >> 2;
-				capture[heigth * x + y] = getclosestcol(r, g, b);
-			}
-		}
-		
-		return capture;
+		ByteBuffer frame;
+		if(render.getType() == FrameType.Software) {
+			frame = render.getFrame(PFormat.Indexed);
+		} else frame = render.getFrame(PFormat.RGB);
+
+		for (int x, y = heigth - 1; y >= 0; y--)
+			for (x = 0; x < width; x++) 
+				data[x * heigth + y] = getcol(frame, x + y * xdim, render.getType());
+
+		return data;
 	}
 
 	public int setrendermode(Renderer render) { //gdxBuild

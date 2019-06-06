@@ -34,6 +34,7 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Render.Renderer.PFormat;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.TextureHandle.ValueResolver;
@@ -196,7 +197,7 @@ public class GdxRenderer implements GLRenderer {
 	}
 
 	@Override
-	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format) {
+	public ByteBuffer getFrame(PFormat format) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -251,6 +252,12 @@ public class GdxRenderer implements GLRenderer {
 
 	@Override
 	public void changepalette(byte[] palette) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void completemirror() {
 		// TODO Auto-generated method stub
 		
 	}

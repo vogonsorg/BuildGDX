@@ -104,16 +104,15 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Software implements Renderer {
 
 	/*
+	 * maskedwall 
 	 * fullscreen 
 	 * sprites shade 
-	 * duke pal1 fix 
-	 * maskedwall 
-	 * widescreen fix 
-	 * frame byte buffer 
-	 * fix mirrors in game 
-	 * color correction
 	 * voxel depth bug
 	 * voxel scale + rotation
+	 * 
+	 * duke pal1 fix 
+	 * widescreen fix 
+	 * color correction
 	 */
 
 	public final int BITSOFPRECISION = 3;
@@ -575,6 +574,9 @@ public abstract class Software implements Renderer {
 		mirrorsx2 -= mirrorsx1;
 		for(int dy=mirrorsy2-mirrorsy1;dy>=0;dy--)
 		{
+			if(mirrorsx2+1+p+1 >= frameplace.length)
+				return;
+			
 			System.arraycopy(frameplace, p+1, tempbuf, 0, mirrorsx2+1);
 			tempbuf[mirrorsx2] = tempbuf[mirrorsx2-1];
 			copybufreverse(tempbuf, mirrorsx2,frameplace, p+i,mirrorsx2+1);
@@ -3398,20 +3400,38 @@ public abstract class Software implements Renderer {
 		orpho.printext(xpos, ypos, col, backcol, text, fontsize, scale);
 	}
 
-	private ByteBuffer framebuffer;
+	private ByteBuffer indexbuffer;
+	private ByteBuffer rgbbuffer;
 
 	@Override
-	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format) {
+	public ByteBuffer getFrame(PFormat format) {
 
-		if (framebuffer != null)
-			framebuffer.clear();
-		if (framebuffer == null || framebuffer.capacity() < frameplace.length)
-			framebuffer = BufferUtils.newByteBuffer(frameplace.length);
-
-		framebuffer.put(frameplace);
-		framebuffer.rewind();
-
-		return framebuffer;
+		if(format == PFormat.Indexed) {
+			if (indexbuffer != null) indexbuffer.clear();
+			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
+				indexbuffer = BufferUtils.newByteBuffer(xdim * ydim);
+			
+			indexbuffer.put(frameplace);
+			indexbuffer.rewind();
+			return indexbuffer;
+		} else if(format == PFormat.RGB){
+			if (rgbbuffer != null) rgbbuffer.clear();
+			if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3 )
+				rgbbuffer = BufferUtils.newByteBuffer(xdim * ydim * 3);
+			
+			for(int i = 0; i < xdim * ydim; i++)
+			{
+				int dacol = frameplace[i] & 0xFF;
+				rgbbuffer.put(curpalette[3 * dacol + 0]);
+				rgbbuffer.put(curpalette[3 * dacol + 1]);
+				rgbbuffer.put(curpalette[3 * dacol + 2]);
+			}
+			
+			rgbbuffer.rewind();
+			return rgbbuffer;
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -4010,7 +4030,7 @@ public abstract class Software implements Renderer {
 	
 	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c)
 	{
-		while((c--) > 0) s[sptr--] = d[dptr++];
+		while((c--) > 0) d[dptr++] = s[sptr--];
 	}
 	
 	@Override

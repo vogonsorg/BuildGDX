@@ -16,7 +16,6 @@
 
 package ru.m210projects.Build.Render;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import ru.m210projects.Build.Render.Types.FadeEffect;
@@ -35,8 +34,6 @@ public interface GLRenderer extends Renderer {
 
 	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
 
-	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format);
-	
 	public void setdrunk(float intensive);
 	
 	public float getdrunk();

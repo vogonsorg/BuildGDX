@@ -4546,17 +4546,60 @@ public abstract class Polymost implements GLRenderer {
 		ogshang = -1;
 	}
 	
-	private ByteBuffer framebuffer;
-
+	private ByteBuffer rgbbuffer;
+	private ByteBuffer indexbuffer;
+	
 	@Override
-	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format) {
-		if (framebuffer != null) framebuffer.clear();
-		if (framebuffer == null || framebuffer.capacity() < w * h * 3 )
-			framebuffer = BufferUtils.newByteBuffer(w * h * 3);
-		
+	public ByteBuffer getFrame(PFormat format) {
+		if (rgbbuffer != null) rgbbuffer.clear();
+		if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3 )
+			rgbbuffer = BufferUtils.newByteBuffer(xdim * ydim * 3);
+
 		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
-		gl.glReadPixels(x, y, w, h, format, GL10.GL_UNSIGNED_BYTE, framebuffer);
-		return framebuffer;
+		gl.glReadPixels(0, 0, xdim, ydim, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
+		
+		if(format == PFormat.RGB) {
+			int base1, base2, b1, b2;
+			byte tmp;
+			for (int p, b, a = 0; a < ydim / 2; a++) {
+				base1 = (ydim - a - 1) * xdim;
+				base2 = a * xdim;
+				for (b = 0; b < xdim; b++) {
+					b1 = 3 * (base1 + b);
+					b2 = 3 * (base2 + b);
+					for (p = 0; p < 3; p++) {
+						tmp = rgbbuffer.get(b1 + p);
+						rgbbuffer.put(b1 + p, rgbbuffer.get(b2 + p));
+						rgbbuffer.put(b2 + p, tmp);
+					}
+				}
+			}
+
+			rgbbuffer.rewind();
+			return rgbbuffer;
+		} else if(format == PFormat.Indexed) {
+			if (indexbuffer != null) indexbuffer.clear();
+			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
+				indexbuffer = BufferUtils.newByteBuffer(xdim * ydim);
+
+			int base, r, g, b;
+			for (int x, y = 0; y < ydim; y++) {
+				base = (ydim - y - 1) * xdim;
+				for (x = 0; x < xdim; x++) {
+					rgbbuffer.position(3 * (base + x));
+					r = (rgbbuffer.get() & 0xFF) >> 2;
+					g = (rgbbuffer.get() & 0xFF) >> 2;
+					b = (rgbbuffer.get() & 0xFF) >> 2;
+				
+					indexbuffer.put(engine.getclosestcol(r, g, b));
+				}
+			}
+
+			indexbuffer.rewind();
+			return indexbuffer;
+		}
+		
+		return null;
 	}
 	
 	public int nearwall(int i, int range) {
@@ -4790,6 +4833,9 @@ public abstract class Polymost implements GLRenderer {
 	public FrameType getType() {
 		return FrameType.GL;
 	}
+	
+	@Override
+	public void completemirror() { /* nothing */ }
 }
 
 class Polygon

@@ -25,6 +25,8 @@ public interface Renderer {
 	
 	public enum Transparent { None, Bit1, Bit2 }
 	
+	public enum PFormat { RGB, Indexed }
+	
 	public void init();
 	
 	public void uninit();
@@ -45,6 +47,8 @@ public interface Renderer {
 	
 	public String getname();
 	
+	public void completemirror();
+	
 	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 	
 	public void drawmapview(int dax, int day, int zoome, int ang);
@@ -53,7 +57,7 @@ public interface Renderer {
 	
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 
-	public ByteBuffer getframebuffer(int x, int y, int w, int h, int format);
+	public ByteBuffer getFrame(PFormat format);
 	
 	public void drawline256(int x1, int y1, int x2, int y2, int col);
 	
