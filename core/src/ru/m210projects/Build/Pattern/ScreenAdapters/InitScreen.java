@@ -186,7 +186,12 @@ public class InitScreen extends ScreenAdapter {
 				}
 			}
 		});
-		thread.start();
+	}
+	
+	public void start()
+	{
+		if(thread != null)
+			thread.start();
 	}
 
 	public void dispose()

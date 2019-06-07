@@ -105,7 +105,6 @@ public abstract class Software implements Renderer {
 
 	/*
 	 * maskedwall 
-	 * fullscreen 
 	 * sprites shade 
 	 * voxel depth bug
 	 * voxel scale + rotation

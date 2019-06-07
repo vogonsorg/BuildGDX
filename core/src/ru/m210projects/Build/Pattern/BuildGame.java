@@ -104,7 +104,9 @@ public abstract class BuildGame extends Game {
 
 	@Override
 	public final void create() {
-		setScreen(new InitScreen(this));
+		InitScreen scr = new InitScreen(this);
+		setScreen(scr);
+		scr.start();
 	}
 	
 	public abstract BuildFactory getFactory();

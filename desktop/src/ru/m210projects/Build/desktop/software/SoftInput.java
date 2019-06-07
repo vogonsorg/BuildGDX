@@ -303,7 +303,7 @@ public class SoftInput implements BuildInput {
 
 	@Override
 	public int getX() {
-		return 0; //(int) (MouseInfo.getPointerInfo().getLocation().getX() - display.getCanvas().getLocationOnScreen().getX());
+		return (int) (MouseInfo.getPointerInfo().getLocation().getX() - display.getCanvas().getLocationOnScreen().getX());
 	}
 
 	@Override
@@ -332,7 +332,7 @@ public class SoftInput implements BuildInput {
 
 	@Override
 	public int getY() {
-		return 0; //(int) (MouseInfo.getPointerInfo().getLocation().getY() - display.getCanvas().getLocationOnScreen().getY());	
+		return (int) (MouseInfo.getPointerInfo().getLocation().getY() - display.getCanvas().getLocationOnScreen().getY());	
 	}
 
 	@Override
@@ -397,8 +397,8 @@ public class SoftInput implements BuildInput {
 		if(!display.m_frame.isActive() || !display.m_frame.isFocused())
 			return;
 		
-		//Point p = display.getCanvas().getLocationOnScreen();
-		//robot.mouseMove(p.x + x, p.y + y);
+		Point p = display.getCanvas().getLocationOnScreen();
+		robot.mouseMove(p.x + x, p.y + y);
 	}
 
 	@Override

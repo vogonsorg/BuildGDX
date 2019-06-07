@@ -63,7 +63,7 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 			graphics.resize = false;
 			graphics.config.width = graphics.getWidth();
 			graphics.config.height = graphics.getHeight();
-			graphics.display.setSize(graphics.config.width, graphics.config.height);
+			graphics.display.updateSize(graphics.config.width, graphics.config.height);
 			graphics.requestRendering();
 			return true;
 		}

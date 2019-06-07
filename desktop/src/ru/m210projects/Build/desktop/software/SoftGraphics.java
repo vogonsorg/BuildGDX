@@ -1,3 +1,19 @@
+//This file is part of BuildGDX.
+//Copyright (C) 2017-2019  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+//BuildGDX is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//BuildGDX is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+//
+//You should have received a copy of the GNU General Public License
+//along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
 package ru.m210projects.Build.desktop.software;
 
 import java.awt.Image;
@@ -176,7 +192,7 @@ public class SoftGraphics implements BuildGraphics {
 	 */
 	@Override
 	public void setUndecorated (boolean undecorated) {
-		System.setProperty("org.lwjgl.opengl.Window.undecorated", undecorated ? "true" : "false");
+		display.setUndecorated(undecorated);
 	}
 
 	/**
@@ -216,9 +232,118 @@ public class SoftGraphics implements BuildGraphics {
 	
 	@Override
 	public boolean isFullscreen() {
-		return false; //display.isFullscreen(); XXX
+		return display.isFullscreen();
 	}
 
+	@Override
+	public DisplayMode[] getDisplayModes() {
+		java.awt.DisplayMode[] availableDisplayModes = display.getDisplayModes();
+		DisplayMode[] modes = new DisplayMode[availableDisplayModes.length];
+
+		int idx = 0;
+		for (java.awt.DisplayMode mode : availableDisplayModes) {
+			modes[idx++] = new SoftDisplayMode(mode.getWidth(), mode.getHeight(), mode.getRefreshRate(), mode.getBitDepth(), mode);
+		}
+
+		return modes;
+	}
+
+	@Override
+	public DisplayMode[] getDisplayModes(Monitor monitor) {
+		return getDisplayModes();
+	}
+
+	@Override
+	public DisplayMode getDisplayMode() {
+		java.awt.DisplayMode mode = display.getDesktopDisplayMode();
+		return new SoftDisplayMode(mode.getWidth(), mode.getHeight(), mode.getRefreshRate(), mode.getBitDepth(), mode);
+	}
+
+	@Override
+	public DisplayMode getDisplayMode(Monitor monitor) {
+		return getDisplayMode();
+	}
+
+	@Override
+	public boolean setFullscreenMode(DisplayMode displayMode) {
+		java.awt.DisplayMode mode = ((SoftDisplayMode)displayMode).mode;
+		
+		if(display.setFullscreenMode(mode))
+		{
+			config.width = mode.getWidth();
+			config.height = mode.getHeight();
+			resize = true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean setWindowedMode(int width, int height) {
+		
+		if (getWidth() == width && getHeight() == height && !display.isFullscreen()) 
+			return true;
+
+		java.awt.DisplayMode targetDisplayMode = new java.awt.DisplayMode(width, height, 
+				display.getDesktopDisplayMode().getRefreshRate(), display.getDesktopDisplayMode().getBitDepth());
+
+		display.setWindowedMode(targetDisplayMode);
+		display.setResizable(config.resizable);
+
+		config.width = targetDisplayMode.getWidth();
+		config.height = targetDisplayMode.getHeight();
+		resize = true;
+		return true;
+	}
+
+	@Override
+	public void setVSync(boolean vsync) {
+	}
+
+	
+
+	@Override
+	public Cursor newCursor(Pixmap pixmap, int xHotspot, int yHotspot) {
+		return null;
+	}
+
+	@Override
+	public void setCursor(Cursor cursor) {
+	}
+
+	@Override
+	public void setSystemCursor(SystemCursor systemCursor) {
+	}
+
+	private class SoftDisplayMode extends DisplayMode {
+		java.awt.DisplayMode mode;
+		
+		public SoftDisplayMode (int width, int height, int refreshRate, int bitsPerPixel, java.awt.DisplayMode mode) {
+			super(width, height, refreshRate, bitsPerPixel);
+			this.mode = mode;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Array<String> getIconPaths(LwjglApplicationConfiguration config) throws Exception
+	{
+		Field f = config.getClass().getDeclaredField("iconPaths"); 
+		f.setAccessible(true);
+		Array<String> icons = (Array<String>) f.get(config);
+		return icons;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Array<FileType> getIconFileTypes(LwjglApplicationConfiguration config) throws Exception
+	{
+		Field f = config.getClass().getDeclaredField("iconFileTypes"); 
+		f.setAccessible(true);
+		Array<FileType> iconFileTypes = (Array<FileType>) f.get(config);
+		return iconFileTypes;
+	}
+	
+	// unsupported
+	
 	@Override
 	public boolean isGL30Available() {
 		return false;
@@ -261,63 +386,10 @@ public class SoftGraphics implements BuildGraphics {
 	public Monitor[] getMonitors() {
 		return null;
 	}
-
-	@Override
-	public DisplayMode[] getDisplayModes() {
-		return null;
-	}
-
-	@Override
-	public DisplayMode[] getDisplayModes(Monitor monitor) {
-		return null;
-	}
-
-	@Override
-	public DisplayMode getDisplayMode() {
-		return null;
-	}
-
-	@Override
-	public DisplayMode getDisplayMode(Monitor monitor) {
-		return null;
-	}
-
-	@Override
-	public boolean setFullscreenMode(DisplayMode displayMode) {
-		return false;
-	}
-
-	@Override
-	public boolean setWindowedMode(int width, int height) {
-		display.setSize(width, height);
-		return true;
-	}
-
-	@Override
-	public void setVSync(boolean vsync) {
-	}
-
-	@Override
-	public BufferFormat getBufferFormat() {
-		return null;
-	}
-
+	
 	@Override
 	public boolean supportsExtension(String extension) {
 		return false;
-	}
-
-	@Override
-	public Cursor newCursor(Pixmap pixmap, int xHotspot, int yHotspot) {
-		return null;
-	}
-
-	@Override
-	public void setCursor(Cursor cursor) {
-	}
-
-	@Override
-	public void setSystemCursor(SystemCursor systemCursor) {
 	}
 
 	@Override
@@ -325,22 +397,9 @@ public class SoftGraphics implements BuildGraphics {
 		return null;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public Array<String> getIconPaths(LwjglApplicationConfiguration config) throws Exception
-	{
-		Field f = config.getClass().getDeclaredField("iconPaths"); 
-		f.setAccessible(true);
-		Array<String> icons = (Array<String>) f.get(config);
-		return icons;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public Array<FileType> getIconFileTypes(LwjglApplicationConfiguration config) throws Exception
-	{
-		Field f = config.getClass().getDeclaredField("iconFileTypes"); 
-		f.setAccessible(true);
-		Array<FileType> iconFileTypes = (Array<FileType>) f.get(config);
-		return iconFileTypes;
+	@Override
+	public BufferFormat getBufferFormat() {
+		return null;
 	}
 
 }

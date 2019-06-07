@@ -16,7 +16,11 @@
 
 package ru.m210projects.Build.desktop.software;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.MouseInfo;
 import java.util.List;
@@ -28,32 +32,51 @@ public class JDisplay
 	protected final JFrame m_frame;
 	private final JCanvas canvas;
 	private boolean isCloseRequested = false;
-	
+	private final GraphicsDevice device;
+	private boolean isFullscreen;
+	private boolean wasResized;
+
 	public JDisplay(int width, int height)
 	{
-		Dimension size = new Dimension(width, height);
-		canvas = new JCanvas(width, height);
-		canvas.setPreferredSize(size);
-		canvas.setMinimumSize(size);
-		canvas.setMaximumSize(size);
+		this.device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
-		m_frame = new JFrame(MouseInfo.getPointerInfo().getDevice().getDefaultConfiguration());
-		m_frame.setResizable(false);
-		m_frame.add(canvas);
-		m_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		m_frame.addWindowListener(new java.awt.event.WindowAdapter() {
+		canvas = new JCanvas(width, height);
+		m_frame = buildFrame(null, false);
+		
+		updateSize(width, height);
+
+		canvas.setFocusable(true);
+		canvas.requestFocus();
+		
+		isFullscreen = false;
+	}
+	
+	public DisplayMode[] getDisplayModes()
+	{
+		return device.getDisplayModes();
+	}
+	
+	public JFrame buildFrame(List<Image> icons, boolean undecorated)
+	{
+		JFrame frame = new JFrame(MouseInfo.getPointerInfo().getDevice().getDefaultConfiguration());
+		frame.setUndecorated(undecorated);
+		frame.add(canvas);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
 		    	isCloseRequested = true;
 		    }
 		});
 
-		m_frame.pack();
-		m_frame.setLocationRelativeTo(null);
-		m_frame.setVisible(true);
+		if(icons != null)
+			frame.setIconImages(icons);
 		
-		canvas.setFocusable(true);
-		canvas.requestFocus();
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+
+		return frame;
 	}
 	
 	public boolean isCloseRequested() {
@@ -65,22 +88,70 @@ public class JDisplay
 		return m_frame.isActive();
 	}
 	
-	public void setSize(int width, int height)
+	public boolean setFullscreenMode(DisplayMode mode)
 	{
+		if(!device.isFullScreenSupported())
+			return false;
+
+		setUndecorated(true);
+		device.setFullScreenWindow(m_frame);
+		
+		if (device.isDisplayChangeSupported())
+            device.setDisplayMode(mode);
+		
+		updateSize(mode.getWidth(), mode.getHeight());
+
+		isFullscreen = true;
+		return true;
+	}
+
+	public boolean setWindowedMode(DisplayMode mode)
+	{
+		setUndecorated(false);
+		
+		device.setFullScreenWindow(null);
+		
+		if (device.isDisplayChangeSupported())
+            device.setDisplayMode(mode);
+		
+		updateSize(mode.getWidth(), mode.getHeight());
+
+		isFullscreen = false;
+		return true;
+	}
+	
+	public DisplayMode getDesktopDisplayMode()
+	{
+		return device.getDisplayMode();
+	}
+	
+	public void updateSize(int width, int height)
+	{
+		if(canvas.getSize().width == width && 
+				canvas.getSize().height == height)
+			return;
+		
+		wasResized = true;
 		canvas.setSize(width, height);
 		Dimension size = new Dimension(width, height);
 		canvas.setPreferredSize(size);
 		canvas.setMinimumSize(size);
 		canvas.setMaximumSize(size);
-		
 		canvas.revalidate();
-		m_frame.pack();
-		m_frame.setLocationRelativeTo(null);
+		canvas.setBackground(Color.black);
+		
+		if(!isFullscreen())
+		{
+			m_frame.pack();
+			m_frame.setLocationRelativeTo(null);
+		}
 	}
 	
 	public boolean wasResized()
 	{
-		return false;
+		boolean out = wasResized;
+		wasResized = false;
+		return out;
 	}
 	
 	public JCanvas getCanvas()
@@ -105,7 +176,9 @@ public class JDisplay
 
 	public void setUndecorated(boolean undecorated)
 	{
+		m_frame.dispose();
 		m_frame.setUndecorated(undecorated);
+		m_frame.setVisible(true);
 	}
 	
 	public void setResizable(boolean resizable) {
@@ -121,5 +194,9 @@ public class JDisplay
 	
 	public void setIcon(List<Image> icons) {
 		m_frame.setIconImages(icons);
+	}
+
+	public boolean isFullscreen() {
+		return isFullscreen;
 	}
 }
