@@ -3496,7 +3496,7 @@ public abstract class Engine {
 			for(int i=0;i<256;i++)
 			{
 				for (int j=0; j<numshades; j++) {
-					palookup[palnum][i + j * 256] = palookup[0][remapbuf[i]&0xFF + j * 256];
+					palookup[palnum][i + j * 256] = palookup[0][(remapbuf[i] & 0xFF) + j * 256];
 				}
 			}
 			palookupfog[palnum][0] = 0;
