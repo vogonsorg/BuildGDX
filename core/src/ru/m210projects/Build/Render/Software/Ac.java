@@ -327,17 +327,43 @@ public class Ac {
 		} catch (Throwable e) {}
 	}
 	
-	public void setupdrawslab (int dabpl, int pal, int shade)
-	{ bpl = dabpl; gpal = pal; gshade = shade; }
+	public void setupdrawslab (int dabpl, int pal, int shade, int trans)
+	{ bpl = dabpl; gpal = pal; gshade = shade; transmode = trans; }
 	
 	public void drawslab (int dx, int v, int dy, int vi, byte[] data, int vptr, int p)
 	{
 		int x;
-		while (dy > 0)
+		int dacol;
+		switch(transmode)
 		{
-			for(x=0;x<dx;x++) 
-				r.frameplace[p+x] = palookup[gpal][(data[(v>>>16)+vptr] & 0xFF) + gshade];
-			p += bpl; v += vi; dy--;
+		case 0:
+			while (dy > 0)
+			{
+				for(x=0;x<dx;x++) 
+					r.frameplace[p+x] = palookup[gpal][(data[(v>>>16)+vptr] & 0xFF) + gshade];
+				p += bpl; v += vi; dy--;
+			}
+			break;
+		case 1:
+			while (dy > 0)
+			{
+				for(x=0;x<dx;x++) { 
+					dacol = palookup[gpal][(data[(v>>>16)+vptr] & 0xFF) + gshade] & 0xFF;
+					r.frameplace[p+x] = gtrans[(r.frameplace[p+x]&0xFF)+(dacol<<8)];
+				}
+				p += bpl; v += vi; dy--;
+			}
+			break;
+		case 2:
+			while (dy > 0)
+			{
+				for(x=0;x<dx;x++) { 
+					dacol = palookup[gpal][(data[(v>>>16)+vptr] & 0xFF) + gshade] & 0xFF;
+					r.frameplace[p+x] = gtrans[((r.frameplace[p+x]&0xFF)<<8)+dacol];
+				}
+				p += bpl; v += vi; dy--;
+			}
+			break;
 		}
 	}
 

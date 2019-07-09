@@ -4323,7 +4323,7 @@ public abstract class Polymost implements GLRenderer {
 			return 0;
 		if ((sprite[tspr.owner].cstat & 48) == 32)
 			return 0;
-		
+
 		dvoxm0.x = m.scale;
 		dvoxm0.y = m.scale;
 		dvoxm0.z = m.scale;

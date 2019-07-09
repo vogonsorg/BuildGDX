@@ -58,9 +58,11 @@ import static ru.m210projects.Build.Engine.singlobalang;
 import static ru.m210projects.Build.Engine.sintable;
 import static ru.m210projects.Build.Engine.sinviewingrangeglobalang;
 import static ru.m210projects.Build.Engine.sprite;
+import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.spritesortcnt;
 import static ru.m210projects.Build.Engine.tilesizx;
 import static ru.m210projects.Build.Engine.tilesizy;
+import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Engine.transluc;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.usevoxels;
@@ -81,6 +83,7 @@ import static ru.m210projects.Build.Engine.xdimscale;
 import static ru.m210projects.Build.Engine.xyaspect;
 import static ru.m210projects.Build.Engine.yxaspect;
 import static ru.m210projects.Build.Pragmas.*;
+import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
 import static ru.m210projects.Build.Loader.Voxels.Voxel.*;
 
 import java.nio.ByteBuffer;
@@ -104,12 +107,9 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Software implements Renderer {
 
 	/*
-	 * maskedwall 
-	 * sprites shade 
+	 * rotatesprite clip bug
 	 * voxel depth bug
-	 * voxel scale + rotation
 	 * 
-	 * duke pal1 fix 
 	 * widescreen fix 
 	 * color correction
 	 */
@@ -684,8 +684,8 @@ public abstract class Software implements Renderer {
 						globalpicnum = wal.picnum;
 						if (globalpicnum >= MAXTILES)
 							globalpicnum = 0;
-						globalxpanning = wal.xpanning;
-						globalypanning = wal.ypanning;
+						globalxpanning = wal.xpanning & 0xFF;
+						globalypanning = wal.ypanning & 0xFF;
 						globalshiftval = (short) (picsiz[globalpicnum] >> 4);
 						if (pow2long[globalshiftval] != tilesizy[globalpicnum])
 							globalshiftval++;
@@ -772,8 +772,8 @@ public abstract class Software implements Renderer {
 							globalpicnum = wal.picnum;
 							if (globalpicnum >= MAXTILES)
 								globalpicnum = 0;
-							globalxpanning = wal.xpanning;
-							globalypanning = wal.ypanning;
+							globalxpanning = wal.xpanning & 0xFF;
+							globalypanning = wal.ypanning & 0xFF;
 							if ((picanm[globalpicnum] & 192) != 0)
 								globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 							globalshade = wal.shade;
@@ -785,8 +785,8 @@ public abstract class Software implements Renderer {
 							globalpicnum = wal.picnum;
 							if (globalpicnum >= MAXTILES)
 								globalpicnum = 0;
-							globalxpanning = wal.xpanning;
-							globalypanning = wal.ypanning;
+							globalxpanning = wal.xpanning & 0xFF;
+							globalypanning = wal.ypanning & 0xFF;
 							if ((picanm[globalpicnum] & 192) != 0)
 								globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 							globalshade = wal.shade;
@@ -883,8 +883,8 @@ public abstract class Software implements Renderer {
 					globalpicnum = wal.overpicnum;
 				if (globalpicnum >= MAXTILES)
 					globalpicnum = 0;
-				globalxpanning = wal.xpanning;
-				globalypanning = wal.ypanning;
+				globalxpanning = wal.xpanning & 0xFF;
+				globalypanning = wal.ypanning & 0xFF;
 				if ((picanm[globalpicnum] & 192) != 0)
 					globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 				globalshade = wal.shade;
@@ -954,10 +954,13 @@ public abstract class Software implements Renderer {
 		if ((tspr.xrepeat <= 0) || (tspr.yrepeat <= 0))
 			return;
 		
+		int mflags = 0;
 		if (usevoxels) {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(tilenum) : null;
 			if (entry != null && entry.voxel != null) {
 				vtilenum = entry.voxel;
+				if(entry.model != null)
+					mflags = entry.model.flags;
 				cstat |= 48;
 			}
 		}
@@ -1787,6 +1790,7 @@ public abstract class Software implements Renderer {
 			// Draw it!
 			ceilspritescan(lx, rx - 1);
 			break;
+
 		case 3: // Voxel sprite
 			long nyrepeat;
 
@@ -1840,33 +1844,32 @@ public abstract class Software implements Renderer {
 					return;
 			}
 
-//				for(i=0;i<MAXVOXMIPS;i++)
-//					if (voxoff[vtilenum][i] == null)
-//					{
-//						kloadvoxel(vtilenum);
-//						break;
-//					}
-
-//				Model m = voxoff[vtilenum][0];
 			if (vtilenum == null)
 				break;
-			if (vtilenum.scale == 65536) {
+			
+			if (vtilenum.scale == 65536) 
 				nyrepeat = ((tspr.yrepeat) << 16);
-			} else {
-				nyrepeat = tspr.yrepeat * vtilenum.scale;
-			}
+			else nyrepeat = tspr.yrepeat * vtilenum.scale;
 
+			tspr.z -= mulscale(yoff, nyrepeat, 14);
 			if ((cstat & 128) == 0)
 				tspr.z -= mulscale((int) vtilenum.zpiv[0], nyrepeat, 22);
-			yoff = (int) ((byte) ((picanm[sprite[tspr.owner].picnum] >> 16) & 255)) + (tspr.yoffset);
-			tspr.z -= mulscale(yoff, nyrepeat, 14);
 
 			globvis = globalvisibility;
+			globalorientation = cstat;
 			if (sec.visibility != 0)
 				globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
 
 			i = tspr.ang + 1536;
-			drawvox(tspr.x, tspr.y, tspr.z, i, tspr.xrepeat, tspr.yrepeat, vtilenum, tspr.shade, tspr.pal, lwall, swall);
+			if((mflags & MD_ROTATE)!= 0)
+				i += totalclock % 2048;
+			i += spriteext[tspr.owner].angoff;
+			
+			float f = 1.0f;
+			if ((sprite[tspr.owner].cstat & 48) == 16 || (sprite[tspr.owner].cstat & 48) == 32)
+				f *= 1.25f;
+
+			drawvox(tspr.x, tspr.y, tspr.z, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, tspr.shade, tspr.pal, lwall, swall);
 			break;
 		}
 		if (automapping == 1)
@@ -1888,14 +1891,21 @@ public abstract class Software implements Renderer {
 		int yoff, xs = 0, ys = 0, xe, ye, xi = 0, yi = 0, cbackx, cbacky, dagxinc, dagyinc;
 		int voxptr, voxend, zleng, mip;
 
-		cosang = sintable[((int) globalang + 512) & 2047];
+		cosang = sintable[(int) (globalang + 512) & 2047];
 		sinang = sintable[(int) globalang & 2047];
 		sprcosang = sintable[(dasprang + 512) & 2047];
 		sprsinang = sintable[dasprang & 2047];
 
 		mip = klabs(dmulscale(dasprx - globalposx, cosang, daspry - globalposy, sinang, 6));
-		j = (engine.getpalookup(mulscale(globvis, mip, 21), dashade) << 8);
-		a.setupdrawslab(ylookup[1], dapal, j);
+		j = engine.getpalookup(mulscale(globvis, mip, 21), dashade) << 8;
+		
+		int trans = 0;
+		if ((globalorientation & 2) != 0) {
+			if ((globalorientation & 512) != 0)
+				trans = 2;
+			else trans = 1;
+		}
+		a.setupdrawslab(ylookup[1], dapal, j, trans);
 
 		if (!novoxmips) {
 			j = 1310720;
@@ -1976,6 +1986,11 @@ public abstract class Software implements Renderer {
 			return;
 		syoff = divscale(globalposz - dasprz, odayscale, 21) + (dazpivot << 7);
 		yoff = ((klabs(gxinc) + klabs(gyinc)) >> 1);
+		
+		boolean xflip = (globalorientation & 4) != 0;
+		boolean yflip = (globalorientation & 8) != 0;
+		int xptr, dazsiz = davox.zsiz[mip];
+		short[] shortptr;
 
 		for (cnt = 0; cnt < 8; cnt++) {
 			switch (cnt) {
@@ -2117,7 +2132,9 @@ public abstract class Software implements Renderer {
 			ggystart = gystart - ggxinc[ys];
 
 			for (x = xs; x != xe; x += xi) {
-				slabxoffs = davox.slabxoffs[mip][x];
+				xptr = xflip ? daxsiz - 1 - x : x;
+				slabxoffs = davox.slabxoffs[mip][xptr];
+				shortptr = davox.xyoffs[mip][xptr];
 
 				nx = mulscale(ggxstart + ggxinc[x], viewingrangerecip, 16) + x1;
 				ny = ggystart + ggyinc[x];
@@ -2125,8 +2142,8 @@ public abstract class Software implements Renderer {
 					if ((ny <= nytooclose) || (ny >= nytoofar))
 						continue;
 
-					voxptr = slabxoffs + davox.xyoffs[mip][x][y];
-					voxend = slabxoffs + davox.xyoffs[mip][x][y + 1];
+					voxptr = slabxoffs + shortptr[y];
+					voxend = slabxoffs + shortptr[y + 1];
 
 					if (voxptr == voxend)
 						continue;
@@ -2145,7 +2162,11 @@ public abstract class Software implements Renderer {
 					l2 = distrecip[(ny + yoff) >> 14];
 					for (; voxptr < voxend; voxptr += zleng + 3) {
 						zleng = davox.data[mip][voxptr + 1] & 0xFF;
-						j = ((davox.data[mip][voxptr] & 0xFF) << 15) - syoff;
+						
+						if (yflip)
+	                        j = ((dazsiz - (davox.data[mip][voxptr] & 0xFF) - zleng) << 15) - syoff;
+	                    else j = ((davox.data[mip][voxptr] & 0xFF) << 15) - syoff;
+						
 						if (j < 0) {
 							k = j + (zleng << 15);
 							if (k < 0) {
@@ -2223,8 +2244,8 @@ public abstract class Software implements Renderer {
 		globalpicnum = wal.overpicnum;
 		if (globalpicnum >= MAXTILES)
 			globalpicnum = 0;
-		globalxpanning = wal.xpanning;
-		globalypanning = wal.ypanning;
+		globalxpanning = wal.xpanning & 0xFF;
+		globalypanning = wal.ypanning & 0xFF;
 		if ((picanm[globalpicnum] & 192) != 0)
 			globalpicnum += engine.animateoffs(globalpicnum, (short) thewall[z] + 16384);
 		globalshade = wal.shade;
@@ -2457,7 +2478,6 @@ public abstract class Software implements Renderer {
 				continue;
 
 			shade = (engine.getpalookup(mulscale(swal[x], globvis, 16), globalshade) << 8);
-
 			if (bufplce >= tsizx) {
 				if (!xnice)
 					bufplce %= tsizx;
