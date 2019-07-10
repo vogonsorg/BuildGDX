@@ -1086,8 +1086,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		int xoff = 0, yoff = 0;
 		if ((dastat & 16) == 0) {
-			xoff = (int) ((byte) ((picanm[globalpicnum] >> 8) & 255)) + (xsiz >> 1);
-			yoff = (int) ((byte) ((picanm[globalpicnum] >> 16) & 255)) + (ysiz >> 1);
+			xoff = (int) ((byte) ((picanm[picnum] >> 8) & 255)) + (xsiz >> 1);
+			yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
 		}
 
 		if ((dastat & 4) != 0)
@@ -1095,19 +1095,29 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		int cosang = sintable[(ang + 512) & 2047];
 		int sinang = sintable[ang & 2047];
-
-		if ((dastat & 2) != 0) // Auto window size scaling
+		
+		int ourxyaspect = xyaspect;
+		int ouryxaspect = yxaspect;
+		if ((dastat & 2) == 0) {
+			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim)
+			{
+				ouryxaspect = (12 << 16) / 10;
+				ourxyaspect = (10 << 16) / 12;
+			}
+		} 
+		else
 		{
 			// dastat&2: Auto window size scaling
 			int oxdim = xdim, zoomsc;
 			int xdim = oxdim; // SHADOWS global
 
-			int ouryxaspect = yxaspect;
 			// screen center to s[xy], 320<<16 coords.
 			int normxofs = sx - (320 << 15), normyofs = sy - (200 << 15);
 			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
 				xdim = (4 * ydim) / 3;
+				
 				ouryxaspect = (12 << 16) / 10;
+				ourxyaspect = (10 << 16) / 12;
 			}
 
 			// nasty hacks go here
@@ -1130,7 +1140,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 				// If not clipping to startmosts, & auto-scaling on, as a
 				// hard-coded bonus, scale to full screen instead
 				
-				sx = (xdim << 15) + scale(normxofs, xdim, 320);
+				sx = (xdim << 15) + 32768 + scale(normxofs, xdim, 320);
 
 				if ((dastat & 512) != 0)
 					sx += (oxdim - xdim) << 16;
@@ -1138,7 +1148,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 					sx += (oxdim - xdim) << 15;
 
 				zoomsc = scale(xdim, ouryxaspect, 320);
-				sy = (ydim << 15) + mulscale(normyofs, zoomsc, 16);
+				sy = (ydim << 15) + 32768 + mulscale(normyofs, zoomsc, 16);
 			}
 			z = mulscale(z, zoomsc, 16);
 		}
@@ -1148,8 +1158,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		if (((dastat & 2) != 0) || ((dastat & 8) == 0)) // Don't aspect unscaled perms
 		{
-			xv2 = mulscale(xv, xyaspect, 16);
-			yv2 = mulscale(yv, xyaspect, 16);
+			xv2 = mulscale(xv, ourxyaspect, 16);
+			yv2 = mulscale(yv, ourxyaspect, 16);
 		} else {
 			xv2 = xv;
 			yv2 = yv;
@@ -1225,8 +1235,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 		yv = mulscale(cosang, i, 14);
 		if (((dastat & 2) != 0) || ((dastat & 8) == 0)) // Don't aspect unscaled perms
 		{
-			yv2 = mulscale(-xv, yxaspect, 16);
-			xv2 = mulscale(yv, yxaspect, 16);
+			yv2 = mulscale(-xv, ouryxaspect, 16);
+			xv2 = mulscale(yv, ouryxaspect, 16);
 		} else {
 			yv2 = -xv;
 			xv2 = yv;

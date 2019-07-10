@@ -107,8 +107,11 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Software implements Renderer {
 
 	/*
-	 * voxel depth bug
 	 * color correction
+	 * 
+	 * [ ] buttons bug
+	 * WH background bug
+	 * Tekwar rear mirror bug
 	 */
 
 	public final int BITSOFPRECISION = 3;
