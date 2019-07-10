@@ -1067,7 +1067,6 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 	private void dorotatesprite(int sx, int sy, int z, int ang, int picnum, int dashade, int dapalnum, int dastat,
 			int cx1, int cy1, int cx2, int cy2, int uniqid) {
-		int xoff = 0, yoff = 0;
 		int x, y;
 
 		if(dapalnum < 0 || dapalnum >= palookup.length || palookup[dapalnum] == null)
@@ -1084,12 +1083,11 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		int xsiz = tilesizx[picnum];
 		int ysiz = tilesizy[picnum];
-		if ((dastat & 16) != 0) {
-			xoff = 0;
-			yoff = 0;
-		} else {
-			xoff = (int) ((byte) ((picanm[picnum] >> 8) & 255)) + (xsiz >> 1);
-			yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
+
+		int xoff = 0, yoff = 0;
+		if ((dastat & 16) == 0) {
+			xoff = (int) ((byte) ((picanm[globalpicnum] >> 8) & 255)) + (xsiz >> 1);
+			yoff = (int) ((byte) ((picanm[globalpicnum] >> 16) & 255)) + (ysiz >> 1);
 		}
 
 		if ((dastat & 4) != 0)
@@ -1100,18 +1098,49 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		if ((dastat & 2) != 0) // Auto window size scaling
 		{
+			// dastat&2: Auto window size scaling
+			int oxdim = xdim, zoomsc;
+			int xdim = oxdim; // SHADOWS global
+
+			int ouryxaspect = yxaspect;
+			// screen center to s[xy], 320<<16 coords.
+			int normxofs = sx - (320 << 15), normyofs = sy - (200 << 15);
+			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
+				xdim = (4 * ydim) / 3;
+				ouryxaspect = (12 << 16) / 10;
+			}
+
+			// nasty hacks go here
 			if ((dastat & 8) == 0) {
-				x = xdimenscale; // = scale(xdimen,yxaspect,320);
-				sx = ((cx1 + cx2 + 2) << 15) + scale(sx - (320 << 15), xdimen, 320);
-				sy = ((cy1 + cy2 + 2) << 15) + mulscale(sy - (200 << 15), x, 16);
+				int twice_midcx = (cx1 + cx2) + 2;
+
+				// screen x center to sx1, scaled to viewport
+				int scaledxofs = scale(normxofs, scale(xdimen, xdim, oxdim), 320);
+				int xbord = 0;
+				if ((dastat & (256 | 512)) != 0) {
+					xbord = scale(oxdim - xdim, twice_midcx, oxdim);
+					if ((dastat & 512) == 0)
+						xbord = -xbord;
+				}
+
+				sx = ((twice_midcx + xbord) << 15) + scaledxofs;
+				zoomsc = xdimenscale;
+				sy = (((cy1 + cy2) + 2) << 15) + mulscale(normyofs, zoomsc, 16);
 			} else {
 				// If not clipping to startmosts, & auto-scaling on, as a
 				// hard-coded bonus, scale to full screen instead
-				x = scale(xdim, yxaspect, 320);
-				sx = (xdim << 15) + 32768 + scale(sx - (320 << 15), xdim, 320);
-				sy = (ydim << 15) + 32768 + mulscale(sy - (200 << 15), x, 16);
+				
+				sx = (xdim << 15) + scale(normxofs, xdim, 320);
+
+				if ((dastat & 512) != 0)
+					sx += (oxdim - xdim) << 16;
+				else if ((dastat & 256) == 0)
+					sx += (oxdim - xdim) << 15;
+
+				zoomsc = scale(xdim, ouryxaspect, 320);
+				sy = (ydim << 15) + mulscale(normyofs, zoomsc, 16);
 			}
-			z = mulscale(z, x, 16);
+			z = mulscale(z, zoomsc, 16);
 		}
 
 		int xv = mulscale(cosang, z, 14), xv2;

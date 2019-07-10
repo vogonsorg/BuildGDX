@@ -1053,7 +1053,7 @@ public class Polymost2D extends OrphoRenderer {
 
 				if ((dastat & 512) != 0)
 					sx += (oxdim - xdim) << 16;
-				else if (textureCache.alphaMode(dastat))
+				else if ((dastat & 256) == 0)
 					sx += (oxdim - xdim) << 15;
 
 				if ((dastat & RS_CENTERORIGIN) != 0)

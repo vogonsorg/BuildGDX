@@ -107,10 +107,7 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Software implements Renderer {
 
 	/*
-	 * rotatesprite clip bug
 	 * voxel depth bug
-	 * 
-	 * widescreen fix 
 	 * color correction
 	 */
 
