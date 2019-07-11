@@ -108,10 +108,11 @@ public abstract class Software implements Renderer {
 
 	/*
 	 * color correction
+	 * printtext scale
+	 * printtext atlas
 	 * 
+	 * Blood's jojo
 	 * [ ] buttons bug
-	 * WH background bug
-	 * Tekwar rear mirror bug
 	 */
 
 	public final int BITSOFPRECISION = 3;
@@ -201,14 +202,14 @@ public abstract class Software implements Renderer {
 	public int mirrorsx1, mirrorsy1, mirrorsx2, mirrorsy2;
 	public byte[] tempbuf = new byte[MAXWALLS];
 
-	private int oxyaspect, oxdimen, oviewingrange;
+	protected int oxyaspect, oxdimen, oviewingrange;
 
 	private int[] zofslope = new int[2];
 
 	private final int MAXXSIZ = 256;
 	private int[] ggxinc = new int[MAXXSIZ + 1], ggyinc = new int[MAXXSIZ + 1];
-	private int lowrecip[] = new int[1024], nytooclose, nytoofar;
-	private int[] distrecip = new int[65536];
+	protected int lowrecip[] = new int[1024], nytooclose, nytoofar;
+	protected int[] distrecip = new int[65536];
 	public boolean novoxmips = false;
 
 	protected SoftwareOrpho orpho;
@@ -238,8 +239,7 @@ public abstract class Software implements Renderer {
 
 		// Force drawrooms to call dosetaspect & recalculate stuff
 		oxyaspect = oxdimen = oviewingrange = -1;
-		xdimenrecip = (int) divscale(1, xdimen, 32);
-
+	
 		a.setvlinebpl(bytesperline);
 
 		a.fixtransluscence(transluc);
@@ -257,6 +257,16 @@ public abstract class Software implements Renderer {
 		for (int i = 0; i < 2048; i++)
 			reciptable[i] = (int) divscale(2048, i + 2048, 30);
 
+		updateview();
+
+		for (int i = 1; i < 1024; i++)
+			lowrecip[i] = ((1 << 24) - 1) / i;
+	}
+
+	public void updateview()
+	{
+		xdimenrecip = (int) divscale(1, xdimen, 32);
+		
 		for (int i = 0; i < windowx1; i++) {
 			startumost[i] = 1;
 			startdmost[i] = 0;
@@ -269,11 +279,8 @@ public abstract class Software implements Renderer {
 			startumost[i] = 1;
 			startdmost[i] = 0;
 		}
-
-		for (int i = 1; i < 1024; i++)
-			lowrecip[i] = ((1 << 24) - 1) / i;
 	}
-
+	
 	@Override
 	public void uninit() {
 
@@ -507,11 +514,13 @@ public abstract class Software implements Renderer {
 
 			drawalls(0);
 			numbunches--;
-			bunchfirst[0] = bunchfirst[numbunches];
-			bunchlast[0] = bunchlast[numbunches];
 
 			mirrorsy1 = Math.min(umost[mirrorsx1], umost[mirrorsx2]);
 			mirrorsy2 = Math.max(dmost[mirrorsx1], dmost[mirrorsx2]);
+			
+			if(numbunches < 0) return;
+			bunchfirst[0] = bunchfirst[numbunches];
+			bunchlast[0] = bunchlast[numbunches];
 		}
 
 		while ((numbunches > 0) && (numhits > 0)) {
@@ -2827,15 +2836,15 @@ public abstract class Software implements Renderer {
 			}
 
 			if ((nextsectnum < 0) || ((wall[wallnum].cstat & 32) != 0) || ((j & 1) == 0)) {
-				if (x == -1)
-					x = xb1[z];
+				if (x == -1) x = xb1[z];
 				if (parallaxtype == 0) {
 					n = mulscale(xdimenrecip, viewingrange, 16);
 					for (j = xb1[z]; j <= xb2[z]; j++)
 						lplc[j] = (((mulscale(j - halfxdimen, n, 23) + (int) globalang) & 2047) >> k);
 				} else {
-					for (j = xb1[z]; j <= xb2[z]; j++)
+					for (j = xb1[z]; j <= xb2[z]; j++) {
 						lplc[j] = (((radarang2[j] + (int) globalang) & 2047) >> k);
+					}
 				}
 
 				if (parallaxtype == 2) {
@@ -4018,13 +4027,14 @@ public abstract class Software implements Renderer {
 		int xl = lastx[yp];
 		if (xl > xr)
 			return;
+
 		int r = lookups[horizlookup2 + yp - (int) globalhoriz + horizycent];
 		a.asm1 = (globalx1 * r);
 		a.asm2 = (globaly2 * r);
 
 		int shade = engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8;
 
-		a.hlineasm4(xr - xl, 0, shade, globalx2 * r + globalypanning, globaly1 * r + globalxpanning, ylookup[yp] + xr);
+		a.hlineasm4(xr - xl, 0, shade, globalx2 * r + globalypanning, globaly1 * r + globalxpanning, ylookup[yp] + xr + frameoffset);
 	}
 
 	private void slowhline(int xr, int yp) {
@@ -4040,11 +4050,11 @@ public abstract class Software implements Renderer {
 
 		if ((globalorientation & 256) == 0) {
 			a.mhline(globalbufplc, globaly1 * r + globalxpanning - a.asm1 * (xr - xl), (xr - xl) << 16, 0,
-					globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl);
+					globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl + frameoffset);
 			return;
 		}
 		a.thline(globalbufplc, globaly1 * r + globalxpanning - a.asm1 * (xr - xl), (xr - xl) << 16, 0,
-				globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl);
+				globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl + frameoffset);
 	}
 	
 	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c)

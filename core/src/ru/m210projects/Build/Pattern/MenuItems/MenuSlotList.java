@@ -37,7 +37,7 @@ public class MenuSlotList extends MenuList
 	public int helpPal;
 	public BuildFont questionFont;
 	public BuildFont desriptionFont;
-	public int specPal;
+	public int specPal, backgroundPal;
 	public int transparent = 1;
 	
 	protected SaveManager saveManager;
@@ -93,7 +93,7 @@ public class MenuSlotList extends MenuList
 	public void draw(MenuHandler handler) {
 		this.len = displayed.size();
 		
-		draw.rotatesprite((x + width / 2 - 5) << 16, (y - 3) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
+		draw.rotatesprite((x + width / 2 - 5) << 16, (y - 3) << 16, 65536, 0, nBackground, 128, backgroundPal, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
 		
 		if(displayed.size() > 0) {
 			int py = y, pal;

@@ -36,6 +36,7 @@ import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Renderer.PFormat;
+import ru.m210projects.Build.Render.Software.Software;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -537,6 +538,7 @@ public abstract class Engine {
 	
 		kRead(fil, palette, 768);
 
+		boolean hastransluc = false;
 		if(releasedEngine) {
 			byte[] buf = new byte[2];
 			kRead(fil, buf, 2); numshades = LittleEndian.getShort(buf);
@@ -545,8 +547,10 @@ public abstract class Engine {
 			numshades = (short) ((file_len - 768) >> 7);
 		    if ( (((file_len - 768) >> 7) & 1) <= 0 )
 		    	numshades >>= 1;
-		    else
+		    else {
 		    	numshades = (short) ((numshades - 255) >> 1);
+		    	hastransluc = true;
+		    }
 		}
 		if (palookup[0] == null) 
 			palookup[0] = new byte[numshades<<8];
@@ -557,7 +561,23 @@ public abstract class Engine {
 		Console.Println("Loading gamma correcion tables");
 		kRead(fil, palookup[globalpal], numshades<<8);
 		Console.Println("Loading translucency table");
-		kRead(fil,transluc, 65536);
+		if(releasedEngine)
+			kRead(fil, transluc, 65536);
+		else {
+			if (hastransluc)
+			{
+				byte[] tmp = new byte[256];
+				for(int i = 0; i < 255; i++)
+				{
+					kRead(fil, tmp, 255-i);
+					System.arraycopy(tmp, 0, transluc, (i<<8)+i+1, 255-i);
+					for(int j = i + 1; j < 256; j++)
+						transluc[(j<<8)+i] = transluc[(i<<8)+j];
+				}
+				for(int i = 0; i < 256; i++)
+					transluc[(i<<8)+i] = (byte) i;
+			}
+		}
 
 		kClose(fil);
 		
@@ -3444,6 +3464,9 @@ public abstract class Engine {
 		ydimen = (y2 - y1) + 1;
 
 		setaspect_new();
+		
+		if(render instanceof Software) 
+			((Software) render).updateview();
 	}
 
 	public void setaspect(int daxrange, int daaspect) { //jfBuild
@@ -3541,10 +3564,6 @@ public abstract class Engine {
 		for (int i = 0; i < 768; i++) 
 			curpalette[i] = (byte) ((dapal[i]& 0xFF) << 2);
 		changepalette(curpalette);
-		
-//		copybufbyte(curpalette, curpalettefaded, curpalette.length);
-//		if ((flags&1) == 0)
-//			setpalette(0,256,(char*)tempbuf);
 
 		if ((flags & 2) != 0) {
 			GLRenderer gl = glrender();
@@ -3561,11 +3580,23 @@ public abstract class Engine {
 		render.changepalette(palette);
 	}
 
+	private byte[] temppal = new byte[768];
 	public void setpalettefade(int r, int g, int b, int offset) { //jfBuild
 		palfadergb.r = min(63, r) << 2;
 		palfadergb.g = min(63, g) << 2;
 		palfadergb.b = min(63, b) << 2;
 		palfadergb.a = (min(63, offset) << 2);
+
+		if(glrender() == null) { //if 8bit renderer
+			int k = 0;
+			for (int i = 0; i < 256; i++) {
+				temppal[k] = (byte) ( (curpalette[k] & 0xFF) + ( ((palfadergb.r - (curpalette[k] & 0xFF)) * offset) >> 6 ) ); k++;
+				temppal[k] = (byte) ( (curpalette[k] & 0xFF) + ( ((palfadergb.g - (curpalette[k] & 0xFF)) * offset) >> 6 ) ); k++;
+				temppal[k] = (byte) ( (curpalette[k] & 0xFF) + ( ((palfadergb.b - (curpalette[k] & 0xFF)) * offset) >> 6 ) ); k++;
+			}
+	
+			render.changepalette(temppal);
+		}
 	}
 
 	public void clearview(int dacol) { //gdxBuild
