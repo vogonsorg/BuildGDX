@@ -10,7 +10,8 @@
 
 package ru.m210projects.Build.Render.Software;
 
-import static ru.m210projects.Build.Engine.CEIL;
+import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Engine.setviewcnt;
 import static ru.m210projects.Build.Engine.FLOOR;
 import static ru.m210projects.Build.Engine.MAXSECTORS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
@@ -107,11 +108,10 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Software implements Renderer {
 
 	/*
-	 * color correction
-	 * printtext scale
+	 * color correction 
+	 * printtext scale 
 	 * printtext atlas
 	 * 
-	 * Blood's jojo
 	 * [ ] buttons bug
 	 */
 
@@ -139,6 +139,8 @@ public abstract class Software implements Renderer {
 	public int[] lookups;
 
 	public byte[] frameplace;
+	public byte[][] bakframeplace = new byte[4][];
+	public short[] bakxsiz = new short[4], bakysiz = new short[4];
 
 	public int globaluclip, globaldclip;
 	public int globalpisibility, globalhisibility, globalcisibility;
@@ -239,7 +241,7 @@ public abstract class Software implements Renderer {
 
 		// Force drawrooms to call dosetaspect & recalculate stuff
 		oxyaspect = oxdimen = oviewingrange = -1;
-	
+
 		a.setvlinebpl(bytesperline);
 
 		a.fixtransluscence(transluc);
@@ -263,10 +265,9 @@ public abstract class Software implements Renderer {
 			lowrecip[i] = ((1 << 24) - 1) / i;
 	}
 
-	public void updateview()
-	{
+	public void updateview() {
 		xdimenrecip = (int) divscale(1, xdimen, 32);
-		
+
 		for (int i = 0; i < windowx1; i++) {
 			startumost[i] = 1;
 			startdmost[i] = 0;
@@ -280,7 +281,44 @@ public abstract class Software implements Renderer {
 			startdmost[i] = 0;
 		}
 	}
-	
+
+	public void setviewtotile(int tilenume, short xsiz, short ysiz) {
+		//DRAWROOMS TO TILE BACKUP&SET CODE
+	    tilesizx[tilenume] = xsiz; tilesizy[tilenume] = ysiz;
+	    bakxsiz[setviewcnt] = xsiz; bakysiz[setviewcnt] = ysiz;
+	    bakframeplace[setviewcnt] = frameplace; frameplace = waloff[tilenume];
+	    bakwindowx1[setviewcnt] = windowx1; bakwindowy1[setviewcnt] = windowy1;
+	    bakwindowx2[setviewcnt] = windowx2; bakwindowy2[setviewcnt] = windowy2;
+
+	    setviewcnt++;
+	    engine.setview(0,0,ysiz-1,xsiz-1);
+	    engine.setaspect(65536,65536);
+
+		int j = 0;
+		for (int i = 0; i <= xsiz; i++) {
+			ylookup[i] = j;
+			j += ysiz;
+		}
+		a.setvlinebpl(ysiz);
+	}
+
+	public void setviewback() {
+		frameplace = bakframeplace[setviewcnt];
+
+		int k;
+		if (setviewcnt == 0)
+			k = bakxsiz[0];
+		else
+			k = Math.max(bakxsiz[setviewcnt - 1], bakxsiz[setviewcnt]);
+		
+		int j = 0;
+		for (int i = 0; i <= k; i++) {
+			ylookup[i] = j;
+			j += bytesperline;
+		}
+		a.setvlinebpl(bytesperline);
+	}
+
 	@Override
 	public void uninit() {
 
@@ -517,8 +555,9 @@ public abstract class Software implements Renderer {
 
 			mirrorsy1 = Math.min(umost[mirrorsx1], umost[mirrorsx2]);
 			mirrorsy2 = Math.max(dmost[mirrorsx1], dmost[mirrorsx2]);
-			
-			if(numbunches < 0) return;
+
+			if (numbunches < 0)
+				return;
 			bunchfirst[0] = bunchfirst[numbunches];
 			bunchlast[0] = bunchlast[numbunches];
 		}
@@ -569,25 +608,30 @@ public abstract class Software implements Renderer {
 
 	private int[] cz = new int[5];
 	private int[] fz = new int[5];
-	
-	public void completemirror() {
-		//Can't reverse with uninitialized data
-		if (inpreparemirror) { inpreparemirror = false; return; }
-		if (mirrorsx1 > 0) mirrorsx1--;
-		if (mirrorsx2 < windowx2-windowx1-1) mirrorsx2++;
-		if (mirrorsx2 < mirrorsx1) return;
 
-		int p = ylookup[windowy1+mirrorsy1]+windowx1+mirrorsx1;
-		int i = windowx2-windowx1-mirrorsx2-mirrorsx1; 
+	public void completemirror() {
+		// Can't reverse with uninitialized data
+		if (inpreparemirror) {
+			inpreparemirror = false;
+			return;
+		}
+		if (mirrorsx1 > 0)
+			mirrorsx1--;
+		if (mirrorsx2 < windowx2 - windowx1 - 1)
+			mirrorsx2++;
+		if (mirrorsx2 < mirrorsx1)
+			return;
+
+		int p = ylookup[windowy1 + mirrorsy1] + windowx1 + mirrorsx1;
+		int i = windowx2 - windowx1 - mirrorsx2 - mirrorsx1;
 		mirrorsx2 -= mirrorsx1;
-		for(int dy=mirrorsy2-mirrorsy1;dy>=0;dy--)
-		{
-			if(mirrorsx2+1+p+1 >= frameplace.length)
+		for (int dy = mirrorsy2 - mirrorsy1; dy >= 0; dy--) {
+			if (mirrorsx2 + 1 + p + 1 >= frameplace.length)
 				return;
-			
-			System.arraycopy(frameplace, p+1, tempbuf, 0, mirrorsx2+1);
-			tempbuf[mirrorsx2] = tempbuf[mirrorsx2-1];
-			copybufreverse(tempbuf, mirrorsx2,frameplace, p+i,mirrorsx2+1);
+
+			System.arraycopy(frameplace, p + 1, tempbuf, 0, mirrorsx2 + 1);
+			tempbuf[mirrorsx2] = tempbuf[mirrorsx2 - 1];
+			copybufreverse(tempbuf, mirrorsx2, frameplace, p + i, mirrorsx2 + 1);
 			p += ylookup[1];
 			engine.faketimerhandler();
 		}
@@ -959,16 +1003,16 @@ public abstract class Software implements Renderer {
 			tilenum += engine.animateoffs(tilenum, spritenum + 32768);
 		if ((tilesizx[tilenum] <= 0) || (tilesizy[tilenum] <= 0) || (spritenum < 0))
 			return;
-		
+
 		if ((tspr.xrepeat <= 0) || (tspr.yrepeat <= 0))
 			return;
-		
+
 		int mflags = 0;
 		if (usevoxels) {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(tilenum) : null;
 			if (entry != null && entry.voxel != null) {
 				vtilenum = entry.voxel;
-				if(entry.model != null)
+				if (entry.model != null)
 					mflags = entry.model.flags;
 				cstat |= 48;
 			}
@@ -1855,10 +1899,11 @@ public abstract class Software implements Renderer {
 
 			if (vtilenum == null)
 				break;
-			
-			if (vtilenum.scale == 65536) 
+
+			if (vtilenum.scale == 65536)
 				nyrepeat = ((tspr.yrepeat) << 16);
-			else nyrepeat = tspr.yrepeat * vtilenum.scale;
+			else
+				nyrepeat = tspr.yrepeat * vtilenum.scale;
 
 			tspr.z -= mulscale(yoff, nyrepeat, 14);
 			if ((cstat & 128) == 0)
@@ -1870,15 +1915,16 @@ public abstract class Software implements Renderer {
 				globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
 
 			i = tspr.ang + 1536;
-			if((mflags & MD_ROTATE)!= 0)
+			if ((mflags & MD_ROTATE) != 0)
 				i += totalclock % 2048;
 			i += spriteext[tspr.owner].angoff;
-			
+
 			float f = 1.0f;
 			if ((sprite[tspr.owner].cstat & 48) == 16 || (sprite[tspr.owner].cstat & 48) == 32)
 				f *= 1.25f;
 
-			drawvox(tspr.x, tspr.y, tspr.z, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, tspr.shade, tspr.pal, lwall, swall);
+			drawvox(tspr.x, tspr.y, tspr.z, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, tspr.shade, tspr.pal,
+					lwall, swall);
 			break;
 		}
 		if (automapping == 1)
@@ -1907,12 +1953,13 @@ public abstract class Software implements Renderer {
 
 		mip = klabs(dmulscale(dasprx - globalposx, cosang, daspry - globalposy, sinang, 6));
 		j = engine.getpalookup(mulscale(globvis, mip, 21), dashade) << 8;
-		
+
 		int trans = 0;
 		if ((globalorientation & 2) != 0) {
 			if ((globalorientation & 512) != 0)
 				trans = 2;
-			else trans = 1;
+			else
+				trans = 1;
 		}
 		a.setupdrawslab(ylookup[1], dapal, j, trans);
 
@@ -1929,13 +1976,15 @@ public abstract class Software implements Renderer {
 			}
 			if (k >= MAXVOXMIPS)
 				mip = MAXVOXMIPS - 1;
-		} else mip = 0;
+		} else
+			mip = 0;
 
 		Voxel davox = daindex;
 		if (davox == null)
 			return;
-		
-		if (davox.data[mip] == null && mip > 0) mip = 0;
+
+		if (davox.data[mip] == null && mip > 0)
+			mip = 0;
 
 		if (davox.scale == 65536) {
 			daxscale <<= (mip + 8);
@@ -1955,7 +2004,7 @@ public abstract class Software implements Renderer {
 
 		daxsiz = davox.xsiz[mip];
 		daysiz = davox.ysiz[mip];
-		
+
 		daxpivot = davox.xpiv[mip];
 		daypivot = davox.ypiv[mip];
 		dazpivot = davox.zpiv[mip];
@@ -1995,7 +2044,7 @@ public abstract class Software implements Renderer {
 			return;
 		syoff = divscale(globalposz - dasprz, odayscale, 21) + (dazpivot << 7);
 		yoff = ((klabs(gxinc) + klabs(gyinc)) >> 1);
-		
+
 		boolean xflip = (globalorientation & 4) != 0;
 		boolean yflip = (globalorientation & 8) != 0;
 		int xptr, dazsiz = davox.zsiz[mip];
@@ -2156,7 +2205,7 @@ public abstract class Software implements Renderer {
 
 					if (voxptr == voxend)
 						continue;
-				
+
 					lx = mulscale(nx >> 3, distrecip[(ny + y1) >> 14], 32) + halfxdimen;
 					if (lx < 0)
 						lx = 0;
@@ -2171,11 +2220,12 @@ public abstract class Software implements Renderer {
 					l2 = distrecip[(ny + yoff) >> 14];
 					for (; voxptr < voxend; voxptr += zleng + 3) {
 						zleng = davox.data[mip][voxptr + 1] & 0xFF;
-						
+
 						if (yflip)
-	                        j = ((dazsiz - (davox.data[mip][voxptr] & 0xFF) - zleng) << 15) - syoff;
-	                    else j = ((davox.data[mip][voxptr] & 0xFF) << 15) - syoff;
-						
+							j = ((dazsiz - (davox.data[mip][voxptr] & 0xFF) - zleng) << 15) - syoff;
+						else
+							j = ((davox.data[mip][voxptr] & 0xFF) << 15) - syoff;
+
 						if (j < 0) {
 							k = j + (zleng << 15);
 							if (k < 0) {
@@ -2836,7 +2886,8 @@ public abstract class Software implements Renderer {
 			}
 
 			if ((nextsectnum < 0) || ((wall[wallnum].cstat & 32) != 0) || ((j & 1) == 0)) {
-				if (x == -1) x = xb1[z];
+				if (x == -1)
+					x = xb1[z];
 				if (parallaxtype == 0) {
 					n = mulscale(xdimenrecip, viewingrange, 16);
 					for (j = xb1[z]; j <= xb2[z]; j++)
@@ -3434,31 +3485,32 @@ public abstract class Software implements Renderer {
 	@Override
 	public ByteBuffer getFrame(PFormat format) {
 
-		if(format == PFormat.Indexed) {
-			if (indexbuffer != null) indexbuffer.clear();
+		if (format == PFormat.Indexed) {
+			if (indexbuffer != null)
+				indexbuffer.clear();
 			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
 				indexbuffer = BufferUtils.newByteBuffer(xdim * ydim);
-			
+
 			indexbuffer.put(frameplace);
 			indexbuffer.rewind();
 			return indexbuffer;
-		} else if(format == PFormat.RGB){
-			if (rgbbuffer != null) rgbbuffer.clear();
-			if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3 )
+		} else if (format == PFormat.RGB) {
+			if (rgbbuffer != null)
+				rgbbuffer.clear();
+			if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3)
 				rgbbuffer = BufferUtils.newByteBuffer(xdim * ydim * 3);
-			
-			for(int i = 0; i < xdim * ydim; i++)
-			{
+
+			for (int i = 0; i < xdim * ydim; i++) {
 				int dacol = frameplace[i] & 0xFF;
 				rgbbuffer.put(curpalette[3 * dacol + 0]);
 				rgbbuffer.put(curpalette[3 * dacol + 1]);
 				rgbbuffer.put(curpalette[3 * dacol + 2]);
 			}
-			
+
 			rgbbuffer.rewind();
 			return rgbbuffer;
 		}
-		
+
 		return null;
 	}
 
@@ -4034,7 +4086,8 @@ public abstract class Software implements Renderer {
 
 		int shade = engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8;
 
-		a.hlineasm4(xr - xl, 0, shade, globalx2 * r + globalypanning, globaly1 * r + globalxpanning, ylookup[yp] + xr + frameoffset);
+		a.hlineasm4(xr - xl, 0, shade, globalx2 * r + globalypanning, globaly1 * r + globalxpanning,
+				ylookup[yp] + xr + frameoffset);
 	}
 
 	private void slowhline(int xr, int yp) {
@@ -4056,12 +4109,12 @@ public abstract class Software implements Renderer {
 		a.thline(globalbufplc, globaly1 * r + globalxpanning - a.asm1 * (xr - xl), (xr - xl) << 16, 0,
 				globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl + frameoffset);
 	}
-	
-	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c)
-	{
-		while((c--) > 0) d[dptr++] = s[sptr--];
+
+	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c) {
+		while ((c--) > 0)
+			d[dptr++] = s[sptr--];
 	}
-	
+
 	@Override
 	public FrameType getType() {
 		return FrameType.Software;

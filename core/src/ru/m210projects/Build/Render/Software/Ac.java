@@ -54,7 +54,7 @@ public class Ac {
 				by -= gbyinc;
 				p--;
 			}
-		} catch (Throwable e) {  }
+		} catch (Throwable e) {}
 	}
 		
 	
@@ -82,7 +82,7 @@ public class Ac {
 				slopaloffs--;
 				p += gpinc;
 			}
-		} catch (Throwable e) {  }
+		} catch (Throwable e) {}
 	}
 	
 	//Wall,face sprite/wall sprite vertical line functions
@@ -100,7 +100,7 @@ public class Ac {
 				p += bpl;
 				vplc += vinc;
 			}
-		} catch (Throwable e) {  }
+		} catch (Throwable e) {}
 	}
 	
 	public void setupmvlineasm(int neglogy) { glogy = neglogy; }
@@ -159,7 +159,7 @@ public class Ac {
 					vplc += vinc;
 				}
 			}
-		} catch (Throwable e) { }
+		} catch (Throwable e) {}
 	}
 	
 	//Floor sprite horizontal line functions
@@ -180,7 +180,7 @@ public class Ac {
 				by += asm2;
 				p++;
 			}
-		} catch (Throwable e) { }
+		} catch (Throwable e) {}
 	}
 	
 	public void tsethlineshift(int logx, int logy) { glogx = logx; glogy = logy; }
@@ -222,7 +222,7 @@ public class Ac {
 					p++;
 				}
 			}
-		} catch (Throwable e) { }
+		} catch (Throwable e) {}
 	}
 	
 	//Rotatesprite vertical line functions

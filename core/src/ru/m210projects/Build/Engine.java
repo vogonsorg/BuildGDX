@@ -272,7 +272,6 @@ public abstract class Engine {
 
 	public static int clipmoveboxtracenum = 3;
 	public static int hitscangoalx = (1 << 29) - 1, hitscangoaly = (1 << 29) - 1;
-	public static final int MAXVOXMIPS = 5;
 	public static int globalposx, globalposy, globalposz; //polymost
 	public static float globalhoriz, globalang;
 	public static float pitch;
@@ -3465,7 +3464,7 @@ public abstract class Engine {
 
 		setaspect_new();
 		
-		if(render instanceof Software) 
+		if(render.getType() == FrameType.Software) 
 			((Software) render).updateview();
 	}
 
@@ -3605,11 +3604,16 @@ public abstract class Engine {
 	
 	public void setviewtotile(int tilenume, int xsiz, int ysiz) //jfBuild
 	{
+		if(render.getType() == FrameType.Software) {
+			((Software) render).setviewtotile(tilenume, tilesizx[tilenume], tilesizy[tilenume]);
+			return;
+		}
+		
 	    //DRAWROOMS TO TILE BACKUP&SET CODE
 	    tilesizx[tilenume] = (short)xsiz; tilesizy[tilenume] = (short)ysiz;
 	    bakwindowx1[setviewcnt] = windowx1; bakwindowy1[setviewcnt] = windowy1;
 	    bakwindowx2[setviewcnt] = windowx2; bakwindowy2[setviewcnt] = windowy2;
-	
+
 	    if (setviewcnt == 0)
 	        baktile = tilenume;
 	   
@@ -3627,13 +3631,16 @@ public abstract class Engine {
 
 	    offscreenrendering = (setviewcnt>0);
 
-	    if (setviewcnt == 0) {
+	    if (setviewcnt == 0 && render.getType() != FrameType.Software) {
 	    	waloff[baktile] = setviewbuf();
 	        invalidatetile(baktile,-1,-1);
 	    }
-	    setviewcnt = 0;
+	    
 	    setview(bakwindowx1[setviewcnt],bakwindowy1[setviewcnt],
 	            bakwindowx2[setviewcnt],bakwindowy2[setviewcnt]); 
+	    
+	    if(render.getType() == FrameType.Software) 
+			((Software) render).setviewback();
 	}
 
 	public void preparemirror(int dax, int day, int daz, float daang, float dahoriz, int dawall, int dasector) { //jfBuild
