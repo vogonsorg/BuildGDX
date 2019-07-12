@@ -75,7 +75,7 @@ public class SoftInput implements BuildInput {
 		case KeyEvent.VK_OPEN_BRACKET:
 			return Keys.LEFT_BRACKET;
 		case KeyEvent.VK_CLOSE_BRACKET:
-			return Keys.LEFT_BRACKET;
+			return Keys.RIGHT_BRACKET;
 		case KeyEvent.VK_BACK_QUOTE:
 			return Keys.GRAVE;
 		case KeyEvent.VK_NUM_LOCK:
@@ -303,7 +303,7 @@ public class SoftInput implements BuildInput {
 
 	@Override
 	public int getX() {
-		return (int) (MouseInfo.getPointerInfo().getLocation().getX() - display.getCanvas().getLocationOnScreen().getX());
+		return 0; //(int) (MouseInfo.getPointerInfo().getLocation().getX() - display.getCanvas().getLocationOnScreen().getX());
 	}
 
 	@Override
@@ -332,7 +332,7 @@ public class SoftInput implements BuildInput {
 
 	@Override
 	public int getY() {
-		return (int) (MouseInfo.getPointerInfo().getLocation().getY() - display.getCanvas().getLocationOnScreen().getY());	
+		return 0; //(int) (MouseInfo.getPointerInfo().getLocation().getY() - display.getCanvas().getLocationOnScreen().getY());	
 	}
 
 	@Override
@@ -398,7 +398,7 @@ public class SoftInput implements BuildInput {
 			return;
 		
 		Point p = display.getCanvas().getLocationOnScreen();
-		robot.mouseMove(p.x + x, p.y + y);
+		//robot.mouseMove(p.x + x, p.y + y);
 	}
 
 	@Override

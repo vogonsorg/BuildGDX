@@ -78,19 +78,30 @@ public class KeyInput {
 
 		int rv = 0;
 		boolean keyPressed = false;
-		for (int kb = 1; kb < 256; kb++) {
-			if(kb >= MOUSE_WHELLUP && kb <= MOUSE_BUTTON11)
-				continue;
-			
-			if (BuildGdx.input.isKeyPressed(kb)) {
-				keyPressed = true;
-				if (!hitkey[kb]) {
-					keystatus[ANYKEY] = 1;
-					setKey(kb, 1);
-					hitkey[kb] = true;
+		
+		if (BuildGdx.input.isKeyPressed(Keys.ANY_KEY)) {
+			for (int kb = 1; kb < 256; kb++) {
+				if(kb == MOUSE_WHELLUP)
+					kb = MOUSE_BUTTON11 + 1;
+				
+				if (BuildGdx.input.isKeyPressed(kb)) {
+					keyPressed = true;
+					if (!hitkey[kb]) {
+						keystatus[ANYKEY] = 1;
+						setKey(kb, 1);
+						hitkey[kb] = true;
+					}
+				} else {
+					setKey(kb, 0);
+					hitkey[kb] = false;
 				}
-			} else {
-				setKey(kb, 0);
+			}
+		} else {
+			for (int kb = 1; kb < 256; kb++) {
+				if(kb == MOUSE_WHELLUP)
+					kb = MOUSE_BUTTON11 + 1;
+				
+				keystatus[kb] = (byte) 0;
 				hitkey[kb] = false;
 			}
 		}
