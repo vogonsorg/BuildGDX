@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
@@ -43,6 +44,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Render.VideoMode;
+import ru.m210projects.Build.Render.Renderer.RenderType;
 
 public abstract class MenuVideoMode extends BuildMenu {
 	
@@ -56,6 +58,8 @@ public abstract class MenuVideoMode extends BuildMenu {
 	protected VideoMode choosedMode;
 	protected VideoMode currentMode;
 	protected boolean isFullscreen;
+	protected RenderType currentRender;
+	protected RenderType choosedRender;
 	
 	protected final BuildMenu mResList;
 
@@ -115,7 +119,15 @@ public abstract class MenuVideoMode extends BuildMenu {
 					public void run() {
 						cfg.fullscreen = isFullscreen ? 1 : 0;
 						currentMode = choosedMode;
-						setMode(cfg);
+						if(currentRender != choosedRender) {
+							app.pEngine.getrender().uninit();
+							app.pEngine.setrendermode(app.getFactory().renderer(choosedRender));
+							Console.Println("Render has been changed to " + choosedRender.getName());
+							currentRender = choosedRender;
+						}
+						setMode(cfg);  //init new renderer is doing here
+						
+						app.pInput.ctrlResetInput();
 					}
 				});
 			}
@@ -200,12 +212,35 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
-		String[] renderers = new String[] { app.pEngine.getrender().getname() };
-		mRenderer = new MenuConteiner("Renderer: ", style, posx, posy += itemHeight, width, renderers, 0, null) {
+		
+		
+		MenuProc renderCallback = new MenuProc() {
+			public void run(MenuHandler handler, final MenuItem pItem) {
+				BuildGdx.app.postRunnable(new Runnable() {
+					@Override
+					public void run() {
+						MenuConteiner item = (MenuConteiner) pItem;
+						switch(item.num) {
+							case 0: choosedRender = RenderType.Software; break;
+							case 1: choosedRender = RenderType.Polymost; break;
+						}
+					}
+				});
+			}
+		};
+		
+		String[] renderers = new String[] { 
+			RenderType.Software.getName(),
+			RenderType.Polymost.getName()
+		};
+		mRenderer = new MenuConteiner("Renderer: ", style, posx, posy += itemHeight, width, renderers, 0, renderCallback) {
 			@Override
-			public void draw(MenuHandler handler) {
-				mCheckEnableItem(false);
-				super.draw(handler);
+			public void open() {
+				choosedRender = currentRender = app.pEngine.getrender().getType();
+				switch(currentRender) {
+					case Software: num = 0; break;
+					case Polymost: num = 1; break;
+				}	
 			}
 		};
 
@@ -225,7 +260,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 		mApplyChanges = new MenuButton("Apply changes", style, 0, posy += 2 * itemHeight, 320, 1, 0, null, -1, callback, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
-				mCheckEnableItem(choosedMode != null && (choosedMode != currentMode || isFullscreen != (cfg.fullscreen == 1)));
+				mCheckEnableItem(choosedMode != null && (choosedMode != currentMode || isFullscreen != (cfg.fullscreen == 1) || currentRender != choosedRender));
 				super.draw(handler);
 			}
 			

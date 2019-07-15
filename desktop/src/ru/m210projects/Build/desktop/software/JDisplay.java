@@ -23,15 +23,18 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.MouseInfo;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.List;
 
 import javax.swing.JFrame;
 
-public class JDisplay
+public class JDisplay extends WindowAdapter
 {
 	protected final JFrame m_frame;
 	private final JCanvas canvas;
 	private boolean isCloseRequested = false;
+	private boolean isFocus, isActive;
 	private final GraphicsDevice device;
 	private boolean isFullscreen;
 	private boolean wasResized;
@@ -62,15 +65,15 @@ public class JDisplay
 		frame.setUndecorated(undecorated);
 		frame.add(canvas);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.addWindowListener(new java.awt.event.WindowAdapter() {
-		    @Override
-		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-		    	isCloseRequested = true;
-		    }
-		});
+		frame.addWindowListener(this);
+		frame.addWindowFocusListener(this);
 
 		if(icons != null)
 			frame.setIconImages(icons);
+		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {}
 		
 		frame.pack();
 		frame.setLocationRelativeTo(null);
@@ -79,13 +82,19 @@ public class JDisplay
 		return frame;
 	}
 	
+	public void dispose()
+	{
+		m_frame.setVisible(false);
+		m_frame.dispose();
+	}
+	
 	public boolean isCloseRequested() {
 		return isCloseRequested;
 	}
 	
 	public boolean isActive()
 	{
-		return m_frame.isActive();
+		return isFocus && isActive;
 	}
 	
 	public boolean setFullscreenMode(DisplayMode mode)
@@ -199,4 +208,29 @@ public class JDisplay
 	public boolean isFullscreen() {
 		return isFullscreen;
 	}
+	
+	@Override
+    public void windowClosing(WindowEvent windowEvent) {
+    	isCloseRequested = true;
+    }
+    
+	@Override
+    public void windowActivated(WindowEvent e) {
+    	isActive = true;
+    }
+
+	@Override
+    public void windowDeactivated(WindowEvent e) {
+    	isActive = false;
+    }
+
+	@Override
+    public void windowGainedFocus(WindowEvent e) {
+    	isFocus = true;
+    }
+
+	@Override
+    public void windowLostFocus(WindowEvent e) {
+    	isFocus = false;
+    }
 }

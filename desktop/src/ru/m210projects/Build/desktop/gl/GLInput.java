@@ -10,6 +10,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.backends.lwjgl.LwjglInput;
 
@@ -124,8 +125,9 @@ public class GLInput implements BuildInput {
 
 	@Override
 	public boolean isKeyPressed(int key) {
-//		if (!Keyboard.isCreated()) return false;  // isReady must be enough
-		return Keyboard.isKeyDown(getLwjglKeyCode(key));
+		if (key == Input.Keys.ANY_KEY)
+			return input.isKeyPressed(key);
+		else return Keyboard.isKeyDown(getLwjglKeyCode(key));
 	}
 
 	@Override

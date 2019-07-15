@@ -19,6 +19,7 @@ package ru.m210projects.Build.Pattern;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.OSDFunc;
 import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Render.Renderer.RenderType;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
 
@@ -37,7 +38,7 @@ public abstract class BuildFactory {
 	
 	public abstract BuildEngine engine() throws Exception;
 	
-	public abstract Renderer renderer();
+	public abstract Renderer renderer(RenderType type);
 	
 	public abstract BuildControls input(GPManager gpmanager);
 	

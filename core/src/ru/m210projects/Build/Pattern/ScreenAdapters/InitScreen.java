@@ -135,7 +135,7 @@ public class InitScreen extends ScreenAdapter {
 		BuildConfig cfg = game.pCfg;
 		game.pFonts = factory.fonts();
 		
-		engine.setrendermode(factory.renderer());
+		engine.setrendermode(factory.renderer(cfg.renderType));
 		if(!engine.setgamemode(cfg.fullscreen, cfg.ScreenWidth, cfg.ScreenHeight))
 			cfg.fullscreen = 0;
 		fullscreen = cfg.fullscreen;

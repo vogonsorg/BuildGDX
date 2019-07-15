@@ -46,6 +46,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 import ru.m210projects.Build.Audio.BuildAudio;
+import ru.m210projects.Build.Render.Renderer.RenderType;
 import ru.m210projects.Build.desktop.gl.GLFrameImpl;
 import ru.m210projects.Build.desktop.software.SoftFrameImpl;
 
@@ -65,13 +66,13 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
 	
-	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, FrameType startFrame, LwjglApplicationConfiguration config) {
+	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, RenderType type, LwjglApplicationConfiguration config) {
 		setApplicationLogger(new LwjglApplicationLogger());
 		
 		if (config.title == null) config.title = listener.getClass().getSimpleName();
 		this.config = config;
 		
-		setFrame(startFrame);
+		setFrame(type.getFrameType());
 
 		this.listener = listener;
 		this.preferencesdir = config.preferencesDirectory;
@@ -109,7 +110,7 @@ public class BuildApplicationImpl implements BuildApplication {
 		if(frame == null || frame.getType() != type) {
 			if(frame != null) frame.destroy();
 			Frame fr = null;
-			if(type == FrameType.Software) {
+			if(type == FrameType.Canvas) {
 				fr = new SoftFrameImpl(config); 
 			} else 
 				fr = new GLFrameImpl(config);

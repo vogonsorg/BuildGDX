@@ -11,13 +11,13 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 
 public class SoftFrameImpl implements SoftFrame, Frame {
 
-	protected final AWTInput input;
+	protected final SoftInput input;
 	protected final SoftGraphics graphics;
 
 	public SoftFrameImpl(LwjglApplicationConfiguration config)
 	{
 		graphics = new SoftGraphics(config);
-		input = new AWTInput();
+		input = new SoftInput();
 		
 		Gdx.gl = BuildGdx.gl = null;
 		Gdx.gl20 = BuildGdx.gl20 = null;
@@ -36,7 +36,7 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 
 	@Override
 	public FrameType getType() {
-		return FrameType.Software;
+		return FrameType.Canvas;
 	}
 
 	@Override
@@ -110,7 +110,7 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 
 	@Override
 	public void destroy() {
-		
+		graphics.display.dispose();
 	}
 
 	@Override

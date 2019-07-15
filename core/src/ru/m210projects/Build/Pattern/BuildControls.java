@@ -70,8 +70,8 @@ public abstract class BuildControls {
 	{
 		if(BuildGdx.app.getFrame().isActive())
 			BuildGdx.input.setCursorPosition(xdim / 2, ydim / 2);
-		oldPosX = BuildGdx.input.getX();
-		oldPosY = BuildGdx.input.getY();
+		oldPosX = xdim / 2;
+		oldPosY = ydim / 2;
 	}
 	
 	public void ctrlMouseHandler()

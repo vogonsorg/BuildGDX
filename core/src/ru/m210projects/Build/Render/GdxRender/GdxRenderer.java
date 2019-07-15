@@ -33,8 +33,6 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLRenderer;
-import ru.m210projects.Build.Render.Renderer;
-import ru.m210projects.Build.Render.Renderer.PFormat;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.TextureHandle.ValueResolver;
@@ -153,11 +151,6 @@ public class GdxRenderer implements GLRenderer {
 	}
 
 	@Override
-	public String getname() {
-		return "GdxRenderer";
-	}
-
-	@Override
 	public void drawmapview(int dax, int day, int zoome, int ang) {
 		orphoRen.drawmapview(dax, day, zoome, ang);
 	}
@@ -246,8 +239,8 @@ public class GdxRenderer implements GLRenderer {
 	}
 
 	@Override
-	public FrameType getType() {
-		return FrameType.GL;
+	public RenderType getType() {
+		return null;
 	}
 
 	@Override
@@ -260,5 +253,11 @@ public class GdxRenderer implements GLRenderer {
 	public void completemirror() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public boolean isInited() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

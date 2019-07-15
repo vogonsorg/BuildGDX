@@ -36,6 +36,7 @@ import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Renderer.PFormat;
+import ru.m210projects.Build.Render.Renderer.RenderType;
 import ru.m210projects.Build.Render.Software.Software;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
@@ -1082,7 +1083,7 @@ public abstract class Engine {
 	    	font.dispose();
 	    }
 
-		if(render != null)
+		if(render != null && render.isInited())
 			render.uninit();
 
 		if (artfil != -1)
@@ -1394,7 +1395,7 @@ public abstract class Engine {
 		daxdim = max(320, daxdim);
 		daydim = max(200, daydim);
 
-		if ((davidoption == fullscreen) && (xdim == daxdim) && (ydim == daydim))
+		if (render.isInited() && ((davidoption == fullscreen) && (xdim == daxdim) && (ydim == daydim)))
 			return true;
 
 		xdim = daxdim;
@@ -1405,7 +1406,8 @@ public abstract class Engine {
 		
 		Console.ResizeDisplay(daxdim, daydim);
 
-		render.uninit();
+		if(render.isInited())
+			render.uninit();
 		render.init();
 		
 		if(BuildGdx.app.getType() == ApplicationType.Android) {
@@ -3464,7 +3466,7 @@ public abstract class Engine {
 
 		setaspect_new();
 		
-		if(render.getType() == FrameType.Software) 
+		if(render.getType() == RenderType.Software) 
 			((Software) render).updateview();
 	}
 
@@ -3604,7 +3606,7 @@ public abstract class Engine {
 	
 	public void setviewtotile(int tilenume, int xsiz, int ysiz) //jfBuild
 	{
-		if(render.getType() == FrameType.Software) {
+		if(render.getType() == RenderType.Software) {
 			((Software) render).setviewtotile(tilenume, tilesizx[tilenume], tilesizy[tilenume]);
 			return;
 		}
@@ -3631,7 +3633,7 @@ public abstract class Engine {
 
 	    offscreenrendering = (setviewcnt>0);
 
-	    if (setviewcnt == 0 && render.getType() != FrameType.Software) {
+	    if (setviewcnt == 0 && render.getType() != RenderType.Software) {
 	    	waloff[baktile] = setviewbuf();
 	        invalidatetile(baktile,-1,-1);
 	    }
@@ -3639,7 +3641,7 @@ public abstract class Engine {
 	    setview(bakwindowx1[setviewcnt],bakwindowy1[setviewcnt],
 	            bakwindowx2[setviewcnt],bakwindowy2[setviewcnt]); 
 	    
-	    if(render.getType() == FrameType.Software) 
+	    if(render.getType() == RenderType.Software) 
 			((Software) render).setviewback();
 	}
 
@@ -3910,7 +3912,7 @@ public abstract class Engine {
 		long yf = divscale(ydim, dheigth, 16);
 
 		ByteBuffer frame;
-		if(render.getType() == FrameType.Software) {
+		if(render.getType() == RenderType.Software) {
 			frame = render.getFrame(PFormat.Indexed);
 		} else frame = render.getFrame(PFormat.RGB);
 		
@@ -3918,7 +3920,7 @@ public abstract class Engine {
 		for (int fx, fy = 0; fy < dheigth; fy++) {
 			base = mulscale(fy, yf, 16) * xdim;
 			for (fx = 0; fx < dwidth; fx++) {
-				capture[dheigth * fx + fy] = getcol(frame, base + mulscale(fx, xf, 16), render.getType());
+				capture[dheigth * fx + fy] = getcol(frame, base + mulscale(fx, xf, 16), render.getType().getFrameType());
 			}
 		}
 
@@ -3929,7 +3931,7 @@ public abstract class Engine {
 	{
 		switch(format)
 		{
-		case Software:
+		case Canvas:
 			frame.position(pos);
 			return frame.get();
 		default:
@@ -3949,20 +3951,19 @@ public abstract class Engine {
 			data = new byte[width * heigth];
 		
 		ByteBuffer frame;
-		if(render.getType() == FrameType.Software) {
+		if(render.getType() == RenderType.Software) {
 			frame = render.getFrame(PFormat.Indexed);
 		} else frame = render.getFrame(PFormat.RGB);
 
 		for (int x, y = heigth - 1; y >= 0; y--)
 			for (x = 0; x < width; x++) 
-				data[x * heigth + y] = getcol(frame, x + y * xdim, render.getType());
+				data[x * heigth + y] = getcol(frame, x + y * xdim, render.getType().getFrameType());
 
 		return data;
 	}
 
 	public int setrendermode(Renderer render) { //gdxBuild
 		this.render = render;
-
 		return 0;
 	}
 	
@@ -3973,7 +3974,7 @@ public abstract class Engine {
 	
 	public GLRenderer glrender()
 	{
-		if(render != null && getrender().getType() == FrameType.GL)
+		if(render != null && getrender().getType().getFrameType() == FrameType.GL)
 			return (GLRenderer) render;
 		
 		return null;

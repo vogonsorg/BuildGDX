@@ -2,6 +2,8 @@ package ru.m210projects.Build.Pattern;
 
 import static ru.m210projects.Build.Net.Mmulti.*;
 
+import com.badlogic.gdx.Screen;
+
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -44,9 +46,9 @@ public abstract class BuildEngine extends Engine {
 		BuildNet net = game.pNet;
 		if(net == null) return; //not initialized yet
 
-		if (!game.getScreen().getClass().getSuperclass().equals(GameAdapter.class) 
-				&& !game.getScreen().getClass().getSuperclass().equals(LoadingAdapter.class) 
-				&& !game.getScreen().getClass().equals(InitScreen.class) )
+		Screen current = game.getScreen();
+		if (!(current instanceof GameAdapter) && !(current instanceof LoadingAdapter) 
+				&& !(current instanceof InitScreen) ) 
 			handleevents();
 		
 //		if (totalclock < net.ototalclock + ticks || !net.ready2send)

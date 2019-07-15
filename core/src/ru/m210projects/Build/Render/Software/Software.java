@@ -111,8 +111,6 @@ public abstract class Software implements Renderer {
 	 * color correction 
 	 * printtext scale 
 	 * printtext atlas
-	 * 
-	 * [ ] buttons bug
 	 */
 
 	public final int BITSOFPRECISION = 3;
@@ -213,11 +211,12 @@ public abstract class Software implements Renderer {
 	protected int lowrecip[] = new int[1024], nytooclose, nytoofar;
 	protected int[] distrecip = new int[65536];
 	public boolean novoxmips = false;
+	public boolean isInited = false;
 
 	protected SoftwareOrpho orpho;
 
 	public Software(Engine engine) {
-		BuildGdx.app.setFrame(FrameType.Software);
+		BuildGdx.app.setFrame(FrameType.Canvas);
 		this.engine = engine;
 		a = new Ac(this);
 
@@ -263,6 +262,13 @@ public abstract class Software implements Renderer {
 
 		for (int i = 1; i < 1024; i++)
 			lowrecip[i] = ((1 << 24) - 1) / i;
+		
+		isInited = true;
+	}
+	
+	@Override
+	public boolean isInited() {
+		return isInited;
 	}
 
 	public void updateview() {
@@ -321,7 +327,7 @@ public abstract class Software implements Renderer {
 
 	@Override
 	public void uninit() {
-
+		isInited = false;
 	}
 
 	@Override
@@ -3459,11 +3465,6 @@ public abstract class Software implements Renderer {
 	}
 
 	@Override
-	public String getname() {
-		return "Classic";
-	}
-
-	@Override
 	public void drawmapview(int dax, int day, int zoome, int ang) {
 		orpho.drawmapview(dax, day, zoome, ang);
 	}
@@ -4116,8 +4117,8 @@ public abstract class Software implements Renderer {
 	}
 
 	@Override
-	public FrameType getType() {
-		return FrameType.Software;
+	public RenderType getType() {
+		return RenderType.Software;
 	}
 
 	@Override

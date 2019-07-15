@@ -3,7 +3,7 @@ package ru.m210projects.Build.Architecture;
 public interface BuildFrame {
 	
 	public enum FrameType {
-		Software, GL
+		Canvas, GL
 	}
 
 	public BuildInput getInput();

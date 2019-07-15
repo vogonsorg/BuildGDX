@@ -336,7 +336,7 @@ public abstract class BuildGame extends Game {
 			String text = Console.GetLog();
 			text += "\r\n";
 			text += "Screen: " + getScrName() + "\r\n";
-			text += "Renderer: " + pEngine.getrender().getname() + "\r\n";
+			text += "Renderer: " + pEngine.getrender().getType().getName() + "\r\n";
 			
 			try {
 				String report = reportData();

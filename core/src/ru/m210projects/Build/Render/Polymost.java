@@ -317,6 +317,7 @@ public abstract class Polymost implements GLRenderer {
 	protected GL10 gl;
 	protected Engine engine;
 	protected Polymost2D polymost2d;
+	protected boolean isInited = false;
 	
 	private boolean showlines = false;
 
@@ -473,6 +474,11 @@ public abstract class Polymost implements GLRenderer {
 
 	public int gltexcacnum = -1;
 	float glox1, gloy1, glox2, gloy2;
+	
+	@Override
+	public boolean isInited() {
+		return isInited;
+	}
 
 	@Override
 	public void uninit() {
@@ -494,6 +500,8 @@ public abstract class Polymost implements GLRenderer {
 		//
 		// Cachefile_Free();
 		// polymost_cachesync();
+		
+		isInited = false;
 	}
 
 	@Override
@@ -535,6 +543,8 @@ public abstract class Polymost implements GLRenderer {
 			Console.Println("Your OpenGL implementation doesn't support Vertex Buffer Objects. Disabling...", 0);
 			r_vbos = 0;
 		}
+		
+		isInited = true;
 	}
 
 	public void resizeglcheck() // Ken Build method
@@ -4790,12 +4800,6 @@ public abstract class Polymost implements GLRenderer {
 				dfloorzsofslope += sector[sectnum].floorheinum * j / i;
 		}
 	}
-	
-
-	@Override
-	public String getname() {
-		return "Polymost";
-	}
 
 	@Override
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
@@ -4830,8 +4834,8 @@ public abstract class Polymost implements GLRenderer {
 	}
 	
 	@Override
-	public FrameType getType() {
-		return FrameType.GL;
+	public RenderType getType() {
+		return RenderType.Polymost;
 	}
 	
 	@Override

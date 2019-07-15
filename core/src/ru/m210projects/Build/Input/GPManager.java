@@ -41,7 +41,7 @@ public class GPManager {
 			gamepads = new Array<Gamepad>();
 			Array<Controller> controllers = null;
 			
-			if(BuildGdx.app.getFrameType() != FrameType.Software)
+			if(BuildGdx.app.getFrameType() != FrameType.Canvas)
 				controllers = Controllers.getControllers();
 			
 			if(controllers != null && controllers.size > 0) {

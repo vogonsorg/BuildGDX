@@ -23,6 +23,21 @@ import ru.m210projects.Build.Types.TileFont;
 
 public interface Renderer {
 	
+	public enum RenderType { 
+		Software(FrameType.Canvas, "Classic"), Polymost(FrameType.GL, "Polymost");
+		
+		FrameType type;
+		String name;
+		RenderType(FrameType type, String name)
+		{
+			this.type = type;
+			this.name = name;
+		}
+		
+		public FrameType getFrameType() { return type; }
+		public String getName() { return name; }
+	};
+	
 	public enum Transparent { None, Bit1, Bit2 }
 	
 	public enum PFormat { RGB, Indexed }
@@ -30,6 +45,8 @@ public interface Renderer {
 	public void init();
 	
 	public void uninit();
+	
+	public boolean isInited();
 	
 	public void drawmasks();
 	
@@ -44,9 +61,7 @@ public interface Renderer {
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum,
 			int dashade, int dapalnum, int dastat,
             int cx1, int cy1, int cx2, int cy2);
-	
-	public String getname();
-	
+
 	public void completemirror();
 	
 	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
@@ -65,5 +80,5 @@ public interface Renderer {
 
 	public void setDefs(DefScript defs);
 	
-	public FrameType getType();
+	public RenderType getType();
 }
