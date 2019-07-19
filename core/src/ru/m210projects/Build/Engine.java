@@ -31,8 +31,6 @@ import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.DEFOSDFUNC;
-import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
-import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Renderer.PFormat;
@@ -45,6 +43,7 @@ import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Neartag;
+import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.SmallTextFont;
@@ -268,7 +267,7 @@ public abstract class Engine {
 		268435456, 536870912, 1073741824, 2147483647,
 	};
 
-	public static byte[] curpalette;
+	public static Palette curpalette;
 	public static FadeEffect palfadergb;
 
 	public static int clipmoveboxtracenum = 3;
@@ -353,9 +352,7 @@ public abstract class Engine {
 	public static int r_npotwallmode;
 	// model animation smoothing cvar
 	public static int r_animsmoothing = 1;
-	public static int glanisotropy = 1; // 0 = maximum supported by card
-		
-	
+
 	//Engine.c
 
 	public int getpalookup(int davis, int dashade) //jfBuild
@@ -529,7 +526,7 @@ public abstract class Engine {
 		if (paletteloaded != 0) return;
 		
 		palette = new byte[768];
-		curpalette = new byte[768];
+		curpalette = new Palette();
 		palookup = new byte[MAXPALOOKUPS][];
 
 		Console.Println("Loading palettes");
@@ -1012,66 +1009,6 @@ public abstract class Engine {
 		initkeys();
 
 		Console.setFunction(new DEFOSDFUNC(this));
-		
-		RegisterCvar(new OSDCOMMAND("usemodels",
-			"usemodels: use md2 / md3 models", usemodels?1:0, 
-			new OSDCVARFUNC() {
-			@Override
-			public void execute() {
-				usemodels = Integer.parseInt(osd_argv[1]) == 1;
-			}
-		}, 0, 1));
-		
-		RegisterCvar(new OSDCOMMAND("usevoxels",
-			"usevoxels: use voxels models", usevoxels?1:0, 
-			new OSDCVARFUNC() {
-			@Override
-			public void execute() {
-				usevoxels = Integer.parseInt(osd_argv[1]) == 1;
-			}
-		}, 0, 1));
-		
-		RegisterCvar(new OSDCOMMAND("usehightile",
-				"usevoxels: use high tiles", usehightile?1:0, 
-				new OSDCVARFUNC() {
-				@Override
-				public void execute() {
-					usehightile = Integer.parseInt(osd_argv[1]) == 1;
-					GLRenderer gl = glrender();
-					if(gl != null) //XXX
-						gl.gltexinvalidateall(1);
-				}
-			}, 0, 1));
-		
-		OSDCOMMAND R_texture = new OSDCOMMAND( "r_texturemode", "r_texturemode: changes the texture filtering settings", new OSDCVARFUNC() { 
-			@Override
-			public void execute() {
-				int gltexfiltermode = Console.Geti("r_texturemode");
-				if (Console.osd_argc != 2) {
-					Console.Println("Current texturing mode is " + gltexfiltermode);
-					return;
-				}
-				try {
-					int value = Integer.parseInt(osd_argv[1]);
-					if(value >= 2) value = 5; //set to trilinear
-					if(Console.Set("r_texturemode", value)) {
-						GLRenderer gl = glrender();
-						if(gl != null) //XXX
-							gl.gltexapplyprops();
-						Console.Println("Texture filtering mode changed to " + value);
-					} else Console.Println("Texture filtering mode out of range");
-				} 
-				catch(Exception e)
-				{
-					Console.Println("r_texturemode: Out of range");
-				}
-			} });
-		R_texture.setRange(0, 5);
-		Console.RegisterCvar(R_texture);
-		
-		Console.RegisterCvar(new  OSDCOMMAND( "r_detailmapping", "r_detailmapping: enable/disable detail mapping", 1, 0, 1));
-		Console.RegisterCvar(new  OSDCOMMAND( "r_vbocount", "r_vbocount: sets the number of Vertex Buffer Objects to use when drawing models", 64, 0, 256));
-
 		randomseed = 1; //random for voxels
 	}
 
@@ -3562,9 +3499,8 @@ public abstract class Engine {
 		if ((flags&4) == 0)
 			curbrightness = min(max(dabrightness,0),15);
 
-		for (int i = 0; i < 768; i++) 
-			curpalette[i] = (byte) ((dapal[i]& 0xFF) << 2);
-		changepalette(curpalette);
+		curpalette.update(dapal, true);
+		changepalette(curpalette.getBytes());
 
 		if ((flags & 2) != 0) {
 			GLRenderer gl = glrender();
@@ -3577,7 +3513,7 @@ public abstract class Engine {
 	
 	public void changepalette(byte[] palette)
 	{
-		System.arraycopy(palette, 0, curpalette, 0, 768);
+		curpalette.update(palette, false);
 		render.changepalette(palette);
 	}
 
@@ -3591,9 +3527,9 @@ public abstract class Engine {
 		if(glrender() == null) { //if 8bit renderer
 			int k = 0;
 			for (int i = 0; i < 256; i++) {
-				temppal[k] = (byte) ( (curpalette[k] & 0xFF) + ( ((palfadergb.r - (curpalette[k] & 0xFF)) * offset) >> 6 ) ); k++;
-				temppal[k] = (byte) ( (curpalette[k] & 0xFF) + ( ((palfadergb.g - (curpalette[k] & 0xFF)) * offset) >> 6 ) ); k++;
-				temppal[k] = (byte) ( (curpalette[k] & 0xFF) + ( ((palfadergb.b - (curpalette[k] & 0xFF)) * offset) >> 6 ) ); k++;
+				temppal[k++] = (byte) ( curpalette.getRed(i) + ( ((palfadergb.r - curpalette.getRed(i)) * offset) >> 6 ) );
+				temppal[k++] = (byte) ( curpalette.getGreen(i) + ( ((palfadergb.g - curpalette.getGreen(i)) * offset) >> 6 ) );
+				temppal[k++] = (byte) ( curpalette.getBlue(i) + ( ((palfadergb.b - curpalette.getBlue(i)) * offset) >> 6 ) );
 			}
 	
 			render.changepalette(temppal);
@@ -3643,6 +3579,41 @@ public abstract class Engine {
 	    
 	    if(render.getType() == RenderType.Software) 
 			((Software) render).setviewback();
+	}
+	
+	public void squarerotatetile(int tilenume)
+	{
+		int xsiz = tilesizx[tilenume]; 
+		int ysiz = tilesizy[tilenume];
+
+		//supports square tiles only for rotation part
+		if (xsiz == ysiz)
+		{
+			int k = (xsiz<<1);
+			int ptr1, ptr2;
+			for(int i=xsiz-1,j;i>=0;i--) {
+				ptr1 = i*(xsiz+1); 
+				ptr2 = ptr1;
+				if ((i&1) != 0) { 
+					ptr1--; 
+					ptr2 -= xsiz; 
+					squarerotatetileswap(tilenume, ptr1, ptr2);
+				}
+				for(j=(i>>1)-1;j>=0;j--) {
+					ptr1 -= 2; 
+					ptr2 -= k; 
+					squarerotatetileswap(tilenume, ptr1, ptr2);
+					squarerotatetileswap(tilenume, ptr1 + 1, ptr2 + xsiz);
+				}
+			}
+		}
+	}
+	
+	private void squarerotatetileswap(int tilenume, int p1, int p2)
+	{
+		byte tmp = waloff[tilenume][p1];
+		waloff[tilenume][p1] = waloff[tilenume][p2];
+		waloff[tilenume][p2] = tmp;
 	}
 
 	public void preparemirror(int dax, int day, int daz, float daang, float dahoriz, int dawall, int dasector) { //jfBuild

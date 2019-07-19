@@ -22,7 +22,6 @@ import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.curpalette;
 import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Render.GLInfo.anisotropy;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -31,16 +30,16 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.Model;
-import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
-import ru.m210projects.Build.Render.TextureHandle.ValueResolver;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.TileFont;
 
-public class GdxRenderer implements GLRenderer {
+public class GdxRenderer extends GLRenderer {
 	
 	protected final TextureCache textureCache;
 	protected final Engine engine;
@@ -57,12 +56,7 @@ public class GdxRenderer implements GLRenderer {
 	}
 
 	private TextureCache createTextureCache() {
-		return new TextureCache(new ValueResolver<Integer>() {
-			@Override
-			public Integer get() {
-				return anisotropy();
-			}
-		});
+		return new TextureCache();
 	}
 
 	@Override
@@ -89,9 +83,10 @@ public class GdxRenderer implements GLRenderer {
 
 	@Override
 	public void clearview(int dacol) {
-		BuildGdx.gl.glClearColor( (curpalette[3*dacol]&0xFF) / 255.0f,
-				(curpalette[3*dacol+1]&0xFF) / 255.0f,
-				(curpalette[3*dacol+2]&0xFF) / 255.0f,
+		BuildGdx.gl.glClearColor(
+				curpalette.getRed(dacol) / 255.0f,
+				curpalette.getGreen(dacol) / 255.0f,
+				curpalette.getBlue(dacol) / 255.0f,
 				0);
 		BuildGdx.gl.glClear(GL_COLOR_BUFFER_BIT);
 	}
@@ -130,17 +125,17 @@ public class GdxRenderer implements GLRenderer {
 
 	@Override
 	public void gltexapplyprops() {
-		int gltexfiltermode = Console.Geti("r_texturemode");
-		textureCache.updateSettings(gltexfiltermode);
+		GLFilter filter = GLSettings.textureFilter.get();
+		textureCache.updateSettings(filter);
 
 		if(defs == null)
 			return;
 		
-		int anisotropy = anisotropy();
+		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i=MAXTILES-1; i>=0; i--) {
 			Model m = defs.mdInfo.getModel(i);
 	        if(m != null)
-	        	m.setSkinParams(gltexfiltermode, anisotropy);
+	        	m.setSkinParams(filter, anisotropy);
 	    }
 	}
 
@@ -181,7 +176,6 @@ public class GdxRenderer implements GLRenderer {
 	
 	public void gltexinvalidateall() {
 		textureCache.invalidateall();
-		textureCache.changePalette(curpalette);
 	}
 
 	@Override

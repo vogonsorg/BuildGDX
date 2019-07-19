@@ -31,8 +31,9 @@ import com.badlogic.gdx.graphics.Pixmap;
 import static ru.m210projects.Build.Gameutils.*;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
+import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Script.ModelInfo.Spritesmooth;
@@ -351,10 +352,8 @@ public abstract class MDModel extends Model {
 	        skinfile = null;
 	    	return null;
 	    }
-	    
-		int gltexfiltermode = Console.Geti("r_texturemode");
 
-		setupBoundTexture(gltexfiltermode, GLInfo.anisotropy());
+		setupBoundTexture(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
 		setupBoundTextureWrap(GL_REPEAT);
 
 	    long etime = System.currentTimeMillis()-startticks;
@@ -366,12 +365,12 @@ public abstract class MDModel extends Model {
 	}
     
     @Override
-	public void setSkinParams(int filterMode, int anisotropy) {
+	public void setSkinParams(GLFilter filter, int anisotropy) {
 		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
 			for(BTexture tex : sk.texid) {
 				if(tex == null) continue;
 				bindTexture(tex);
-				setupBoundTexture(filterMode, anisotropy);
+				setupBoundTexture(filter, anisotropy);
 			}
 		}
 	}

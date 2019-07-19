@@ -16,14 +16,25 @@
 
 package ru.m210projects.Build.Render.Types;
 
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAG_FILTER;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MIN_FILTER;
+
+import com.badlogic.gdx.Gdx;
+
 public class GLFilter {
 	public String name;
 	public int min,mag;
 	
-
 	public GLFilter(String name, int min, int mag) {
 		this.name = name;
 		this.min = min;
 		this.mag = mag;
+	}
+	
+	public void apply()
+	{
+		Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this.mag);
+		Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this.min);
 	}
 }

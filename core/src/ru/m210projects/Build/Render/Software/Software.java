@@ -105,12 +105,13 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-public abstract class Software implements Renderer {
+public abstract class Software extends Renderer {
 
 	/*
 	 * color correction 
 	 * printtext scale 
 	 * printtext atlas
+	 * voxels won't draw after renderer switch
 	 */
 
 	public final int BITSOFPRECISION = 3;
@@ -247,7 +248,7 @@ public abstract class Software implements Renderer {
 		globalpalwritten = 0;
 		a.setpalookupaddress(globalpalwritten);
 
-		changepalette(curpalette);
+		changepalette(curpalette.getBytes());
 
 		j = 0;
 		for (int i = 0; i <= ydim; i++) {
@@ -3503,9 +3504,9 @@ public abstract class Software implements Renderer {
 
 			for (int i = 0; i < xdim * ydim; i++) {
 				int dacol = frameplace[i] & 0xFF;
-				rgbbuffer.put(curpalette[3 * dacol + 0]);
-				rgbbuffer.put(curpalette[3 * dacol + 1]);
-				rgbbuffer.put(curpalette[3 * dacol + 2]);
+				rgbbuffer.put((byte) curpalette.getRed(dacol));
+				rgbbuffer.put((byte) curpalette.getGreen(dacol));
+				rgbbuffer.put((byte) curpalette.getBlue(dacol));
 			}
 
 			rgbbuffer.rewind();

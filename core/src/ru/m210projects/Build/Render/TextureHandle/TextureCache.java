@@ -24,6 +24,7 @@ import static ru.m210projects.Build.Engine.usehightile; //TODO: GL settings
 import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
+import static ru.m210projects.Build.Render.GLSettings.glfiltermodes;
 
 import java.nio.ByteBuffer;
 
@@ -33,9 +34,11 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
+import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.TextureHDInfo;
-import ru.m210projects.Build.Types.UnsafeBuffer;
+import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.files.FileHandle;
@@ -49,15 +52,13 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class TextureCache {
 	
-	private final ValueResolver<Integer> anisotropy;
 	private final Pthtyp[] cache;
     private TextureHDInfo info;
     
     private ShaderProgram shader;
 	private BTexture palette[];
 
-	public TextureCache(ValueResolver<Integer> anisotropy) {
-		this.anisotropy = anisotropy;
+	public TextureCache() {
 		cache = new Pthtyp[MAXTILES];
 	    boolean useShader = false;
 	    if(useShader)
@@ -143,8 +144,7 @@ public class TextureCache {
 			intexfmt = GL_RGBA; // android bug? black textures fix
 
 		uploadBoundTexture(doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic);
-		int gltexfiltermode = Console.Geti("r_texturemode"); //TODO: GL settings
-		setupBoundTexture(gltexfiltermode, anisotropy.get());
+		setupBoundTexture(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
 		int wrap = !clamping ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 		setupBoundTextureWrap(wrap);
 
@@ -241,9 +241,7 @@ public class TextureCache {
 		int tsizy = pth.sizy;
 
 		bindTexture(pth.glpic);
-		int gltexfiltermode = Console.Geti("r_texturemode");
-		
-		setupBoundTexture(gltexfiltermode, anisotropy.get());
+		setupBoundTexture(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
 		int wrap = !clamping ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 		setupBoundTextureWrap(wrap);
 
@@ -339,11 +337,12 @@ public class TextureCache {
 		return pth;
 	}
 	
-	public void updateSettings(int gltexfiltermode) {
+	public void updateSettings(GLFilter filter) {
+		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i=MAXTILES-1; i>=0; i--) {
 			for (Pthtyp pth=cache[i]; pth != null; pth = pth.next) {
 				bindTexture(pth.glpic);
-				setupBoundTexture(gltexfiltermode, anisotropy.get());
+				setupBoundTexture(filter, anisotropy);
 			}
 		}
 	}
@@ -414,7 +413,7 @@ public class TextureCache {
 	
 	private BTexture createPalette(byte[] paldata, int shade)
 	{
-		UnsafeBuffer buffer = getTmpBuffer();
+		UnsafeDirectBuffer buffer = getTmpBuffer();
 		buffer.clear();
 		for(int p = 0; p < MAXPALOOKUPS; p++) {
 			int pal = p;
@@ -423,9 +422,10 @@ public class TextureCache {
 			for(int i = 0; i < 256; i++)
 			{
 				int dacol = palookup[pal][i + (shade << 8)] & 0xFF;
-				buffer.put(paldata[3 * dacol]);
-				buffer.put(paldata[3 * dacol + 1]); 
-				buffer.put(paldata[3 * dacol + 2]); 
+				buffer.putBytes(paldata, 3 * dacol, 3);
+//				buffer.putByte(paldata[3 * dacol]);
+//				buffer.putByte(paldata[3 * dacol + 1]); 
+//				buffer.putByte(paldata[3 * dacol + 2]); 
 			}
 		}
 		buffer.flip();
@@ -433,7 +433,7 @@ public class TextureCache {
 		BTexture palette = new BTexture(256, MAXPALOOKUPS);
 		palette.bind(1);
 		Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, palette.getWidth(), palette.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.getBuffer());
-		setupBoundTexture(0, 0);
+		setupBoundTexture(glfiltermodes[0], 0);
 		
 		return palette;
 	}

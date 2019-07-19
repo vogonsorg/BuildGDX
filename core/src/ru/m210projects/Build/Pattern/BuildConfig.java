@@ -198,7 +198,7 @@ public abstract class BuildConfig extends IniFile {
 	public String mAddress = "localhost";
 	public int mPort = NETPORT;
 	
-	public RenderType renderType = RenderType.Software;
+	public RenderType renderType = RenderType.Polymost;
 
 	public BuildConfig(String path, String name) {
 		super();	
@@ -527,9 +527,7 @@ public abstract class BuildConfig extends IniFile {
 		saveBoolean(fil, "BorderlessMode", borderless);
 		saveBoolean(fil, "VSync", gVSync);
 		saveInteger(fil, "FPSLimit", fpslimit);
-		if(Console.IsInited())
-			saveInteger(fil, "GLFilterMode", Console.Geti("r_texturemode"));
-		else saveInteger(fil, "GLFilterMode", glfilter);
+		saveInteger(fil, "GLFilterMode", glfilter);
 		saveInteger(fil, "GLAnisotropy", glanisotropy);
 		saveInteger(fil, "WideScreen", widescreen);
 		saveInteger(fil, "FieldOfView", gFov);

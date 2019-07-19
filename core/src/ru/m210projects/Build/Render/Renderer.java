@@ -19,9 +19,10 @@ package ru.m210projects.Build.Render;
 import java.nio.ByteBuffer;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.ParamLinker;
 import ru.m210projects.Build.Types.TileFont;
 
-public interface Renderer {
+public abstract class Renderer extends ParamLinker {
 	
 	public enum RenderType { 
 		Software(FrameType.Canvas, "Classic"), Polymost(FrameType.GL, "Polymost");
@@ -42,43 +43,43 @@ public interface Renderer {
 	
 	public enum PFormat { RGB, Indexed }
 	
-	public void init();
+	public abstract void init();
 	
-	public void uninit();
+	public abstract void uninit();
 	
-	public boolean isInited();
+	public abstract boolean isInited();
 	
-	public void drawmasks();
+	public abstract void drawmasks();
 	
-	public void drawrooms();
+	public abstract void drawrooms();
 	
-	public void clearview(int dacol);
+	public abstract void clearview(int dacol);
 	
-	public void changepalette(byte[] palette);
+	public abstract void changepalette(byte[] palette);
 
-	public void nextpage();
+	public abstract void nextpage();
 	
-	public void rotatesprite(int sx, int sy, int z, int a, int picnum,
+	public abstract void rotatesprite(int sx, int sy, int z, int a, int picnum,
 			int dashade, int dapalnum, int dastat,
             int cx1, int cy1, int cx2, int cy2);
 
-	public void completemirror();
+	public abstract void completemirror();
 	
-	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
+	public abstract void drawoverheadmap(int cposx, int cposy, int czoom, short cang);
 	
-	public void drawmapview(int dax, int day, int zoome, int ang);
+	public abstract void drawmapview(int dax, int day, int zoome, int ang);
 	
-	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale);
+	public abstract void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale);
 	
-	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
+	public abstract void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 
-	public ByteBuffer getFrame(PFormat format);
+	public abstract ByteBuffer getFrame(PFormat format);
 	
-	public void drawline256(int x1, int y1, int x2, int y2, int col);
+	public abstract void drawline256(int x1, int y1, int x2, int y2, int col);
 	
-	public void settiltang(int tilt);
+	public abstract void settiltang(int tilt);
 
-	public void setDefs(DefScript defs);
+	public abstract void setDefs(DefScript defs);
 	
-	public RenderType getType();
+	public abstract RenderType getType();
 }

@@ -36,6 +36,7 @@ import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
+import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Types.MemLog;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
@@ -135,15 +136,18 @@ public class InitScreen extends ScreenAdapter {
 		BuildConfig cfg = game.pCfg;
 		game.pFonts = factory.fonts();
 		
+		GLSettings.init(engine, cfg);
+		
 		engine.setrendermode(factory.renderer(cfg.renderType));
 		if(!engine.setgamemode(cfg.fullscreen, cfg.ScreenWidth, cfg.ScreenHeight))
 			cfg.fullscreen = 0;
 		fullscreen = cfg.fullscreen;
 		
 		cfg.checkFps(cfg.fpslimit);
-		engine.setanisotropy(cfg, cfg.glanisotropy);
+
+		
+
 		engine.setwidescreen(cfg, cfg.widescreen != 0);
-		Console.Set("r_texturemode", cfg.glfilter);
 		
 		thread = new Thread(new Runnable() {
 			@Override

@@ -21,7 +21,6 @@ import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
-import static ru.m210projects.Build.Render.GLInfo.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Loader.Model.*;
@@ -48,12 +47,12 @@ import ru.m210projects.Build.Loader.MD3.MD3Surface;
 import ru.m210projects.Build.Loader.MD3.MD3Vertice;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.TextureHandle.ValueResolver;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
@@ -69,7 +68,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
-public abstract class Polymost implements GLRenderer {
+public abstract class Polymost extends GLRenderer {
 	
 	public static long TexDebug = -1;
 	class GLSurfaceArray {
@@ -342,7 +341,6 @@ public abstract class Polymost implements GLRenderer {
 		Arrays.fill(spritewall, -1);
 		
 		this.polymost2d = new Polymost2D(this);
-	
 		Console.Println(Gdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION) + " initialized", OSDTEXT_GOLD);
 	}
 	
@@ -355,12 +353,7 @@ public abstract class Polymost implements GLRenderer {
 	}
 
 	private TextureCache createTextureCache() {
-		return new TextureCache(new ValueResolver<Integer>() {
-			@Override
-			public Integer get() {
-				return anisotropy();
-			}
-		});
+		return new TextureCache();
 	}
 	
 	protected int setBoundTextureDetail(BTexture detailTexture, int texunits)
@@ -428,9 +421,6 @@ public abstract class Polymost implements GLRenderer {
 	// Use this for palette effects ... but not ones that change every frame!
 	public void gltexinvalidateall() {
 		textureCache.invalidateall();
-
-		changepalette(curpalette);
-		
 		clearskins(true);
 	}
 
@@ -458,17 +448,17 @@ public abstract class Polymost implements GLRenderer {
 	
 	@Override
 	public void gltexapplyprops() {
-		int gltexfiltermode = Console.Geti("r_texturemode");
-		textureCache.updateSettings(gltexfiltermode);
+		GLFilter filter = GLSettings.textureFilter.get();
+		textureCache.updateSettings(filter);
 
 		if(defs == null)
 			return;
-		
-		int anisotropy = anisotropy();
+	
+		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i=MAXTILES-1; i>=0; i--) {
 			Model m = defs.mdInfo.getModel(i);
 	        if(m != null)
-	        	m.setSkinParams(gltexfiltermode, anisotropy);
+	        	m.setSkinParams(filter, anisotropy);
 	    }
 	}
 
@@ -506,8 +496,11 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public void init() {
+		gl.glShadeModel(GL_SMOOTH); // GL_FLAT
+		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
+		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
 		polymost2d.init();
-		GLInfo.init(gl);
 
 		if (Gdx.graphics.getGLVersion().getVendorString().compareTo("NVIDIA Corporation") == 0) {
 			gl.glHint(GL_FOG_HINT, GL_NICEST);
@@ -543,7 +536,7 @@ public abstract class Polymost implements GLRenderer {
 			Console.Println("Your OpenGL implementation doesn't support Vertex Buffer Objects. Disabling...", 0);
 			r_vbos = 0;
 		}
-		
+
 		isInited = true;
 	}
 
@@ -4530,9 +4523,10 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public void clearview(int dacol) {
-		gl.glClearColor(((float) (curpalette[3*dacol]&0xFF)) / 255.0f,
-				((float) (curpalette[3*dacol+1]&0xFF)) / 255.0f,
-				((float) (curpalette[3*dacol+2]&0xFF)) / 255.0f,
+		gl.glClearColor(
+				curpalette.getRed(dacol) / 255.0f,
+				curpalette.getGreen(dacol) / 255.0f,
+				curpalette.getBlue(dacol) / 255.0f,
 				0);
 		gl.glClear(GL_COLOR_BUFFER_BIT);
 	}

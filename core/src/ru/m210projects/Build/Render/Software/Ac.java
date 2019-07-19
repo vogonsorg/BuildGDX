@@ -56,8 +56,7 @@ public class Ac {
 			}
 		} catch (Throwable e) {}
 	}
-		
-	
+
 	//Sloped ceiling/floor vertical line functions
 	public void setupslopevlin(int logylogx, byte[] bufplc, int pinc)
 	{

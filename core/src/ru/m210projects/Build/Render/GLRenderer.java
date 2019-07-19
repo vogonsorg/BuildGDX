@@ -16,30 +16,56 @@
 
 package ru.m210projects.Build.Render;
 
-import java.util.HashMap;
+import static ru.m210projects.Build.Engine.pow2long;
+import static ru.m210projects.Build.Render.GLInfo.maxanisotropy;
 
+import java.util.HashMap;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 
-public interface GLRenderer extends Renderer {
+public abstract class GLRenderer extends Renderer {
 	
-	public void palfade(HashMap<String, FadeEffect> fades);
+	public GLRenderer()
+	{
+		GLInfo.init();
+		
+		String[] filters = new String[GLSettings.glfiltermodes.length];
+		for(int i = 0; i < filters.length; i++)
+			filters[i] = GLSettings.glfiltermodes[i].name;
+		this.registerConteiner("Texture mode", GLSettings.textureFilter, GLSettings.glfiltermodes, filters);
+		
+		int anisotropysize = 0;
+		for (int s = (int)maxanisotropy; s > 1; s >>= 1)
+			anisotropysize++;
+		Integer[] list = new Integer[anisotropysize + 1];
+		String[] anisotropies = new String[anisotropysize + 1];
+		for (int i = 0; i < list.length; i++) {
+			list[i] = pow2long[i];
+			anisotropies[i] = i == 0 ? "None" : list[i] + "x";
+		}
+		this.registerConteiner("Anisotropy", GLSettings.textureAnisotropy, list, anisotropies);
+		
+		this.registerSwitch("True color textures", GLSettings.useHighTile);
+		this.registerSwitch("3d models", GLSettings.useModels);
+	}
 	
-	public void preload();
+	public abstract void palfade(HashMap<String, FadeEffect> fades);
 	
-	public void precache(int dapicnum, int dapalnum, int datype);
+	public abstract void preload();
 	
-	public void gltexapplyprops();
+	public abstract void precache(int dapicnum, int dapalnum, int datype);
 	
-	public void gltexinvalidateall(int flags);
+	public abstract void gltexapplyprops();
+	
+	public abstract void gltexinvalidateall(int flags);
 
-	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
+	public abstract void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
 
-	public void setdrunk(float intensive);
+	public abstract void setdrunk(float intensive);
 	
-	public float getdrunk();
+	public abstract float getdrunk();
 	
-	public void addSpriteCorr(int snum);
+	public abstract void addSpriteCorr(int snum);
 	
-	public void removeSpriteCorr(int snum);
+	public abstract void removeSpriteCorr(int snum);
 
 }

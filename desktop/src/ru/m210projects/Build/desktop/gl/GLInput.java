@@ -2,6 +2,7 @@ package ru.m210projects.Build.desktop.gl;
 
 import static ru.m210projects.Build.Input.Keymap.*;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.lwjgl.BufferUtils;
@@ -22,6 +23,7 @@ public class GLInput implements BuildInput {
 	protected Cursor defCursor = Mouse.getNativeCursor();
 	protected LwjglInput input;
 	private Method processEventsMethod;
+	private Field pressedKeysField;
 	
 	public GLInput()
 	{
@@ -29,8 +31,10 @@ public class GLInput implements BuildInput {
 
 		try {
 			processEventsMethod = input.getClass().getDeclaredMethod("processEvents");  
+			pressedKeysField = input.getClass().getDeclaredField("pressedKeys");
+			pressedKeysField.setAccessible(true);   
 			processEventsMethod.setAccessible(true);   
-		} catch (Exception e) {}
+		} catch (Exception e) { e.printStackTrace();}
 	}
 
 	@Override
@@ -247,6 +251,11 @@ public class GLInput implements BuildInput {
 
 	public void update() {
 		input.update();
+		
+		try { //fucking bug, which I can't fix because of final LwjglInput class.
+			if((Integer) pressedKeysField.get(input) < 0)
+				pressedKeysField.set(input, 0);
+		} catch (Exception e) {}
 	}
 	
 	public void processEvents()

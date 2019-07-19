@@ -20,9 +20,10 @@ import static ru.m210projects.Build.Engine.pow2long;
 import static ru.m210projects.Build.Engine.usehightile;
 import static ru.m210projects.Build.Engine.usemodels;
 import static ru.m210projects.Build.Engine.usevoxels;
+import static ru.m210projects.Build.Render.GLInfo.*;
+import static ru.m210projects.Build.Render.GLSettings.*;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
@@ -35,8 +36,8 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSlider;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
-import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.GLSettings;
 
 public abstract class MenuVideoSetup extends BuildMenu {
 	
@@ -84,30 +85,22 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
-				int filter = item.num;
-				if (filter == 2)
-					filter = 5;
-
-				Console.Set("r_texturemode", filter);
-				
-				GLRenderer gl = app.pEngine.glrender();
-				if(gl != null)
-					gl.gltexapplyprops();
+				textureFilter.set(glfiltermodes[item.num]);
 			}
 		}) {
 			@Override
 			public void open() {
 				if (this.list == null) {
-					this.list = new char[3][];
-					this.list[0] = "Classic".toCharArray();
-					this.list[1] = "Bilinear".toCharArray();
-					this.list[2] = "Trilinear".toCharArray();
+					this.list = new char[glfiltermodes.length][];
+					for(int i = 0; i < list.length; i++)
+						list[i] = glfiltermodes[i].name.toCharArray();
 				}
 
-				int filter = Console.Geti("r_texturemode");
-				if (filter == 5)
-					filter = 2;
-				num = filter;
+				for(int i = 0; i < glfiltermodes.length; i++)
+					if(textureFilter.get().equals(glfiltermodes[i])) {
+						num = i;
+						break;
+					}
 			}
 		};
 		
@@ -115,20 +108,18 @@ public abstract class MenuVideoSetup extends BuildMenu {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
-				app.pEngine.setanisotropy(cfg, pow2long[item.num]);
+				GLSettings.textureAnisotropy.set(pow2long[item.num]);
 			}
 		}) {
 			@Override
 			public void open() {
 				if (this.list == null) {
-					this.list = new char[calcAnisotropy((int) GLInfo.maxanisotropy) + 1][];
+					this.list = new char[calcAnisotropy((int) maxanisotropy) + 1][];
 					this.list[0] = "None".toCharArray();
 					for (int i = 1; i < list.length; i++)
 						this.list[i] = (Integer.toString(pow2long[i]) + "x").toCharArray();
 				}
-				if (cfg.glanisotropy > GLInfo.maxanisotropy)
-					app.pEngine.setanisotropy(cfg, (int) GLInfo.maxanisotropy);
-				num = calcAnisotropy(cfg.glanisotropy);
+				num = calcAnisotropy(GLSettings.textureAnisotropy.get());
 			}
 		};
 

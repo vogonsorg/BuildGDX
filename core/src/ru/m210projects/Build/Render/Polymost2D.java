@@ -788,8 +788,9 @@ public class Polymost2D extends OrphoRenderer {
 		if (font.type == FontType.Tilemap)
 			gl.glColor4f(f, f, f, alpha);
 		else
-			gl.glColor4ub(curpalette[3 * col] & 0xFF, curpalette[3 * col + 1] & 0xFF, curpalette[3 * col + 2] & 0xFF,
+			gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col),
 					(int) (alpha * 255));
+		
 
 		int c = 0, line = 0;
 		int x, y, yoffs;
@@ -849,8 +850,8 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
 
 		if (backcol >= 0) {
-			gl.glColor4ub(curpalette[3 * backcol] & 0xFF, curpalette[3 * backcol + 1] & 0xFF,
-					curpalette[3 * backcol + 2] & 0xFF, 255);
+			gl.glColor4ub(curpalette.getRed(backcol), curpalette.getGreen(backcol), curpalette.getBlue(backcol),
+					255);
 			int c = Bstrlen(text);
 
 			gl.glBegin(GL_TRIANGLE_FAN);
@@ -865,8 +866,7 @@ public class Polymost2D extends OrphoRenderer {
 
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
-		gl.glColor4ub(curpalette[3 * col] & 0xFF, curpalette[3 * col + 1] & 0xFF, curpalette[3 * col + 2] & 0xFF, 255);
-
+		gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col), 255);
 		float txc = (fontsize != 0 ? (4.0f / 256.0f) : (8.0f / 256.0f));
 		float tyc = (fontsize != 0 ? (6.0f / 128.0f) : (8.0f / 128.0f));
 
@@ -919,7 +919,7 @@ public class Polymost2D extends OrphoRenderer {
 
 		col = palookup[0][col] & 0xFF;
 		gl.glBegin(GL_LINES);
-		gl.glColor4ub(curpalette[3 * col] & 0xFF, curpalette[3 * col + 1] & 0xFF, curpalette[3 * col + 2] & 0xFF, 255);
+		gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col), 255);
 		gl.glVertex2f(x1 / 4096.0f, y1 / 4096.0f);
 		gl.glVertex2f(x2 / 4096.0f, y2 / 4096.0f);
 		gl.glEnd();

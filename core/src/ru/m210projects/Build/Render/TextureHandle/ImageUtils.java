@@ -10,40 +10,41 @@ package ru.m210projects.Build.Render.TextureHandle;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Engine.curbrightness;
 import static ru.m210projects.Build.Engine.curpalette;
-import static ru.m210projects.Build.Engine.gammabrightness;
 import static ru.m210projects.Build.Engine.globalshade;
 import static ru.m210projects.Build.Engine.palookup;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Types.UnsafeBuffer;
+import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 public class ImageUtils {
 	
 	private static final int TEX_MAX_SIZE = 1024;
-	private static UnsafeBuffer tmp_buffer;
+	private static UnsafeDirectBuffer tmp_buffer;
 
 	public static class PicInfo {
 		public final ByteBuffer pic;
 		public final boolean hasalpha;
 
-		public PicInfo(UnsafeBuffer unsafe, boolean hasalpha) {
+		public PicInfo(UnsafeDirectBuffer unsafe, boolean hasalpha) {
 			this.pic = unsafe.getBuffer();
 			this.hasalpha = hasalpha;
 		}
 	}
 
 	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, boolean isPaletted) {
-		UnsafeBuffer buffer = getTmpBuffer();
+		UnsafeDirectBuffer buffer = getTmpBuffer();
 		boolean hasalpha = false;
 		buffer.clear();
 		
+		if(data != null && tsizx * tsizy > data.length)
+			data = null;
+
 		if(isPaletted)
 		{
 			if (data == null) {
-				buffer.put(0, (byte) 0);
+				buffer.putByte(0, (byte) 0);
 				tsizx = tsizy = 1;
 				hasalpha = true;
 			} else {
@@ -55,11 +56,11 @@ public class ImageUtils {
 						wp = wpptr << 2;
 	
 						if (clamped && ((x >= tsizx) || (y >= tsizy))) { // Clamp texture
-							buffer.put(wp, (byte) 255);
+							buffer.putByte(wp, (byte) 255);
 							continue;
 						}
 						x2 = (x < tsizx) ? x : x - tsizx;
-						buffer.put(wp, data[x2 * tsizy + y2]);
+						buffer.putByte(wp, data[x2 * tsizy + y2]);
 					}
 				}
 			}
@@ -73,7 +74,7 @@ public class ImageUtils {
 			hasalpha = true;
 		} else {
 			int wpptr, wp, dacol;
-			int rgb = 0, r, g, b, a;
+			byte a;
 			for (int y = 0, x2, y2, x; y < ysiz; y++) {
 				y2 = (y < tsizy) ? y : y - tsizy;
 				wpptr = y * xsiz;
@@ -85,13 +86,9 @@ public class ImageUtils {
 						continue;
 					}
 					x2 = (x < tsizx) ? x : x - tsizx;
-					if (x2 * tsizy + y2 >= data.length) //sizx/y = 0 protect
-						break;
-					
 					dacol = data[x2 * tsizy + y2] & 0xFF;
 
-					a = 255;
-
+					a = -1;
 					if (alphaMode && dacol == 255) {
 						a = 0;
 						dacol = 0;
@@ -104,30 +101,18 @@ public class ImageUtils {
 						} else dacol = palookup[dapal][dacol] & 0xFF;
 					}
 
-					dacol *= 3;
-					if (gammabrightness == 0) {
-						r = curpalette[dacol + 0] & 0xFF;
-						g = curpalette[dacol + 1] & 0xFF;
-						b = curpalette[dacol + 2] & 0xFF;
-					} else {
-						byte[] brighttable = britable[curbrightness];
-						r = brighttable[curpalette[dacol + 0] & 0xFF] & 0xFF;
-						g = brighttable[curpalette[dacol + 1] & 0xFF] & 0xFF;
-						b = brighttable[curpalette[dacol + 2] & 0xFF] & 0xFF;
-					}
-					rgb = ( a << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
-					buffer.putInt(wp, rgb);
+					buffer.putInt(wp, curpalette.getRGBA(dacol, a));
 				}
 			}
 		}
 
-		if(hasalpha) 
+		if(data != null && hasalpha) 
 			fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
 
 		return new PicInfo(buffer, hasalpha);
 	}
 	
-	private static void fixtransparency(UnsafeBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
+	private static void fixtransparency(UnsafeDirectBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
 		int dox = daxsiz2 - 1;
 		int doy = daysiz2 - 1;
 		if (clamping) {
@@ -149,50 +134,50 @@ public class ImageUtils {
 			wpptr = y * daxsiz2 + dox;
 			for (x = dox; x >= 0; x--, wpptr--) {
 				wp = (wpptr << 2);
-				if(dapic.get(wp + 3) != 0) continue;
+				if(dapic.getByte(wp + 3) != 0) continue;
 			
 				r = g = b = j = 0;
 				index = wp - 4;
-				if ((x > 0) && (dapic.get(index + 3) != 0)) {
-					r += dapic.get(index + 0) & 0xFF;
-					g += dapic.get(index + 1) & 0xFF;
-					b += dapic.get(index + 2) & 0xFF;
+				if ((x > 0) && (dapic.getByte(index + 3) != 0)) {
+					r += dapic.getByte(index + 0) & 0xFF;
+					g += dapic.getByte(index + 1) & 0xFF;
+					b += dapic.getByte(index + 2) & 0xFF;
 					j++;
 				}
 				index = wp + 4;
-				if ((x < daxsiz) && (dapic.get(index + 3) != 0)) {
-					r += dapic.get(index + 0) & 0xFF;
-					g += dapic.get(index + 1) & 0xFF;
-					b += dapic.get(index + 2) & 0xFF;
+				if ((x < daxsiz) && (dapic.getByte(index + 3) != 0)) {
+					r += dapic.getByte(index + 0) & 0xFF;
+					g += dapic.getByte(index + 1) & 0xFF;
+					b += dapic.getByte(index + 2) & 0xFF;
 					j++;
 				}
 				index = wp - (daxsiz2 << 2);
-				if ((y > 0) && (dapic.get(index + 3) != 0)) {
-					r += dapic.get(index + 0) & 0xFF;
-					g += dapic.get(index + 1) & 0xFF;
-					b += dapic.get(index + 2) & 0xFF;
+				if ((y > 0) && (dapic.getByte(index + 3) != 0)) {
+					r += dapic.getByte(index + 0) & 0xFF;
+					g += dapic.getByte(index + 1) & 0xFF;
+					b += dapic.getByte(index + 2) & 0xFF;
 					j++;
 				}
 				index = wp + (daxsiz2 << 2);
-				if ((y < daysiz) && (dapic.get(index + 3) != 0)) {
-					r += dapic.get(index + 0) & 0xFF;
-					g += dapic.get(index + 1) & 0xFF;
-					b += dapic.get(index + 2) & 0xFF;
+				if ((y < daysiz) && (dapic.getByte(index + 3) != 0)) {
+					r += dapic.getByte(index + 0) & 0xFF;
+					g += dapic.getByte(index + 1) & 0xFF;
+					b += dapic.getByte(index + 2) & 0xFF;
 					j++;
 				}
 				rgb = 0;
 				switch (j) {
 				case 1:
-			        rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
+			        rgb = ( (dapic.getByte(wp + 3) & 0xFF) << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
 					break;
 				case 2:
-					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b + 1) >> 1) << 16 ) + ( ((g + 1) >> 1) << 8 ) + ( ((r + 1) >> 1) << 0 );
+					rgb = ( (dapic.getByte(wp + 3) & 0xFF) << 24 ) + ( ((b + 1) >> 1) << 16 ) + ( ((g + 1) >> 1) << 8 ) + ( ((r + 1) >> 1) << 0 );
 					break;
 				case 3:
-					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b * 85 + 128) >> 8) << 16 ) + ( ((g * 85 + 128) >> 8) << 8 ) + ( ((r * 85 + 128) >> 8) << 0 );
+					rgb = ( (dapic.getByte(wp + 3) & 0xFF) << 24 ) + ( ((b * 85 + 128) >> 8) << 16 ) + ( ((g * 85 + 128) >> 8) << 8 ) + ( ((r * 85 + 128) >> 8) << 0 );
 					break;
 				case 4:
-					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b + 2) >> 2) << 16 ) + ( ((g + 2) >> 2) << 8 ) + ( ((r + 2) >> 2) << 0 );
+					rgb = ( (dapic.getByte(wp + 3) & 0xFF) << 24 ) + ( ((b + 2) >> 2) << 16 ) + ( ((g + 2) >> 2) << 8 ) + ( ((r + 2) >> 2) << 0 );
 					break;
 				default:
 					continue;
@@ -203,9 +188,9 @@ public class ImageUtils {
 		}
 	}
 	
-	public static UnsafeBuffer getTmpBuffer() {
+	public static UnsafeDirectBuffer getTmpBuffer() {
 		if (tmp_buffer == null) {
-			tmp_buffer = new UnsafeBuffer(TEX_MAX_SIZE * TEX_MAX_SIZE * 4);
+			tmp_buffer = new UnsafeDirectBuffer(TEX_MAX_SIZE * TEX_MAX_SIZE * 4);
 		}
 		return tmp_buffer;
 	}

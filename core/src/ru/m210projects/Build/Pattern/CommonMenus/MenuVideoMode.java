@@ -104,6 +104,13 @@ public abstract class MenuVideoMode extends BuildMenu {
 		menu.addItem(mSlot, true);
 		menu.addItem(slider, false);
 		
+//		MenuRendererSettings menu = new MenuRendererSettings(app, posx, posy, width, style.getHeight(), style) {
+//			@Override
+//			public MenuTitle getTitle(BuildGame app, String text) {
+//				return parent.getTitle(app, text);
+//			}
+//		};
+		
 		return menu;
 	}
 	
