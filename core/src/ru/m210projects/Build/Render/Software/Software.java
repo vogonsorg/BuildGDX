@@ -66,7 +66,6 @@ import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Engine.transluc;
 import static ru.m210projects.Build.Engine.tsprite;
-import static ru.m210projects.Build.Engine.usevoxels;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.viewingrangerecip;
 import static ru.m210projects.Build.Engine.wall;
@@ -100,6 +99,7 @@ import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.BuildSettings;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
@@ -1015,7 +1015,7 @@ public abstract class Software extends Renderer {
 			return;
 
 		int mflags = 0;
-		if (usevoxels) {
+		if (BuildSettings.useVoxels.get()) {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(tilenum) : null;
 			if (entry != null && entry.voxel != null) {
 				vtilenum = entry.voxel;

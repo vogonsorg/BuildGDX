@@ -83,10 +83,14 @@ public class Maphack extends Scriptfile {
 			switch(gettoken(basetokens))
 			{
 				case MapCRC:
-					MapCRC = getsymbol() & 0xFFFFFFFFL;
+					Integer crc32 = getsymbol();
+					if(crc32 == null) break;
+					
+					MapCRC = crc32 & 0xFFFFFFFFL;
 					break;
 				case Sprite:
-					int sprnum = getsymbol();
+					Integer sprnum = getsymbol();
+					if(sprnum == null) break;
 	
 					switch (gettoken(sprite_tokens))
 	                {

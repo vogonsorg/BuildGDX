@@ -19,10 +19,23 @@ package ru.m210projects.Build.Render;
 import java.nio.ByteBuffer;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.BuildSettings;
 import ru.m210projects.Build.Types.ParamLinker;
 import ru.m210projects.Build.Types.TileFont;
 
 public abstract class Renderer extends ParamLinker {
+	
+	public Renderer() {
+		this.registerSlider("Field of view", BuildSettings.fov, 60, 130, 5, null);
+		this.registerSwitch("Vsync", BuildSettings.vsync);
+		String[] limits = new String[BuildSettings.fpslimits.length];
+		for(int i = 0; i < limits.length; i++)
+			limits[i] = i == 0 ? "None" : BuildSettings.fpslimits[i] + " fps";
+		this.registerConteiner("Framerate limit", BuildSettings.fpsLimit, BuildSettings.fpslimits, limits);
+		this.registerSwitch("Voxels", BuildSettings.useVoxels);
+		
+		this.registerSeparator();
+	}
 	
 	public enum RenderType { 
 		Software(FrameType.Canvas, "Classic"), Polymost(FrameType.GL, "Polymost");

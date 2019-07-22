@@ -154,11 +154,4 @@ public abstract class BuildEngine extends Engine {
 		
 		net.GetNetworkInput();
 	}
-
-	public void setwidescreen(BuildConfig cfg, boolean widescreen)
-	{
-		r_usenewaspect = widescreen ? 1 : 0;
-		setaspect_new();
-		cfg.widescreen = r_usenewaspect;
-	}
 }

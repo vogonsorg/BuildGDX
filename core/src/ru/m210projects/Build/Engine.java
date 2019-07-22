@@ -40,6 +40,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.BuildSettings;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Neartag;
@@ -250,8 +251,6 @@ public abstract class Engine {
 	public static byte[][] britable; // JBF 20040207: full 8bit precision
 	public static int curbrightness = 0;
 	public static int gammabrightness = 0; //FIXME newer changes
-//	public static boolean usecustomarts;
-//	public static final String[] customartfile = new String[MAXTILES];
 	public static int[] picsiz;
 	public static int xdimen = -1, halfxdimen, xdimenscale, xdimscale;
 	public static int wx1, wy1, wx2, wy2, ydimen;
@@ -284,12 +283,7 @@ public abstract class Engine {
 	public static boolean inpreparemirror = false;
 	public static byte[] textfont;
 	public static byte[] smalltextfont;
-	
-	//high resources
-	public static boolean usehightile = true;
-	public static boolean usevoxels = true;
-	public static boolean usemodels = true;
-	
+
 	private byte[] sectbitmap;
 	protected int timerfreq;
 	protected long timerlastsample;
@@ -338,20 +332,6 @@ public abstract class Engine {
 
 	public static short[] radarang;
 	public static byte[] transluc;
-
-	//Renderer preset XXX
-	public static int r_parallaxskyclamping = 1; //OSD CVAR XXX
-	public static int r_parallaxskypanning = 0; //XXX
-	public static int r_usenewaspect = 1;
-	public static int r_glowmapping = 1;
-	// Vertex Array model drawing cvar
-	public static int r_vertexarrays = 1;
-
-	// Vertex Buffer Objects model drawing cvars
-	public static int r_vbos = 1;
-	public static int r_npotwallmode;
-	// model animation smoothing cvar
-	public static int r_animsmoothing = 1;
 
 	//Engine.c
 
@@ -3373,7 +3353,7 @@ public abstract class Engine {
 	}
 
 	public void setaspect_new() { //eduke32 aspect
-		if (r_usenewaspect != 0 && newaspect_enable != 0) {
+		if (BuildSettings.usenewaspect.get() && newaspect_enable != 0) {
 			// the correction factor 100/107 has been found
 			// out experimentally. squares ftw!
 			int yx = (65536 * 4 * 100) / (3 * 107);

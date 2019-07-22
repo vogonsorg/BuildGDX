@@ -1,11 +1,7 @@
 package ru.m210projects.Build.Pattern.CommonMenus;
 
-import static ru.m210projects.Build.Render.GLSettings.glfiltermodes;
-import static ru.m210projects.Build.Render.GLSettings.textureFilter;
-
 import java.util.List;
 
-import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
@@ -14,21 +10,23 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuConteiner;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
-import ru.m210projects.Build.Pattern.MenuItems.MenuParamList;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
+import ru.m210projects.Build.Pattern.MenuItems.MenuSlider;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Types.ParamLinker.ButtonItem;
 import ru.m210projects.Build.Types.ParamLinker.ConteinerItem;
-import ru.m210projects.Build.Types.ParamLinker.ItemType;
+import ru.m210projects.Build.Types.ParamLinker.ParamChoosableItem;
 import ru.m210projects.Build.Types.ParamLinker.ParamItem;
+import ru.m210projects.Build.Types.ParamLinker.SliderItem;
 import ru.m210projects.Build.Types.ParamLinker.SwitchItem;
 
 public abstract class MenuRendererSettings extends BuildMenu {
 	
 	private MenuTitle title;
-	public MenuParamList list;
-	public Engine engine;
+	private Renderer currentRenderer;
+	public BuildGame app;
 	
 	public BuildFont style;
 	public int posx, posy, width, nHeight;
@@ -37,7 +35,7 @@ public abstract class MenuRendererSettings extends BuildMenu {
 	
 	public MenuRendererSettings(final BuildGame app, int posx, int posy, int width, int nHeight, BuildFont style) {
 	
-		engine = app.pEngine;
+		this.app = app;
 		this.style = style;
 		this.posx = posx;
 		this.posy = posy;
@@ -45,53 +43,76 @@ public abstract class MenuRendererSettings extends BuildMenu {
 		this.nHeight = nHeight;
 		
 		addItem(title = getTitle(app, "Renderer settings"), false);
-		
-		MenuItem builder = new MenuItem(null, null) {
-			@Override
-			public void draw(MenuHandler handler) {}
-
-			@Override
-			public boolean callback(MenuHandler handler, MenuOpt opt) {
-				return false;
-			}
-
-			@Override
-			public boolean mouseAction(int mx, int my) {
-				return false;
-			}
-
-			@Override
-			public void open() {
-				build();
-			}
-
-			@Override
-			public void close() {}
-		};
-		addItem(builder, true);
 	}
 	
-	protected void build()
+	public boolean mLoadRes(MenuHandler handler, MenuOpt opt)
+	{
+		if(opt == MenuOpt.Open && currentRenderer != app.pEngine.getrender())
+			rebuild();
+		return super.mLoadRes(handler, opt);
+	}
+	
+	protected void rebuild()
 	{
 		m_nItems = 0;
-		Renderer ren = engine.getrender();
-		title.text = (engine.getrender().getType().getName() + " settings").toCharArray();
+		currentRenderer = app.pEngine.getrender();
+		title.text = (app.pEngine.getrender().getType().getName() + " settings").toCharArray();
+		
 		addItem(title, false);
 		
-		List<ParamItem<?>> list = ren.getList();
+		List<ParamItem<?>> list = currentRenderer.getParamList();
 		int y = posy;
 		for(int i = 0; i < list.size(); i++)
 		{
 			ParamItem<?> item = list.get(i);
-			String text = list.get(i).getName();
-			MenuProc callback = null;
+			String text = null;
+			if(item instanceof ParamChoosableItem)
+				 text = ((ParamChoosableItem<?>) list.get(i)).getName();
+			
 			switch(item.getType())
 			{
+			case Separator:
+				y += nHeight / 2;
+				break;
 			case Switch:
-				SwitchItem<?> sw = (SwitchItem<?>) item;
-				addItem(new MenuSwitch(text, style, posx, y += nHeight, width, sw.getState(), callback, null, null), i == 0);
+				final SwitchItem<?> sw = (SwitchItem<?>) item;
+				addItem(new MenuSwitch(text, style, posx, y += nHeight, width, sw.getState(), new MenuProc() {
+						@Override
+						public void run(MenuHandler handler, MenuItem pItem) {
+							MenuSwitch ss = (MenuSwitch) pItem;
+							sw.setState(ss.value);
+						}
+					}, null, null) {
+					@Override
+					public void draw(MenuHandler handler) {
+						this.value = sw.getState();
+						super.draw(handler);
+					}
+				}, i == 0);
 				break;
 			case Slider:
+				final SliderItem<?> si = (SliderItem<?>) item;
+				MenuSlider slider = new MenuSlider(app.pSlider, text, style, posx, y += nHeight, width, si.getValue(),
+					si.getMin(), si.getMax(), si.getStep(), new MenuProc() {
+						@Override
+						public void run(MenuHandler handler, MenuItem pItem) {
+							MenuSlider slider = (MenuSlider) pItem;
+							if(!si.setValue(slider.value))
+								slider.value = si.getValue();
+						}
+					}, true) {
+					
+					@Override
+					public void draw(MenuHandler handler) {
+						this.value = si.getValue();
+						super.draw(handler);
+					}
+				};
+				
+				if(si.getDigitalMax() != null)
+					slider.digitalMax = si.getDigitalMax();
+				
+				addItem(slider, i == 0);
 				break;
 			case Conteiner:
 				final ConteinerItem<?> con = (ConteinerItem<?>) item;
@@ -101,7 +122,17 @@ public abstract class MenuRendererSettings extends BuildMenu {
 						MenuConteiner item = (MenuConteiner) pItem;
 						con.getVariable().set(con.getObject(item.num));
 					}
-				}), i == 0);
+				} ) {
+					@Override
+					public void draw(MenuHandler handler) {
+						this.num = con.getIndex();
+						super.draw(handler);
+					}
+				}, i == 0);
+				break;
+			case Button:
+				final ButtonItem<?> b = (ButtonItem<?>) item;
+				addItem(new MenuButton(text, style, posx, y += nHeight, width, 0, 0, null, 0, b.getCallback(), 0), i == 0);
 				break;
 			}
 		}

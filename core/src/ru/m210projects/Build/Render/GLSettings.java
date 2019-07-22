@@ -7,20 +7,21 @@ import static ru.m210projects.Build.Engine.pow2long;
 import static ru.m210projects.Build.OnSceenDisplay.Console.osd_argv;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Types.BuildSettings;
 import ru.m210projects.Build.Types.BuildVariable;
 import ru.m210projects.Build.Types.BuildVariable.RespondType;
 
-public class GLSettings {
-	
-	//gamma
+public class GLSettings extends BuildSettings {
 
 	public static GLFilter[] glfiltermodes = {
-		new GLFilter("Classic", GL_NEAREST, GL_NEAREST), // 0
+		new GLFilter("Retro", GL_NEAREST, GL_NEAREST), // 0
 		new GLFilter("Bilinear", GL_LINEAR, GL_LINEAR), // 1
 		new GLFilter("Trilinear", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR) // 2
 	};
@@ -29,6 +30,12 @@ public class GLSettings {
 	public static BuildVariable<Integer> textureAnisotropy;
 	public static BuildVariable<Boolean> useHighTile;
 	public static BuildVariable<Boolean> useModels;
+	
+	public static BuildVariable<Integer> gamma;
+	public static BuildVariable<Integer> brightness;
+	public static BuildVariable<Integer> contrast;
+
+	public static BuildVariable<Boolean> animSmoothing;
 	
 	public static void init(final Engine engine, final BuildConfig cfg)
 	{
@@ -114,37 +121,59 @@ public class GLSettings {
 			}
 		};
 		useModels = new BooleanVar(true, "Use md2 / md3 models from high resolution pack");
-	}
-	
-	private static class BooleanVar extends BuildVariable<Boolean> {
-		public BooleanVar(Boolean set, String description) {
-			super(set, description);
-		}
-
-		@Override
-		public void execute(Boolean value) { }
 		
-		@Override
-		public Boolean check(Object value) {
-			if(value instanceof Boolean)
-				return (Boolean) value;
-			return null;
-		}
+		animSmoothing = new BooleanVar(true, "Use  model animation smoothing");
+		
+		gamma = new BuildVariable<Integer>((int) ((1 - cfg.gamma) * 4096), "Global gamma") {
+			@Override
+			protected void execute(Integer value) {
+				cfg.gamma = (1 - (value / 4096.0f));
+			}
+
+			@Override
+			protected Integer check(Object value) {
+				if(value instanceof Integer) {
+					float gamma = (Integer) value / 4096.0f;
+					if (((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(1 - gamma, cfg.brightness, cfg.contrast))
+						return (Integer) value;
+				}
+				return null;
+			}
+		};
+		
+		brightness = new BuildVariable<Integer>((int) (cfg.brightness * 4096), "Global brightness") {
+			@Override
+			protected void execute(Integer value) {
+				cfg.brightness = value / 4096.0f;
+			}
+
+			@Override
+			protected Integer check(Object value) {
+				if(value instanceof Integer) {
+					float brightness = (Integer) value / 4096.0f;
+					if (((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.gamma, brightness, cfg.contrast))
+						return (Integer) value;
+				}
+				return null;
+			}
+		};
+		
+		contrast = new BuildVariable<Integer>((int) (cfg.contrast * 4096), "Global contrast") {
+			@Override
+			protected void execute(Integer value) {
+				cfg.contrast = value / 4096.0f;
+			}
+
+			@Override
+			protected Integer check(Object value) {
+				if(value instanceof Integer) {
+					float contrast = (Integer) value / 4096.0f;
+					if (((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.gamma, cfg.brightness, contrast))
+						return (Integer) value;
+				}
+				return null;
+			}
+		};
 	}
 	
-//	private static class IntVar extends ParamVar<Integer> {
-//		public IntVar(Integer set, String description) {
-//			super(set, description);
-//		}
-//
-//		@Override
-//		public void execute(Integer value) { }
-//		
-//		@Override
-//		public Integer check(Object value) {
-//			if(value instanceof Integer)
-//				return (Integer) value;
-//			return null;
-//		}
-//	}
 }

@@ -35,7 +35,6 @@ import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Engine.Point;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
@@ -56,6 +55,7 @@ import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Types.BuildSettings;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
@@ -217,6 +217,12 @@ public abstract class Polymost extends GLRenderer {
 	private int surfaceType = 0;
 	public GLFog globalfog = new GLFog();
 	
+	public static int r_parallaxskyclamping = 1; //OSD CVAR XXX
+	public static int r_parallaxskypanning = 0; //XXX
+	public static int r_glowmapping = 1;
+	public static int r_vertexarrays = 1; // Vertex Array model drawing cvar
+	public static int r_vbos = 1; // Vertex Buffer Objects model drawing cvars
+
 	protected short globalpicnum;
 	protected int globalorientation;
 	private int numscans, numbunches;
@@ -321,7 +327,6 @@ public abstract class Polymost extends GLRenderer {
 	private boolean showlines = false;
 
 	public Polymost(Engine engine) {
-		BuildGdx.app.setFrame(FrameType.GL);
 		this.gl = BuildGdx.graphics.getGL10();
 		this.engine = engine;
 		
@@ -762,7 +767,7 @@ public abstract class Polymost extends GLRenderer {
 		}
 
 		// detail texture
-		if (Console.Geti("r_detailmapping") != 0 && usehightile && drawingskybox == 0)
+		if (Console.Geti("r_detailmapping") != 0 && GLSettings.useHighTile.get() && drawingskybox == 0)
 			detailpth = textureCache.cache(globalpicnum, DETAILPAL, (short) 0, textureCache.clampingMode(method), textureCache.alphaMode(method));
 
 		if (GLInfo.multisample != 0 && detailpth != null && detailpth.hicr != null && (detailpth.hicr.palnum == DETAILPAL)) {
@@ -783,7 +788,7 @@ public abstract class Polymost extends GLRenderer {
 			gl.glMatrixMode(GL_MODELVIEW);
 		}
 		
-		if (r_glowmapping != 0 && usehightile && drawingskybox == 0)
+		if (r_glowmapping != 0 && GLSettings.useHighTile.get() && drawingskybox == 0)
 			glowpth = textureCache.cache(globalpicnum, GLOWPAL, (short) 0, textureCache.clampingMode(method), textureCache.alphaMode(method));
 		
 		if (GLInfo.multisample != 0 && glowpth != null && glowpth.hicr != null && (glowpth.hicr.palnum == GLOWPAL))
@@ -1761,7 +1766,7 @@ public abstract class Polymost extends GLRenderer {
 					ys = spr.y - globalposy;
 					if (((spr.cstat & 48) != 0)
 							|| (xs * gcosang + ys * gsinang > 0)
-							|| (usemodels && defs != null && defs.mdInfo.getModel(spr.picnum) != null)) {
+							|| (GLSettings.useModels.get() && defs != null && defs.mdInfo.getModel(spr.picnum) != null)) {
 						if ((spr.cstat & (64 + 48)) != (64 + 16)
 								|| dmulscale(sintable[(spr.ang + 512) & 2047],
 										-xs, sintable[spr.ang & 2047], -ys, 6) > 0)
@@ -2306,7 +2311,7 @@ public abstract class Polymost extends GLRenderer {
 		
 		calc_and_apply_skyfog(shade, sec.visibility,  pal);
 
-		if (!usehightile || defs == null || defs.texInfo.findTexture(globalpicnum, globalpal, 1) == null)
+		if (!GLSettings.useHighTile.get() || defs == null || defs.texInfo.findTexture(globalpicnum, globalpal, 1) == null)
 			drawpapersky(sectnum, x0, x1, y0, y1, floor);
 		else
 			drawskybox(x0, x1, y0, y1, floor);
@@ -2812,7 +2817,7 @@ public abstract class Polymost extends GLRenderer {
 				globalpicnum += engine.animateoffs(globalpicnum, spritenum + 32768);
 			}
 
-			flag = (usehightile && h_xsize[globalpicnum] != 0);
+			flag = (GLSettings.useHighTile.get() && h_xsize[globalpicnum] != 0);
 			xoff = tspr.xoffset;
 			yoff = tspr.yoffset;
 			xoff += (byte) (flag ? h_xoffs[globalpicnum] : ((picanm[globalpicnum] >> 8) & 255));
@@ -2845,7 +2850,7 @@ public abstract class Polymost extends GLRenderer {
 
 		while ((spriteext[tspr.owner].flags & SPREXT_NOTMD) == 0) {
 
-			if(usemodels) {
+			if(GLSettings.useModels.get()) {
 				Tile2model entry = defs != null ? defs.mdInfo.getParams(tspr.picnum) : null;
 				if (entry != null &&
 						entry.model != null && entry.framenum >= 0) {
@@ -2861,7 +2866,7 @@ public abstract class Polymost extends GLRenderer {
 				}
 			}
 			
-			if(usevoxels) {
+			if(BuildSettings.useVoxels.get()) {
 				Tile2model entry = defs != null ? defs.mdInfo.getParams(globalpicnum) : null;
 				if(entry != null) {
 					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
@@ -2893,7 +2898,7 @@ public abstract class Polymost extends GLRenderer {
 		oldsizx = tsizx = tilesizx[globalpicnum];
 		oldsizy = tsizy = tilesizy[globalpicnum];
 
-		if (usehightile && h_xsize[globalpicnum] != 0) {
+		if (GLSettings.useHighTile.get() && h_xsize[globalpicnum] != 0) {
 			tsizx = h_xsize[globalpicnum];
 			tsizy = h_ysize[globalpicnum];
 		}
@@ -3430,13 +3435,13 @@ public abstract class Polymost extends GLRenderer {
 		if (datype == 0 || defs == null)
 			return;
 		
-		if(textureCache.isUseShader() && usevoxels)
+		if(textureCache.isUseShader() && BuildSettings.useVoxels.get())
 		{
 			VOXModel vox = defs.mdInfo.getVoxModel(dapicnum);
 			if(vox != null) vox.loadskin(dapalnum, true);
 		}
 		
-		if(usemodels) {
+		if(GLSettings.useModels.get()) {
 			MDModel m = (MDModel) defs.mdInfo.getModel(dapicnum);
 	        if(m != null) {
 	        	if(m.mdnum == 3) {
@@ -3576,7 +3581,7 @@ public abstract class Polymost extends GLRenderer {
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
 
-			modelp = (usemodels && defs != null && defs.mdInfo.getModel(tspriteptr[i].picnum) != null);
+			modelp = (GLSettings.useModels.get() && defs != null && defs.mdInfo.getModel(tspriteptr[i].picnum) != null);
 
 			if (yp > (4 << 8)) {
 				xp = dmulscale(ys, cosglobalang, -xs, singlobalang, 6);

@@ -37,6 +37,7 @@ import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Render.GLSettings;
+import ru.m210projects.Build.Types.BuildSettings;
 import ru.m210projects.Build.Types.MemLog;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
@@ -99,7 +100,6 @@ public class InitScreen extends ScreenAdapter {
 		Console.Println("BUILD engine by Ken Silverman (http://www.advsys.net/ken) \r\n"
 				+ game.appname + " " + game.sversion + "(BuildGdx v" + Engine.version + ") by [M210®] (http://m210.duke4.net)");
 
-		
 		Console.Println("Current date " + game.date.getLaunchDate());
 		
 		String osver = System.getProperty("os.version");
@@ -136,19 +136,14 @@ public class InitScreen extends ScreenAdapter {
 		BuildConfig cfg = game.pCfg;
 		game.pFonts = factory.fonts();
 		
+		BuildSettings.init(engine, cfg);
 		GLSettings.init(engine, cfg);
 		
 		engine.setrendermode(factory.renderer(cfg.renderType));
 		if(!engine.setgamemode(cfg.fullscreen, cfg.ScreenWidth, cfg.ScreenHeight))
 			cfg.fullscreen = 0;
 		fullscreen = cfg.fullscreen;
-		
-		cfg.checkFps(cfg.fpslimit);
 
-		
-
-		engine.setwidescreen(cfg, cfg.widescreen != 0);
-		
 		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -178,7 +173,9 @@ public class InitScreen extends ScreenAdapter {
 					Console.setCaptureKey(cfg.mousekeys[consolekey], 2);
 					Console.setCaptureKey(cfg.gpadkeys[consolekey], 3);
 					
-					engine.setFov(cfg.gFov);
+					BuildSettings.usenewaspect.set(cfg.widescreen == 1);
+					BuildSettings.fov.set(cfg.gFov);
+					BuildSettings.fpsLimit.set(cfg.fpslimit);
 					
 					game.updateColorCorrection();
 

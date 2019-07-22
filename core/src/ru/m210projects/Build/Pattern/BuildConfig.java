@@ -16,9 +16,6 @@
 
 package ru.m210projects.Build.Pattern;
 
-import static ru.m210projects.Build.Engine.usehightile;
-import static ru.m210projects.Build.Engine.usemodels;
-import static ru.m210projects.Build.Engine.usevoxels;
 import static ru.m210projects.Build.FileHandle.Compat.Bcheck;
 import static ru.m210projects.Build.FileHandle.Compat.Bclose;
 import static ru.m210projects.Build.FileHandle.Compat.Bopen;
@@ -33,12 +30,13 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.Tools.IniFile;
+import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.Renderer.RenderType;
+import ru.m210projects.Build.Types.BuildSettings;
 
 public abstract class BuildConfig extends IniFile {
 
@@ -305,11 +303,11 @@ public abstract class BuildConfig extends IniFile {
 			if(value != -1) Console.setTextScale(value);
 			
 			value = GetKeyInt("UseVoxels");
-			if(value != -1) usevoxels = (value == 1);
+			if(value != -1) BuildSettings.useVoxels.set(value == 1);
 			value = GetKeyInt("UseModels");
-			if(value != -1) usemodels = (value == 1);
+			if(value != -1) GLSettings.useModels.set(value == 1);
 			value = GetKeyInt("UseHightiles");
-			if(value != -1) usehightile = (value == 1);
+			if(value != -1) GLSettings.useHighTile.set(value == 1);
 	
 			String name = GetKeyString("Player_name");
 			if(name != null) pName = name;
@@ -512,9 +510,9 @@ public abstract class BuildConfig extends IniFile {
 			saveString(fil, "\r\nSoundBank = " + soundBank.getAbsolutePath() + "\r\n");
 		else saveString(fil, "\r\nSoundBank = \r\n");
 		saveInteger(fil, "OSDTextScale", Console.getTextScale());
-		saveBoolean(fil, "UseVoxels", usevoxels);
-		saveBoolean(fil, "UseModels", usemodels);
-		saveBoolean(fil, "UseHightiles", usehightile);
+		saveBoolean(fil, "UseVoxels", BuildSettings.useVoxels.get());
+		saveBoolean(fil, "UseModels", GLSettings.useModels.get());
+		saveBoolean(fil, "UseHightiles", GLSettings.useHighTile.get());
 		saveString(fil,  "Player_name", pName);	
 		saveString(fil,  "IP_Address", mAddress);	
 		saveInteger(fil, "Port", mPort);
@@ -531,8 +529,6 @@ public abstract class BuildConfig extends IniFile {
 		saveInteger(fil, "GLAnisotropy", glanisotropy);
 		saveInteger(fil, "WideScreen", widescreen);
 		saveInteger(fil, "FieldOfView", gFov);
-
-		saveBoolean(fil, "VSync", gVSync);
 		saveInteger(fil, "FpsScale", (int)(gFpsScale * 65536.0f));
 		
 		saveInteger(fil, "Gamma", (int) ((1 - gamma) * 4096));
@@ -614,28 +610,6 @@ public abstract class BuildConfig extends IniFile {
 			gJoyMenukeys[mk.getJoyNum()] = button;
 		}
 		else gpadkeys[key.getNum()] = button;
-	}
-
-	public int checkFps(int fpslimit) {
-		int num = -1;
-		switch(fpslimit) {
-			case 0: num = 0; break;
-			case 30: num = 1; break;
-			case 60: num = 2; break;
-			case 120: num = 3; break;
-			case 144: num = 4; break;
-			case 200: num = 5; break;
-			case 250: num = 6; break;
-			case 300: num = 7; break;
-		}
-		
-		if(num < 0 || num >= 8) {
-			num = 0;
-			fpslimit = 0;
-			BuildGdx.app.setMaxFramerate(0);
-		}
-		
-		return num;
 	}
 
 	public int getKeyIndex(String keyname)

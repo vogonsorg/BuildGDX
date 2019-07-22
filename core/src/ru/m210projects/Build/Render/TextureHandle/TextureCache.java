@@ -20,7 +20,6 @@ import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Engine.tilesizx;
 import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.waloff;
-import static ru.m210projects.Build.Engine.usehightile; //TODO: GL settings
 import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
@@ -287,7 +286,7 @@ public class TextureCache {
 	
 	public Pthtyp cache(int dapicnum, int dapalnum, short skybox, boolean clamping, boolean alpha)
 	{
-		Hicreplctyp si = (usehightile && info != null) ? info.findTexture(dapicnum,dapalnum,skybox) : null;
+		Hicreplctyp si = (GLSettings.useHighTile.get() && info != null) ? info.findTexture(dapicnum,dapalnum,skybox) : null;
 
 		if (si == null)
 	    {

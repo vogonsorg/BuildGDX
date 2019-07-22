@@ -14,7 +14,6 @@ import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.r_animsmoothing;
 import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.timerticspersec;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
@@ -62,7 +61,7 @@ public abstract class MDModel extends Model {
 	    
 	    cframe = nframe = defs.mdInfo.getParams(tspr.picnum).framenum;
 
-	    boolean smoothdurationp = (r_animsmoothing != 0 && (defs.mdInfo.getParams(tile).smoothduration != 0));
+	    boolean smoothdurationp = (GLSettings.animSmoothing.get() && (defs.mdInfo.getParams(tile).smoothduration != 0));
 
 	    Spritesmooth smooth = (tspr.owner < MAXSPRITES+MAXUNIQHUDID) ? defs.mdInfo.getSmoothParams(tspr.owner) : null;
 	    Spriteext  sprext = (tspr.owner < MAXSPRITES+MAXUNIQHUDID) ? spriteext[tspr.owner] : null;
@@ -147,7 +146,7 @@ public abstract class MDModel extends Model {
 	        { if (i > j-65536) i = j-65536; }
 	    else { if (i >= j) { i -= j; if (i >= j) i %= j; } }
 
-	    if (r_animsmoothing != 0 && smooth.mdsmooth != 0)
+	    if (GLSettings.animSmoothing.get() && smooth.mdsmooth != 0)
 	    {
 	        nframe = anim != null ? anim.startframe : smooth.mdcurframe;
 	        cframe = smooth.mdoldframe;
