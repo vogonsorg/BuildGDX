@@ -14,6 +14,7 @@ import static ru.m210projects.Build.Render.GLInfo.*;
 import java.nio.ByteBuffer;
 
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.Types.GLFilter;
 
 import com.badlogic.gdx.Gdx;
@@ -49,11 +50,13 @@ public class TextureUtils {
 		} else {
 			System.err.println("Uploading non-zero mipmap level textures is unimplemented");
 		}
-
-		//Build 2D Mipmaps
-		if (supportsGenerateMipmaps) 
-			Gdx.gl.glGenerateMipmap(GL_TEXTURE_2D);
-		else generateMipMapCPU(doalloc, mipLevel, xsiz, ysiz, intexfmt, texfmt, pic);
+		
+		if(GLSettings.textureFilter.get().mipmaps) {
+			//Build 2D Mipmaps
+			if (supportsGenerateMipmaps) 
+				Gdx.gl.glGenerateMipmap(GL_TEXTURE_2D);
+			else generateMipMapCPU(doalloc, mipLevel, xsiz, ysiz, intexfmt, texfmt, pic);
+		}
 	}
 	
 	private static void generateMipMapCPU(boolean doalloc, int mipLevel, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic)

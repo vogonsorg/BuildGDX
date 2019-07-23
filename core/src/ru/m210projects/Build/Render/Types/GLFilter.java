@@ -16,20 +16,20 @@
 
 package ru.m210projects.Build.Render.Types;
 
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAG_FILTER;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MIN_FILTER;
+import static com.badlogic.gdx.graphics.GL20.*;
 
 import com.badlogic.gdx.Gdx;
 
 public class GLFilter {
 	public String name;
 	public int min,mag;
+	public boolean mipmaps;
 	
 	public GLFilter(String name, int min, int mag) {
 		this.name = name;
 		this.min = min;
 		this.mag = mag;
+		this.mipmaps = (min >= GL_NEAREST_MIPMAP_NEAREST || mag >= GL_NEAREST_MIPMAP_NEAREST);
 	}
 	
 	public void apply()
