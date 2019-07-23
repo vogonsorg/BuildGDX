@@ -151,8 +151,11 @@ public class JDisplay extends WindowAdapter
 		
 		if(!isFullscreen())
 		{
+			int oldX = getX();
+			int oldY = getY();
 			m_frame.pack();
 			m_frame.setLocationRelativeTo(null);
+			m_frame.setLocation(oldX, oldY);
 		}
 	}
 	
