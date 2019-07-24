@@ -43,11 +43,16 @@ public class JDisplay extends WindowAdapter
 	{
 		this.device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
+		System.setProperty("sun.java2d.transaccel", "True");
+		System.setProperty("sun.java2d.d3d", "True");
+		System.setProperty("sun.java2d.ddforcevram", "True");
+		System.setProperty("sun.java2d.opengl", "True");
+		
 		canvas = new JCanvas(width, height);
 		m_frame = buildFrame(null, false);
 		
 		updateSize(width, height);
-
+   
 		canvas.setFocusable(true);
 		canvas.requestFocus();
 		
@@ -70,11 +75,6 @@ public class JDisplay extends WindowAdapter
 
 		if(icons != null)
 			frame.setIconImages(icons);
-		
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {}
-		
 		frame.pack();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
@@ -136,13 +136,14 @@ public class JDisplay extends WindowAdapter
 	
 	public void updateSize(int width, int height)
 	{
-		if(canvas.getSize().width == width && 
-				canvas.getSize().height == height)
+		Dimension size = canvas.getSize();
+		if((size.width == width && size.height == height) && 
+				(canvas.getWidth() == width && canvas.getHeight() == height))
 			return;
-		
+
 		wasResized = true;
 		canvas.setSize(width, height);
-		Dimension size = new Dimension(width, height);
+		size = new Dimension(width, height);
 		canvas.setPreferredSize(size);
 		canvas.setMinimumSize(size);
 		canvas.setMaximumSize(size);
@@ -153,9 +154,11 @@ public class JDisplay extends WindowAdapter
 		{
 			int oldX = getX();
 			int oldY = getY();
+
 			m_frame.pack();
 			m_frame.setLocationRelativeTo(null);
-			m_frame.setLocation(oldX, oldY);
+			if(!m_frame.getTitle().isEmpty()) //set location if initialized only
+				m_frame.setLocation(oldX, oldY);
 		}
 	}
 	

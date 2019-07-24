@@ -4,13 +4,11 @@ import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
 import static ru.m210projects.Build.Input.Keymap.KEY_SCROLLOCK;
 
-import java.awt.AWTException;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GraphicsEnvironment;
-import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Robot;
@@ -25,6 +23,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JDialog;
@@ -111,13 +110,35 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 	protected Cursor noCursor;
 	protected Cursor defCursor = Cursor.getDefaultCursor();
 	private boolean mouseInside;
+	
+	protected void reset()
+	{
+		keyJustPressed = false;
+		Arrays.fill(justPressedKeys, false);
+		touchDown = false;
+		touchX = 0;
+		touchY = 0;
+		deltaX = 0;
+		deltaY = 0;
+		wheel = 0;
+		justTouched = false;
+		keyCount = 0;
+		Arrays.fill(keys, false);
+	}
 
 	public SoftInput () {
 		try {
 			robot = new Robot(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice());
-		} catch (HeadlessException e) {
-		} catch (AWTException e) {
-		}
+		} catch (Exception e) {}
+	}
+	
+	private void mouseMove(int x, int y)
+	{
+		x += canvas.getLocationOnScreen().x;
+		y += canvas.getLocationOnScreen().y;
+
+		if(robot != null)
+			robot.mouseMove(x, y);
 	}
 	
 	public void update() {}
@@ -316,9 +337,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 			justTouched = false;
 			if (keyJustPressed) {
 				keyJustPressed = false;
-				for (int i = 0; i < justPressedKeys.length; i++) {
-					justPressedKeys[i] = false;
-				}
+				Arrays.fill(justPressedKeys, false);
 			}
 
 			if (processor != null) {
@@ -371,7 +390,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 				int len = touchEvents.size();
 				for (int i = 0; i < len; i++) {
 					TouchEvent event = touchEvents.get(i);
-					if (event.type == TouchEvent.TOUCH_DOWN) justTouched = true;
+					if (event != null && event.type == TouchEvent.TOUCH_DOWN) justTouched = true;
 					usedTouchEvents.free(event);
 				}
 
@@ -477,11 +496,9 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 		if(!display.isActive()) 
 			return;
 		
-		if (catched && robot != null && canvas.isShowing()) {
-			int x = Math.max(0, Math.min(e.getX(), canvas.getWidth()) - 1) + canvas.getLocationOnScreen().x;
-			int y = Math.max(0, Math.min(e.getY(), canvas.getHeight()) - 1) + canvas.getLocationOnScreen().y;
+		if (catched && canvas.isShowing()) {
 			if (e.getX() < 0 || e.getX() >= canvas.getWidth() || e.getY() < 0 || e.getY() >= canvas.getHeight()) {
-				robot.mouseMove(x, y);
+				mouseMove(canvas.getWidth() / 2, canvas.getHeight() / 2);
 				showCursor(false);
 			}
 		}
@@ -868,6 +885,9 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 	public void setCursorCatched (boolean catched) {
 		this.catched = catched;
 		showCursor(!catched);
+
+		if(catched)
+			mouseMove(canvas.getWidth() / 2, canvas.getHeight() / 2);
 	}
 
 	private void showCursor (boolean visible) {
@@ -917,8 +937,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 		if(!isInsideWindow() || !display.isActive()) 
 			return;
 		
-		if (robot != null) 
-			robot.mouseMove(canvas.getLocationOnScreen().x + x, canvas.getLocationOnScreen().y + y);
+		mouseMove(x, y);
 	}
 
 	@Override

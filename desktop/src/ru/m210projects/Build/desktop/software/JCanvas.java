@@ -17,7 +17,6 @@
 package ru.m210projects.Build.desktop.software;
 
 import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -35,8 +34,6 @@ public class JCanvas extends Canvas {
 	{
 		this.width = width;
 		this.height = height;
-		
-		setBackground(Color.black);
 	}
 
 	@Override

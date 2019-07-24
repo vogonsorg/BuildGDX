@@ -94,7 +94,6 @@ public class SoftGraphics implements BuildGraphics {
 	
 	protected void sync(int fps)
 	{
-		
 	}
 
 	@Override
@@ -273,6 +272,8 @@ public class SoftGraphics implements BuildGraphics {
 			config.width = mode.getWidth();
 			config.height = mode.getHeight();
 			resize = true;
+			
+			return true;
 		}
 
 		return false;

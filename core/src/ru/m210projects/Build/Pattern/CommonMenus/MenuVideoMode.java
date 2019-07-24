@@ -127,14 +127,13 @@ public abstract class MenuVideoMode extends BuildMenu {
 						if(currentRender != choosedRender) {
 							app.pEngine.getrender().uninit();
 							app.pEngine.setrendermode(app.getFactory().renderer(choosedRender));
-							Console.Println("Render has been changed to " + choosedRender.getName());
+							Console.Println("The render has been changed to " + choosedRender.getName());
 							currentRender = choosedRender;
 						}
 						setMode(cfg);  //init new renderer is doing here
-						
-						app.pInput.ctrlResetInput();
 					}
 				});
+				app.pInput.ctrlResetInput();
 			}
 		};
 		

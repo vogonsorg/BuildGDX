@@ -1343,7 +1343,7 @@ public abstract class Engine {
 						m = mode;
 					}
 			}
-			
+
 			if(m == null) {
 				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not support", OSDTEXT_YELLOW);
 				BuildGdx.graphics.setWindowedMode(daxdim, daydim);
@@ -3915,6 +3915,7 @@ public abstract class Engine {
 
 	public int setrendermode(Renderer render) { //gdxBuild
 		this.render = render;
+		render.setDefs(getDefs());
 		return 0;
 	}
 	

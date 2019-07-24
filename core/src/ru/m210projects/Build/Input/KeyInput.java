@@ -78,7 +78,6 @@ public class KeyInput {
 
 		int rv = 0;
 		boolean keyPressed = false;
-		
 		if (BuildGdx.input.isKeyPressed(Keys.ANY_KEY)) {
 			for (int kb = 1; kb < 256; kb++) {
 				if(kb == MOUSE_WHELLUP)

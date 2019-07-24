@@ -3437,7 +3437,8 @@ public abstract class Software extends Renderer {
 
 	@Override
 	public void nextpage() {
-		System.arraycopy(frameplace, 0, ((SoftFrame) BuildGdx.app.getFrame()).getFrame(), 0, frameplace.length);
+		byte[] dst = ((SoftFrame) BuildGdx.app.getFrame()).getFrame();
+		System.arraycopy(frameplace, 0, dst, 0, Math.min(frameplace.length, dst.length));
 	}
 
 	@Override
