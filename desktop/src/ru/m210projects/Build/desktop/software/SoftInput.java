@@ -333,7 +333,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 	}
 
 	void processEvents () {
-//		synchronized (this) {
+		synchronized (this) {
 			justTouched = false;
 			if (keyJustPressed) {
 				keyJustPressed = false;
@@ -390,7 +390,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 				int len = touchEvents.size();
 				for (int i = 0; i < len; i++) {
 					TouchEvent event = touchEvents.get(i);
-					if (event != null && event.type == TouchEvent.TOUCH_DOWN) justTouched = true;
+					if (event.type == TouchEvent.TOUCH_DOWN) justTouched = true;
 					usedTouchEvents.free(event);
 				}
 
@@ -408,7 +408,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 
 			keyEvents.clear();
 			touchEvents.clear();
-//		}
+		}
 	}
 
 	@Override
@@ -438,7 +438,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 
 	@Override
 	public void mouseDragged (MouseEvent e) {
-//		synchronized (this) {
+		synchronized (this) {
 			TouchEvent event = usedTouchEvents.obtain();
 			event.pointer = 0;
 			event.x = e.getX();
@@ -452,12 +452,12 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 			touchX = event.x;
 			touchY = event.y;
 			checkCatched(e);
-//		}
+		}
 	}
 
 	@Override
 	public void mouseMoved (MouseEvent e) {
-//		synchronized (this) {
+		synchronized (this) {
 			TouchEvent event = usedTouchEvents.obtain();
 			event.pointer = 0;
 			event.x = e.getX();
@@ -471,7 +471,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 			touchX = event.x;
 			touchY = event.y;
 			checkCatched(e);
-//		}
+		}
 	}
 
 	@Override
@@ -513,7 +513,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 
 	@Override
 	public void mousePressed (MouseEvent e) {
-//		synchronized (this) {
+		synchronized (this) {
 			TouchEvent event = usedTouchEvents.obtain();
 			event.pointer = 0;
 			event.x = e.getX();
@@ -529,12 +529,12 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 			touchY = event.y;
 			touchDown = true;
 			pressedButtons.add(event.button);
-//		}
+		}
 	}
 
 	@Override
 	public void mouseReleased (MouseEvent e) {
-//		synchronized (this) {
+		synchronized (this) {
 			TouchEvent event = usedTouchEvents.obtain();
 			event.pointer = 0;
 			event.x = e.getX();
@@ -550,12 +550,12 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 			touchY = event.y;
 			pressedButtons.remove(event.button);
 			if (pressedButtons.size == 0) touchDown = false;
-//		}
+		}
 	}
 
 	@Override
 	public void mouseWheelMoved (MouseWheelEvent e) {
-//		synchronized (this) {
+		synchronized (this) {
 			TouchEvent event = usedTouchEvents.obtain();
 			event.pointer = 0;
 			event.type = TouchEvent.TOUCH_SCROLLED;
@@ -564,12 +564,12 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 			touchEvents.add(event);
 			
 			wheel = -event.scrollAmount;
-//		}
+		}
 	}
 
 	@Override
 	public void keyPressed (java.awt.event.KeyEvent e) {
-//		synchronized (this) {
+		synchronized (this) {
 			KeyEvent event = usedKeyEvents.obtain();
 			event.keyChar = 0;
 			event.keyCode = translateKeyCode(e);
@@ -580,12 +580,12 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 				keyCount++;
 				keys[event.keyCode] = true;
 			}
-//		}
+		}
 	}
 
 	@Override
 	public void keyReleased (java.awt.event.KeyEvent e) {
-//		synchronized (this) {
+		synchronized (this) {
 			KeyEvent event = usedKeyEvents.obtain();
 			event.keyChar = 0;
 			event.keyCode = translateKeyCode(e);
@@ -596,19 +596,19 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 				keyCount--;
 				keys[event.keyCode] = false;
 			}
-//		}
+		}
 	}
 
 	@Override
 	public void keyTyped (java.awt.event.KeyEvent e) {
-//		synchronized (this) {
+		synchronized (this) {
 			KeyEvent event = usedKeyEvents.obtain();
 			event.keyChar = e.getKeyChar();
 			event.keyCode = 0;
 			event.type = KeyEvent.KEY_TYPED;
 			event.timeStamp = System.nanoTime();
 			keyEvents.add(event);
-//		}
+		}
 	}
 
 	protected static int translateKeyCode (java.awt.event.KeyEvent ke) {
@@ -818,9 +818,9 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 
 	@Override
 	public void setInputProcessor (InputProcessor processor) {
-//		synchronized (this) {
+		synchronized (this) {
 			this.processor = processor;
-//		}
+		}
 	}
 
 	@Override

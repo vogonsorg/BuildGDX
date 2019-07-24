@@ -70,6 +70,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int stx = xpos;
 		int charxsiz = 8;
+		int charysiz = (int) (scale * 7);
 		byte[] fontptr = textfont;
 		if (fontsize != 0) {
 			fontptr = smalltextfont;
@@ -77,13 +78,13 @@ public class SoftwareOrpho extends OrphoRenderer {
 		}
 
 		for (int i = 0; i < text.length && text[i] != 0; i++) {
-			int ptr = parent.bytesperline * (ypos + 7) + (stx - fontsize);
+			int ptr = parent.bytesperline * (ypos + charysiz) + (stx - fontsize);
 			if (ptr < 0)
 				continue;
-
-			for (int y = 7; y >= 0; y--) {
-				for (int x = charxsiz - 1; x >= 0; x--) {
-					if ((fontptr[y + (text[i] << 3)] & pow2char[7 - fontsize - x]) != 0) {
+			
+			for (int y = charysiz; y >= 0; y--) {
+				for (int x = (int) (scale * (charxsiz - 1)); x >= 0; x--) {
+					if ((fontptr[Math.round(y / scale) + (text[i] << 3)] & pow2char[7 - fontsize - Math.round(x / scale)]) != 0) {
 						parent.frameplace[ptr + x] = (byte) col;
 					} else if (backcol >= 0) {
 						parent.frameplace[ptr + x] = (byte) backcol;
@@ -91,7 +92,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 				}
 				ptr -= parent.bytesperline;
 			}
-			stx += charxsiz;
+			stx += (scale * charxsiz);
 		}
 	}
 

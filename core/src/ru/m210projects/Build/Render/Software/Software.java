@@ -108,10 +108,7 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Software extends Renderer {
 
 	/*
-	 * color correction 
-	 * printtext scale 
 	 * printtext atlas
-	 * voxels won't draw after renderer switch
 	 */
 
 	public final int BITSOFPRECISION = 3;
@@ -3523,7 +3520,7 @@ public abstract class Software extends Renderer {
 	}
 
 	public void dosetaspect() {
-		int i, j, k, x, xinc;
+		int i, j, k;
 
 		if (xyaspect != oxyaspect) {
 			oxyaspect = xyaspect;
@@ -3538,12 +3535,15 @@ public abstract class Software extends Renderer {
 		if ((xdimen != oxdimen) || (viewingrange != oviewingrange)) {
 			oxdimen = xdimen;
 			oviewingrange = viewingrange;
-			xinc = mulscale(viewingrange * 320, xdimenrecip, 32);
-			x = (640 << 16) - mulscale(xinc, xdimen, 1);
+			int xinc = mulscale(viewingrange * 320, xdimenrecip, 32);
+			int x = (640 << 16) - mulscale(xinc, xdimen, 1);
+		
 			for (i = 0; i < xdimen; i++) {
-				j = (x & 65535);
-				k = (x >> 16);
+				j = x & 65535;
+				k = x >> 16;
 				x += xinc;
+				if(k < 0 || k >= 1279) break;
+
 				if (j != 0)
 					j = mulscale(radarang[k + 1] - radarang[k], j, 16);
 				radarang2[i] = (short) ((radarang[k] + j) >> 6);
