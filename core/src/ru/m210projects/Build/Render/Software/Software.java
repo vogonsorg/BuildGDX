@@ -107,10 +107,6 @@ import ru.m210projects.Build.Types.WALL;
 
 public abstract class Software extends Renderer {
 
-	/*
-	 * printtext atlas
-	 */
-
 	public final int BITSOFPRECISION = 3;
 
 	protected Ac a;
@@ -3560,6 +3556,7 @@ public abstract class Software extends Renderer {
 	}
 
 	public void changepalette(byte[] palette) {
+		System.err.println("changepalette");
 		((SoftFrame) BuildGdx.app.getFrame()).changepalette(palette);
 	}
 

@@ -66,10 +66,16 @@ public abstract class BuildEngine extends Engine {
 	
 	public void updatesmoothticks()
 	{
-		game.pInt.updateinterpolations();
+		game.pInt.requestUpdating();
 		frametime = 0.0f;
 	}
 	
+	public void nextpage()
+	{
+		super.nextpage();
+		game.pInt.clearinterpolations();
+	}
+
 	@Override
 	public void dragpoint(short pointhighlight, int dax, int day) {
 		game.pInt.setwallinterpolate(pointhighlight, wall[pointhighlight]);

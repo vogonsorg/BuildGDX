@@ -80,6 +80,10 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 		
 		if (!isActive && graphics.config.backgroundFPS == -1) shouldRender = false;
 		int frameRate = isActive ? graphics.config.foregroundFPS : graphics.config.backgroundFPS;
+		
+		if(graphics.vsync) 
+			frameRate = graphics.display.getDesktopDisplayMode().getRefreshRate();
+		
 		if (shouldRender) {
 			graphics.updateTime();
 			graphics.frameId++;

@@ -124,6 +124,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 		justTouched = false;
 		keyCount = 0;
 		Arrays.fill(keys, false);
+		pressedButtons.clear();
 	}
 
 	public SoftInput () {

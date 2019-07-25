@@ -23,6 +23,7 @@ import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
+import ru.m210projects.Build.Types.TileFont.FontType;
 import ru.m210projects.Build.Types.WALL;
 
 public class SoftwareOrpho extends OrphoRenderer {
@@ -62,8 +63,44 @@ public class SoftwareOrpho extends OrphoRenderer {
 	@Override
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
-		// TODO Auto-generated method stub
+		if (font.type == FontType.Tilemap) {
+			if (palookup[col] == null)
+				col = 0;
 
+			int nTile = (Integer) font.ptr;
+			if (waloff[nTile] == null && engine.loadtile(nTile) == null)
+				return;
+			
+			int flags = 0;
+			if (bit == Transparent.Bit1)
+				flags = 1;
+			if (bit == Transparent.Bit2)
+				flags = 1 | 32;
+			
+			float tx, ty;
+			int mscale = (int) (scale * 65536);
+			int ctx, cty, textsize = mulscale(font.charsizx, mscale, 16);
+
+			for (int i = 0; i < text.length && text[i] != 0; i++) {
+				tx = (text[i] % font.cols) / (float) font.cols;
+				ty = (text[i] / font.cols) / (float) font.rows;
+
+				ctx = mulscale((int) (tx * tilesizx[nTile]), mscale, 16);
+				cty = mulscale((int) (ty * tilesizy[nTile]), mscale, 16);
+
+				engine.rotatesprite((xpos - ctx) << 16, (ypos - cty) << 16, mscale, 0, nTile, shade, col, 8 | 16 | flags, xpos, ypos,
+						xpos + textsize - 1, ypos + textsize - 1);
+
+				xpos += textsize;
+			}
+		} else {
+			int fontsize = 0;
+			if(font.ptr == smalltextfont)
+				fontsize = 1;
+			
+			
+			printext(xpos, ypos, col, -1, text, fontsize, scale);
+		}
 	}
 
 	@Override

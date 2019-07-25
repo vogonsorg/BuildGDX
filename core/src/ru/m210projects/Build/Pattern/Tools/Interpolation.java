@@ -26,6 +26,8 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
 
 public class Interpolation {
+	
+	private boolean requestUpdating;
 
 	public enum InterpolationType {
 		WallX, WallY, FloorZ, CeilZ, FloorH
@@ -98,14 +100,25 @@ public class Interpolation {
 			}
 		}
 	}
-
-	public void updateinterpolations() {
+	
+	public boolean clearinterpolations()
+	{
+		if(!requestUpdating) 
+			return false;
+		
 		InterpolationCount = 0;
 		Arrays.fill(gWallLoc, 0);
 		Arrays.fill(gSectorLoc, 0);
 		Arrays.fill(gFloorLoc, 0);
 		Arrays.fill(gCeilLoc, 0);
 		Arrays.fill(gSpriteLoc, 0);
+		requestUpdating = false;
+		
+		return true;
+	}
+
+	public void requestUpdating() {
+		requestUpdating = true;
 	}
 
 	public void dointerpolations(float smoothratio) {

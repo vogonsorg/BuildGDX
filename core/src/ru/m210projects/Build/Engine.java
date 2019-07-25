@@ -1361,7 +1361,6 @@ public abstract class Engine {
 		timerfreq = 1000;
 		timerticspersec = tickspersecond;
 		timerlastsample = System.nanoTime() * timerticspersec / (timerfreq * 1000000); 
-		//getticks() * timerticspersec / timerfreq;
 	}
 
 	public void sampletimer() { //jfBuild
@@ -1369,7 +1368,6 @@ public abstract class Engine {
 			return;
 
 		long n = (System.nanoTime() * timerticspersec / (timerfreq * 1000000)) - timerlastsample;
-		//(getticks() * timerticspersec / timerfreq) - timerlastsample;  
 		if (n > 0) {
 			totalclock += n;
 			timerlastsample += n;

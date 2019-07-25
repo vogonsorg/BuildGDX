@@ -54,8 +54,6 @@ public abstract class BuildGame extends Game {
 	 * SaveManager findSaves()
 	 * VideoList refactoring
 	 * texture.bind(0) need fix (detail textures)
-	 * GLSettings
-	 * Disable mipmaps build in nearest filter
 	 * kOpen external file -> native bytebuffer (read only)
 	 * Launcher parameter for start
 	 */
