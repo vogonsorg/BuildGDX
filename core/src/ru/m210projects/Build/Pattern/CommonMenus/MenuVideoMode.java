@@ -204,7 +204,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 				if (num != -1 && list != null)
 					key = list[num];
 				else
-					key = toCharArray(cfg.ScreenWidth + " x " + cfg.ScreenHeight + " 32bpp");
+					key = toCharArray(cfg.ScreenWidth + " x " + cfg.ScreenHeight + " *");
 
 				int pal = handler.getPal(font, this);
 				int shade = handler.getShade(this);
