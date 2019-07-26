@@ -3556,7 +3556,6 @@ public abstract class Software extends Renderer {
 	}
 
 	public void changepalette(byte[] palette) {
-		System.err.println("changepalette");
 		((SoftFrame) BuildGdx.app.getFrame()).changepalette(palette);
 	}
 

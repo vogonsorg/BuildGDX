@@ -4,7 +4,6 @@ import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
 import static ru.m210projects.Build.Input.Keymap.KEY_SCROLLOCK;
 
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
@@ -101,7 +100,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 	boolean[] justPressedKeys = new boolean[256];
 	IntSet pressedButtons = new IntSet();
 	InputProcessor processor;
-	Canvas canvas;
+	JCanvas canvas;
 	boolean catched = false;
 	Robot robot = null;
 	long currentEventTimeStamp;
@@ -150,7 +149,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 		this.setListeners(display.getCanvas());
 	}
 
-	public void setListeners (Canvas canvas) {
+	public void setListeners (JCanvas canvas) {
 		if (this.canvas != null) {
 			canvas.removeMouseListener(this);
 			canvas.removeMouseMotionListener(this);
