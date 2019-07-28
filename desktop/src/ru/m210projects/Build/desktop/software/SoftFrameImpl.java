@@ -1,20 +1,20 @@
 package ru.m210projects.Build.desktop.software;
 
 import ru.m210projects.Build.Architecture.SoftFrame;
+import ru.m210projects.Build.desktop.BuildApplicationConfiguration;
 import ru.m210projects.Build.Architecture.BuildApplication.Frame;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 
 public class SoftFrameImpl implements SoftFrame, Frame {
 
 	protected final SoftInput input;
 	protected final SoftGraphics graphics;
 
-	public SoftFrameImpl(LwjglApplicationConfiguration config)
+	public SoftFrameImpl(BuildApplicationConfiguration config)
 	{
 		graphics = new SoftGraphics(config);
 		input = new SoftInput();

@@ -2,7 +2,6 @@ package ru.m210projects.Build.desktop.gl;
 
 import java.awt.Toolkit;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 
 import com.badlogic.gdx.Application;
@@ -16,7 +15,6 @@ import org.lwjgl.opengl.PixelFormat;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics;
-import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.GL20;
@@ -29,6 +27,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.desktop.BuildApplicationConfiguration;
 
 /** An implementation of the {@link Graphics} interface based on Lwjgl.
  * @author mzechner */
@@ -57,7 +56,7 @@ public class GLGraphics implements BuildGraphics {
 	boolean softwareMode;
 	boolean usingGL30;
 
-	GLGraphics (LwjglApplicationConfiguration config) {
+	GLGraphics (BuildApplicationConfiguration config) {
 		this.config = config;
 	}
 
@@ -80,7 +79,6 @@ public class GLGraphics implements BuildGraphics {
 	public int getBackBufferHeight () {
 		return getHeight();
 	}
-
 
 	public long getFrameId () {
 		return frameId;
@@ -202,12 +200,12 @@ public class GLGraphics implements BuildGraphics {
 					+ config.fullscreen);
 			}
 		}
-		
-		Array<String> iconPaths = getIconPaths(config);
+
+		Array<String> iconPaths = ((BuildApplicationConfiguration) config).getIconPaths();
 		if (iconPaths.size > 0) {
 			ByteBuffer[] icons = new ByteBuffer[iconPaths.size];
 			for (int i = 0, n = iconPaths.size; i < n; i++) {
-				Pixmap pixmap = new Pixmap(Gdx.files.getFileHandle(iconPaths.get(i), getIconFileTypes(config).get(i)));
+				Pixmap pixmap = new Pixmap(Gdx.files.getFileHandle(iconPaths.get(i), ((BuildApplicationConfiguration) config).getIconFileTypes().get(i)));
 				if (pixmap.getFormat() != Format.RGBA8888) {
 					Pixmap rgba = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), Format.RGBA8888);
 					rgba.drawPixmap(pixmap, 0, 0);
@@ -612,24 +610,6 @@ public class GLGraphics implements BuildGraphics {
 	}
 	
 	//I hate libgdx developers for this
-	
-	@SuppressWarnings("unchecked")
-	public Array<String> getIconPaths(LwjglApplicationConfiguration config) throws Exception
-	{
-		Field f = config.getClass().getDeclaredField("iconPaths"); 
-		f.setAccessible(true);
-		Array<String> icons = (Array<String>) f.get(config);
-		return icons;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public Array<FileType> getIconFileTypes(LwjglApplicationConfiguration config) throws Exception
-	{
-		Field f = config.getClass().getDeclaredField("iconFileTypes"); 
-		f.setAccessible(true);
-		Array<FileType> iconFileTypes = (Array<FileType>) f.get(config);
-		return iconFileTypes;
-	}
 	
 	public void initiateGLInstances () throws Exception {
 		gl10 = new LwjglGL10();

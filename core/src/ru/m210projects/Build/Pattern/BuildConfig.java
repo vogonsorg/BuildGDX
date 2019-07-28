@@ -265,10 +265,12 @@ public abstract class BuildConfig extends IniFile {
 
 			if(set("ScreenSetup")) {
 				String render = GetKeyString("Render");
-				if(render.equals(RenderType.Software.getName()))
-					renderType = RenderType.Software;
-				if(render.equals(RenderType.Polymost.getName()))
-					renderType = RenderType.Polymost;
+				if(render != null) {
+					if(render.equals(RenderType.Software.getName()))
+						renderType = RenderType.Software;
+					if(render.equals(RenderType.Polymost.getName()))
+						renderType = RenderType.Polymost;
+				}
 				
 				int value = GetKeyInt("Fullscreen");
 				if(value != -1) fullscreen = value;

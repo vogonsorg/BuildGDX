@@ -39,12 +39,12 @@ public class JDisplay extends WindowAdapter
 	private boolean isFullscreen;
 	private boolean wasResized;
 
-	public JDisplay(int width, int height)
+	public JDisplay(int width, int height, boolean undecorated)
 	{
 		this.device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
 		this.canvas = new JCanvas(width, height);
-		this.m_frame = buildFrame(false);
+		this.m_frame = buildFrame(undecorated);
 
 		updateSize(width, height);
 

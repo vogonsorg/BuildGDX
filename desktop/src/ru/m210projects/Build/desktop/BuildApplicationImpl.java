@@ -26,7 +26,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.LifecycleListener;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationLogger;
 import com.badlogic.gdx.backends.lwjgl.LwjglClipboard;
 import com.badlogic.gdx.backends.lwjgl.LwjglFileHandle;
@@ -62,11 +61,11 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected ApplicationLogger applicationLogger;
 	protected String preferencesdir;
 	protected Files.FileType preferencesFileType;
-	protected final LwjglApplicationConfiguration config;
+	protected final BuildApplicationConfiguration config;
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
 	
-	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, RenderType type, LwjglApplicationConfiguration config) {
+	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, RenderType type, BuildApplicationConfiguration config) {
 		setApplicationLogger(new LwjglApplicationLogger());
 		
 		if (config.title == null) config.title = listener.getClass().getSimpleName();

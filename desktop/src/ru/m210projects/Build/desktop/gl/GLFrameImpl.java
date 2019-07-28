@@ -5,7 +5,6 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
@@ -14,14 +13,18 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.desktop.BuildApplicationConfiguration;
 
 public class GLFrameImpl implements GLFrame, Frame {
 	
 	protected final GLInput input;
 	protected final GLGraphics graphics;
 
-	public GLFrameImpl(LwjglApplicationConfiguration config)
+	public GLFrameImpl(BuildApplicationConfiguration config)
 	{
+		if(config.borderless)
+			System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
+		
 		LwjglNativesLoader.load();
 		graphics = new GLGraphics(config);
 		input = new GLInput();

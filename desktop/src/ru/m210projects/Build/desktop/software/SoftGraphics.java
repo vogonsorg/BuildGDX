@@ -39,11 +39,12 @@ import com.badlogic.gdx.utils.Array;
 
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.desktop.BuildApplicationConfiguration;
 
 public class SoftGraphics implements BuildGraphics {
 
 	JDisplay display;
-	LwjglApplicationConfiguration config;
+	BuildApplicationConfiguration config;
 	
 	long frameId = -1;
 	float deltaTime = 0;
@@ -59,12 +60,12 @@ public class SoftGraphics implements BuildGraphics {
 	volatile boolean isContinuous = true;
 	volatile boolean requestRendering = false;
 	
-	SoftGraphics (LwjglApplicationConfiguration config) {
+	SoftGraphics (BuildApplicationConfiguration config) {
 		this.config = config;
 	}
 	
 	protected JFrame setupDisplay () {
-		display = new JDisplay(config.width, config.height);
+		display = new JDisplay(config.width, config.height, config.borderless);
 		
 		try {
 			Array<String> iconPaths = getIconPaths(config);
