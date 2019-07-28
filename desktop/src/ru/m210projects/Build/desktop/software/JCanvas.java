@@ -21,9 +21,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 
-import javax.swing.JPanel;
+import java.awt.Canvas;
+//import javax.swing.JPanel;
 
-public class JCanvas extends JPanel {
+public class JCanvas extends Canvas {
 	private static final long serialVersionUID = 2237851324087823108L;
 	
 	private BufferedImage display;
@@ -38,17 +39,10 @@ public class JCanvas extends JPanel {
 	}
 
 	@Override
-	public void paintComponent(Graphics g)
-	{
-		g.drawImage(display, 0, 0, null);
-	}
-
-//	import java.awt.Canvas;
-//	@Override
-//	public void update( Graphics g ) { paint(g); }
-//	
-//	@Override
-//	public void paint( Graphics g ) { g.drawImage(display, 0, 0, null); }
+	public void update( Graphics g ) { paint(g); }
+	
+	@Override
+	public void paint( Graphics g ) { g.drawImage(display, 0, 0, null); }
 
 	public byte[] getFrame() { return raster; }
 	
