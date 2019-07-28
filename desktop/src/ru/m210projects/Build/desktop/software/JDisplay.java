@@ -38,6 +38,7 @@ public class JDisplay extends WindowAdapter
 	private final GraphicsDevice device;
 	private boolean isFullscreen;
 	private boolean wasResized;
+	private boolean undecorated;
 
 	public JDisplay(int width, int height, boolean undecorated)
 	{
@@ -64,6 +65,8 @@ public class JDisplay extends WindowAdapter
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.addWindowListener(this);
 		frame.addWindowFocusListener(this);
+		
+		this.undecorated = undecorated;
 
 		return frame;
 	}
@@ -102,7 +105,7 @@ public class JDisplay extends WindowAdapter
 
 	public boolean setWindowedMode(DisplayMode mode)
 	{
-		setUndecorated(false);
+		setUndecorated(undecorated);
 		
 		device.setFullScreenWindow(null);
 		
@@ -142,8 +145,15 @@ public class JDisplay extends WindowAdapter
 
 			m_frame.pack();
 			m_frame.setLocationRelativeTo(null);
-			if(m_frame.isVisible()) //set location if initialized only
+			if(m_frame.isVisible()) {//set location if initialized only
+				if(undecorated) {
+					DisplayMode mode = getDesktopDisplayMode();
+					oldX = (mode.getWidth() / 2) - (m_frame.getWidth() / 2);
+					oldY = (mode.getHeight() / 2) - (m_frame.getHeight() / 2);
+				}
+
 				m_frame.setLocation(oldX, oldY);
+			}
 		}
 
 		canvas.validate();
