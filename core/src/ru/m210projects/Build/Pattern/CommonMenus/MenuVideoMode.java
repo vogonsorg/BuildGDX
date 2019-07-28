@@ -128,6 +128,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 							app.pEngine.getrender().uninit();
 							app.pEngine.setrendermode(app.getFactory().renderer(choosedRender));
 							Console.Println("The render has been changed to " + choosedRender.getName());
+							cfg.renderType = app.pEngine.getrender().getType();
 							currentRender = choosedRender;
 						}
 						setMode(cfg);  //init new renderer is doing here

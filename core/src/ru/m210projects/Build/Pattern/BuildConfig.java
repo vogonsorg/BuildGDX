@@ -40,6 +40,7 @@ import ru.m210projects.Build.Types.BuildSettings;
 
 public abstract class BuildConfig extends IniFile {
 
+	public final int cfgVersion = 1901; //year XX, num XX
 	public boolean isInited;
 	
 	public interface KeyType {
@@ -122,6 +123,7 @@ public abstract class BuildConfig extends IniFile {
 	public String path;
 	public String cfgPath;
 	public File soundBank;
+	public int version;
 	public boolean startup = true;
 	public boolean autoloadFolder = true;
 	public boolean userfolder = false;
@@ -232,7 +234,7 @@ public abstract class BuildConfig extends IniFile {
 	
 	public boolean isExist()
 	{
-		return data != null;
+		return data != null && version == cfgVersion;
 	}
 	
 	public void LoadMain()
@@ -240,6 +242,7 @@ public abstract class BuildConfig extends IniFile {
 		if(data != null)
 		{
 			if(set("Main")) {
+				version = GetKeyInt("ConfigVersion");
 				startup = GetKeyInt("Startup") == 1;
 				int check = GetKeyInt("CheckNewVersion");
 				if(check != -1) checkVersion = (check == 1);
@@ -256,8 +259,17 @@ public abstract class BuildConfig extends IniFile {
 						this.soundBank = fbank;
 				}
 			}
+			
+			if(version != cfgVersion)
+				return;
 
-			if(set("ScreenSetup")) {	
+			if(set("ScreenSetup")) {
+				String render = GetKeyString("Render");
+				if(render.equals(RenderType.Software.getName()))
+					renderType = RenderType.Software;
+				if(render.equals(RenderType.Polymost.getName()))
+					renderType = RenderType.Polymost;
+				
 				int value = GetKeyInt("Fullscreen");
 				if(value != -1) fullscreen = value;
 				value = GetKeyInt("ScreenWidth");
@@ -494,10 +506,7 @@ public abstract class BuildConfig extends IniFile {
 	public void SaveMain(int fil, String path)
 	{
 		saveString(fil, "[Main]\r\n");
-		String line =  "; Always show configuration options on startup\r\n" +
-				";   0 - No\r\n" +
-				";   1 - Yes\r\n";
-		saveString(fil, line);
+		saveInteger(fil, "ConfigVersion", cfgVersion);
 		saveBoolean(fil, "Startup", startup);
 		saveBoolean(fil, "CheckNewVersion", checkVersion);
 		saveBoolean(fil, "AutoloadFolder", autoloadFolder);
@@ -519,6 +528,7 @@ public abstract class BuildConfig extends IniFile {
 		saveString(fil, ";\r\n;\r\n");
 		saveString(fil, "[ScreenSetup]\r\n");
 		//Screen Setup	
+		saveString(fil,  "Render", renderType.getName());	
 		saveInteger(fil, "Fullscreen", fullscreen);
 		saveInteger(fil, "ScreenWidth", ScreenWidth);
 		saveInteger(fil, "ScreenHeight", ScreenHeight);
