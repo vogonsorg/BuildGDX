@@ -94,12 +94,15 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 				else
 					style.drawText(160, 180, toCharArray("Initializing..."), -128, 0, TextAlign.Center, 2, false);
 					
+				game.pEngine.nextpage();
 				return;
 			}
 
 			if (inet.netready == 0) {
 				Console.Println(inet.message, OSDTEXT_YELLOW);
 				back();
+				
+				game.pEngine.nextpage();
 				return;
 			}
 
@@ -111,6 +114,8 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 				ConnectStep = 1;
 
 				game.pNet.StartWaiting(5000);
+				
+				game.pEngine.nextpage();
 				return;
 			}
 
