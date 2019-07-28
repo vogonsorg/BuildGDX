@@ -38,11 +38,11 @@ public class JCanvas extends JPanel {
 	}
 
 	@Override
-    public void paintComponent(Graphics g) 
-    {
+	public void paintComponent(Graphics g)
+	{
 		g.drawImage(display, 0, 0, null);
-    }
-	
+	}
+
 //	import java.awt.Canvas;
 //	@Override
 //	public void update( Graphics g ) { paint(g); }
@@ -62,6 +62,7 @@ public class JCanvas extends JPanel {
 	
 	public void setSize(int width, int height)
 	{
+		super.setSize(width, height);
 		if(getWidth() == width && getHeight() == height)
 			return;
 		

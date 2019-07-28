@@ -115,7 +115,8 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 
 	@Override
 	public void destroy() {
-		graphics.display.dispose();
+		if(graphics.display != null)
+			graphics.display.dispose();
 	}
 
 	@Override

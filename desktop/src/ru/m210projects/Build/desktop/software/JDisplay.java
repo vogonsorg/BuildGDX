@@ -43,20 +43,12 @@ public class JDisplay extends WindowAdapter
 	{
 		this.device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
-		System.setProperty("sun.java2d.transaccel", "True");
-		System.setProperty("sun.java2d.d3d", "True");
-		System.setProperty("sun.java2d.ddforcevram", "True");
-		System.setProperty("sun.java2d.opengl", "True");
-		
-		canvas = new JCanvas(width, height);
-		m_frame = buildFrame(null, false);
-		
+		this.canvas = new JCanvas(width, height);
+		this.m_frame = buildFrame(false);
+
 		updateSize(width, height);
-   
-		canvas.setFocusable(true);
-		canvas.requestFocus();
-		
-		isFullscreen = false;
+
+		this.isFullscreen = false;
 	}
 	
 	public DisplayMode[] getDisplayModes()
@@ -64,7 +56,7 @@ public class JDisplay extends WindowAdapter
 		return device.getDisplayModes();
 	}
 	
-	public JFrame buildFrame(List<Image> icons, boolean undecorated)
+	public JFrame buildFrame(boolean undecorated)
 	{
 		JFrame frame = new JFrame(MouseInfo.getPointerInfo().getDevice().getDefaultConfiguration());
 		frame.setUndecorated(undecorated);
@@ -72,12 +64,6 @@ public class JDisplay extends WindowAdapter
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.addWindowListener(this);
 		frame.addWindowFocusListener(this);
-
-		if(icons != null)
-			frame.setIconImages(icons);
-		frame.pack();
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
 
 		return frame;
 	}
@@ -142,14 +128,13 @@ public class JDisplay extends WindowAdapter
 			return;
 
 		wasResized = true;
-		canvas.setSize(width, height);
 		size = new Dimension(width, height);
+		canvas.setSize(width, height);
 		canvas.setPreferredSize(size);
 		canvas.setMinimumSize(size);
 		canvas.setMaximumSize(size);
-		canvas.revalidate();
 		canvas.setBackground(Color.black);
-		
+
 		if(!isFullscreen())
 		{
 			int oldX = getX();
@@ -157,9 +142,11 @@ public class JDisplay extends WindowAdapter
 
 			m_frame.pack();
 			m_frame.setLocationRelativeTo(null);
-			if(!m_frame.getTitle().isEmpty()) //set location if initialized only
+			if(m_frame.isVisible()) //set location if initialized only
 				m_frame.setLocation(oldX, oldY);
 		}
+
+		canvas.validate();
 	}
 	
 	public boolean wasResized()

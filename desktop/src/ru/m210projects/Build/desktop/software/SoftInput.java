@@ -891,6 +891,8 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 	}
 
 	private void showCursor (boolean visible) {
+		if(display == null) return;
+		
 		if (!visible) {
 			if(noCursor == null) {
 				Toolkit t = Toolkit.getDefaultToolkit();
