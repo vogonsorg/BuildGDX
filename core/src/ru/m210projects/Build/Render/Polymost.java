@@ -1820,14 +1820,14 @@ public abstract class Polymost extends GLRenderer {
 				}
 
 				if ((z == startwall) || (wall[z - 1].point2 != z)) {
-					xp1 = (y1 * cosglobalang - x1 * singlobalang) / 64.0;
-					yp1 = (x1 * cosviewingrangeglobalang + y1 * sinviewingrangeglobalang) / 64.0;
+					xp1 = ((double) y1 * cosglobalang - (double) x1 * singlobalang) / 64.0;
+					yp1 = ((double) x1 * cosviewingrangeglobalang + (double) y1 * sinviewingrangeglobalang) / 64.0;
 				} else {
 					xp1 = xp2;
 					yp1 = yp2;
 				}
-				xp2 = (y2 * cosglobalang - x2 * singlobalang) / 64.0;
-				yp2 = (x2 * cosviewingrangeglobalang + y2 * sinviewingrangeglobalang) / 64.0;
+				xp2 = ((double) y2 * cosglobalang - (double) x2 * singlobalang) / 64.0;
+				yp2 = ((double) x2 * cosviewingrangeglobalang + (double) y2 * sinviewingrangeglobalang) / 64.0;
 
 				if ((yp1 >= SCISDIST) || (yp2 >= SCISDIST))
 					/*crossProduct*/if (xp1 * yp2 < xp2 * yp1) // if wall is facing you...
