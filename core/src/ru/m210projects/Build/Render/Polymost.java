@@ -485,11 +485,11 @@ public abstract class Polymost extends GLRenderer {
 			// Hack for polymost_dorotatesprite calls before 1st polymost_drawrooms()
 			gcosang = gcosang2 = 16384 / 262144.0f;
 			gsinang = gsinang2 = 0.0f;
-		} else {
-			textureCache.uninit();
-			clearskins(false);
 		}
 		
+		textureCache.uninit();
+		clearskins(false);
+
 		polymost2d.uninit();
 
 		//

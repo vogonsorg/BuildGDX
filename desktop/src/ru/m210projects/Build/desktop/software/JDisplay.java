@@ -32,13 +32,13 @@ import javax.swing.JFrame;
 public class JDisplay extends WindowAdapter
 {
 	protected final JFrame m_frame;
-	private final JCanvas canvas;
-	private boolean isCloseRequested = false;
-	private boolean isFocus, isActive;
-	private final GraphicsDevice device;
-	private boolean isFullscreen;
-	private boolean wasResized;
-	private boolean undecorated;
+	protected final JCanvas canvas;
+	protected boolean isCloseRequested = false;
+	protected boolean isFocus, isActive;
+	protected final GraphicsDevice device;
+	protected boolean isFullscreen;
+	protected boolean wasResized;
+	protected boolean undecorated;
 
 	public JDisplay(int width, int height, boolean undecorated)
 	{
@@ -51,7 +51,7 @@ public class JDisplay extends WindowAdapter
 
 		this.isFullscreen = false;
 	}
-	
+
 	public DisplayMode[] getDisplayModes()
 	{
 		return device.getDisplayModes();

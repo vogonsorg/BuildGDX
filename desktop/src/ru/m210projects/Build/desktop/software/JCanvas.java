@@ -16,13 +16,12 @@
 
 package ru.m210projects.Build.desktop.software;
 
+import java.awt.Canvas;
+//import javax.swing.JPanel;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
-
-import java.awt.Canvas;
-//import javax.swing.JPanel;
 
 public class JCanvas extends Canvas {
 	private static final long serialVersionUID = 2237851324087823108L;
@@ -52,8 +51,10 @@ public class JCanvas extends Canvas {
 			display = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, paletteModel);
 			raster = ((DataBufferByte)display.getRaster().getDataBuffer()).getData();
 		} else display = new BufferedImage(paletteModel, display.getRaster(), false, null);
+		
+		
 	}
-	
+
 	public void setSize(int width, int height)
 	{
 		super.setSize(width, height);

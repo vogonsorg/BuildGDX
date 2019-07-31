@@ -5,22 +5,10 @@ import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
 import static ru.m210projects.Build.Input.Keymap.KEY_SCROLLOCK;
 
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.FlowLayout;
-import java.awt.GraphicsEnvironment;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,12 +27,11 @@ import javax.swing.event.DocumentListener;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.utils.IntSet;
 import com.badlogic.gdx.utils.Pool;
 
 import ru.m210projects.Build.Architecture.BuildInput;
 
-public class SoftInput implements BuildInput, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener {
+public class SoftInput implements BuildInput, KeyListener {
 	class KeyEvent {
 		static final int KEY_DOWN = 0;
 		static final int KEY_UP = 1;
@@ -78,87 +65,41 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 		}
 	};
 
-	Pool<TouchEvent> usedTouchEvents = new Pool<TouchEvent>(16, 1000) {
-		protected TouchEvent newObject () {
-			return new TouchEvent();
-		}
-	};
-
-	
 	List<KeyEvent> keyEvents = new ArrayList<KeyEvent>();
-	List<TouchEvent> touchEvents = new ArrayList<TouchEvent>();
-	int touchX = 0;
-	int touchY = 0;
-	int deltaX = 0;
-	int deltaY = 0;
-	int wheel = 0;
-	boolean touchDown = false;
-	boolean justTouched = false;
 	int keyCount = 0;
 	boolean[] keys = new boolean[256];
 	boolean keyJustPressed = false;
 	boolean[] justPressedKeys = new boolean[256];
-	IntSet pressedButtons = new IntSet();
+	
 	InputProcessor processor;
 	JCanvas canvas;
-	boolean catched = false;
-	Robot robot = null;
+
+	MouseInterface mouse;
 	long currentEventTimeStamp;
 	JDisplay display;
-	
-	protected Cursor noCursor;
-	protected Cursor defCursor = Cursor.getDefaultCursor();
-	private boolean mouseInside;
-	
+
 	protected void reset()
 	{
 		keyJustPressed = false;
 		Arrays.fill(justPressedKeys, false);
-		touchDown = false;
-		touchX = 0;
-		touchY = 0;
-		deltaX = 0;
-		deltaY = 0;
-		wheel = 0;
-		justTouched = false;
 		keyCount = 0;
 		Arrays.fill(keys, false);
-		pressedButtons.clear();
+		
+		mouse.reset();
 	}
 
-	public SoftInput () {
-		try {
-			robot = new Robot(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice());
-		} catch (Exception e) {}
-	}
-	
-	private void mouseMove(int x, int y)
-	{
-		x += canvas.getLocationOnScreen().x;
-		y += canvas.getLocationOnScreen().y;
-
-		if(robot != null)
-			robot.mouseMove(x, y);
-	}
-	
 	public void update() {}
 	
 	public void init(JDisplay display)
 	{
 		this.display = display;
+		this.mouse = new AWTMouse(display);
 		this.setListeners(display.getCanvas());
 	}
 
 	public void setListeners (JCanvas canvas) {
-		if (this.canvas != null) {
-			canvas.removeMouseListener(this);
-			canvas.removeMouseMotionListener(this);
-			canvas.removeMouseWheelListener(this);
+		if (this.canvas != null) 
 			canvas.removeKeyListener(this);
-		}
-		canvas.addMouseListener(this);
-		canvas.addMouseMotionListener(this);
-		canvas.addMouseWheelListener(this);
 		canvas.addKeyListener(this);
 		canvas.setFocusTraversalKeysEnabled(false);
 		this.canvas = canvas;
@@ -273,7 +214,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 
 	@Override
 	public int getX() {
-		return touchX;
+		return mouse.getX();
 	}
 
 	@Override
@@ -286,7 +227,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 
 	@Override
 	public int getY() {
-		return touchY;
+		return mouse.getY();
 	}
 
 	@Override
@@ -320,21 +261,20 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 	}
 
 	@Override
-	public boolean isTouched () {
-		return touchDown;
+	public boolean isTouched() {
+		return mouse.isTouched();
 	}
 
 	@Override
 	public boolean isTouched (int pointer) {
 		if (pointer == 0)
-			return touchDown;
+			return isTouched();
 		else
 			return false;
 	}
 
 	void processEvents () {
 		synchronized (this) {
-			justTouched = false;
 			if (keyJustPressed) {
 				keyJustPressed = false;
 				Arrays.fill(justPressedKeys, false);
@@ -361,53 +301,18 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 					}
 					usedKeyEvents.free(e);
 				}
-
-				len = touchEvents.size();
-				for (int i = 0; i < len; i++) {
-					TouchEvent e = touchEvents.get(i);
-					currentEventTimeStamp = e.timeStamp;
-					switch (e.type) {
-					case TouchEvent.TOUCH_DOWN:
-						processor.touchDown(e.x, e.y, e.pointer, e.button);
-						justTouched = true;
-						break;
-					case TouchEvent.TOUCH_UP:
-						processor.touchUp(e.x, e.y, e.pointer, e.button);
-						break;
-					case TouchEvent.TOUCH_DRAGGED:
-						processor.touchDragged(e.x, e.y, e.pointer);
-						break;
-					case TouchEvent.TOUCH_MOVED:
-						processor.mouseMoved(e.x, e.y);
-						break;
-					case TouchEvent.TOUCH_SCROLLED:
-						processor.scrolled(e.scrollAmount);
-						break;
-					}
-					usedTouchEvents.free(e);
-				}
 			} else {
-				int len = touchEvents.size();
-				for (int i = 0; i < len; i++) {
-					TouchEvent event = touchEvents.get(i);
-					if (event.type == TouchEvent.TOUCH_DOWN) justTouched = true;
-					usedTouchEvents.free(event);
-				}
-
-				len = keyEvents.size();
+				int len = keyEvents.size();
 				for (int i = 0; i < len; i++) {
 					usedKeyEvents.free(keyEvents.get(i));
 				}
 			}
 
-			if (touchEvents.isEmpty()) {
-				deltaX = 0;
-				deltaY = 0;
-				wheel = 0;
-			}
-
 			keyEvents.clear();
-			touchEvents.clear();
+			
+			long out = mouse.processEvents(processor);
+			if(out != -1)
+				currentEventTimeStamp = out;
 		}
 	}
 
@@ -434,137 +339,6 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 	@Override
 	public void setOnscreenKeyboardVisible (boolean visible) {
 
-	}
-
-	@Override
-	public void mouseDragged (MouseEvent e) {
-		synchronized (this) {
-			TouchEvent event = usedTouchEvents.obtain();
-			event.pointer = 0;
-			event.x = e.getX();
-			event.y = e.getY();
-			event.type = TouchEvent.TOUCH_DRAGGED;
-			event.timeStamp = System.nanoTime();
-			touchEvents.add(event);
-
-			deltaX = event.x - touchX;
-			deltaY = event.y - touchY;
-			touchX = event.x;
-			touchY = event.y;
-			checkCatched(e);
-		}
-	}
-
-	@Override
-	public void mouseMoved (MouseEvent e) {
-		synchronized (this) {
-			TouchEvent event = usedTouchEvents.obtain();
-			event.pointer = 0;
-			event.x = e.getX();
-			event.y = e.getY();
-			event.type = TouchEvent.TOUCH_MOVED;
-			event.timeStamp = System.nanoTime();
-			touchEvents.add(event);
-
-			deltaX = event.x - touchX;
-			deltaY = event.y - touchY;
-			touchX = event.x;
-			touchY = event.y;
-			checkCatched(e);
-		}
-	}
-
-	@Override
-	public void mouseClicked (MouseEvent arg0) {
-	}
-
-	@Override
-	public void mouseEntered (MouseEvent e) {
-		touchX = e.getX();
-		touchY = e.getY();
-		mouseInside = true;
-		checkCatched(e);
-	}
-
-	@Override
-	public void mouseExited (MouseEvent e) {
-		mouseInside = false;
-		checkCatched(e);
-	}
-
-	private void checkCatched (MouseEvent e) {
-		if(!display.isActive()) 
-			return;
-		
-		if (catched && canvas.isShowing()) {
-			if (e.getX() < 0 || e.getX() >= canvas.getWidth() || e.getY() < 0 || e.getY() >= canvas.getHeight()) {
-				mouseMove(canvas.getWidth() / 2, canvas.getHeight() / 2);
-				showCursor(false);
-			}
-		}
-	}
-
-	private int toGdxButton (int swingButton) {
-		if (swingButton == MouseEvent.BUTTON1) return Buttons.LEFT;
-		if (swingButton == MouseEvent.BUTTON2) return Buttons.MIDDLE;
-		if (swingButton == MouseEvent.BUTTON3) return Buttons.RIGHT;
-		return Buttons.LEFT;
-	}
-
-	@Override
-	public void mousePressed (MouseEvent e) {
-		synchronized (this) {
-			TouchEvent event = usedTouchEvents.obtain();
-			event.pointer = 0;
-			event.x = e.getX();
-			event.y = e.getY();
-			event.type = TouchEvent.TOUCH_DOWN;
-			event.button = toGdxButton(e.getButton());
-			event.timeStamp = System.nanoTime();
-			touchEvents.add(event);
-
-			deltaX = event.x - touchX;
-			deltaY = event.y - touchY;
-			touchX = event.x;
-			touchY = event.y;
-			touchDown = true;
-			pressedButtons.add(event.button);
-		}
-	}
-
-	@Override
-	public void mouseReleased (MouseEvent e) {
-		synchronized (this) {
-			TouchEvent event = usedTouchEvents.obtain();
-			event.pointer = 0;
-			event.x = e.getX();
-			event.y = e.getY();
-			event.button = toGdxButton(e.getButton());
-			event.type = TouchEvent.TOUCH_UP;
-			event.timeStamp = System.nanoTime();
-			touchEvents.add(event);
-
-			deltaX = event.x - touchX;
-			deltaY = event.y - touchY;
-			touchX = event.x;
-			touchY = event.y;
-			pressedButtons.remove(event.button);
-			if (pressedButtons.size == 0) touchDown = false;
-		}
-	}
-
-	@Override
-	public void mouseWheelMoved (MouseWheelEvent e) {
-		synchronized (this) {
-			TouchEvent event = usedTouchEvents.obtain();
-			event.pointer = 0;
-			event.type = TouchEvent.TOUCH_SCROLLED;
-			event.scrollAmount = e.getWheelRotation();
-			event.timeStamp = System.nanoTime();
-			touchEvents.add(event);
-			
-			wheel = -event.scrollAmount;
-		}
 	}
 
 	@Override
@@ -834,12 +608,12 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 
 	@Override
 	public boolean justTouched () {
-		return justTouched;
+		return mouse.justTouched();
 	}
 
 	@Override
 	public boolean isButtonPressed (int button) {
-		return pressedButtons.contains(button);
+		return mouse.isButtonPressed(button);
 	}
 
 	@Override
@@ -883,54 +657,33 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 
 	@Override
 	public void setCursorCatched (boolean catched) {
-		this.catched = catched;
-		showCursor(!catched);
-
-		if(catched)
-			mouseMove(canvas.getWidth() / 2, canvas.getHeight() / 2);
-	}
-
-	private void showCursor (boolean visible) {
-		if(display == null) return;
-		
-		if (!visible) {
-			if(noCursor == null) {
-				Toolkit t = Toolkit.getDefaultToolkit();
-				Image i = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-				noCursor = t.createCustomCursor(i, new Point(0, 0), "none");
-			}
-			if(display.m_frame.getContentPane().getCursor() != noCursor)
-				display.m_frame.getContentPane().setCursor(noCursor);
-		} else {
-			if(display.m_frame.getContentPane().getCursor() != defCursor) 
-				display.m_frame.getContentPane().setCursor(defCursor);
-		}
+		mouse.setCursorCatched(catched);
 	}
 
 	@Override
 	public boolean isCursorCatched () {
-		return catched;
+		return mouse.isCursorCatched();
 	}
 
 	@Override
 	public int getDeltaX () {
-		return deltaX;
+		return mouse.getDeltaX();
 	}
 
 	@Override
 	public int getDeltaX (int pointer) {
-		if (pointer == 0) return deltaX;
+		if (pointer == 0) return getDeltaX();
 		return 0;
 	}
 
 	@Override
 	public int getDeltaY () {
-		return deltaY;
+		return mouse.getDeltaY();
 	}
 
 	@Override
 	public int getDeltaY (int pointer) {
-		if (pointer == 0) return deltaY;
+		if (pointer == 0) return getDeltaY();
 		return 0;
 	}
 
@@ -939,7 +692,7 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 		if(!isInsideWindow() || !display.isActive()) 
 			return;
 		
-		mouseMove(x, y);
+		mouse.setCursorPosition(x, y);
 	}
 
 	@Override
@@ -972,18 +725,18 @@ public class SoftInput implements BuildInput, MouseMotionListener, MouseListener
 	@Override
 	public boolean cursorHandler() {
 		if (isInsideWindow() && display.isActive())
-			showCursor(false);
-		else showCursor(true);
+			mouse.showCursor(false);
+		else mouse.showCursor(true);
 
 		return false;
 	}
 
 	@Override
 	public int getDWheel() {
-		return wheel;
+		return mouse.getDWheel();
 	}
 	
 	public boolean isInsideWindow() {
-		return mouseInside;
+		return mouse.isInsideWindow();
 	}
 }
