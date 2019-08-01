@@ -150,7 +150,7 @@ public class GLSettings extends BuildSettings {
 			protected Integer check(Object value) {
 				if(value instanceof Integer) {
 					float gamma = (Integer) value / 4096.0f;
-					if (((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(1 - gamma, cfg.fbrightness, cfg.fcontrast))
+					if (engine.glrender() == null || ((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(1 - gamma, cfg.fbrightness, cfg.fcontrast))
 						return (Integer) value;
 				}
 				return null;
@@ -167,7 +167,7 @@ public class GLSettings extends BuildSettings {
 			protected Integer check(Object value) {
 				if(value instanceof Integer) {
 					float brightness = (Integer) value / 4096.0f;
-					if (((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.fgamma, brightness, cfg.fcontrast))
+					if (engine.glrender() == null || ((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.fgamma, brightness, cfg.fcontrast))
 						return (Integer) value;
 				}
 				return null;
@@ -184,7 +184,7 @@ public class GLSettings extends BuildSettings {
 			protected Integer check(Object value) {
 				if(value instanceof Integer) {
 					float contrast = (Integer) value / 4096.0f;
-					if (((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.fgamma, cfg.fbrightness, contrast))
+					if (engine.glrender() == null || ((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.fgamma, cfg.fbrightness, contrast))
 						return (Integer) value;
 				}
 				return null;
