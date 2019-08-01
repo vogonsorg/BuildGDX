@@ -216,7 +216,8 @@ public abstract class Software extends Renderer {
 
 		orpho = new SoftwareOrpho(this);
 		
-		this.registerSlider("Gamma", BuildSettings.paletteGamma, 0, 15, 1, null);
+		this.params.add(0, new SliderItem<Integer>("Gamma", BuildSettings.paletteGamma, 0, 15, 1, null));
+		this.params.add(1, new ParamItem<Boolean>(ItemType.Separator));
 	}
 
 	@Override
@@ -3481,9 +3482,9 @@ public abstract class Software extends Renderer {
 	private ByteBuffer rgbbuffer;
 
 	@Override
-	public ByteBuffer getFrame(PFormat format) {
+	public ByteBuffer getFrame(PixelFormat format) {
 
-		if (format == PFormat.Indexed) {
+		if (format == PixelFormat.Indexed) {
 			if (indexbuffer != null)
 				indexbuffer.clear();
 			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
@@ -3492,7 +3493,7 @@ public abstract class Software extends Renderer {
 			indexbuffer.put(frameplace);
 			indexbuffer.rewind();
 			return indexbuffer;
-		} else if (format == PFormat.RGB) {
+		} else if (format == PixelFormat.RGB) {
 			if (rgbbuffer != null)
 				rgbbuffer.clear();
 			if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3)
@@ -4119,6 +4120,11 @@ public abstract class Software extends Renderer {
 	@Override
 	public RenderType getType() {
 		return RenderType.Software;
+	}
+	
+	@Override
+	public PixelFormat getTexFormat() {
+		return PixelFormat.Indexed;
 	}
 
 	@Override

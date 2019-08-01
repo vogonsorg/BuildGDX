@@ -26,15 +26,13 @@ import ru.m210projects.Build.Types.TileFont;
 public abstract class Renderer extends ParamLinker {
 	
 	public Renderer() {
-		this.registerSlider("Field of view", BuildSettings.fov, 60, 130, 5, null);
-		this.registerSwitch("Vsync", BuildSettings.vsync);
+		this.params.add(new SliderItem<Integer>("Field of view", BuildSettings.fov, 60, 130, 5, null));
+		this.params.add(new SwitchItem<Boolean>("Vsync", BuildSettings.vsync));
 		String[] limits = new String[BuildSettings.fpslimits.length];
 		for(int i = 0; i < limits.length; i++)
 			limits[i] = i == 0 ? "None" : BuildSettings.fpslimits[i] + " fps";
-		this.registerConteiner("Framerate limit", BuildSettings.fpsLimit, BuildSettings.fpslimits, limits);
-		this.registerSwitch("Voxels", BuildSettings.useVoxels);
-		
-		this.registerSeparator();
+		this.params.add(new ConteinerItem<Integer>("Framerate limit", BuildSettings.fpsLimit, BuildSettings.fpslimits, limits));
+		this.params.add(new SwitchItem<Boolean>("Voxels", BuildSettings.useVoxels));
 	}
 	
 	public enum RenderType { 
@@ -54,7 +52,9 @@ public abstract class Renderer extends ParamLinker {
 	
 	public enum Transparent { None, Bit1, Bit2 }
 	
-	public enum PFormat { RGB, Indexed }
+	public enum PixelFormat { RGB, Indexed }
+	
+	public abstract PixelFormat getTexFormat();
 	
 	public abstract void init();
 	
@@ -86,7 +86,7 @@ public abstract class Renderer extends ParamLinker {
 	
 	public abstract void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 
-	public abstract ByteBuffer getFrame(PFormat format);
+	public abstract ByteBuffer getFrame(PixelFormat format);
 	
 	public abstract void drawline256(int x1, int y1, int x2, int y2, int col);
 	

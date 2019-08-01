@@ -26,32 +26,61 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
+import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
 
 public abstract class GLRenderer extends Renderer {
+	
+	protected final TextureCache textureCache;
 	
 	public GLRenderer()
 	{
 		BuildGdx.app.setFrame(FrameType.GL);
 		GLInfo.init();
 		
-		this.registerSlider("Gamma", GLSettings.gamma, 0, 4096, 64, 4096);
-		this.registerSlider("Brightness", GLSettings.brightness, -4096, 4096, 64, 4096);
-		this.registerSlider("Contrast", GLSettings.contrast, 0, 8192, 64, 4096);
-		this.registerButton("Reset to default", new MenuProc() {
+		this.params.add(0, new SliderItem<Integer>("Gamma", BuildSettings.paletteGamma, 0, 15, 1, null) {
+			@Override
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Indexed; }
+		});
+		this.params.add(1, new ParamItem<Boolean>(ItemType.Separator) {
+			@Override
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Indexed; }
+		});
+		
+		this.params.add(0, new SliderItem<Integer>("Gamma", GLSettings.gamma, 0, 4096, 64, 4096) {
+			@Override
+			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+		});
+		this.params.add(1, new SliderItem<Integer>("Brightness", GLSettings.brightness, -4096, 4096, 64, 4096) {
+			@Override
+			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+		});
+		this.params.add(2, new SliderItem<Integer>("Contrast", GLSettings.contrast, 0, 8192, 64, 4096) {
+			@Override
+			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+		});
+		this.params.add(3, new ButtonItem<Boolean>("Reset to default", new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				GLSettings.gamma.set(0);
 				GLSettings.brightness.set(0);
 				GLSettings.contrast.set(4096);
-			}});
-		this.registerSeparator();
+			}}) {
+			@Override
+			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+		});
+		this.params.add(4, new ParamItem<Boolean>(ItemType.Separator) {
+			@Override
+			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+		});
 		
 		String[] filters = new String[GLSettings.glfiltermodes.length];
 		for(int i = 0; i < filters.length; i++)
 			filters[i] = GLSettings.glfiltermodes[i].name;
-		this.registerConteiner("Texture mode", GLSettings.textureFilter, GLSettings.glfiltermodes, filters);
+		this.params.add(this.params.size() - 1, new ConteinerItem<GLFilter>("Texture mode", GLSettings.textureFilter, GLSettings.glfiltermodes, filters));
 		
 		int anisotropysize = 0;
 		for (int s = (int)maxanisotropy; s > 1; s >>= 1)
@@ -62,10 +91,17 @@ public abstract class GLRenderer extends Renderer {
 			list[i] = pow2long[i];
 			anisotropies[i] = i == 0 ? "None" : list[i] + "x";
 		}
-		this.registerConteiner("Anisotropy", GLSettings.textureAnisotropy, list, anisotropies);
+		this.params.add(this.params.size() - 1, new ConteinerItem<Integer>("Anisotropy", GLSettings.textureAnisotropy, list, anisotropies));
 
-		this.registerSwitch("True color textures", GLSettings.useHighTile);
-		this.registerSwitch("3d models", GLSettings.useModels);
+		this.params.add(new SwitchItem<Boolean>("True color textures", GLSettings.useHighTile));
+		this.params.add(new SwitchItem<Boolean>("3d models", GLSettings.useModels));
+		
+		this.textureCache = new TextureCache();
+	}
+	
+	@Override
+	public PixelFormat getTexFormat() {
+		return textureCache.getFormat();
 	}
 	
 	public abstract void palfade(HashMap<String, FadeEffect> fades);

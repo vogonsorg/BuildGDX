@@ -10,32 +10,32 @@ public class ParamLinker {
 	
 	public enum ItemType { Switch, Slider, Conteiner, Button, Separator };
 	
-	private List<ParamItem<?>> params = new ArrayList<ParamItem<?>>();
+	protected List<ParamItem<?>> params = new ArrayList<ParamItem<?>>();
 	
-	public <T> void registerSwitch(String name, BuildVariable<T> var)
-	{
-		params.add(new SwitchItem<T>(name, var));
-	}
-	
-	public <T> void registerConteiner(String name, BuildVariable<T> var, T[] variants, String[] titles)
-	{
-		params.add(new ConteinerItem<T>(name, var, variants, titles));
-	}
-	
-	public <T> void registerSlider(String name, BuildVariable<Integer> var, int min, int max, int step, Integer digitalMax)
-	{
-		params.add(new SliderItem<Integer>(name, var, min, max, step, digitalMax));
-	}
-	
-	public <T> void registerButton(String name, MenuProc callback)
-	{
-		params.add(new ButtonItem<T>(name, callback));
-	}
-	
-	public <T> void registerSeparator()
-	{
-		params.add(new ParamItem<T>(ItemType.Separator));
-	}
+//	public <T> void registerSwitch(String name, BuildVariable<T> var)
+//	{
+//		params.add(new SwitchItem<T>(name, var));
+//	}
+//	
+//	public <T> void registerConteiner(String name, BuildVariable<T> var, T[] variants, String[] titles)
+//	{
+//		params.add(new ConteinerItem<T>(name, var, variants, titles));
+//	}
+//	
+//	public <T> void registerSlider(String name, BuildVariable<Integer> var, int min, int max, int step, Integer digitalMax)
+//	{
+//		params.add(new SliderItem<Integer>(name, var, min, max, step, digitalMax));
+//	}
+//	
+//	public <T> void registerButton(String name, MenuProc callback)
+//	{
+//		params.add(new ButtonItem<T>(name, callback));
+//	}
+//	
+//	public <T> void registerSeparator()
+//	{
+//		params.add(new ParamItem<T>(ItemType.Separator));
+//	}
 
 	public List<ParamItem<?>> getParamList()
 	{
@@ -49,10 +49,15 @@ public class ParamLinker {
 		{
 			this.type = type;
 		}
-		
+
 		public ItemType getType()
 		{
 			return type;
+		}
+		
+		public boolean checkItem()
+		{
+			return true;
 		}
 	}
 	

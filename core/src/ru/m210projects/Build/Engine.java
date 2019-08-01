@@ -33,7 +33,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.DEFOSDFUNC;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
-import ru.m210projects.Build.Render.Renderer.PFormat;
+import ru.m210projects.Build.Render.Renderer.PixelFormat;
 import ru.m210projects.Build.Render.Renderer.RenderType;
 import ru.m210projects.Build.Render.Software.Software;
 import ru.m210projects.Build.Render.Types.FadeEffect;
@@ -3837,7 +3837,7 @@ public abstract class Engine {
 		try {
 			capture = new Pixmap(w, h, Format.RGB888);
 			ByteBuffer pixels = capture.getPixels();
-			pixels.put(render.getFrame(PFormat.RGB));
+			pixels.put(render.getFrame(PixelFormat.RGB));
 
 			File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
 			PixmapIO.writePNG(new FileHandle(pci), capture);
@@ -3861,8 +3861,8 @@ public abstract class Engine {
 
 		ByteBuffer frame;
 		if(render.getType() == RenderType.Software) {
-			frame = render.getFrame(PFormat.Indexed);
-		} else frame = render.getFrame(PFormat.RGB);
+			frame = render.getFrame(PixelFormat.Indexed);
+		} else frame = render.getFrame(PixelFormat.RGB);
 		
 		int base;
 		for (int fx, fy = 0; fy < dheigth; fy++) {
@@ -3900,8 +3900,8 @@ public abstract class Engine {
 		
 		ByteBuffer frame;
 		if(render.getType() == RenderType.Software) {
-			frame = render.getFrame(PFormat.Indexed);
-		} else frame = render.getFrame(PFormat.RGB);
+			frame = render.getFrame(PixelFormat.Indexed);
+		} else frame = render.getFrame(PixelFormat.RGB);
 
 		for (int x, y = heigth - 1; y >= 0; y--)
 			for (x = 0; x < width; x++) 

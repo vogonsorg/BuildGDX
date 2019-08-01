@@ -15,6 +15,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuSlider;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Render.Renderer.PixelFormat;
 import ru.m210projects.Build.Types.ParamLinker.ButtonItem;
 import ru.m210projects.Build.Types.ParamLinker.ConteinerItem;
 import ru.m210projects.Build.Types.ParamLinker.ParamChoosableItem;
@@ -26,6 +27,7 @@ public abstract class MenuRendererSettings extends BuildMenu {
 	
 	private MenuTitle title;
 	private Renderer currentRenderer;
+	private PixelFormat currentFormat;
 	public BuildGame app;
 	
 	public BuildFont style;
@@ -45,9 +47,16 @@ public abstract class MenuRendererSettings extends BuildMenu {
 		addItem(title = getTitle(app, "Renderer settings"), false);
 	}
 	
+	public void mDraw(MenuHandler handler)
+	{
+		if(currentFormat != app.pEngine.getrender().getTexFormat())
+			rebuild();
+		super.mDraw(handler);
+	}
+	
 	public boolean mLoadRes(MenuHandler handler, MenuOpt opt)
 	{
-		if(opt == MenuOpt.Open && currentRenderer != app.pEngine.getrender())
+		if(opt == MenuOpt.Open && (currentRenderer != app.pEngine.getrender() || currentFormat != app.pEngine.getrender().getTexFormat()))
 			rebuild();
 		return super.mLoadRes(handler, opt);
 	}
@@ -55,7 +64,9 @@ public abstract class MenuRendererSettings extends BuildMenu {
 	protected void rebuild()
 	{
 		m_nItems = 0;
+
 		currentRenderer = app.pEngine.getrender();
+		currentFormat = app.pEngine.getrender().getTexFormat();
 		title.text = (app.pEngine.getrender().getType().getName() + " settings").toCharArray();
 		
 		addItem(title, false);
@@ -65,6 +76,10 @@ public abstract class MenuRendererSettings extends BuildMenu {
 		for(int i = 0; i < list.size(); i++)
 		{
 			ParamItem<?> item = list.get(i);
+			
+			if(!item.checkItem())
+				continue;
+			
 			String text = null;
 			if(item instanceof ParamChoosableItem)
 				 text = ((ParamChoosableItem<?>) list.get(i)).getName();

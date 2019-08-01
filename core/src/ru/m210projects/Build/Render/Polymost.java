@@ -48,7 +48,6 @@ import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
@@ -314,7 +313,6 @@ public abstract class Polymost extends GLRenderer {
 	private int lastcullcheck = 0;
 	private int glmultisample, glnvmultisamplehint;
 
-	protected final TextureCache textureCache;
 	protected DefScript defs;
 	
 	private int[] h_xsize = new int[MAXTILES], h_ysize = new int[MAXTILES];
@@ -330,8 +328,6 @@ public abstract class Polymost extends GLRenderer {
 	public Polymost(Engine engine) {
 		this.gl = BuildGdx.graphics.getGL10();
 		this.engine = engine;
-		
-		this.textureCache = createTextureCache();
 		this.clipper = new PolyClipper(this);
 		
 		for(int i = 0; i < 16; i++)
@@ -358,10 +354,6 @@ public abstract class Polymost extends GLRenderer {
 		this.defs = defs;
 	}
 
-	private TextureCache createTextureCache() {
-		return new TextureCache();
-	}
-	
 	protected int setBoundTextureDetail(BTexture detailTexture, int texunits)
 	{
 		gl.glActiveTexture(++texunits);
@@ -4560,7 +4552,7 @@ public abstract class Polymost extends GLRenderer {
 	private ByteBuffer indexbuffer;
 	
 	@Override
-	public ByteBuffer getFrame(PFormat format) {
+	public ByteBuffer getFrame(PixelFormat format) {
 		if (rgbbuffer != null) rgbbuffer.clear();
 		if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3 )
 			rgbbuffer = BufferUtils.newByteBuffer(xdim * ydim * 3);
@@ -4568,7 +4560,7 @@ public abstract class Polymost extends GLRenderer {
 		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
 		gl.glReadPixels(0, 0, xdim, ydim, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
 		
-		if(format == PFormat.RGB) {
+		if(format == PixelFormat.RGB) {
 			int base1, base2, b1, b2;
 			byte tmp;
 			for (int p, b, a = 0; a < ydim / 2; a++) {
@@ -4587,7 +4579,7 @@ public abstract class Polymost extends GLRenderer {
 
 			rgbbuffer.rewind();
 			return rgbbuffer;
-		} else if(format == PFormat.Indexed) {
+		} else if(format == PixelFormat.Indexed) {
 			if (indexbuffer != null) indexbuffer.clear();
 			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
 				indexbuffer = BufferUtils.newByteBuffer(xdim * ydim);
@@ -4837,7 +4829,7 @@ public abstract class Polymost extends GLRenderer {
 	public RenderType getType() {
 		return RenderType.Polymost;
 	}
-	
+
 	@Override
 	public void completemirror() { /* nothing */ }
 }

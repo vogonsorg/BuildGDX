@@ -33,6 +33,7 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.Renderer.PixelFormat;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.TextureHDInfo;
@@ -50,7 +51,7 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class TextureCache {
-	
+
 	private final Pthtyp[] cache;
     private TextureHDInfo info;
     
@@ -87,6 +88,10 @@ public class TextureCache {
 		cache[tex.picnum] = tex;
 	}
 
+	public PixelFormat getFormat() {
+		return PixelFormat.RGB;
+	}
+	
 	public void invalidate(int dapicnum, int dapalnum, boolean clamped) {
 		invalidate(get(dapicnum, dapalnum, clamped, 0));
 	}
