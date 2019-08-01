@@ -40,7 +40,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
-import ru.m210projects.Build.Types.BuildSettings;
+import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Neartag;
@@ -248,9 +248,8 @@ public abstract class Engine {
 	public static int fullscreen;
 	public static int paletteloaded = 0;
 	public static int tablesloaded = 0;
-	public static byte[][] britable; // JBF 20040207: full 8bit precision
+	protected static byte[][] britable; // JBF 20040207: full 8bit precision
 	public static int curbrightness = 0;
-	public static int gammabrightness = 0; //FIXME newer changes
 	public static int[] picsiz;
 	public static int xdimen = -1, halfxdimen, xdimenscale, xdimscale;
 	public static int wx1, wy1, wx2, wy2, ydimen;
@@ -388,14 +387,13 @@ public abstract class Engine {
 		}
 	}
 
-	public void calcbritable() { //jfBuild
+	protected void calcbritable() { //jfBuild
 		britable = new byte[16][256];
 		
-		int i, j;
-		double a, b;
-		for (i = 0; i < 16; i++) {
-			a = 8 / (i + 8);
-			b = 255 / pow(255, a);
+		float a, b;
+		for (int i = 0, j; i < 16; i++) {
+			a = 8.0f / (i + 8);
+			b = (float) (255.0f / pow(255.0f, a));
 			for (j = 0; j < 256; j++) {// JBF 20040207: full 8bit precision
 				britable[i][j] = (byte) (pow(j, a) * b);
 			}
@@ -3466,22 +3464,23 @@ public abstract class Engine {
 	}
 
 	// flags:
-	//  1: don't setpalette(),  DON'T USE THIS FLAG!
-	//  2: don't gltexinvalidateall()
-	//  4: don't calc curbrightness from dabrightness,  DON'T USE THIS FLAG!
-	//  8: don't gltexinvalidate8()
-	// 16: don't reset palfade*
+	//  2: use gltexinvalidateall()
 
 	public void setbrightness(int dabrightness, byte[] dapal, int flags) { //jfBuild
+		GLRenderer gl = glrender();
+		curbrightness = BClipRange(dabrightness, 0, 15);
 		
-		if ((flags&4) == 0)
-			curbrightness = min(max(dabrightness,0),15);
-
-		curpalette.update(dapal, true);
-		changepalette(curpalette.getBytes());
+		if((gl == null || gl.getType().getFrameType() != FrameType.GL) && curbrightness != 0)
+		{
+			for(int i = 0; i < dapal.length; i++) 
+				temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
+			changepalette(temppal);
+		} else {
+			curpalette.update(dapal, true);
+			changepalette(curpalette.getBytes());
+		}
 
 		if ((flags & 2) != 0) {
-			GLRenderer gl = glrender();
 			if(gl != null) gl.gltexinvalidateall(flags);
 		}
 
@@ -3495,7 +3494,7 @@ public abstract class Engine {
 		render.changepalette(palette);
 	}
 
-	private byte[] temppal = new byte[768];
+	protected byte[] temppal = new byte[768];
 	public void setpalettefade(int r, int g, int b, int offset) { //jfBuild
 		palfadergb.r = min(63, r) << 2;
 		palfadergb.g = min(63, g) << 2;

@@ -11,7 +11,7 @@ import com.badlogic.gdx.Gdx;
 
 public class SoftFrameImpl implements SoftFrame, Frame {
 
-	protected final SoftInput input;
+	protected final BuildInput input;
 	protected final SoftGraphics graphics;
 
 	public SoftFrameImpl(BuildApplicationConfiguration config)
@@ -48,7 +48,8 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 	@Override
 	public void init() {
 		graphics.setupDisplay();
-		input.init(graphics.display);
+		if(input instanceof SoftInput)
+			((SoftInput) input).init(graphics.display);
 		graphics.resize = true;
 		graphics.lastTime = System.nanoTime();
 	}
@@ -64,7 +65,8 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 			graphics.config.width = graphics.getWidth();
 			graphics.config.height = graphics.getHeight();
 			graphics.display.updateSize(graphics.config.width, graphics.config.height);
-			input.reset();
+			if(input instanceof SoftInput)
+				((SoftInput) input).reset();
 			graphics.requestRendering();
 			return true;
 		}

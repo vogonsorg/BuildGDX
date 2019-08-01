@@ -38,9 +38,9 @@ import static ru.m210projects.Build.Engine.waloff;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
-import static ru.m210projects.Build.Render.GLSettings.glfiltermodes;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_INTENSITY;
+import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
 
 import java.nio.ByteBuffer;

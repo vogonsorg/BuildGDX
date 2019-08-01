@@ -1,8 +1,8 @@
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Settings;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Pattern.BuildConfig;
+import ru.m210projects.Build.Types.BuildVariable;
 
 public class BuildSettings {
 	
@@ -11,6 +11,7 @@ public class BuildSettings {
 	public static BuildVariable<Integer> fpsLimit;
 	public static BuildVariable<Integer> fov;
 	public static BuildVariable<Boolean> vsync;
+	public static BuildVariable<Integer> paletteGamma;
 	
 	public static final Integer[] fpslimits = { 0, 30, 60, 120, 144, 200, 250, 300 };
 	
@@ -25,6 +26,14 @@ public class BuildSettings {
 		};
 		
 		useVoxels = new BooleanVar(true, "Use voxels");
+		
+		paletteGamma = new IntVar(0, "Gamma") {
+			@Override
+			public void execute(Integer value) { 
+				cfg.paletteGamma = value;
+				engine.setbrightness(cfg.paletteGamma, Engine.palette, 0);
+			}
+		};
 		
 		fpsLimit = new IntVar(0, "Frames per second limit") {
 			@Override
@@ -71,6 +80,8 @@ public class BuildSettings {
 				return null;
 			}
 		};
+		
+		
 	}
 
 	public static class BooleanVar extends BuildVariable<Boolean> {

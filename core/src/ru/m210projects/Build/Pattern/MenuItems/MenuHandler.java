@@ -24,8 +24,8 @@ import static ru.m210projects.Build.Input.Keymap.MOUSE_WHELLDN;
 import static ru.m210projects.Build.Input.Keymap.MOUSE_WHELLUP;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
-import static ru.m210projects.Build.Pattern.BuildConfig.*;
 import static ru.m210projects.Build.Pragmas.*;
+import static ru.m210projects.Build.Settings.BuildConfig.*;
 
 import java.util.Arrays;
 

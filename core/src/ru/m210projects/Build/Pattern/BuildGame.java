@@ -42,6 +42,8 @@ import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.Tools.Interpolation;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Settings.BuildConfig;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.LittleEndian;
 
 public abstract class BuildGame extends Game {
@@ -151,12 +153,7 @@ public abstract class BuildGame extends Game {
 	
 	public void updateColorCorrection() {
 		if (BuildGdx.app.getFrameType() == FrameType.GL) {
-			if (!((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(pCfg.gamma, pCfg.brightness, pCfg.contrast)) {
-				((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
-				pCfg.gamma = 1.0f;
-				pCfg.brightness = 0.0f;
-				pCfg.contrast = 1.0f;
-			}
+			((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(1 - (GLSettings.gamma.get() / 4096.0f), GLSettings.brightness.get() / 4096.0f, GLSettings.contrast.get() / 4096.0f);
 		}
 	}
 	

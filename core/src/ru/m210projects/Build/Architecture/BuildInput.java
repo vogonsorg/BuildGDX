@@ -4,6 +4,10 @@ import com.badlogic.gdx.Input;
 
 public interface BuildInput extends Input {
 	
+	void update();
+	
+	void processEvents();
+	
 	public void processMessages();
 	
 	public boolean cursorHandler();

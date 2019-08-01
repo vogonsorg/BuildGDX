@@ -55,7 +55,8 @@ import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
-import ru.m210projects.Build.Types.BuildSettings;
+import ru.m210projects.Build.Settings.BuildSettings;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
@@ -4522,7 +4523,7 @@ public abstract class Polymost extends GLRenderer {
 			textureCache.uninit();
 		if ((flags & 2) == 0)
 			gltexinvalidateall();
-		if ((flags & 8) == 0)
+		else if ((flags & 8) == 0)
 			gltexinvalidate8();
 	}
 

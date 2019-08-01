@@ -18,7 +18,7 @@ import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.getTmpBuffer
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.uploadBoundTexture;
-import static ru.m210projects.Build.Render.GLSettings.glfiltermodes;
+import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.FloatBuffer;
 

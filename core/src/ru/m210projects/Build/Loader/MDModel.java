@@ -30,12 +30,12 @@ import com.badlogic.gdx.graphics.Pixmap;
 import static ru.m210projects.Build.Gameutils.*;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Script.ModelInfo.Spritesmooth;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
 
 public abstract class MDModel extends Model {

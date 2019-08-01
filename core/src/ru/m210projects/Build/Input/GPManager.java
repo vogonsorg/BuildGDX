@@ -49,7 +49,7 @@ public class GPManager {
 					gamepads.add(new Gamepad(i));
 				}
 			}
-		} catch (Exception e) { }
+		} catch (Exception e) { e.printStackTrace(); }
 		
 		if(TestGamepad)
 			gamepads.add(new TestGamePad());

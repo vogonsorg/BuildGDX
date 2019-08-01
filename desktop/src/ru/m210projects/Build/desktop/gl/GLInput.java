@@ -249,6 +249,7 @@ public class GLInput implements BuildInput {
 		input.setCursorPosition(x, y);
 	}
 
+	@Override
 	public void update() {
 		input.update();
 		
@@ -258,6 +259,7 @@ public class GLInput implements BuildInput {
 		} catch (Exception e) {}
 	}
 	
+	@Override
 	public void processEvents()
 	{
 		if(processEventsMethod != null) try {

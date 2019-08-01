@@ -32,12 +32,12 @@ import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
-import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
-import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
-import ru.m210projects.Build.Render.GLSettings;
-import ru.m210projects.Build.Types.BuildSettings;
+import ru.m210projects.Build.Settings.BuildConfig;
+import ru.m210projects.Build.Settings.BuildSettings;
+import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
 import ru.m210projects.Build.Types.MemLog;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
@@ -146,7 +146,7 @@ public class InitScreen extends ScreenAdapter {
 
 		thread = new Thread(new Runnable() {
 			@Override
-			public void run() {
+			public synchronized void run() {
 				try {
 					BuildConfig cfg = game.pCfg;
 					cfg.InitKeymap();
@@ -176,9 +176,7 @@ public class InitScreen extends ScreenAdapter {
 					BuildSettings.usenewaspect.set(cfg.widescreen == 1);
 					BuildSettings.fov.set(cfg.gFov);
 					BuildSettings.fpsLimit.set(cfg.fpslimit);
-					
-					game.updateColorCorrection();
-
+		
 					gameInitialized = game.init();
 					
 					ConsoleInit();
@@ -189,13 +187,13 @@ public class InitScreen extends ScreenAdapter {
 		});
 	}
 	
-	public void start()
+	public synchronized void start()
 	{
 		if(thread != null)
 			thread.start();
 	}
 
-	public void dispose()
+	public synchronized void dispose()
 	{
 		try { 
 			if(thread != null)
@@ -204,12 +202,12 @@ public class InitScreen extends ScreenAdapter {
 	}
 
 	@Override
-	public void render(float delta) {
+	public synchronized void render(float delta) {
 		engine.clearview(0);
 		
 		engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
 
-		if(frames > 3)
+		if(frames++ > 3)
 		{
 			if(!thread.isAlive()) { 
 				if(gameInitialized)
@@ -222,6 +220,5 @@ public class InitScreen extends ScreenAdapter {
 		}
 
 		engine.nextpage();
-		frames++;
 	}
 }

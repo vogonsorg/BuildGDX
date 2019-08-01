@@ -19,7 +19,7 @@ package ru.m210projects.Build.Pattern;
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
-import static ru.m210projects.Build.Pattern.BuildConfig.*;
+import static ru.m210projects.Build.Settings.BuildConfig.*;
 
 import java.util.Arrays;
 
@@ -28,8 +28,9 @@ import com.badlogic.gdx.math.Vector2;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.Input.KeyInput;
-import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
 import ru.m210projects.Build.Pattern.BuildNet.NetInput;
+import ru.m210projects.Build.Settings.BuildConfig;
+import ru.m210projects.Build.Settings.BuildConfig.MenuKeys;
 
 public abstract class BuildControls {
 	

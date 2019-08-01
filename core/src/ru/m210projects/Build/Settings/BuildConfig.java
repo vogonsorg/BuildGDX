@@ -14,7 +14,7 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Pattern;
+package ru.m210projects.Build.Settings;
 
 import static ru.m210projects.Build.FileHandle.Compat.Bcheck;
 import static ru.m210projects.Build.FileHandle.Compat.Bclose;
@@ -34,9 +34,7 @@ import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.Tools.IniFile;
-import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.Renderer.RenderType;
-import ru.m210projects.Build.Types.BuildSettings;
 
 public abstract class BuildConfig extends IniFile {
 
@@ -140,9 +138,10 @@ public abstract class BuildConfig extends IniFile {
 	public int middrv = 1;
 	public int midiSynth = 0;
 	
-	public float gamma = 1;
-	public float brightness = 0;
-	public float contrast = 1;
+	protected int paletteGamma = 0;
+	protected float fgamma = 1;
+	protected float fbrightness = 0;
+	protected float fcontrast = 1;
 	public float gFpsScale = 1.0f;
 
 	public KeyType[] keymap;
@@ -188,9 +187,9 @@ public abstract class BuildConfig extends IniFile {
 	public int maxvoices = 32;
 	public int musicType = 0;
 	
-	public int glanisotropy = 0;
+	protected int glanisotropy = 0;
 	public int widescreen = 1;
-	public int glfilter = 0;
+	protected int glfilter = 0;
 	public boolean gShowFPS = true;
 	public int gFov = 90;
 	
@@ -337,12 +336,15 @@ public abstract class BuildConfig extends IniFile {
 			int value = GetKeyInt("FpsScale");
 			if(value != -1) gFpsScale = value / 65536.0f;
 			
-			int gm = GetKeyInt("Gamma");
-			if( gm != -1) gamma = 1.0f - (gm / 4096.0f);
-			int bg = GetKeyInt("Brightness");
-			if( bg != -1) brightness = bg / 4096.0f;
-			int ct = GetKeyInt("Contrast");
-			if( ct != -1) contrast = ct / 4096.0f;
+			int gm = GetKeyInt("GLGamma");
+			if( gm != -1) GLSettings.gamma.set(gm);
+			int bg = GetKeyInt("GLBrightness");
+			if( bg != -1) GLSettings.brightness.set(bg);
+			int ct = GetKeyInt("GLContrast");
+			if( ct != -1) GLSettings.contrast.set(ct);
+			value = GetKeyInt("PaletteGamma");
+			if(value != -1) BuildSettings.paletteGamma.set(value);
+			
 			gShowFPS = GetKeyInt("ShowFPS") == 1;
 		}
 		
@@ -542,10 +544,11 @@ public abstract class BuildConfig extends IniFile {
 		saveInteger(fil, "WideScreen", widescreen);
 		saveInteger(fil, "FieldOfView", gFov);
 		saveInteger(fil, "FpsScale", (int)(gFpsScale * 65536.0f));
-		
-		saveInteger(fil, "Gamma", (int) ((1 - gamma) * 4096));
-		saveInteger(fil, "Brightness", (int) (brightness * 4096));
-		saveInteger(fil, "Contrast", (int) (contrast * 4096));
+
+		saveInteger(fil, "GLGamma", GLSettings.gamma.get());
+		saveInteger(fil, "GLBrightness", GLSettings.brightness.get());
+		saveInteger(fil, "GLContrast", GLSettings.contrast.get());
+		saveInteger(fil, "PaletteGamma", BuildSettings.paletteGamma.get());
 		saveBoolean(fil, "ShowFPS", gShowFPS);
 		saveString(fil, ";\r\n;\r\n");
 

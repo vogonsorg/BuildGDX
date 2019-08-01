@@ -52,7 +52,6 @@ public class SoftGraphics implements BuildGraphics {
 	int frames = 0;
 	int fps;
 	long lastTime = System.nanoTime();
-	long synctime = System.nanoTime();
 
 	boolean vsync = false;
 	boolean resize = false;
@@ -66,7 +65,7 @@ public class SoftGraphics implements BuildGraphics {
 	
 	protected JFrame setupDisplay () {
 		display = new JDisplay(config.width, config.height, config.borderless);
-		
+
 		try {
 			Array<String> iconPaths = getIconPaths(config);
 			if (iconPaths.size > 0) {
@@ -100,25 +99,8 @@ public class SoftGraphics implements BuildGraphics {
 	
 	protected void sync(int fps)
 	{
-		if(fps <= 0) return;
-		
-		long spendTime = (System.nanoTime() - synctime)  / 1000000;
-		if(spendTime > 0)
-			sleep((1000 / fps) - spendTime);
-		
-		synctime = System.nanoTime();
+		Sync.sync(fps);
 	}
-	
-	private void sleep(long time) {
-		long timeLeft = time * 1000000;
-		final long end = System.nanoTime() + timeLeft;
-        do {
-            if (timeLeft > 2) {
-                try { Thread.sleep(1); } catch (Exception e) {}
-            }
-            timeLeft = end - System.nanoTime();
-        } while (timeLeft > 0);
-    }
 
 	@Override
 	public int getWidth() {

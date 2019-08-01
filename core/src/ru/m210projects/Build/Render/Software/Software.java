@@ -99,7 +99,7 @@ import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
-import ru.m210projects.Build.Types.BuildSettings;
+import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
@@ -215,6 +215,8 @@ public abstract class Software extends Renderer {
 		a = new Ac(this);
 
 		orpho = new SoftwareOrpho(this);
+		
+		this.registerSlider("Gamma", BuildSettings.paletteGamma, 0, 15, 1, null);
 	}
 
 	@Override

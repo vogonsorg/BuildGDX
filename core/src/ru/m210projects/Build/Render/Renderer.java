@@ -19,7 +19,7 @@ package ru.m210projects.Build.Render;
 import java.nio.ByteBuffer;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Script.DefScript;
-import ru.m210projects.Build.Types.BuildSettings;
+import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Types.ParamLinker;
 import ru.m210projects.Build.Types.TileFont;
 

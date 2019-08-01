@@ -14,8 +14,8 @@ import static ru.m210projects.Build.Render.GLInfo.*;
 import java.nio.ByteBuffer;
 
 import ru.m210projects.Build.Render.GLInfo;
-import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Settings.GLSettings;
 
 import com.badlogic.gdx.Gdx;
 

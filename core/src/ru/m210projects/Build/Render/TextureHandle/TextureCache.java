@@ -23,7 +23,7 @@ import static ru.m210projects.Build.Engine.waloff;
 import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
-import static ru.m210projects.Build.Render.GLSettings.glfiltermodes;
+import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.ByteBuffer;
 
@@ -33,10 +33,10 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
-import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.TextureHDInfo;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 import com.badlogic.gdx.Application.ApplicationType;

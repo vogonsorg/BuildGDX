@@ -273,7 +273,8 @@ public class SoftInput implements BuildInput, KeyListener {
 			return false;
 	}
 
-	void processEvents () {
+	@Override
+	public void processEvents () {
 		synchronized (this) {
 			if (keyJustPressed) {
 				keyJustPressed = false;

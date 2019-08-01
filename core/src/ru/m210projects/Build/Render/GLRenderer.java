@@ -27,6 +27,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Settings.GLSettings;
 
 public abstract class GLRenderer extends Renderer {
 	

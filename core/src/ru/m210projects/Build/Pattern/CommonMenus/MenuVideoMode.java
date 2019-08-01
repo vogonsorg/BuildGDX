@@ -27,7 +27,6 @@ import java.util.List;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
@@ -45,6 +44,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Render.VideoMode;
 import ru.m210projects.Build.Render.Renderer.RenderType;
+import ru.m210projects.Build.Settings.BuildConfig;
 
 public abstract class MenuVideoMode extends BuildMenu {
 	
@@ -127,6 +127,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 						if(currentRender != choosedRender) {
 							app.pEngine.getrender().uninit();
 							app.pEngine.setrendermode(app.getFactory().renderer(choosedRender));
+							app.updateColorCorrection();
 							Console.Println("The render has been changed to " + choosedRender.getName());
 							cfg.renderType = app.pEngine.getrender().getType();
 							currentRender = choosedRender;

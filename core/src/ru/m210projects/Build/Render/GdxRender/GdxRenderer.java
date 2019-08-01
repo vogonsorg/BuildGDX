@@ -31,12 +31,12 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.GLRenderer;
-import ru.m210projects.Build.Render.GLSettings;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.TileFont;
 
 public class GdxRenderer extends GLRenderer {
