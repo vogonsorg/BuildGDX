@@ -37,20 +37,23 @@ public class GPManager {
 	
 	public GPManager()
 	{
-		try {
-			gamepads = new Array<Gamepad>();
-			Array<Controller> controllers = null;
-			
-			if(BuildGdx.app.getFrameType() != FrameType.Canvas)
-				controllers = Controllers.getControllers();
-			
-			if(controllers != null && controllers.size > 0) {
-				for(int i = 0; i < controllers.size; i++) {
-					gamepads.add(new Gamepad(i));
-				}
-			}
-		} catch (Exception e) { e.printStackTrace(); }
+		gamepads = new Array<Gamepad>();
+		Array<Controller> controllers = null;
 		
+		if(BuildGdx.app.getFrameType() != FrameType.Canvas) {
+			try {
+				controllers = Controllers.getControllers();
+			} catch (Exception e) { e.printStackTrace(); }
+		}
+		
+		if(controllers != null && controllers.size > 0) {
+			for(int i = 0; i < controllers.size; i++) {
+				try {
+					gamepads.add(new Gamepad(i));
+				} catch (Exception e) { e.printStackTrace(); }
+			}
+		}
+
 		if(TestGamepad)
 			gamepads.add(new TestGamePad());
 	}

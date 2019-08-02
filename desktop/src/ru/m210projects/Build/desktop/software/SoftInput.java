@@ -740,4 +740,40 @@ public class SoftInput implements BuildInput, KeyListener {
 	public boolean isInsideWindow() {
 		return mouse.isInsideWindow();
 	}
+
+	@Override
+	public int getMaxPointers() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public float getPressure() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public float getPressure(int arg0) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isButtonJustPressed(int arg0) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isCatchKey(int arg0) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setCatchKey(int arg0, boolean arg1) {
+		// TODO Auto-generated method stub
+		
+	}
 }

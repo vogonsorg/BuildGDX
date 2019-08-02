@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
@@ -39,7 +38,7 @@ public class LwjglAL implements ALAudio {
 	private int alEffectSlot = -1;
 	private int alEffect = -1;
 	
-	public LwjglAL() throws LWJGLException
+	public LwjglAL() throws Throwable
 	{
 		LwjglNativesLoader.load();
 		AL.create();

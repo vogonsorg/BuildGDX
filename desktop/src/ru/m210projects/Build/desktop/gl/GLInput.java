@@ -305,4 +305,34 @@ public class GLInput implements BuildInput {
 			return LwjglInput.getLwjglKeyCode(gdxKeyCode);
 		}
 	}
+
+	@Override
+	public int getMaxPointers() {
+		return input.getMaxPointers();
+	}
+
+	@Override
+	public float getPressure() {
+		return input.getPressure();
+	}
+
+	@Override
+	public float getPressure(int pointer) {
+		return input.getPressure(pointer);
+	}
+
+	@Override
+	public boolean isButtonJustPressed(int button) {
+		return input.isButtonJustPressed(button);
+	}
+
+	@Override
+	public boolean isCatchKey(int keycode) {
+		return input.isCatchKey(keycode);
+	}
+
+	@Override
+	public void setCatchKey(int keycode, boolean catchKey) {
+		input.setCatchKey(keycode, catchKey);
+	}
 }

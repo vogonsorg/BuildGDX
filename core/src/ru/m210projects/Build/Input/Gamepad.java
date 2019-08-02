@@ -20,12 +20,14 @@ import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Input.Keymap.ANYKEY;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import com.badlogic.gdx.math.Vector2;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import com.badlogic.gdx.controllers.ControlType;
+import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 
@@ -55,14 +57,19 @@ public class Gamepad {
 	
 	protected Gamepad() { /* for extends */ }
 
-	public Gamepad(int deviceIndex)
+	public Gamepad(int deviceIndex) throws Exception
 	{
 		this.deviceIndex = deviceIndex;
-		buttonsNum = Controllers.getControllers().get(deviceIndex).getControlCount(ControlType.button);
-		axisNum = Controllers.getControllers().get(deviceIndex).getControlCount(ControlType.axis);
-		povNum = Controllers.getControllers().get(deviceIndex).getControlCount(ControlType.pov);
 		
-		controllerName = Controllers.getControllers().get(deviceIndex).getName();
+		Controller controller = Controllers.getControllers().get(deviceIndex);
+		
+		Method controlCount = controller.getClass().getMethod("getControlCount", ControlType.class);  
+		controlCount.setAccessible(true);
+		buttonsNum = (Integer) controlCount.invoke(controller, ControlType.button);
+		axisNum = (Integer) controlCount.invoke(controller, ControlType.axis);
+		povNum = (Integer) controlCount.invoke(controller, ControlType.pov);
+
+		controllerName = controller.getName();
 		Console.Println("Found controller: \"" + controllerName + "\" [buttons: " + buttonsNum + " axises: " + axisNum + " povs: " + povNum + "]", OSDTEXT_YELLOW);
 		allButtonsCount = buttonsNum + povNum * 4 + 2;
 		buttonStatus = new boolean[allButtonsCount];

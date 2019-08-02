@@ -78,7 +78,7 @@ public class BuildApplicationImpl implements BuildApplication {
 		this.preferencesFileType = config.preferencesFileType;
 
 		files = new LwjglFiles();
-		net = new LwjglNet();
+		net = new LwjglNet(config);
 
 		Gdx.app = this;
 		Gdx.files = files;
@@ -276,8 +276,8 @@ public class BuildApplicationImpl implements BuildApplication {
 
 	@Override
 	public int getVersion () {
-		System.out.println("LWJGL2 version " + org.lwjgl.Sys.getVersion());
-		return 198;
+		System.out.println("LWJGL2 version " + org.lwjgl.Sys.getVersion()); //2.9.3
+		return 1910; //ligdx 1.9.10
 	}
 
 	public void stop () {
