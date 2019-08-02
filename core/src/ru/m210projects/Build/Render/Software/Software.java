@@ -3627,7 +3627,7 @@ public abstract class Software extends Renderer {
 				if ((nextsectnum >= 0) && ((wal.cstat & 32) == 0) && sectorbordercnt < sectorborder.length
 						&& ((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)) {
 					templong = x1 * y2 - x2 * y1;
-					if ((Integer.toUnsignedLong(templong) + 262144) < 524288)
+					if ((toUnsignedLong(templong) + 262144) < 524288)
 						if (mulscale(templong, templong, 5) <= (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
 							sectorborder[sectorbordercnt++] = nextsectnum;
 				}
@@ -3731,6 +3731,10 @@ public abstract class Software extends Renderer {
 				bunchlast[z] = (short) zz;
 			}
 		} while (sectorbordercnt > 0);
+	}
+	
+	public static long toUnsignedLong(int x) {
+		return ((long) x) & 0xffffffffL;
 	}
 
 	private boolean spritewallfront(SPRITE s, int w) {

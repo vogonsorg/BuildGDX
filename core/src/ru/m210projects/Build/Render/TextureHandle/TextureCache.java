@@ -140,7 +140,7 @@ public class TextureCache {
 				pth.glpic = new BTexture(xsiz, ysiz);
 			} catch(Exception e) { return null; }
 		}
-		
+
 		bindTexture(pth.glpic);
 		int intexfmt = (picInfo.hasalpha ? GL_RGBA : GL_RGB);
 

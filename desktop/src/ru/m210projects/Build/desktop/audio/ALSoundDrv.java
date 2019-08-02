@@ -114,11 +114,11 @@ public class ALSoundDrv implements Sound {
 		{
 			try {
 				this.al = driverCallback.InitDriver();
-				driverCallback = null;
 			} catch (Throwable e) {
 				e.printStackTrace();
 				Console.Println("Unable to initialize OpenAL! - " + e.getLocalizedMessage(), OSDTEXT_RED);
 			}
+			driverCallback = null;
 		}
 		
 		return al;
