@@ -8,6 +8,7 @@ import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 
 public class SoftFrameImpl implements SoftFrame, Frame {
 
@@ -22,6 +23,8 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 		Gdx.gl = BuildGdx.gl = null;
 		Gdx.gl20 = BuildGdx.gl20 = null;
 		Gdx.gl30 = BuildGdx.gl30 = null;
+		
+		LwjglNativesLoader.load(); //This needs for Pixmap working
 	}
 	
 	@Override
@@ -37,12 +40,6 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 	@Override
 	public FrameType getType() {
 		return FrameType.Canvas;
-	}
-
-	@Override
-	public void setMaxFramerate(int fps) {
-		graphics.config.foregroundFPS = fps;
-		graphics.config.backgroundFPS = fps;
 	}
 
 	@Override

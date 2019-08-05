@@ -399,9 +399,4 @@ public class BuildApplicationImpl implements BuildApplication {
 			lifecycleListeners.removeValue(listener, true);
 		}
 	}
-
-	@Override
-	public void setMaxFramerate(int fps) {
-		frame.setMaxFramerate(fps);
-	}
 }

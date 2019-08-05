@@ -630,4 +630,10 @@ public class GLGraphics implements BuildGraphics {
 		Gdx.gl20 = BuildGdx.gl20 = gl20;
 		Gdx.gl30 = BuildGdx.gl30 = gl30;
 	}
+
+	@Override
+	public void setFramesPerSecond(int fps) {
+		config.foregroundFPS = fps;
+		config.backgroundFPS = fps;
+	}
 }

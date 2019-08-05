@@ -3844,7 +3844,7 @@ public abstract class Engine {
 			userdir.addFile(pci);
 			capture.dispose();
 			return fn + a + b + c + d + ".png";
-		} catch(Exception e) {
+		} catch(Throwable e) {
 			if(capture != null)
 				capture.dispose();
 			return null;

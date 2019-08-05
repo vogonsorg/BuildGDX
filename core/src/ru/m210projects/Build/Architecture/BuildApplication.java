@@ -16,8 +16,6 @@ public interface BuildApplication extends Application {
 	
 	public BuildGraphics getGraphics();
 	
-	public void setMaxFramerate(int fps);
-
 	public interface Frame extends BuildFrame
 	{
 		public void init();

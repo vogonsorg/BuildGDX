@@ -307,6 +307,12 @@ public class SoftGraphics implements BuildGraphics {
 	public void setVSync(boolean vsync) {
 		this.vsync = vsync;
 	}
+	
+	@Override
+	public void setFramesPerSecond(int fps) {
+		config.foregroundFPS = fps;
+		config.backgroundFPS = fps;
+	}
 
 	
 

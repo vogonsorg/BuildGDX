@@ -129,12 +129,6 @@ public class GLFrameImpl implements GLFrame, Frame {
 	}
 
 	@Override
-	public void setMaxFramerate(int fps) {
-		graphics.config.foregroundFPS = fps;
-		graphics.config.backgroundFPS = fps;
-	}
-
-	@Override
 	public boolean setDisplayConfiguration(float gamma, float brightness, float contrast) {
 		if(!isReady()) return false;
 		try {

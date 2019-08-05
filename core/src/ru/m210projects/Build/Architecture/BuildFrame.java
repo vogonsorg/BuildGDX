@@ -16,8 +16,6 @@ public interface BuildFrame {
 	
 	public boolean isReady();
 	
-	public void setMaxFramerate(int fps);
-	
 	public int getX();
 	
 	public int getY();
