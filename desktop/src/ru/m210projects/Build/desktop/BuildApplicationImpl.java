@@ -46,6 +46,7 @@ import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Render.Renderer.RenderType;
+import ru.m210projects.Build.desktop.Controllers.JControllers;
 import ru.m210projects.Build.desktop.gl.GLFrameImpl;
 import ru.m210projects.Build.desktop.software.SoftFrameImpl;
 
@@ -89,6 +90,7 @@ public class BuildApplicationImpl implements BuildApplication {
 		BuildGdx.net = Gdx.net;
 		BuildGdx.audio = new BuildAudio();
 		BuildGdx.message = message;
+		BuildGdx.controllers = new JControllers();
 
 		initialize();
 	}

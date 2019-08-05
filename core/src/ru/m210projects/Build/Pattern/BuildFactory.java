@@ -16,7 +16,7 @@
 
 package ru.m210projects.Build.Pattern;
 
-import ru.m210projects.Build.Input.GPManager;
+import ru.m210projects.Build.Input.BuildControllers;
 import ru.m210projects.Build.OnSceenDisplay.OSDFunc;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Renderer.RenderType;
@@ -40,7 +40,7 @@ public abstract class BuildFactory {
 	
 	public abstract Renderer renderer(RenderType type);
 	
-	public abstract BuildControls input(GPManager gpmanager);
+	public abstract BuildControls input(BuildControllers gpmanager);
 	
 	public abstract OSDFunc console();
 	

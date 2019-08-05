@@ -14,24 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Input;
+package ru.m210projects.Build.desktop.Controllers;
 
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Input.Keymap.ANYKEY;
-import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-
-import com.badlogic.gdx.math.Vector2;
-import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import com.badlogic.gdx.controllers.ControlType;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
+import com.badlogic.gdx.math.Vector2;
 
-public class Gamepad {
+import ru.m210projects.Build.Architecture.BuildController;
+
+public class GdxController implements BuildController {
 
 	private final PovDirection[] directions = {
 		PovDirection.north,
@@ -44,7 +43,7 @@ public class Gamepad {
 		PovDirection.southEast, //down rigth
 	};
 	
-	protected int deviceIndex;
+	protected Controller controller;
 	protected String controllerName;
 	protected boolean[] buttonStatus;
 	protected boolean[] hitButton;
@@ -54,14 +53,10 @@ public class Gamepad {
 	protected int allButtonsCount;
 	protected boolean buttonPressed = false;
 	protected Vector2 stickVector = new Vector2();
-	
-	protected Gamepad() { /* for extends */ }
 
-	public Gamepad(int deviceIndex) throws Exception
+	public GdxController(int deviceIndex) throws Exception
 	{
-		this.deviceIndex = deviceIndex;
-		
-		Controller controller = Controllers.getControllers().get(deviceIndex);
+		this.controller = Controllers.getControllers().get(deviceIndex);
 		
 		Method controlCount = controller.getClass().getMethod("getControlCount", ControlType.class);  
 		controlCount.setAccessible(true);
@@ -70,30 +65,24 @@ public class Gamepad {
 		povNum = (Integer) controlCount.invoke(controller, ControlType.pov);
 
 		controllerName = controller.getName();
-		Console.Println("Found controller: \"" + controllerName + "\" [buttons: " + buttonsNum + " axises: " + axisNum + " povs: " + povNum + "]", OSDTEXT_YELLOW);
-		allButtonsCount = buttonsNum + povNum * 4 + 2;
+		allButtonsCount = buttonsNum + povNum * 4 + ((axisNum > 3) ? 2 : 0); //4 - buttons in DPad(pov) and 2 - triggers (axis 4)
 		buttonStatus = new boolean[allButtonsCount];
 		hitButton = new boolean[allButtonsCount];
 	}
 	
+	@Override
 	public boolean buttonPressed()
 	{
 		return buttonPressed;
 	}
-	
-	public boolean getButton(int buttonCode)
-	{
-		if(buttonCode >= 0 && buttonCode < allButtonsCount)
-			return buttonStatus[buttonCode];
-		
-		return false;
-	}
-	
+
+	@Override
 	public void resetButtonStatus()
 	{
 		Arrays.fill(buttonStatus, false);
 	}
 
+	@Override
 	public boolean buttonPressed(int buttonCode)
 	{
 		if(buttonCode >= 0 && buttonCode < allButtonsCount)
@@ -102,6 +91,7 @@ public class Gamepad {
 		return false;
 	}
 	
+	@Override
 	public boolean buttonStatusOnce(int buttonCode)
 	{
 		if(buttonCode >= 0 && buttonCode < allButtonsCount && buttonStatus[buttonCode]) {
@@ -111,6 +101,7 @@ public class Gamepad {
 		return false;
 	}
 	
+	@Override
 	public boolean buttonStatus(int buttonCode)
 	{
 		if(buttonCode >= 0 && buttonCode < allButtonsCount && buttonStatus[buttonCode]) 
@@ -119,32 +110,29 @@ public class Gamepad {
 		return false;
 	}
 	
+	@Override
 	public int getButtonCount()
 	{
 		return allButtonsCount;
 	}
 	
+	@Override
 	public int getAxisCount()
 	{
 		return axisNum;
 	}
 	
+	@Override
 	public int getPovCount()
 	{
 		return povNum;
 	}
 
-//	public float getAxisValue(int aCode, float deadZone) {
-//		float value = 0.0f;
-//		if(Math.abs(value = Controllers.getControllers().get(deviceIndex).getAxis(aCode)) >= deadZone) return value;
-//		
-//		return 0.0f;
-//	}
-
+	@Override
 	public Vector2 getStickValue(int aCode1, int aCode2, float deadZone)
 	{
-		float lx = Controllers.getControllers().get(deviceIndex).getAxis(aCode1);
-		float ly = Controllers.getControllers().get(deviceIndex).getAxis(aCode2);
+		float lx = controller.getAxis(aCode1);
+		float ly = controller.getAxis(aCode2);
 		float mag = (float) Math.sqrt(lx*lx + ly*ly);
 		float nlx = lx / mag;
 		float nly = ly / mag;
@@ -167,14 +155,17 @@ public class Gamepad {
 			return stickVector.set(0.0f, 0.0f);
 		}
 	}
-
+	
+	@Override
 	public String getName() {
 		return controllerName;
 	}
 	
 	private void TriggerHandler()
 	{
-		float value = Controllers.getControllers().get(deviceIndex).getAxis(4);
+		if(axisNum < 4) return;
+		
+		float value = controller.getAxis(4);
 		int num = buttonsNum + (4 * povNum);
 		
 		if(value >= 0.9f) {
@@ -206,7 +197,7 @@ public class Gamepad {
 	{
 		for(int i = 0; i < povNum; i++)
 		{
-			PovDirection dir = Controllers.getControllers().get(deviceIndex).getPov(i);
+			PovDirection dir = controller.getPov(i);
 			if (dir != null && dir != PovDirection.center) 
 			{
 				int num = buttonsNum + (4 * i);
@@ -250,13 +241,14 @@ public class Gamepad {
 		}
 	}
 
-	public void ButtonHandler() {
+	@Override
+	public void update() {
 		buttonPressed = false;
 		DPADHandler();
 		TriggerHandler();
 		for(int i = 0; i < buttonsNum; i++)
 		{
-			if (Controllers.getControllers().get(deviceIndex).getButton(i)) {
+			if (controller.getButton(i)) {
 				buttonPressed = true;
 				if (!hitButton[i]) {
 					getInput().setKey(ANYKEY, 1);

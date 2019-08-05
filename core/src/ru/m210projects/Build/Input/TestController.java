@@ -18,27 +18,30 @@ package ru.m210projects.Build.Input;
 
 import static ru.m210projects.Build.Engine.getInput;
 import static ru.m210projects.Build.Input.Keymap.ANYKEY;
-import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
+
+import java.util.Arrays;
 
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Architecture.BuildController;
 
-public class TestGamePad extends Gamepad {
+public class TestController implements BuildController {
+	
+	protected String controllerName;
+	protected boolean[] buttonStatus;
+	protected boolean[] hitButton;
+	protected int buttonsNum;
+	protected int allButtonsCount;
+	protected boolean buttonPressed = false;
+	protected Vector2 stickVector = new Vector2();
 
-	public TestGamePad() {
-		super();
-		
-		this.deviceIndex = 0;
+	public TestController() {
 		buttonsNum = 10;
-		axisNum = 1;
-		povNum = 0;
-		
+
 		controllerName = "Test controller";
-		Console.Println("Found controller: \"" + controllerName + "\" [buttons: " + buttonsNum + " axises: " + axisNum + " povs: " + povNum + "]", OSDTEXT_YELLOW);
-		allButtonsCount = buttonsNum + povNum * 4 + 2;
+		allButtonsCount = buttonsNum + 4 + 2;
 		buttonStatus = new boolean[allButtonsCount];
 		hitButton = new boolean[allButtonsCount];
 	}
@@ -72,7 +75,7 @@ public class TestGamePad extends Gamepad {
 	}
 
 	@Override
-	public void ButtonHandler() {
+	public void update() {
 		buttonPressed = false;
 		for(int i = 0; i < buttonsNum; i++)
 		{
@@ -117,6 +120,69 @@ public class TestGamePad extends Gamepad {
 		}
 		
 		return 0;
+	}
+
+	@Override
+	public boolean buttonPressed()
+	{
+		return buttonPressed;
+	}
+
+	@Override
+	public boolean buttonStatus(int buttonCode)
+	{
+		if(buttonCode >= 0 && buttonCode < allButtonsCount && buttonStatus[buttonCode]) 
+			return true;
+
+		return false;
+	}
+	
+	@Override
+	public void resetButtonStatus()
+	{
+		Arrays.fill(buttonStatus, false);
+	}
+
+	@Override
+	public boolean buttonPressed(int buttonCode)
+	{
+		if(buttonCode >= 0 && buttonCode < allButtonsCount)
+			return hitButton[buttonCode];
+		
+		return false;
+	}
+	
+	@Override
+	public boolean buttonStatusOnce(int buttonCode)
+	{
+		if(buttonCode >= 0 && buttonCode < allButtonsCount && buttonStatus[buttonCode]) {
+			buttonStatus[buttonCode] = false;
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public int getButtonCount()
+	{
+		return allButtonsCount;
+	}
+	
+	@Override
+	public int getAxisCount()
+	{
+		return 1;
+	}
+	
+	@Override
+	public int getPovCount()
+	{
+		return 0;
+	}
+
+	@Override
+	public String getName() {
+		return controllerName;
 	}
 	
 }

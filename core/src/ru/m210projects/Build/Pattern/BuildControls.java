@@ -26,7 +26,7 @@ import java.util.Arrays;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Input.GPManager;
+import ru.m210projects.Build.Input.BuildControllers;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.Pattern.BuildNet.NetInput;
 import ru.m210projects.Build.Settings.BuildConfig;
@@ -41,12 +41,12 @@ public abstract class BuildControls {
 	public Vector2 stick1;
 	public Vector2 stick2;
 	
-	protected GPManager gpmanager;
+	protected BuildControllers gpmanager;
 	protected BuildConfig pCfg;
 	
 	public enum JoyStick { Turning, Moving };
 	
-	public BuildControls(BuildConfig cfg, GPManager gpmanager)
+	public BuildControls(BuildConfig cfg, BuildControllers gpmanager)
 	{
 		this.pCfg = cfg;
 		this.gpmanager = gpmanager;
@@ -245,7 +245,7 @@ public abstract class BuildControls {
 		return pCfg.menuMouse;
 	}
 	
-	public GPManager ctrlGetGamepadManager()
+	public BuildControllers ctrlGetGamepadManager()
 	{
 		return gpmanager;
 	}

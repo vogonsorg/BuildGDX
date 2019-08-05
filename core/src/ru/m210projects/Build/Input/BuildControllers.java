@@ -1,5 +1,5 @@
 // This file is part of BuildGDX.
-// Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
+// Copyright (C) 2017-2019  Alexander Makarov-[M210] (m210-2007@mail.ru)
 //
 // BuildGDX is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,47 +16,44 @@
 
 package ru.m210projects.Build.Input;
 
-import com.badlogic.gdx.controllers.Controller;
-import com.badlogic.gdx.controllers.Controllers;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
+
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildController;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 
-public class GPManager {
+public abstract class BuildControllers {
 	
 	public final static int MAXBUTTONS = 64;
 	public final static int MAXPOV = 4;
 	public final static int MAXAXIS = 12;
 
-	private Array<Gamepad> gamepads;
+	private Array<BuildController> gamepads;
 	private float deadZone = 0.01f;
 	
 	private boolean TestGamepad = false;
-	
-	public GPManager()
-	{
-		gamepads = new Array<Gamepad>();
-		Array<Controller> controllers = null;
+
+	public BuildControllers init() {
+		gamepads = new Array<BuildController>();
+		getControllers(gamepads);
+		if(TestGamepad)
+			gamepads.add(new TestController());
 		
-		if(BuildGdx.app.getFrameType() != FrameType.Canvas) {
-			try {
-				controllers = Controllers.getControllers();
-			} catch (Exception e) { e.printStackTrace(); }
-		}
-		
-		if(controllers != null && controllers.size > 0) {
-			for(int i = 0; i < controllers.size; i++) {
-				try {
-					gamepads.add(new Gamepad(i));
-				} catch (Exception e) { e.printStackTrace(); }
+		if(gamepads.size == 0)
+			Console.Println("No gamepads found.", OSDTEXT_YELLOW);
+		else {
+			for(int i = 0; i < gamepads.size; i++)
+			{
+				BuildController c = gamepads.get(i);
+				Console.Println("Found controller: \"" + c.getName() + "\" [buttons: " + c.getButtonCount() + " axises: " + c.getAxisCount() + " povs: " + c.getPovCount() + "]", OSDTEXT_YELLOW);
 			}
 		}
-
-		if(TestGamepad)
-			gamepads.add(new TestGamePad());
+		return this;
 	}
+	
+	protected abstract void getControllers(Array<BuildController> gamepads);
 	
 	public int getControllers()
 	{
@@ -93,16 +90,11 @@ public class GPManager {
 			return gamepads.get(num).getButtonCount();
 		return 0;
 	}
-	
-	public boolean getButton(int deviceIndex, int buttonCode)
-	{
-		return gamepads.get(deviceIndex).getButton(buttonCode);
-	}
-	
+
 	public void handler()
 	{
 		for(int i = 0; i < gamepads.size; i++)
-			gamepads.get(i).ButtonHandler();
+			gamepads.get(i).update();
 	}
 	
 	public void resetButtonStatus()
@@ -126,15 +118,6 @@ public class GPManager {
 	{
 		return gamepads.get(deviceIndex).buttonStatus(buttonCode);
 	}
-	
-//	public float getAxisValue(int aCode) {
-//		float value = 0.0f;
-//		for(int i = 0; i < gamepads.size; i++) {
-//			if((value = gamepads.get(i).getAxisValue(aCode, deadZone)) != 0.0f)
-//				return value;
-//		}
-//		return 0.0f;
-//	}
 
 	public Vector2 getStickValue(int deviceIndex, int aCode1, int aCode2)
 	{

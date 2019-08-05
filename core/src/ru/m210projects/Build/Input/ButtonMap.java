@@ -16,7 +16,7 @@
 
 package ru.m210projects.Build.Input;
 
-import static ru.m210projects.Build.Input.GPManager.MAXBUTTONS;
+import static ru.m210projects.Build.Input.BuildControllers.MAXBUTTONS;
 import com.badlogic.gdx.utils.ObjectIntMap;
 
 public class ButtonMap {

@@ -28,7 +28,6 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
-import ru.m210projects.Build.Input.GPManager;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
@@ -153,7 +152,7 @@ public class InitScreen extends ScreenAdapter {
 					if(!cfg.isInited) 
 						cfg.isInited = cfg.InitConfig(!cfg.isExist());
 					
-					game.pInput = factory.input(new GPManager());
+					game.pInput = factory.input(BuildGdx.controllers.init());
 					game.pMenu = factory.menus();
 					game.pNet = factory.net();
 					game.pSlider = factory.slider();
