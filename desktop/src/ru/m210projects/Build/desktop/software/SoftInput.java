@@ -88,12 +88,69 @@ public class SoftInput implements BuildInput, KeyListener {
 		mouse.reset();
 	}
 
-	public void update() {}
+	public void update() {
+		synchronized (this) {
+			if (keyJustPressed) {
+				keyJustPressed = false;
+				Arrays.fill(justPressedKeys, false);
+			}
+
+			if (processor != null) {
+				InputProcessor processor = this.processor;
+
+				int len = keyEvents.size();
+				for (int i = 0; i < len; i++) {
+					KeyEvent e = keyEvents.get(i);
+					currentEventTimeStamp = e.timeStamp;
+					switch (e.type) {
+					case KeyEvent.KEY_DOWN:
+						processor.keyDown(e.keyCode);
+						keyJustPressed = true;
+						justPressedKeys[e.keyCode] = true;
+						break;
+					case KeyEvent.KEY_UP:
+						processor.keyUp(e.keyCode);
+						break;
+					case KeyEvent.KEY_TYPED:
+						processor.keyTyped(e.keyChar);
+					}
+					usedKeyEvents.free(e);
+				}
+			} else {
+				int len = keyEvents.size();
+				for (int i = 0; i < len; i++) {
+					KeyEvent event = keyEvents.get(i);
+					if (event.type == KeyEvent.KEY_DOWN) {
+						keyJustPressed = true;
+						justPressedKeys[event.keyCode] = true;
+					}
+
+					usedKeyEvents.free(keyEvents.get(i));
+				}
+			}
+
+			keyEvents.clear();
+			
+			long out = mouse.processEvents(processor);
+			if(out != -1)
+				currentEventTimeStamp = out;
+		}
+	}
 	
 	public void init(JDisplay display)
 	{
 		this.display = display;
-		this.mouse = new AWTMouse(display);
+
+		try {
+			if(display.getHwnd() != -1) //if LwjglNativesLoader is loaded
+				this.mouse = new LwjglMouse(display);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if(this.mouse == null)
+			this.mouse = new AWTMouse(display);
+
 		this.setListeners(display.getCanvas());
 	}
 
@@ -274,48 +331,7 @@ public class SoftInput implements BuildInput, KeyListener {
 	}
 
 	@Override
-	public void processEvents () {
-		synchronized (this) {
-			if (keyJustPressed) {
-				keyJustPressed = false;
-				Arrays.fill(justPressedKeys, false);
-			}
-
-			if (processor != null) {
-				InputProcessor processor = this.processor;
-
-				int len = keyEvents.size();
-				for (int i = 0; i < len; i++) {
-					KeyEvent e = keyEvents.get(i);
-					currentEventTimeStamp = e.timeStamp;
-					switch (e.type) {
-					case KeyEvent.KEY_DOWN:
-						processor.keyDown(e.keyCode);
-						keyJustPressed = true;
-						justPressedKeys[e.keyCode] = true;
-						break;
-					case KeyEvent.KEY_UP:
-						processor.keyUp(e.keyCode);
-						break;
-					case KeyEvent.KEY_TYPED:
-						processor.keyTyped(e.keyChar);
-					}
-					usedKeyEvents.free(e);
-				}
-			} else {
-				int len = keyEvents.size();
-				for (int i = 0; i < len; i++) {
-					usedKeyEvents.free(keyEvents.get(i));
-				}
-			}
-
-			keyEvents.clear();
-			
-			long out = mouse.processEvents(processor);
-			if(out != -1)
-				currentEventTimeStamp = out;
-		}
-	}
+	public void processEvents () { }
 
 	@Override
 	public void setCatchBackKey (boolean catchBack) {
@@ -491,6 +507,7 @@ public class SoftInput implements BuildInput, KeyListener {
 		case java.awt.event.KeyEvent.VK_Z:
 			return Keys.Z;
 		case java.awt.event.KeyEvent.VK_ALT:
+			ke.consume();
 			if(ke.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_LEFT)
 				return Keys.ALT_LEFT;
 			return Keys.ALT_RIGHT;
@@ -727,7 +744,11 @@ public class SoftInput implements BuildInput, KeyListener {
 	public boolean cursorHandler() {
 		if (isInsideWindow() && display.isActive())
 			mouse.showCursor(false);
-		else mouse.showCursor(true);
+		else {
+			if(display.isActive())
+				mouse.reset();
+			mouse.showCursor(true);
+		}
 
 		return false;
 	}
@@ -743,37 +764,30 @@ public class SoftInput implements BuildInput, KeyListener {
 
 	@Override
 	public int getMaxPointers() {
-		// TODO Auto-generated method stub
-		return 0;
+		return 1;
 	}
 
 	@Override
 	public float getPressure() {
-		// TODO Auto-generated method stub
-		return 0;
+		return getPressure(0);
 	}
 
 	@Override
-	public float getPressure(int arg0) {
-		// TODO Auto-generated method stub
-		return 0;
+	public float getPressure (int pointer) {
+		return isTouched(pointer) ? 1 : 0;
 	}
 
 	@Override
-	public boolean isButtonJustPressed(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean isButtonJustPressed(int button) {
+		return mouse.isButtonJustPressed(button);
 	}
 
 	@Override
 	public boolean isCatchKey(int arg0) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void setCatchKey(int arg0, boolean arg1) {
-		// TODO Auto-generated method stub
-		
 	}
 }

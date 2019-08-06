@@ -14,7 +14,9 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputProcessor;
@@ -58,10 +60,11 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 	Cursor noCursor;
 	Cursor defCursor = Cursor.getDefaultCursor();
 	boolean mouseInside;
+	boolean[] justPressedButtons = new boolean[5];
 	IntSet pressedButtons = new IntSet();
 
-	private Robot robot;
-	private JDisplay display;
+	protected Robot robot;
+	protected JDisplay display;
 
 	public AWTMouse(JDisplay display)
 	{
@@ -88,21 +91,41 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 	}
 	
 	@Override
+	public void setCursorPosition(int x, int y)
+	{
+		this.x = x;
+		this.y = y;
+		
+		Canvas canvas = display.getCanvas();
+		x += canvas.getLocationOnScreen().x;
+		y += canvas.getLocationOnScreen().y;
+
+		setMousePosition(x, y);
+	}
+	
+	@Override
 	public void reset()
 	{
+		Canvas canvas = display.getCanvas();
+		
 		touchDown = false;
-		x = 0;
-		y = 0;
+		x = canvas.getWidth() / 2;
+		y = canvas.getHeight() / 2;
 		deltaX = 0;
 		deltaY = 0;
 		wheel = 0;
 		justTouched = false;
 		pressedButtons.clear();
+		Arrays.fill(justPressedButtons, false);
 	}
 
 	@Override
 	public long processEvents (InputProcessor processor) {
-		justTouched = false;
+		if (justTouched) {
+			justTouched = false;
+			Arrays.fill(justPressedButtons, false);
+		}
+		
 		long currentEventTimeStamp = -1;
 		if (processor != null) {
 			int len = touchEvents.size();
@@ -112,6 +135,7 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 				switch (e.type) {
 				case TouchEvent.TOUCH_DOWN:
 					processor.touchDown(e.x, e.y, e.pointer, e.button);
+					justPressedButtons[e.button] = true;
 					justTouched = true;
 					break;
 				case TouchEvent.TOUCH_UP:
@@ -133,7 +157,10 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			int len = touchEvents.size();
 			for (int i = 0; i < len; i++) {
 				TouchEvent event = touchEvents.get(i);
-				if (event.type == TouchEvent.TOUCH_DOWN) justTouched = true;
+				if (event.type == TouchEvent.TOUCH_DOWN) {
+					justPressedButtons[event.button] = true;
+					justTouched = true;
+				}
 				usedTouchEvents.free(event);
 			}
 		}
@@ -229,8 +256,11 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 				Image i = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 				noCursor = t.createCustomCursor(i, new Point(0, 0), "none");
 			}
-			if(display.m_frame.getContentPane().getCursor() != noCursor)
+
+			if(display.m_frame.getContentPane().getCursor() != noCursor) {
+				display.m_frame.getContentPane().getInputContext().selectInputMethod(Locale.US);
 				display.m_frame.getContentPane().setCursor(noCursor);
+			}
 		} else {
 			if(display.m_frame.getContentPane().getCursor() != defCursor) 
 				display.m_frame.getContentPane().setCursor(defCursor);
@@ -308,15 +338,6 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 		if(catched)
 			setCursorPosition(canvas.getWidth() / 2, canvas.getHeight() / 2);
 	}
-	
-	public void setCursorPosition(int x, int y)
-	{
-		Canvas canvas = display.getCanvas();
-		x += canvas.getLocationOnScreen().x;
-		y += canvas.getLocationOnScreen().y;
-
-		setMousePosition(x, y);
-	}
 
 	@Override
 	public int getX() {
@@ -351,6 +372,12 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 	@Override
 	public boolean isButtonPressed(int button) {
 		return pressedButtons.contains(button);
+	}
+	
+	@Override
+	public boolean isButtonJustPressed(int button) {
+		if(button < 0 || button >= justPressedButtons.length) return false;
+		return justPressedButtons[button];
 	}
 
 	@Override

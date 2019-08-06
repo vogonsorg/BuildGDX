@@ -84,12 +84,15 @@ public class SoftGraphics implements BuildGraphics {
 		display.setTitle(config.title);
 		display.setResizable(config.resizable);
 		display.setLocation(config.x, config.y);
-		
+
+		return display.m_frame;
+	}
+	
+	protected void show()
+	{
 		display.m_frame.setVisible(true);
 		display.getCanvas().setFocusable(true);
 		display.getCanvas().requestFocus();
-
-		return display.m_frame;
 	}
 	
 	protected JCanvas getCanvas()

@@ -19,6 +19,8 @@ public interface MouseInterface {
 	public boolean justTouched();
 	
 	public boolean isButtonPressed(int button);
+
+	public boolean isButtonJustPressed(int button);
 	
 	public int getDWheel();
 
