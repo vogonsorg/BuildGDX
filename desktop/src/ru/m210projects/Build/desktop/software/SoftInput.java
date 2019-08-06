@@ -89,6 +89,9 @@ public class SoftInput implements BuildInput, KeyListener {
 	}
 
 	public void update() {
+		if(!display.isActive())
+			reset();
+	
 		synchronized (this) {
 			if (keyJustPressed) {
 				keyJustPressed = false;

@@ -121,59 +121,61 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 
 	@Override
 	public long processEvents (InputProcessor processor) {
-		if (justTouched) {
-			justTouched = false;
-			Arrays.fill(justPressedButtons, false);
-		}
-		
-		long currentEventTimeStamp = -1;
-		if (processor != null) {
-			int len = touchEvents.size();
-			for (int i = 0; i < len; i++) {
-				TouchEvent e = touchEvents.get(i);
-				currentEventTimeStamp = e.timeStamp;
-				switch (e.type) {
-				case TouchEvent.TOUCH_DOWN:
-					processor.touchDown(e.x, e.y, e.pointer, e.button);
-					justPressedButtons[e.button] = true;
-					justTouched = true;
-					break;
-				case TouchEvent.TOUCH_UP:
-					processor.touchUp(e.x, e.y, e.pointer, e.button);
-					break;
-				case TouchEvent.TOUCH_DRAGGED:
-					processor.touchDragged(e.x, e.y, e.pointer);
-					break;
-				case TouchEvent.TOUCH_MOVED:
-					processor.mouseMoved(e.x, e.y);
-					break;
-				case TouchEvent.TOUCH_SCROLLED:
-					processor.scrolled(e.scrollAmount);
-					break;
-				}
-				usedTouchEvents.free(e);
+		synchronized (this) {
+			if (justTouched) {
+				justTouched = false;
+				Arrays.fill(justPressedButtons, false);
 			}
-		}  else {
-			int len = touchEvents.size();
-			for (int i = 0; i < len; i++) {
-				TouchEvent event = touchEvents.get(i);
-				if (event.type == TouchEvent.TOUCH_DOWN) {
-					justPressedButtons[event.button] = true;
-					justTouched = true;
+			
+			long currentEventTimeStamp = -1;
+			if (processor != null) {
+				int len = touchEvents.size();
+				for (int i = 0; i < len; i++) {
+					TouchEvent e = touchEvents.get(i);
+					currentEventTimeStamp = e.timeStamp;
+					switch (e.type) {
+					case TouchEvent.TOUCH_DOWN:
+						processor.touchDown(e.x, e.y, e.pointer, e.button);
+						justPressedButtons[e.button] = true;
+						justTouched = true;
+						break;
+					case TouchEvent.TOUCH_UP:
+						processor.touchUp(e.x, e.y, e.pointer, e.button);
+						break;
+					case TouchEvent.TOUCH_DRAGGED:
+						processor.touchDragged(e.x, e.y, e.pointer);
+						break;
+					case TouchEvent.TOUCH_MOVED:
+						processor.mouseMoved(e.x, e.y);
+						break;
+					case TouchEvent.TOUCH_SCROLLED:
+						processor.scrolled(e.scrollAmount);
+						break;
+					}
+					usedTouchEvents.free(e);
 				}
-				usedTouchEvents.free(event);
+			}  else {
+				int len = touchEvents.size();
+				for (int i = 0; i < len; i++) {
+					TouchEvent event = touchEvents.get(i);
+					if (event.type == TouchEvent.TOUCH_DOWN) {
+						justPressedButtons[event.button] = true;
+						justTouched = true;
+					}
+					usedTouchEvents.free(event);
+				}
 			}
+			
+			if (touchEvents.isEmpty()) {
+				deltaX = 0;
+				deltaY = 0;
+				wheel = 0;
+			}
+			
+			touchEvents.clear();
+			
+			return currentEventTimeStamp;
 		}
-		
-		if (touchEvents.isEmpty()) {
-			deltaX = 0;
-			deltaY = 0;
-			wheel = 0;
-		}
-		
-		touchEvents.clear();
-		
-		return currentEventTimeStamp;
 	}
 	
 	@Override
