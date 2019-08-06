@@ -3177,8 +3177,11 @@ public abstract class Polymost extends GLRenderer {
 			dist = engine.qdist(globalposx - tspr.x, globalposy - tspr.y);
 			dist *= (dist >> 7);
 			
-			if(spritewall[tspr.owner] != -1 && dist > 0)
-				gl.glDepthRange(defznear, defzfar-(Math.min(dist / 16384f, 40) / dist));
+			if(spritewall[tspr.owner] != -1 && dist > 0) {
+				int dang = ( ((int) globalang - tspr.ang) & 2047) - 1024;
+				if(dang >= - 512 && dang <= 512)
+					gl.glDepthRange(defznear, defzfar-(Math.min(dist / 16384f, 40) / dist));
+			}
 
 			curpolygonoffset += 0.01f;
 			gl.glPolygonOffset(-curpolygonoffset, -curpolygonoffset);
