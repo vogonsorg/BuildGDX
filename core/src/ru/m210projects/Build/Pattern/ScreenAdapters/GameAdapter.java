@@ -135,6 +135,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
 				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
 			if (i >= 0) break;
+			
+			pEngine.faketimerhandler(); //game timer sync
 			ProcessFrame(pNet);
 		}
 		

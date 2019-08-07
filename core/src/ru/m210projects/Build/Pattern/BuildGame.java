@@ -215,12 +215,16 @@ public abstract class BuildGame extends Game {
 		return "Init frame";
 	}
 	
-	public void setDefs(DefScript script)
+	public boolean setDefs(DefScript script)
 	{
 		if(currentDef != script) {
 			currentDef = script;
+			currentDef.apply();
 			pEngine.setDefs(script);
+			return true;
 		}
+		
+		return false;
 	}
 	
 	protected String stackTraceToString(Throwable e) {
