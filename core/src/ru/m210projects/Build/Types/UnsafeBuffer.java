@@ -68,8 +68,12 @@ public abstract class UnsafeBuffer {
 	public int getInt(int i) {
 		return unsafe.getInt(getAddress(i));
 	}
+	
+	 public UnsafeBuffer get(byte[] dst) {
+		 return get(dst, 0, dst.length);
+	 }
     
-    public UnsafeBuffer getBytes(byte[] dst, int offset, int length) {
+    public UnsafeBuffer get(byte[] dst, int offset, int length) {
     	unsafe.copyMemory(null, getAddress(nextIndex(length)), dst, BYTE_ARRAY_BASE_OFFSET + offset, length);
         return this;
     }
