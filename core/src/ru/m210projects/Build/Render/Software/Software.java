@@ -1015,8 +1015,8 @@ public abstract class Software extends Renderer {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(tilenum) : null;
 			if (entry != null && entry.voxel != null) {
 				vtilenum = entry.voxel;
-				if (entry.model != null)
-					mflags = entry.model.flags;
+				if (vtilenum.getModel() != null)
+					mflags = vtilenum.getModel().flags;
 				cstat |= 48;
 			}
 		}
@@ -1919,7 +1919,7 @@ public abstract class Software extends Renderer {
 
 			i = tspr.ang + 1536;
 			if ((mflags & MD_ROTATE) != 0)
-				i += totalclock % 2048;
+				i -= (5 * totalclock) & 2047;
 			i += spriteext[tspr.owner].angoff;
 
 			float f = 1.0f;
