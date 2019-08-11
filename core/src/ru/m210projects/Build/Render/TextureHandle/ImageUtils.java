@@ -44,7 +44,7 @@ public class ImageUtils {
 		if(isPaletted)
 		{
 			if (data == null) {
-				buffer.putByte(0, (byte) 0);
+				buffer.put(0, (byte) 0);
 				tsizx = tsizy = 1;
 				hasalpha = true;
 			} else {
@@ -56,11 +56,11 @@ public class ImageUtils {
 						wp = wpptr << 2;
 	
 						if (clamped && ((x >= tsizx) || (y >= tsizy))) { // Clamp texture
-							buffer.putByte(wp, (byte) 255);
+							buffer.put(wp, (byte) 255);
 							continue;
 						}
 						x2 = (x < tsizx) ? x : x - tsizx;
-						buffer.putByte(wp, data[x2 * tsizy + y2]);
+						buffer.put(wp, data[x2 * tsizy + y2]);
 					}
 				}
 			}
@@ -134,50 +134,50 @@ public class ImageUtils {
 			wpptr = y * daxsiz2 + dox;
 			for (x = dox; x >= 0; x--, wpptr--) {
 				wp = (wpptr << 2);
-				if(dapic.getByte(wp + 3) != 0) continue;
+				if(dapic.get(wp + 3) != 0) continue;
 			
 				r = g = b = j = 0;
 				index = wp - 4;
-				if ((x > 0) && (dapic.getByte(index + 3) != 0)) {
-					r += dapic.getByte(index + 0) & 0xFF;
-					g += dapic.getByte(index + 1) & 0xFF;
-					b += dapic.getByte(index + 2) & 0xFF;
+				if ((x > 0) && (dapic.get(index + 3) != 0)) {
+					r += dapic.get(index + 0) & 0xFF;
+					g += dapic.get(index + 1) & 0xFF;
+					b += dapic.get(index + 2) & 0xFF;
 					j++;
 				}
 				index = wp + 4;
-				if ((x < daxsiz) && (dapic.getByte(index + 3) != 0)) {
-					r += dapic.getByte(index + 0) & 0xFF;
-					g += dapic.getByte(index + 1) & 0xFF;
-					b += dapic.getByte(index + 2) & 0xFF;
+				if ((x < daxsiz) && (dapic.get(index + 3) != 0)) {
+					r += dapic.get(index + 0) & 0xFF;
+					g += dapic.get(index + 1) & 0xFF;
+					b += dapic.get(index + 2) & 0xFF;
 					j++;
 				}
 				index = wp - (daxsiz2 << 2);
-				if ((y > 0) && (dapic.getByte(index + 3) != 0)) {
-					r += dapic.getByte(index + 0) & 0xFF;
-					g += dapic.getByte(index + 1) & 0xFF;
-					b += dapic.getByte(index + 2) & 0xFF;
+				if ((y > 0) && (dapic.get(index + 3) != 0)) {
+					r += dapic.get(index + 0) & 0xFF;
+					g += dapic.get(index + 1) & 0xFF;
+					b += dapic.get(index + 2) & 0xFF;
 					j++;
 				}
 				index = wp + (daxsiz2 << 2);
-				if ((y < daysiz) && (dapic.getByte(index + 3) != 0)) {
-					r += dapic.getByte(index + 0) & 0xFF;
-					g += dapic.getByte(index + 1) & 0xFF;
-					b += dapic.getByte(index + 2) & 0xFF;
+				if ((y < daysiz) && (dapic.get(index + 3) != 0)) {
+					r += dapic.get(index + 0) & 0xFF;
+					g += dapic.get(index + 1) & 0xFF;
+					b += dapic.get(index + 2) & 0xFF;
 					j++;
 				}
 				rgb = 0;
 				switch (j) {
 				case 1:
-			        rgb = ( (dapic.getByte(wp + 3) & 0xFF) << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
+			        rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
 					break;
 				case 2:
-					rgb = ( (dapic.getByte(wp + 3) & 0xFF) << 24 ) + ( ((b + 1) >> 1) << 16 ) + ( ((g + 1) >> 1) << 8 ) + ( ((r + 1) >> 1) << 0 );
+					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b + 1) >> 1) << 16 ) + ( ((g + 1) >> 1) << 8 ) + ( ((r + 1) >> 1) << 0 );
 					break;
 				case 3:
-					rgb = ( (dapic.getByte(wp + 3) & 0xFF) << 24 ) + ( ((b * 85 + 128) >> 8) << 16 ) + ( ((g * 85 + 128) >> 8) << 8 ) + ( ((r * 85 + 128) >> 8) << 0 );
+					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b * 85 + 128) >> 8) << 16 ) + ( ((g * 85 + 128) >> 8) << 8 ) + ( ((r * 85 + 128) >> 8) << 0 );
 					break;
 				case 4:
-					rgb = ( (dapic.getByte(wp + 3) & 0xFF) << 24 ) + ( ((b + 2) >> 2) << 16 ) + ( ((g + 2) >> 2) << 8 ) + ( ((r + 2) >> 2) << 0 );
+					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b + 2) >> 2) << 16 ) + ( ((g + 2) >> 2) << 8 ) + ( ((r + 2) >> 2) << 0 );
 					break;
 				default:
 					continue;

@@ -72,7 +72,7 @@ public class VOXModel extends Model {
 				wp = wpptr << 2;
 
 				if(bit8texture) {
-					buffer.putByte(wp, mytex[wpptr]);
+					buffer.put(wp, mytex[wpptr]);
 				} else {
 					dacol = mytex[wpptr] & 0xFF;
 					if(UseBloodPal && dapal == 1) //Blood's pal 1

@@ -21,7 +21,7 @@ import java.nio.ByteOrder;
 
 import sun.nio.ch.DirectBuffer;
 
-public class UnsafeDirectBuffer extends UnsafeBuffer {
+public class UnsafeDirectBuffer extends UnsafeWriteBuffer {
 
 	private ByteBuffer bb;
 	private int limit;
@@ -48,88 +48,12 @@ public class UnsafeDirectBuffer extends UnsafeBuffer {
 		rewind();
 		return bb;
 	}
-	
-	public int getUByte() {
-		return getByte() & 0xFF;
-	}
-	
-	public byte getByte() {
-        return unsafe.getByte(getAddress(nextIndex(1)));
-    }
-	
-	public int getUByte(int i) {
-		return getByte(i) & 0xFF;
-	}
-
-    public byte getByte(int i) {
-        return unsafe.getByte(getAddress(i));
-    }
-    
-    public UnsafeDirectBuffer getBytes(byte[] dst, int offset, int length) {
-    	unsafe.copyMemory(null, getAddress(nextIndex(length)), dst, BYTE_ARRAY_BASE_OFFSET + offset, length);
-        return this;
-    }
-	
-	public UnsafeDirectBuffer putByte(byte x) {
-        unsafe.putByte(getAddress(nextIndex(1)), x);
-        return this;
-    }
-
-    public UnsafeDirectBuffer putByte(int i, byte x) {
-        unsafe.putByte(getAddress(i), x);
-        return this;
-    }
-    
-    public UnsafeDirectBuffer wrap(byte[] src) {
-    	unsafe.copyMemory(src, BYTE_ARRAY_BASE_OFFSET, null, address, src.length);
-    	return rewind();
-    }
-    
-    public UnsafeDirectBuffer putBytes(byte[] src, int offset, int length) {
-        unsafe.copyMemory(src, BYTE_ARRAY_BASE_OFFSET + offset, null, getAddress(nextIndex(length)), length);
-        return this;
-    }
-
-	public short getShort() {
-        return unsafe.getShort(getAddress(nextIndex((1 << 1))));
-    }
-
-    public short getShort(int i) {
-        return unsafe.getShort(getAddress(i));
-    }
-    
-	public UnsafeDirectBuffer putShort(short x) {
-		unsafe.putShort(getAddress(nextIndex((1 << 1))), x);
-        return this;
-    }
-
-    public UnsafeDirectBuffer putShort(int i, short x) {
-    	unsafe.putShort(getAddress(i), x);
-        return this;
-    }
-	
-	public int getInt() {
-		return unsafe.getInt(getAddress(nextIndex((1 << 2))));
-	}
-
-	public int getInt(int value) {
-		return unsafe.getInt(getAddress(value));
-	}
-
-	public UnsafeDirectBuffer putInt(int value) {
-		unsafe.putInt(getAddress(nextIndex((1 << 2))), value);
-		return this;
-	}
-	
-	public UnsafeDirectBuffer putInt(int i, int value) {
-		unsafe.putInt(getAddress(i), value);
-        return this;
-    }
 
 	public int capacity() {
 		return capacity;
 	}
 	
+	@Override
 	public UnsafeDirectBuffer rewind() {
 		bb.rewind();
 		position = 0;
