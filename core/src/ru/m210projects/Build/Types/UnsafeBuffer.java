@@ -46,7 +46,7 @@ public abstract class UnsafeBuffer {
 	}
 	
 	public byte get() {
-        return unsafe.getByte(getAddress(nextIndex(1)));
+        return get(nextIndex(1));
     }
 
     public byte get(int i) {
@@ -54,7 +54,7 @@ public abstract class UnsafeBuffer {
     }
     
     public short getShort() {
-        return unsafe.getShort(getAddress(nextIndex((1 << 1))));
+        return getShort(nextIndex((1 << 1)));
     }
 
     public short getShort(int i) {
@@ -62,7 +62,7 @@ public abstract class UnsafeBuffer {
     }
 	
 	public int getInt() {
-		return unsafe.getInt(getAddress(nextIndex((1 << 2))));
+		return getInt(nextIndex((1 << 2)));
 	}
 
 	public int getInt(int i) {
