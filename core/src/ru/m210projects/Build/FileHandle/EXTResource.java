@@ -64,28 +64,8 @@ public class EXTResource extends IResource {
 				return i;
 			}
 		}
-		
-//		for(int i = 0; i < files.size(); i++) {
-//			ERESHANDLE file = files.get(i);
-//			
-//			boolean bad = false;
-//			for(int j = 0; j < filename.length(); j++)
-//			{
-//				if (filename != null && filename.isEmpty()) break;
-//				String compare = file.filename;
-//				if (Compare(filename, compare, j))
-//					{ bad = true; break; }
-//			}
-//			if(bad) continue;
-//
-//			file.fil = Bopen(file.entry.getPath(), "r");
-//			return i;
-//		}
-		
 		return -1;
 	}
-	
-	
 
 	@Override
 	public int Lookup(int fileId, String type) {

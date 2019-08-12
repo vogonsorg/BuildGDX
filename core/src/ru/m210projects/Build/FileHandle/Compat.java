@@ -54,7 +54,7 @@ public class Compat {
 	
 	public static void initCacheList(String path, String userPath)
 	{
-		cache = updateCacheList(path);
+		cache = init(path, userPath);
 		DirectoryEntry user = cache.addDirectory("<userdir>", FileUserdir);
 		user.InitDirectory(userPath);
 	}

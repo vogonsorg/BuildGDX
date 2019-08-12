@@ -32,6 +32,8 @@ public class DirectoryEntry {
 	private boolean inited;
 	
 	private static HashMap<String, DirectoryEntry> cache;
+	private static String FilePath;
+	private static String FileUserdir;
 
 	protected DirectoryEntry(String name, String Path)
 	{
@@ -124,16 +126,24 @@ public class DirectoryEntry {
 		return name;
 	}
 
-	protected static DirectoryEntry updateCacheList(String mainpath)
+	public static DirectoryEntry init(String mainpath, String userpath) //XXX - protected
 	{
 		if(cache == null)
 			cache = new HashMap<String, DirectoryEntry>();
 		else cache.clear();
+		
+		FilePath = mainpath;
+		FileUserdir = userpath;
+		
 		String dirName = "<main>";
 		DirectoryEntry dir = new DirectoryEntry(dirName, null);
 	    cache.put(dirName, dir);
 	    dir.InitDirectory(mainpath);
-		return cache.get(dirName);
+	    
+	    DirectoryEntry user = dir.addDirectory("<userdir>", userpath);
+		user.InitDirectory(userpath);
+		
+		return dir;
 	}
 	
 	public boolean checkCacheList()
@@ -220,6 +230,11 @@ public class DirectoryEntry {
 		if(name == "<userdir>")
 			mainpath = FileUserdir;
 
-		return Compat.getRelativePath(path, mainpath);
+		if(path.length() > mainpath.length())
+			path = path.substring(mainpath.length());
+		else if (mainpath.startsWith(path))
+			return null;
+
+		return toLowerCase(path);
 	}
 }

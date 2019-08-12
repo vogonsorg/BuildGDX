@@ -94,7 +94,7 @@ public class LZW {
 			k += dasizeof;
 			ptr += dasizeof;
 		}
-		return count;
+		return ptr + dasizeof;
 	}
 	
 	private int lzwcompress(byte[] lzwinbuf, int uncompleng, byte[] lzwoutbuf)

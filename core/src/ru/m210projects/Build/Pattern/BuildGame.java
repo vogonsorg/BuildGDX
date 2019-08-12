@@ -218,6 +218,7 @@ public abstract class BuildGame extends Game {
 	public boolean setDefs(DefScript script)
 	{
 		if(currentDef != script) {
+			currentDef.dispose();
 			currentDef = script;
 			currentDef.apply();
 			pEngine.setDefs(script);
