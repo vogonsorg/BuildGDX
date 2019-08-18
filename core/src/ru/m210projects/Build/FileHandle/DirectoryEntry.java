@@ -20,7 +20,10 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import static ru.m210projects.Build.FileHandle.Compat.*;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Compat.Path;
+
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 public class DirectoryEntry {
 	private HashMap<String, DirectoryEntry> subDirectory;
@@ -32,8 +35,6 @@ public class DirectoryEntry {
 	private boolean inited;
 	
 	private static HashMap<String, DirectoryEntry> cache;
-	private static String FilePath;
-	private static String FileUserdir;
 
 	protected DirectoryEntry(String name, String Path)
 	{
@@ -126,14 +127,11 @@ public class DirectoryEntry {
 		return name;
 	}
 
-	public static DirectoryEntry init(String mainpath, String userpath) //XXX - protected
+	protected static DirectoryEntry init(String mainpath, String userpath)
 	{
 		if(cache == null)
 			cache = new HashMap<String, DirectoryEntry>();
 		else cache.clear();
-		
-		FilePath = mainpath;
-		FileUserdir = userpath;
 		
 		String dirName = "<main>";
 		DirectoryEntry dir = new DirectoryEntry(dirName, null);
@@ -150,11 +148,11 @@ public class DirectoryEntry {
 	{
 		if(!inited) return false;
 		int currentSize = files.size() + subDirectory.size();
-		boolean isMain = name.equals("<main>");
+		boolean isMain = this == BuildGdx.compat.getDirectory(Path.Game);
 		File directory = null;
 		
 		if(isMain) {
-			directory = new File(FilePath);
+			directory = new File(Path.Game.getPath());
 			currentSize--; //because <userdir>
 		} else directory = new File(absolutePath);
 		
@@ -162,7 +160,7 @@ public class DirectoryEntry {
 		if(fList != null && currentSize != fList.length)
 		{
 			DirectoryEntry userdir = null;
-			if(isMain) userdir = checkDirectory("<userdir>");
+			if(isMain) userdir = BuildGdx.compat.getDirectory(Path.User);
 			
 			subDirectory.clear();
 			files.clear();
@@ -226,12 +224,18 @@ public class DirectoryEntry {
 	
 	private String getRelativePath(String path)
 	{
-		String mainpath = FilePath;
+		String mainpath = Path.Game.getPath();
 		if(name == "<userdir>")
-			mainpath = FileUserdir;
-
-		if(path.length() > mainpath.length())
-			path = path.substring(mainpath.length());
+			mainpath = Path.User.getPath();
+		
+		if(path.length() > mainpath.length()) {
+			int i;
+	        for (i = 0; i < mainpath.length(); i++)
+               if(mainpath.charAt(i) != path.charAt(i))
+            	   break;
+			if(i == 0) return null; //not match
+			path = path.substring(i);
+		}
 		else if (mainpath.startsWith(path))
 			return null;
 

@@ -14,16 +14,12 @@ package ru.m210projects.Build.Script;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Loader.Model.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBuffer;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
-import static ru.m210projects.Build.FileHandle.Compat.*;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.CRC32;
@@ -34,7 +30,10 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.utils.Disposable;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.FileEntry;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.MD2.MD2Loader;
@@ -42,7 +41,6 @@ import ru.m210projects.Build.Loader.MD3.MD3Loader;
 import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.TextureHandle.Hicreplctyp;
 
 public class DefScript implements Disposable {
 
@@ -410,7 +408,10 @@ public class DefScript implements Disposable {
 			return false;
 		}
 		
-		byte[] data = kGetBytes(file.getPath(), 0);
+		Resource res = BuildGdx.compat.open(file);
+		byte[] data = res.getBytes();
+		res.close();
+		
 		if(data == null) {
 			Console.Println("File is exists, but data == null!" + file.getPath());
 		}
@@ -455,7 +456,7 @@ public class DefScript implements Disposable {
 	
 	private DefTile ImportTileFromTexture(String fn, int tile, long crc32, int alphacut, boolean istexture)
 	{
-		byte[] data = kGetBytes(fn, 0);
+		byte[] data = BuildGdx.cache.getBytes(fn, 0);
 		if (data == null)
 			return null;
 
@@ -616,7 +617,7 @@ public class DefScript implements Disposable {
     {
 		String fn;
 		Token token;
-		ByteBuffer buffer;
+		ResourceData buffer;
 		
 		Console.Println("Loading " + script.filename + "...");
 		
@@ -644,13 +645,14 @@ public class DefScript implements Disposable {
     	        if ((modelfn = script.getstring()) == null) break;
                 if ((modelend = script.getbraces()) == -1) break;
                 
-                buffer = kGetBuffer(modelfn, 0);
-        		if(buffer == null) {
+                Resource res = BuildGdx.cache.open(modelfn, 0);
+        		if(res == null) {
         			Console.Println("Warning: File not found" + modelfn, OSDTEXT_YELLOW);
                     script.textptr = modelend+1;
                     break;
         		}
-        		buffer.order( ByteOrder.LITTLE_ENDIAN);
+        		
+        		buffer = res.getData();
         		
         		Model m = null;
         	    switch (buffer.getInt(0))
@@ -662,10 +664,11 @@ public class DefScript implements Disposable {
         		        m = MD3Loader.load(buffer);
         		        break; 
         		    default:
-        		    	if (BfileExtension(modelfn).equalsIgnoreCase("kvx"))
+        		    	if (res.getExtension().equals("kvx"))
                 		    m = KVXLoader.load(buffer).model;  
         		    	break;
         	    }
+        	    res.close();
 
                 if (m == null)
                 {
@@ -861,7 +864,8 @@ public class DefScript implements Disposable {
 	                        if(script.path != null)
 	                        	skinfn = script.path + File.separator + skinfn;
 	                        
-	                        if (!kExist(skinfn, 0) || m.mdnum < 2)
+	                        
+	                        if (!BuildGdx.cache.contains(skinfn, 0) || m.mdnum < 2)
 	                            break;
 
 	                        switch (((MDModel) m).setSkin(skinfn, palnum, Math.max(0,modelskin), surfnum, param, specpower, specfactor))
@@ -1050,9 +1054,9 @@ public class DefScript implements Disposable {
                         if(script.path != null)
                         	tfn = script.path + File.separator + tfn;
 
-                        if (!kExist(tfn, 0))
+                        if (!BuildGdx.cache.contains(tfn, 0))
                             break;
-//                      Console.Println("Loading hires texture \"" + tfn + "\"", false);
+//                      Console.Println("Loading hires texture \"" + tfn + "\"");
                         
                         texInfo.addTexture(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
                     	break;
@@ -1077,20 +1081,20 @@ public class DefScript implements Disposable {
 
                 if ((vmodelend = script.getbraces()) == -1) break;
                 
-                buffer = kGetBuffer(fn, 0);
+                buffer = BuildGdx.cache.getData(fn, 0);
         		if(buffer == null) {
         			Console.Println("Warning: File not found" + fn, OSDTEXT_YELLOW);
                     script.textptr = vmodelend+1;
                     break;
         		}
-        		buffer.order( ByteOrder.LITTLE_ENDIAN);
-        		Voxel vox = KVXLoader.load(buffer);  
+        		Voxel vox = KVXLoader.load(buffer); 
                 if (vox == null)
                 {
                 	Console.Println("Warning: Failed loading MD2/MD3 model " + fn, OSDTEXT_YELLOW);
                     script.textptr = vmodelend+1;
                     break;
                 }
+               
 
                 while (script.textptr < vmodelend)
                 {
@@ -1174,7 +1178,7 @@ public class DefScript implements Disposable {
                     if(script.path != null)
                     	sfn[i] = script.path + File.separator + sfn[i];
                     
-                    if(!kExist(sfn[i], 0))
+                    if(!BuildGdx.cache.contains(sfn[i], 0))
             		{
             			Console.Println("Error: file \"" + sfn[i] + "\" does not exist", OSDTEXT_RED);
             			error = true;
@@ -1234,7 +1238,7 @@ public class DefScript implements Disposable {
 	
 	private void include(String fn, Scriptfile script, int cmdtokptr)
 	{
-		byte[] data = kGetBytes(fn, 0);
+		byte[] data = BuildGdx.cache.getBytes(fn, 0);
 		if(data == null)
 		{
 			if (cmdtokptr == 0)
@@ -1243,6 +1247,7 @@ public class DefScript implements Disposable {
 	        	Console.Println("Warning: Failed including " + fn + " on line " + script.filename + ":" + script.getlinum(cmdtokptr), OSDTEXT_YELLOW);
 			return;
 		}
+
 		Scriptfile included = new Scriptfile(fn, data);
 	    defsparser(included);
 	}

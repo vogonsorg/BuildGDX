@@ -8,14 +8,14 @@ package ru.m210projects.Build.Loader.Voxels;
 
 import static java.lang.Math.max;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBuffer;
 import static ru.m210projects.Build.Pragmas.klabs;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.Loader.Voxels.VOXModel.voxrect_t;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
@@ -39,7 +39,7 @@ public class KVXLoader {
 	private static FloatArray uvs;
 	private static int[] pal;
 
-	public static Voxel load(ByteBuffer buffer)
+	public static Voxel load(ResourceData buffer)
 	{
 		vertices = new FloatArray();
 		indicies = new ShortArray();
@@ -85,14 +85,13 @@ public class KVXLoader {
 
 	public static Voxel load(String filepath)
 	{
-		ByteBuffer buffer = kGetBuffer(filepath, 0);
-		if(buffer == null) return null;
+		Resource res = BuildGdx.cache.open(filepath, 0);
+		if(res == null) return null;
 
-		buffer.order(ByteOrder.LITTLE_ENDIAN);
-	    return KVXLoader.load(buffer);
+	    return KVXLoader.load(res.getData());
 	}
 	
-	private static int[] getPalette(ByteBuffer dat)
+	private static int[] getPalette(ResourceData dat)
 	{
 		int pal[] = new int[256];
 		dat.position(dat.capacity() - 768);			

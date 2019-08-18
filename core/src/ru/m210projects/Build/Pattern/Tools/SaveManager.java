@@ -1,14 +1,15 @@
 package ru.m210projects.Build.Pattern.Tools;
 
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Compat.Bcheck;
-
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 
 public class SaveManager {
 
@@ -69,7 +70,7 @@ public class SaveManager {
 	{
 		SaveInfo info;
 		if((info = SavHash.get(filename)) != null) {
-			File file = Bcheck(filename, "R");
+			File file = BuildGdx.compat.checkFile(filename, Path.User);
 			if(file != null && file.delete()) {
 				SavList.remove(info);
 			}

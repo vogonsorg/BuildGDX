@@ -15,6 +15,8 @@ import static ru.m210projects.Build.Engine.MAXSECTORS;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+
 public class SPRITE {
 	public static final int sizeof = 44;
 	private static final ByteBuffer buffer = ByteBuffer.allocate(sizeof).order( ByteOrder.LITTLE_ENDIAN);
@@ -38,12 +40,10 @@ public class SPRITE {
 	public SPRITE() { }
 	
 	public void init(byte[] data) {
-		ByteBuffer bb = ByteBuffer.wrap(data);
-    	bb.order( ByteOrder.LITTLE_ENDIAN);
-    	buildSprite(bb);
+    	buildSprite(new ResourceData(data));
 	}
 	
-	public void buildSprite(ByteBuffer bb)
+	public void buildSprite(ResourceData bb)
 	{
 		x = bb.getInt();
     	y = bb.getInt();

@@ -27,10 +27,10 @@ import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.ByteBuffer;
 
-import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Renderer.PixelFormat;
@@ -178,8 +178,8 @@ public class TextureCache {
 	        if (hicr.filename == null) return null;
 	        fn = hicr.filename;
 	    }
-		
-		if (!kExist(fn, 0)) 
+
+		if (!BuildGdx.cache.contains(fn, 0)) 
 	    {
 			Console.Print("hightile: " + fn + "(pic " + dapic + ") not found");
 	        if (facen > 0)
@@ -193,7 +193,8 @@ public class TextureCache {
 	    //if (cachefil >= 0) { ... }
 
 		if (doalloc) {
-			byte[] data = kGetBytes(fn, 0);
+			byte[] data = BuildGdx.cache.getBytes(fn, 0);
+
 			if(data == null) return null;
 			try {
 				Pixmap pix = new Pixmap(data, 0, data.length);
@@ -457,10 +458,10 @@ public class TextureCache {
 	
 	private ShaderProgram createShader() 
 	{
-	    String fragment = new String(kGetBytes("fragment.glsl", 0));
-	    String vertex = new String(kGetBytes("vertex.glsl", 0));
+//	    String fragment = new String(kGetBytes("fragment.glsl", 0)); XXX
+//	    String vertex = new String(kGetBytes("vertex.glsl", 0));
 	    
-	    ShaderProgram shader = new ShaderProgram(vertex, fragment);
+//	    ShaderProgram shader = new ShaderProgram(vertex, fragment);
         if(!shader.isCompiled())
         	Console.Println("Shader compile error: " + shader.getLog(), OSDTEXT_RED);
 

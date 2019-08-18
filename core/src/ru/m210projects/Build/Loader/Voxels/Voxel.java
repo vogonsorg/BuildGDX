@@ -6,7 +6,7 @@
 
 package ru.m210projects.Build.Loader.Voxels;
 
-import java.nio.ByteBuffer;
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 
 public class Voxel {
 	
@@ -21,7 +21,7 @@ public class Voxel {
 	
 	public VOXModel model;
 	
-	public Voxel(ByteBuffer dat) throws Exception
+	public Voxel(ResourceData dat) throws Exception
 	{
 		int i, j;
 		int mip = 0;

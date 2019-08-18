@@ -69,9 +69,25 @@ public abstract class UnsafeBuffer {
 		return unsafe.getInt(getAddress(i));
 	}
 	
-	 public UnsafeBuffer get(byte[] dst) {
-		 return get(dst, 0, dst.length);
-	 }
+	public float getFloat(int i) {
+		return unsafe.getFloat(getAddress(i));
+	}
+	
+	public float getFloat() {
+		return getFloat(nextIndex((1 << 2)));
+	}
+	
+	public long getLong(int i) {
+		return unsafe.getLong(getAddress(i));
+	}
+	
+	public long getLong() {
+		return getLong(nextIndex((1 << 3)));
+	}
+	
+	public UnsafeBuffer get(byte[] dst) {
+		return get(dst, 0, dst.length);
+	}
     
     public UnsafeBuffer get(byte[] dst, int offset, int length) {
     	unsafe.copyMemory(null, getAddress(nextIndex(length)), dst, BYTE_ARRAY_BASE_OFFSET + offset, length);
@@ -81,6 +97,11 @@ public abstract class UnsafeBuffer {
     protected void setAddress(ByteBuffer bb)
     {
     	this.address = ((DirectBuffer) bb).address();
+    }
+    
+    protected void dispose(ByteBuffer bb)
+    {
+    	((DirectBuffer) bb).cleaner().clean();
     }
 	
 	protected long getAddress(int offset) {

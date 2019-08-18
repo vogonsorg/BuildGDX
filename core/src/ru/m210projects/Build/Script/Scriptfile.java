@@ -9,7 +9,7 @@
 
 package ru.m210projects.Build.Script;
 
-import static ru.m210projects.Build.FileHandle.Compat.*;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 import java.io.File;
 import java.util.Arrays;

@@ -1,7 +1,6 @@
 package ru.m210projects.Build.Pattern.MenuItems;
 
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Compat.FileUserdir;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Strhandler.*;
 
@@ -13,6 +12,7 @@ import java.util.List;
 import com.badlogic.gdx.Input.Keys;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
@@ -345,7 +345,7 @@ public class MenuSlotList extends MenuList
 		Iterator<SaveInfo> i = text.iterator();
 		while (i.hasNext()) {
 			SaveInfo s = i.next();
-			File file = new File(FileUserdir+s.filename);
+			File file = new File(Path.User.getPath() + s.filename);
 			if(!file.exists())
 				i.remove();
 		}
