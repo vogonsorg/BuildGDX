@@ -21,9 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.*;
-import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.Scriptfile;
 
@@ -70,7 +70,9 @@ public class Maphack extends Scriptfile {
 		for (int i = 0; i < MAXSPRITES; i++)
 			spriteext[i] = new Spriteext();
 		
-		byte[] data = kGetBytes(filename, 0);
+		byte[] data = BuildGdx.cache.getBytes(filename, 0);
+		if(data == null) return;
+
 		int flen = data.length;
 		byte[] tx = Arrays.copyOf(data, flen + 2);
 		tx[flen] = tx[flen + 1] = 0;

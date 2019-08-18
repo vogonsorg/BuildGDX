@@ -16,10 +16,10 @@
 
 package ru.m210projects.Build.Loader.MD3;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.Loader.Model;
 
 import com.badlogic.gdx.math.Matrix4;
@@ -30,7 +30,7 @@ public class MD3Loader {
 	private static int maxtris = 0;
 	private static int maxverts = 0;	
 	
-	public static Model load(ByteBuffer bb) {
+	public static Model load(ResourceData bb) {
 		MD3Header header = loadHeader(bb);
 		
 		if ((header.ident != 0x33504449) || (header.version != 15)) return null; //"IDP3"
@@ -54,7 +54,7 @@ public class MD3Loader {
 		return m;
 	}
 
-	private static MD3Header loadHeader (ByteBuffer bb) {
+	private static MD3Header loadHeader (ResourceData bb) {
 		MD3Header header = new MD3Header();
 
 		header.ident = bb.getInt();
@@ -73,7 +73,7 @@ public class MD3Loader {
 		return header;
 	}
 	
-	private static MD3Frame[] loadFrames (MD3Header header, ByteBuffer bb) {
+	private static MD3Frame[] loadFrames (MD3Header header, ResourceData bb) {
 		bb.position(header.offsetFrames);
 		MD3Frame[] out = new MD3Frame[header.numFrames];
         for(int i = 0; i < header.numFrames; i++) {
@@ -89,7 +89,7 @@ public class MD3Loader {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static HashMap<String, Matrix4>[] loadTags (MD3Header header, ByteBuffer bb) {
+	private static HashMap<String, Matrix4>[] loadTags (MD3Header header, ResourceData bb) {
 		bb.position(header.offsetTags);
 		HashMap<String, Matrix4>[] out = (HashMap<String, Matrix4>[]) new HashMap[header.numFrames];
 		for (int k = 0; k < header.numFrames; k++) {
@@ -110,7 +110,7 @@ public class MD3Loader {
 		return out;
 	}
 	
-	private static MD3Surface[] loadSurfaces(MD3Header header, ByteBuffer bb) {
+	private static MD3Surface[] loadSurfaces(MD3Header header, ResourceData bb) {
 		int offsetSurfaces = header.offsetSurfaces;
 		MD3Surface[] out = new MD3Surface[header.numSurfaces];
         for(int i = 0; i < header.numSurfaces; i++) {
@@ -142,7 +142,7 @@ public class MD3Loader {
         return out;
 	}
 	
-	private static int[][] loadTriangles(MD3Surface surf, int offsetSurfaces, ByteBuffer bb)
+	private static int[][] loadTriangles(MD3Surface surf, int offsetSurfaces, ResourceData bb)
 	{
 		bb.position(offsetSurfaces + surf.ofstris);
 		int[][] out = new int[surf.numtris][3];
@@ -154,7 +154,7 @@ public class MD3Loader {
 		return out;
 	}
 	
-	private static FloatBuffer loadUVs(MD3Surface surf, int offsetSurfaces, ByteBuffer bb)
+	private static FloatBuffer loadUVs(MD3Surface surf, int offsetSurfaces, ResourceData bb)
 	{
 		bb.position(offsetSurfaces +  surf.ofsuv);
 		FloatBuffer out = BufferUtils.newFloatBuffer(2 * surf.numverts);
@@ -166,7 +166,7 @@ public class MD3Loader {
 		return out;
 	}
 	
-	private static MD3Vertice[] loadVertices(MD3Surface surf, int offsetSurfaces, ByteBuffer bb)
+	private static MD3Vertice[] loadVertices(MD3Surface surf, int offsetSurfaces, ResourceData bb)
 	{
 		bb.position(offsetSurfaces +  surf.ofsxyzn);
 		MD3Vertice[] out = new MD3Vertice[surf.numframes * surf.numverts];
@@ -183,7 +183,7 @@ public class MD3Loader {
 		return out;
 	}
 	
-	private static MD3Shader[] loadShaders(MD3Surface surf, int offsetSurfaces, ByteBuffer bb)
+	private static MD3Shader[] loadShaders(MD3Surface surf, int offsetSurfaces, ResourceData bb)
 	{
 		bb.position(offsetSurfaces + surf.ofsshaders);
 		MD3Shader[] out = new MD3Shader[surf.numshaders];
@@ -196,7 +196,7 @@ public class MD3Loader {
 		return out;
 	}
 	
-	private static String readString(ByteBuffer bb, int len) {
+	private static String readString(ResourceData bb, int len) {
 		byte[] buf = new byte[len];
 		bb.get(buf);
 

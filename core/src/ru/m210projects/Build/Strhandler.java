@@ -16,7 +16,18 @@
 
 package ru.m210projects.Build;
 
+import java.util.Locale;
+
 public class Strhandler {
+	
+	private static Locale usLocal = Locale.US;
+	public static String toLowerCase(String text)
+	{
+		if(text != null)
+			return text.toLowerCase(usLocal); //Turkish language issue
+		return null;
+	}
+
 	//String handler
 	
 	static char[] tmp_buffer = new char[80];

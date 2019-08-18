@@ -10,7 +10,6 @@
 package ru.m210projects.Build;
 
 import static java.lang.Math.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Gameutils.*;
@@ -28,6 +27,9 @@ import java.util.Iterator;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.DEFOSDFUNC;
@@ -42,7 +44,6 @@ import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Types.Hitscan;
-import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.Neartag;
 import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.SECTOR;
@@ -293,7 +294,7 @@ public abstract class Engine {
 	private final char[] artfilename = new char[12];
 //	private int artsize = 0;
 	public int numtilefiles;
-	public static int artfil = -1;
+	public static Resource artfil = null;
 	public int artfilnum;
 	public int artfilplc;
 	private int[] tilefilenum;
@@ -401,8 +402,6 @@ public abstract class Engine {
 	}
 
 	public void loadtables() throws Exception { //jfBuild + gdxBuild
-		int fil;
-
 		if (tablesloaded == 0) {
 			initksqrt();
 			
@@ -410,35 +409,37 @@ public abstract class Engine {
 			textfont = new byte[2048];
 			smalltextfont = new byte[2048];
 			radarang = new short[1280]; //1024
-
-			if ((fil = kOpen("tables.dat", 0)) != -1) {
+			
+			Resource res = BuildGdx.cache.open("tables.dat", 0);
+			if (res != null) {
 				byte[] buf = new byte[2048 * 2];
 				
-				kRead(fil, buf, buf.length);
+				res.read(buf);
 				ByteBuffer.wrap(buf)
 					.order(ByteOrder.LITTLE_ENDIAN)
 					.asShortBuffer().get(sintable);
 
 				if (releasedEngine) {
 					buf = new byte[640 * 2];
-					kRead(fil, buf, buf.length);
+					res.read(buf);
 					ByteBuffer.wrap(buf)
 						.order(ByteOrder.LITTLE_ENDIAN)
 						.asShortBuffer().get(radarang, 0, 640);
 					for (int i = 0; i < 640; i++) 
 						radarang[1279 - i] = (short) -radarang[i];
 				} else {
-					kRead(fil, new byte[4096], 4096); //tantable
+					res.seek(4096, Whence.Current); //tantable
+
 					buf = new byte[640];
-					kRead(fil, buf, buf.length);
+					res.read(buf);
 					ByteBuffer.wrap(buf)
 						.order(ByteOrder.LITTLE_ENDIAN)
 						.asShortBuffer().get(radarang, 0, 320);
 					radarang[320] = 0x4000;
 				}
 
-				kRead(fil, textfont, 1024);
-				kRead(fil, smalltextfont, 1024);
+				res.read(textfont, 1024);
+				res.read(smalltextfont, 1024);
 				
 				pTextfont = new TextFont();
 				pSmallTextfont = new SmallTextFont();
@@ -446,7 +447,7 @@ public abstract class Engine {
 				/* kread(fil, britable, 1024); */
 
 				calcbritable();
-				kClose(fil);
+				res.close();
 			} else 
 				throw new Exception("ERROR: Failed to load TABLES.DAT!");
 			
@@ -500,7 +501,7 @@ public abstract class Engine {
 
 	public void loadpalette() throws Exception //jfBuild + gdxBuild
 	{
-		int fil;
+		Resource fil;
 		if (paletteloaded != 0) return;
 		
 		palette = new byte[768];
@@ -508,17 +509,16 @@ public abstract class Engine {
 		palookup = new byte[MAXPALOOKUPS][];
 
 		Console.Println("Loading palettes");
-		if ((fil = kOpen("palette.dat", 0)) == -1) 
+		if ((fil = BuildGdx.cache.open("palette.dat", 0)) == null) 
 			throw new Exception("Failed to load \"palette.dat\"!");
 	
-		kRead(fil, palette, 768);
+		fil.read(palette, 768);
 
 		boolean hastransluc = false;
 		if(releasedEngine) {
-			byte[] buf = new byte[2];
-			kRead(fil, buf, 2); numshades = LittleEndian.getShort(buf);
+			numshades = fil.readShort();
 		} else {
-			int file_len = kFileLength(fil);
+			int file_len = fil.size();
 			numshades = (short) ((file_len - 768) >> 7);
 		    if ( (((file_len - 768) >> 7) & 1) <= 0 )
 		    	numshades >>= 1;
@@ -534,17 +534,17 @@ public abstract class Engine {
 
 		globalpal = 0;
 		Console.Println("Loading gamma correcion tables");
-		kRead(fil, palookup[globalpal], numshades<<8);
+		fil.read(palookup[globalpal], numshades<<8);
 		Console.Println("Loading translucency table");
 		if(releasedEngine)
-			kRead(fil, transluc, 65536);
+			fil.read(transluc, 65536);
 		else {
 			if (hastransluc)
 			{
 				byte[] tmp = new byte[256];
 				for(int i = 0; i < 255; i++)
 				{
-					kRead(fil, tmp, 255-i);
+					fil.read(tmp, 255-i);
 					System.arraycopy(tmp, 0, transluc, (i<<8)+i+1, 255-i);
 					for(int j = i + 1; j < 256; j++)
 						transluc[(j<<8)+i] = transluc[(i<<8)+j];
@@ -554,7 +554,7 @@ public abstract class Engine {
 			}
 		}
 
-		kClose(fil);
+		fil.close();
 		
 		initfastcolorlookup(30,59,11);
 
@@ -1001,8 +1001,8 @@ public abstract class Engine {
 		if(render != null && render.isInited())
 			render.uninit();
 
-		if (artfil != -1)
-			kClose(artfil);
+		if (artfil != null)
+			artfil.close();
 
 		for (int i = 0; i < MAXPALOOKUPS; i++)
 			if (palookup[i] != null) 
@@ -1098,22 +1098,20 @@ public abstract class Engine {
 
 	public int loadboard(String filename, int[] daposx, int[] daposy, int[] daposz, //jfBuild + gdxBuild
 			short[] daang, short[] dacursectnum) {
-		int fil, i;
-
-		i = 0;
+		int i = 0;
 		
-		if ((fil = kOpen(filename, i)) == -1)
+		Resource fil;
+		if ((fil = BuildGdx.cache.open(filename, i)) == null)
 			{ mapversion = 7; return(-1); }
 
-		byte[] buf = new byte[4];
-		kRead(fil, buf, 4); mapversion = LittleEndian.getInt(buf);
+		mapversion = fil.readInt();
 		if(mapversion == 6) 
 			return loadoldboard(fil, daposx, daposy, daposz, daang, dacursectnum);
 		
 		if(mapversion != 7)
 		{
 			Console.Println("Invalid map version!");
-			kClose(fil);
+			fil.close();
 			return(-2);
 		}
 		
@@ -1123,15 +1121,15 @@ public abstract class Engine {
 		Arrays.fill(show2dsprite, (byte)0);
 		Arrays.fill(show2dwall, (byte)0);
 
-		kRead(fil, buf, 4); daposx[0] = LittleEndian.getInt(buf);
-		kRead(fil, buf, 4); daposy[0] = LittleEndian.getInt(buf);
-		kRead(fil, buf, 4); daposz[0] = LittleEndian.getInt(buf);
-		kRead(fil, buf, 2); daang[0] = LittleEndian.getShort(buf);
-		kRead(fil, buf, 2); dacursectnum[0] = LittleEndian.getShort(buf);
+		daposx[0] = fil.readInt();
+		daposy[0] = fil.readInt();
+		daposz[0] = fil.readInt();
+		daang[0] = fil.readShort();
+		dacursectnum[0] = fil.readShort();
 		
-		kRead(fil, buf, 2); numsectors = LittleEndian.getShort(buf);
+		numsectors = fil.readShort();
 		byte[] sectors = new byte[SECTOR.sizeof * numsectors];
-		kRead(fil, sectors, sectors.length);
+		fil.read(sectors, sectors.length);
 		ByteBuffer bb = ByteBuffer.wrap(sectors);
 		byte[] sectorReader = new byte[SECTOR.sizeof];
 		for (i = 0; i < numsectors; i++) {
@@ -1139,9 +1137,9 @@ public abstract class Engine {
 			sector[i] = new SECTOR(sectorReader);
 		}
 		
-		kRead(fil, buf, 2); numwalls = LittleEndian.getShort(buf);
+		numwalls = fil.readShort();
 		byte[] walls = new byte[WALL.sizeof * numwalls];
-		kRead(fil, walls, walls.length);
+		fil.read(walls, walls.length);
 		bb = ByteBuffer.wrap(walls);
 		byte[] wallReader = new byte[WALL.sizeof];
 		
@@ -1150,9 +1148,9 @@ public abstract class Engine {
 			wall[w] = new WALL(wallReader);
 		}
 		
-		kRead(fil, buf, 2); numsprites = LittleEndian.getShort(buf);
+		numsprites = fil.readShort();
 		byte[] sprites = new byte[SPRITE.sizeof*numsprites];
-		kRead(fil, sprites, SPRITE.sizeof*numsprites);
+		fil.read(sprites, SPRITE.sizeof*numsprites);
 		bb = ByteBuffer.wrap(sprites);
 		byte[] spriteReader = new byte[SPRITE.sizeof];
 		for(int s = 0; s < numsprites; s++) {
@@ -1166,12 +1164,12 @@ public abstract class Engine {
 		//Must be after loading sectors, etc!
 		dacursectnum[0] = updatesector(daposx[0], daposy[0], (short) dacursectnum[0]);
 	
-		kClose(fil);
+		fil.close();
 		
 		return(0);
 	}
 	
-	public int loadoldboard(int fil, int[] daposx, int[] daposy, int[] daposz, //gdxBuild
+	public int loadoldboard(Resource fil, int[] daposx, int[] daposy, int[] daposz, //gdxBuild
 			short[] daang, short[] dacursectnum) {
 
 		initspritelists();
@@ -1179,18 +1177,17 @@ public abstract class Engine {
 		Arrays.fill(show2dsector, (byte)0);
 		Arrays.fill(show2dsprite, (byte)0);
 		Arrays.fill(show2dwall, (byte)0);
-		byte[] buf = new byte[4];
 		
-		kRead(fil, buf, 4); daposx[0] = LittleEndian.getInt(buf);
-		kRead(fil, buf, 4); daposy[0] = LittleEndian.getInt(buf);
-		kRead(fil, buf, 4); daposz[0] = LittleEndian.getInt(buf);
-		kRead(fil, buf, 2); daang[0] = LittleEndian.getShort(buf);
-		kRead(fil, buf, 2); dacursectnum[0] = LittleEndian.getShort(buf);
+		daposx[0] = fil.readInt();
+		daposy[0] = fil.readInt();
+		daposz[0] = fil.readInt();
+		daang[0] = fil.readShort();
+		dacursectnum[0] = fil.readShort();
 		
 		int sizeof = 37;
-		kRead(fil, buf, 2); numsectors = LittleEndian.getShort(buf);
+		numsectors = fil.readShort();
 		byte[] sectors = new byte[sizeof*numsectors];
-		kRead(fil, sectors, sizeof* numsectors);
+		fil.read(sectors, sizeof* numsectors);
 		ByteBuffer bb = ByteBuffer.wrap(sectors);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
     	
@@ -1228,9 +1225,9 @@ public abstract class Engine {
 		}
 		
 		sizeof = WALL.sizeof;
-		kRead(fil, buf, 2); numwalls = LittleEndian.getShort(buf);
+		numwalls = fil.readShort();
 		byte[] walls = new byte[sizeof * numwalls];
-		kRead(fil, walls, sizeof * numwalls);
+		fil.read(walls, sizeof * numwalls);
 		bb = ByteBuffer.wrap(walls);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
 		
@@ -1259,9 +1256,9 @@ public abstract class Engine {
 		}
 
 		sizeof = 43;
-		kRead(fil, buf, 2); numsprites = LittleEndian.getShort(buf);
+		numsprites = fil.readShort();
 		byte[] sprites = new byte[sizeof*numsprites];
-		kRead(fil, sprites, sizeof*numsprites);
+		fil.read(sprites, sizeof*numsprites);
 
 		bb = ByteBuffer.wrap(sprites);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
@@ -1300,7 +1297,7 @@ public abstract class Engine {
 		//Must be after loading sectors, etc!
 		dacursectnum[0] = updatesector(daposx[0], daposy[0], (short) dacursectnum[0]);
 	
-		kClose(fil);
+		fil.close();
 
 		return 0;
 	}
@@ -1396,42 +1393,32 @@ public abstract class Engine {
 	
 	public void loadpic(String filename) //gdxBuild
 	{
-		int fil = -1; byte[] buf = new byte[4];
-		
-		if ((fil = kOpen(filename, 0)) != -1) {
-			kRead(fil, buf, 4);
-
-			artversion = LittleEndian.getInt(buf);
+		ResourceData fil = null; 
+		if ((fil = BuildGdx.cache.getData(filename, 0)) != null) {
+			artversion = fil.getInt();
 			if (artversion != 1)
 				return;
-			kRead(fil, buf, 4);
-			numtiles = LittleEndian.getInt(buf);
-			kRead(fil, buf, 4);
-			int localtilestart = LittleEndian.getInt(buf);
-			kRead(fil, buf, 4);
-			int localtileend = LittleEndian.getInt(buf);
+			numtiles = fil.getInt();
+			int localtilestart = fil.getInt();
+			int localtileend = fil.getInt();
 			
 			for (int i = localtilestart; i <= localtileend; i++) {
-				kRead(fil, buf, 2);
-				tilesizx[i] = LittleEndian.getShort(buf);
+				tilesizx[i] = fil.getShort();
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				kRead(fil, buf, 2);
-				tilesizy[i] = LittleEndian.getShort(buf);
+				tilesizy[i] = fil.getShort();
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				kRead(fil, buf, 4);
-				picanm[i] = LittleEndian.getInt(buf);
+				picanm[i] = fil.getInt();
 			}
 
 			for (int i = localtilestart; i <= localtileend; i++) {
 				int dasiz = tilesizx[i] * tilesizy[i];
 				waloff[i] = new byte[dasiz];
-				kRead(fil, waloff[i], dasiz);
+				fil.get(waloff[i], 0, dasiz);
 				setpicsiz(i);
 			}
-
-			kClose(fil);
+			fil.dispose();
 		}
 	}
 	
@@ -1447,14 +1434,14 @@ public abstract class Engine {
 		picsiz[tilenum] += (j << 4);
 	}
 
-	public synchronized int loadpics(String filename) { //jfBuild
+	public int loadpics(String filename) { //jfBuild
 		int offscount, localtilestart, localtileend, dasiz;
-		int fil, i, k;
+		int i, k;
 
 		buildString(artfilename, 0, filename);
 
 		numtilefiles = 0;
-		byte[] buf = new byte[4];
+		ResourceData fil = null;
 		do {
 			k = numtilefiles;
 
@@ -1463,29 +1450,23 @@ public abstract class Engine {
 			artfilename[5] = (char) (((k / 100) % 10) + 48);
 			String name = String.copyValueOf(artfilename);
 
-			if ((fil = kOpen(name, 0)) != -1) {
-				kRead(fil, buf, 4);
-				artversion = LittleEndian.getInt(buf);
+			if ((fil = BuildGdx.cache.getData(name, 0)) != null) {
+				artversion = fil.getInt();
 				if (artversion != 1)
 					return (-1);
-				kRead(fil, buf, 4);
-				numtiles = LittleEndian.getInt(buf);
-				kRead(fil, buf, 4);
-				localtilestart = LittleEndian.getInt(buf);
-				kRead(fil, buf, 4);
-				localtileend = LittleEndian.getInt(buf);
+
+				numtiles = fil.getInt();
+				localtilestart = fil.getInt();
+				localtileend = fil.getInt();
 
 				for (i = localtilestart; i <= localtileend; i++) {
-					kRead(fil, buf, 2);
-					tilesizx[i] = LittleEndian.getShort(buf);
+					tilesizx[i] = fil.getShort();
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					kRead(fil, buf, 2);
-					tilesizy[i] = LittleEndian.getShort(buf);
+					tilesizy[i] = fil.getShort();
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					kRead(fil, buf, 4);
-					picanm[i] = LittleEndian.getInt(buf);
+					picanm[i] = fil.getInt();
 				}
 				offscount = 4 + 4 + 4 + 4 + ((localtileend - localtilestart + 1) << 3);
 				for (i = localtilestart; i <= localtileend; i++) {
@@ -1494,25 +1475,25 @@ public abstract class Engine {
 					dasiz = tilesizx[i] * tilesizy[i];
 					offscount += dasiz;
 				}
-				kClose(fil);
 
 				numtilefiles++;
+				fil.dispose();
 			}
 		} while (k != numtilefiles);
 
 		for (i = 0; i < MAXTILES; i++)
 			setpicsiz(i);
 
-		if (artfil != -1)
-			kClose(artfil);
-		artfil = -1;
+		if (artfil != null)
+			artfil.close();
+		artfil = null;
 		artfilnum = -1;
 		artfilplc = 0;
 		
 		return (numtilefiles);
 	}
 
-	public synchronized byte[] loadtile(int tilenume) { //jfBuild
+	public byte[] loadtile(int tilenume) { //jfBuild
 		if (tilenume >= MAXTILES)
 			return null;
 		int dasiz = tilesizx[tilenume] * tilesizy[tilenume];
@@ -1523,8 +1504,8 @@ public abstract class Engine {
 		int i = tilefilenum[tilenume];
 
 		if (i != artfilnum) {
-			if (artfil != -1)
-				kClose(artfil);
+			if (artfil != null)
+				artfil.close();
 			artfilnum = (int) i;
 			artfilplc = 0;
 
@@ -1532,23 +1513,23 @@ public abstract class Engine {
 			artfilename[6] = (char) (((i / 10) % 10) + 48);
 			artfilename[5] = (char) (((i / 100) % 10) + 48);
 
-			artfil = kOpen(new String(artfilename), 0);
+			artfil = BuildGdx.cache.open(new String(artfilename), 0);
 
 			faketimerhandler();
 		}
 		
-		if(artfil == -1)
+		if(artfil == null)
 			return null;
 
 		if (waloff[tilenume] == null) 
 			waloff[tilenume] = new byte[dasiz];
 
 		if (artfilplc != tilefileoffs[tilenume]) {
-			klseek(artfil, tilefileoffs[tilenume] - artfilplc, SEEK_CUR);
+			artfil.seek(tilefileoffs[tilenume] - artfilplc, Whence.Current);
 			faketimerhandler();
 		}
 
-		if(kRead(artfil, waloff[tilenume], dasiz) == -1)
+		if(artfil.read(waloff[tilenume], dasiz) == -1)
 			return null;
 		
 		faketimerhandler();
@@ -2244,7 +2225,6 @@ public abstract class Engine {
 		Console.draw();
 		render.nextpage();
 		BuildGdx.audio.update();
-		FileIndicator = false;
 	}
 
 	public int neartag(int xs, int ys, int zs, short sectnum, short ange, Neartag near, int neartagrange, int tagsearch) { //jfBuild
@@ -3812,10 +3792,11 @@ public abstract class Engine {
 	
 	public String screencapture(String fn) { //jfBuild + gdxBuild (screenshot)
 		int a, b, c, d;
+		fn = fn.replaceAll("[^a-zA-Z0-9_. \\[\\]-]", "");
 		
 		fn = fn.substring(0, Bstrrchr(fn, '.') - 4);
 		
-		DirectoryEntry userdir = cache.checkDirectory("<userdir>");
+		DirectoryEntry userdir = BuildGdx.compat.getDirectory(Path.User);
 
 		int capturecount = 0;
 		do { // JBF 2004022: So we don't overwrite existing screenshots

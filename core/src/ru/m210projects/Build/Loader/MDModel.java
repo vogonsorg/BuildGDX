@@ -17,8 +17,6 @@ import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.timerticspersec;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.Loader.MDAnimation.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
@@ -29,6 +27,8 @@ import com.badlogic.gdx.graphics.Pixmap;
 
 import static ru.m210projects.Build.Gameutils.*;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.Types.GLFilter;
@@ -330,18 +330,19 @@ public abstract class MDModel extends Model {
 	    }
 
 	    texidx = null;
-	   
-	    if (!kExist(skinfile, 0))
+	    
+	    Resource res = BuildGdx.cache.open(skinfile, 0);
+	    if(res == null)
 	    {
 	    	Console.Println("Skin " + skinfile  + " not found.", OSDTEXT_YELLOW);
 	    	defs.mdInfo.removeModelInfo(this);
 	        skinfile = null;
 	        return null;
 	    }
-
+	    
 	    startticks = System.currentTimeMillis();
 	    try {
-	    	byte[] data = kGetBytes(skinfile, 0);
+	    	byte[] data = res.getBytes();
 			Pixmap pix = new Pixmap(data, 0, data.length);
 			texidx = new BTexture(pix, true); 
 	    	usesalpha = true;
@@ -350,6 +351,8 @@ public abstract class MDModel extends Model {
 	    	defs.mdInfo.removeModelInfo(this);
 	        skinfile = null;
 	    	return null;
+	    } finally {
+	    	res.close();
 	    }
 
 		setupBoundTexture(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());

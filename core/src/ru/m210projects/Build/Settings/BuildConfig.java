@@ -16,11 +16,7 @@
 
 package ru.m210projects.Build.Settings;
 
-import static ru.m210projects.Build.FileHandle.Compat.Bcheck;
-import static ru.m210projects.Build.FileHandle.Compat.Bclose;
-import static ru.m210projects.Build.FileHandle.Compat.Bopen;
-import static ru.m210projects.Build.FileHandle.Compat.Bwrite;
-import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 import static ru.m210projects.Build.Net.Mmulti.NETPORT;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
@@ -30,6 +26,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 
+import ru.m210projects.Build.FileHandle.Compat;
+import ru.m210projects.Build.FileHandle.Compat.Path;
+import ru.m210projects.Build.FileHandle.FileResource;
+import ru.m210projects.Build.FileHandle.FileResource.Mode;
 import ru.m210projects.Build.Input.ButtonMap;
 import ru.m210projects.Build.Input.Keymap;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -447,21 +447,23 @@ public abstract class BuildConfig extends IniFile {
 		}
 	}
 	
-	public void saveConfig(String path)
+	public void saveConfig(Compat compat, String path)
 	{
-		if(!isInited) 
+		if(!isInited) { //has saving from launcher
+			FileResource fil = compat.open(cfgPath + name, Path.Absolute, Mode.Write);
+			SaveUninited(fil);
+			fil.close();
 			return;
-		File file = Bcheck(cfgPath+name, "R");
-		if(file != null) 
-			file.delete();
-		int fil = Bopen(cfgPath+name, "RW");
+		}
+		
+		FileResource fil = compat.open(cfgPath + name, Path.Absolute, Mode.Write);
 		SaveMain(fil, path);
 		SaveCommon(fil);
 		SaveConfig(fil);
-		Bclose(fil);
+		fil.close();
 	}
 	
-	public void SaveCommon(int fil)
+	public void SaveCommon(FileResource fil)
 	{
 		saveString(fil, "[KeyDefinitions]\r\n");
 		for(int i = 0; i < keymap.length; i++) {
@@ -507,7 +509,7 @@ public abstract class BuildConfig extends IniFile {
 		saveString(fil, ";\r\n;\r\n");
 	}
 	
-	public void SaveMain(int fil, String path)
+	public void SaveMain(FileResource fil, String path)
 	{
 		saveString(fil, "[Main]\r\n");
 		saveInteger(fil, "ConfigVersion", cfgVersion);
@@ -517,7 +519,7 @@ public abstract class BuildConfig extends IniFile {
 		saveBoolean(fil, "UseHomeFolder", userfolder);
 		saveString(fil, "Path = ");
 			byte[] buf = path.getBytes(); //without this path can be distorted
-			Bwrite(fil, buf, buf.length);
+			fil.writeBytes(buf, buf.length);
 			
 		if(soundBank != null)	
 			saveString(fil, "\r\nSoundBank = " + soundBank.getAbsolutePath() + "\r\n");
@@ -569,7 +571,7 @@ public abstract class BuildConfig extends IniFile {
 		saveString(fil, ";\r\n;\r\n");
 	}
 
-	public abstract void SaveConfig(int fil);
+	public abstract void SaveConfig(FileResource fil);
 	
 	public abstract boolean InitConfig(boolean isDefault);
 	
@@ -638,26 +640,104 @@ public abstract class BuildConfig extends IniFile {
 		return -1;
 	}
 	
-	public void saveBoolean(int fil, String name, boolean var)
+	public void saveBoolean(FileResource fil, String name, boolean var)
 	{
 		String line =  name + " = " + (var?1:0) +"\r\n";
-		Bwrite(fil, line.toCharArray(), line.length());
+		fil.writeBytes(line.toCharArray(), line.length());
 	}
 	
-	public void saveInteger(int fil, String name, int var)
+	public void saveInteger(FileResource fil, String name, int var)
 	{
 		String line =  name + " = " + var +"\r\n";
-		Bwrite(fil, line.toCharArray(), line.length());
+		fil.writeBytes(line.toCharArray(), line.length());
 	}
 	
-	public void saveString(int fil, String text)
+	public void saveString(FileResource fil, String text)
 	{
-		Bwrite(fil, text.toCharArray(), text.length());
+		fil.writeBytes(text.toCharArray(), text.length());
 	}
 	
-	public void saveString(int fil, String name, String var)
+	public void saveString(FileResource fil, String name, String var)
 	{
 		String line =  name + " = " + var +"\r\n";
-		Bwrite(fil, line.toCharArray(), line.length());
+		fil.writeBytes(line.toCharArray(), line.length());
+	}
+	
+	public void SaveUninited(FileResource fil)
+	{
+		if(data == null) return;
+		
+		set("Main");
+		saveString(fil, "[Main]\r\n");
+		saveInteger(fil, "ConfigVersion", cfgVersion);
+		saveBoolean(fil, "Startup", startup);
+		saveBoolean(fil, "CheckNewVersion", checkVersion);
+		saveBoolean(fil, "AutoloadFolder", autoloadFolder);
+		saveBoolean(fil, "UseHomeFolder", userfolder);
+		saveString(fil, "Path = ");
+			byte[] buf = path.getBytes(); //without this path can be distorted
+			fil.writeBytes(buf, buf.length);
+			
+		if(soundBank != null)	
+			saveString(fil, "\r\nSoundBank = " + soundBank.getAbsolutePath() + "\r\n");
+		else saveString(fil, "\r\nSoundBank = \r\n");
+
+		saveInteger(fil, "OSDTextScale", GetKeyInt("OSDTextScale"));
+		saveBoolean(fil, "UseVoxels", GetKeyInt("UseVoxels") == 1);
+		saveBoolean(fil, "UseModels", GetKeyInt("UseModels") == 1);
+		saveBoolean(fil, "UseHightiles", GetKeyInt("UseHightiles") == 1);
+		
+		saveString(fil,  "Player_name", GetKeyString("Player_name"));	
+		saveString(fil,  "IP_Address", GetKeyString("IP_Address"));
+		saveInteger(fil, "Port", GetKeyInt("Port"));
+		saveString(fil, ";\r\n;\r\n");
+		
+		set("ScreenSetup");
+		saveString(fil, "[ScreenSetup]\r\n");
+		//Screen Setup	
+		saveString(fil,  "Render", renderType.getName());	
+		saveInteger(fil, "Fullscreen", fullscreen);
+		saveInteger(fil, "ScreenWidth", ScreenWidth);
+		saveInteger(fil, "ScreenHeight", ScreenHeight);
+		saveBoolean(fil, "BorderlessMode", borderless);
+		saveBoolean(fil, "VSync", GetKeyInt("VSync") == 1);
+		saveInteger(fil, "FPSLimit", GetKeyInt("FPSLimit"));
+		saveInteger(fil, "GLFilterMode", GetKeyInt("GLFilterMode"));
+		saveInteger(fil, "GLAnisotropy", GetKeyInt("GLAnisotropy"));
+		saveInteger(fil, "WideScreen", GetKeyInt("WideScreen"));
+		saveInteger(fil, "FieldOfView", GetKeyInt("FieldOfView"));
+		saveInteger(fil, "FpsScale", GetKeyInt("FpsScale"));
+
+		saveInteger(fil, "GLGamma", GetKeyInt("GLGamma"));
+		saveInteger(fil, "GLBrightness", GetKeyInt("GLBrightness"));
+		saveInteger(fil, "GLContrast", GetKeyInt("GLContrast"));
+		saveInteger(fil, "PaletteGamma", GetKeyInt("PaletteGamma"));
+		saveBoolean(fil, "ShowFPS", GetKeyInt("ShowFPS") == 1);
+		saveString(fil, ";\r\n;\r\n");
+
+		set("SoundSetup");
+		saveString(fil, "[SoundSetup]\r\n");
+		//Sound Setup
+
+		saveBoolean(fil, "NoSound", GetKeyInt("NoSound") == 1);
+		saveBoolean(fil, "NoMusic", GetKeyInt("NoMusic") == 1);
+		saveInteger(fil, "SoundDriver", snddrv);
+		
+		saveInteger(fil, "MidiDriver", middrv);
+		saveInteger(fil, "MidiSynth", midiSynth);
+		saveInteger(fil, "MusicType", GetKeyInt("MusicType"));
+		saveInteger(fil, "SoundVolume", GetKeyInt("SoundVolume"));
+		saveInteger(fil, "MaxVoices", GetKeyInt("MaxVoices"));
+		saveInteger(fil, "Resampler", GetKeyInt("Resampler"));
+		saveInteger(fil, "MusicVolume", GetKeyInt("MusicVolume"));
+		saveString(fil, ";\r\n;\r\n");
+		
+		String gamePart = new String(data);
+		int index = gamePart.indexOf("[KeyDefinitions]");
+		if(index != -1)
+		{
+			gamePart = gamePart.substring(index);
+			fil.writeBytes(gamePart.toCharArray(), gamePart.length());
+		}
 	}
 }

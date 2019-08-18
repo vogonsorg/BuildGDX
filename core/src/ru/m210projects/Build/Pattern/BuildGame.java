@@ -16,8 +16,7 @@
 
 package ru.m210projects.Build.Pattern;
 
-import static ru.m210projects.Build.FileHandle.Compat.FilePath;
-import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 import static ru.m210projects.Build.Net.Mmulti.myconnectindex;
 import static ru.m210projects.Build.Net.Mmulti.numplayers;
 import static ru.m210projects.Build.OnSceenDisplay.Console.CloseLogFile;
@@ -34,6 +33,7 @@ import com.badlogic.gdx.Screen;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -117,7 +117,7 @@ public abstract class BuildGame extends Game {
 	
 	@Override
 	public void dispose() {
-		pCfg.saveConfig(FilePath);
+		pCfg.saveConfig(BuildGdx.compat, Path.Game.getPath());
 		if(getScreen() instanceof InitScreen)
 			((InitScreen) getScreen()).dispose();
 		if(numplayers > 1)

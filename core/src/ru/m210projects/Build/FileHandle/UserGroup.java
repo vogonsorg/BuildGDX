@@ -1,0 +1,202 @@
+//This file is part of BuildGDX.
+//Copyright (C) 2019  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+//BuildGDX is free software: you can redistribute it and/or modify
+//it under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//BuildGDX is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+//
+//You should have received a copy of the GNU General Public License
+//along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
+package ru.m210projects.Build.FileHandle;
+
+import ru.m210projects.Build.FileHandle.Compat.Path;
+import ru.m210projects.Build.FileHandle.FileEntry;
+import ru.m210projects.Build.FileHandle.FileResource.Mode;
+
+public class UserGroup extends Group {
+	
+	private class UserResource extends GroupResource {
+
+		public final FileEntry entry;
+		public FileResource fil;
+		
+		public UserResource(FileEntry file, int fileid) {
+			super(UserGroup.this);
+
+			this.handleName(file.getName());
+
+			this.entry = file;
+			this.fileid = fileid;
+			this.fil = null;
+		}
+		
+		@Override
+		public int size() {
+			if(fil != null)
+				return fil.size();
+			
+			return size;
+		}
+
+		@Override
+		public void close() {
+			synchronized(parent) {
+				if(fil != null)
+					fil.close();
+			}
+		}
+
+		@Override
+		public int seek(long offset, Whence whence) {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.seek(offset, whence);
+				
+				return -1;
+			}
+		}
+
+		@Override
+		public int read(byte[] buf, int len) {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.read(buf, len);
+				
+				return -1;
+			}
+		}
+		
+		@Override
+		public int read(byte[] buf) {
+			synchronized(parent) {
+				return read(buf, buf.length);
+			}
+		}
+
+		@Override
+		public Byte readByte() {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.readByte();
+				
+				return null;
+			}
+		}
+		
+		@Override
+		public Short readShort() {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.readShort();
+				
+				return null;
+			}
+		}
+		
+		@Override
+		public Integer readInt() {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.readInt();
+				
+				return null;
+			}
+		}
+		
+		@Override
+		public String readString(int len)
+		{
+			synchronized(parent) {
+				if(fil != null)
+					return fil.readString(len);
+				
+				return null;
+			}
+		}
+
+		@Override
+		public int position() {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.position();
+				
+				return -1;
+			}
+		}
+
+		@Override
+		public ResourceData getData() {
+			synchronized(parent) {
+				if(isClosed())
+					parent.open(this);
+				
+				if(fil != null)
+					return fil.getData();
+				
+				return null;
+			}
+		}
+
+		@Override
+		public byte[] getBytes() {
+			synchronized(parent) {
+				if(isClosed())
+					parent.open(this);
+				
+				if(fil != null)
+					return fil.getBytes();
+				
+				return null;
+			}
+		}
+
+		@Override
+		public boolean isClosed() {
+			if(fil != null)
+				return fil.isClosed();
+			return true;
+		}	
+	}
+
+	private Compat compat;
+	protected UserGroup(Compat compat)
+	{
+		this.compat = compat;
+	}
+	
+	@Override
+	protected boolean open(GroupResource res) {
+		if(res != null) {
+			if(res instanceof UserResource)
+			{
+				UserResource userres = (UserResource) res;
+				if(userres.fil == null)
+					userres.fil = compat.open(userres.entry.getPath(), Path.Game, Mode.Read);
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public int position() {
+		return -1;
+	}
+
+	public boolean add(FileEntry entry, int fileid) {
+		if(entry == null) return false;
+
+		add(new UserResource(entry, fileid));
+		numfiles++;
+		
+		return true;
+	}
+
+}

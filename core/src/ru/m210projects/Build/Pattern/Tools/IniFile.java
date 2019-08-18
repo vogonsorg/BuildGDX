@@ -16,7 +16,7 @@
 
 package ru.m210projects.Build.Pattern.Tools;
 
-import static ru.m210projects.Build.FileHandle.Compat.*;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 import java.io.StringReader;
 import java.util.ArrayList;

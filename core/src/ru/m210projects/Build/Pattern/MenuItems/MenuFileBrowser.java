@@ -3,7 +3,6 @@ package ru.m210projects.Build.Pattern.MenuItems;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Compat.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.FileEntry;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 
 public class MenuFileBrowser extends MenuItem {
 	
@@ -82,7 +82,7 @@ public class MenuFileBrowser extends MenuItem {
 		this.l_nFocus = new int[2];
 		this.currColumn = FILE;
 
-		changeDir(cache);
+		changeDir(BuildGdx.compat.getDirectory(Path.Game));
 	}
 	
 	private BrowserFileType mapType;

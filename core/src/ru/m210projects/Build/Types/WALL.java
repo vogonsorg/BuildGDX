@@ -16,6 +16,8 @@ import static ru.m210projects.Build.Engine.MAXWALLS;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+
 public class WALL {
 	public static final int sizeof = 32;
 	private static final ByteBuffer buffer = ByteBuffer.allocate(sizeof).order( ByteOrder.LITTLE_ENDIAN);
@@ -30,13 +32,10 @@ public class WALL {
 	public WALL() {}
 	
 	public WALL(byte[] data) {
-		ByteBuffer bb = ByteBuffer.wrap(data);
-    	bb.order( ByteOrder.LITTLE_ENDIAN);
-    	
-    	buildWall(bb);
+    	buildWall(new ResourceData(data));
 	}
 	
-	public void buildWall(ByteBuffer bb)
+	public void buildWall(ResourceData bb)
 	{
 		x = bb.getInt();
     	y = bb.getInt();

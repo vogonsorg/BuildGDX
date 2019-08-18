@@ -15,6 +15,8 @@ import static ru.m210projects.Build.Engine.MAXWALLS;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+
 public class SECTOR {
 	public static final int sizeof = 40;
 	private static final ByteBuffer buffer = ByteBuffer.allocate(sizeof).order( ByteOrder.LITTLE_ENDIAN);
@@ -34,13 +36,10 @@ public class SECTOR {
 	public SECTOR() { }
 	
 	public SECTOR(byte[] data) {
-		ByteBuffer bb = ByteBuffer.wrap(data);
-    	bb.order( ByteOrder.LITTLE_ENDIAN);
-    	
-    	buildSector(bb);
+    	buildSector(new ResourceData(data));
 	}
 	
-	public void buildSector(ByteBuffer bb)
+	public void buildSector(ResourceData bb)
 	{
 		wallptr = bb.getShort();
 		if(wallptr < 0 || wallptr >= MAXWALLS) wallptr = 0;

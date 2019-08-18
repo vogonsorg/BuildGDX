@@ -5,16 +5,17 @@ import static ru.m210projects.Build.Engine.picanm;
 import static ru.m210projects.Build.Engine.tilesizx;
 import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.waloff;
-import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.FileEntry;
-import ru.m210projects.Build.FileHandle.IResource.RESHANDLE;
+import ru.m210projects.Build.FileHandle.Group;
+import ru.m210projects.Build.FileHandle.GroupResource;
+import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Script.DefScript;
 
@@ -31,7 +32,7 @@ public abstract class ResourceHandler {
 		}
 	}
 
-	protected int usergroup;
+	protected Group usergroup;
 	protected boolean usecustomarts;
 	protected BuildGame game;
 	protected UserResource[] resources;
@@ -46,21 +47,21 @@ public abstract class ResourceHandler {
 	
 	public abstract void searchEpisodeResources(DirectoryEntry cache);
 	
-	public abstract void prepareusergroup(int group, boolean removable) throws Exception;
+	public abstract void prepareusergroup(Group group, boolean removable) throws Exception;
 	
-	public int getUserGroup()
+	public Group getUserGroup()
 	{
-		if(usergroup == -1)
-			usergroup = kGroupNew("User", true);
+		if(usergroup == null)
+			usergroup = BuildGdx.cache.add("User", true);
 		
 		return usergroup;
 	}
 	
 	public void resetEpisodeResources()
 	{
-		kDynamicClear();
+		BuildGdx.cache.clearDynamicResources();
 
-		usergroup = -1;
+		usergroup = null;
 		if(!usecustomarts)
 			return; 
 
@@ -71,7 +72,7 @@ public abstract class ResourceHandler {
 		Arrays.fill(waloff, 0, MAXTILES, null);
 		
 		if(game.pEngine.loadpics("tiles000.art") == 0) {
-			game.ThrowError("ART files not found " + new File(FilePath + "TILES###.ART").getAbsolutePath());
+			game.ThrowError("ART files not found " + new File(Path.Game.getPath() + "TILES###.ART").getAbsolutePath());
 			System.exit(0);
 		}
 
@@ -82,16 +83,17 @@ public abstract class ResourceHandler {
 	    usecustomarts = false;
 	}
 
-	protected void initGroupResources(List<RESHANDLE> list)
+	protected void initGroupResources(List<GroupResource> list)
 	{
-		for(RESHANDLE res : list) {
-			if(res.fileformat.equals("art")) {
-				game.pEngine.loadpic(res.filename);
+		for(Resource res : list) {
+			GroupResource gres = (GroupResource) res;
+			if(gres.getExtension().equals("art")) {
+				game.pEngine.loadpic(gres.getFullName());
 				usecustomarts = true;
 			}
 			for(int i = 0; i < resources.length; i++)
-				if(res.fileformat.equals(resources[i].format))
-					resources[i].execute(res.filename);
+				if(gres.getExtension().equals(resources[i].format))
+					resources[i].execute(gres.getFullName());
 		}
 	}
 	
@@ -102,8 +104,8 @@ public abstract class ResourceHandler {
 		if(pkg != null) //packaged addon
 		{
 			try {
-				int gr = initgroupfile(pkg.getPath());
-				setgroupflags(gr, true, true);
+				Group gr = BuildGdx.cache.add(pkg.getPath());
+				gr.setFlags(true, true);
 				prepareusergroup(gr, true); //init other group-files and apply rfs scripts to the group
 			} catch(Exception e) { 
 				game.GameMessage("Error found in " + pkg.getName() + "\r\n" + e.getMessage()); 
@@ -121,6 +123,6 @@ public abstract class ResourceHandler {
 			addonScript = new DefScript(game.baseDef);
 
 		//Loading user package files
-		initGroupResources(kDynamicList());
+		initGroupResources(BuildGdx.cache.getDinamicResources());
 	}
 }

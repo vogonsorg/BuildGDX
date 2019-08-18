@@ -19,7 +19,6 @@ package ru.m210projects.Build.Pattern.ScreenAdapters;
 import static ru.m210projects.Build.Engine.fullscreen;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
-import static ru.m210projects.Build.FileHandle.Cache1D.initgroupfile;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 
 import com.badlogic.gdx.ScreenAdapter;
@@ -38,6 +37,7 @@ import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
 import ru.m210projects.Build.Types.MemLog;
+import ru.m210projects.Build.Types.ThreadProcessor;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
 public class InitScreen extends ScreenAdapter {
@@ -111,7 +111,7 @@ public class InitScreen extends ScreenAdapter {
 
 		for(int i = 0; i < factory.resources.length; i++) {
 			try {
-				initgroupfile(factory.resources[i]);
+				BuildGdx.cache.add(factory.resources[i]);
 			} catch (Exception e) { 
 				BuildGdx.message.show("Init error!", "Resource initialization error!", MessageType.Info);
 				BuildGdx.app.exit();
@@ -175,6 +175,8 @@ public class InitScreen extends ScreenAdapter {
 					BuildSettings.usenewaspect.set(cfg.widescreen == 1);
 					BuildSettings.fov.set(cfg.gFov);
 					BuildSettings.fpsLimit.set(cfg.fpslimit);
+					
+					BuildGdx.threads = new ThreadProcessor();
 		
 					gameInitialized = game.init();
 					

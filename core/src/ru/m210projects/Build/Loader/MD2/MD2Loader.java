@@ -16,15 +16,14 @@
 
 package ru.m210projects.Build.Loader.MD2;
 
-import java.nio.ByteBuffer;
-
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.Loader.Model;
 
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class MD2Loader {	
 
-	public static Model load(ByteBuffer bb) {
+	public static Model load(ResourceData bb) {
 		MD2Header header = loadHeader(bb);
 		
 		if ((header.ident != 0x32504449) || (header.version != 8)) return null; //"IDP2"
@@ -66,7 +65,7 @@ public class MD2Loader {
 	}
 
 	private static final byte[] charBuffer = new byte[16];
-	private static MD2Frame[] loadFrames (MD2Header header, ByteBuffer bb) {
+	private static MD2Frame[] loadFrames (MD2Header header, ResourceData bb) {
 		bb.position(header.offsetFrames);
 		MD2Frame[] frames = new MD2Frame[header.numFrames];
 		
@@ -100,7 +99,7 @@ public class MD2Loader {
 		return frames;
 	}
 
-	private static MD2Triangle[] loadTriangles (MD2Header header, ByteBuffer bb) {
+	private static MD2Triangle[] loadTriangles (MD2Header header, ResourceData bb) {
 		
 		bb.position(header.offsetTriangles);
 		MD2Triangle[] triangles = new MD2Triangle[header.numTriangles];
@@ -119,7 +118,7 @@ public class MD2Loader {
 		return triangles;
 	}
 
-	private static float[] loadTexCoords (MD2Header header,ByteBuffer bb) {
+	private static float[] loadTexCoords (MD2Header header,ResourceData bb) {
 		bb.position(header.offsetTexCoords);
 		float[] texCoords = new float[header.numTexCoords * 2];
 		float width = header.skinWidth;
@@ -134,7 +133,7 @@ public class MD2Loader {
 		return texCoords;
 	}
 
-	private static MD2Header loadHeader (ByteBuffer bb) {
+	private static MD2Header loadHeader (ResourceData bb) {
 		MD2Header header = new MD2Header();
 
 		header.ident = bb.getInt();
@@ -158,7 +157,7 @@ public class MD2Loader {
 		return header;
 	}
 	
-	public static int[] loadGLCommands(MD2Header header, ByteBuffer bb)
+	public static int[] loadGLCommands(MD2Header header, ResourceData bb)
 	{
 		bb.position(header.offsetGLCommands);
 		int[] glcmds = new int[header.numGLCommands];
