@@ -48,6 +48,7 @@ public abstract class GroupResource implements Resource {
 	public GroupResource(Group parent)
 	{
 		this.parent = parent;
+		this.fileid = -1;
 	}
 	
 	@Override
