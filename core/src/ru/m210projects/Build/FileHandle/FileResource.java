@@ -203,7 +203,7 @@ public class FileResource implements Resource {
 	    }
 	}
 
-	public ResourceData read(int len) {
+	public ResourceData read(int len, final Runnable dispose) {
 		ResourceData out = null;
 		if(isClosed()) return null;
 		
@@ -211,7 +211,16 @@ public class FileResource implements Resource {
 			FileChannel ch = raf.getChannel();
 			long pos = ch.position();
 			
-			out = new ResourceData(raf.getChannel().map(FileChannel.MapMode.READ_ONLY, pos, len));
+			if(dispose != null) {
+				out = new ResourceData(raf.getChannel().map(FileChannel.MapMode.READ_ONLY, pos, len)) {
+					@Override
+					public void dispose()
+					{
+						dispose.run();
+						super.dispose();
+					}
+				};
+			} else out = new ResourceData(raf.getChannel().map(FileChannel.MapMode.READ_ONLY, pos, len));
 			ch.position(pos + len);
 		} catch (EOFException e) {
 	    	return null;

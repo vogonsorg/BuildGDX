@@ -202,7 +202,12 @@ public class RffGroup extends Group {
 					}
 					
 					if(file instanceof FileResource) {
-						ResourceData fileData = ((FileResource)file).read(size);
+						ResourceData fileData = ((FileResource)file).read(size, new Runnable() {
+							@Override
+							public void run() {
+								flush();
+							}
+						});
 						if(fileData == null)
 						{
 							Console.Println("Error loading resource!");

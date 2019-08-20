@@ -193,7 +193,12 @@ public class GrpGroup extends Group {
 					}
 					
 					if(file instanceof FileResource) {
-						if((buffer = ((FileResource)file).read(size)) == null) {
+						if((buffer = ((FileResource)file).read(size, new Runnable() {
+							@Override
+							public void run() {
+								flush();
+							}
+						})) == null) {
 							Console.Println("Error loading resource!");
 							return null;
 						}

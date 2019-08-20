@@ -22,13 +22,13 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.CRC32;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Filter;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.utils.Disposable;
 
+import ru.m210projects.Build.CRC32;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.FileEntry;
@@ -49,13 +49,12 @@ public class DefScript implements Disposable {
 	public ModelInfo mdInfo;
 	public AudioInfo audInfo;
 	private Engine engine;
-	private CRC32 crc32;
-	
+
 	class DefTile {
 		long crc32;
 		byte[] waloff;
-		short sizx, sizy;
-		int picanm;
+		short sizx, sizy, oldx, oldy;
+		int picanm, oldanm;
 		String hrp;
 		byte alphacut;
 		
@@ -68,6 +67,9 @@ public class DefScript implements Disposable {
 			this.sizx = src.sizx;
 			this.sizy = src.sizy;
 			this.picanm = src.picanm;
+			this.oldx = src.oldx;
+			this.oldy = src.oldy;
+			this.oldanm = src.oldanm;
 			this.hrp = src.hrp;
 			this.alphacut = src.alphacut;
 
@@ -100,7 +102,6 @@ public class DefScript implements Disposable {
 		this.texInfo = new TextureHDInfo(src.texInfo);
 		this.mdInfo = new ModelInfo(src.mdInfo, src.disposable);
 		this.audInfo = new AudioInfo(src.audInfo);
-		this.crc32 = new CRC32();
 		this.engine = src.engine;
 		for(int i = 0; i < MAXTILES; i++) {
 			if(src.tiles[i] == null) continue;
@@ -114,7 +115,6 @@ public class DefScript implements Disposable {
 		texInfo = new TextureHDInfo();
 		mdInfo = new ModelInfo();
 		audInfo = new AudioInfo();
-		this.crc32 = new CRC32();
 	}
 
 	protected int modelskin = -1, lastmodelskin = -1, seenframe = 0;
@@ -470,6 +470,9 @@ public class DefScript implements Disposable {
 		
 		DefTile deftile = new DefTile(xsiz, ysiz, crc32);
 		deftile.waloff = new byte[xsiz * ysiz];
+		deftile.oldanm = picanm[tile];
+		deftile.oldx = tilesizx[tile];
+		deftile.oldy = tilesizy[tile];
 
 		ByteBuffer bb = pix.getPixels();
 		byte[] waloff = deftile.waloff;
@@ -568,7 +571,10 @@ public class DefScript implements Disposable {
             // tilefromtexture <tile> { texhitscan }  sets the bit but doesn't change tile data
         	
         	DefTile deftile = new DefTile(tilesizx[tile], tilesizy[tile], tilecrc);
-
+        	deftile.oldanm = picanm[tile];
+    		deftile.oldx = tilesizx[tile];
+    		deftile.oldy = tilesizy[tile];
+    		
             if (havexoffset) {
             	deftile.picanm &= ~0x0000FF00;
             	deftile.picanm |= (xoffset & 0xFF) << 8;
@@ -608,9 +614,10 @@ public class DefScript implements Disposable {
     	if(def != null && def.crc32 != 0) {
     		def = tiles[tile].getLast();
     		def.next = texstatus;
-    	} else if(def == null) {
+    	} else if(def == null || disposable) {
     		tiles[tile] = texstatus;
-    	} else Console.Println("Error: \"" + fn +  "\" has more than one tile, in tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
+    	} else 	
+    		Console.Println("Error: \"" + fn +  "\" has more than one tile, in tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
 	}
 	
 	private void defsparser(Scriptfile script)
@@ -1095,7 +1102,6 @@ public class DefScript implements Disposable {
                     break;
                 }
                
-
                 while (script.textptr < vmodelend)
                 {
                     switch (gettoken(script, voxeltokens))
@@ -1109,7 +1115,6 @@ public class DefScript implements Disposable {
                     		break;
                     	case TILE0:
                     		tile0 = script.getsymbol();
-                    		mdInfo.addVoxelInfo(vox, tile0);
                             break; //1st tile #
 
                         case TILE1:
@@ -1288,38 +1293,37 @@ public class DefScript implements Disposable {
 		{
 			if(tiles[i] == null) continue;
 
+			texInfo.remove(i, 0);
+
 			DefTile tile = tiles[i];
 	        if(tile.crc32 != 0)
 	        {
 	        	byte[] data = waloff[i];
 	        	if(data == null)
 	        		data = engine.loadtile(i);
-	        	
-	        	crc32.reset();
-	        	crc32.update(data);
-				if(crc32.getValue() != tile.crc32)
+
+				if(CRC32.getChecksum(data) != tile.crc32)
 				{
 					boolean found = false;
 					while(tile.next != null)
 					{
 						tile = tile.next;
-						if(crc32.getValue() == tile.crc32) {
+						if(tile.crc32 == 0 || CRC32.getChecksum(data) == tile.crc32) {
 							found = true;
 							break;
 						}	
 					}
 					
-					if(!found) return;
+					if(!found) continue;
 				}
 	        }
-			
+
 			waloff[i] = new byte[tile.waloff.length];
 			System.arraycopy(tile.waloff, 0, waloff[i], 0, tile.waloff.length);
 
 			tilesizx[i] = tile.sizx;
 			tilesizy[i] = tile.sizy;
 			picanm[i] = tile.picanm;
-			
 			engine.setpicsiz(i);
 			
 			//replace hrp info
@@ -1331,6 +1335,21 @@ public class DefScript implements Disposable {
 	public void dispose()
 	{
 		if(!disposable) return;
+		
+		for(int i = 0; i < MAXTILES; i++)
+		{
+			if(tiles[i] == null) continue;
+			
+			texInfo.remove(i, 0);
+			
+			tilesizx[i] = tiles[i].oldx;
+			tilesizy[i] = tiles[i].oldy;
+			picanm[i] = tiles[i].oldanm;
+			engine.setpicsiz(i);
+			
+			waloff[i] = null;
+			tiles[i] = null;
+		}
 
 		mdInfo.dispose();
 	}

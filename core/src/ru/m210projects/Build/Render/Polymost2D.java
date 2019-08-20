@@ -951,7 +951,7 @@ public class Polymost2D extends OrphoRenderer {
 			int cx1, int cy1, int cx2, int cy2, int uniqid) {
 
 		int ourxyaspect = xyaspect;
-		if (GLSettings.useModels.get() && parent.defs != null && parent.defs.mdInfo.getHudInfo(picnum, dastat).angadd != 0) {
+		if (GLSettings.useModels.get() && parent.defs != null && parent.defs.mdInfo.getHudInfo(picnum, dastat) != null && parent.defs.mdInfo.getHudInfo(picnum, dastat).angadd != 0) {
 			Tile2model entry = parent.defs != null ? parent.defs.mdInfo.getParams(picnum) : null;
 			if (entry.model != null && entry.framenum >= 0) {
 				dorotatesprite3d(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2, uniqid);
@@ -1236,8 +1236,9 @@ public class Polymost2D extends OrphoRenderer {
 		if (hudsprite == null)
 			hudsprite = new SPRITE();
 		hudsprite.reset((byte) 0);
-
-		if (parent.defs == null || (parent.defs.mdInfo.getHudInfo(picnum, dastat).flags & 1) != 0)
+		
+		Hudtyp hudInfo = null;
+		if (parent.defs == null || ((hudInfo = parent.defs.mdInfo.getHudInfo(picnum, dastat)) != null && (hudInfo.flags & 1) != 0))
 			return; // "HIDE" is specified in DEF
 
 		float ogchang = parent.gchang;
@@ -1257,8 +1258,6 @@ public class Polymost2D extends OrphoRenderer {
 		parent.gxyaspect = 1.0f;
 		oldviewingrange = viewingrange;
 		viewingrange = 65536;
-
-		Hudtyp hudInfo = parent.defs.mdInfo.getHudInfo(picnum, dastat);
 
 		x1 = hudInfo.xadd;
 		y1 = hudInfo.yadd;
