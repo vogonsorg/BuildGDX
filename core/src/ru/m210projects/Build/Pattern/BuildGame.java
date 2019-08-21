@@ -45,6 +45,7 @@ import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.LittleEndian;
+import ru.m210projects.Build.Types.MemLog;
 
 public abstract class BuildGame extends Game {
 	
@@ -139,6 +140,14 @@ public abstract class BuildGame extends Game {
 			if(!gExit)
 				super.render();
 			else BuildGdx.app.exit();
+		} catch (OutOfMemoryError me) {
+			System.gc();
+			
+			me.printStackTrace();
+			String message = "Memory used: [ " + MemLog.used() + " / " + MemLog.total() + " mb ] \r\nPlease, increase the java's heap size.";
+			Console.Println(message, Console.OSDTEXT_RED);
+			BuildGdx.message.show("OutOfMemory!", message, MessageType.Info);
+			System.exit(1);
 		} catch (Throwable e) {
 			if (!release) {
 			e.printStackTrace();
@@ -337,15 +346,18 @@ public abstract class BuildGame extends Game {
 			String text = Console.GetLog();
 			text += "\r\n";
 			text += "Screen: " + getScrName() + "\r\n";
-			text += "Renderer: " + pEngine.getrender().getType().getName() + "\r\n";
-			
-			try {
-				String report = reportData();
-				if(report != null && !report.isEmpty())
-					text += report;
-			} catch (Exception e) { text+= "Crash in reportData: " + e.getMessage() + "\r\n"; } 
+			if(gPrevScreen != null)
+				text += "PrevScreen: " + gPrevScreen.getClass().getSimpleName() + "\r\n";
+			if(pEngine.getrender() != null)
+				text += "Renderer: " + pEngine.getrender().getType().getName() + "\r\n";
 			
 			os.write(text.getBytes());
+			try {
+				byte[] report = reportData();
+				if(report != null)
+					os.write(report);
+			} catch (Exception e) { text+= "Crash in reportData: " + e.getMessage() + "\r\n"; } 
+
 			os.close();
 		} 
 		catch (UnknownHostException e)
@@ -356,6 +368,6 @@ public abstract class BuildGame extends Game {
 		} 
 	}
 	
-	protected abstract String reportData();
+	protected abstract byte[] reportData();
 	
 }

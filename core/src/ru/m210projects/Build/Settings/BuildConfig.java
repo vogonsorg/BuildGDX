@@ -208,13 +208,13 @@ public abstract class BuildConfig extends IniFile {
 		byte[] data = null;
 		
 		try {
-			RandomAccessFile raf = new RandomAccessFile(path + name, "r");
+			RandomAccessFile raf = new RandomAccessFile(path + this.name, "r");
 			data = new byte[(int)raf.length()];
 			raf.read(data);
 			init(data);
 			raf.close();
 		} catch(FileNotFoundException e) { 
-			Console.Println("File not found: " + path + name, OSDTEXT_YELLOW);
+			Console.Println("File not found: " + path + this.name, OSDTEXT_YELLOW);
 		} catch (IOException e) {
 			Console.Println("Read file error: " + e.getMessage(), OSDTEXT_YELLOW);
 		}

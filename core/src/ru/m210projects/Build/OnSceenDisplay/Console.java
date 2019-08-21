@@ -9,6 +9,7 @@ package ru.m210projects.Build.OnSceenDisplay;
 
 import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 
 import java.io.ByteArrayOutputStream;
@@ -345,7 +346,7 @@ public class Console {
 		logfile = null;
 
 		if (fn != null) 
-			logfile = BuildGdx.compat.open(fn, Path.User, Mode.Write);
+			logfile = BuildGdx.compat.open(toLowerCase(fn), Path.User, Mode.Write);
 	}
 	
 	public static void CloseLogFile()
@@ -878,7 +879,7 @@ public class Console {
 
 		osd_argc++;
 		Arrays.fill(osd_argv, null);
-		String osdvar = text.toLowerCase().trim();
+		String osdvar = toLowerCase(text).trim();
 		osd_argv[osd_argc-1] = osdvar;
     	String var = null;
     	int index = osdvar.indexOf(" ");

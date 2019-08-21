@@ -23,16 +23,20 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import com.badlogic.gdx.Graphics.DisplayMode;
+
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage;
 
 public class DesktopMessage implements BuildMessage {
 	private JOptionPane frame;
 	private URL icon;
+	private boolean update;
 	
-	public DesktopMessage(URL icon)
+	public DesktopMessage(URL icon, boolean update)
 	{
 		this.icon = icon;
+		this.update = update;
 	}
 	
 	@Override
@@ -46,10 +50,17 @@ public class DesktopMessage implements BuildMessage {
 			message += "...";
 		}
 
-//		if(Gdx.graphics != null) {
-//			Gdx.graphics.setWindowedMode(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-//			cfg.fullscreen = 0;
-//		}
+		DisplayMode fullscreen = null;
+		if(BuildGdx.graphics != null && BuildGdx.graphics.isFullscreen()) {
+			fullscreen = BuildGdx.graphics.getDisplayMode();
+			BuildGdx.graphics.setWindowedMode(BuildGdx.graphics.getWidth(), BuildGdx.graphics.getHeight());
+		}
+		
+		if(update)
+		{
+			message = "You are using the old version of BuildGdx and have to update it! \r\n \r\n \r\n" + message;
+			type = MessageType.Info;
+		}
 
 		switch(type)
 		{
@@ -73,6 +84,9 @@ public class DesktopMessage implements BuildMessage {
 	        dialog.setVisible(true);
 	        dialog.dispose();
 	        
+	        if(fullscreen != null)
+	        	BuildGdx.graphics.setFullscreenMode(fullscreen);
+	        
 	        Object selectedValue = frame.getValue();
 	        if (selectedValue instanceof Integer) {
 	        	if(((Integer)selectedValue).intValue() == JOptionPane.YES_OPTION)
@@ -83,7 +97,7 @@ public class DesktopMessage implements BuildMessage {
 		case Info:
 			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
 			frame.setMessage(message);
-			frame.setOptionType(JOptionPane.DEFAULT_OPTION);
+			frame.setOptionType(JOptionPane.DEFAULT_OPTION);		
 			final JDialog dlog = frame.createDialog(header);
 			if(icon != null)
 				dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
@@ -93,6 +107,9 @@ public class DesktopMessage implements BuildMessage {
 			dlog.setAlwaysOnTop(true);
 			dlog.setVisible(true);
 			dlog.dispose();
+			
+			if(fullscreen != null)
+	        	BuildGdx.graphics.setFullscreenMode(fullscreen);
 			
 			return false;
 		}

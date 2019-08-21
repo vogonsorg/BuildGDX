@@ -181,8 +181,17 @@ public class InitScreen extends ScreenAdapter {
 					gameInitialized = game.init();
 					
 					ConsoleInit();
+				} catch (OutOfMemoryError me) {
+					System.gc();
+					
+					me.printStackTrace();
+					String message = "Memory used: [ " + MemLog.used() + " / " + MemLog.total() + " mb ] \r\nPlease, increase the java's heap size.";
+					Console.Println(message, Console.OSDTEXT_RED);
+					BuildGdx.message.show("OutOfMemory!", message, MessageType.Info);
 				} catch (Throwable e) {
 					game.ThrowError("InitScreen error", e);	
+				} finally {
+					System.exit(1);
 				}
 			}
 		});
