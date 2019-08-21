@@ -17,6 +17,7 @@
 package ru.m210projects.Build.Types;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
 import sun.misc.Unsafe;
@@ -26,6 +27,7 @@ public abstract class UnsafeBuffer {
 
 	protected static Unsafe unsafe;
 	protected static long BYTE_ARRAY_BASE_OFFSET;
+	private static int JAVA_VERSION;
 	
 	protected int position;
 	protected long address;
@@ -33,6 +35,19 @@ public abstract class UnsafeBuffer {
 	static {
 		unsafe = getTheUnsafe();
 		BYTE_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(byte[].class);
+		
+		JAVA_VERSION = getVersion();
+	}
+	
+	private static int getVersion()
+	{
+		String version = System.getProperty("java.version");
+	    if(version.startsWith("1.")) {
+	        version = version.substring(2, 3);
+	    } else {
+	        int dot = version.indexOf(".");
+	        if(dot != -1) { version = version.substring(0, dot); }
+	    } return Integer.parseInt(version);
 	}
 	
 	private static Unsafe getTheUnsafe() {
@@ -101,7 +116,16 @@ public abstract class UnsafeBuffer {
     
     protected void dispose(ByteBuffer bb)
     {
-    	((DirectBuffer) bb).cleaner().clean();
+    	try {
+	    	if(JAVA_VERSION < 9) {
+	    		((DirectBuffer) bb).cleaner().clean();
+	    	} else {
+	    		Method invokeCleaner = unsafe.getClass().getMethod("invokeCleaner", ByteBuffer.class);
+		    	invokeCleaner.invoke(unsafe, bb);
+	    	}
+    	} catch (Throwable e) {
+    		e.printStackTrace();
+    	}
     }
 	
 	protected long getAddress(int offset) {

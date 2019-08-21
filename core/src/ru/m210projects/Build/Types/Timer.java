@@ -29,7 +29,7 @@ public class Timer {
 	
 	public static long result() {
 		spentTime = System.nanoTime() - startTime;
-		System.out.println(spentTime / 1000f +" microsec");
+		System.out.println(spentTime / 1000000f +" microsec");
 		return spentTime;
 	}
 	
