@@ -4685,7 +4685,7 @@ public abstract class Polymost extends GLRenderer {
 			spriteext[i].clear();
 			removeSpriteCorr(i);
 			SPRITE spr = sprite[i];
-			if(((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS) 
+			if(spr == null || ((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS) 
 				continue;
 			
 			addSpriteCorr(i);

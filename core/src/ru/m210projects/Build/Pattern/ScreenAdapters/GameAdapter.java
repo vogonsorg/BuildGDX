@@ -73,7 +73,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 	public abstract void sndHandlePause(boolean pause);
 	
 	protected abstract boolean prepareboard(String map);
-	
+
 	public GameAdapter setTitle(String title)
 	{
 		load.setTitle(title);
@@ -90,25 +90,31 @@ public abstract class GameAdapter extends ScreenAdapter {
 				if(prepareboard(map)) {
 					if(prestart != null)
 						prestart.run();
-					startboard();
+					startboard(startboard);
 				}
 			}
 		});
 		
 		return this;
 	}
+	
+	private Runnable startboard = new Runnable() {
+		@Override
+		public void run() {
+			pNet.WaitForAllPlayers(0);
+			System.gc();
+			
+			pNet.ResetTimers();
+			game.pInput.resetMousePos();
+			pNet.ready2send = true;
+			game.changeScreen(GameAdapter.this);
+			
+			pEngine.faketimerhandler();
+		}
+	};
 
-	protected void startboard() 
-	{
-		pNet.WaitForAllPlayers(0);
-		System.gc();
-		
-		pNet.ResetTimers();
-		game.pInput.resetMousePos();
-		pNet.ready2send = true;
-		game.changeScreen(this);
-		
-		pEngine.faketimerhandler();
+	protected void startboard(Runnable startboard) {
+		startboard.run();
 	}
 	
 	@Override

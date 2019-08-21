@@ -26,8 +26,8 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 
 public abstract class LoadingAdapter extends ScreenAdapter {
 
-	private Runnable toLoad;
-	private int frames;
+	protected Runnable toLoad;
+	protected int frames;
 	private String title;
 	
 	public BuildNet net;
@@ -67,7 +67,7 @@ public abstract class LoadingAdapter extends ScreenAdapter {
 		return this;
 	}
 	
-	public abstract void draw(String title, float delta);
+	protected abstract void draw(String title, float delta);
 	
 	@Override
 	public void render(float delta) {
