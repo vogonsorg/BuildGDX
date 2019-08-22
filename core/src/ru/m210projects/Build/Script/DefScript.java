@@ -519,9 +519,7 @@ public class DefScript implements Disposable {
             {
             default: break;
             case FILE:
-            	fn = script.getstring();
-            	if(script.path != null)
-    	        	fn = script.path + File.separator + fn;
+            	fn = getFile(script);
                 break;
             case ALPHACUT:
             	talphacut = script.getsymbol();
@@ -620,6 +618,17 @@ public class DefScript implements Disposable {
     		Console.Println("Error: \"" + fn +  "\" has more than one tile, in tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
 	}
 	
+	private String getFile(Scriptfile script)
+	{
+		String fn = script.getstring();
+		if(fn == null) return null;
+		
+		if(script.path != null)
+			fn = script.path + File.separator + fn;
+		
+		return fn;
+	}
+	
 	private void defsparser(Scriptfile script)
     {
 		String fn;
@@ -636,7 +645,7 @@ public class DefScript implements Disposable {
 				tilefromtextureparser(script);
 				break;
 			case INCLUDE:
-    			if ((fn = script.getstring()) == null) break;
+    			if ((fn = getFile(script)) == null) break;
                 include(fn, script, script.ltextptr);
 				break;
 			case MODEL:
@@ -831,9 +840,7 @@ public class DefScript implements Disposable {
 	                            case SPECFACTOR:
 	                            	specfactor = script.getdouble(); break;
 	                            case FILE:
-	                            	skinfn = script.getstring(); 
-	                            	if(script.path != null)
-	                            		skinfn = script.path + File.separator + skinfn;
+	                            	skinfn = getFile(script);
 	                            	break; //skin filename
 	                            case SURF:
 	                            	surfnum = script.getsymbol(); break; //getnumber
@@ -867,10 +874,6 @@ public class DefScript implements Disposable {
 		                        	palnum = NORMALPAL;
 		                            break;
 	                        }
-	                        
-	                        if(script.path != null)
-	                        	skinfn = script.path + File.separator + skinfn;
-	                        
 	                        
 	                        if (!BuildGdx.cache.contains(skinfn, 0) || m.mdnum < 2)
 	                            break;
@@ -995,9 +998,7 @@ public class DefScript implements Disposable {
                             {
                             	default: break;
 	                            case FILE:
-	                            	tfn = script.getstring(); 
-	                            	if(script.path != null)
-	                            		tfn = script.path + File.separator + tfn;
+	                            	tfn = getFile(script);
 	                            	break;
 	                            case ALPHACUT:
 	                            	if(token != Token.PAL)
@@ -1057,9 +1058,6 @@ public class DefScript implements Disposable {
                         	Console.Println("Error: missing 'file name' for texture definition near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
                             break;
                         }
-                        
-                        if(script.path != null)
-                        	tfn = script.path + File.separator + tfn;
 
                         if (!BuildGdx.cache.contains(tfn, 0))
                             break;
@@ -1082,9 +1080,7 @@ public class DefScript implements Disposable {
     	        int tile0 = MAXTILES, tile1 = -1, tilex = -1;
     	        boolean vrotate = false;
 
-    	        if ((fn = script.getstring()) == null) break; //voxel filename
-    	        if(script.path != null)
-    	        	fn = script.path + File.separator + fn;
+    	        if ((fn = getFile(script)) == null) break; //voxel filename
 
                 if ((vmodelend = script.getbraces()) == -1) break;
                 
@@ -1151,17 +1147,17 @@ public class DefScript implements Disposable {
 	                    case PAL:
 	                    	spal = script.getsymbol(); break;
 	                    case FRONT:
-	                    	sfn[0] = script.getstring(); break;
+	                    	sfn[0] = getFile(script); break;
 	                    case RIGHT:
-	                    	sfn[1] = script.getstring(); break;
+	                    	sfn[1] = getFile(script); break;
 	                    case BACK:
-	                    	sfn[2] = script.getstring(); break;
+	                    	sfn[2] = getFile(script); break;
 	                    case LEFT:
-	                    	sfn[3] = script.getstring(); break;
+	                    	sfn[3] = getFile(script); break;
 	                    case TOP:
-	                    	sfn[4] = script.getstring(); break;
+	                    	sfn[4] = getFile(script); break;
 	                    case BOTTOM:
-	                    	sfn[5] = script.getstring(); break;
+	                    	sfn[5] = getFile(script); break;
 	                    default: break;
 	                    }
     				} catch(Exception e) { }
@@ -1179,10 +1175,7 @@ public class DefScript implements Disposable {
                     	Console.Println("Error: skybox: missing " + skyfaces[i] + " filename' near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
                     	error = true;
                     }
-                    
-                    if(script.path != null)
-                    	sfn[i] = script.path + File.separator + sfn[i];
-                    
+
                     if(!BuildGdx.cache.contains(sfn[i], 0))
             		{
             			Console.Println("Error: file \"" + sfn[i] + "\" does not exist", OSDTEXT_RED);
@@ -1220,16 +1213,11 @@ public class DefScript implements Disposable {
                     case ID:
                     	t_id = script.getstring().trim(); break;
                     case FILE:
-                    	t_file = script.getstring().trim(); 
-                    	if(script.path != null)
-                    		t_file = script.path + File.separator + t_file;
+                    	t_file = getFile(script);
                     	break;
                     }
                 }
-                
-                if(script.path != null)
-                	t_file = script.path + File.separator + t_file;
-                
+
                 audInfo.addDigitalInfo(t_id, t_file);
 				break;
 
@@ -1254,6 +1242,7 @@ public class DefScript implements Disposable {
 		}
 
 		Scriptfile included = new Scriptfile(fn, data);
+		included.path = script.path;
 	    defsparser(included);
 	}
 	

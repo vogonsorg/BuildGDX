@@ -27,6 +27,9 @@ import static ru.m210projects.Build.Strhandler.toCharArray;
 
 import com.badlogic.gdx.ScreenAdapter;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
@@ -123,5 +126,16 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 		}
 
 		game.pEngine.nextpage();
+	}
+	
+	@Override
+	public void pause () {
+		if (BuildGdx.app.getFrameType() == FrameType.GL)
+			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+	}
+
+	@Override
+	public void resume () {
+		game.updateColorCorrection();
 	}
 }

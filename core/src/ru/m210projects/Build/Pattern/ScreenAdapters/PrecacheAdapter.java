@@ -1,6 +1,7 @@
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
 import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.picanm;
 import static ru.m210projects.Build.Engine.pow2char;
 import static ru.m210projects.Build.Engine.waloff;
 
@@ -12,6 +13,8 @@ import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildNet;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -34,6 +37,7 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 	private int currentIndex = 0;
 	private List<PrecacheQueue> queues = new ArrayList<PrecacheQueue>();
 	protected Runnable toLoad;
+	protected boolean revalidate;
 
 	protected BuildNet net;
 	protected Engine engine;
@@ -58,9 +62,10 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 		this.tiles = new byte[MAXTILES >> 3];
 	}
 	
-	public ScreenAdapter init(Runnable toLoad)
+	public ScreenAdapter init(boolean revalidate, Runnable toLoad)
 	{
 		this.toLoad = toLoad;
+		this.revalidate = revalidate;
 		return this;
 	}
 	
@@ -74,7 +79,16 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 	
 	public void addTile(int tile)
 	{
-		tiles[tile >> 3] |= pow2char[tile & 7];
+		if((picanm[tile] & 192) != 0) {
+		int frames = picanm[tile] & 63;
+			for ( int i = frames; i >= 0; i-- )
+	    	{
+		        if ( (picanm[tile] & 192) == 192 )
+		        	tiles[(tile - i)>>3] |= (1<<((tile - i)&7));
+		        else 
+		        	tiles[(tile + i)>>3] |= (1<<((tile + i)&7));
+	    	}
+		} else tiles[tile >> 3] |= pow2char[tile & 7];
 	}
 	
 	protected abstract void draw(String title, int index);
@@ -86,6 +100,9 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 		{
 			draw("Getting ready...", -1);
 			if(toLoad != null) {
+				GLRenderer gl = engine.glrender();
+				if(gl != null) gl.preload();
+				
 				BuildGdx.app.postRunnable(toLoad);
 				toLoad = null;
 			}
@@ -109,12 +126,26 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 				continue;
 			}
 
-			if ((tiles[i >> 3] & pow2char[i & 7]) != 0 && waloff[i] == null) {
-				engine.loadtile(i);
+			if ((tiles[i >> 3] & pow2char[i & 7]) != 0) {
+				if(!revalidate && waloff[i] != null) continue;
+				
+				if(waloff[i] == null)
+					engine.loadtile(i);
 				if(gl != null) 
 					gl.precache(i, 0, method);
 			}
 		}
 		Arrays.fill(tiles, (byte) 0);
+	}
+	
+	@Override
+	public void pause () {
+		if (BuildGdx.app.getFrameType() == FrameType.GL)
+			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+	}
+
+	@Override
+	public void resume () {
+		game.updateColorCorrection();
 	}
 }

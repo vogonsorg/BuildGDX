@@ -112,9 +112,11 @@ public class InitScreen extends ScreenAdapter {
 		for(int i = 0; i < factory.resources.length; i++) {
 			try {
 				BuildGdx.cache.add(factory.resources[i]);
+//				if(BuildGdx.cache.add(factory.resources[i]) == null)
+//					throw new Exception("Can't load package " + factory.resources[i]);
 			} catch (Exception e) { 
-				BuildGdx.message.show("Init error!", "Resource initialization error!", MessageType.Info);
-				BuildGdx.app.exit();
+				BuildGdx.message.show("Init error!", "Resource initialization error! \r\n" + e.getMessage(), MessageType.Info);
+				System.exit(1);
 				return;
 			}
 		}
@@ -124,7 +126,7 @@ public class InitScreen extends ScreenAdapter {
 			this.engine = game.pEngine = factory.engine();
 		} catch (Exception e) { 
 			BuildGdx.message.show("Build Engine Initialization Error!", "There was a problem initialising the Build engine: \r\n" + e.getMessage(), MessageType.Info);
-			BuildGdx.app.exit();
+			System.exit(1);
 			return;
 		}
 		
@@ -145,7 +147,7 @@ public class InitScreen extends ScreenAdapter {
 
 		thread = new Thread(new Runnable() {
 			@Override
-			public synchronized void run() {
+			public void run() {
 				try {
 					BuildConfig cfg = game.pCfg;
 					cfg.InitKeymap();
@@ -196,14 +198,14 @@ public class InitScreen extends ScreenAdapter {
 			}
 		});
 	}
-	
-	public synchronized void start()
+
+	public void start()
 	{
 		if(thread != null)
 			thread.start();
 	}
 
-	public synchronized void dispose()
+	public void dispose()
 	{
 		try { 
 			if(thread != null)
@@ -212,23 +214,25 @@ public class InitScreen extends ScreenAdapter {
 	}
 
 	@Override
-	public synchronized void render(float delta) {
-		engine.clearview(0);
-		
-		engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
-
-		if(frames++ > 3)
-		{
-			if(!thread.isAlive()) { 
-				if(gameInitialized)
-					game.show();	
-				else {
-					game.GameMessage("InitScreen unknown error!");
-					BuildGdx.app.exit();
+	public void render(float delta) {
+		synchronized(engine) {
+			engine.clearview(0);
+			
+			engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
+	
+			if(frames++ > 3)
+			{
+				if(!thread.isAlive()) { 
+					if(gameInitialized)
+						game.show();	
+					else {
+						game.GameMessage("InitScreen unknown error!");
+						BuildGdx.app.exit();
+					}
 				}
 			}
+	
+			engine.nextpage();
 		}
-
-		engine.nextpage();
 	}
 }

@@ -349,11 +349,17 @@ public abstract class BuildConfig extends IniFile {
 		}
 		
 		if(set("SoundSetup")) {
-			soundVolume = GetKeyInt("SoundVolume") / 256.0f;
-			maxvoices = GetKeyInt("MaxVoices");
+			float value = GetKeyInt("SoundVolume") / 256.0f;
+			if(value >= 0 && value < 1.0)
+				soundVolume = value;
+			int voices = GetKeyInt("MaxVoices");
+			if(voices >= 0 && voices < 256)
+				maxvoices = voices;
 			int resampler = GetKeyInt("Resampler"); 
 			if(resampler != -1) resampler_num = resampler;
-			musicVolume = GetKeyInt("MusicVolume") / 256.0f;
+			value = GetKeyInt("MusicVolume") / 256.0f;
+			if(value >= 0 && value < 1.0)
+				musicVolume = value;
 		}
 		
 		if(set("KeyDefinitions")) {

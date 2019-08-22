@@ -1014,10 +1014,12 @@ public abstract class Software extends Renderer {
 		if (BuildSettings.useVoxels.get()) {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(tilenum) : null;
 			if (entry != null && entry.voxel != null) {
-				vtilenum = entry.voxel;
-				if (vtilenum.getModel() != null)
-					mflags = vtilenum.getModel().flags;
-				cstat |= 48;
+				if((sprite[tspr.owner].cstat & 48) != 32) {
+					vtilenum = entry.voxel;
+					if (vtilenum.getModel() != null)
+						mflags = vtilenum.getModel().flags;
+					cstat |= 48;
+				}
 			}
 		}
 

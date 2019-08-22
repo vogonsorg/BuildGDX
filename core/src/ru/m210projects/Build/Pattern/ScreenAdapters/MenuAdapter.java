@@ -19,6 +19,9 @@ package ru.m210projects.Build.Pattern.ScreenAdapters;
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -69,5 +72,16 @@ public abstract class MenuAdapter extends ScreenAdapter {
 			engine.printfps(cfg.gFpsScale);
 
 		engine.nextpage();
+	}
+	
+	@Override
+	public void pause () {
+		if (BuildGdx.app.getFrameType() == FrameType.GL)
+			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+	}
+
+	@Override
+	public void resume () {
+		game.updateColorCorrection();
 	}
 }

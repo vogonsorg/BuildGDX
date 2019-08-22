@@ -1391,7 +1391,7 @@ public abstract class Engine {
 		if(gl != null) gl.palfade(fades);
 	}
 	
-	public void loadpic(String filename) //gdxBuild
+	public synchronized void loadpic(String filename) //gdxBuild
 	{
 		ResourceData fil = null; 
 		if ((fil = BuildGdx.cache.getData(filename, 0)) != null) {
@@ -1434,7 +1434,7 @@ public abstract class Engine {
 		picsiz[tilenum] += (j << 4);
 	}
 
-	public int loadpics(String filename) { //jfBuild
+	public synchronized int loadpics(String filename) { //jfBuild
 		int offscount, localtilestart, localtileend, dasiz;
 		int i, k;
 
