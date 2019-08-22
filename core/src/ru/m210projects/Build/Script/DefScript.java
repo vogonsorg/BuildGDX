@@ -87,7 +87,7 @@ public class DefScript implements Disposable {
 		public DefTile getLast() {
 			DefTile out = this;
 			while(true) {
-				DefTile n = this.next;
+				DefTile n = out.next;
 				if(n == null) 
 					return out;
 				out = n;
