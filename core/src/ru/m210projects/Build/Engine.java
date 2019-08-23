@@ -325,7 +325,7 @@ public abstract class Engine {
 	
 	private byte[] colhere;
 	private byte[] colhead;
-	private byte[] colnext;
+	private short[] colnext;
 	private final byte[] coldist = { 0, 1, 2, 3, 4, 3, 2, 1 };
 	private int[] colscan;
 	private int randomseed = 1;
@@ -456,10 +456,9 @@ public abstract class Engine {
 	}
 
 	public void initfastcolorlookup(int rscale, int gscale, int bscale) { //jfBuild
-		int i, j, x, y, z;
-		int pal1;
+		int i, x, y, z;
 
-		j = 0;
+		int j = 0;
 		for (i = 64; i >= 0; i--) {
 			rdist[i] = rdist[128 - i] = j * rscale;
 			gdist[i] = gdist[128 - i] = j * gscale;
@@ -467,10 +466,10 @@ public abstract class Engine {
 			j += 129 - (i << 1);
 		}
 
-		Arrays.fill(colhere, 0, colhere.length, (byte) 0);
-		Arrays.fill(colhead, 0, colhead.length, (byte) 0);
+		Arrays.fill(colhere, (byte) 0);
+		Arrays.fill(colhead, (byte) 0);
 
-		pal1 = 768 - 3;
+		int pal1 = 768 - 3;
 		for (i = 255; i >= 0; i--, pal1 -= 3) {
 			int r = palette[pal1] & 0xFF;
 			int g = palette[pal1 + 1] & 0xFF;
@@ -480,9 +479,8 @@ public abstract class Engine {
 					+ (b >> 3)
 					+ FASTPALGRIDSIZ * FASTPALGRIDSIZ
 					+ FASTPALGRIDSIZ + 1;
-
 			if ((colhere[j >> 3] & pow2char[j & 7]) != 0)
-				colnext[i] = colhead[j];
+				colnext[i] = (short) (colhead[j] & 0xFF);
 			else colnext[i] = -1;
 			
 			colhead[j] = (byte) i;
@@ -555,7 +553,7 @@ public abstract class Engine {
 		}
 
 		fil.close();
-		
+
 		initfastcolorlookup(30,59,11);
 
 		paletteloaded = 1;
@@ -940,7 +938,7 @@ public abstract class Engine {
 		bdist = new int[129];
 		colhere = new byte[((FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)) >> 3];
 		colhead = new byte[(FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)];
-		colnext = new byte[256];
+		colnext = new short[256];
 		colscan = new int[27];
 
 		Arrays.fill(show2dsector, (byte)0);

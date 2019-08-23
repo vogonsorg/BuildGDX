@@ -1291,13 +1291,14 @@ public class DefScript implements Disposable {
 	        	if(data == null)
 	        		data = engine.loadtile(i);
 
-				if(CRC32.getChecksum(data) != tile.crc32)
+	        	long crc32 = data != null ? CRC32.getChecksum(data) : -1;
+	        	if(crc32 != tile.crc32)
 				{
 					boolean found = false;
 					while(tile.next != null)
 					{
 						tile = tile.next;
-						if(tile.crc32 == 0 || CRC32.getChecksum(data) == tile.crc32) {
+						if(tile.crc32 == 0 || crc32 == tile.crc32) {
 							found = true;
 							break;
 						}	
