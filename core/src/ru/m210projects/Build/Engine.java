@@ -3327,7 +3327,7 @@ public abstract class Engine {
 	}
 
 	public void setaspect_new() { //eduke32 aspect
-		if (BuildSettings.usenewaspect.get() && newaspect_enable != 0) {
+		if (BuildSettings.usenewaspect.get() && newaspect_enable != 0 && (xdim != 1280 || ydim != 1024)) {
 			// the correction factor 100/107 has been found
 			// out experimentally. squares ftw!
 			int yx = (65536 * 4 * 100) / (3 * 107);

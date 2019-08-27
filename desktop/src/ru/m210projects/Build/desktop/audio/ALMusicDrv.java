@@ -86,6 +86,8 @@ public class ALMusicDrv implements Music {
 
 	@Override
 	public MusicSource newMusic(String name) {
+		if(drv.noDevice || !inited) return null;
+		
 		Resource res = BuildGdx.cache.open(name, 0);
 		if(res == null) return null;
 		
@@ -101,11 +103,12 @@ public class ALMusicDrv implements Music {
 	
 	@Override
 	public void dispose() {
-		al.alDeleteBuffers(musicBuffers); 
+		if(inited)
+			al.alDeleteBuffers(musicBuffers); 
 	}
 
 	@Override
-	public boolean init() {
+	public synchronized boolean init() {
 		if(!drv.isInited()) return false;
 		inited = false;
 		musicBuffers = BufferUtils.newIntBuffer(musicBufferCount);
@@ -121,7 +124,7 @@ public class ALMusicDrv implements Music {
 	}
 
 	@Override
-	public boolean isInited() {
+	public synchronized boolean isInited() {
 		return drv.isInited() && inited;
 	}
 

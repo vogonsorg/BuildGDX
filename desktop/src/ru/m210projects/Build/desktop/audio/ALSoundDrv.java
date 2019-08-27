@@ -125,14 +125,12 @@ public class ALSoundDrv implements Sound {
 	}
 
 	@Override
-	public boolean init(SystemType system, int maxChannels, int softResampler) {
+	public synchronized boolean init(SystemType system, int maxChannels, int softResampler) {
 		if(getALAudio() == null) {
 			noDevice = true;
 			return false;
 		}
 
-		noDevice = false;
-		
 		al.alDistanceModel( AL_NONE );
 		orientation.put(deforientation).flip();
 		sourceManager = new SourceManager(maxChannels);
@@ -145,7 +143,8 @@ public class ALSoundDrv implements Sound {
 		Console.Println(al.getName() + " initialized", OSDTEXT_GOLD);
 		Console.Println("\twith max voices: " + sourceManager.getSourcesNum(), OSDTEXT_GOLD);
 		Console.Println("\tOpenAL version: " + al.getVersion(), OSDTEXT_GOLD); 	
-
+		noDevice = false;
+		
 		if(al.alIsEFXSupport())
 			Console.Println("ALC_EXT_EFX enabled.");	
 		else Console.Println("ALC_EXT_EFX not support!");	 
@@ -163,11 +162,12 @@ public class ALSoundDrv implements Sound {
 		getDigitalMusic().init();
 		
 		loopedSource.clear();
+
 		return true;
 	}
 	
 	@Override
-	public boolean isInited() {
+	public synchronized boolean isInited() {
 		return !noDevice;
 	}
 	
@@ -388,12 +388,17 @@ public class ALSoundDrv implements Sound {
 			}
 		}
 		
-		public Source obtainSource(int priority)
+		protected void update()
 		{
 			for(int i = 0; i < allSources.length; i++) {
 				if(allSources[i] != null && !allSources[i].free && !allSources[i].isPlaying() && allSources[i].flags != Source.Locked)
 					freeSource(allSources[i]);
 			}
+		}
+		
+		protected Source obtainSource(int priority)
+		{
+//			update();
 			
 //			System.out.println("obtainSource()");
 //			Iterator<Source> it = this.iterator();
@@ -483,6 +488,8 @@ public class ALSoundDrv implements Sound {
 				} 
 			}
 		}
+
+		sourceManager.update();
 	}
 
 	@Override
