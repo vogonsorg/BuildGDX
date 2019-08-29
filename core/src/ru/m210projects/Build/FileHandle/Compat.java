@@ -17,6 +17,8 @@
 package ru.m210projects.Build.FileHandle;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
+import static ru.m210projects.Build.Strhandler.*;
+
 
 import java.io.File;
 import java.util.ArrayList;
@@ -126,10 +128,10 @@ public class Compat {
 			entry = checkFile(name);
 			break;
 		case User:
-			entry = getDirectory(Path.User).checkFile(new File(name).getName());
+			entry = getDirectory(Path.User).checkFile(new File(toLowerCase(name)).getName());
 			break;
 		case Absolute: 
-			File file = new File(name.toLowerCase());
+			File file = new File(toLowerCase(name));
 			if(file.exists())
 				return file;
 			break;

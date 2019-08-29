@@ -130,6 +130,8 @@ public class ALSoundDrv implements Sound {
 			noDevice = true;
 			return false;
 		}
+		
+		if(maxChannels < 1) maxChannels = 1;
 
 		al.alDistanceModel( AL_NONE );
 		orientation.put(deforientation).flip();
@@ -224,7 +226,7 @@ public class ALSoundDrv implements Sound {
 	
 	@Override
 	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority) {
-		if(noDevice) return null;
+		if(noDevice || data == null) return null;
 		
 		Source source = sourceManager.obtainSource(priority);
 		if (source == null) return null;

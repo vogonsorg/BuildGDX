@@ -184,7 +184,7 @@ public abstract class MenuHandler {
 				opt = MenuOpt.RIGHT;
 			if(input.ctrlKeyStatusOnce(Keys.ENTER) || input.ctrlPadStatusOnce(MenuKeys.Menu_Enter)) 
 				opt = MenuOpt.ENTER;
-			if(input.ctrlGetInputKey(GameKeys.Menu_Toggle, true) || mCount > 1 && input.ctrlPadStatusOnce(MenuKeys.Menu_Cancel)) 
+			if(input.ctrlGetInputKey(GameKeys.Menu_Toggle, true) || /*mCount > 1 && - Menu_cancel can close the menu now*/ input.ctrlPadStatusOnce(MenuKeys.Menu_Cancel)) 
 				opt = MenuOpt.ESC;
 			if(input.ctrlKeyStatusOnce(Keys.SPACE)) 
 				opt = MenuOpt.SPACE;

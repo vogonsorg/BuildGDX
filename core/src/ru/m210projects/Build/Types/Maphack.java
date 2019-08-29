@@ -80,6 +80,8 @@ public class Maphack extends Scriptfile {
 		preparse(tx, flen);
 		this.filename = filename;
 		
+		Integer value;
+		
 		while (true)
         {
 			switch(gettoken(basetokens))
@@ -98,16 +100,20 @@ public class Maphack extends Scriptfile {
 	                {
 		            	default: break;
 		                case AngleOffset:
-		                	spriteext[sprnum].angoff = getsymbol().shortValue();
+		                	if((value = getsymbol()) != null)
+		                		spriteext[sprnum].angoff = value.shortValue();
 		                	break;
 		                case XOffset:
-		                	spriteext[sprnum].xoff = getsymbol();
+		                	if((value = getsymbol()) != null)
+		                		spriteext[sprnum].xoff = value;
 		                	break;
 		                case YOffset:
-		                	spriteext[sprnum].yoff = getsymbol();
+		                	if((value = getsymbol()) != null)
+		                		spriteext[sprnum].yoff = value;
 		                	break;
 		                case ZOffset:
-		                	spriteext[sprnum].zoff = getsymbol();
+		                	if((value = getsymbol()) != null)
+		                		spriteext[sprnum].zoff = value;
 		                	break;
 		                case NoModel:
 		                	spriteext[sprnum].flags |= 1; //SPREXT_NOTMD;

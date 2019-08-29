@@ -413,12 +413,20 @@ public class DefScript implements Disposable {
 		res.close();
 		
 		if(data == null) {
-			Console.Println("File is exists, but data == null!" + file.getPath());
+			Console.Println("File is exists, but data == null! Path:" + file.getPath());
+			return false;
 		}
+		
 		Scriptfile script = new Scriptfile(file.getPath(), data);
 		script.path = file.getParent().getRelativePath();
 		
-		defsparser(script);
+		try {
+			defsparser(script);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Console.Println("Def error: the script " + file.getPath() + " has errors", OSDTEXT_RED);
+			return false;
+		}
 		
 		return true;
 	}
@@ -430,7 +438,13 @@ public class DefScript implements Disposable {
 			return false;
 		}
 		
-		defsparser(new Scriptfile(name, buf));
+		try {
+			defsparser(new Scriptfile(name, buf));
+		} catch (Exception e) {
+			e.printStackTrace();
+			Console.Println("Def error: the script " + name + " has errors", OSDTEXT_RED);
+			return false;
+		}
 		
 		return true;
 	}
@@ -502,7 +516,7 @@ public class DefScript implements Disposable {
 		Token token;
 		int ttexturetokptr = script.ltextptr, ttextureend;
 		String fn = null;
-        Integer tile = -1;
+        Integer tile = -1, value;
         int talphacut = 255;
         boolean havexoffset = false, haveyoffset = false;
         int xoffset = 0, yoffset = 0;
@@ -522,7 +536,9 @@ public class DefScript implements Disposable {
             	fn = getFile(script);
                 break;
             case ALPHACUT:
-            	talphacut = script.getsymbol();
+            	value = script.getsymbol();
+            	if(value != null)
+            	talphacut = value;
                 talphacut = BClipRange(talphacut, 0, 255);
                 break;
             case XOFFSET:
@@ -634,6 +650,8 @@ public class DefScript implements Disposable {
 		String fn;
 		Token token;
 		ResourceData buffer;
+		Integer ivalue;
+		Double dvalue;
 		
 		Console.Println("Loading " + script.filename + "...");
 		
@@ -700,15 +718,22 @@ public class DefScript implements Disposable {
                     {
                 		default: break;
 	                    case SCALE:
-	                    	mdscale = script.getdouble(); break;
+	                    	dvalue = script.getdouble();
+	                    	if(dvalue != null)
+	                    		mdscale = dvalue; 
+	                    	break;
 	                    case SHADE:
-	                    	shadeoffs = script.getsymbol(); break;
+	                    	if((ivalue = script.getsymbol()) != null)
+	                    	shadeoffs = ivalue; break;
 	                    case ZADD:
-	                    	mzadd = script.getdouble(); break;
+	                    	if((dvalue = script.getdouble()) != null)
+	                    	mzadd = dvalue; break;
 	                    case YOFFSET:
-	                    	myoffset = script.getdouble(); break;
+	                    	if((dvalue = script.getdouble()) != null)
+	                    	myoffset = dvalue; break;
 	                    case FLAGS:
-	                    	mdflags = script.getsymbol(); break;
+	                    	if((ivalue = script.getsymbol()) != null)
+	                    		mdflags = ivalue; break;
 	                    case FRAME:
 	                    {
 	                    	int frametokptr = script.ltextptr;
@@ -727,13 +752,23 @@ public class DefScript implements Disposable {
     	                        case FRAME:
     	                        	framename = script.getstring(); break;
     	                        case TILE:
-    	                        	ftilenume = script.getsymbol(); ltilenume = ftilenume; break;
+    	                        	if((ivalue = script.getsymbol()) != null) {
+    	                        		ftilenume = ivalue; 
+    	                        		ltilenume = ftilenume; 
+    	                        	}
+    	                        	break;
     	                        case TILE0:
-    	                        	ftilenume = script.getsymbol(); break; //first tile number
+    	                        	if((ivalue = script.getsymbol()) != null)
+    	                        		ftilenume = ivalue = script.getsymbol(); 
+    	                        	break; //first tile number
     	                        case TILE1:
-    	                        	ltilenume = script.getsymbol(); break; //last tile number (inclusive)
+    	                        	if((ivalue = script.getsymbol()) != null)
+    	                        		ltilenume = ivalue; 
+    	                        	break; //last tile number (inclusive)
     	                        case SMOOTHDURATION:
-    	                        	smoothduration = script.getdouble(); break;
+    	                        	if((dvalue = script.getdouble()) != null)
+    	                        		smoothduration = dvalue; 
+    	                        	break;
     	                        }
     	                    }
 	    	    			
@@ -786,9 +821,11 @@ public class DefScript implements Disposable {
 	                            case FRAME1:
 	                            	endframe = script.getstring(); break;
 	                            case FPS:
-	                            	dfps = script.getdouble(); break; //animation frame rate
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		dfps = dvalue; break; //animation frame rate
 	                            case FLAGS:
-	                            	flags = script.getsymbol(); break;
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	flags = ivalue; break;
 	                            }
 	                        }
 	                        
@@ -834,16 +871,20 @@ public class DefScript implements Disposable {
 	                            case PAL:
 	                            	palnum = script.getsymbol(); break;
 	                            case PARAM:
-	                            	param = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	param = dvalue; break;
 	                            case SPECPOWER:
-	                            	specpower = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	specpower = dvalue; break;
 	                            case SPECFACTOR:
-	                            	specfactor = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	specfactor = dvalue; break;
 	                            case FILE:
 	                            	skinfn = getFile(script);
 	                            	break; //skin filename
 	                            case SURF:
-	                            	surfnum = script.getsymbol(); break; //getnumber
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	surfnum = ivalue; break; //getnumber
 	                            }
 	                        }
 		    				
@@ -905,21 +946,29 @@ public class DefScript implements Disposable {
 	                            {
 	                            default: break;
 	                            case TILE:
-	                            	ftilenume = script.getsymbol(); ltilenume = ftilenume; break;
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	ftilenume = ivalue; ltilenume = ftilenume; break;
 	                            case TILE0:
-	                            	ftilenume = script.getsymbol(); break; //first tile number
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	ftilenume = ivalue; break; //first tile number
 	                            case TILE1:
-	                            	ltilenume = script.getsymbol(); break; //last tile number (inclusive)
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	ltilenume = ivalue; break; //last tile number (inclusive)
 	                            case XADD:
-	                            	xadd = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	xadd = dvalue; break;
 	                            case YADD:
-	                            	yadd = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	yadd = dvalue; break;
 	                            case ZADD:
-	                            	zadd = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	zadd = dvalue; break;
 	                            case ANGADD:
-	                            	angadd = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	angadd = dvalue; break;
 	                            case FOV:
-	                            	fov = script.getsymbol(); break;
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	fov = ivalue; break;
 	                            case HIDE:
 	                                flags |= 1; break;
 	                            case NOBOB:
@@ -1003,19 +1052,24 @@ public class DefScript implements Disposable {
 	                            case ALPHACUT:
 	                            	if(token != Token.PAL)
 	                            		break;
-	                            	alphacut = script.getdouble();
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		alphacut = dvalue;
 	                            	break;
 	                            case XSCALE:
-	                            	xscale = script.getdouble(); 
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		xscale = dvalue; 
 	                            	break;
 	                            case YSCALE:
-	                            	yscale = script.getdouble(); 
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		yscale = dvalue; 
 	                            	break;
 	                            case SPECPOWER:
-	                            	specpower = script.getdouble(); 
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		specpower = dvalue; 
 	                            	break;
 	                            case SPECFACTOR:
-	                            	specfactor = script.getdouble(); 
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		specfactor = dvalue; 
 	                            	break;
 	                            case NOCOMPRESS:
 	                                flags |= 1; break;
@@ -1110,18 +1164,22 @@ public class DefScript implements Disposable {
                             mdInfo.addVoxelInfo(vox, tilex);
                     		break;
                     	case TILE0:
-                    		tile0 = script.getsymbol();
+                    		if((ivalue = script.getsymbol()) != null)
+                    			tile0 = ivalue;
                             break; //1st tile #
 
                         case TILE1:
-                        	tile1 = script.getsymbol();
+                        	if((ivalue = script.getsymbol()) != null)
+                        		tile1 = ivalue;
+                        	
                         	if (check_tile_range("voxel", tile0, tile1, script, script.ltextptr))
                         		break;
                             for (tilex=tile0; tilex<=tile1; tilex++) 
                             	mdInfo.addVoxelInfo(vox, tilex);
                             break; //last tile number (inclusive)
                         case SCALE:
-                            vscale = script.getdouble();
+                        	if((dvalue = script.getdouble()) != null)
+                        		vscale = dvalue;
                             break;
                         case ROTATE:
                         	vrotate = true;
@@ -1143,9 +1201,11 @@ public class DefScript implements Disposable {
     					switch (gettoken(script,skyboxtokens))
     					{
 	                    case TILE:
-	                    	stile = script.getsymbol(); break;
+	                    	if((ivalue = script.getsymbol()) != null)
+	                    		stile = ivalue; break;
 	                    case PAL:
-	                    	spal = script.getsymbol(); break;
+	                    	if((ivalue = script.getsymbol()) != null)
+	                    		spal = ivalue; break;
 	                    case FRONT:
 	                    	sfn[0] = getFile(script); break;
 	                    case RIGHT:
@@ -1211,7 +1271,9 @@ public class DefScript implements Disposable {
                     {
                 	default: break;
                     case ID:
-                    	t_id = script.getstring().trim(); break;
+                    	String t = script.getstring();
+                    	if(t != null)
+                    		t_id = t.trim(); break;
                     case FILE:
                     	t_file = getFile(script);
                     	break;

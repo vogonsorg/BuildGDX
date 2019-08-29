@@ -86,7 +86,8 @@ public abstract class BuildControllers {
 	
 	public int getButtonCount(int num)
 	{
-		if(getControllers() > 0)
+		int size = getControllers();
+		if(size > 0 && size > num)
 			return gamepads.get(num).getButtonCount();
 		return 0;
 	}

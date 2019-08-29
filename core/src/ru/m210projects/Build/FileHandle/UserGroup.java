@@ -17,6 +17,9 @@
 package ru.m210projects.Build.FileHandle;
 
 import ru.m210projects.Build.FileHandle.Compat.Path;
+
+import static ru.m210projects.Build.Strhandler.toLowerCase;
+
 import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.FileHandle.FileResource.Mode;
 
@@ -26,6 +29,28 @@ public class UserGroup extends Group {
 
 		public final FileEntry entry;
 		public FileResource fil;
+		public String absolutePath;
+		
+		public UserResource(String absolutePath, int fileid) {
+			super(UserGroup.this);
+
+			String fullname = absolutePath;
+			this.filenamext = toLowerCase(fullname);
+			
+			int point = filenamext.lastIndexOf('.');
+			if(point != -1) {
+				this.fileformat = filenamext.substring(point + 1);
+				this.filename = filenamext.substring(0, point);
+			} else {
+				this.fileformat = "";
+				this.filename = this.filenamext;
+			}
+
+			this.entry = null;
+			this.fileid = fileid;
+			this.fil = null;
+			this.absolutePath = absolutePath;
+		}
 		
 		public UserResource(FileEntry file, int fileid) {
 			super(UserGroup.this);
@@ -48,8 +73,12 @@ public class UserGroup extends Group {
 		@Override
 		public void close() {
 			synchronized(parent) {
-				if(fil != null)
+				if(fil != null) {
 					fil.close();
+					
+					if(entry != null) //else the fileresource with absolute path
+						fil = null;
+				}
 			}
 		}
 
@@ -177,8 +206,11 @@ public class UserGroup extends Group {
 			if(res instanceof UserResource)
 			{
 				UserResource userres = (UserResource) res;
-				if(userres.fil == null)
+				if(userres.fil == null && userres.entry != null) {
 					userres.fil = compat.open(userres.entry.getPath(), Path.Game, Mode.Read);
+				} else if(userres.absolutePath != null) {
+					userres.fil = compat.open(userres.absolutePath, Path.Absolute, Mode.Read);
+				}
 			}
 			return true;
 		}
@@ -194,6 +226,15 @@ public class UserGroup extends Group {
 		if(entry == null) return false;
 
 		add(new UserResource(entry, fileid));
+		numfiles++;
+		
+		return true;
+	}
+	
+	public boolean add(String absolutePath, int fileid) {
+		if(absolutePath == null || absolutePath.isEmpty()) return false;
+
+		add(new UserResource(absolutePath, fileid));
 		numfiles++;
 		
 		return true;

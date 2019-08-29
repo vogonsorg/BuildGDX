@@ -1491,7 +1491,7 @@ public abstract class Engine {
 		return (numtilefiles);
 	}
 
-	public byte[] loadtile(int tilenume) { //jfBuild
+	public synchronized byte[] loadtile(int tilenume) { //jfBuild
 		if (tilenume >= MAXTILES)
 			return null;
 		int dasiz = tilesizx[tilenume] * tilesizy[tilenume];
