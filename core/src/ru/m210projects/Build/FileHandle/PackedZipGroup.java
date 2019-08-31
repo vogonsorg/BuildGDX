@@ -47,10 +47,9 @@ public class PackedZipGroup extends Group {
 		}
 		
 		@Override
-		protected void handleName(String fullname) //zips can handle folders, so we must add separators to replacer
+		protected void handleName(String fullname)
 		{
-			this.filenamext = toLowerCase(fullname).replaceAll("[^a-zA-Z0-9_. /-]", "");
-			if(filenamext.contains("/")) filenamext = filenamext.replace("/", File.separator);
+			this.filenamext = PackedZipGroup.this.handleName(fullname);
 			
 			int point = filenamext.lastIndexOf('.');
 			if(point != -1) {
@@ -107,7 +106,7 @@ public class PackedZipGroup extends Group {
 				ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(file.getBytes()));
 				ZipEntry entry;
 				while ((entry = zis.getNextEntry()) != null) {
-					if(toLowerCase(entry.getName()).equals(res.filenamext)) {
+					if(handleName(entry.getName()).equals(res.filenamext)) {
 						byte[] data = new byte[512];
 						ByteBuffer bb = ByteBuffer.allocateDirect(res.size);
 						int len = 0;
@@ -126,6 +125,14 @@ public class PackedZipGroup extends Group {
 		}
 		
 		return false;
+	}
+	
+	protected String handleName(String fullname) //zips can handle folders, so we must add separators to replacer
+	{
+		String filenamext = toLowerCase(fullname).replaceAll("[^a-zA-Z0-9_. /-]", "");
+		if(filenamext.contains("/")) filenamext = filenamext.replace("/", File.separator);
+
+		return filenamext;
 	}
 	
 	public void removeFolders()

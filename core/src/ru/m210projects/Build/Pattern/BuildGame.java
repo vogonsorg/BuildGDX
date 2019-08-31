@@ -259,19 +259,24 @@ public abstract class BuildGame extends Game {
 	}
 	
 	public void ThrowError(String msg, Throwable ex) {
-		String stack = stackTraceToString(ex);
-		Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
-		System.err.println(msg + "[" + exceptionHandler(ex) + "]: " + stack);
-		CloseLogFile();
-
-		try {
-			if(nNetMode == NetMode.Multiplayer)
-				pNet.NetDisconnect(myconnectindex);
-			if (BuildGdx.message.show(msg, stack, MessageType.Crash))
-				saveToFTP();
-		} catch (Exception e) {	
-		} finally {
+		if(!release) {
+			ex.printStackTrace();
 			BuildGdx.app.exit();
+		} else {
+			String stack = stackTraceToString(ex);
+			Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
+			System.err.println(msg + "[" + exceptionHandler(ex) + "]: " + stack);
+			CloseLogFile();
+	
+			try {
+				if(nNetMode == NetMode.Multiplayer)
+					pNet.NetDisconnect(myconnectindex);
+				if (BuildGdx.message.show(msg, stack, MessageType.Crash))
+					saveToFTP();
+			} catch (Exception e) {	
+			} finally {
+				BuildGdx.app.exit();
+			}
 		}
 	}
 	

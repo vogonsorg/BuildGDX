@@ -89,12 +89,10 @@ public class Cache1D {
 		return group;
 	}
 	
-	public Group add(GroupResource res, boolean removable)
+	public Group add(Resource res, String name)
 	{
 		Group out = null;
-		if(res.isClosed())
-			res.getParent().open(res);
-		
+
 		res.seek(0, Whence.Set);
 		switch(res.readInt())
     	{
@@ -104,22 +102,20 @@ public class Cache1D {
 			if(new String(tmp).compareTo("ilverman") == 0) {
 				try {
 					out = new GrpGroup(res, PackageType.PackedGrp);
-					out.setFlags(true, removable);
-					out.name = res.getParent().type + ":" + res.getFullName();
+					out.name = name;
 				} catch (Exception e) { e.printStackTrace(); }
 			}
     		break;
     	case zipsign:
     		try {
 	    		out = new PackedZipGroup(res);
-				out.name = res.getParent().type + ":" + res.getFullName();
+				out.name = name;
     		} catch (Exception e) { e.printStackTrace(); }
     		break;
     	case rffsign:
     		try {
 	    		out = new RffGroup(res, PackageType.PackedRff);
-	    		out.setFlags(true, removable);
-				out.name = res.getParent().type + ":" + res.getFullName();
+				out.name = name;
     		} catch (Exception e) { e.printStackTrace(); }
     		break;
     	}
@@ -131,6 +127,18 @@ public class Cache1D {
 				groupfil.add(out);
 			}
 		}
+		
+		return out;
+	}
+	
+	public Group add(GroupResource res, boolean removable)
+	{
+		Group out = null;
+		if(res.isClosed())
+			res.getParent().open(res);
+		
+		out = add(res, res.getParent().type + ":" + res.getFullName());
+		out.setFlags(true, removable);
 		
 		return out;
 	}
@@ -156,7 +164,6 @@ public class Cache1D {
 	    		try {
 	    			handle.close();
 		    		out = new ZipGroup(Path.Game.getPath() + filename);
-					out.type = PackageType.Zip;
 					out.name = filename;
 	    		} catch (Exception e) { e.printStackTrace(); }
 	    		break;

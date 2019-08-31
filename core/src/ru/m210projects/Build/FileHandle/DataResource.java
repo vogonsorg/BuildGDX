@@ -34,11 +34,11 @@ public class DataResource extends GroupResource {
 	public void flush() { /* nothing */ }
 
 	@Override
-	public void close() { synchronized(parent) { buffer.rewind(); } }
+	public void close() { synchronized(parent != null ? parent : this) { buffer.rewind(); } }
 
 	@Override
 	public int seek(long offset, Whence whence) {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			switch (whence)
 	        {
 	        	case Set: buffer.position((int) offset); break;
@@ -51,7 +51,7 @@ public class DataResource extends GroupResource {
 
 	@Override
 	public int read(byte[] buf, int len) {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			if(position() >= size) 
 				return -1;
 			
@@ -63,28 +63,28 @@ public class DataResource extends GroupResource {
 	
 	@Override
 	public int read(byte[] buf) {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			return read(buf, buf.length);
 		}
 	}
 	
 	@Override
 	public Byte readByte() {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			return buffer.get();
 		}
 	}
 	
 	@Override
 	public Short readShort() {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			return buffer.getShort();
 		}
 	}
 
 	@Override
 	public Integer readInt() {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			return buffer.getInt();
 		}
 	}
@@ -92,7 +92,7 @@ public class DataResource extends GroupResource {
 	@Override
 	public String readString(int len)
 	{
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			byte[] data = new byte[len];
 			if(read(data) != len)
 				return null;
@@ -103,14 +103,14 @@ public class DataResource extends GroupResource {
 	
 	@Override
 	public int position() {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			return buffer.position();
 		}
 	}
 
 	@Override
 	public ResourceData getData() {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			buffer.rewind();
 			return buffer;
 		}
@@ -118,7 +118,7 @@ public class DataResource extends GroupResource {
 
 	@Override
 	public byte[] getBytes() {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			byte[] data = new byte[buffer.capacity()];
 			buffer.rewind();
 			buffer.get(data);
@@ -128,7 +128,7 @@ public class DataResource extends GroupResource {
 
 	@Override
 	public boolean isClosed() {
-		synchronized(parent) {
+		synchronized(parent != null ? parent : this) {
 			return buffer == null;
 		}
 	}

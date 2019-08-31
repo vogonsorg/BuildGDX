@@ -120,7 +120,7 @@ public abstract class ResourceHandler {
 		//TODO: search for buildgdx.def
 		
 		if(addonScript == null) //if addonDef not found
-			addonScript = new DefScript(game.baseDef);
+			addonScript = new DefScript(game.baseDef, null);
 
 		//Loading user package files
 		initGroupResources(BuildGdx.cache.getDinamicResources());

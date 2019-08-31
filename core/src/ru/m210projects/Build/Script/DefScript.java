@@ -20,7 +20,9 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.badlogic.gdx.graphics.Pixmap;
@@ -32,6 +34,7 @@ import ru.m210projects.Build.CRC32;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.FileEntry;
+import ru.m210projects.Build.FileHandle.FileUtils;
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.Loader.MDModel;
@@ -49,12 +52,16 @@ public class DefScript implements Disposable {
 	public ModelInfo mdInfo;
 	public AudioInfo audInfo;
 	private Engine engine;
+	
+	private FileEntry currentAddon;
+	private HashMap<String, List<String>> addonsIncludes;
 
 	class DefTile {
 		long crc32;
 		byte[] waloff;
-		short sizx, sizy, oldx, oldy;
-		int picanm, oldanm;
+		short sizx, sizy; //, oldx, oldy;
+		byte xoffset, yoffset;
+//		int oldanm;
 		String hrp;
 		byte alphacut;
 		
@@ -66,10 +73,11 @@ public class DefScript implements Disposable {
 			this.waloff = src.waloff;
 			this.sizx = src.sizx;
 			this.sizy = src.sizy;
-			this.picanm = src.picanm;
-			this.oldx = src.oldx;
-			this.oldy = src.oldy;
-			this.oldanm = src.oldanm;
+			this.xoffset = src.xoffset;
+			this.yoffset = src.yoffset;
+//			this.oldx = src.oldx;
+//			this.oldy = src.oldy;
+//			this.oldanm = src.oldanm;
 			this.hrp = src.hrp;
 			this.alphacut = src.alphacut;
 
@@ -96,8 +104,8 @@ public class DefScript implements Disposable {
 	}
 	
 	private DefTile[] tiles = new DefTile[MAXTILES];
-
-	public DefScript(DefScript src) {
+	
+	public DefScript(DefScript src, FileEntry addon) {
 		this.disposable = true;
 		this.texInfo = new TextureHDInfo(src.texInfo);
 		this.mdInfo = new ModelInfo(src.mdInfo, src.disposable);
@@ -108,6 +116,20 @@ public class DefScript implements Disposable {
 			
 			this.tiles[i] = new DefTile(src.tiles[i]);
 		}
+		if(src.addonsIncludes != null) {
+			addonsIncludes = new HashMap<String, List<String>>();
+			
+			for(String key : src.addonsIncludes.keySet())
+			{
+				List<String> list = src.addonsIncludes.get(key);
+				List<String> clone = new ArrayList<String>(list.size());
+				clone.addAll(list);
+
+				addonsIncludes.put(key, clone);
+			}
+		}
+		
+		this.currentAddon = addon;
 	}
 	
 	public DefScript(boolean disposable) {
@@ -197,6 +219,8 @@ public class DefScript implements Disposable {
 	    NOCOMPRESS,
 	    NODOWNSIZE,
 	    CRC,
+	    
+	    IFADDON
     	
 		;
 	};
@@ -240,6 +264,7 @@ public class DefScript implements Disposable {
 			//gdx
 			put("music", Token.MUSIC );
 			put("sound", Token.SOUND );
+			put("includeif", Token.IFADDON);
 		}
 	};
 	
@@ -471,8 +496,10 @@ public class DefScript implements Disposable {
 	private DefTile ImportTileFromTexture(String fn, int tile, long crc32, int alphacut, boolean istexture)
 	{
 		byte[] data = BuildGdx.cache.getBytes(fn, 0);
-		if (data == null)
+		if (data == null) {
+			Console.Println("ImportTileFromTexture error: file " + fn + " not found!", Console.OSDTEXT_RED);
 			return null;
+		}
 
 		Pixmap pix = new Pixmap(data, 0, data.length);
 		pix.setFilter(Filter.NearestNeighbour);
@@ -484,9 +511,9 @@ public class DefScript implements Disposable {
 		
 		DefTile deftile = new DefTile(xsiz, ysiz, crc32);
 		deftile.waloff = new byte[xsiz * ysiz];
-		deftile.oldanm = picanm[tile];
-		deftile.oldx = tilesizx[tile];
-		deftile.oldy = tilesizy[tile];
+//		deftile.oldanm = picanm[tile];
+//		deftile.oldx = tilesizx[tile];
+//		deftile.oldy = tilesizy[tile];
 
 		ByteBuffer bb = pix.getPixels();
 		byte[] waloff = deftile.waloff;
@@ -519,7 +546,7 @@ public class DefScript implements Disposable {
         Integer tile = -1, value;
         int talphacut = 255;
         boolean havexoffset = false, haveyoffset = false;
-        int xoffset = 0, yoffset = 0;
+        byte xoffset = 0, yoffset = 0;
         long tilecrc = 0;
         boolean istexture = false;
         
@@ -544,25 +571,25 @@ public class DefScript implements Disposable {
             case XOFFSET:
             	String xoffs = script.getstring();
             	if(xoffs.toUpperCase().equals("ART"))
-            		xoffset =  (picanm[tile] & 0x0000FF00) >> 8;
+            		xoffset = (byte) ((picanm[tile] & 0x0000FF00) >> 8);
             	else {
             		try {
             			xoffset = Byte.parseByte(xoffs);
             		} catch (Exception e) { Console.Println("Xoffset value out of range. Value: \"" + xoffs + "\" was disabled.", OSDTEXT_RED); break; }
             	}
-            	xoffset = BClipRange(xoffset, -128, 127);
+//            	xoffset = BClipRange(xoffset, -128, 127);
 	            havexoffset = true;
                 break;
             case YOFFSET:
             	String yoffs = script.getstring();
-            	if(yoffs.toUpperCase().equals("ART"))
-            		yoffset =  (picanm[tile] & 0x00FF0000) >> 16;
+            	if(yoffs.toUpperCase().equals("ART")) 
+            		yoffset = (byte) ((picanm[tile] & 0x00FF0000) >> 16);
             	else {
             		try {
             			yoffset = Byte.parseByte(yoffs);
             		} catch (Exception e) { Console.Println("Yoffset value out of range. Value: \"" + yoffs + "\" was disabled.", OSDTEXT_RED); break; }
             	}
-            	yoffset = BClipRange(yoffset, -128, 127);
+//            	yoffset = BClipRange(yoffset, -128, 127);
 	            haveyoffset = true;
                 break;
             case TEXTURE:
@@ -585,17 +612,19 @@ public class DefScript implements Disposable {
             // tilefromtexture <tile> { texhitscan }  sets the bit but doesn't change tile data
         	
         	DefTile deftile = new DefTile(tilesizx[tile], tilesizy[tile], tilecrc);
-        	deftile.oldanm = picanm[tile];
-    		deftile.oldx = tilesizx[tile];
-    		deftile.oldy = tilesizy[tile];
+//        	deftile.oldanm = picanm[tile];
+//    		deftile.oldx = tilesizx[tile];
+//    		deftile.oldy = tilesizy[tile];
     		
             if (havexoffset) {
-            	deftile.picanm &= ~0x0000FF00;
-            	deftile.picanm |= (xoffset & 0xFF) << 8;
+            	deftile.xoffset = xoffset;
+//            	deftile.picanm &= ~0x0000FF00;
+//            	deftile.picanm |= (xoffset & 0xFF) << 8;
             }
             if (haveyoffset) {
-            	deftile.picanm &= ~0x00FF0000;
-            	deftile.picanm |= (yoffset & 0xFF) << 16;
+            	deftile.yoffset = yoffset;
+//            	deftile.picanm &= ~0x00FF0000;
+//            	deftile.picanm |= (yoffset & 0xFF) << 16;
             }
 
             if (!havexoffset && !haveyoffset)
@@ -618,11 +647,13 @@ public class DefScript implements Disposable {
         if (texstatus == null)
         	return;
         
-        texstatus.picanm &= ~0x00FFFF00;
+//        texstatus.picanm &= ~0x00FFFF00;
         if (havexoffset)
-        	texstatus.picanm |= (xoffset & 0xFF) << 8;
+        	texstatus.xoffset = xoffset;
+//        	texstatus.picanm |= (xoffset & 0xFF) << 8;
         if (haveyoffset)
-        	texstatus.picanm |= (yoffset & 0xFF) << 16;
+        	texstatus.yoffset = yoffset;
+//        	texstatus.picanm |= (yoffset & 0xFF) << 16;
 
         DefTile def = tiles[tile];
     	if(def != null && def.crc32 != 0) {
@@ -638,7 +669,8 @@ public class DefScript implements Disposable {
 	{
 		String fn = script.getstring();
 		if(fn == null) return null;
-		
+
+		fn = FileUtils.getCorrectPath(fn);
 		if(script.path != null)
 			fn = script.path + File.separator + fn;
 		
@@ -652,13 +684,26 @@ public class DefScript implements Disposable {
 		ResourceData buffer;
 		Integer ivalue;
 		Double dvalue;
-		
+
 		Console.Println("Loading " + script.filename + "...");
 		
 		while (true)
         {
 			switch(gettoken(script, basetokens))
 			{
+			case IFADDON: 
+				if(addonsIncludes == null)
+					addonsIncludes = new HashMap<String, List<String>>();
+				String addon = script.getstring(); //tiles/duke3d/vacation.defx
+				if(addon != null && (fn = getFile(script)) != null) {
+					if(addonsIncludes.get(addon) == null) {
+						List<String> list = new ArrayList<String>();
+						addonsIncludes.put(addon, list);
+						list.add(script.path);
+					}
+					addonsIncludes.get(addon).add(fn);
+				}
+				break;
 			case T_TILEFROMTEXTURE:
 				tilefromtextureparser(script);
 				break;
@@ -1340,6 +1385,27 @@ public class DefScript implements Disposable {
 	
 	public void apply()
 	{
+		List<String> defs;
+		if(addonsIncludes != null && currentAddon != null && (defs = addonsIncludes.get(currentAddon.getName())) != null) {
+			
+			for(int i = 1; i < defs.size(); i++)
+			{
+				String fn = defs.get(i);
+				Resource res = BuildGdx.cache.open(fn, 0);
+				if(res == null)
+				{
+			        Console.Println("Warning: Failed including " + fn + " as module", OSDTEXT_YELLOW);
+					continue;
+				}
+
+				Scriptfile included = new Scriptfile(fn, res.getBytes());
+				included.path = defs.get(0);
+
+			    defsparser(included);
+			    res.close();
+			}
+		}
+		
 		for(int i = 0; i < MAXTILES; i++)
 		{
 			if(tiles[i] == null) continue;
@@ -1375,7 +1441,11 @@ public class DefScript implements Disposable {
 
 			tilesizx[i] = tile.sizx;
 			tilesizy[i] = tile.sizy;
-			picanm[i] = tile.picanm;
+			
+			picanm[i] &= ~0x00FFFF00;
+			picanm[i] |= (tile.xoffset & 0xFF) << 8;
+			picanm[i] |= (tile.yoffset & 0xFF) << 16;
+			
 			engine.setpicsiz(i);
 			
 			//replace hrp info
@@ -1394,10 +1464,10 @@ public class DefScript implements Disposable {
 			
 			texInfo.remove(i, 0);
 			
-			tilesizx[i] = tiles[i].oldx;
-			tilesizy[i] = tiles[i].oldy;
-			picanm[i] = tiles[i].oldanm;
-			engine.setpicsiz(i);
+//			tilesizx[i] = tiles[i].oldx;
+//			tilesizy[i] = tiles[i].oldy;
+//			picanm[i] = tiles[i].oldanm;
+//			engine.setpicsiz(i);
 			
 			waloff[i] = null;
 			tiles[i] = null;

@@ -21,6 +21,8 @@ import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 
+import java.io.FileNotFoundException;
+
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
@@ -190,6 +192,13 @@ public class InitScreen extends ScreenAdapter {
 					String message = "Memory used: [ " + MemLog.used() + " / " + MemLog.total() + " mb ] \r\nPlease, increase the java's heap size.";
 					Console.Println(message, Console.OSDTEXT_RED);
 					BuildGdx.message.show("OutOfMemory!", message, MessageType.Info);
+					System.exit(1);
+				} catch (FileNotFoundException fe) {
+					fe.printStackTrace();
+					
+					String message = fe.getMessage();
+					Console.Println(message, Console.OSDTEXT_RED);
+					BuildGdx.message.show("File not found!", message, MessageType.Info);
 					System.exit(1);
 				} catch (Throwable e) {
 					game.ThrowError("InitScreen error", e);	

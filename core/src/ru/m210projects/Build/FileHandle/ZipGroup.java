@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import ru.m210projects.Build.FileHandle.Cache1D.PackageType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class ZipGroup extends Group {
@@ -415,6 +416,7 @@ public class ZipGroup extends Group {
 				}
 			}
 			numfiles = filelist.size();
+			type = PackageType.Zip;
 		}
 	}
 	
