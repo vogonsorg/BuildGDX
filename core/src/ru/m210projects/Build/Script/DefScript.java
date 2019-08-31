@@ -699,8 +699,9 @@ public class DefScript implements Disposable {
 					if(addonsIncludes.get(addon) == null) {
 						List<String> list = new ArrayList<String>();
 						addonsIncludes.put(addon, list);
-						list.add(script.path);
 					}
+					
+					addonsIncludes.get(addon).add(script.path);
 					addonsIncludes.get(addon).add(fn);
 				}
 				break;
@@ -1388,19 +1389,19 @@ public class DefScript implements Disposable {
 		List<String> defs;
 		if(addonsIncludes != null && currentAddon != null && (defs = addonsIncludes.get(currentAddon.getName())) != null) {
 			
-			for(int i = 1; i < defs.size(); i++)
+			for(int i = 0; i < defs.size() / 2; i++)
 			{
-				String fn = defs.get(i);
+				String fn = defs.get(2 * i + 1);
 				Resource res = BuildGdx.cache.open(fn, 0);
 				if(res == null)
 				{
-			        Console.Println("Warning: Failed including " + fn + " as module", OSDTEXT_YELLOW);
+			        Console.Println("Warning: Failed including " + fn + " as module", OSDTEXT_RED);
 					continue;
 				}
 
 				Scriptfile included = new Scriptfile(fn, res.getBytes());
-				included.path = defs.get(0);
-
+				included.path = defs.get(2 * i);
+			
 			    defsparser(included);
 			    res.close();
 			}

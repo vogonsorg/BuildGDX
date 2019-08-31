@@ -36,6 +36,9 @@ import org.lwjgl.opengl.Display;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
+
 public class JDisplay extends WindowAdapter
 {
 	protected final JFrame m_frame;
@@ -49,7 +52,7 @@ public class JDisplay extends WindowAdapter
 
 	protected Object displayImpl;
 	protected long handle;
-	public static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("windows");
+	public static final boolean IS_WINDOWS = BuildGdx.app.getPlatform() == Platform.Windows;
 
 	public JDisplay(int width, int height, boolean undecorated)
 	{

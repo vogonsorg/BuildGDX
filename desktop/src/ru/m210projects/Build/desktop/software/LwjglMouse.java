@@ -31,10 +31,10 @@ public class LwjglMouse extends AWTMouse {
 		moveMouse = display.getImpl().getClass().getDeclaredMethod("setCursorPosition", int.class, int.class);
 		moveMouse.setAccessible(true);
 		
-		grabMouse = display.getImpl().getClass().getDeclaredMethod("setupCursorClipping", long.class);
+		grabMouse = display.getImpl().getClass().getDeclaredMethod("setupCursorClipping", long.class); //WindowsDisplay
 		grabMouse.setAccessible(true);
 		
-		ungrabMouse = display.getImpl().getClass().getDeclaredMethod("resetCursorClipping");
+		ungrabMouse = display.getImpl().getClass().getDeclaredMethod("resetCursorClipping"); //WindowsDisplay
 		ungrabMouse.setAccessible(true);
 	}
 

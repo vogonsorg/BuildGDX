@@ -65,6 +65,7 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected final BuildApplicationConfiguration config;
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
+	protected final Platform platform;
 	
 	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, RenderType type, BuildApplicationConfiguration config) {
 		setApplicationLogger(new LwjglApplicationLogger());
@@ -93,6 +94,15 @@ public class BuildApplicationImpl implements BuildApplication {
 		BuildGdx.controllers = new JControllers();
 
 		initialize();
+		
+		final String osName = System.getProperty("os.name");
+		if ( osName.startsWith("Windows") )
+			platform = Platform.Windows;
+		else if ( osName.startsWith("Linux") || osName.startsWith("FreeBSD") || osName.startsWith("OpenBSD") || osName.startsWith("SunOS") || osName.startsWith("Unix") || osName.indexOf("aix") > 0 )
+			platform = Platform.Linux;
+		else if ( osName.startsWith("Mac OS X") || osName.startsWith("Darwin") )
+			platform = Platform.MacOSX;
+		else platform = null;
 	}
 
 	@Override
@@ -398,5 +408,10 @@ public class BuildApplicationImpl implements BuildApplication {
 		synchronized (lifecycleListeners) {
 			lifecycleListeners.removeValue(listener, true);
 		}
+	}
+
+	@Override
+	public Platform getPlatform() {
+		return platform;
 	}
 }

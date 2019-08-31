@@ -5,6 +5,8 @@ import com.badlogic.gdx.Application;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 
 public interface BuildApplication extends Application {
+	
+	public enum Platform { Windows, Linux, MacOSX, Android };
 
 	public BuildFrame getFrame();
 	
@@ -15,6 +17,8 @@ public interface BuildApplication extends Application {
 	public BuildInput getInput();
 	
 	public BuildGraphics getGraphics();
+	
+	public Platform getPlatform();
 	
 	public interface Frame extends BuildFrame
 	{

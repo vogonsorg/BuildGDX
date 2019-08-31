@@ -29,7 +29,9 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.Pool;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildInput;
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 
 public class SoftInput implements BuildInput, KeyListener {
 	class KeyEvent {
@@ -145,7 +147,7 @@ public class SoftInput implements BuildInput, KeyListener {
 		this.display = display;
 
 		try {
-			if(display.getHwnd() != -1) //if LwjglNativesLoader is loaded
+			if(display.getHwnd() != -1 && BuildGdx.app.getPlatform() == Platform.Windows) //if LwjglNativesLoader is loaded
 				this.mouse = new LwjglMouse(display);
 		} catch (Exception e) {
 			e.printStackTrace();
