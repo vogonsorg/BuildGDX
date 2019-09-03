@@ -526,8 +526,8 @@ public class DefScript implements Disposable {
 				if(fmt == Format.RGBA4444 || fmt == Format.RGBA8888) {
 					if(bb.get() == 0) 
 						waloff[x * ysiz + y] = -1;
-					else waloff[x * ysiz + y] = engine.getclosestcol(r, g, b);
-				} else waloff[x * ysiz + y] = engine.getclosestcol(r, g, b);
+					else waloff[x * ysiz + y] = engine.getclosestcol(palette, r, g, b);
+				} else waloff[x * ysiz + y] = engine.getclosestcol(palette, r, g, b);
 			}
 
 		if (istexture) {

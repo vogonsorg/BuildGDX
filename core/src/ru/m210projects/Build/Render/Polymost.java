@@ -4596,7 +4596,7 @@ public abstract class Polymost extends GLRenderer {
 					g = (rgbbuffer.get() & 0xFF) >> 2;
 					b = (rgbbuffer.get() & 0xFF) >> 2;
 				
-					indexbuffer.put(engine.getclosestcol(r, g, b));
+					indexbuffer.put(engine.getclosestcol(palette, r, g, b));
 				}
 			}
 

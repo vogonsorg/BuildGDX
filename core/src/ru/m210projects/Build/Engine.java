@@ -559,7 +559,7 @@ public abstract class Engine {
 		paletteloaded = 1;
 	}
 
-	public byte getclosestcol(int r, int g, int b) { //jfBuild
+	public byte getclosestcol(byte[] palette, int r, int g, int b) { //jfBuild
 		int i, k, dist;
 		byte retcol;
 		int pal1;
@@ -3420,16 +3420,21 @@ public abstract class Engine {
 		}
 		else
 		{
+			byte[] pal = new byte[768];
+			System.arraycopy(curpalette.getBytes(), 0, pal, 0, 768);
+			for (int j = 0; j < 768; j++)
+				pal[j] = (byte) ((pal[j] & 0xFF) >> 2);
+			
 			for (int i=0; i<numshades; i++)
 	        {
 	            long palscale = divscale(i,numshades, 16);
-	            for (int j=0; j<256; j++)
+	            for (int j = 0; j < 256; j++)
 	            {
-	            	int rptr = palette[3 * (remapbuf[j] & 0xFF)] & 0xFF;
-	            	int gptr = palette[3 * (remapbuf[j] & 0xFF) + 1] & 0xFF;
-	            	int bptr = palette[3 * (remapbuf[j] & 0xFF) + 2] &  0xFF;
+	            	int rptr = pal[3 * (remapbuf[j] & 0xFF)] & 0xFF;
+	            	int gptr = pal[3 * (remapbuf[j] & 0xFF) + 1] & 0xFF;
+	            	int bptr = pal[3 * (remapbuf[j] & 0xFF) + 2] &  0xFF;
 
-	                palookup[palnum][j + i * 256] = (byte) getclosestcol(
+	                palookup[palnum][j + i * 256] = (byte) getclosestcol(pal, 
 	                		rptr+mulscale(r-rptr,palscale, 16),
 	                        gptr+mulscale(g-gptr,palscale, 16),
 	                        bptr+mulscale(b-bptr,palscale, 16));
@@ -3866,7 +3871,7 @@ public abstract class Engine {
 			int r = (frame.get() & 0xFF) >> 2;
 			int g = (frame.get() & 0xFF) >> 2;
 			int b = (frame.get() & 0xFF) >> 2;
-			return getclosestcol(r, g, b);
+			return getclosestcol(palette, r, g, b);
 		}
 	}
 	
