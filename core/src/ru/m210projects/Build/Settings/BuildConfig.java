@@ -229,6 +229,19 @@ public abstract class BuildConfig extends IniFile {
 		Arrays.fill(gJoyMenukeys, -1);
 		
 		LoadMain();
+		
+		if(version != cfgVersion)
+		{
+			try {
+				int index = name.lastIndexOf(".");
+				String cfgname = name.substring(0, index);
+				RandomAccessFile raf = new RandomAccessFile(path + cfgname + ".old", "rw");
+				raf.write(data);
+				raf.close();
+			} catch (Exception e) {
+				Console.Println("Old config file error: " + e.getMessage(), OSDTEXT_YELLOW);
+			}
+		}
 	}
 	
 	public boolean isExist()
