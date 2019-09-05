@@ -25,7 +25,7 @@ import ru.m210projects.Build.FileHandle.FileResource.Mode;
 
 public class UserGroup extends Group {
 	
-	private class UserResource extends GroupResource {
+	public class UserResource extends GroupResource {
 
 		public final FileEntry entry;
 		public FileResource fil;
@@ -222,22 +222,24 @@ public class UserGroup extends Group {
 		return -1;
 	}
 
-	public boolean add(FileEntry entry, int fileid) {
-		if(entry == null) return false;
+	public UserResource add(FileEntry entry, int fileid) {
+		if(entry == null) return null;
 
-		add(new UserResource(entry, fileid));
+		UserResource out = null;
+		add(out = new UserResource(entry, fileid));
 		numfiles++;
 		
-		return true;
+		return out;
 	}
 	
-	public boolean add(String absolutePath, int fileid) {
-		if(absolutePath == null || absolutePath.isEmpty()) return false;
+	public UserResource add(String absolutePath, int fileid) {
+		if(absolutePath == null || absolutePath.isEmpty()) return null;
 
-		add(new UserResource(absolutePath, fileid));
+		UserResource out = null;
+		add(out = new UserResource(absolutePath, fileid));
 		numfiles++;
 		
-		return true;
+		return out;
 	}
 
 }

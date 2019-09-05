@@ -197,7 +197,7 @@ public abstract class BuildConfig extends IniFile {
 	public String mAddress = "localhost";
 	public int mPort = NETPORT;
 	
-	public RenderType renderType = RenderType.Software;
+	public RenderType renderType = RenderType.Polymost;
 
 	public BuildConfig(String path, String name) {
 		super();	
