@@ -1160,7 +1160,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 			// nasty hacks go here
 			if ((dastat & 8) == 0) {
-				int twice_midcx = (cx1 + cx2) + 2;
+				int twice_midcx = (windowx1 + windowx2) + 2;
 
 				// screen x center to sx1, scaled to viewport
 				int scaledxofs = scale(normxofs, scale(xdimen, xdim, oxdim), 320);
@@ -1173,7 +1173,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 				sx = ((twice_midcx + xbord) << 15) + scaledxofs;
 				zoomsc = xdimenscale;
-				sy = (((cy1 + cy2) + 2) << 15) + mulscale(normyofs, zoomsc, 16);
+				sy = (((windowy1 + windowy2) + 2) << 15) + mulscale(normyofs, zoomsc, 16);
 			} else {
 				// If not clipping to startmosts, & auto-scaling on, as a
 				// hard-coded bonus, scale to full screen instead
@@ -1198,7 +1198,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 		{
 			xv2 = mulscale(xv, ourxyaspect, 16);
 			yv2 = mulscale(yv, ourxyaspect, 16);
-		} else {
+		} else 
+		{
 			xv2 = xv;
 			yv2 = yv;
 		}

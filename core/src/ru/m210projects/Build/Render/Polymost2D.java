@@ -1035,6 +1035,7 @@ public class Polymost2D extends OrphoRenderer {
 			if ((dastat & 8) == 0) {
 				int twice_midcx = (cx1 + cx2) + 2;
 
+				
 				// screen x center to sx1, scaled to viewport
 				int scaledxofs = scale(normxofs, scale(xdimen, xdim, oxdim), 320);
 				int xbord = 0;
