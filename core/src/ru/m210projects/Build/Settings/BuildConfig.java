@@ -230,7 +230,7 @@ public abstract class BuildConfig extends IniFile {
 		
 		LoadMain();
 		
-		if(version != cfgVersion)
+		if(version != cfgVersion && data != null)
 		{
 			try {
 				int index = name.lastIndexOf(".");
