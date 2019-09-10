@@ -80,7 +80,7 @@ public class BuildApplicationImpl implements BuildApplication {
 		this.preferencesFileType = config.preferencesFileType;
 
 		files = new LwjglFiles();
-		net = new LwjglNet(config);
+		net = null; //new LwjglNet(config);
 
 		Gdx.app = this;
 		Gdx.files = files;
