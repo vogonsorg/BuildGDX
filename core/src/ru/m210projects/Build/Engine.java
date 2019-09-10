@@ -143,6 +143,7 @@ public abstract class Engine {
 	private boolean releasedEngine;
 	public boolean compatibleMode;
 	public static boolean UseBloodPal = false;
+	public String tilesPath = "tilesXXX.art";
 	
 	public Renderer render;
 	private static KeyInput input;
@@ -1432,11 +1433,11 @@ public abstract class Engine {
 		picsiz[tilenum] += (j << 4);
 	}
 
-	public synchronized int loadpics(String filename) { //jfBuild
+	public synchronized int loadpics() { //jfBuild
 		int offscount, localtilestart, localtileend, dasiz;
 		int i, k;
 
-		buildString(artfilename, 0, filename);
+		buildString(artfilename, 0, tilesPath);
 
 		numtilefiles = 0;
 		ResourceData fil = null;
@@ -3471,10 +3472,15 @@ public abstract class Engine {
 		palfadergb.a = 0;
 	}
 	
-	public void changepalette(byte[] palette)
+	public void changepalette(final byte[] palette)
 	{
-		curpalette.update(palette, false);
-		render.changepalette(palette);
+		BuildGdx.app.postRunnable(new Runnable() {
+			@Override
+			public void run() {
+				curpalette.update(palette, false);
+				render.changepalette(palette);
+			}
+		});
 	}
 
 	protected byte[] temppal = new byte[768];
@@ -3789,8 +3795,8 @@ public abstract class Engine {
 				wall[wall[i].nextwall].nextwall = (short) i;
 	}
 
-	public void printext256(int xpos, int ypos, int col, int backcol, char[] name, int fontsize) { //gdxBuild
-		render.printext(xpos, ypos, col, backcol, name, fontsize, 1.0f);
+	public void printext256(int xpos, int ypos, int col, int backcol, char[] name, int fontsize, float scale) { //gdxBuild
+		render.printext(xpos, ypos, col, backcol, name, fontsize, scale);
 	}
 	
 	public String screencapture(String fn) { //jfBuild + gdxBuild (screenshot)
@@ -3821,7 +3827,7 @@ public abstract class Engine {
 		try {
 			capture = new Pixmap(w, h, Format.RGB888);
 			ByteBuffer pixels = capture.getPixels();
-			pixels.put(render.getFrame(PixelFormat.RGB));
+			pixels.put(render.getFrame(PixelFormat.Rgb));
 
 			File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
 			PixmapIO.writePNG(new FileHandle(pci), capture);
@@ -3845,8 +3851,8 @@ public abstract class Engine {
 
 		ByteBuffer frame;
 		if(render.getType() == RenderType.Software) {
-			frame = render.getFrame(PixelFormat.Indexed);
-		} else frame = render.getFrame(PixelFormat.RGB);
+			frame = render.getFrame(PixelFormat.Pal8);
+		} else frame = render.getFrame(PixelFormat.Rgb);
 		
 		int base;
 		for (int fx, fy = 0; fy < dheigth; fy++) {
@@ -3884,8 +3890,8 @@ public abstract class Engine {
 		
 		ByteBuffer frame;
 		if(render.getType() == RenderType.Software) {
-			frame = render.getFrame(PixelFormat.Indexed);
-		} else frame = render.getFrame(PixelFormat.RGB);
+			frame = render.getFrame(PixelFormat.Pal8);
+		} else frame = render.getFrame(PixelFormat.Rgb);
 
 		for (int x, y = heigth - 1; y >= 0; y--)
 			for (x = 0; x < width; x++) 
@@ -4107,9 +4113,6 @@ public abstract class Engine {
     private DefScript defs;
     public void setDefs(DefScript defs)
     {
-    	if(this.defs != null)
-    		this.defs.dispose();
-    	
     	this.defs = defs;  
     	if(getrender() == null)
     		throw new NullPointerException("Renderer is not initialized!");

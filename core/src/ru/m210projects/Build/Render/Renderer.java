@@ -52,7 +52,7 @@ public abstract class Renderer extends ParamLinker {
 	
 	public enum Transparent { None, Bit1, Bit2 }
 	
-	public enum PixelFormat { RGB, Indexed }
+	public enum PixelFormat { Rgb, Pal8, Pal8A }
 	
 	public abstract PixelFormat getTexFormat();
 	

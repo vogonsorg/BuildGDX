@@ -110,10 +110,13 @@ public abstract class BuildConfig extends IniFile {
 		Show_Console;
 		
 		private int num = -1;
+		private String name;
 
 		public int getNum() { return num; }
 		
-		public String getName() { return name(); }
+		public void setName(String name) { this.name = name; }
+		
+		public String getName() { return (name != null) ? name : name(); }
 		
 		public KeyType setNum(int num) { this.num = num; return this; }
 	}

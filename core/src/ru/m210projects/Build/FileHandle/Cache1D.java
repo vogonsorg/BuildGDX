@@ -218,7 +218,7 @@ public class Cache1D {
 		}
 	}
 	
-	public List<GroupResource> getDinamicResources()
+	public List<GroupResource> getDynamicResources()
 	{
 		List<GroupResource> list = new ArrayList<GroupResource>();
 		for (Iterator<Group> iterator = groupfil.iterator(); iterator.hasNext();) {

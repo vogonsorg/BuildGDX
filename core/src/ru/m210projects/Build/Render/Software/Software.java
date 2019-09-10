@@ -3486,7 +3486,7 @@ public abstract class Software extends Renderer {
 	@Override
 	public ByteBuffer getFrame(PixelFormat format) {
 
-		if (format == PixelFormat.Indexed) {
+		if (format == PixelFormat.Pal8) {
 			if (indexbuffer != null)
 				indexbuffer.clear();
 			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
@@ -3495,7 +3495,7 @@ public abstract class Software extends Renderer {
 			indexbuffer.put(frameplace);
 			indexbuffer.rewind();
 			return indexbuffer;
-		} else if (format == PixelFormat.RGB) {
+		} else if (format == PixelFormat.Rgb) {
 			if (rgbbuffer != null)
 				rgbbuffer.clear();
 			if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3)
@@ -4130,7 +4130,7 @@ public abstract class Software extends Renderer {
 	
 	@Override
 	public PixelFormat getTexFormat() {
-		return PixelFormat.Indexed;
+		return PixelFormat.Pal8;
 	}
 
 	@Override

@@ -16,6 +16,7 @@ import static ru.m210projects.Build.Engine.palookup;
 
 import java.nio.ByteBuffer;
 
+import ru.m210projects.Build.Render.Renderer.PixelFormat;
 import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 public class ImageUtils {
@@ -33,16 +34,17 @@ public class ImageUtils {
 		}
 	}
 
-	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, boolean isPaletted) {
+	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, PixelFormat type) {
 		UnsafeDirectBuffer buffer = getTmpBuffer();
 		boolean hasalpha = false;
 		buffer.clear();
 		
 		if(data != null && tsizx * tsizy > data.length)
 			data = null;
-
-		if(isPaletted)
+		
+		switch(type)
 		{
+			case Pal8:
 			if (data == null) {
 				buffer.put(0, (byte) 0);
 				tsizx = tsizy = 1;
@@ -64,52 +66,65 @@ public class ImageUtils {
 					}
 				}
 			}
-			
 			return new PicInfo(buffer, hasalpha);
-		}
+			default:
+			if (data == null) {
+				buffer.putInt(0, 0);
+				tsizx = tsizy = 1;
+				hasalpha = true;
+			} else {
+				int wpptr, wp, dacol;
+				byte a;
+				for (int y = 0, x2, y2, x; y < ysiz; y++) {
+					y2 = (y < tsizy) ? y : y - tsizy;
+					wpptr = y * xsiz;
+					for (x = 0; x < xsiz; x++, wpptr++) {
+						wp = wpptr << 2;
 
-		if (data == null) {
-			buffer.putInt(0, 0);
-			tsizx = tsizy = 1;
-			hasalpha = true;
-		} else {
-			int wpptr, wp, dacol;
-			byte a;
-			for (int y = 0, x2, y2, x; y < ysiz; y++) {
-				y2 = (y < tsizy) ? y : y - tsizy;
-				wpptr = y * xsiz;
-				for (x = 0; x < xsiz; x++, wpptr++) {
-					wp = wpptr << 2;
+						if (clamped && ((x >= tsizx) || (y >= tsizy))) { // Clamp texture
+							buffer.putInt(wp, 0);
+							continue;
+						}
+						x2 = (x < tsizx) ? x : x - tsizx;
+						dacol = data[x2 * tsizy + y2] & 0xFF;
 
-					if (clamped && ((x >= tsizx) || (y >= tsizy))) { // Clamp texture
-						buffer.putInt(wp, 0);
-						continue;
-					}
-					x2 = (x < tsizx) ? x : x - tsizx;
-					dacol = data[x2 * tsizy + y2] & 0xFF;
-
-					a = -1;
-					if (alphaMode && dacol == 255) {
-						a = 0;
-						dacol = 0;
-						hasalpha = true;
-					} else {
-						if(UseBloodPal && dapal == 1) //Blood's pal 1
+						if(type == PixelFormat.Pal8A)
 						{
-							int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
-							dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-						} else dacol = palookup[dapal][dacol] & 0xFF;
+							a = -1;
+							if (alphaMode && dacol == 255) {
+								a = 0;
+//								dacol = 0;
+								hasalpha = true;
+							}
+							
+							int color = dacol | ((a & 0xFF) << 24);
+							buffer.putInt(wp, color);
+						} 
+						else 
+						{
+							a = -1;
+							if (alphaMode && dacol == 255) {
+								a = 0;
+								dacol = 0;
+								hasalpha = true;
+							} else {
+								if(UseBloodPal && dapal == 1) //Blood's pal 1
+								{
+									int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
+									dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
+								} else dacol = palookup[dapal][dacol] & 0xFF;
+							}
+	
+							buffer.putInt(wp, curpalette.getRGBA(dacol, a));
+						}
 					}
-
-					buffer.putInt(wp, curpalette.getRGBA(dacol, a));
 				}
 			}
+			if(data != null && hasalpha) 
+				fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
+
+			return new PicInfo(buffer, hasalpha);
 		}
-
-		if(data != null && hasalpha) 
-			fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
-
-		return new PicInfo(buffer, hasalpha);
 	}
 	
 	private static void fixtransparency(UnsafeDirectBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {

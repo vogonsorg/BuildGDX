@@ -228,7 +228,7 @@ public class JController implements BuildController {
 	
 	private void triggerHandler()
 	{
-		if(axises.size < 4) return;
+		if(axises.size < 5) return;
 		
 		float value = axises.get(4).getPollData();
 		int num = buttons.size + (4 * povs.size);

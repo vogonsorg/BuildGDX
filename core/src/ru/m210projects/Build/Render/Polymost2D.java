@@ -841,8 +841,8 @@ public class Polymost2D extends OrphoRenderer {
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		int oxpos = xpos;
-		if (textureCache.isUseShader())
-			gl.glActiveTexture(GL_TEXTURE0);
+//		if (textureCache.isUseShader())
+//			gl.glActiveTexture(GL_TEXTURE0);
 		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
 
 		setpolymost2dview();
@@ -1133,8 +1133,8 @@ public class Polymost2D extends OrphoRenderer {
 			return;
 
 		if (!pth.isHighTile()) {
-			textureCache.bindShader();
-			textureCache.setShaderParams(globalpal, engine.getpalookup(0, globalshade));
+//			textureCache.bindShader();
+//			textureCache.setShaderParams(globalpal, engine.getpalookup(0, globalshade));
 		}
 		bindTexture(pth.glpic);
 
@@ -1205,7 +1205,7 @@ public class Polymost2D extends OrphoRenderer {
 			}
 		}
 
-		textureCache.shaderTransparent(polyColor.a);
+//		textureCache.shaderTransparent(polyColor.a);
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1222,8 +1222,8 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glMatrixMode(GL_TEXTURE);
 		gl.glPopMatrix();
 
-		if (!pth.isHighTile())
-			textureCache.unbindShader();
+//		if (!pth.isHighTile())
+//			textureCache.unbindShader();
 	}
 
 	private void dorotatesprite3d(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat,

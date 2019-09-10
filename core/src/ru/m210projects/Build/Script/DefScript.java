@@ -56,7 +56,7 @@ public class DefScript implements Disposable {
 	private FileEntry currentAddon;
 	private HashMap<String, List<String>> addonsIncludes;
 
-	class DefTile {
+	private class DefTile {
 		long crc32;
 		byte[] waloff;
 		short sizx, sizy; //, oldx, oldy;
@@ -104,7 +104,7 @@ public class DefScript implements Disposable {
 	}
 	
 	private DefTile[] tiles = new DefTile[MAXTILES];
-	
+
 	public DefScript(DefScript src, FileEntry addon) {
 		this.disposable = true;
 		this.texInfo = new TextureHDInfo(src.texInfo);
@@ -116,6 +116,7 @@ public class DefScript implements Disposable {
 			
 			this.tiles[i] = new DefTile(src.tiles[i]);
 		}
+
 		if(src.addonsIncludes != null) {
 			addonsIncludes = new HashMap<String, List<String>>();
 			
@@ -508,7 +509,7 @@ public class DefScript implements Disposable {
 
 		int xsiz = pix.getWidth();
 		int ysiz = pix.getHeight();
-		
+
 		DefTile deftile = new DefTile(xsiz, ysiz, crc32);
 		deftile.waloff = new byte[xsiz * ysiz];
 //		deftile.oldanm = picanm[tile];
@@ -1419,7 +1420,7 @@ public class DefScript implements Disposable {
 	        	byte[] data = waloff[i];
 	        	if(data == null)
 	        		data = engine.loadtile(i);
-
+	        	
 	        	long crc32 = data != null ? CRC32.getChecksum(data) : -1;
 	        	if(crc32 != tile.crc32)
 				{
@@ -1459,16 +1460,12 @@ public class DefScript implements Disposable {
 	{
 		if(!disposable) return;
 		
+		engine.loadpics();
 		for(int i = 0; i < MAXTILES; i++)
 		{
 			if(tiles[i] == null) continue;
 			
 			texInfo.remove(i, 0);
-			
-//			tilesizx[i] = tiles[i].oldx;
-//			tilesizy[i] = tiles[i].oldy;
-//			picanm[i] = tiles[i].oldanm;
-//			engine.setpicsiz(i);
 			
 			waloff[i] = null;
 			tiles[i] = null;

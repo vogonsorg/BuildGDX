@@ -21,6 +21,7 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.BORDERANG;
 import static ru.m210projects.Build.OnSceenDisplay.Console.BORDTILE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.PALETTE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.SHADE;
+import static ru.m210projects.Build.Pragmas.mulscale;
 
 import ru.m210projects.Build.Engine;
 
@@ -43,10 +44,12 @@ public class DEFOSDFUNC implements OSDFunc {
 
 	@Override
 	public void drawchar(int x, int y, char ch, int shade, int pal, int scale) {
-		x = (x << 3) + 4;
-		y = (y << 3);
+		x = mulscale(4 + (x << 3), scale, 16);
+		y = mulscale((y << 3), scale, 16);
+		
+		
 		charbuf[0] = ch;
-		engine.printext256(x, y, white, -1, charbuf, 0);
+		engine.printext256(x, y, white, -1, charbuf, 0, scale / 65536.0f);
 	}
 
 	@Override
@@ -54,13 +57,13 @@ public class DEFOSDFUNC implements OSDFunc {
 		char[][] osdtext = Console.getTextPtr();
 		if (ptr >= 0 && ptr < osdtext.length) {
 			char[] text = osdtext[ptr];
-			engine.printext256(4+(x<<3),4+(y<<3), white, -1, text, 0);
+			engine.printext256(mulscale(4+(x<<3), scale, 16),mulscale(4+(y<<3), scale, 16), white, -1, text, 0, scale / 65536.0f);
 		}
 	}
 
 	@Override
 	public void drawstr(int x, int y, char[] text, int len, int shade, int pal, int scale) {
-		engine.printext256(4+(x<<3),(y<<3), white, -1, text, 0);
+		engine.printext256(mulscale(4+(x<<3), scale, 16),mulscale((y<<3), scale, 16), white, -1, text, 0, scale / 65536.0f);
 	}
 	
 	@Override
@@ -71,7 +74,7 @@ public class DEFOSDFUNC implements OSDFunc {
 		
 		if ((lastkeypress & 0x40l) == 0) {
 			charbuf[0] = ch;
-			engine.printext256(4+(x<<3),(y<<3)+2, white, -1, charbuf, 0);
+			engine.printext256(mulscale(4+(x<<3), scale, 16), mulscale((y<<3) + 2, scale, 16), white, -1, charbuf, 0, scale / 65536.0f);
 		}
 	}
 	

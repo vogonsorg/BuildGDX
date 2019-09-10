@@ -76,6 +76,7 @@ public class ALMusicDrv implements Music {
 		try {
 			music = new ALMusicSource(new Ogg.Music(drv, musicBuffers, data));
 		} catch (Throwable e) {
+			e.printStackTrace();
 			Console.Println("Can't load ogg file", OSDTEXT_RED);
 			return null;
 		}

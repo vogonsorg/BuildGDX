@@ -52,6 +52,8 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class TextureCache {
 
+	private PixelFormat type = PixelFormat.Rgb;
+	
 	private final Pthtyp[] cache;
     private TextureHDInfo info;
     
@@ -89,7 +91,7 @@ public class TextureCache {
 	}
 
 	public PixelFormat getFormat() {
-		return PixelFormat.RGB;
+		return type;
 	}
 	
 	public void invalidate(int dapicnum, int dapalnum, boolean clamped) {
@@ -127,7 +129,7 @@ public class TextureCache {
 		if (palookup[dapal] == null)
 			dapal = 0;
 
-		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, shader != null);
+		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, type);
 
 		//Realloc for user tiles
 		if (pth.glpic != null && (pth.glpic.getWidth() != xsiz || pth.glpic.getHeight() != ysiz)) {
@@ -142,7 +144,7 @@ public class TextureCache {
 		}
 
 		bindTexture(pth.glpic);
-		int intexfmt = (picInfo.hasalpha ? GL_RGBA : GL_RGB);
+		int intexfmt = (picInfo.hasalpha ? (type == PixelFormat.Pal8A ? GL_LUMINANCE_ALPHA : GL_RGBA) : GL_RGB);
 
 		if (Gdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
@@ -458,10 +460,28 @@ public class TextureCache {
 	
 	private ShaderProgram createShader() 
 	{
-//	    String fragment = new String(kGetBytes("fragment.glsl", 0)); XXX
-//	    String vertex = new String(kGetBytes("vertex.glsl", 0));
-	    
-//	    ShaderProgram shader = new ShaderProgram(vertex, fragment);
+		String fragment = "uniform sampler2D u_texture;\r\n" + 
+				"uniform sampler2D u_colorTable;\r\n" + 
+				"uniform float u_pal;\r\n" + 
+				"uniform float u_alpha;\r\n" + 
+				"\r\n" + 
+				"void main()\r\n" + 
+				"{	\r\n" + 
+				"	float index = texture2D(u_texture, gl_TexCoord[0].xy).r;\r\n" + 
+				"	if(index == 1.0) discard;\r\n" + 
+				"	\r\n" + 
+				"	vec3 color = texture2D(u_colorTable, vec2(index, u_pal / 256.0)).rgb;	\r\n" + 
+				"	gl_FragColor = vec4(color, u_alpha);\r\n" + 
+				"}";
+		
+		String vertex = "void main()\r\n" + 
+				"{\r\n" + 
+				"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; //ftransform();\r\n" + 
+				"	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;\r\n" + 
+				"	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\r\n" + 
+				"}";
+
+	    ShaderProgram shader = new ShaderProgram(vertex, fragment);
         if(!shader.isCompiled())
         	Console.Println("Shader compile error: " + shader.getLog(), OSDTEXT_RED);
 

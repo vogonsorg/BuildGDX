@@ -732,8 +732,8 @@ public abstract class Polymost extends GLRenderer {
 			return;
 
 		if(!pth.isHighTile() && textureCache.isUseShader()) {
-			textureCache.bindShader();
-			textureCache.setShaderParams(globalpal, engine.getpalookup(globalvisibility, globalshade));
+//			textureCache.bindShader();
+//			textureCache.setShaderParams(globalpal, engine.getpalookup(globalvisibility, globalshade));
 			gl.glDisable(GL_FOG);
 		}
 		bindTexture(pth.glpic);
@@ -878,7 +878,7 @@ public abstract class Polymost extends GLRenderer {
 
 		if(HOM) polyColor.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 		
-		textureCache.shaderTransparent(polyColor.a);
+//		textureCache.shaderTransparent(polyColor.a);
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		// Hack for walls&masked walls which use textures that are not a power
@@ -1091,7 +1091,7 @@ public abstract class Polymost extends GLRenderer {
 					GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 		
 		if(!pth.isHighTile() && textureCache.isUseShader()) {
-			textureCache.unbindShader();
+//			textureCache.unbindShader();
 			EnableFog();
 		}
 	}
@@ -3515,14 +3515,14 @@ public abstract class Polymost extends GLRenderer {
 		gl.glEnableClientState(GL_COLOR_ARRAY);
 		
 		Pthtyp p = null;
-		textureCache.bindShader();
+//		textureCache.bindShader();
 		for(int i = 0; i < surfaces.size; i++)
 		{
 			GLSurface s = surfaces.get(i);
 			if(!s.buffer.hasRemaining()) continue;
 
 			if(s.pth != p) {
-				textureCache.setShaderParams(s.pth.palnum, engine.getpalookup(globalvisibility, s.shade & 0xFF));
+//				textureCache.setShaderParams(s.pth.palnum, engine.getpalookup(globalvisibility, s.shade & 0xFF));
 				bindTexture(s.pth.glpic);
 			}
 			p = s.pth;
@@ -3534,7 +3534,7 @@ public abstract class Polymost extends GLRenderer {
 			gl.glColorPointer(4, GL_FLOAT, 4 * 9, s.buffer.position(5));
 			gl.glDrawArrays(GL_TRIANGLE_FAN, 0, s.numvertices);
 		}
-		textureCache.unbindShader();
+//		textureCache.unbindShader();
 		gl.glDisableClientState(GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL_COLOR_ARRAY);
@@ -4461,9 +4461,9 @@ public abstract class Polymost extends GLRenderer {
 		dvoxphack[0] = 0;
 		dvoxphack[1] = 1.f / 256.f;
 		
-		textureCache.bindShader();
-		textureCache.setShaderParams(globalpal, engine.getpalookup(0, globalshade));
-		textureCache.shaderTransparent(polyColor.a);
+//		textureCache.bindShader();
+//		textureCache.setShaderParams(globalpal, engine.getpalookup(0, globalshade));
+//		textureCache.shaderTransparent(polyColor.a);
 
 		if (m.texid[globalpal] == null)
 			m.loadskin(globalpal, textureCache.isUseShader());
@@ -4507,7 +4507,7 @@ public abstract class Polymost extends GLRenderer {
 		gl.glDisable(GL_CULL_FACE);
 		gl.glLoadIdentity();
 		
-		textureCache.unbindShader();
+//		textureCache.unbindShader();
 
 		return 1;
 	}
@@ -4534,6 +4534,75 @@ public abstract class Polymost extends GLRenderer {
 
 	@Override
 	public void nextpage() {
+		
+		if(this.getTexFormat() == PixelFormat.Pal8A)
+		{
+			if(frameTexture == null || framew != xdim || frameh != ydim)
+			{
+				if(frameTexture != null) frameTexture.dispose();
+				frameTexture = new BTexture(xdim, ydim);
+				frameTexture.bind(0);
+				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
+				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
+				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				framew = xdim; frameh = ydim;
+			}
+			
+			gl.glReadBuffer(GL_BACK);
+
+			frameTexture.bind(0);
+			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framesize, framesize);
+
+			clearview(0);
+			gl.glDisable(GL_DEPTH_TEST);
+			gl.glDisable(GL_ALPHA_TEST);
+			gl.glEnable(GL_TEXTURE_2D);
+			
+			gl.glMatrixMode(GL_PROJECTION);
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
+			gl.glMatrixMode(GL_MODELVIEW);
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
+			
+			float u = (float)xdim / framesize;
+			float v = (float)ydim / framesize;
+			
+//			textureCache.bindShader();
+//			textureCache.setShaderParams(0, 0);
+//			textureCache.shaderTransparent(1.0f);
+
+			gl.glBegin(GL10.GL_TRIANGLE_FAN);
+			gl.glTexCoord2f(0, 0);
+			gl.glVertex2f( -1f, -1f );
+			 
+			gl.glTexCoord2f(0, v);
+			gl.glVertex2f( -1f, 1f );
+			 
+			gl.glTexCoord2f(u, v);
+			gl.glVertex2f(1f, 1f );
+			 
+			gl.glTexCoord2f(u, 0);
+			gl.glVertex2f( 1f, -1f);
+			gl.glEnd();
+			
+			gl.glBindTexture(GL_TEXTURE_2D, 0);
+//			textureCache.unbindShader();
+
+			gl.glMatrixMode(GL_MODELVIEW);
+			gl.glPopMatrix();
+			gl.glMatrixMode(GL_PROJECTION);
+			gl.glPopMatrix();
+			
+			gl.glEnable(GL_DEPTH_TEST);
+			gl.glEnable(GL_ALPHA_TEST);
+			gl.glDisable(GL_TEXTURE_2D);
+			
+			
+			
+		}
+		
 		engine.faketimerhandler();
 
 		if ((totalclock >= lastageclock + CACHEAGETIME) || (totalclock < lastageclock)) {
@@ -4563,7 +4632,7 @@ public abstract class Polymost extends GLRenderer {
 		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
 		gl.glReadPixels(0, 0, xdim, ydim, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
 		
-		if(format == PixelFormat.RGB) {
+		if(format == PixelFormat.Rgb) {
 			int base1, base2, b1, b2;
 			byte tmp;
 			for (int p, b, a = 0; a < ydim / 2; a++) {
@@ -4582,7 +4651,7 @@ public abstract class Polymost extends GLRenderer {
 
 			rgbbuffer.rewind();
 			return rgbbuffer;
-		} else if(format == PixelFormat.Indexed) {
+		} else if(format == PixelFormat.Pal8) {
 			if (indexbuffer != null) indexbuffer.clear();
 			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
 				indexbuffer = BufferUtils.newByteBuffer(xdim * ydim);

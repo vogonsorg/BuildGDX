@@ -43,24 +43,24 @@ public abstract class GLRenderer extends Renderer {
 		
 		this.params.add(0, new SliderItem<Integer>("Gamma", BuildSettings.paletteGamma, 0, 15, 1, null) {
 			@Override
-			public boolean checkItem() { return getTexFormat() == PixelFormat.Indexed; }
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Pal8; }
 		});
 		this.params.add(1, new ParamItem<Boolean>(ItemType.Separator) {
 			@Override
-			public boolean checkItem() { return getTexFormat() == PixelFormat.Indexed; }
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Pal8; }
 		});
 		
 		this.params.add(0, new SliderItem<Integer>("Gamma", GLSettings.gamma, 0, 4096, 64, 4096) {
 			@Override
-			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Rgb; }
 		});
 		this.params.add(1, new SliderItem<Integer>("Brightness", GLSettings.brightness, -4096, 4096, 64, 4096) {
 			@Override
-			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Rgb; }
 		});
 		this.params.add(2, new SliderItem<Integer>("Contrast", GLSettings.contrast, 0, 8192, 64, 4096) {
 			@Override
-			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Rgb; }
 		});
 		this.params.add(3, new ButtonItem<Boolean>("Reset to default", new MenuProc() {
 			@Override
@@ -70,11 +70,11 @@ public abstract class GLRenderer extends Renderer {
 				GLSettings.contrast.set(4096);
 			}}) {
 			@Override
-			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Rgb; }
 		});
 		this.params.add(4, new ParamItem<Boolean>(ItemType.Separator) {
 			@Override
-			public boolean checkItem() { return getTexFormat() == PixelFormat.RGB; }
+			public boolean checkItem() { return getTexFormat() == PixelFormat.Rgb; }
 		});
 		
 		String[] filters = new String[GLSettings.glfiltermodes.length];

@@ -21,6 +21,7 @@ import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 
 import com.badlogic.gdx.ScreenAdapter;
@@ -29,6 +30,7 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
@@ -134,7 +136,13 @@ public class InitScreen extends ScreenAdapter {
 		
 		Console.setFunction(factory.console());
 
-		engine.loadpics("tiles000.art");
+		engine.loadpics();
+		
+		if(engine.loadpics() == 0) {
+			BuildGdx.message.show("Build Engine Initialization Error!", "ART files not found " + new File(Path.Game.getPath() + engine.tilesPath).getAbsolutePath(), MessageType.Info);
+			System.exit(1);
+			return;
+		}
 		
 		BuildConfig cfg = game.pCfg;
 		game.pFonts = factory.fonts();
