@@ -3438,17 +3438,18 @@ public abstract class Polymost extends GLRenderer {
 		}
 		
 		if(GLSettings.useModels.get()) {
-			MDModel m = (MDModel) defs.mdInfo.getModel(dapicnum);
-	        if(m != null) {
-	        	if(m.mdnum == 3) {
-	        		int numsurfs = ((MD3Model) m).head.numSurfaces;
-	        		for (int surfi = 0, skinnum; surfi < numsurfs; surfi++)
-	        	    {
-	        	    	skinnum = defs.mdInfo.getParams(dapicnum).skinnum;
-	        			m.loadskin(defs, skinnum,dapalnum,surfi);
-	        	    }
-	        	} else m.loadskin(defs, 0, dapalnum, 0);
-	        }
+			Tile2model param = defs.mdInfo.getParams(dapicnum);
+			if(param != null) {
+				MDModel m = (MDModel) param.model;
+		        if(m != null) {
+		        	if(m.mdnum == 3) {
+		        		int numsurfs = ((MD3Model) m).head.numSurfaces;
+		        		int skinnum = param.skinnum;
+		        		for (int surfi = 0; surfi < numsurfs; surfi++)
+		        			m.loadskin(defs, skinnum,dapalnum,surfi);
+		        	} else m.loadskin(defs, 0, dapalnum, 0);
+		        }
+			}
 		}
 	}
 
