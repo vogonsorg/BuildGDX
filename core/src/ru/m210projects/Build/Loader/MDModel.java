@@ -21,7 +21,6 @@ import static ru.m210projects.Build.Loader.MDAnimation.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTextureWrap;
-import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
 
 import com.badlogic.gdx.graphics.Pixmap;
 
@@ -320,7 +319,7 @@ public abstract class MDModel extends Model {
 	    		
 	    		MDModel mi = (MDModel) m;
 	            for (skzero = mi.skinmap; skzero != null; skzero = skzero.next)
-	                if (Bstrcasecmp(skzero.fn, sk.fn) == 0 && skzero.texid[defs.texInfo.getPaletteEffect(pal)] != null)
+	                if (skzero.fn.equalsIgnoreCase(sk.fn) && skzero.texid[defs.texInfo.getPaletteEffect(pal)] != null)
 	                {
 	                    int f = defs.texInfo.getPaletteEffect(pal);
 	                    sk.texid[f] = skzero.texid[f];

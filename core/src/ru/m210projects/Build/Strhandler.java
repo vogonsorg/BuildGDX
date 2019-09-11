@@ -288,11 +288,11 @@ public class Strhandler {
 				return len;
 			}
 			
-			public static int Bstrcmp(String txt1, String txt2) {
-				if(txt1 == null || txt2 == null)
-					return -1;
-				return txt1.compareTo(txt2);
-			}
+//			public static int Bstrcmp(String txt1, String txt2) {
+//				if(txt1 == null || txt2 == null)
+//					return -1;
+//				return txt1.compareToIgnoreCase(txt2);
+//			}
 			
 			public static int Bstrcmp(char[] txt1, int offset1, char[] txt2, int offset2) {
 				int i = 0;

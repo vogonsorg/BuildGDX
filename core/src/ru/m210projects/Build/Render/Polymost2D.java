@@ -953,7 +953,7 @@ public class Polymost2D extends OrphoRenderer {
 		int ourxyaspect = xyaspect;
 		if (GLSettings.useModels.get() && parent.defs != null && parent.defs.mdInfo.getHudInfo(picnum, dastat) != null && parent.defs.mdInfo.getHudInfo(picnum, dastat).angadd != 0) {
 			Tile2model entry = parent.defs != null ? parent.defs.mdInfo.getParams(picnum) : null;
-			if (entry.model != null && entry.framenum >= 0) {
+			if (entry != null && entry.model != null && entry.framenum >= 0) {
 				dorotatesprite3d(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2, uniqid);
 				return;
 			}

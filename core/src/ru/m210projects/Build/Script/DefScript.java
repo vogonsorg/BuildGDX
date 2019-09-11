@@ -805,7 +805,7 @@ public class DefScript implements Disposable {
     	                        	}
     	                        	break;
     	                        case TILE0:
-    	                        	if((ivalue = script.getsymbol()) != null)
+    	                        	if((ivalue = script.getsymbol()) != null) 
     	                        		ftilenume = ivalue; 
     	                        	break; //first tile number
     	                        case TILE1:

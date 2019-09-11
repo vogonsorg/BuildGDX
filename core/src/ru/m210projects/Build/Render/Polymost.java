@@ -3899,9 +3899,15 @@ public abstract class Polymost extends GLRenderer {
 
 		if(vm == null) return 0;
 
-		if (vm.mdnum == 1) { return voxdraw((VOXModel) vm,tspr, xoff, yoff); }
-	    if (vm.mdnum == 2) { return md2draw((MD2Model) vm, tspr, xoff, yoff); }
-	    if (vm.mdnum == 3) { return md3draw((MD3Model) vm, tspr, xoff, yoff); }
+		try {
+			if (vm.mdnum == 1) { return voxdraw((VOXModel) vm,tspr, xoff, yoff); }
+		    if (vm.mdnum == 2) { return md2draw((MD2Model) vm, tspr, xoff, yoff); }
+		    if (vm.mdnum == 3) { return md3draw((MD3Model) vm, tspr, xoff, yoff); }
+		} catch(Exception e) {
+			e.printStackTrace();
+			Console.Println("Removing model of sprite " + tspr.picnum + " due to errors.", OSDTEXT_RED);
+			defs.mdInfo.removeModelInfo(vm);
+		}
 	    return 0;
 	}
 	
