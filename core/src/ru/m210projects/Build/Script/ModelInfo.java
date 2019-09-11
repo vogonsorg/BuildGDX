@@ -171,6 +171,7 @@ public class ModelInfo implements Disposable {
 	    
 	    if(cache[picnum] == null)
 	    	cache[picnum] = new Tile2model();
+	    //else flush(); //XXX
 
 	    cache[picnum].model = md;
 	    cache[picnum].framenum = i;
@@ -197,12 +198,12 @@ public class ModelInfo implements Disposable {
 		for (int i=MAXTILES-1; i>=0; i--) {
 			if(cache[i] == null) continue;
 			
-	        if (cache[i].model == md) 
-	            cache[i].model = null;
-	        if (cache[i].voxel != null && cache[i].voxel.model == md) 
+	        if (cache[i].model == md || (cache[i].voxel != null && cache[i].voxel.model == md)) 
+	        {
+	        	cache[i].model = null;
 	            cache[i].voxel = null;
-	        
-	        cache[i] = null;
+	            cache[i] = null;
+	        }
 	    }
 	}
 	
