@@ -34,7 +34,6 @@ import static ru.m210projects.Build.Input.KeyInput.gdxscantoasc;
 import static ru.m210projects.Build.Input.KeyInput.gdxscantoascwithshift;
 import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
-import static ru.m210projects.Build.Strhandler.Bstrcpy;
 import static ru.m210projects.Build.Strhandler.isdigit;
 
 public class Console {
@@ -195,7 +194,7 @@ public class Console {
 	public static void setVersion(String version, int shade, int pal)
 	{
 		String fullname = version + " (BuildGdx: " + Engine.version + ")";
-		Bstrcpy(osdver,fullname);
+		System.arraycopy(fullname.toCharArray(), 0, osdver, 0, Math.min(64, fullname.length()));
 	    osdverlen = fullname.length();
 	    osdvershade = shade;
 	    osdverpal = pal;

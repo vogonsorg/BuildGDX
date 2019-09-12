@@ -3803,7 +3803,7 @@ public abstract class Engine {
 		int a, b, c, d;
 		fn = fn.replaceAll("[^a-zA-Z0-9_. \\[\\]-]", "");
 		
-		fn = fn.substring(0, Bstrrchr(fn, '.') - 4);
+		fn = fn.substring(0, fn.lastIndexOf('.') - 4);
 		
 		DirectoryEntry userdir = BuildGdx.compat.getDirectory(Path.User);
 
