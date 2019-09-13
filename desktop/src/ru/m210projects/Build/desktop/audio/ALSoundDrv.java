@@ -51,6 +51,11 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class ALSoundDrv implements Sound {
+	
+	protected DriverCallback driverCallback;
+	public interface DriverCallback {
+		public ALAudio InitDriver() throws Throwable;
+	}
 
 	protected boolean noDevice = true;
 
@@ -87,20 +92,47 @@ public class ALSoundDrv implements Sound {
 		this.name = name;
 	}
 	
+	public ALSoundDrv(DriverCallback driverCallback, String name)
+	{
+		this.driverCallback = driverCallback;
+		this.name = name;
+	}
+
 	public ALAudio getALAudio()
 	{
+		if(driverCallback != null)
+		{
+			this.al = InitRegisteredDriver();
+			this.mus = new ALMusicDrv(this);
+		}
+		return al;
+	}
+	
+	private ALAudio InitRegisteredDriver()
+	{
+		if(driverCallback != null)
+		{
+			try {
+				this.al = driverCallback.InitDriver();
+			} catch (Throwable e) {
+				e.printStackTrace();
+				Console.Println("Unable to initialize OpenAL! - " + e.getLocalizedMessage(), OSDTEXT_RED);
+			}
+			driverCallback = null;
+		}
+		
 		return al;
 	}
 
 	@Override
-	public boolean init(SystemType system, int maxChannels, int softResampler) {
-		if(al == null) {
+	public synchronized boolean init(SystemType system, int maxChannels, int softResampler) {
+		if(getALAudio() == null) {
 			noDevice = true;
 			return false;
 		}
-
-		noDevice = false;
 		
+		if(maxChannels < 1) maxChannels = 1;
+
 		al.alDistanceModel( AL_NONE );
 		orientation.put(deforientation).flip();
 		sourceManager = new SourceManager(maxChannels);
@@ -113,7 +145,8 @@ public class ALSoundDrv implements Sound {
 		Console.Println(al.getName() + " initialized", OSDTEXT_GOLD);
 		Console.Println("\twith max voices: " + sourceManager.getSourcesNum(), OSDTEXT_GOLD);
 		Console.Println("\tOpenAL version: " + al.getVersion(), OSDTEXT_GOLD); 	
-
+		noDevice = false;
+		
 		if(al.alIsEFXSupport())
 			Console.Println("ALC_EXT_EFX enabled.");	
 		else Console.Println("ALC_EXT_EFX not support!");	 
@@ -128,14 +161,15 @@ public class ALSoundDrv implements Sound {
 		if(error != AL_NO_ERROR) 
 			Console.Println("OpenAL Init Error " + error, OSDTEXT_RED);
 		
-		mus.init();
+		getDigitalMusic().init();
 		
 		loopedSource.clear();
+
 		return true;
 	}
 	
 	@Override
-	public boolean isInited() {
+	public synchronized boolean isInited() {
 		return !noDevice;
 	}
 	
@@ -192,7 +226,7 @@ public class ALSoundDrv implements Sound {
 	
 	@Override
 	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority) {
-		if(noDevice) return null;
+		if(noDevice || data == null) return null;
 		
 		Source source = sourceManager.obtainSource(priority);
 		if (source == null) return null;
@@ -356,12 +390,17 @@ public class ALSoundDrv implements Sound {
 			}
 		}
 		
-		public Source obtainSource(int priority)
+		protected void update()
 		{
 			for(int i = 0; i < allSources.length; i++) {
 				if(allSources[i] != null && !allSources[i].free && !allSources[i].isPlaying() && allSources[i].flags != Source.Locked)
 					freeSource(allSources[i]);
 			}
+		}
+		
+		protected Source obtainSource(int priority)
+		{
+//			update();
 			
 //			System.out.println("obtainSource()");
 //			Iterator<Source> it = this.iterator();
@@ -451,6 +490,8 @@ public class ALSoundDrv implements Sound {
 				} 
 			}
 		}
+
+		sourceManager.update();
 	}
 
 	@Override

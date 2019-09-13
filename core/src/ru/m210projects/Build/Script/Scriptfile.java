@@ -9,7 +9,7 @@
 
 package ru.m210projects.Build.Script;
 
-import static ru.m210projects.Build.FileHandle.Compat.*;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 import java.io.File;
 import java.util.Arrays;
@@ -79,7 +79,7 @@ public class Scriptfile {
 			return null;
 
 		try {
-			return Integer.parseInt(textbuf.substring(t, textptr), 10);
+			return (int) Long.parseLong(textbuf.substring(t, textptr), 10);
 		} catch (Exception e) {
 			// looks like a string, so find it in the symbol table
 //	        if (scriptfile_getsymbolvalue(t, num)) return 0;

@@ -20,14 +20,16 @@ import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildNet;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 
 public abstract class LoadingAdapter extends ScreenAdapter {
 
-	private Runnable toLoad;
-	private int frames;
+	protected Runnable toLoad;
+	protected int frames;
 	private String title;
 	
 	public BuildNet net;
@@ -67,7 +69,7 @@ public abstract class LoadingAdapter extends ScreenAdapter {
 		return this;
 	}
 	
-	public abstract void draw(String title, float delta);
+	protected abstract void draw(String title, float delta);
 	
 	@Override
 	public void render(float delta) {
@@ -85,4 +87,15 @@ public abstract class LoadingAdapter extends ScreenAdapter {
 		engine.nextpage();
 		frames++;
 	}	
+	
+	@Override
+	public void pause () {
+		if (BuildGdx.app.getFrameType() == FrameType.GL)
+			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+	}
+
+	@Override
+	public void resume () {
+		game.updateColorCorrection();
+	}
 }

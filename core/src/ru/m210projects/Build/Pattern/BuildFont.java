@@ -69,6 +69,14 @@ public class BuildFont {
 		charInfo[ch].nWidth = (short) nWidth;
 	}
 	
+	public int getTile(int ch)
+	{
+		if(!charBounds(ch))
+			return -1;
+		
+		return charInfo[ch].nTile;
+	}
+	
 	public int getWidth(char ch)
 	{
 		if(!charBounds(ch)) return 0;
@@ -208,5 +216,4 @@ public class BuildFont {
 	{
 		return ch >= 0 && ch < 256;
 	}
-
 }

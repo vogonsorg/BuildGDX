@@ -1,20 +1,20 @@
 package ru.m210projects.Build.desktop.software;
 
 import ru.m210projects.Build.Architecture.SoftFrame;
+import ru.m210projects.Build.desktop.BuildApplicationConfiguration;
 import ru.m210projects.Build.Architecture.BuildApplication.Frame;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 
 public class SoftFrameImpl implements SoftFrame, Frame {
 
-	protected final SoftInput input;
+	protected final BuildInput input;
 	protected final SoftGraphics graphics;
 
-	public SoftFrameImpl(LwjglApplicationConfiguration config)
+	public SoftFrameImpl(BuildApplicationConfiguration config)
 	{
 		graphics = new SoftGraphics(config);
 		input = new SoftInput();
@@ -36,19 +36,15 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 
 	@Override
 	public FrameType getType() {
-		return FrameType.Software;
-	}
-
-	@Override
-	public void setMaxFramerate(int fps) {
-		graphics.config.foregroundFPS = fps;
-		graphics.config.backgroundFPS = fps;
+		return FrameType.Canvas;
 	}
 
 	@Override
 	public void init() {
 		graphics.setupDisplay();
-		input.init(graphics.display);
+		if(input instanceof SoftInput)
+			((SoftInput) input).init(graphics.display);
+		graphics.show();
 		graphics.resize = true;
 		graphics.lastTime = System.nanoTime();
 	}
@@ -63,7 +59,9 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 			graphics.resize = false;
 			graphics.config.width = graphics.getWidth();
 			graphics.config.height = graphics.getHeight();
-			graphics.display.setSize(graphics.config.width, graphics.config.height);
+			graphics.display.updateSize(graphics.config.width, graphics.config.height);
+			if(input instanceof SoftInput)
+				((SoftInput) input).reset();
 			graphics.requestRendering();
 			return true;
 		}
@@ -79,6 +77,10 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 		
 		if (!isActive && graphics.config.backgroundFPS == -1) shouldRender = false;
 		int frameRate = isActive ? graphics.config.foregroundFPS : graphics.config.backgroundFPS;
+		
+		if(graphics.vsync) 
+			frameRate = graphics.display.getDesktopDisplayMode().getRefreshRate();
+		
 		if (shouldRender) {
 			graphics.updateTime();
 			graphics.frameId++;
@@ -110,7 +112,8 @@ public class SoftFrameImpl implements SoftFrame, Frame {
 
 	@Override
 	public void destroy() {
-		
+		if(graphics.display != null)
+			graphics.display.dispose();
 	}
 
 	@Override

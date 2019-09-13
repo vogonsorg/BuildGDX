@@ -80,7 +80,7 @@ public class TextureHDInfo {
 	public Hicreplctyp remove(int picnum, int palnum)
 	{
 		Hicreplctyp tmp;
-		if(cache[picnum].palnum == palnum)
+		if(cache[picnum] != null && cache[picnum].palnum == palnum)
 		{
 			tmp = cache[picnum];
 			cache[picnum] = cache[picnum].next;
@@ -102,7 +102,7 @@ public class TextureHDInfo {
 	{
 		return cache[picnum] != null;
 	}
-	
+
 	public boolean addTexture(int picnum, int palnum, String filen, 
 			float alphacut, float xscale, float yscale, float specpower, float specfactor, int flags)
 	{

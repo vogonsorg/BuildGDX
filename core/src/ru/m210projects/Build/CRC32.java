@@ -13,6 +13,9 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import ru.m210projects.Build.FileHandle.FileEntry;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource.Whence;
 
 public class CRC32 {
 	private static final int[] table = {
@@ -72,6 +75,16 @@ public class CRC32 {
 		return crc & 0xFFFFFFFFL;
 	}
 	
+	public static long getChecksum(ResourceData bb) {
+		int crc = 0xffffffff;
+		while(bb.remaining() != 0) 
+			crc = (crc >>> 8) ^ table[(crc ^ bb.get()) & 0xff];
+
+        // flip bits
+        crc = crc ^ 0xffffffff;
+		return crc & 0xFFFFFFFFL;
+	}
+	
 	public static long getChecksum(FileEntry file)
 	{
 		long value = -1;
@@ -83,5 +96,22 @@ public class CRC32 {
 			inputStream.close();
 		} catch (Exception e) {}
 		return value;
+	}
+	
+	public static long getChecksum(Resource res) {
+		int crc = 0xffffffff;
+		int len = 0;
+		byte[] bytes = new byte[2048];
+
+		res.seek(0, Whence.Set);
+		while((len = res.read(bytes)) != -1) {
+			for(int i = 0; i < len; i++) {
+	            crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xff];
+	        }
+		}
+	
+        // flip bits
+        crc = crc ^ 0xffffffff;
+		return crc & 0xFFFFFFFFL;
 	}
 }

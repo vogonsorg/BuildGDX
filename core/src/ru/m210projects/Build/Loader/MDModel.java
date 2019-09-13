@@ -14,28 +14,27 @@ import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.r_animsmoothing;
 import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.timerticspersec;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.Loader.MDAnimation.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTextureWrap;
-import static ru.m210projects.Build.Strhandler.Bstrcasecmp;
 
 import com.badlogic.gdx.graphics.Pixmap;
 
 import static ru.m210projects.Build.Gameutils.*;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
+import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Script.ModelInfo.Spritesmooth;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
 
 public abstract class MDModel extends Model {
@@ -61,7 +60,7 @@ public abstract class MDModel extends Model {
 	    
 	    cframe = nframe = defs.mdInfo.getParams(tspr.picnum).framenum;
 
-	    boolean smoothdurationp = (r_animsmoothing != 0 && (defs.mdInfo.getParams(tile).smoothduration != 0));
+	    boolean smoothdurationp = (GLSettings.animSmoothing.get() && (defs.mdInfo.getParams(tile).smoothduration != 0));
 
 	    Spritesmooth smooth = (tspr.owner < MAXSPRITES+MAXUNIQHUDID) ? defs.mdInfo.getSmoothParams(tspr.owner) : null;
 	    Spriteext  sprext = (tspr.owner < MAXSPRITES+MAXUNIQHUDID) ? spriteext[tspr.owner] : null;
@@ -146,7 +145,7 @@ public abstract class MDModel extends Model {
 	        { if (i > j-65536) i = j-65536; }
 	    else { if (i >= j) { i -= j; if (i >= j) i %= j; } }
 
-	    if (r_animsmoothing != 0 && smooth.mdsmooth != 0)
+	    if (GLSettings.animSmoothing.get() && smooth.mdsmooth != 0)
 	    {
 	        nframe = anim != null ? anim.startframe : smooth.mdcurframe;
 	        cframe = smooth.mdoldframe;
@@ -320,7 +319,7 @@ public abstract class MDModel extends Model {
 	    		
 	    		MDModel mi = (MDModel) m;
 	            for (skzero = mi.skinmap; skzero != null; skzero = skzero.next)
-	                if (Bstrcasecmp(skzero.fn, sk.fn) == 0 && skzero.texid[defs.texInfo.getPaletteEffect(pal)] != null)
+	                if (skzero.fn.equalsIgnoreCase(sk.fn) && skzero.texid[defs.texInfo.getPaletteEffect(pal)] != null)
 	                {
 	                    int f = defs.texInfo.getPaletteEffect(pal);
 	                    sk.texid[f] = skzero.texid[f];
@@ -330,18 +329,19 @@ public abstract class MDModel extends Model {
 	    }
 
 	    texidx = null;
-	   
-	    if (!kExist(skinfile, 0))
+	    
+	    Resource res = BuildGdx.cache.open(skinfile, 0);
+	    if(res == null)
 	    {
 	    	Console.Println("Skin " + skinfile  + " not found.", OSDTEXT_YELLOW);
 	    	defs.mdInfo.removeModelInfo(this);
 	        skinfile = null;
 	        return null;
 	    }
-
+	    
 	    startticks = System.currentTimeMillis();
 	    try {
-	    	byte[] data = kGetBytes(skinfile, 0);
+	    	byte[] data = res.getBytes();
 			Pixmap pix = new Pixmap(data, 0, data.length);
 			texidx = new BTexture(pix, true); 
 	    	usesalpha = true;
@@ -350,11 +350,11 @@ public abstract class MDModel extends Model {
 	    	defs.mdInfo.removeModelInfo(this);
 	        skinfile = null;
 	    	return null;
+	    } finally {
+	    	res.close();
 	    }
-	    
-		int gltexfiltermode = Console.Geti("r_texturemode");
 
-		setupBoundTexture(gltexfiltermode, GLInfo.anisotropy());
+		setupBoundTexture(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
 		setupBoundTextureWrap(GL_REPEAT);
 
 	    long etime = System.currentTimeMillis()-startticks;
@@ -366,12 +366,12 @@ public abstract class MDModel extends Model {
 	}
     
     @Override
-	public void setSkinParams(int filterMode, int anisotropy) {
+	public void setSkinParams(GLFilter filter, int anisotropy) {
 		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
 			for(BTexture tex : sk.texid) {
 				if(tex == null) continue;
 				bindTexture(tex);
-				setupBoundTexture(filterMode, anisotropy);
+				setupBoundTexture(filter, anisotropy);
 			}
 		}
 	}

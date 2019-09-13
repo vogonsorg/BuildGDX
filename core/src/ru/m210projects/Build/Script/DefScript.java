@@ -14,30 +14,35 @@ package ru.m210projects.Build.Script;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Loader.Model.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBuffer;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
-import static ru.m210projects.Build.FileHandle.Compat.*;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Filter;
+import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.utils.Disposable;
 
+import ru.m210projects.Build.CRC32;
+import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.FileEntry;
+import ru.m210projects.Build.FileHandle.FileUtils;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.MD2.MD2Loader;
 import ru.m210projects.Build.Loader.MD3.MD3Loader;
 import ru.m210projects.Build.Loader.Voxels.KVXLoader;
-import ru.m210projects.Build.Loader.Voxels.VOXModel;
+import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class DefScript implements Disposable {
@@ -46,12 +51,85 @@ public class DefScript implements Disposable {
 	public TextureHDInfo texInfo;
 	public ModelInfo mdInfo;
 	public AudioInfo audInfo;
+	private Engine engine;
 	
-	public DefScript(DefScript src) {
+	private FileEntry currentAddon;
+	private HashMap<String, List<String>> addonsIncludes;
+
+	private class DefTile {
+		long crc32;
+		byte[] waloff;
+		short sizx, sizy;
+		byte xoffset, yoffset;
+		String hrp;
+		byte alphacut;
+		final boolean internal;
+		
+		DefTile next;
+		
+		public DefTile(DefTile src)
+		{
+			this.crc32 = src.crc32;
+			this.waloff = src.waloff;
+			this.sizx = src.sizx;
+			this.sizy = src.sizy;
+			this.xoffset = src.xoffset;
+			this.yoffset = src.yoffset;
+			this.hrp = src.hrp;
+			this.alphacut = src.alphacut;
+			this.internal = src.internal;
+
+			if(src.next != null)
+				this.next = new DefTile(src.next);	
+		}
+		
+		public DefTile(int sizx, int sizy, long crc32, boolean internal)
+		{
+			this.sizx = (short) sizx;
+			this.sizy = (short) sizy;
+			this.crc32 = crc32;
+			this.internal = internal;
+		}
+		
+		public DefTile getLast() {
+			DefTile out = this;
+			while(true) {
+				DefTile n = out.next;
+				if(n == null) 
+					return out;
+				out = n;
+			}
+		}
+	}
+	
+	private DefTile[] tiles = new DefTile[MAXTILES];
+
+	public DefScript(DefScript src, FileEntry addon) {
 		this.disposable = true;
 		this.texInfo = new TextureHDInfo(src.texInfo);
 		this.mdInfo = new ModelInfo(src.mdInfo, src.disposable);
 		this.audInfo = new AudioInfo(src.audInfo);
+		this.engine = src.engine;
+		for(int i = 0; i < MAXTILES; i++) {
+			if(src.tiles[i] == null) continue;
+			
+			this.tiles[i] = new DefTile(src.tiles[i]);
+		}
+
+		if(src.addonsIncludes != null) {
+			addonsIncludes = new HashMap<String, List<String>>();
+			
+			for(String key : src.addonsIncludes.keySet())
+			{
+				List<String> list = src.addonsIncludes.get(key);
+				List<String> clone = new ArrayList<String>(list.size());
+				clone.addAll(list);
+
+				addonsIncludes.put(key, clone);
+			}
+		}
+		
+		this.currentAddon = addon;
 	}
 	
 	public DefScript(boolean disposable) {
@@ -140,6 +218,9 @@ public class DefScript implements Disposable {
 	    YSCALE,
 	    NOCOMPRESS,
 	    NODOWNSIZE,
+	    CRC,
+	    
+	    IFADDON
     	
 		;
 	};
@@ -183,6 +264,7 @@ public class DefScript implements Disposable {
 			//gdx
 			put("music", Token.MUSIC );
 			put("sound", Token.SOUND );
+			put("includeif", Token.IFADDON);
 		}
 	};
 	
@@ -339,6 +421,7 @@ public class DefScript implements Disposable {
 			 put( "yoffset",         Token.YOFFSET );
 			 put( "yoff",            Token.YOFFSET );
 			 put( "texture",         Token.TEXTURE );
+			 put( "ifcrc",         	 Token.CRC );
 		}
 	};
 
@@ -350,14 +433,25 @@ public class DefScript implements Disposable {
 			return false;
 		}
 		
-		byte[] data = kGetBytes(file.getPath(), 0);
+		Resource res = BuildGdx.compat.open(file);
+		byte[] data = res.getBytes();
+		res.close();
+		
 		if(data == null) {
-			Console.Println("File is exists, but data == null!" + file.getPath());
+			Console.Println("File is exists, but data == null! Path:" + file.getPath());
+			return false;
 		}
+		
 		Scriptfile script = new Scriptfile(file.getPath(), data);
 		script.path = file.getParent().getRelativePath();
 		
-		defsparser(script);
+		try {
+			defsparser(script);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Console.Println("Def error: the script " + file.getPath() + " has errors", OSDTEXT_RED);
+			return false;
+		}
 		
 		return true;
 	}
@@ -369,7 +463,13 @@ public class DefScript implements Disposable {
 			return false;
 		}
 		
-		defsparser(new Scriptfile(name, buf));
+		try {
+			defsparser(new Scriptfile(name, buf));
+		} catch (Exception e) {
+			e.printStackTrace();
+			Console.Println("Def error: the script " + name + " has errors", OSDTEXT_RED);
+			return false;
+		}
 		
 		return true;
 	}
@@ -388,130 +488,219 @@ public class DefScript implements Disposable {
 		return Token.ERROR;
 	}
 	
-	private int ImportTileFromTexture(String fn, int tile, int alphacut, boolean istexture)
+	public void setEngine(Engine engine)
 	{
-		byte[] data = kGetBytes(fn, 0);
-		if (data == null)
-			return -1;
+		this.engine = engine;
+	}
+	
+	private DefTile ImportTileFromTexture(String fn, int tile, long crc32, int alphacut, boolean istexture, boolean internal)
+	{
+		byte[] data = BuildGdx.cache.getBytes(fn, 0);
+		if (data == null) {
+			Console.Println("ImportTileFromTexture error: file " + fn + " not found!", Console.OSDTEXT_RED);
+			return null;
+		}
 
 		Pixmap pix = new Pixmap(data, 0, data.length);
 		pix.setFilter(Filter.NearestNeighbour);
+		
+		Format fmt = pix.getFormat();
 
 		int xsiz = pix.getWidth();
 		int ysiz = pix.getHeight();
-		
-		waloff[tile] = new byte[xsiz * ysiz];
-		tilesizx[tile] = (short) xsiz;
-		tilesizy[tile] = (short) ysiz;
-		
+
+		DefTile deftile = new DefTile(xsiz, ysiz, crc32, internal);
+		deftile.waloff = new byte[xsiz * ysiz];
+//		deftile.oldanm = picanm[tile];
+//		deftile.oldx = tilesizx[tile];
+//		deftile.oldy = tilesizy[tile];
+
 		ByteBuffer bb = pix.getPixels();
+		byte[] waloff = deftile.waloff;
 		
 		for(int y = 0; y < ysiz; y++)
 			for(int x = 0; x < xsiz; x++) {
-				waloff[tile][x * ysiz + y] = bb.get();
-				bb.get();
-				bb.get();
+				int r = (bb.get() & 0xFF) >> 2;
+				int g = (bb.get() & 0xFF) >> 2;
+				int b = (bb.get() & 0xFF) >> 2;
+				if(fmt == Format.RGBA4444 || fmt == Format.RGBA8888) {
+					if(bb.get() == 0) 
+						waloff[x * ysiz + y] = -1;
+					else waloff[x * ysiz + y] = engine.getclosestcol(palette, r, g, b);
+				} else waloff[x * ysiz + y] = engine.getclosestcol(palette, r, g, b);
 			}
 
-		if (istexture)
-			texInfo.addTexture(tile, 0, fn, (float)(255 - alphacut) * (1.0f / 255.0f), 1.0f, 1.0f, 1.0f, 1.0f, 0); //HICR_ARTIMMUNITY
+		if (istexture) {
+			deftile.hrp = fn;
+			deftile.alphacut = (byte) alphacut;
+		}
 
-		return 1;
+		return deftile;
+	}
+	
+	protected void tilefromtextureparser(Scriptfile script) //XXX
+	{
+		Token token;
+		int ttexturetokptr = script.ltextptr, ttextureend;
+		String fn = null;
+        Integer tile = -1, value;
+        int talphacut = 255;
+        boolean havexoffset = false, haveyoffset = false;
+        byte xoffset = 0, yoffset = 0;
+        long tilecrc = 0;
+        boolean istexture = false;
+        
+        if ((tile = script.getsymbol()) == null) return;
+        if ((ttextureend = script.getbraces()) == -1) return;
+        
+        while (script.textptr < ttextureend)
+        {
+        	token = gettoken(script,tilefromtexturetokens);
+        	switch (token)
+            {
+            default: break;
+            case FILE:
+            	fn = getFile(script);
+                break;
+            case ALPHACUT:
+            	value = script.getsymbol();
+            	if(value != null)
+            	talphacut = value;
+                talphacut = BClipRange(talphacut, 0, 255);
+                break;
+            case XOFFSET:
+            	String xoffs = script.getstring();
+            	havexoffset = true;
+            	if(xoffs.toUpperCase().equals("ART"))
+            		xoffset = (byte) ((picanm[tile] & 0x0000FF00) >> 8);
+            	else {
+            		try {
+            			xoffset = Byte.parseByte(xoffs);
+            		} catch (Exception e) { havexoffset = false; Console.Println("Xoffset value out of range. Value: \"" + xoffs + "\" was disabled.", OSDTEXT_RED); break; }
+            	}
+                break;
+            case YOFFSET:
+            	String yoffs = script.getstring();
+            	haveyoffset = true;
+            	if(yoffs.toUpperCase().equals("ART")) 
+            		yoffset = (byte) ((picanm[tile] & 0x00FF0000) >> 16);
+            	else {
+            		try {
+            			yoffset = Byte.parseByte(yoffs);
+            		} catch (Exception e) { haveyoffset = false; Console.Println("Yoffset value out of range. Value: \"" + yoffs + "\" was disabled.", OSDTEXT_RED); break; }
+            	}
+                break;
+            case TEXTURE:
+                istexture = true;
+                break;
+            case CRC:
+            	tilecrc = script.getsymbol() & 0xFFFFFFFFL;
+            	break;
+            }
+        }
+        
+        if(tile < 0 || tile >= MAXTILES)
+        {
+        	Console.Println("Error: missing or invalid 'tile number' for texture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
+        	return;
+        }
+        
+        if (fn == null)
+        {
+            // tilefromtexture <tile> { texhitscan }  sets the bit but doesn't change tile data
+        	
+        	String ext = FileUtils.getExtension(script.filename);
+        	DefTile deftile = new DefTile(tilesizx[tile], tilesizy[tile], tilecrc, ext != null && ext.equals("dat"));
+            if (havexoffset) 
+            	deftile.xoffset = xoffset;
+            if (haveyoffset) 
+            	deftile.yoffset = yoffset;
+
+            if (!havexoffset && !haveyoffset)
+            	Console.Println("Error: missing 'file name' for tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
+
+            addDefTile(deftile, tile);
+            return;
+        }
+        
+        String ext = FileUtils.getExtension(script.filename);
+        DefTile texstatus = ImportTileFromTexture(fn, tile, tilecrc, talphacut, istexture, ext != null && ext.equals("dat"));
+        if (texstatus == null)
+        	return;
+
+        if (havexoffset)
+        	texstatus.xoffset = xoffset;
+        if (haveyoffset)
+        	texstatus.yoffset = yoffset;
+
+        if(!addDefTile(texstatus, tile))
+        	Console.Println("Error: \"" + fn +  "\" has more than one tile, in tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
+	}
+	
+	private boolean addDefTile(DefTile texstatus, int tile)
+	{
+		DefTile def = tiles[tile];
+    	if(def != null && def.crc32 != 0) {
+    		if(texstatus.crc32 == 0) {
+    			 texstatus.next = def;
+    			 tiles[tile] = texstatus;
+    		} else if(def.crc32 != texstatus.crc32) {
+    			def = tiles[tile].getLast();
+        		def.next = texstatus;
+    		} else if(def.internal || disposable) 
+    			tiles[tile] = texstatus;
+    	} else if(def == null || def.internal || disposable) {
+    		tiles[tile] = texstatus;
+    	} else return false;
+    	
+    	return true;
+	}
+	
+	private String getFile(Scriptfile script)
+	{
+		String fn = script.getstring();
+		if(fn == null) return null;
+
+		fn = FileUtils.getCorrectPath(fn);
+		if(script.path != null)
+			fn = script.path + File.separator + fn;
+		
+		return fn;
 	}
 	
 	private void defsparser(Scriptfile script)
     {
 		String fn;
 		Token token;
-		ByteBuffer buffer;
-		
+		ResourceData buffer;
+		Integer ivalue;
+		Double dvalue;
+
 		Console.Println("Loading " + script.filename + "...");
 		
 		while (true)
         {
 			switch(gettoken(script, basetokens))
 			{
+			case IFADDON: 
+				if(addonsIncludes == null)
+					addonsIncludes = new HashMap<String, List<String>>();
+				String addon = script.getstring();
+				if(addon != null && (fn = getFile(script)) != null) {
+					if(addonsIncludes.get(addon) == null) {
+						List<String> list = new ArrayList<String>();
+						addonsIncludes.put(addon, list);
+					}
+					
+					addonsIncludes.get(addon).add(script.path);
+					addonsIncludes.get(addon).add(fn);
+				}
+				break;
 			case T_TILEFROMTEXTURE:
-				int ttexturetokptr = script.ltextptr, ttextureend;
-				fn = null;
-	            Integer tile = -1;
-	            int talphacut = 255;
-	            boolean havexoffset = false, haveyoffset =false;
-	            int xoffset = 0, yoffset = 0;
-	            boolean istexture = false;
-	            
-	            if ((tile = script.getsymbol()) == null) break;
-                if ((ttextureend = script.getbraces()) == -1) break;
-                
-                while (script.textptr < ttextureend)
-                {
-                	token = gettoken(script,tilefromtexturetokens);
-                	switch (token)
-                    {
-                    default: break;
-                    case FILE:
-                    	fn = script.getstring();
-                        break;
-                    case ALPHACUT:
-                    	talphacut = script.getsymbol();
-                        talphacut = BClipRange(talphacut, 0, 255);
-                        break;
-                    case XOFFSET:
-                        havexoffset = true;
-                        xoffset = script.getsymbol();
-                        xoffset = BClipRange(xoffset, -128, 127);
-                        break;
-                    case YOFFSET:
-                        haveyoffset = true;
-                        yoffset = script.getsymbol();
-                        yoffset = BClipRange(yoffset, -128, 127);
-                        break;
-                    case TEXTURE:
-                        istexture = true;
-                        break;
-                    }
-                }
-                
-                if(tile < 0 || tile >= MAXTILES)
-                {
-                	Console.Println("Error: missing or invalid 'tile number' for texture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
-                	break;
-                }
-                
-                if (fn == null)
-                {
-                    // tilefromtexture <tile> { texhitscan }  sets the bit but doesn't change tile data
-                    if (havexoffset)
-                    	picanm[tile] |= (xoffset & 0xFF) << 8;
-                    if (haveyoffset)
-                        picanm[tile] |= (yoffset & 0xFF) << 16;
-
-                    if (!havexoffset && !haveyoffset)
-                    	Console.Println("Error: missing 'file name' for tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
-                    break;
-                }
-
-                int texstatus = ImportTileFromTexture(fn, tile, talphacut, istexture);
-                if (texstatus == -3)
-                	Console.Println("Error: No palette loaded, in tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
-                if (texstatus == -(3<<8))
-                	Console.Println("Error: \"" + fn +  "\" has more than one tile, in tilefromtexture definition near line " + script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
-                if (texstatus < 0)
-                    break;
-
-                if (havexoffset)
-                	picanm[tile] |= (xoffset & 0xFF) << 8;
-                else if (texstatus == 0)
-                    picanm[tile] &= ~0x0000FF00;
-
-                if (haveyoffset)
-                	 picanm[tile] |= (yoffset & 0xFF) << 16;
-                else if (texstatus == 0)
-                    picanm[tile] &= ~0x00FF0000;
-
+				tilefromtextureparser(script);
 				break;
 			case INCLUDE:
-    			if ((fn = script.getstring()) == null) break;
+    			if ((fn = getFile(script)) == null) break;
                 include(fn, script, script.ltextptr);
 				break;
 			case MODEL:
@@ -527,13 +716,14 @@ public class DefScript implements Disposable {
     	        if ((modelfn = script.getstring()) == null) break;
                 if ((modelend = script.getbraces()) == -1) break;
                 
-                buffer = kGetBuffer(modelfn, 0);
-        		if(buffer == null) {
+                Resource res = BuildGdx.cache.open(modelfn, 0);
+        		if(res == null) {
         			Console.Println("Warning: File not found" + modelfn, OSDTEXT_YELLOW);
                     script.textptr = modelend+1;
                     break;
         		}
-        		buffer.order( ByteOrder.LITTLE_ENDIAN);
+        		
+        		buffer = res.getData();
         		
         		Model m = null;
         	    switch (buffer.getInt(0))
@@ -545,10 +735,11 @@ public class DefScript implements Disposable {
         		        m = MD3Loader.load(buffer);
         		        break; 
         		    default:
-        		    	if (BfileExtension(modelfn).equalsIgnoreCase("kvx"))
-                		    m = KVXLoader.load(buffer);  
+        		    	if (res.getExtension().equals("kvx"))
+                		    m = KVXLoader.load(buffer).model;  
         		    	break;
         	    }
+        	    res.close();
 
                 if (m == null)
                 {
@@ -564,15 +755,22 @@ public class DefScript implements Disposable {
                     {
                 		default: break;
 	                    case SCALE:
-	                    	mdscale = script.getdouble(); break;
+	                    	dvalue = script.getdouble();
+	                    	if(dvalue != null)
+	                    		mdscale = dvalue; 
+	                    	break;
 	                    case SHADE:
-	                    	shadeoffs = script.getsymbol(); break;
+	                    	if((ivalue = script.getsymbol()) != null)
+	                    	shadeoffs = ivalue; break;
 	                    case ZADD:
-	                    	mzadd = script.getdouble(); break;
+	                    	if((dvalue = script.getdouble()) != null)
+	                    	mzadd = dvalue; break;
 	                    case YOFFSET:
-	                    	myoffset = script.getdouble(); break;
+	                    	if((dvalue = script.getdouble()) != null)
+	                    	myoffset = dvalue; break;
 	                    case FLAGS:
-	                    	mdflags = script.getsymbol(); break;
+	                    	if((ivalue = script.getsymbol()) != null)
+	                    		mdflags = ivalue; break;
 	                    case FRAME:
 	                    {
 	                    	int frametokptr = script.ltextptr;
@@ -591,13 +789,23 @@ public class DefScript implements Disposable {
     	                        case FRAME:
     	                        	framename = script.getstring(); break;
     	                        case TILE:
-    	                        	ftilenume = script.getsymbol(); ltilenume = ftilenume; break;
+    	                        	if((ivalue = script.getsymbol()) != null) {
+    	                        		ftilenume = ivalue; 
+    	                        		ltilenume = ftilenume; 
+    	                        	}
+    	                        	break;
     	                        case TILE0:
-    	                        	ftilenume = script.getsymbol(); break; //first tile number
+    	                        	if((ivalue = script.getsymbol()) != null) 
+    	                        		ftilenume = ivalue; 
+    	                        	break; //first tile number
     	                        case TILE1:
-    	                        	ltilenume = script.getsymbol(); break; //last tile number (inclusive)
+    	                        	if((ivalue = script.getsymbol()) != null)
+    	                        		ltilenume = ivalue; 
+    	                        	break; //last tile number (inclusive)
     	                        case SMOOTHDURATION:
-    	                        	smoothduration = script.getdouble(); break;
+    	                        	if((dvalue = script.getdouble()) != null)
+    	                        		smoothduration = dvalue; 
+    	                        	break;
     	                        }
     	                    }
 	    	    			
@@ -650,9 +858,11 @@ public class DefScript implements Disposable {
 	                            case FRAME1:
 	                            	endframe = script.getstring(); break;
 	                            case FPS:
-	                            	dfps = script.getdouble(); break; //animation frame rate
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		dfps = dvalue; break; //animation frame rate
 	                            case FLAGS:
-	                            	flags = script.getsymbol(); break;
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	flags = ivalue; break;
 	                            }
 	                        }
 	                        
@@ -698,15 +908,20 @@ public class DefScript implements Disposable {
 	                            case PAL:
 	                            	palnum = script.getsymbol(); break;
 	                            case PARAM:
-	                            	param = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	param = dvalue; break;
 	                            case SPECPOWER:
-	                            	specpower = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	specpower = dvalue; break;
 	                            case SPECFACTOR:
-	                            	specfactor = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	specfactor = dvalue; break;
 	                            case FILE:
-	                            	skinfn = script.getstring(); break; //skin filename
+	                            	skinfn = getFile(script);
+	                            	break; //skin filename
 	                            case SURF:
-	                            	surfnum = script.getsymbol(); break; //getnumber
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	surfnum = ivalue; break; //getnumber
 	                            }
 	                        }
 		    				
@@ -738,10 +953,7 @@ public class DefScript implements Disposable {
 		                            break;
 	                        }
 	                        
-	                        if(script.path != null)
-	                        	skinfn = script.path + File.separator + skinfn;
-	                        
-	                        if (!kExist(skinfn, 0) || m.mdnum < 2)
+	                        if (!BuildGdx.cache.contains(skinfn, 0) || m.mdnum < 2)
 	                            break;
 
 	                        switch (((MDModel) m).setSkin(skinfn, palnum, Math.max(0,modelskin), surfnum, param, specpower, specfactor))
@@ -771,21 +983,29 @@ public class DefScript implements Disposable {
 	                            {
 	                            default: break;
 	                            case TILE:
-	                            	ftilenume = script.getsymbol(); ltilenume = ftilenume; break;
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	ftilenume = ivalue; ltilenume = ftilenume; break;
 	                            case TILE0:
-	                            	ftilenume = script.getsymbol(); break; //first tile number
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	ftilenume = ivalue; break; //first tile number
 	                            case TILE1:
-	                            	ltilenume = script.getsymbol(); break; //last tile number (inclusive)
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	ltilenume = ivalue; break; //last tile number (inclusive)
 	                            case XADD:
-	                            	xadd = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	xadd = dvalue; break;
 	                            case YADD:
-	                            	yadd = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	yadd = dvalue; break;
 	                            case ZADD:
-	                            	zadd = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	zadd = dvalue; break;
 	                            case ANGADD:
-	                            	angadd = script.getdouble(); break;
+	                            	if((dvalue = script.getdouble()) != null)
+	                            	angadd = dvalue; break;
 	                            case FOV:
-	                            	fov = script.getsymbol(); break;
+	                            	if((ivalue = script.getsymbol()) != null)
+	                            	fov = ivalue; break;
 	                            case HIDE:
 	                                flags |= 1; break;
 	                            case NOBOB:
@@ -864,23 +1084,29 @@ public class DefScript implements Disposable {
                             {
                             	default: break;
 	                            case FILE:
-	                            	tfn = script.getstring(); break;
+	                            	tfn = getFile(script);
+	                            	break;
 	                            case ALPHACUT:
 	                            	if(token != Token.PAL)
 	                            		break;
-	                            	alphacut = script.getdouble();
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		alphacut = dvalue;
 	                            	break;
 	                            case XSCALE:
-	                            	xscale = script.getdouble(); 
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		xscale = dvalue; 
 	                            	break;
 	                            case YSCALE:
-	                            	yscale = script.getdouble(); 
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		yscale = dvalue; 
 	                            	break;
 	                            case SPECPOWER:
-	                            	specpower = script.getdouble(); 
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		specpower = dvalue; 
 	                            	break;
 	                            case SPECFACTOR:
-	                            	specfactor = script.getdouble(); 
+	                            	if((dvalue = script.getdouble()) != null)
+	                            		specfactor = dvalue; 
 	                            	break;
 	                            case NOCOMPRESS:
 	                                flags |= 1; break;
@@ -923,13 +1149,12 @@ public class DefScript implements Disposable {
                         	Console.Println("Error: missing 'file name' for texture definition near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
                             break;
                         }
-                        
-                        if(script.path != null)
-                        	tfn = script.path + File.separator + tfn;
 
-                        if (!kExist(tfn, 0))
+                        if (!BuildGdx.cache.contains(tfn, 0)) {
+                        	Console.Println("Error: file \"" + tfn + "\" not found for texture definition near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
                             break;
-//                      Console.Println("Loading hires texture \"" + tfn + "\"", false);
+                        }
+//                      Console.Println("Loading hires texture \"" + tfn + "\"");
                         
                         texInfo.addTexture(ttile.intValue(),tpal.intValue(),tfn,(float)alphacut,(float)xscale,(float)yscale, (float)specpower, (float)specfactor,flags);
                     	break;
@@ -948,27 +1173,24 @@ public class DefScript implements Disposable {
     	        int tile0 = MAXTILES, tile1 = -1, tilex = -1;
     	        boolean vrotate = false;
 
-    	        if ((fn = script.getstring()) == null) break; //voxel filename
-    	        if(script.path != null)
-    	        	fn = script.path + File.separator + fn;
+    	        if ((fn = getFile(script)) == null) break; //voxel filename
 
                 if ((vmodelend = script.getbraces()) == -1) break;
                 
-                buffer = kGetBuffer(fn, 0);
+                buffer = BuildGdx.cache.getData(fn, 0);
         		if(buffer == null) {
         			Console.Println("Warning: File not found" + fn, OSDTEXT_YELLOW);
                     script.textptr = vmodelend+1;
                     break;
         		}
-        		buffer.order( ByteOrder.LITTLE_ENDIAN);
-        		VOXModel vox = KVXLoader.load(buffer);  
+        		Voxel vox = KVXLoader.load(buffer); 
                 if (vox == null)
                 {
                 	Console.Println("Warning: Failed loading MD2/MD3 model " + fn, OSDTEXT_YELLOW);
                     script.textptr = vmodelend+1;
                     break;
                 }
-
+               
                 while (script.textptr < vmodelend)
                 {
                     switch (gettoken(script, voxeltokens))
@@ -981,19 +1203,22 @@ public class DefScript implements Disposable {
                             mdInfo.addVoxelInfo(vox, tilex);
                     		break;
                     	case TILE0:
-                    		tile0 = script.getsymbol();
-                    		mdInfo.addVoxelInfo(vox, tile0);
+                    		if((ivalue = script.getsymbol()) != null)
+                    			tile0 = ivalue;
                             break; //1st tile #
 
                         case TILE1:
-                        	tile1 = script.getsymbol();
+                        	if((ivalue = script.getsymbol()) != null)
+                        		tile1 = ivalue;
+                        	
                         	if (check_tile_range("voxel", tile0, tile1, script, script.ltextptr))
                         		break;
                             for (tilex=tile0; tilex<=tile1; tilex++) 
                             	mdInfo.addVoxelInfo(vox, tilex);
                             break; //last tile number (inclusive)
                         case SCALE:
-                            vscale = script.getdouble();
+                        	if((dvalue = script.getdouble()) != null)
+                        		vscale = dvalue;
                             break;
                         case ROTATE:
                         	vrotate = true;
@@ -1002,8 +1227,7 @@ public class DefScript implements Disposable {
                         	break;
                     }
                 }
-                vox.setMisc((float)vscale,0,0,0,vrotate ? MD_ROTATE : 0);
-      
+                vox.getModel().setMisc((float)vscale,0,0,0,vrotate ? MD_ROTATE : 0);
 				break;
 			case SKYBOX:
 				int sskyend, stile = -1, spal = 0;
@@ -1016,21 +1240,23 @@ public class DefScript implements Disposable {
     					switch (gettoken(script,skyboxtokens))
     					{
 	                    case TILE:
-	                    	stile = script.getsymbol(); break;
+	                    	if((ivalue = script.getsymbol()) != null)
+	                    		stile = ivalue; break;
 	                    case PAL:
-	                    	spal = script.getsymbol(); break;
+	                    	if((ivalue = script.getsymbol()) != null)
+	                    		spal = ivalue; break;
 	                    case FRONT:
-	                    	sfn[0] = script.getstring(); break;
+	                    	sfn[0] = getFile(script); break;
 	                    case RIGHT:
-	                    	sfn[1] = script.getstring(); break;
+	                    	sfn[1] = getFile(script); break;
 	                    case BACK:
-	                    	sfn[2] = script.getstring(); break;
+	                    	sfn[2] = getFile(script); break;
 	                    case LEFT:
-	                    	sfn[3] = script.getstring(); break;
+	                    	sfn[3] = getFile(script); break;
 	                    case TOP:
-	                    	sfn[4] = script.getstring(); break;
+	                    	sfn[4] = getFile(script); break;
 	                    case BOTTOM:
-	                    	sfn[5] = script.getstring(); break;
+	                    	sfn[5] = getFile(script); break;
 	                    default: break;
 	                    }
     				} catch(Exception e) { }
@@ -1048,11 +1274,8 @@ public class DefScript implements Disposable {
                     	Console.Println("Error: skybox: missing " + skyfaces[i] + " filename' near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
                     	error = true;
                     }
-                    
-                    if(script.path != null)
-                    	sfn[i] = script.path + File.separator + sfn[i];
-                    
-                    if(!kExist(sfn[i], 0))
+
+                    if(!BuildGdx.cache.contains(sfn[i], 0))
             		{
             			Console.Println("Error: file \"" + sfn[i] + "\" does not exist", OSDTEXT_RED);
             			error = true;
@@ -1087,15 +1310,15 @@ public class DefScript implements Disposable {
                     {
                 	default: break;
                     case ID:
-                    	t_id = script.getstring().trim(); break;
+                    	String t = script.getstring();
+                    	if(t != null)
+                    		t_id = t.trim(); break;
                     case FILE:
-                    	t_file = script.getstring().trim(); break;
+                    	t_file = getFile(script);
+                    	break;
                     }
                 }
-                
-                if(script.path != null)
-                	t_file = script.path + File.separator + t_file;
-                
+
                 audInfo.addDigitalInfo(t_id, t_file);
 				break;
 
@@ -1109,7 +1332,7 @@ public class DefScript implements Disposable {
 	
 	private void include(String fn, Scriptfile script, int cmdtokptr)
 	{
-		byte[] data = kGetBytes(fn, 0);
+		byte[] data = BuildGdx.cache.getBytes(fn, 0);
 		if(data == null)
 		{
 			if (cmdtokptr == 0)
@@ -1118,7 +1341,9 @@ public class DefScript implements Disposable {
 	        	Console.Println("Warning: Failed including " + fn + " on line " + script.filename + ":" + script.getlinum(cmdtokptr), OSDTEXT_YELLOW);
 			return;
 		}
+
 		Scriptfile included = new Scriptfile(fn, data);
+		included.path = script.path;
 	    defsparser(included);
 	}
 	
@@ -1151,11 +1376,90 @@ public class DefScript implements Disposable {
 		
 		return false;
 	}
+	
+	public void apply()
+	{
+		List<String> defs;
+		if(addonsIncludes != null && currentAddon != null && (defs = addonsIncludes.get(currentAddon.getName())) != null) {
+			
+			for(int i = 0; i < defs.size() / 2; i++)
+			{
+				String fn = defs.get(2 * i + 1);
+				Resource res = BuildGdx.cache.open(fn, 0);
+				if(res == null)
+				{
+			        Console.Println("Warning: Failed including " + fn + " as module", OSDTEXT_RED);
+					continue;
+				}
+
+				Scriptfile included = new Scriptfile(fn, res.getBytes());
+				included.path = defs.get(2 * i);
+			
+			    defsparser(included);
+			    res.close();
+			}
+		}
+		
+		for(int i = 0; i < MAXTILES; i++)
+		{
+			if(tiles[i] == null) continue;
+
+			DefTile tile = tiles[i];
+	        if(tile.crc32 != 0)
+	        {
+	        	byte[] data = waloff[i];
+	        	if(data == null)
+	        		data = engine.loadtile(i);
+	        	
+	        	long crc32 = data != null ? CRC32.getChecksum(data) : -1;
+	        	if(crc32 != tile.crc32)
+				{
+					boolean found = false;
+					while(tile.next != null)
+					{
+						tile = tile.next;
+						if(tile.crc32 == 0 || crc32 == tile.crc32) {
+							found = true;
+							break;
+						}	
+					}
+					
+					if(!found) continue;
+				}
+	        }
+
+			waloff[i] = new byte[tile.waloff.length];
+			System.arraycopy(tile.waloff, 0, waloff[i], 0, tile.waloff.length);
+
+			tilesizx[i] = tile.sizx;
+			tilesizy[i] = tile.sizy;
+			
+			picanm[i] &= ~0x00FFFF00;
+			picanm[i] |= (tile.xoffset & 0xFF) << 8;
+			picanm[i] |= (tile.yoffset & 0xFF) << 16;
+			
+			engine.setpicsiz(i);
+			
+			//replace hrp info
+			texInfo.addTexture(i, 0, tile.hrp, (float)(0xFF - (tile.alphacut & 0xFF)) * (1.0f / 255.0f), 1.0f, 1.0f, 1.0f, 1.0f, 0);
+		}
+	}
 
 	@Override
 	public void dispose()
 	{
 		if(!disposable) return;
+		
+		engine.loadpics();
+		for(int i = 0; i < MAXTILES; i++)
+		{
+			if(tiles[i] == null) continue;
+			
+			texInfo.remove(i, 0);
+			
+			waloff[i] = null;
+			tiles[i] = null;
+		}
 
 		mdInfo.dispose();
 	}

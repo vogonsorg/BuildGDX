@@ -16,8 +16,7 @@
 
 package ru.m210projects.Build.Pattern;
 
-import static ru.m210projects.Build.FileHandle.Compat.FilePath;
-import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 import static ru.m210projects.Build.Net.Mmulti.myconnectindex;
 import static ru.m210projects.Build.Net.Mmulti.numplayers;
 import static ru.m210projects.Build.OnSceenDisplay.Console.CloseLogFile;
@@ -34,6 +33,7 @@ import com.badlogic.gdx.Screen;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -42,17 +42,21 @@ import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.Tools.Interpolation;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Settings.BuildConfig;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.LittleEndian;
+import ru.m210projects.Build.Types.MemLog;
 
 public abstract class BuildGame extends Game {
 	
 	/*
+	 * OpenAL dispose method fixed for Linux
+	 * OpenAL init driver tweak
+	 *
 	 * TODO:
 	 * SaveManager findSaves()
 	 * VideoList refactoring
 	 * texture.bind(0) need fix (detail textures)
-	 * GLSettings
-	 * Disable mipmaps build in nearest filter
 	 * kOpen external file -> native bytebuffer (read only)
 	 * Launcher parameter for start
 	 */
@@ -101,7 +105,9 @@ public abstract class BuildGame extends Game {
 
 	@Override
 	public final void create() {
-		setScreen(new InitScreen(this));
+		InitScreen scr = new InitScreen(this);
+		setScreen(scr);
+		scr.start();
 	}
 	
 	public abstract BuildFactory getFactory();
@@ -112,6 +118,7 @@ public abstract class BuildGame extends Game {
 	
 	@Override
 	public void dispose() {
+		pCfg.saveConfig(BuildGdx.compat, Path.Game.getPath());
 		if(getScreen() instanceof InitScreen)
 			((InitScreen) getScreen()).dispose();
 		if(numplayers > 1)
@@ -119,8 +126,6 @@ public abstract class BuildGame extends Game {
 		
 		if(pEngine != null)
 			pEngine.uninit();
-
-		pCfg.saveConfig(FilePath);
 		System.out.println("disposed");
 	}
 	
@@ -135,6 +140,14 @@ public abstract class BuildGame extends Game {
 			if(!gExit)
 				super.render();
 			else BuildGdx.app.exit();
+		} catch (OutOfMemoryError me) {
+			System.gc();
+			
+			me.printStackTrace();
+			String message = "Memory used: [ " + MemLog.used() + " / " + MemLog.total() + " mb ] \r\nPlease, increase the java's heap size.";
+			Console.Println(message, Console.OSDTEXT_RED);
+			BuildGdx.message.show("OutOfMemory!", message, MessageType.Info);
+			System.exit(1);
 		} catch (Throwable e) {
 			if (!release) {
 			e.printStackTrace();
@@ -149,12 +162,7 @@ public abstract class BuildGame extends Game {
 	
 	public void updateColorCorrection() {
 		if (BuildGdx.app.getFrameType() == FrameType.GL) {
-			if (!((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(pCfg.gamma, pCfg.brightness, pCfg.contrast)) {
-				((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
-				pCfg.gamma = 1.0f;
-				pCfg.brightness = 0.0f;
-				pCfg.contrast = 1.0f;
-			}
+			((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(1 - (GLSettings.gamma.get() / 4096.0f), GLSettings.brightness.get() / 4096.0f, GLSettings.contrast.get() / 4096.0f);
 		}
 	}
 	
@@ -216,12 +224,18 @@ public abstract class BuildGame extends Game {
 		return "Init frame";
 	}
 	
-	public void setDefs(DefScript script)
+	public boolean setDefs(DefScript script)
 	{
 		if(currentDef != script) {
+			if(currentDef != null)
+				currentDef.dispose();
 			currentDef = script;
+			currentDef.apply();
 			pEngine.setDefs(script);
+			return true;
 		}
+		
+		return false;
 	}
 	
 	protected String stackTraceToString(Throwable e) {
@@ -245,19 +259,24 @@ public abstract class BuildGame extends Game {
 	}
 	
 	public void ThrowError(String msg, Throwable ex) {
-		String stack = stackTraceToString(ex);
-		Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
-		System.err.println(msg + "[" + exceptionHandler(ex) + "]: " + stack);
-		CloseLogFile();
-
-		try {
-			if(nNetMode == NetMode.Multiplayer)
-				pNet.NetDisconnect(myconnectindex);
-			if (BuildGdx.message.show(msg, stack, MessageType.Crash))
-				saveToFTP();
-		} catch (Exception e) {	
-		} finally {
+		if(!release) {
+			ex.printStackTrace();
 			BuildGdx.app.exit();
+		} else {
+			String stack = stackTraceToString(ex);
+			Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
+			System.err.println(msg + "[" + exceptionHandler(ex) + "]: " + stack);
+			CloseLogFile();
+	
+			try {
+				if(nNetMode == NetMode.Multiplayer)
+					pNet.NetDisconnect(myconnectindex);
+				if (BuildGdx.message.show(msg, stack, MessageType.Crash))
+					saveToFTP();
+			} catch (Exception e) {	
+			} finally {
+				BuildGdx.app.exit();
+			}
 		}
 	}
 	
@@ -332,14 +351,18 @@ public abstract class BuildGame extends Game {
 			String text = Console.GetLog();
 			text += "\r\n";
 			text += "Screen: " + getScrName() + "\r\n";
-			
-			try {
-				String report = reportData();
-				if(report != null && !report.isEmpty())
-					text += report;
-			} catch (Exception e) { text+= "Crash in reportData: " + e.getMessage() + "\r\n"; } 
+			if(gPrevScreen != null)
+				text += "PrevScreen: " + gPrevScreen.getClass().getSimpleName() + "\r\n";
+			if(pEngine.getrender() != null)
+				text += "Renderer: " + pEngine.getrender().getType().getName() + "\r\n";
 			
 			os.write(text.getBytes());
+			try {
+				byte[] report = reportData();
+				if(report != null)
+					os.write(report);
+			} catch (Exception e) { text+= "Crash in reportData: " + e.getMessage() + "\r\n"; } 
+
 			os.close();
 		} 
 		catch (UnknownHostException e)
@@ -350,6 +373,6 @@ public abstract class BuildGame extends Game {
 		} 
 	}
 	
-	protected abstract String reportData();
+	protected abstract byte[] reportData();
 	
 }

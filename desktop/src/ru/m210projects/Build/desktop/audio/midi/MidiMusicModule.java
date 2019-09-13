@@ -16,8 +16,6 @@
 
 package ru.m210projects.Build.desktop.audio.midi;
 
-import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 
 import java.io.File;
@@ -29,8 +27,10 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.MusicSource;
+import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import javax.sound.midi.MidiDevice.Info;
@@ -42,7 +42,7 @@ public class MidiMusicModule implements Music {
 	private String name = "Midi Music Module";
 	private boolean inited;
 	private int nDevice;
-	private List<MidiDevice> devices;
+	private static List<MidiDevice> devices;
 	private MidiDevice device;
 	private Soundbank soundbank;
 	
@@ -60,8 +60,9 @@ public class MidiMusicModule implements Music {
 
 	public static List<MidiDevice> getDevices()
 	{
-		List<MidiDevice> devices = new ArrayList<MidiDevice>();
-       
+		if(devices != null) return devices;
+		
+		devices = new ArrayList<MidiDevice>();
 		Info[] dInfos = MidiSystem.getMidiDeviceInfo();
 		try {
 			for(Info dInfo : dInfos)
@@ -90,8 +91,12 @@ public class MidiMusicModule implements Music {
 	
 	@Override
 	public MusicSource newMusic(String name) {
-		if(!kExist(name, 0)) return null;
-		return newMusic(kGetBytes(name, 0));
+		Resource res = BuildGdx.cache.open(name, 0);
+		if(res == null) return null;
+		
+		byte[] data = res.getBytes();
+		res.close();
+		return newMusic(data);
 	}
 
 	@Override

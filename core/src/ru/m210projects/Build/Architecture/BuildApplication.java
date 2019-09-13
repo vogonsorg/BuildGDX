@@ -5,6 +5,8 @@ import com.badlogic.gdx.Application;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 
 public interface BuildApplication extends Application {
+	
+	public enum Platform { Windows, Linux, MacOSX, Android };
 
 	public BuildFrame getFrame();
 	
@@ -16,8 +18,8 @@ public interface BuildApplication extends Application {
 	
 	public BuildGraphics getGraphics();
 	
-	public void setMaxFramerate(int fps);
-
+	public Platform getPlatform();
+	
 	public interface Frame extends BuildFrame
 	{
 		public void init();

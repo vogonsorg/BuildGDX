@@ -3,7 +3,6 @@ package ru.m210projects.Build.Pattern.MenuItems;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Compat.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.FileEntry;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 
 public class MenuFileBrowser extends MenuItem {
 	
@@ -55,7 +55,7 @@ public class MenuFileBrowser extends MenuItem {
 	private int nBackground = 0;
 	private int scrollerHeight;
 	protected BuildFont topFont, pathFont;
-	public int topPal, pathPal, listPal, backPal;
+	public int topPal, pathPal, listPal, backPal, backgroundPal;
 	public int transparent = 1;
 	
 	private long checkDirectory;
@@ -82,7 +82,7 @@ public class MenuFileBrowser extends MenuItem {
 		this.l_nFocus = new int[2];
 		this.currColumn = FILE;
 
-		changeDir(cache);
+		changeDir(BuildGdx.compat.getDirectory(Path.Game));
 	}
 	
 	private BrowserFileType mapType;
@@ -211,7 +211,7 @@ public class MenuFileBrowser extends MenuItem {
 		int yList = yPath + pathFont.getHeight() + 2;
 		int scrollerWidth = slider.getScrollerWidth();
 
-		draw.rotatesprite(x << 16, y << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x+width, ConvertType.Normal), coordsConvertYScaled(yList + nListItems * mFontOffset() + 6));
+		draw.rotatesprite(x << 16, y << 16, 65536, 0, nBackground, 127, backgroundPal, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x+width, ConvertType.Normal), coordsConvertYScaled(yList + nListItems * mFontOffset() + 6));
 
 		int px = x + 3;
 		drawHeader(px, x - 3 + width - topFont.getWidth(ffs), yColNames);

@@ -10,16 +10,29 @@
 package ru.m210projects.Build.Render.Types;
 
 import ru.m210projects.Build.Loader.Model;
-import ru.m210projects.Build.Loader.Voxels.VOXModel;
+import ru.m210projects.Build.Loader.Voxels.Voxel;
+import ru.m210projects.Build.Script.ModelInfo.AnimationInfo;
+import ru.m210projects.Build.Script.ModelInfo.SkinInfo;
 
 public class Tile2model {
 	// maps build tiles to particular animation frames of a model
 	public Model 	model;
-	public VOXModel	voxel;
+	public Voxel	voxel;
 	public int     	skinnum;
     public int     	framenum;   // calculate the number from the name when declaring
     public float   	smoothduration;
     public boolean disposable;
+    
+    //info for load
+    public String filename;
+    public String framename;  
+    public float scale; 
+    public int shadeoff; 
+    public float zadd; 
+    public float yoffset; 
+    public int flags;
+    public AnimationInfo animInfo;
+    public SkinInfo skinInfo;
     
     public Tile2model clone(boolean disposable)
     {

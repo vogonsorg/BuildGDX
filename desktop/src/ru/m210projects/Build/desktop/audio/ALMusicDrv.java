@@ -18,8 +18,6 @@
 
 package ru.m210projects.Build.desktop.audio;
 
-import static ru.m210projects.Build.FileHandle.Cache1D.kExist;
-import static ru.m210projects.Build.FileHandle.Cache1D.kGetBytes;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.desktop.audio.ALAudio.AL_BUFFERS_PROCESSED;
 import static ru.m210projects.Build.desktop.audio.ALAudio.AL_BUFFERS_QUEUED;
@@ -42,9 +40,11 @@ import com.badlogic.gdx.backends.lwjgl.audio.OggInputStream;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.StreamUtils;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.MusicSource;
 import ru.m210projects.Build.Audio.Source;
+import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.desktop.audio.ALSoundDrv.SourceManager;
 
@@ -76,6 +76,7 @@ public class ALMusicDrv implements Music {
 		try {
 			music = new ALMusicSource(new Ogg.Music(drv, musicBuffers, data));
 		} catch (Throwable e) {
+			e.printStackTrace();
 			Console.Println("Can't load ogg file", OSDTEXT_RED);
 			return null;
 		}
@@ -86,8 +87,14 @@ public class ALMusicDrv implements Music {
 
 	@Override
 	public MusicSource newMusic(String name) {
-		if(!kExist(name, 0)) return null;
-		return newMusic(kGetBytes(name, 0));
+		if(drv.noDevice || !inited) return null;
+		
+		Resource res = BuildGdx.cache.open(name, 0);
+		if(res == null) return null;
+		
+		byte[] data = res.getBytes();
+		res.close();
+		return newMusic(data);
 	}
 
 	@Override
@@ -97,11 +104,12 @@ public class ALMusicDrv implements Music {
 	
 	@Override
 	public void dispose() {
-		al.alDeleteBuffers(musicBuffers); 
+		if(inited)
+			al.alDeleteBuffers(musicBuffers); 
 	}
 
 	@Override
-	public boolean init() {
+	public synchronized boolean init() {
 		if(!drv.isInited()) return false;
 		inited = false;
 		musicBuffers = BufferUtils.newIntBuffer(musicBufferCount);
@@ -117,7 +125,7 @@ public class ALMusicDrv implements Music {
 	}
 
 	@Override
-	public boolean isInited() {
+	public synchronized boolean isInited() {
 		return drv.isInited() && inited;
 	}
 

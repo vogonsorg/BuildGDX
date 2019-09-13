@@ -26,11 +26,50 @@ import com.badlogic.gdx.utils.Disposable;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
+import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Tile2model;
 
 public class ModelInfo implements Disposable {
-
+	
+    public class AnimationInfo
+	{
+		public final String framestart;
+		public final String frameend;
+		public final int fpssc; 
+		public final int flags;
+		
+		public AnimationInfo(String framestart, String frameend, int fpssc, int flags)
+		{
+			this.framestart = framestart;
+			this.frameend = frameend;
+			this.fpssc = fpssc;
+			this.flags = flags;
+		}
+	}
+    
+    public class SkinInfo
+    {
+    	public final String skinfn;
+    	public final int palnum;
+    	public final int skinnum;
+    	public final int surfnum;
+    	public final double param;
+    	public final double specpower;
+    	public final double specfactor;
+    	
+    	public SkinInfo(String skinfn, int palnum, int skinnum, int surfnum, double param, double specpower, double specfactor)
+    	{
+    		this.skinfn = skinfn;
+			this.palnum = palnum;
+			this.skinnum = skinnum;
+			this.surfnum = surfnum;
+			this.param = param;
+			this.specpower = specpower;
+			this.specfactor = specfactor;
+    	}
+    }
+    
 	private Tile2model[] cache = new Tile2model[MAXTILES];
 	private Hudtyp[][] hudInfo = new Hudtyp[2][MAXTILES];
 	public static class Spritesmooth {
@@ -43,22 +82,26 @@ public class ModelInfo implements Disposable {
 
 	public ModelInfo()
 	{
-		for(int i = 0; i < cache.length; i++)
-			cache[i] = new Tile2model();
-		for(int i = 0; i < 2; i++)
-			for(int j = 0; j < MAXTILES; j++)
-				hudInfo[i][j] = new Hudtyp();
+//		for(int i = 0; i < cache.length; i++)
+//			cache[i] = new Tile2model();
+//		for(int i = 0; i < 2; i++)
+//			for(int j = 0; j < MAXTILES; j++)
+//				hudInfo[i][j] = new Hudtyp();
 		for (int i = 0; i < spritesmooth.length; i++)
 			spritesmooth[i] = new Spritesmooth();
 	}
 	
 	public ModelInfo(ModelInfo src, boolean disposable)
 	{
-		for(int i = 0; i < cache.length; i++)
-			cache[i] = src.cache[i].clone(disposable);
+		for(int i = 0; i < cache.length; i++) {
+			if(src.cache[i] != null)
+				cache[i] = src.cache[i].clone(disposable);
+		}
 		for(int i = 0; i < 2; i++) 
-			for(int j = 0; j < MAXTILES; j++)
-				this.hudInfo[i][j] = src.hudInfo[i][j].clone();
+			for(int j = 0; j < MAXTILES; j++) {
+				if(src.hudInfo[i] != null && src.hudInfo[i][j] != null)
+					hudInfo[i][j] = src.hudInfo[i][j].clone();
+			}
 		for (int i = 0; i < spritesmooth.length; i++)
 			spritesmooth[i] = new Spritesmooth();
 	}
@@ -76,10 +119,18 @@ public class ModelInfo implements Disposable {
 		return null;
 	}
 	
-	public VOXModel getVoxel(int picnum)
+	public Voxel getVoxel(int picnum)
 	{
 		if(cache[picnum] != null)
 			return cache[picnum].voxel;
+		
+		return null;
+	}
+	
+	public VOXModel getVoxModel(int picnum)
+	{
+		if(cache[picnum] != null && cache[picnum].voxel != null)
+			return cache[picnum].voxel.model;
 		
 		return null;
 	}
@@ -94,7 +145,10 @@ public class ModelInfo implements Disposable {
 	
 	public Hudtyp getHudInfo(int picnum, int flags)
 	{
-		return hudInfo[(flags>>2)&1][picnum];
+		if(hudInfo[(flags>>2)&1] != null)
+			return hudInfo[(flags>>2)&1][picnum];
+		
+		return null;
 	}
 	
 	public int addModelInfo(Model md, int picnum, String framename, int skinnum, float smooth)
@@ -114,6 +168,10 @@ public class ModelInfo implements Disposable {
 	    	i = ((MDModel)md).getFrameIndex(framename);
 	    	break;
 	    }
+	    
+	    if(cache[picnum] == null)
+	    	cache[picnum] = new Tile2model();
+	    //else flush(); //XXX
 
 	    cache[picnum].model = md;
 	    cache[picnum].framenum = i;
@@ -123,22 +181,29 @@ public class ModelInfo implements Disposable {
 	    return i;
 	}
 	
-	public int addVoxelInfo(VOXModel md, int picnum)
+	public int addVoxelInfo(Voxel md, int picnum)
 	{
 		if (picnum >= MAXTILES) return(-2);
 	    if(md == null) return -1;
+	    
+	    if(cache[picnum] == null)
+	    	cache[picnum] = new Tile2model();
 
 	    cache[picnum].voxel = md;
 	    return 0;
 	}
-	
+
 	public void removeModelInfo(Model md)
 	{
 		for (int i=MAXTILES-1; i>=0; i--) {
-	        if (cache[i].model == md) 
-	            cache[i].model = null;
-	        if (cache[i].voxel == md) 
+			if(cache[i] == null) continue;
+			
+	        if (cache[i].model == md || (cache[i].voxel != null && cache[i].voxel.model == md)) 
+	        {
+	        	cache[i].model = null;
 	            cache[i].voxel = null;
+	            cache[i] = null;
+	        }
 	    }
 	}
 	
@@ -146,6 +211,9 @@ public class ModelInfo implements Disposable {
 	{
 	    if (tilex >= MAXTILES) return -2;
 	    
+	    if(hudInfo[(flags>>2)&1] == null || hudInfo[(flags>>2)&1][tilex] == null)
+	    	hudInfo[(flags>>2)&1][tilex] = new Hudtyp();
+
 	    Hudtyp hud = hudInfo[(flags>>2)&1][tilex];
 
 	    hud.xadd = (float) xadd;
@@ -161,6 +229,8 @@ public class ModelInfo implements Disposable {
 	@Override
 	public void dispose() {
 		for (int i=MAXTILES-1; i>=0; i--) {
+			if(cache[i] == null) continue;
+			
 			if(!cache[i].disposable) 
 				continue;
 			
@@ -169,9 +239,12 @@ public class ModelInfo implements Disposable {
 	            cache[i].model = null;
 	        }
 	        if (cache[i].voxel != null) {
-	            cache[i].voxel.free();
+	        	if(cache[i].voxel.model != null)
+	        		cache[i].voxel.model.free();
 	            cache[i].voxel = null;
 	        }
+	        
+	        cache[i] = null;
 	    }
 	}
 }

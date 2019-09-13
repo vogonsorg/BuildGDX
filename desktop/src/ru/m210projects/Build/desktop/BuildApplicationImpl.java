@@ -26,12 +26,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.LifecycleListener;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.Preferences;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationLogger;
 import com.badlogic.gdx.backends.lwjgl.LwjglClipboard;
 import com.badlogic.gdx.backends.lwjgl.LwjglFileHandle;
 import com.badlogic.gdx.backends.lwjgl.LwjglFiles;
-import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.backends.lwjgl.LwjglNet;
 import com.badlogic.gdx.backends.lwjgl.LwjglPreferences;
 import com.badlogic.gdx.utils.Array;
@@ -47,6 +45,8 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
 import ru.m210projects.Build.Audio.BuildAudio;
+import ru.m210projects.Build.Render.Renderer.RenderType;
+import ru.m210projects.Build.desktop.Controllers.JControllers;
 import ru.m210projects.Build.desktop.gl.GLFrameImpl;
 import ru.m210projects.Build.desktop.software.SoftFrameImpl;
 
@@ -62,25 +62,25 @@ public class BuildApplicationImpl implements BuildApplication {
 	protected ApplicationLogger applicationLogger;
 	protected String preferencesdir;
 	protected Files.FileType preferencesFileType;
-	protected final LwjglApplicationConfiguration config;
+	protected final BuildApplicationConfiguration config;
 	protected final LwjglFiles files;
 	protected final LwjglNet net;
+	protected final Platform platform;
 	
-	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, LwjglApplicationConfiguration config) {
-		LwjglNativesLoader.load();
+	public BuildApplicationImpl (ApplicationListener listener, DesktopMessage message, RenderType type, BuildApplicationConfiguration config) {
 		setApplicationLogger(new LwjglApplicationLogger());
 		
 		if (config.title == null) config.title = listener.getClass().getSimpleName();
 		this.config = config;
 		
-		setFrame(FrameType.GL);
+		setFrame(type.getFrameType());
 
 		this.listener = listener;
 		this.preferencesdir = config.preferencesDirectory;
 		this.preferencesFileType = config.preferencesFileType;
 
 		files = new LwjglFiles();
-		net = new LwjglNet();
+		net = null; //new LwjglNet(config);
 
 		Gdx.app = this;
 		Gdx.files = files;
@@ -91,8 +91,18 @@ public class BuildApplicationImpl implements BuildApplication {
 		BuildGdx.net = Gdx.net;
 		BuildGdx.audio = new BuildAudio();
 		BuildGdx.message = message;
+		BuildGdx.controllers = new JControllers();
 
 		initialize();
+		
+		final String osName = System.getProperty("os.name");
+		if ( osName.startsWith("Windows") )
+			platform = Platform.Windows;
+		else if ( osName.startsWith("Linux") || osName.startsWith("FreeBSD") || osName.startsWith("OpenBSD") || osName.startsWith("SunOS") || osName.startsWith("Unix") || osName.indexOf("aix") > 0 )
+			platform = Platform.Linux;
+		else if ( osName.startsWith("Mac OS X") || osName.startsWith("Darwin") )
+			platform = Platform.MacOSX;
+		else platform = null;
 	}
 
 	@Override
@@ -111,7 +121,7 @@ public class BuildApplicationImpl implements BuildApplication {
 		if(frame == null || frame.getType() != type) {
 			if(frame != null) frame.destroy();
 			Frame fr = null;
-			if(type == FrameType.Software) {
+			if(type == FrameType.Canvas) {
 				fr = new SoftFrameImpl(config); 
 			} else 
 				fr = new GLFrameImpl(config);
@@ -278,8 +288,8 @@ public class BuildApplicationImpl implements BuildApplication {
 
 	@Override
 	public int getVersion () {
-		System.out.println("LWJGL2 version " + org.lwjgl.Sys.getVersion());
-		return 198;
+		System.out.println("LWJGL2 version " + org.lwjgl.Sys.getVersion()); //2.9.3
+		return 1910; //ligdx 1.9.10
 	}
 
 	public void stop () {
@@ -401,7 +411,7 @@ public class BuildApplicationImpl implements BuildApplication {
 	}
 
 	@Override
-	public void setMaxFramerate(int fps) {
-		frame.setMaxFramerate(fps);
+	public Platform getPlatform() {
+		return platform;
 	}
 }

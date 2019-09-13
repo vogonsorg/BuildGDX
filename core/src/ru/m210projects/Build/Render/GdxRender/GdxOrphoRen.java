@@ -40,6 +40,7 @@ import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_INTENSITY;
+import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 import static ru.m210projects.Build.Strhandler.Bstrlen;
 
 import java.nio.ByteBuffer;
@@ -109,7 +110,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 			int internalformat = GL_INTENSITY; // ... and GL_LUMINANCE doesn't work in GL3.0
 			int format = GL_LUMINANCE;
 			Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, textAtlas.getWidth(), textAtlas.getHeight(), 0, format, GL_UNSIGNED_BYTE, ub);
-			setupBoundTexture(0, 0);
+			setupBoundTexture(glfiltermodes[0], 0);
 		}
 	}
 
@@ -147,13 +148,13 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		bindBatch();
 		if (backcol >= 0) {
-			batch.setColor((curpalette[3 * backcol] & 0xFF) / 255.0f, (curpalette[3 * backcol + 1] & 0xFF) / 255.0f, (curpalette[3 * backcol + 2] & 0xFF) / 255.0f, 1.0f);
+			batch.setColor(curpalette.getRed(backcol) / 255.0f, curpalette.getGreen(backcol) / 255.0f,curpalette.getBlue(backcol) / 255.0f, 1.0f);
 			batch.draw(textAtlas, xpos, ypos, Bstrlen(text) * xsiz, 8, 0, 0, 64, 0, 1, 1, 0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
 		}
 		
 		int oxpos = xpos;
 		int c = 0, line = 0, yoffs;
-		batch.setColor((curpalette[3 * col] & 0xFF) / 255.0f, (curpalette[3 * col + 1] & 0xFF) / 255.0f, (curpalette[3 * col + 2] & 0xFF) / 255.0f, 1.0f);
+		batch.setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f,curpalette.getBlue(col) / 255.0f, 1.0f);
 		while (c < text.length && text[c] != '\0') {
 			if (text[c] == '\n') {
 				text[c] = 0;
@@ -178,7 +179,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 		col = palookup[0][col] & 0xFF;
 		
 		shape.begin(ShapeType.Line);
-		shape.setColor(curpalette[3 * col] & 0xFF, curpalette[3 * col + 1] & 0xFF, curpalette[3 * col + 2] & 0xFF, 255);
+		shape.setColor(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col), 255);
 		shape.line(x1 / 4096.0f, ydim - y1 / 4096.0f, x2 / 4096.0f, ydim - y2 / 4096.0f);
 		shape.end();
 	}

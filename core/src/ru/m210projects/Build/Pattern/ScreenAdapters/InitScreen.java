@@ -19,8 +19,10 @@ package ru.m210projects.Build.Pattern.ScreenAdapters;
 import static ru.m210projects.Build.Engine.fullscreen;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
-import static ru.m210projects.Build.FileHandle.Cache1D.initgroupfile;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 
 import com.badlogic.gdx.ScreenAdapter;
 
@@ -28,15 +30,18 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
-import ru.m210projects.Build.Input.GPManager;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
-import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
-import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
+import ru.m210projects.Build.Settings.BuildConfig;
+import ru.m210projects.Build.Settings.BuildSettings;
+import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
 import ru.m210projects.Build.Types.MemLog;
+import ru.m210projects.Build.Types.ThreadProcessor;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
 public class InitScreen extends ScreenAdapter {
@@ -98,7 +103,6 @@ public class InitScreen extends ScreenAdapter {
 		Console.Println("BUILD engine by Ken Silverman (http://www.advsys.net/ken) \r\n"
 				+ game.appname + " " + game.sversion + "(BuildGdx v" + Engine.version + ") by [M210®] (http://m210.duke4.net)");
 
-		
 		Console.Println("Current date " + game.date.getLaunchDate());
 		
 		String osver = System.getProperty("os.version");
@@ -111,10 +115,12 @@ public class InitScreen extends ScreenAdapter {
 
 		for(int i = 0; i < factory.resources.length; i++) {
 			try {
-				initgroupfile(factory.resources[i]);
+				BuildGdx.cache.add(factory.resources[i]);
+//				if(BuildGdx.cache.add(factory.resources[i]) == null)
+//					throw new Exception("Can't load package " + factory.resources[i]);
 			} catch (Exception e) { 
-				BuildGdx.message.show("Init error!", "Resource initialization error!", MessageType.Info);
-				BuildGdx.app.exit();
+				BuildGdx.message.show("Init error!", "Resource initialization error! \r\n" + e.getMessage(), MessageType.Info);
+				System.exit(1);
 				return;
 			}
 		}
@@ -124,27 +130,31 @@ public class InitScreen extends ScreenAdapter {
 			this.engine = game.pEngine = factory.engine();
 		} catch (Exception e) { 
 			BuildGdx.message.show("Build Engine Initialization Error!", "There was a problem initialising the Build engine: \r\n" + e.getMessage(), MessageType.Info);
-			BuildGdx.app.exit();
+			System.exit(1);
 			return;
 		}
 		
 		Console.setFunction(factory.console());
 
-		engine.loadpics("tiles000.art");
+		engine.loadpics();
+		
+		if(engine.loadpics() == 0) {
+			BuildGdx.message.show("Build Engine Initialization Error!", "ART files not found " + new File(Path.Game.getPath() + engine.tilesPath).getAbsolutePath(), MessageType.Info);
+			System.exit(1);
+			return;
+		}
 		
 		BuildConfig cfg = game.pCfg;
 		game.pFonts = factory.fonts();
 		
-		engine.setrendermode(factory.renderer());
+		BuildSettings.init(engine, cfg);
+		GLSettings.init(engine, cfg);
+		
+		engine.setrendermode(factory.renderer(cfg.renderType));
 		if(!engine.setgamemode(cfg.fullscreen, cfg.ScreenWidth, cfg.ScreenHeight))
 			cfg.fullscreen = 0;
 		fullscreen = cfg.fullscreen;
-		
-		cfg.checkFps(cfg.fpslimit);
-		engine.setanisotropy(cfg, cfg.glanisotropy);
-		engine.setwidescreen(cfg, cfg.widescreen != 0);
-		Console.Set("r_texturemode", cfg.glfilter);
-		
+
 		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -154,7 +164,7 @@ public class InitScreen extends ScreenAdapter {
 					if(!cfg.isInited) 
 						cfg.isInited = cfg.InitConfig(!cfg.isExist());
 					
-					game.pInput = factory.input(new GPManager());
+					game.pInput = factory.input(BuildGdx.controllers.init());
 					game.pMenu = factory.menus();
 					game.pNet = factory.net();
 					game.pSlider = factory.slider();
@@ -174,19 +184,42 @@ public class InitScreen extends ScreenAdapter {
 					Console.setCaptureKey(cfg.mousekeys[consolekey], 2);
 					Console.setCaptureKey(cfg.gpadkeys[consolekey], 3);
 					
-					engine.setFov(cfg.gFov);
+					BuildSettings.usenewaspect.set(cfg.widescreen == 1);
+					BuildSettings.fov.set(cfg.gFov);
+					BuildSettings.fpsLimit.set(cfg.fpslimit);
 					
-					game.updateColorCorrection();
-
+					BuildGdx.threads = new ThreadProcessor();
+		
 					gameInitialized = game.init();
 					
 					ConsoleInit();
+				} catch (OutOfMemoryError me) {
+					System.gc();
+					
+					me.printStackTrace();
+					String message = "Memory used: [ " + MemLog.used() + " / " + MemLog.total() + " mb ] \r\nPlease, increase the java's heap size.";
+					Console.Println(message, Console.OSDTEXT_RED);
+					BuildGdx.message.show("OutOfMemory!", message, MessageType.Info);
+					System.exit(1);
+				} catch (FileNotFoundException fe) {
+					fe.printStackTrace();
+					
+					String message = fe.getMessage();
+					Console.Println(message, Console.OSDTEXT_RED);
+					BuildGdx.message.show("File not found!", message, MessageType.Info);
+					System.exit(1);
 				} catch (Throwable e) {
 					game.ThrowError("InitScreen error", e);	
+					System.exit(1);
 				}
 			}
 		});
-		thread.start();
+	}
+
+	public void start()
+	{
+		if(thread != null)
+			thread.start();
 	}
 
 	public void dispose()
@@ -199,23 +232,24 @@ public class InitScreen extends ScreenAdapter {
 
 	@Override
 	public void render(float delta) {
-		engine.clearview(0);
-		
-		engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
-
-		if(frames > 3)
-		{
-			if(!thread.isAlive()) { 
-				if(gameInitialized)
-					game.show();	
-				else {
-					game.GameMessage("InitScreen unknown error!");
-					BuildGdx.app.exit();
+		synchronized(engine) {
+			engine.clearview(0);
+			
+			engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
+	
+			if(frames++ > 3)
+			{
+				if(!thread.isAlive()) { 
+					if(gameInitialized)
+						game.show();	
+					else {
+						game.GameMessage("InitScreen unknown error!");
+						BuildGdx.app.exit();
+					}
 				}
 			}
+	
+			engine.nextpage();
 		}
-
-		engine.nextpage();
-		frames++;
 	}
 }

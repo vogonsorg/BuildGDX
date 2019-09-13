@@ -17,7 +17,7 @@
 
 package ru.m210projects.Build.Script;
 
-import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 import java.util.HashMap;
 

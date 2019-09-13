@@ -11,9 +11,6 @@ package ru.m210projects.Build;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.kClose;
-import static ru.m210projects.Build.FileHandle.Cache1D.kOpen;
-import static ru.m210projects.Build.FileHandle.Cache1D.kRead;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 
@@ -21,7 +18,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import ru.m210projects.Build.Types.LittleEndian;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
@@ -84,8 +83,8 @@ public class Board {
 	public Board(Engine engine, String filename) throws Exception {
 		this.eng = engine;
 		
-		int fil = kOpen(filename, 0);
-		if (fil == -1) throw new Exception("Map file not found");
+		Resource fil = BuildGdx.cache.open(filename, 0);
+		if (fil == null) throw new Exception("Map file not found");
 
 		this.name = filename;
 		
@@ -102,16 +101,16 @@ public class Board {
 		
 		initspritelists();
 		
-		mapversion = kRead(fil, 4);
+		mapversion = fil.readInt();
 		if(mapversion == 6) 
 			loadv6(fil);
 		else if(mapversion == 7)
 			loadv7(fil);
 		else {
-			kClose(fil);
+			fil.close();
 			throw new Exception("Invalid map version!");
 		}
-		kClose(fil);
+		fil.close();
 		
 		int size = 144 + 20 + 2 + (numwalls * WALL.sizeof) + 
 		2 + (numsectors * SECTOR.sizeof) + 
@@ -136,10 +135,8 @@ public class Board {
 		nextspritesect = new short[MAXSPRITES]; 
 		nextspritestat = new short[MAXSPRITES];
 		
-		ByteBuffer bb = ByteBuffer.wrap(buf, 144, buf.length);
-		bb.order( ByteOrder.LITTLE_ENDIAN);
-		
-		this.name = new String(buf, 0, 144).trim();
+		ResourceData bb = new ResourceData(buf);
+		this.name = bb.getString(144);
 		
 		mapversion = bb.getInt();
 		daposx = bb.getInt();
@@ -186,20 +183,18 @@ public class Board {
 		zofslope = new int[2];
 	}
 	
-	protected void loadv6(int fil)
+	protected void loadv6(Resource fil)
 	{
-		byte[] buf = new byte[4];
-		
-		kRead(fil, buf, 4); daposx = LittleEndian.getInt(buf);
-		kRead(fil, buf, 4); daposy = LittleEndian.getInt(buf);
-		kRead(fil, buf, 4); daposz = LittleEndian.getInt(buf);
-		kRead(fil, buf, 2); daang = LittleEndian.getShort(buf);
-		kRead(fil, buf, 2); dacursectnum = LittleEndian.getShort(buf);
+		daposx = fil.readInt();
+		daposy = fil.readInt();
+		daposz = fil.readInt();
+		daang = fil.readShort();
+		dacursectnum = fil.readShort();
 		
 		int sizeof = 37;
-		kRead(fil, buf, 2); numsectors = LittleEndian.getShort(buf);
+		numsectors = fil.readShort();
 		byte[] sectors = new byte[sizeof*numsectors];
-		kRead(fil, sectors, sizeof* numsectors);
+		fil.read(sectors, sizeof* numsectors);
 		ByteBuffer bb = ByteBuffer.wrap(sectors);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
     	
@@ -237,9 +232,9 @@ public class Board {
 		}
 		
 		sizeof = WALL.sizeof;
-		kRead(fil, buf, 2); numwalls = LittleEndian.getShort(buf);
+		numwalls = fil.readShort();
 		byte[] walls = new byte[sizeof * numwalls];
-		kRead(fil, walls, sizeof * numwalls);
+		fil.read(walls, sizeof * numwalls);
 		bb = ByteBuffer.wrap(walls);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
 		
@@ -268,9 +263,9 @@ public class Board {
 		}
 
 		sizeof = 43;
-		kRead(fil, buf, 2); numsprites = LittleEndian.getShort(buf);
+		numsprites = fil.readShort();
 		byte[] sprites = new byte[sizeof*numsprites];
-		kRead(fil, sprites, sizeof*numsprites);
+		fil.read(sprites, sizeof*numsprites);
 
 		bb = ByteBuffer.wrap(sprites);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
@@ -309,18 +304,17 @@ public class Board {
 		dacursectnum = updatesector(daposx, daposy, dacursectnum);
 	}
 	
-	protected void loadv7(int fil)
+	protected void loadv7(Resource fil)
 	{
-		byte[] buf = new byte[4];
-		kRead(fil, buf, 4); daposx = LittleEndian.getInt(buf);
-		kRead(fil, buf, 4); daposy = LittleEndian.getInt(buf);
-		kRead(fil, buf, 4); daposz = LittleEndian.getInt(buf);
-		kRead(fil, buf, 2); daang = LittleEndian.getShort(buf);
-		kRead(fil, buf, 2); dacursectnum = LittleEndian.getShort(buf);
+		daposx = fil.readInt();
+		daposy = fil.readInt();
+		daposz = fil.readInt();
+		daang = fil.readShort();
+		dacursectnum = fil.readShort();
 		
-		kRead(fil, buf, 2); numsectors = LittleEndian.getShort(buf);
+		numsectors = fil.readShort();
 		byte[] sectors = new byte[SECTOR.sizeof * numsectors];
-		kRead(fil, sectors, sectors.length);
+		fil.read(sectors, sectors.length);
 		ByteBuffer bb = ByteBuffer.wrap(sectors);
 		byte[] sectorReader = new byte[SECTOR.sizeof];
 		for (int i = 0; i < numsectors; i++) {
@@ -328,9 +322,9 @@ public class Board {
 			sector[i] = new SECTOR(sectorReader);
 		}
 		
-		kRead(fil, buf, 2); numwalls = LittleEndian.getShort(buf);
+		numwalls = fil.readShort();
 		byte[] walls = new byte[WALL.sizeof * numwalls];
-		kRead(fil, walls, walls.length);
+		fil.read(walls, walls.length);
 		bb = ByteBuffer.wrap(walls);
 		byte[] wallReader = new byte[WALL.sizeof];
 		
@@ -339,9 +333,9 @@ public class Board {
 			wall[w] = new WALL(wallReader);
 		}
 		
-		kRead(fil, buf, 2); numsprites = LittleEndian.getShort(buf);
+		numsprites = fil.readShort();
 		byte[] sprites = new byte[SPRITE.sizeof*numsprites];
-		kRead(fil, sprites, SPRITE.sizeof*numsprites);
+		fil.read(sprites, SPRITE.sizeof*numsprites);
 		bb = ByteBuffer.wrap(sprites);
 		byte[] spriteReader = new byte[SPRITE.sizeof];
 		for(int s = 0; s < numsprites; s++) {

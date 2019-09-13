@@ -3,7 +3,7 @@ package ru.m210projects.Build.Architecture;
 public interface BuildFrame {
 	
 	public enum FrameType {
-		Software, GL
+		Canvas, GL
 	}
 
 	public BuildInput getInput();
@@ -15,8 +15,6 @@ public interface BuildFrame {
 	public boolean isActive();
 	
 	public boolean isReady();
-	
-	public void setMaxFramerate(int fps);
 	
 	public int getX();
 	

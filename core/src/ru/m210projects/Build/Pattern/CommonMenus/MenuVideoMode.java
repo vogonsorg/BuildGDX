@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Pattern.BuildConfig;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
@@ -43,11 +43,14 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Render.VideoMode;
+import ru.m210projects.Build.Render.Renderer.RenderType;
+import ru.m210projects.Build.Settings.BuildConfig;
 
 public abstract class MenuVideoMode extends BuildMenu {
 	
 	protected MenuConteiner mResolution;
 	protected MenuConteiner mRenderer;
+	protected MenuButton mRenderSettings;
 	protected MenuSwitch mFullscreen;
 	protected MenuButton mApplyChanges;
 	protected MenuResolutionList mSlot;
@@ -56,8 +59,12 @@ public abstract class MenuVideoMode extends BuildMenu {
 	protected VideoMode choosedMode;
 	protected VideoMode currentMode;
 	protected boolean isFullscreen;
+	protected RenderType currentRender;
+	protected RenderType choosedRender;
 	
 	protected final BuildMenu mResList;
+	protected final BuildMenu mRenSettingsMenu;
+	
 
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
@@ -99,9 +106,11 @@ public abstract class MenuVideoMode extends BuildMenu {
 		
 		menu.addItem(mSlot, true);
 		menu.addItem(slider, false);
-		
+
 		return menu;
 	}
+	
+	public abstract MenuRendererSettings getRenSettingsMenu(final BuildGame app, int posx, int posy, int width, int nHeight, BuildFont style);
 	
 	public MenuVideoMode(final BuildGame app, int posx, int posy, int width, int itemHeight, BuildFont style, int nListItems, int nListWidth, int nBackground) {
 		
@@ -115,13 +124,24 @@ public abstract class MenuVideoMode extends BuildMenu {
 					public void run() {
 						cfg.fullscreen = isFullscreen ? 1 : 0;
 						currentMode = choosedMode;
-						setMode(cfg);
+						if(currentRender != choosedRender) {
+							app.pEngine.getrender().uninit();
+							app.pEngine.setrendermode(app.getFactory().renderer(choosedRender));
+							app.updateColorCorrection();
+							Console.Println("The render has been changed to " + choosedRender.getName());
+							cfg.renderType = app.pEngine.getrender().getType();
+							currentRender = choosedRender;
+						}
+						setMode(cfg);  //init new renderer is doing here
 					}
 				});
+				app.pInput.ctrlResetInput();
 			}
 		};
 		
 		mResList = getResolutionListMenu(this, app, posx + (width - nListWidth) / 2, posy + 2 * style.getHeight(), nListWidth, nListItems, style, nBackground);
+		
+		mRenSettingsMenu = getRenSettingsMenu(app, posx, posy, width, itemHeight, style);
 		
 		mResolution = new MenuConteiner("Resolution: ", style, posx,
 				posy += itemHeight, width, strvmodes, 0, new MenuProc() {
@@ -186,7 +206,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 				if (num != -1 && list != null)
 					key = list[num];
 				else
-					key = toCharArray(cfg.ScreenWidth + " x " + cfg.ScreenHeight + " 32bpp");
+					key = toCharArray(cfg.ScreenWidth + " x " + cfg.ScreenHeight + " *");
 
 				int pal = handler.getPal(font, this);
 				int shade = handler.getShade(this);
@@ -199,16 +219,37 @@ public abstract class MenuVideoMode extends BuildMenu {
 				handler.mPostDraw(this);
 			}
 		};
-		
-		mRenderer = new MenuConteiner("Renderer: ", style, posx,
-				posy += itemHeight, width, new String[] { "Polymost" }, 0, null) {
-			@Override
-			public void draw(MenuHandler handler) {
-				mCheckEnableItem(false);
-				super.draw(handler);
+
+		MenuProc renderCallback = new MenuProc() {
+			public void run(MenuHandler handler, final MenuItem pItem) {
+				BuildGdx.app.postRunnable(new Runnable() {
+					@Override
+					public void run() {
+						MenuConteiner item = (MenuConteiner) pItem;
+						switch(item.num) {
+							case 0: choosedRender = RenderType.Software; break;
+							case 1: choosedRender = RenderType.Polymost; break;
+						}
+					}
+				});
 			}
 		};
-
+		
+		String[] renderers = new String[] { 
+			RenderType.Software.getName(),
+			RenderType.Polymost.getName()
+		};
+		mRenderer = new MenuConteiner("Renderer: ", style, posx, posy += itemHeight, width, renderers, 0, renderCallback) {
+			@Override
+			public void open() {
+				choosedRender = currentRender = app.pEngine.getrender().getType();
+				switch(currentRender) {
+					case Software: num = 0; break;
+					case Polymost: num = 1; break;
+				}	
+			}
+		};
+		
 		mFullscreen = new MenuSwitch("Fullscreen:", style, posx,
 				posy += itemHeight, width, cfg.fullscreen == 1, new MenuProc() {
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -222,10 +263,12 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
+		mRenderSettings = new MenuButton("Renderer settings", style, posx, posy += itemHeight, width, 0, 0, mRenSettingsMenu, -1, null, 0);
+		
 		mApplyChanges = new MenuButton("Apply changes", style, 0, posy += 2 * itemHeight, 320, 1, 0, null, -1, callback, 0) {
 			@Override
 			public void draw(MenuHandler handler) {
-				mCheckEnableItem(choosedMode != null && (choosedMode != currentMode || isFullscreen != (cfg.fullscreen == 1)));
+				mCheckEnableItem(choosedMode != null && (choosedMode != currentMode || isFullscreen != (cfg.fullscreen == 1) || currentRender != choosedRender));
 				super.draw(handler);
 			}
 			
@@ -236,10 +279,12 @@ public abstract class MenuVideoMode extends BuildMenu {
 				else flags = 3;
 			}
 		};
+		posy += itemHeight;
 
 		addItem(mResolution, true);
 		addItem(mRenderer, false);
 		addItem(mFullscreen, false);
+		addItem(mRenderSettings, false);
 		addItem(mApplyChanges, false);
 	}
 }

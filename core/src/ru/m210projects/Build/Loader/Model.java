@@ -11,6 +11,8 @@ package ru.m210projects.Build.Loader;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
+import ru.m210projects.Build.Render.Types.GLFilter;
+
 public abstract class Model {
 	
 	public static final int MD_ROTATE = 2;
@@ -40,7 +42,7 @@ public abstract class Model {
 		verticesBuffer = null;
 	}
 	
-	public abstract void setSkinParams(int filterMode, int anisotropy);
+	public abstract void setSkinParams(GLFilter filter, int anisotropy);
 	
 	public abstract void clearSkins();
 }

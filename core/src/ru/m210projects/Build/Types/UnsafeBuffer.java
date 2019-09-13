@@ -17,164 +17,135 @@
 package ru.m210projects.Build.Types;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
-public class UnsafeBuffer {
+public abstract class UnsafeBuffer {
 
-	private Unsafe unsafe;
-	private ByteBuffer bb;
-	private int position;
-	private long address;
-	private int limit;
-	private int capacity;
+	protected static Unsafe unsafe;
+	protected static long BYTE_ARRAY_BASE_OFFSET;
+	private static int JAVA_VERSION;
+	
+	protected int position;
+	protected long address;
 
-	public UnsafeBuffer(int capacity) {
+	static {
 		unsafe = getTheUnsafe();
-		bb = ByteBuffer.allocateDirect(capacity).order(ByteOrder.LITTLE_ENDIAN);
-		address = ((DirectBuffer) bb).address();
-		this.limit = capacity;
-		this.capacity = capacity;
-	}
-
-	public ByteBuffer getBuffer() { 
-		rewind();
-		return bb;
+		BYTE_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(byte[].class);
+		
+		JAVA_VERSION = getVersion();
 	}
 	
-	public byte get() {
-        return unsafe.getByte(ix(nextIndex(1)));
-    }
-
-    public byte get(int i) {
-        return unsafe.getByte(ix(checkIndex(i, 1)));
-    }
-    
-    public UnsafeBuffer get(byte[] dst, int offset, int length) {
-        int end = offset + length;
-        for (int i = offset; i < end; i++)
-            dst[i] = get();
-        return this;
-    }
-	
-	public UnsafeBuffer put(byte x) {
-        unsafe.putByte(ix(nextIndex(1)), x);
-        return this;
-    }
-
-    public UnsafeBuffer put(int i, byte x) {
-        unsafe.putByte(ix(checkIndex(i, 1)), x);
-        return this;
-    }
-    
-    public UnsafeBuffer put(byte[] src, int offset, int length) {
-        int end = offset + length;
-        for (int i = offset; i < end; i++)
-        	this.put(src[i]);
-        return this;
-    }
-
-	public short getShort() {
-        return unsafe.getShort(ix(nextIndex((1 << 1))));
-    }
-
-    public short getShort(int i) {
-        return unsafe.getShort(ix(checkIndex(i, (1 << 1))));
-    }
-    
-	public UnsafeBuffer putShort(short x) {
-		unsafe.putShort(ix(nextIndex((1 << 1))), x);
-        return this;
-    }
-
-    public UnsafeBuffer putShort(int i, short x) {
-    	unsafe.putShort(ix(checkIndex(i, (1 << 1))), x);
-        return this;
-    }
-	
-	public int getInt() {
-		return unsafe.getInt(ix(nextIndex((1 << 2))));
-	}
-
-	public int getInt(int value) {
-		return unsafe.getInt(ix(checkIndex(value, (1 << 2))));
-	}
-
-	public UnsafeBuffer putInt(int value) {
-		unsafe.putInt(ix(nextIndex((1 << 2))), value);
-		return this;
+	private static int getVersion()
+	{
+		String version = System.getProperty("java.version");
+	    if(version.startsWith("1.")) {
+	        version = version.substring(2, 3);
+	    } else {
+	        int dot = version.indexOf(".");
+	        if(dot != -1) { version = version.substring(0, dot); }
+	    } return Integer.parseInt(version);
 	}
 	
-	public UnsafeBuffer putInt(int i, int value) {
-		unsafe.putInt(ix(checkIndex(i, (1 << 2))), value);
-        return this;
-    }
-
-	private long ix(int i) {
-		return address + (i << 0);
-	}
-
-	private int nextIndex(int nb) {
-//        if (limit - position < nb)
-//            throw new BufferUnderflowException();
-		int p = position;
-		position += nb;
-		return p;
-	}
-
-	private int checkIndex(int i, int nb) {
-//		if ((i < 0) || (nb > limit - i))
-//			throw new IndexOutOfBoundsException();
-		return i;
-	}
-	
-	public int capacity() {
-		return capacity;
-	}
-
-	public int position() {
-		return position;
-	}
-
-	public UnsafeBuffer rewind() {
-		bb.rewind();
-		position = 0;
-		return this;
-	}
-
-	public UnsafeBuffer flip() {
-		bb.rewind();
-		bb.limit(position);
-		limit = position;
-		position = 0;
-		return this;
-	}
-
-	public UnsafeBuffer clear() {
-		bb.clear();
-		position = 0;
-		limit = capacity;
-		return this;
-	}
-
-	public int remaining() {
-		return limit - position;
-	}
-
-	public boolean hasRemaining() {
-		return position < limit;
-	}
-
-	private Unsafe getTheUnsafe() {
+	private static Unsafe getTheUnsafe() {
 		try {
 			Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
 			theUnsafe.setAccessible(true);
 			return (Unsafe) theUnsafe.get(null);
 		} catch (Exception e) {
-			throw new AssertionError(e);
+			return null;
 		}
 	}
+	
+	public byte get() {
+        return get(nextIndex(1));
+    }
+
+    public byte get(int i) {
+        return unsafe.getByte(getAddress(i));
+    }
+    
+    public short getShort() {
+        return getShort(nextIndex((1 << 1)));
+    }
+
+    public short getShort(int i) {
+        return unsafe.getShort(getAddress(i));
+    }
+	
+	public int getInt() {
+		return getInt(nextIndex((1 << 2)));
+	}
+
+	public int getInt(int i) {
+		return unsafe.getInt(getAddress(i));
+	}
+	
+	public float getFloat(int i) {
+		return unsafe.getFloat(getAddress(i));
+	}
+	
+	public float getFloat() {
+		return getFloat(nextIndex((1 << 2)));
+	}
+	
+	public long getLong(int i) {
+		return unsafe.getLong(getAddress(i));
+	}
+	
+	public long getLong() {
+		return getLong(nextIndex((1 << 3)));
+	}
+	
+	public UnsafeBuffer get(byte[] dst) {
+		return get(dst, 0, dst.length);
+	}
+    
+    public UnsafeBuffer get(byte[] dst, int offset, int length) {
+    	unsafe.copyMemory(null, getAddress(nextIndex(length)), dst, BYTE_ARRAY_BASE_OFFSET + offset, length);
+        return this;
+    }
+
+    protected void setAddress(ByteBuffer bb)
+    {
+    	this.address = ((DirectBuffer) bb).address();
+    }
+    
+    protected void dispose(ByteBuffer bb)
+    {
+    	try {
+	    	if(JAVA_VERSION < 9) {
+	    		((DirectBuffer) bb).cleaner().clean();
+	    	} else {
+	    		Method invokeCleaner = unsafe.getClass().getMethod("invokeCleaner", ByteBuffer.class);
+		    	invokeCleaner.invoke(unsafe, bb);
+	    	}
+    	} catch (Throwable e) {
+    		e.printStackTrace();
+    	}
+    }
+	
+	protected long getAddress(int offset) {
+		return address + offset;
+	}
+
+	protected int nextIndex(int nb) {
+		int p = position;
+		position += nb;
+		return p;
+	}
+
+	public int position() {
+		return position;
+	}
+	
+	public UnsafeBuffer position(int newPosition) {
+		position = newPosition;
+		return this;
+	}
+	
+	public abstract UnsafeBuffer rewind();
 }

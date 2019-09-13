@@ -16,10 +16,8 @@
 
 package ru.m210projects.Build.Pattern.CommonMenus;
 
-import ru.m210projects.Build.Input.GPManager;
+import ru.m210projects.Build.Input.BuildControllers;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Pattern.BuildConfig;
-import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
@@ -33,6 +31,8 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuSlider;
 import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuText;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
+import ru.m210projects.Build.Settings.BuildConfig;
+import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
 
 public abstract class MenuJoystick extends BuildMenu {
 	
@@ -223,7 +223,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		menu.addItem(parent.getTitle(app, "Config. buttons"), false);
 		
 		final BuildConfig cfg = app.pCfg;
-		final GPManager gpmanager = app.pInput.ctrlGetGamepadManager();
+		final BuildControllers gpmanager = app.pInput.ctrlGetGamepadManager();
 
 		MenuProc callback = new MenuProc() {
 			@Override
@@ -252,7 +252,7 @@ public abstract class MenuJoystick extends BuildMenu {
 					default:
 						if(!gpmanager.isValidDevice(cfg.gJoyDevice)) break;
 						for (int kb = 0; kb < gpmanager.getButtonCount(cfg.gJoyDevice); kb++) {
-							if (gpmanager.getButton(cfg.gJoyDevice, kb)) {
+							if (gpmanager.buttonStatus(cfg.gJoyDevice, kb)) {
 								if(item.l_nFocus < cfg.joymap.length)
 									cfg.setButton(cfg.joymap[item.l_nFocus], kb);
 								else cfg.setButton(cfg.keymap[item.l_nFocus - cfg.joymap.length], kb);

@@ -7,5 +7,7 @@ import ru.m210projects.Build.Render.Types.GL10;
 public interface BuildGraphics extends Graphics {
 	
 	public GL10 getGL10();
+	
+	public void setFramesPerSecond(int fps);
 
 }

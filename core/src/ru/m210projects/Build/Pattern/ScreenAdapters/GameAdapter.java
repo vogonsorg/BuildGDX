@@ -27,12 +27,12 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildNet;
 import ru.m210projects.Build.Pattern.BuildGame.NetMode;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
+import ru.m210projects.Build.Settings.BuildConfig;
 
 public abstract class GameAdapter extends ScreenAdapter {
 	
@@ -73,7 +73,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 	public abstract void sndHandlePause(boolean pause);
 	
 	protected abstract boolean prepareboard(String map);
-	
+
 	public GameAdapter setTitle(String title)
 	{
 		load.setTitle(title);
@@ -90,25 +90,31 @@ public abstract class GameAdapter extends ScreenAdapter {
 				if(prepareboard(map)) {
 					if(prestart != null)
 						prestart.run();
-					startboard();
+					startboard(startboard);
 				}
 			}
 		});
 		
 		return this;
 	}
+	
+	private Runnable startboard = new Runnable() {
+		@Override
+		public void run() {
+			pNet.WaitForAllPlayers(0);
+			System.gc();
+			
+			pNet.ResetTimers();
+			game.pInput.resetMousePos();
+			pNet.ready2send = true;
+			game.changeScreen(GameAdapter.this);
+			
+			pEngine.faketimerhandler();
+		}
+	};
 
-	protected void startboard() 
-	{
-		pNet.WaitForAllPlayers(0);
-		System.gc();
-		
-		pNet.ResetTimers();
-		game.pInput.resetMousePos();
-		pNet.ready2send = true;
-		game.changeScreen(this);
-		
-		pEngine.faketimerhandler();
+	protected void startboard(Runnable startboard) {
+		startboard.run();
 	}
 	
 	@Override
@@ -135,6 +141,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
 				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
 			if (i >= 0) break;
+			
+			pEngine.faketimerhandler(); //game timer sync
 			ProcessFrame(pNet);
 		}
 		

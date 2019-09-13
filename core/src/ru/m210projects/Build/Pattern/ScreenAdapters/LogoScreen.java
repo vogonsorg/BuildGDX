@@ -20,6 +20,8 @@ import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Pattern.BuildGame;
 
 public class LogoScreen extends SkippableAdapter {
@@ -63,6 +65,17 @@ public class LogoScreen extends SkippableAdapter {
 
 		engine.clearview(0);
 		engine.rotatesprite(160 << 16, 100 << 16, 65536, 0, nTile, 0, 0, 10 | 64, 0, 0, xdim - 1, ydim - 1);
+	}
+	
+	@Override
+	public void pause () {
+		if (BuildGdx.app.getFrameType() == FrameType.GL)
+			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+	}
+
+	@Override
+	public void resume () {
+		game.updateColorCorrection();
 	}
 
 }

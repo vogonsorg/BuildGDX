@@ -21,9 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Cache1D.*;
-import static ru.m210projects.Build.FileHandle.Compat.toLowerCase;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.Scriptfile;
 
@@ -70,7 +70,9 @@ public class Maphack extends Scriptfile {
 		for (int i = 0; i < MAXSPRITES; i++)
 			spriteext[i] = new Spriteext();
 		
-		byte[] data = kGetBytes(filename, 0);
+		byte[] data = BuildGdx.cache.getBytes(filename, 0);
+		if(data == null) return;
+
 		int flen = data.length;
 		byte[] tx = Arrays.copyOf(data, flen + 2);
 		tx[flen] = tx[flen + 1] = 0;
@@ -78,30 +80,40 @@ public class Maphack extends Scriptfile {
 		preparse(tx, flen);
 		this.filename = filename;
 		
+		Integer value;
+		
 		while (true)
         {
 			switch(gettoken(basetokens))
 			{
 				case MapCRC:
-					MapCRC = getsymbol() & 0xFFFFFFFFL;
+					Integer crc32 = getsymbol();
+					if(crc32 == null) break;
+					
+					MapCRC = crc32 & 0xFFFFFFFFL;
 					break;
 				case Sprite:
-					int sprnum = getsymbol();
+					Integer sprnum = getsymbol();
+					if(sprnum == null) break;
 	
 					switch (gettoken(sprite_tokens))
 	                {
 		            	default: break;
 		                case AngleOffset:
-		                	spriteext[sprnum].angoff = getsymbol().shortValue();
+		                	if((value = getsymbol()) != null)
+		                		spriteext[sprnum].angoff = value.shortValue();
 		                	break;
 		                case XOffset:
-		                	spriteext[sprnum].xoff = getsymbol();
+		                	if((value = getsymbol()) != null)
+		                		spriteext[sprnum].xoff = value;
 		                	break;
 		                case YOffset:
-		                	spriteext[sprnum].yoff = getsymbol();
+		                	if((value = getsymbol()) != null)
+		                		spriteext[sprnum].yoff = value;
 		                	break;
 		                case ZOffset:
-		                	spriteext[sprnum].zoff = getsymbol();
+		                	if((value = getsymbol()) != null)
+		                		spriteext[sprnum].zoff = value;
 		                	break;
 		                case NoModel:
 		                	spriteext[sprnum].flags |= 1; //SPREXT_NOTMD;

@@ -17,12 +17,11 @@
 package ru.m210projects.Build.desktop.software;
 
 import java.awt.Canvas;
+//import javax.swing.JPanel;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
-
-import static ru.m210projects.Build.Engine.*;
 
 public class JCanvas extends Canvas {
 	private static final long serialVersionUID = 2237851324087823108L;
@@ -30,12 +29,12 @@ public class JCanvas extends Canvas {
 	private BufferedImage display;
 	private byte[] raster;
 	private IndexColorModel paletteModel;
+	private int width, height;
 
 	public JCanvas(int width, int height)
 	{
-		paletteModel = new IndexColorModel(1, 256, curpalette, 0, false);
-		display = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, paletteModel);
-		raster = ((DataBufferByte)display.getRaster().getDataBuffer()).getData();
+		this.width = width;
+		this.height = height;
 	}
 
 	@Override
@@ -48,16 +47,34 @@ public class JCanvas extends Canvas {
 	
 	public void changepalette(byte[] palette) {
 		paletteModel = new IndexColorModel(1, 256, palette, 0, false);
-		display = new BufferedImage(paletteModel, display.getRaster(), false, null);
+		if(display == null) {
+			display = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, paletteModel);
+			raster = ((DataBufferByte)display.getRaster().getDataBuffer()).getData();
+		} else display = new BufferedImage(paletteModel, display.getRaster(), false, null);
+		
+		
+	}
+
+	public void setSize(int width, int height)
+	{
+		super.setSize(width, height);
+		if(getWidth() == width && getHeight() == height)
+			return;
+		
+		this.width = width;
+		this.height = height;
+		
+		display = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, paletteModel);
+		raster = ((DataBufferByte)display.getRaster().getDataBuffer()).getData();
 	}
 	
 	public int getHeight()
 	{
-		return display.getHeight();
+		return height;
 	}
 	
 	public int getWidth()
 	{
-		return display.getWidth();
+		return width;
 	}
 }

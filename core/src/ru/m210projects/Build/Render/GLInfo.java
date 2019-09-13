@@ -7,21 +7,21 @@
 
 package ru.m210projects.Build.Render;
 
-import static ru.m210projects.Build.Engine.glanisotropy;
-import static ru.m210projects.Build.Render.Types.GL10.GL_DITHER;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_NICEST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
-import static ru.m210projects.Build.Render.Types.GL10.GL_VERSION;
+import static com.badlogic.gdx.graphics.GL20.*;
+//import static ru.m210projects.Build.Render.Types.GL10.GL_DITHER;
+//import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
+//import static ru.m210projects.Build.Render.Types.GL10.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+//import static ru.m210projects.Build.Render.Types.GL10.GL_NICEST;
+//import static ru.m210projects.Build.Render.Types.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
+//import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
+//import static ru.m210projects.Build.Render.Types.GL10.GL_VERSION;
 
 import java.nio.FloatBuffer;
 
-import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.Architecture.BuildGdx;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class GLInfo {
@@ -38,24 +38,24 @@ public class GLInfo {
 	public static byte envcombine;
 	public static byte vbos;
 	public static boolean hack_nofog;
+	public static boolean supportsGenerateMipmaps;
+	public static int gltexmaxsize;
 
-	public static void init(GL10 gl) {
-		gl.glEnable(GL_TEXTURE_2D);
-		gl.glShadeModel(GL_SMOOTH); // GL_FLAT
-		gl.glClearColor(0, 0, 0, 0.5f); // Black Background
-		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
-		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-		gl.glDisable(GL_DITHER);
+	public static void init() {
+		Gdx.gl.glEnable(GL_TEXTURE_2D);
+		Gdx.gl.glClearColor(0, 0, 0, 0.5f); // Black Background
+		Gdx.gl.glDisable(GL_DITHER);
 
-		version = gl.glGetString(GL_VERSION);
+		version = Gdx.gl.glGetString(GL_VERSION);
 
 		maxanisotropy = 1.0f;
 		bgra = false;
 		texcompr = 0;
+		gltexmaxsize = 0;
 
 		if (Gdx.graphics.supportsExtension("GL_EXT_texture_filter_anisotropic")) {
 			FloatBuffer buf = BufferUtils.newFloatBuffer(16);
-			gl.glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, buf);
+			Gdx.gl.glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, buf);
 			maxanisotropy = buf.get(); // supports anisotropy. get the maximum anisotropy level
 		} 
 		if (Gdx.graphics.supportsExtension("GL_EXT_texture_edge_clamp") ||
@@ -89,13 +89,22 @@ public class GLInfo {
 		if (Gdx.graphics.supportsExtension("GL_ARB_vertex_buffer_object")) {
 			vbos = 1;
 		}
-	}
-
-	public static int anisotropy() {
-		if (maxanisotropy > 1.0) {
-			if (glanisotropy <= 0 || glanisotropy > maxanisotropy)
-				glanisotropy = (int) maxanisotropy;
+		if (Gdx.graphics.supportsExtension("GL_ARB_framebuffer_object")
+				|| Gdx.graphics.supportsExtension("GL_EXT_framebuffer_object") 
+				|| Gdx.gl30 != null 
+				|| Gdx.app.getType() == ApplicationType.Android 
+				|| Gdx.app.getType() == ApplicationType.WebGL
+				|| Gdx.app.getType() == ApplicationType.iOS) {
+			supportsGenerateMipmaps = true;
 		}
-		return glanisotropy;
+		
+		int i = BuildGdx.gl.glGetInteger(GL_MAX_TEXTURE_SIZE);
+		if (i == 0) {
+			gltexmaxsize = 6; // 2^6 = 64 == default GL max texture size
+		} else {
+			gltexmaxsize = 0;
+			for (; i > 1; i >>= 1)
+				gltexmaxsize++;
+		}
 	}
 }

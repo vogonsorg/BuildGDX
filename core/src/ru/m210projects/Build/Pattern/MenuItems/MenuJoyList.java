@@ -23,18 +23,18 @@ import static ru.m210projects.Build.Gameutils.BClipRange;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Input.ButtonMap;
-import ru.m210projects.Build.Input.GPManager;
+import ru.m210projects.Build.Input.BuildControllers;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
-import ru.m210projects.Build.Pattern.BuildConfig.MenuKeys;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
+import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
+import ru.m210projects.Build.Settings.BuildConfig.MenuKeys;
 
 public abstract class MenuJoyList extends MenuKeyboardList {
 
-	private final GPManager gpmanager;
+	private final BuildControllers gpmanager;
 	public int menupal;
 
 	public MenuJoyList(BuildGame app, BuildFont font, int x, int y, int width,

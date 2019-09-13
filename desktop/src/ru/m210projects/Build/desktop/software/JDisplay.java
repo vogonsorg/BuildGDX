@@ -16,46 +16,102 @@
 
 package ru.m210projects.Build.desktop.software;
 
+import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.MouseInfo;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.swing.JFrame;
 
-public class JDisplay
+import org.lwjgl.opengl.Display;
+
+import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
+
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
+
+public class JDisplay extends WindowAdapter
 {
 	protected final JFrame m_frame;
-	private final JCanvas canvas;
-	private Dimension size;
-	
-	private boolean isCloseRequested = false;
-	
-	public JDisplay(int width, int height)
+	protected final JCanvas canvas;
+	protected boolean isCloseRequested = false;
+	protected boolean isFocus, isActive;
+	protected final GraphicsDevice device;
+	protected boolean isFullscreen;
+	protected boolean wasResized;
+	protected boolean undecorated;
+
+	protected Object displayImpl;
+	protected long handle;
+	public static final boolean IS_WINDOWS = BuildGdx.app.getPlatform() == Platform.Windows;
+
+	public JDisplay(int width, int height, boolean undecorated)
 	{
-		size = new Dimension(width, height);
-		canvas = new JCanvas(width, height);
-		canvas.setPreferredSize(size);
-		canvas.setMinimumSize(size);
-		canvas.setMaximumSize(size);
+		this.device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
-		m_frame = new JFrame(MouseInfo.getPointerInfo().getDevice().getDefaultConfiguration());
-		m_frame.setResizable(false);
-		m_frame.add(canvas);
-		m_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		m_frame.addWindowListener(new java.awt.event.WindowAdapter() {
-		    @Override
-		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-		    	isCloseRequested = true;
-		    }
-		});
-
-		m_frame.pack();
-		m_frame.setLocationRelativeTo(null);
-		m_frame.setVisible(true);
+		this.canvas = new JCanvas(width, height);
+		this.m_frame = buildFrame(undecorated);
 		
-		canvas.setFocusable(true);
-		canvas.requestFocus();
+		try {
+			LwjglNativesLoader.load(); //This also needs for Pixmap working
+	
+			Method getImplementation = Display.class.getDeclaredMethod("getImplementation");
+			getImplementation.setAccessible(true);
+			displayImpl = getImplementation.invoke(null, (Object[])null);
+		} catch (Exception e) {
+			handle = -1;
+			e.printStackTrace();
+		}
+
+		updateSize(width, height);
+		
+		setWindowHandle();
+
+		this.isFullscreen = false;
+	}
+	
+	public long getHwnd()
+	{
+		return handle;
+	}
+	
+	public Object getImpl()
+	{
+		return displayImpl;
+	}
+
+	public DisplayMode[] getDisplayModes()
+	{
+		return device.getDisplayModes();
+	}
+	
+	public JFrame buildFrame(boolean undecorated)
+	{
+		JFrame frame = new JFrame(MouseInfo.getPointerInfo().getDevice().getDefaultConfiguration());
+		frame.setUndecorated(undecorated);
+		frame.add(canvas);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.addWindowListener(this);
+		frame.addWindowFocusListener(this);
+		
+		this.undecorated = undecorated;
+
+		return frame;
+	}
+	
+	public void dispose()
+	{
+		m_frame.setVisible(false);
+		m_frame.dispose();
 	}
 	
 	public boolean isCloseRequested() {
@@ -64,18 +120,87 @@ public class JDisplay
 	
 	public boolean isActive()
 	{
-		return m_frame.isActive();
+		return isFocus && isActive;
 	}
 	
-	public void setSize(int width, int height)
+	public boolean setFullscreenMode(DisplayMode mode)
 	{
-		//size = new Dimension(width, height); XXX
-		//canvas = new JCanvas(width, height);
+		if(!device.isFullScreenSupported())
+			return false;
+
+		setUndecorated(true);
+		device.setFullScreenWindow(m_frame);
+		
+		if (device.isDisplayChangeSupported())
+            device.setDisplayMode(mode);
+		
+		updateSize(mode.getWidth(), mode.getHeight());
+
+		isFullscreen = true;
+		return true;
+	}
+
+	public boolean setWindowedMode(DisplayMode mode)
+	{
+		setUndecorated(undecorated);
+		
+		device.setFullScreenWindow(null);
+		
+		if (device.isDisplayChangeSupported())
+            device.setDisplayMode(mode);
+		
+		updateSize(mode.getWidth(), mode.getHeight());
+
+		isFullscreen = false;
+		return true;
+	}
+	
+	public DisplayMode getDesktopDisplayMode()
+	{
+		return device.getDisplayMode();
+	}
+	
+	public void updateSize(int width, int height)
+	{
+		Dimension size = canvas.getSize();
+		if((size.width == width && size.height == height) && 
+				(canvas.getWidth() == width && canvas.getHeight() == height))
+			return;
+
+		wasResized = true;
+		size = new Dimension(width, height);
+		canvas.setSize(width, height);
+		canvas.setPreferredSize(size);
+		canvas.setMinimumSize(size);
+		canvas.setMaximumSize(size);
+		canvas.setBackground(Color.black);
+
+		if(!isFullscreen())
+		{
+			int oldX = getX();
+			int oldY = getY();
+
+			m_frame.pack();
+			m_frame.setLocationRelativeTo(null);
+			if(m_frame.isVisible()) {//set location if initialized only
+				if(undecorated) {
+					DisplayMode mode = getDesktopDisplayMode();
+					oldX = (mode.getWidth() / 2) - (m_frame.getWidth() / 2);
+					oldY = (mode.getHeight() / 2) - (m_frame.getHeight() / 2);
+				}
+
+				m_frame.setLocation(oldX, oldY);
+			}
+		}
+
+		canvas.validate();
 	}
 	
 	public boolean wasResized()
 	{
-		return false;
+		boolean out = wasResized;
+		wasResized = false;
+		return out;
 	}
 	
 	public JCanvas getCanvas()
@@ -100,7 +225,14 @@ public class JDisplay
 
 	public void setUndecorated(boolean undecorated)
 	{
+		if(m_frame.isUndecorated() == undecorated)
+			return;
+		
+		m_frame.dispose();
 		m_frame.setUndecorated(undecorated);
+		m_frame.setVisible(true);
+		
+		setWindowHandle();
 	}
 	
 	public void setResizable(boolean resizable) {
@@ -116,5 +248,61 @@ public class JDisplay
 	
 	public void setIcon(List<Image> icons) {
 		m_frame.setIconImages(icons);
+	}
+
+	public boolean isFullscreen() {
+		return isFullscreen;
+	}
+	
+	@Override
+    public void windowClosing(WindowEvent windowEvent) {
+    	isCloseRequested = true;
+    }
+    
+	@Override
+    public void windowActivated(WindowEvent e) {
+    	isActive = true;
+    }
+
+	@Override
+    public void windowDeactivated(WindowEvent e) {
+    	isActive = false;
+    }
+
+	@Override
+    public void windowGainedFocus(WindowEvent e) {
+    	isFocus = true;
+    }
+
+	@Override
+    public void windowLostFocus(WindowEvent e) {
+    	isFocus = false;
+    }
+	
+	private void setImplementVariable(String name, Object value) throws Exception
+	{
+		Field field = displayImpl.getClass().getDeclaredField(name);
+		field.setAccessible(true);
+		field.set(displayImpl, value);
+	}
+
+	private void setWindowHandle()
+	{
+		try {
+			handle = getWindowHandle(getCanvas());
+			setImplementVariable(IS_WINDOWS ? "hwnd" : "parent_window", handle);
+		} catch (Exception e) { e.printStackTrace(); };
+	}
+	
+	private long getWindowHandle(Canvas canvas) throws Exception {
+		boolean IS_MAC = System.getProperty("os.name").toLowerCase().contains("mac");
+		
+		if (IS_MAC)
+			return 0;
+
+		Method gethwnd = displayImpl.getClass().getDeclaredMethod(IS_WINDOWS ? "getHwnd" : "getHandle", Canvas.class);
+		gethwnd.setAccessible(true);
+
+		return (Long) gethwnd.invoke(displayImpl, canvas);
 	}
 }

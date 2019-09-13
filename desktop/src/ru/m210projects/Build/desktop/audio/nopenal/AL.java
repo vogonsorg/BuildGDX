@@ -78,7 +78,7 @@ public final class AL {
 	{
 		if(alnative != null) return;
 		try {
-			alnative = (SharedLibraryAL) Native.loadLibrary(oalPath, SharedLibraryAL.class);
+			alnative = (SharedLibraryAL) Native.load(oalPath, SharedLibraryAL.class);
 		} catch (Throwable t) {
 			throw new LWJGLException(t.getMessage());
 		}

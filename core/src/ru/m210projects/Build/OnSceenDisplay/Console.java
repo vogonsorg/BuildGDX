@@ -9,10 +9,10 @@ package ru.m210projects.Build.OnSceenDisplay;
 
 import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.FileResource;
+import ru.m210projects.Build.FileHandle.FileResource.Mode;
 import ru.m210projects.Build.Input.InputCallback;
 import ru.m210projects.Build.Input.Keymap;
 
@@ -31,7 +34,6 @@ import static ru.m210projects.Build.Input.KeyInput.gdxscantoasc;
 import static ru.m210projects.Build.Input.KeyInput.gdxscantoascwithshift;
 import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Strhandler.Bstrcmp;
-import static ru.m210projects.Build.Strhandler.Bstrcpy;
 import static ru.m210projects.Build.Strhandler.isdigit;
 
 public class Console {
@@ -126,7 +128,7 @@ public class Console {
 	static int  osdexeccount=0;     // number of lines from the head of the history buffer to execute
 
 	static HashMap<String, OSDCOMMAND> osdvars;
-	public static int logfile = -1;
+	public static FileResource logfile = null;
 
 	public static int RegisterCvar(OSDCOMMAND cvar)
 	{
@@ -192,7 +194,7 @@ public class Console {
 	public static void setVersion(String version, int shade, int pal)
 	{
 		String fullname = version + " (BuildGdx: " + Engine.version + ")";
-		Bstrcpy(osdver,fullname);
+		System.arraycopy(fullname.toCharArray(), 0, osdver, 0, Math.min(64, fullname.length()));
 	    osdverlen = fullname.length();
 	    osdvershade = shade;
 	    osdverpal = pal;
@@ -339,27 +341,23 @@ public class Console {
 	
 	public static void SetLogFile(String fn)
 	{
-		if (logfile != -1) Bclose(logfile);
-		logfile = -1;
-		
-		File f = Bcheck(fn, "R");
-		if(f != null)
-			f.delete();
-		
+		if (logfile != null) logfile.close();
+		logfile = null;
+
 		if (fn != null) 
-			logfile = Bopen(FileUserdir + fn, "RW");
+			logfile = BuildGdx.compat.open(toLowerCase(fn), Path.User, Mode.Write);
 	}
 	
 	public static void CloseLogFile()
 	{
-		if (logfile != -1) Bclose(logfile);
-		logfile = -1;
+		if (logfile != null) logfile.close();
+		logfile = null;
 	}
 	
 	public static void LogData(byte[] data)
 	{
-		if (logfile != -1) {
-	    	Bwrite(logfile, data, data.length);
+		if (logfile != null) {
+			logfile.writeBytes(data, data.length);
 	    }
 	    StreamData(data);
 	}
@@ -375,9 +373,9 @@ public class Console {
 	
 	public static void LogPrint(String str)
 	{
-	    if (logfile != -1) {
-	    	Bwrite(logfile, str.getBytes(), str.getBytes().length);
-	    	Bwrite(logfile, "\r\n".getBytes(), 2);
+		if (logfile != null) {
+			logfile.writeBytes(str.getBytes(), str.getBytes().length);
+			logfile.writeBytes("\r\n".getBytes(), 2);
 	    }
 	    StreamPrint(str);
 	}
@@ -518,6 +516,8 @@ public class Console {
 	{
 		boolean isFullscreen = osdrowscur == osdmaxrows;
 		osdtextscale = scale;
+		if(!Console.IsInited() || func == null) return;
+		
 		Console.ResizeDisplay(xdim, ydim);
 		if(isFullscreen)
 			fullscreen(true);
@@ -878,7 +878,7 @@ public class Console {
 
 		osd_argc++;
 		Arrays.fill(osd_argv, null);
-		String osdvar = text.toLowerCase().trim();
+		String osdvar = toLowerCase(text).trim();
 		osd_argv[osd_argc-1] = osdvar;
     	String var = null;
     	int index = osdvar.indexOf(" ");

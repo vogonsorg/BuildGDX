@@ -10,10 +10,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.UseBloodPal;
-import static ru.m210projects.Build.Engine.britable;
-import static ru.m210projects.Build.Engine.curbrightness;
 import static ru.m210projects.Build.Engine.curpalette;
-import static ru.m210projects.Build.Engine.gammabrightness;
 import static ru.m210projects.Build.Engine.globalshade;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.palookup;
@@ -21,12 +18,14 @@ import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.getTmpBuffer
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.uploadBoundTexture;
+import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.FloatBuffer;
 
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
-import ru.m210projects.Build.Types.UnsafeBuffer;
+import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 public class VOXModel extends Model {
 	
@@ -64,9 +63,9 @@ public class VOXModel extends Model {
 			return texid[dapal];
 
 //		long startticks = System.currentTimeMillis();
-		UnsafeBuffer buffer = getTmpBuffer();
+		UnsafeDirectBuffer buffer = getTmpBuffer();
 		
-		int rgb = 0, r, g, b, wpptr, wp, dacol;
+		int wpptr, wp, dacol;
 		for (int x, y = 0; y < mytexy; y++) {
 			wpptr = y * mytexx;
 			for (x = 0; x < mytexx; x++, wpptr++) {
@@ -83,19 +82,20 @@ public class VOXModel extends Model {
 					} else
 						dacol = palookup[dapal][dacol] & 0xFF; 
 	
-					dacol *= 3;
-					if (gammabrightness == 0) {
-						r = curpalette[dacol + 0] & 0xFF;
-						g = curpalette[dacol + 1] & 0xFF;
-						b = curpalette[dacol + 2] & 0xFF;
-					} else {
-						byte[] brighttable = britable[curbrightness];
-						r = brighttable[curpalette[dacol + 0] & 0xFF] & 0xFF;
-						g = brighttable[curpalette[dacol + 1] & 0xFF] & 0xFF;
-						b = brighttable[curpalette[dacol + 2] & 0xFF] & 0xFF;
-					}
-					rgb = ( 255 << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
-					buffer.putInt(wp, rgb);
+//					dacol *= 3;
+//					if (gammabrightness == 0) { XXX
+//						r = curpalette[dacol + 0] & 0xFF;
+//						g = curpalette[dacol + 1] & 0xFF;
+//						b = curpalette[dacol + 2] & 0xFF;
+//					} 
+//					else {
+//						byte[] brighttable = britable[curbrightness];
+//						r = brighttable[curpalette[dacol + 0] & 0xFF] & 0xFF;
+//						g = brighttable[curpalette[dacol + 1] & 0xFF] & 0xFF;
+//						b = brighttable[curpalette[dacol + 2] & 0xFF] & 0xFF;
+//					}
+//					rgb = ( 255 << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
+					buffer.putInt(wp, curpalette.getRGB(dacol) + ( 255 << 24 ));
 				}
 			}
 		}
@@ -103,7 +103,7 @@ public class VOXModel extends Model {
 		BTexture rtexid = new BTexture(mytexx, mytexy);
 		bindTexture(rtexid);
 		uploadBoundTexture(true, mytexx, mytexy, GL_RGBA, GL_RGBA, buffer.getBuffer());
-		setupBoundTexture(0, 0);
+		setupBoundTexture(glfiltermodes[0], 0);
 		texid[dapal] = rtexid;
 		
 //		long etime = System.currentTimeMillis()-startticks;
@@ -113,7 +113,7 @@ public class VOXModel extends Model {
 	}
 
 	@Override
-	public void setSkinParams(int filterMode, int anisotropy) {
+	public void setSkinParams(GLFilter filter, int anisotropy) {
 		/* nothing */
 	}
 

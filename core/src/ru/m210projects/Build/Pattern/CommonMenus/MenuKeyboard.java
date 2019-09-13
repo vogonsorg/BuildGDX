@@ -25,10 +25,8 @@ import static ru.m210projects.Build.Input.Keymap.MOUSE_WHELLUP;
 import com.badlogic.gdx.Input.Keys;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Pattern.BuildConfig;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
-import ru.m210projects.Build.Pattern.BuildConfig.GameKeys;
 import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.MenuItem;
@@ -36,6 +34,8 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuKeyboardList;
 import ru.m210projects.Build.Pattern.MenuItems.MenuProc;
 import ru.m210projects.Build.Pattern.MenuItems.MenuText;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
+import ru.m210projects.Build.Settings.BuildConfig;
+import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
 
 public abstract class MenuKeyboard extends BuildMenu {
 	

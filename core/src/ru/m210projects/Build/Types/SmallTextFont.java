@@ -36,6 +36,9 @@ public class SmallTextFont extends TileFont {
 
 	public SmallTextFont() {
 		super(FontType.Bitmap, smalltextfont, 4, 6, 16, 16);
+		
+		sizx = 128;
+		sizy = 128;
 	}
 	
 	@Override
@@ -55,8 +58,8 @@ public class SmallTextFont extends TileFont {
 		atlas = new Pthtyp();
 		atlas.glpic = new BTexture(128, 128);
 		
-		sizx = atlas.sizx = 128;
-		sizy = atlas.sizy = 128;
+		atlas.sizx = 128;
+		atlas.sizy = 128;
 
 		tbuf = new byte[sizx * sizy];
 		ByteBuffer fbuf = BufferUtils.newByteBuffer(sizx * sizy);

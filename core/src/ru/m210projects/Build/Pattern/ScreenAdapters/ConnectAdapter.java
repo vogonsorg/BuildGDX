@@ -27,6 +27,9 @@ import static ru.m210projects.Build.Strhandler.toCharArray;
 
 import com.badlogic.gdx.ScreenAdapter;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
@@ -94,12 +97,15 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 				else
 					style.drawText(160, 180, toCharArray("Initializing..."), -128, 0, TextAlign.Center, 2, false);
 					
+				game.pEngine.nextpage();
 				return;
 			}
 
 			if (inet.netready == 0) {
 				Console.Println(inet.message, OSDTEXT_YELLOW);
 				back();
+				
+				game.pEngine.nextpage();
 				return;
 			}
 
@@ -111,6 +117,8 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 				ConnectStep = 1;
 
 				game.pNet.StartWaiting(5000);
+				
+				game.pEngine.nextpage();
 				return;
 			}
 
@@ -118,5 +126,16 @@ public abstract class ConnectAdapter extends ScreenAdapter {
 		}
 
 		game.pEngine.nextpage();
+	}
+	
+	@Override
+	public void pause () {
+		if (BuildGdx.app.getFrameType() == FrameType.GL)
+			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+	}
+
+	@Override
+	public void resume () {
+		game.updateColorCorrection();
 	}
 }

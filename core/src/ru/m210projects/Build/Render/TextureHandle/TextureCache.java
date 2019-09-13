@@ -20,22 +20,25 @@ import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Engine.tilesizx;
 import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.waloff;
-import static ru.m210projects.Build.Engine.usehightile; //TODO: GL settings
 import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
+import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.ByteBuffer;
 
-import static ru.m210projects.Build.FileHandle.Cache1D.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.Renderer.PixelFormat;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
+import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.TextureHDInfo;
-import ru.m210projects.Build.Types.UnsafeBuffer;
+import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.files.FileHandle;
@@ -48,16 +51,16 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class TextureCache {
+
+	private PixelFormat type = PixelFormat.Rgb;
 	
-	private final ValueResolver<Integer> anisotropy;
 	private final Pthtyp[] cache;
     private TextureHDInfo info;
     
     private ShaderProgram shader;
 	private BTexture palette[];
 
-	public TextureCache(ValueResolver<Integer> anisotropy) {
-		this.anisotropy = anisotropy;
+	public TextureCache() {
 		cache = new Pthtyp[MAXTILES];
 	    boolean useShader = false;
 	    if(useShader)
@@ -87,6 +90,10 @@ public class TextureCache {
 		cache[tex.picnum] = tex;
 	}
 
+	public PixelFormat getFormat() {
+		return type;
+	}
+	
 	public void invalidate(int dapicnum, int dapalnum, boolean clamped) {
 		invalidate(get(dapicnum, dapalnum, clamped, 0));
 	}
@@ -122,7 +129,7 @@ public class TextureCache {
 		if (palookup[dapal] == null)
 			dapal = 0;
 
-		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, shader != null);
+		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, type);
 
 		//Realloc for user tiles
 		if (pth.glpic != null && (pth.glpic.getWidth() != xsiz || pth.glpic.getHeight() != ysiz)) {
@@ -135,16 +142,15 @@ public class TextureCache {
 				pth.glpic = new BTexture(xsiz, ysiz);
 			} catch(Exception e) { return null; }
 		}
-		
+
 		bindTexture(pth.glpic);
-		int intexfmt = (picInfo.hasalpha ? GL_RGBA : GL_RGB);
+		int intexfmt = (picInfo.hasalpha ? (type == PixelFormat.Pal8A ? GL_LUMINANCE_ALPHA : GL_RGBA) : GL_RGB);
 
 		if (Gdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
 
 		uploadBoundTexture(doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic);
-		int gltexfiltermode = Console.Geti("r_texturemode"); //TODO: GL settings
-		setupBoundTexture(gltexfiltermode, anisotropy.get());
+		setupBoundTexture(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
 		int wrap = !clamping ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 		setupBoundTextureWrap(wrap);
 
@@ -174,8 +180,8 @@ public class TextureCache {
 	        if (hicr.filename == null) return null;
 	        fn = hicr.filename;
 	    }
-		
-		if (!kExist(fn, 0)) 
+
+		if (!BuildGdx.cache.contains(fn, 0)) 
 	    {
 			Console.Print("hightile: " + fn + "(pic " + dapic + ") not found");
 	        if (facen > 0)
@@ -189,7 +195,8 @@ public class TextureCache {
 	    //if (cachefil >= 0) { ... }
 
 		if (doalloc) {
-			byte[] data = kGetBytes(fn, 0);
+			byte[] data = BuildGdx.cache.getBytes(fn, 0);
+
 			if(data == null) return null;
 			try {
 				Pixmap pix = new Pixmap(data, 0, data.length);
@@ -241,9 +248,7 @@ public class TextureCache {
 		int tsizy = pth.sizy;
 
 		bindTexture(pth.glpic);
-		int gltexfiltermode = Console.Geti("r_texturemode");
-		
-		setupBoundTexture(gltexfiltermode, anisotropy.get());
+		setupBoundTexture(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
 		int wrap = !clamping ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 		setupBoundTextureWrap(wrap);
 
@@ -289,7 +294,7 @@ public class TextureCache {
 	
 	public Pthtyp cache(int dapicnum, int dapalnum, short skybox, boolean clamping, boolean alpha)
 	{
-		Hicreplctyp si = (usehightile && info != null) ? info.findTexture(dapicnum,dapalnum,skybox) : null;
+		Hicreplctyp si = (GLSettings.useHighTile.get() && info != null) ? info.findTexture(dapicnum,dapalnum,skybox) : null;
 
 		if (si == null)
 	    {
@@ -339,11 +344,14 @@ public class TextureCache {
 		return pth;
 	}
 	
-	public void updateSettings(int gltexfiltermode) {
+	public void updateSettings(GLFilter filter) {
+		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i=MAXTILES-1; i>=0; i--) {
 			for (Pthtyp pth=cache[i]; pth != null; pth = pth.next) {
 				bindTexture(pth.glpic);
-				setupBoundTexture(gltexfiltermode, anisotropy.get());
+				setupBoundTexture(filter, anisotropy);
+				if(filter.mipmaps)
+					pth.setInvalidated(true);
 			}
 		}
 	}
@@ -414,7 +422,7 @@ public class TextureCache {
 	
 	private BTexture createPalette(byte[] paldata, int shade)
 	{
-		UnsafeBuffer buffer = getTmpBuffer();
+		UnsafeDirectBuffer buffer = getTmpBuffer();
 		buffer.clear();
 		for(int p = 0; p < MAXPALOOKUPS; p++) {
 			int pal = p;
@@ -423,9 +431,10 @@ public class TextureCache {
 			for(int i = 0; i < 256; i++)
 			{
 				int dacol = palookup[pal][i + (shade << 8)] & 0xFF;
-				buffer.put(paldata[3 * dacol]);
-				buffer.put(paldata[3 * dacol + 1]); 
-				buffer.put(paldata[3 * dacol + 2]); 
+				buffer.putBytes(paldata, 3 * dacol, 3);
+//				buffer.putByte(paldata[3 * dacol]);
+//				buffer.putByte(paldata[3 * dacol + 1]); 
+//				buffer.putByte(paldata[3 * dacol + 2]); 
 			}
 		}
 		buffer.flip();
@@ -433,7 +442,7 @@ public class TextureCache {
 		BTexture palette = new BTexture(256, MAXPALOOKUPS);
 		palette.bind(1);
 		Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, palette.getWidth(), palette.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.getBuffer());
-		setupBoundTexture(0, 0);
+		setupBoundTexture(glfiltermodes[0], 0);
 		
 		return palette;
 	}
@@ -451,9 +460,27 @@ public class TextureCache {
 	
 	private ShaderProgram createShader() 
 	{
-	    String fragment = new String(kGetBytes("fragment.glsl", 0));
-	    String vertex = new String(kGetBytes("vertex.glsl", 0));
-	    
+		String fragment = "uniform sampler2D u_texture;\r\n" + 
+				"uniform sampler2D u_colorTable;\r\n" + 
+				"uniform float u_pal;\r\n" + 
+				"uniform float u_alpha;\r\n" + 
+				"\r\n" + 
+				"void main()\r\n" + 
+				"{	\r\n" + 
+				"	float index = texture2D(u_texture, gl_TexCoord[0].xy).r;\r\n" + 
+				"	if(index == 1.0) discard;\r\n" + 
+				"	\r\n" + 
+				"	vec3 color = texture2D(u_colorTable, vec2(index, u_pal / 256.0)).rgb;	\r\n" + 
+				"	gl_FragColor = vec4(color, u_alpha);\r\n" + 
+				"}";
+		
+		String vertex = "void main()\r\n" + 
+				"{\r\n" + 
+				"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; //ftransform();\r\n" + 
+				"	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;\r\n" + 
+				"	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\r\n" + 
+				"}";
+
 	    ShaderProgram shader = new ShaderProgram(vertex, fragment);
         if(!shader.isCompiled())
         	Console.Println("Shader compile error: " + shader.getLog(), OSDTEXT_RED);

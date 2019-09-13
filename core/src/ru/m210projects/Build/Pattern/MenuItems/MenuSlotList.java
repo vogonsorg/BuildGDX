@@ -1,7 +1,6 @@
 package ru.m210projects.Build.Pattern.MenuItems;
 
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.FileHandle.Compat.FileUserdir;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Strhandler.*;
 
@@ -13,6 +12,7 @@ import java.util.List;
 import com.badlogic.gdx.Input.Keys;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
@@ -37,7 +37,7 @@ public class MenuSlotList extends MenuList
 	public int helpPal;
 	public BuildFont questionFont;
 	public BuildFont desriptionFont;
-	public int specPal;
+	public int specPal, backgroundPal;
 	public int transparent = 1;
 	
 	protected SaveManager saveManager;
@@ -93,7 +93,7 @@ public class MenuSlotList extends MenuList
 	public void draw(MenuHandler handler) {
 		this.len = displayed.size();
 		
-		draw.rotatesprite((x + width / 2 - 5) << 16, (y - 3) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
+		draw.rotatesprite((x + width / 2 - 5) << 16, (y - 3) << 16, 65536, 0, nBackground, 128, backgroundPal, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
 		
 		if(displayed.size() > 0) {
 			int py = y, pal;
@@ -345,7 +345,7 @@ public class MenuSlotList extends MenuList
 		Iterator<SaveInfo> i = text.iterator();
 		while (i.hasNext()) {
 			SaveInfo s = i.next();
-			File file = new File(FileUserdir+s.filename);
+			File file = new File(Path.User.getPath() + s.filename);
 			if(!file.exists())
 				i.remove();
 		}

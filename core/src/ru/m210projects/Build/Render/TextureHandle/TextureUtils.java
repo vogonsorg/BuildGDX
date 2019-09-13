@@ -9,47 +9,18 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
 import static ru.m210projects.Build.Render.Types.GL10.*;
+import static ru.m210projects.Build.Render.GLInfo.*;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Settings.GLSettings;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Application.ApplicationType;
 
 public class TextureUtils {
 
-	private static int gltexmaxsize = 0;
-
-	private static GLFilter[] glfiltermodes = {
-			new GLFilter("GL_NEAREST", GL_NEAREST, GL_NEAREST), // 0
-			new GLFilter("GL_LINEAR", GL_LINEAR, GL_LINEAR), // 1
-			new GLFilter("GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST), // 2
-			new GLFilter("GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR), // 3
-			new GLFilter("GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST), // 4
-			new GLFilter("GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR) }; // 5
-
-	public static GLFilter getGlFilter(int mode) {
-		mode = mode < 0 ? 0 : mode >= glfiltermodes.length ? glfiltermodes.length - 1 : mode;
-		return glfiltermodes[mode];
-	}
-
-	private static int getTextureMaxSize() {
-		if (gltexmaxsize <= 0) {
-			int i = BuildGdx.gl.glGetInteger(GL_MAX_TEXTURE_SIZE);
-			if (i == 0) {
-				gltexmaxsize = 6; // 2^6 = 64 == default GL max texture size
-			} else {
-				gltexmaxsize = 0;
-				for (; i > 1; i >>= 1)
-					gltexmaxsize++;
-			}
-		}
-		return gltexmaxsize;
-	}
-	
 	public static int calcSize(int size) {
 		int nsize = 1;
 		if (GLInfo.texnpot == 0) {
@@ -69,7 +40,7 @@ public class TextureUtils {
 	}
 
 	public static void uploadBoundTexture(boolean doalloc, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic) {
-		int mipLevel = calcMipLevel(xsiz, ysiz, getTextureMaxSize());
+		int mipLevel = calcMipLevel(xsiz, ysiz, gltexmaxsize);
 		if (mipLevel == 0) {
 			if (doalloc) {
 				Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, intexfmt, xsiz, ysiz, 0, texfmt, GL_UNSIGNED_BYTE, pic); // loading 1st time
@@ -79,17 +50,13 @@ public class TextureUtils {
 		} else {
 			System.err.println("Uploading non-zero mipmap level textures is unimplemented");
 		}
-
-		//Build 2D Mipmaps
-		if (Gdx.graphics.supportsExtension("GL_ARB_framebuffer_object") 
-				|| Gdx.graphics.supportsExtension("GL_EXT_framebuffer_object") 
-				|| Gdx.gl30 != null 
-				|| Gdx.app.getType() == ApplicationType.Android 
-				|| Gdx.app.getType() == ApplicationType.WebGL
-				|| Gdx.app.getType() == ApplicationType.iOS)
-			Gdx.gl.glGenerateMipmap(GL_TEXTURE_2D);
-		else
-			generateMipMapCPU(doalloc, mipLevel, xsiz, ysiz, intexfmt, texfmt, pic);
+		
+		if(GLSettings.textureFilter.get().mipmaps) {
+			//Build 2D Mipmaps
+			if (supportsGenerateMipmaps) 
+				Gdx.gl.glGenerateMipmap(GL_TEXTURE_2D);
+			else generateMipMapCPU(doalloc, mipLevel, xsiz, ysiz, intexfmt, texfmt, pic);
+		}
 	}
 	
 	private static void generateMipMapCPU(boolean doalloc, int mipLevel, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic)
@@ -194,10 +161,8 @@ public class TextureUtils {
 		return mipLevel;
 	}
 
-	public static void setupBoundTexture(int filterMode, int anisotropy) {
-		GLFilter filter = getGlFilter(filterMode);
-		Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag);
-		Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min);
+	public static void setupBoundTexture(GLFilter filter, int anisotropy) {
+		filter.apply();
 		if (anisotropy >= 1) { // 1 if you want to disable anisotropy
 			Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}

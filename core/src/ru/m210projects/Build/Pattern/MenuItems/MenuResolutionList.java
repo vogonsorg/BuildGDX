@@ -35,6 +35,7 @@ public class MenuResolutionList extends MenuList {
 	private int nBackground;
 	protected Engine draw;
 	public int transparent = 1;
+	public int backgroundPal;
 
 	public MenuResolutionList(Engine draw, List<char[]> text, BuildFont font, int x, int y,
 			int width, int align, BuildMenu nextMenu,
@@ -64,7 +65,7 @@ public class MenuResolutionList extends MenuList {
 	
 	@Override
 	public void draw(MenuHandler handler) {
-		draw.rotatesprite((x - 10) << 16, (y - 8) << 16, 65536, 0, nBackground, 128, 0, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
+		draw.rotatesprite((x - 10) << 16, (y - 8) << 16, 65536, 0, nBackground, 128, backgroundPal, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
 
 		if(text.size() > 0) {
 			int px = x, py = y;

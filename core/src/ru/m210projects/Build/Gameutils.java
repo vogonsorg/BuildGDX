@@ -19,6 +19,8 @@ package ru.m210projects.Build;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Pragmas.scale;
 
+import ru.m210projects.Build.Types.WALL;
+
 public class Gameutils {
 	
 	public static float BClampAngle(float angle)
@@ -27,59 +29,41 @@ public class Gameutils {
     }
 	
 	public static float BClipRange(float value, float min, float max) {
-		if(value < min) value = min;
-		if(value > max) value = max;
+		if(value < min) return min;
+		if(value > max) return max;
 		
 		return value;
 	}
 	
 	public static int BClipRange(int value, int min, int max) {
-		if(value < min) value = min;
-		if(value > max) value = max;
+		if(value < min) return min;
+		if(value > max) return max;
 		
 		return value;
 	}
 	
 	public static short BClipLow(short value, short min) {
-		if(value < min)
-			value = min;
-		
-		return value;
+		return value < min ? min : value;
 	}
 	
 	public static short BClipHigh(short value, short max) {
-		if(value > max)
-			value = max;
-		
-		return value;
+		return value > max ? max : value;
 	}
 	
 	public static int BClipLow(int value, int min) {
-		if(value < min)
-			value = min;
-		
-		return value;
+		return value < min ? min : value;
 	}
 	
 	public static int BClipHigh(int value, int max) {
-		if(value > max)
-			value = max;
-		
-		return value;
+		return value > max ? max : value;
 	}
 
 	public static float BClipLow(float value, int min) {
-		if(value < min)
-			value = min;
-		
-		return value;
+		return value < min ? min : value;
 	}
 	
 	public static float BClipHigh(float value, int max) {
-		if(value > max)
-			value = max;
-		
-		return value;
+		return value > max ? max : value;
 	}
 	
 	public static double BSinAngle(double daang)
@@ -94,24 +78,29 @@ public class Gameutils {
 		return (Math.cos(rad_ang) * 16384.0);
 	}
 	
-	public static boolean isValidSector(short i)
+	public static boolean isValidSector(int i)
 	{
 		return i >= 0 && i < MAXSECTORS;
 	}
 	
-	public static boolean isValidStat(short i)
+	public static boolean isValidStat(int i)
 	{
 		return i >= 0 && i <= MAXSTATUS;
 	}
 	
-	public static boolean isValidSprite(short i)
+	public static boolean isValidSprite(int i)
 	{
 		return i >= 0 && i < MAXSPRITES;
 	}
 	
-	public static boolean isValidWall(short i)
+	public static boolean isValidWall(int i)
 	{
 		return i >= 0 && i < MAXWALLS;
+	}
+	
+	public static boolean isCorruptWall(WALL wal)
+	{
+		return !isValidWall(wal.point2) || wall[wal.point2] == null;
 	}
 	
 	public enum ConvertType { Normal, AlignLeft, AlignRight, Stretch };
