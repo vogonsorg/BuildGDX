@@ -3474,10 +3474,10 @@ public abstract class Engine {
 	
 	public void changepalette(final byte[] palette)
 	{
+		curpalette.update(palette, false);
 		BuildGdx.app.postRunnable(new Runnable() {
 			@Override
 			public void run() {
-				curpalette.update(palette, false);
 				render.changepalette(palette);
 			}
 		});

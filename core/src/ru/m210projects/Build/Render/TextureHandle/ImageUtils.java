@@ -112,7 +112,8 @@ public class ImageUtils {
 								{
 									int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
 									dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-								} else dacol = palookup[dapal][dacol] & 0xFF;
+								} else
+									dacol = palookup[dapal][dacol] & 0xFF;
 							}
 	
 							buffer.putInt(wp, curpalette.getRGBA(dacol, a));
