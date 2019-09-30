@@ -178,11 +178,12 @@ public class InitScreen extends ScreenAdapter {
 					BuildGdx.audio.setDriver(Driver.Music, cfg.middrv);
 					
 					int consolekey = GameKeys.Show_Console.getNum();
-					
-					Console.setCaptureKey(cfg.primarykeys[consolekey], 0);
-					Console.setCaptureKey(cfg.secondkeys[consolekey], 1);
-					Console.setCaptureKey(cfg.mousekeys[consolekey], 2);
-					Console.setCaptureKey(cfg.gpadkeys[consolekey], 3);
+					if(consolekey != -1) {
+						Console.setCaptureKey(cfg.primarykeys[consolekey], 0);
+						Console.setCaptureKey(cfg.secondkeys[consolekey], 1);
+						Console.setCaptureKey(cfg.mousekeys[consolekey], 2);
+						Console.setCaptureKey(cfg.gpadkeys[consolekey], 3);
+					}
 					
 					BuildSettings.usenewaspect.set(cfg.widescreen == 1);
 					BuildSettings.fov.set(cfg.gFov);
