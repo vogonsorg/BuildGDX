@@ -1262,7 +1262,8 @@ public abstract class Engine {
 		bb = ByteBuffer.wrap(sprites);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
 		
-		for(int spriteid = numsprites - 1; spriteid >= 0; spriteid--) {
+    	for(int spriteid = 0; spriteid < numsprites; spriteid++) {
+//		for(int spriteid = numsprites - 1; spriteid >= 0; spriteid--) {
 			SPRITE spr = sprite[spriteid];
 			
 			spr.x = bb.getInt();
