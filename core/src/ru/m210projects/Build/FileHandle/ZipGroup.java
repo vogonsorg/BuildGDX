@@ -263,6 +263,31 @@ public class ZipGroup extends Group {
 		}
 		
 		@Override
+		public int read(byte[] buf, int offset, int len) {
+			synchronized(parent) {
+				if(position() >= size) 
+					return -1;
+				
+				len = Math.min(len, size - position());
+				
+				if(buffer != null)
+				{
+					buffer.get(buf, offset, len);
+					return len;
+				}
+
+				if(zfile == null)
+					return -1;
+				
+				len = bis.read(buf, offset, len);
+				if(len == -1)
+					return -1;
+
+				return len;
+			}
+		}
+		
+		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
 				return read(buf, buf.length);

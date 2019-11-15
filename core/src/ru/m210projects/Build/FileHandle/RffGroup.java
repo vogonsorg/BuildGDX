@@ -92,7 +92,28 @@ public class RffGroup extends Group {
 	
 				len = file.read(buf,len);
 				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(buf, Math.min(256 - pos, len), pos);
+					encrypt(buf, 0, Math.min(256 - pos, len), pos);
+
+				pos += len;
+				return len;
+			}
+		}
+		
+		@Override
+		public int read(byte[] buf, int offs, int len) {
+			synchronized(parent) {
+				if(pos >= size) 
+					return -1;
+
+				len = Math.min(len, size - pos);
+				int i = offset + pos;
+				int groupfilpos = file.position();
+				if (i != groupfilpos) 
+					file.seek(i, Whence.Set);
+	
+				len = file.read(buf, offs, len);
+				if(((flags & 0x10) != 0) && pos < 256) 
+					encrypt(buf, offs, Math.min(256 - pos, len), pos);
 
 				pos += len;
 				return len;
@@ -122,7 +143,7 @@ public class RffGroup extends Group {
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(readbuf, Math.min(256 - pos, len), pos);
+					encrypt(readbuf, 0, Math.min(256 - pos, len), pos);
 				
 				pos += len;
 				return readbuf[0];
@@ -145,7 +166,7 @@ public class RffGroup extends Group {
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(readbuf, Math.min(256 - pos, len), pos);
+					encrypt(readbuf, 0, Math.min(256 - pos, len), pos);
 				
 				pos += len;
 				return (short) ( ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF ) );
@@ -168,7 +189,7 @@ public class RffGroup extends Group {
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(readbuf, Math.min(256 - pos, len), pos);
+					encrypt(readbuf, 0, Math.min(256 - pos, len), pos);
 				
 				pos += len;
 				return ( (readbuf[3] & 0xFF) << 24 ) + ( (readbuf[2] & 0xFF) << 16 ) + ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF );
@@ -254,7 +275,7 @@ public class RffGroup extends Group {
 								
 								int pos = position() - length;
 								if(((flags & 0x10) != 0) && pos < 256) 
-									encrypt(dst, Math.min(256 - pos, length), pos);
+									encrypt(dst, 0, Math.min(256 - pos, length), pos);
 								
 								return this;
 							}
@@ -308,7 +329,7 @@ public class RffGroup extends Group {
 					}
 					
 					if((flags & 0x10) != 0) 
-						encrypt(data, Math.min(256, size), 0);
+						encrypt(data, 0, Math.min(256, size), 0);
 					
 					return data;
 				}
@@ -373,9 +394,9 @@ public class RffGroup extends Group {
 			
 			if(crypted) {
 				if(revision == 0x0300)
-					encrypt(buffer, buffer.length, offFat);
+					encrypt(buffer, 0, buffer.length, offFat);
 				else if(revision == 0x0301) {
-					encrypt(buffer, buffer.length, offFat + offFat * (revision & 0xFF));
+					encrypt(buffer, 0, buffer.length, offFat + offFat * (revision & 0xFF));
 				}
 			}
 			
@@ -400,13 +421,13 @@ public class RffGroup extends Group {
 		}
 	}
 
-	private void encrypt(byte[] buffer, int size, int offFat) {
+	private void encrypt(byte[] buffer, int offset, int size, int offFat) {
 		int i = 0;
 		while(i < size) {
 			int key = offFat++ >> 1;
 	    	int data = buffer[i++];
 
-	    	buffer[i-1] = (byte) (data ^ key);
+	    	buffer[offset + i - 1] = (byte) (data ^ key);
 		}
 	}
 	

@@ -125,6 +125,21 @@ public class FileResource implements Resource {
 	}
 
 	@Override
+	public int read(byte[] buf, int offset, int len) {
+		int var = -1;
+		if(isClosed()) return var;
+		
+		try {
+			var = raf.read(buf, offset, len);
+		} catch (EOFException e) {
+	    	return -1;
+	    } catch (Exception e) {
+			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
+	    }
+		return var;
+	}
+	
+	@Override
 	public int read(byte[] buf, int len) {
 		int var = -1;
 		if(isClosed()) return var;
@@ -141,7 +156,7 @@ public class FileResource implements Resource {
 	
 	@Override
 	public int read(byte[] buf) {
-		return read(buf, buf.length);
+		return read(buf, 0, buf.length);
 	}
 	
 	@Override
@@ -375,7 +390,7 @@ public class FileResource implements Resource {
 		int size = this.size();
 		if(size > 0) {
 			byte[] data = new byte[size];
-			if(this.read(data, size) != -1)
+			if(this.read(data) != -1)
 				return data;
 		}
 		return null;

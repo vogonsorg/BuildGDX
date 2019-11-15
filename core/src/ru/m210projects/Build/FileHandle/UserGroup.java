@@ -103,6 +103,16 @@ public class UserGroup extends Group {
 		}
 		
 		@Override
+		public int read(byte[] buf, int offset, int len) {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.read(buf, offset, len);
+				
+				return -1;
+			}
+		}
+		
+		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
 				return read(buf, buf.length);

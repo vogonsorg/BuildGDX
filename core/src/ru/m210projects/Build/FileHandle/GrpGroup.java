@@ -95,6 +95,24 @@ public class GrpGroup extends Group {
 		}
 		
 		@Override
+		public int read(byte[] buf, int offs, int len) {
+			synchronized(parent) {
+				if(pos >= size) 
+					return -1;
+				
+				len = Math.min(len, size - pos);
+				int i = offset + pos;
+				int groupfilpos = file.position();
+				if (i != groupfilpos) 
+					file.seek(i, Whence.Set);
+	
+				len = file.read(buf,offs,len);
+				pos += len;
+				return len;
+			}
+		}
+		
+		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
 				return read(buf, buf.length);
