@@ -32,6 +32,8 @@ public abstract class MenuRendererSettings extends BuildMenu {
 	
 	public BuildFont style;
 	public int posx, posy, width, nHeight;
+	public boolean fontShadow = false;
+	public boolean listShadow = false;
 	
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 	
@@ -91,7 +93,7 @@ public abstract class MenuRendererSettings extends BuildMenu {
 				break;
 			case Switch:
 				final SwitchItem<?> sw = (SwitchItem<?>) item;
-				addItem(new MenuSwitch(text, style, posx, y += nHeight, width, sw.getState(), new MenuProc() {
+				MenuSwitch obj = new MenuSwitch(text, style, posx, y += nHeight, width, sw.getState(), new MenuProc() {
 						@Override
 						public void run(MenuHandler handler, MenuItem pItem) {
 							MenuSwitch ss = (MenuSwitch) pItem;
@@ -103,7 +105,9 @@ public abstract class MenuRendererSettings extends BuildMenu {
 						this.value = sw.getState();
 						super.draw(handler);
 					}
-				}, i == 0);
+				};
+				obj.fontShadow = fontShadow;
+				addItem(obj, i == 0);
 				break;
 			case Slider:
 				final SliderItem<?> si = (SliderItem<?>) item;
@@ -127,11 +131,13 @@ public abstract class MenuRendererSettings extends BuildMenu {
 				if(si.getDigitalMax() != null)
 					slider.digitalMax = si.getDigitalMax();
 				
+				slider.fontShadow = fontShadow;
 				addItem(slider, i == 0);
 				break;
 			case Conteiner:
 				final ConteinerItem<?> con = (ConteinerItem<?>) item;
-				addItem(new MenuConteiner(text, style, posx, y += nHeight, width, con.title, con.getIndex(), new MenuProc() {
+				
+				MenuConteiner conteiner = new MenuConteiner(text, style, posx, y += nHeight, width, con.title, con.getIndex(), new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuConteiner item = (MenuConteiner) pItem;
@@ -143,11 +149,16 @@ public abstract class MenuRendererSettings extends BuildMenu {
 						this.num = con.getIndex();
 						super.draw(handler);
 					}
-				}, i == 0);
+				};
+				conteiner.fontShadow = fontShadow;
+				conteiner.listShadow = listShadow;
+				addItem(conteiner, i == 0);
 				break;
 			case Button:
 				final ButtonItem<?> b = (ButtonItem<?>) item;
-				addItem(new MenuButton(text, style, posx, y += nHeight, width, 0, 0, null, 0, b.getCallback(), 0), i == 0);
+				MenuButton but = new MenuButton(text, style, posx, y += nHeight, width, 0, 0, null, 0, b.getCallback(), 0);
+				but.fontShadow = fontShadow;
+				addItem(but, i == 0);
 				break;
 			}
 		}
