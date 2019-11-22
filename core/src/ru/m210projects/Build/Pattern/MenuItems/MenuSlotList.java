@@ -4,7 +4,6 @@ import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Strhandler.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -12,14 +11,13 @@ import java.util.List;
 import com.badlogic.gdx.Input.Keys;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Pattern.Tools.SaveManager.SaveInfo;
 
-public class MenuSlotList extends MenuList
+public abstract class MenuSlotList extends MenuList
 {
 	public boolean deleteQuestion;
 	
@@ -345,9 +343,12 @@ public class MenuSlotList extends MenuList
 		Iterator<SaveInfo> i = text.iterator();
 		while (i.hasNext()) {
 			SaveInfo s = i.next();
-			File file = new File(Path.User.getPath() + s.filename);
-			if(!file.exists())
+			if(!checkFile(s.filename))
 				i.remove();
+			
+//			File file = new File(Path.User.getPath() + s.filename);
+//			if(!file.exists())
+//				i.remove();
 		}
 		
 		updateList();
@@ -355,6 +356,8 @@ public class MenuSlotList extends MenuList
 		if(updateCallback != null)
 			updateCallback.run(null, this);
 	}
+	
+	public abstract boolean checkFile(String filename);
 	
 	public void updateList()
 	{
