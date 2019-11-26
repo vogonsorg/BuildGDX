@@ -118,7 +118,6 @@ public abstract class Engine {
 			this.y = y;
 			this.z = z;
 			this.num = num;
-			
 			return this;
 		}
 	}
