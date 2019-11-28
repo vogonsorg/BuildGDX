@@ -129,6 +129,10 @@ public class ImageUtils {
 						for (x = 0; x < xsiz; x++, wpptr++) {
 							wp = wpptr << 2;
 							x2 = (x < tsizx) ? x : x - tsizx;
+							
+							if(x2 * tsizy + y2 >= data.length)
+								break;
+							
 							dacol = data[x2 * tsizy + y2] & 0xFF;
 							if (alphaMode && dacol == 255) 
 								hasalpha = true;
