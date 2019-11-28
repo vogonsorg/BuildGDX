@@ -20,7 +20,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
-import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
@@ -119,7 +118,7 @@ public abstract class UnsafeBuffer {
     {
     	try {
 	    	if(JAVA_VERSION < 9) {
-	    		Cleaner cleaner = ((DirectBuffer) bb).cleaner();
+	    		Object cleaner = ((DirectBuffer) bb).cleaner();
 	    		Method invokeCleaner = cleaner.getClass().getDeclaredMethod("clean");
 	    		invokeCleaner.setAccessible(true);
 	    		invokeCleaner.invoke(cleaner);

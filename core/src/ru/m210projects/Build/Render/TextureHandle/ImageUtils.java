@@ -74,7 +74,6 @@ public class ImageUtils {
 				hasalpha = true;
 			} else {
 				int wpptr, wp, dacol;
-				byte a;
 				for (int y = 0, x2, y2, x; y < ysiz; y++) {
 					y2 = (y < tsizy) ? y : y - tsizy;
 					wpptr = y * xsiz;
@@ -87,37 +86,10 @@ public class ImageUtils {
 						}
 						x2 = (x < tsizx) ? x : x - tsizx;
 						dacol = data[x2 * tsizy + y2] & 0xFF;
+						if (alphaMode && dacol == 255) 
+							hasalpha = true;
 
-						if(type == PixelFormat.Pal8A)
-						{
-							a = -1;
-							if (alphaMode && dacol == 255) {
-								a = 0;
-//								dacol = 0;
-								hasalpha = true;
-							}
-							
-							int color = dacol | ((a & 0xFF) << 24);
-							buffer.putInt(wp, color);
-						} 
-						else 
-						{
-							a = -1;
-							if (alphaMode && dacol == 255) {
-								a = 0;
-								dacol = 0;
-								hasalpha = true;
-							} else {
-								if(UseBloodPal && dapal == 1) //Blood's pal 1
-								{
-									int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
-									dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-								} else
-									dacol = palookup[dapal][dacol] & 0xFF;
-							}
-	
-							buffer.putInt(wp, curpalette.getRGBA(dacol, a));
-						}
+						buffer.putInt(wp, getColor(dacol, dapal, alphaMode, type));
 					}
 				}
 			}
@@ -125,6 +97,35 @@ public class ImageUtils {
 				fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
 
 			return new PicInfo(buffer, hasalpha);
+		}
+	}
+	
+	private static int getColor(int dacol, int dapal, boolean alphaMode, PixelFormat type)
+	{
+		if(type == PixelFormat.Pal8A)
+		{
+			byte a = -1;
+			if (alphaMode && dacol == 255) {
+				a = 0;
+			}
+			
+			return dacol | ((a & 0xFF) << 24);
+		}
+		else {
+			byte a = -1;
+			if (alphaMode && dacol == 255) {
+				a = 0;
+				dacol = 0;
+			} else {
+				if(UseBloodPal && dapal == 1) //Blood's pal 1
+				{
+					int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
+					dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
+				} else
+					dacol = palookup[dapal][dacol] & 0xFF;
+			}
+			
+			return curpalette.getRGBA(dacol, a);
 		}
 	}
 	
