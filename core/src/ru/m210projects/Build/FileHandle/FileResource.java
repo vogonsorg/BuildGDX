@@ -20,6 +20,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import static ru.m210projects.Build.Strhandler.toLowerCase;
@@ -246,6 +247,27 @@ public class FileResource implements Resource {
 		return out;
 	}
 	
+	public int writeBytes(Object array) {
+		int len = 0;
+		if(array instanceof byte[]) 
+			len = ((byte[])array).length;
+		else if(array instanceof ByteBuffer) 
+			len = ((ByteBuffer) array).capacity();
+		else if(array instanceof short[]) 
+			len = ((short[])array).length;
+		else if(array instanceof int[]) 
+			len = ((int[])array).length;
+		else if(array instanceof char[])
+			len = ((char[]) array).length;
+		else if(array instanceof String) 
+			len = ((String)array).getBytes().length;
+
+		if(len != 0)
+			return writeBytes(array, len);
+		
+		return -1;
+	}
+	
 	public int writeBytes(Object array, int len) {
 		int var = -1;
 		if(isClosed() || getMode() != Mode.Write) return var;
@@ -259,6 +281,16 @@ public class FileResource implements Resource {
 				char[] src = (char[]) array;
 				for(int i = 0; i < Math.min(len, src.length); i++) 
 					data[i] = (byte) src[i];
+			}
+			else if(array instanceof ByteBuffer) {
+				ByteBuffer buf = (ByteBuffer) array;
+				buf.rewind();
+				if(!buf.isDirect()) 
+					data = buf.array();
+				else {
+					data = new byte[Math.min(len, buf.capacity())];
+					buf.get(data);
+				}
 			}
 			else if(array instanceof short[]) {
 				var = 0;
