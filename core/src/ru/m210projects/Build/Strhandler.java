@@ -57,8 +57,10 @@ public class Strhandler {
 	public static int buildString(char[] buffer, int boffset, String text, int number)
 	{
 		int pos = boffset;
-		text.getChars(0, Math.min(text.length(), buffer.length), buffer, pos);
-		pos += text.length();
+		if(text != null) {
+			text.getChars(0, Math.min(text.length(), buffer.length), buffer, pos);
+			pos += text.length();
+		}
 		
 		int lnum = Bitoa(number, tmp_buffer);
 		System.arraycopy(tmp_buffer, 0, buffer, pos, lnum);
@@ -73,8 +75,10 @@ public class Strhandler {
 	public static int buildString(char[] buffer, int boffset, String text, int number, int symbols)
 	{
 		int pos = boffset;
-		text.getChars(0, Math.min(text.length(), buffer.length), buffer, pos);
-		pos += text.length();
+		if(text != null) {
+			text.getChars(0, Math.min(text.length(), buffer.length), buffer, pos);
+			pos += text.length();
+		}
 		
 		int lnum = Bitoa(number, tmp_buffer, symbols);
 		System.arraycopy(tmp_buffer, 0, buffer, pos, lnum);
