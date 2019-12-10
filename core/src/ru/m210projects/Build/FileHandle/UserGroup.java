@@ -20,10 +20,14 @@ import ru.m210projects.Build.FileHandle.Compat.Path;
 
 import static ru.m210projects.Build.Strhandler.toLowerCase;
 
+import java.nio.ByteBuffer;
+
 import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.FileHandle.FileResource.Mode;
 
 public class UserGroup extends Group {
+	
+	private static final byte[] tmp = new byte[1024];
 	
 	public class UserResource extends GroupResource {
 
@@ -116,6 +120,28 @@ public class UserGroup extends Group {
 		public int read(byte[] buf) {
 			synchronized(parent) {
 				return read(buf, buf.length);
+			}
+		}
+
+		@Override
+		public int read(ByteBuffer bb, int offset, int len) {
+			synchronized(parent) {
+				if(fil != null) {
+					int var = -1;
+					bb.position(offset);
+					int p = 0;
+					while(len > 0)
+					{
+						if((var = read(tmp, 0, Math.min(len, tmp.length))) == -1)
+							return p;
+						bb.put(tmp, 0, var);
+						len -= var;
+						p += var;
+					}
+					return len;
+				}
+				
+				return -1;
 			}
 		}
 

@@ -27,7 +27,7 @@ import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 public class FileResource implements Resource {
 	
-	private static byte[] readbuf = new byte[4];
+	private static byte[] readbuf = new byte[1024];
 	
 	public static enum Mode { Read, Write }
 
@@ -161,13 +161,38 @@ public class FileResource implements Resource {
 	}
 	
 	@Override
+	public int read(ByteBuffer bb, int offset, int len) {
+		try {
+			int var = -1;
+			bb.position(offset);
+			int p = 0;
+			while(len > 0)
+			{
+				if((var = raf.read(readbuf, 0, Math.min(len, readbuf.length))) == -1)
+					return p;
+				bb.put(readbuf, 0, var);
+				len -= var;
+				p += var;
+			}
+			return len;
+		} catch (EOFException e) {
+	    	return -1;
+	    } catch (Exception e) {
+			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
+	    }
+	}
+
+	@Override
 	public String readString(int len)
 	{
-		byte[] data = new byte[len];
-		if(read(data) != len)
+		byte[] data;
+		if(len < readbuf.length)
+			data = readbuf;
+		else data = new byte[len];
+		if(read(data, 0, len) != len)
 			return null;
 		
-		return new String(data);
+		return new String(data, 0, len);
 	}
 	
 	@Override

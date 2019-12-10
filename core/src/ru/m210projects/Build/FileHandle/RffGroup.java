@@ -29,7 +29,7 @@ import ru.m210projects.Build.Types.UnsafeBuffer;
 
 public class RffGroup extends Group {
 
-	private static byte[] readbuf = new byte[4];
+	private static byte[] readbuf = new byte[1024];
 	
 	private Resource file = null;
 	private boolean crypted;
@@ -128,6 +128,24 @@ public class RffGroup extends Group {
 		}
 		
 		@Override
+		public int read(ByteBuffer bb, int offset, int len) {
+			synchronized(parent) {
+				int var = -1;
+				bb.position(offset);
+				int p = 0;
+				while(len > 0)
+				{
+					if((var = read(readbuf, 0, Math.min(len, readbuf.length))) == -1)
+						return p;
+					bb.put(readbuf, 0, var);
+					len -= var;
+					p += var;
+				}
+				return len;
+			}
+		}
+		
+		@Override
 		public Byte readByte() {
 			synchronized(parent) {
 				int len = 1;
@@ -139,7 +157,7 @@ public class RffGroup extends Group {
 				if (i != groupfilpos) 
 					file.seek(i, Whence.Set);
 
-				if(file.read(readbuf, len) != len)
+				if(file.read(readbuf, 0, len) != len)
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
@@ -162,7 +180,7 @@ public class RffGroup extends Group {
 				if (i != groupfilpos) 
 					file.seek(i, Whence.Set);
 
-				if(file.read(readbuf, len) != len)
+				if(file.read(readbuf, 0, len) != len)
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
@@ -185,7 +203,7 @@ public class RffGroup extends Group {
 				if (i != groupfilpos) 
 					file.seek(i, Whence.Set);
 
-				if(file.read(readbuf, len) != len)
+				if(file.read(readbuf, 0, len) != len)
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
@@ -197,14 +215,16 @@ public class RffGroup extends Group {
 		}
 		
 		@Override
-		public String readString(int len)
-		{
+		public String readString(int len) {
 			synchronized(parent) {
-				byte[] data = new byte[len];
-				if(read(data) != len)
+				byte[] data;
+				if(len < readbuf.length)
+					data = readbuf;
+				else data = new byte[len];
+				if(read(data, 0, len) != len)
 					return null;
 				
-				return new String(data);
+				return new String(data, 0, len);
 			}
 		}
 
@@ -357,7 +377,7 @@ public class RffGroup extends Group {
 		
 		if(file.position() != 4) {
 			file.seek(0, Whence.Set);
-    		file.read(readbuf);
+    		file.read(readbuf, 0, 4);
 			if((char)readbuf[0] != 'R' || (char)readbuf[1] != 'F' || (char)readbuf[2] != 'F' || readbuf[3] != 0x1A)
 				throw new Exception("RFF header corrupted");
 		} //else already checked

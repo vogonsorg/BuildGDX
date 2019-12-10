@@ -16,8 +16,12 @@
 
 package ru.m210projects.Build.FileHandle;
 
+import java.nio.ByteBuffer;
+
 public class DataResource extends GroupResource {
 
+	private static final byte[] tmp = new byte[1024];
+	
 	public DataResource(Group parent, String filename, int fileid, byte[] data) {
 		super(parent);
 		
@@ -77,6 +81,27 @@ public class DataResource extends GroupResource {
 	public int read(byte[] buf) {
 		synchronized(parent != null ? parent : this) {
 			return read(buf, buf.length);
+		}
+	}
+	
+	@Override
+	public int read(ByteBuffer bb, int offset, int len) {
+		synchronized(parent != null ? parent : this) {
+			if(position() >= size) 
+				return -1;
+			
+			int var = -1;
+			bb.position(offset);
+			int p = 0;
+			while(len > 0)
+			{
+				if((var = read(tmp, 0, Math.min(len, tmp.length))) == -1)
+					return p;
+				bb.put(tmp, 0, var);
+				len -= var;
+				p += var;
+			}
+			return len;
 		}
 	}
 	

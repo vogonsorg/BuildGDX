@@ -17,12 +17,15 @@
 package ru.m210projects.Build.FileHandle;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
+
+import java.nio.ByteBuffer;
+
 import ru.m210projects.Build.FileHandle.Cache1D.PackageType;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 
 public class GrpGroup extends Group {
 
-	private static final byte[] tmp = new byte[12];
+	private static final byte[] tmp = new byte[1024];
 	
 	private Resource file = null;
 	
@@ -34,7 +37,7 @@ public class GrpGroup extends Group {
 		public GrpResource(int offset) {
 			super(GrpGroup.this);
 			
-			file.read(tmp);
+			file.read(tmp, 0, 12);
 			String fullname = new String(tmp);
 			int eos = fullname.indexOf(0);
 			if(eos != -1) fullname = fullname.substring(0, eos);
@@ -120,6 +123,24 @@ public class GrpGroup extends Group {
 		}
 		
 		@Override
+		public int read(ByteBuffer bb, int offset, int len) {
+			synchronized(parent) {
+				int var = -1;
+				bb.position(offset);
+				int p = 0;
+				while(len > 0)
+				{
+					if((var = read(tmp, 0, Math.min(len, tmp.length))) == -1)
+						return p;
+					bb.put(tmp, 0, var);
+					len -= var;
+					p += var;
+				}
+				return len;
+			}
+		}
+		
+		@Override
 		public Byte readByte() {
 			synchronized(parent) {
 				int len = 1;
@@ -183,14 +204,16 @@ public class GrpGroup extends Group {
 		}
 		
 		@Override
-		public String readString(int len)
-		{
+		public String readString(int len) {
 			synchronized(parent) {
-				byte[] data = new byte[len];
-				if(read(data) != len)
+				byte[] data;
+				if(len < tmp.length)
+					data = tmp;
+				else data = new byte[len];
+				if(read(data, 0, len) != len)
 					return null;
 				
-				return new String(data);
+				return new String(data, 0, len);
 			}
 		}
 
@@ -272,7 +295,7 @@ public class GrpGroup extends Group {
 		
 		if(file.position() != 12) {
 			file.seek(0, Whence.Set);
-    		file.read(tmp);
+    		file.read(tmp, 0, 12);
 			if(new String(tmp).compareTo("KenSilverman") != 0) 
 				throw new Exception("GRP header corrupted");
 		} //else already checked
