@@ -67,6 +67,7 @@ public abstract class MenuHandler {
 		MWUP, //16 mouse wheel up
 		MWDW, //17 mouse wheel down
 		RMB, //18
+		MCHANGE,
 		
 		Open, //0x8000
 		Close //0x8001
@@ -139,8 +140,11 @@ public abstract class MenuHandler {
 			opt = MenuOpt.MWDW;
 
 		short focus = mCheckButton(pMenu, input, mx, my);
-		if(focus != -1 && pMenu.mCheckItemsFlags(focus) && mUseMouse)
+		if(focus != -1 && pMenu.mCheckItemsFlags(focus) && mUseMouse) {
+			if(pMenu.m_nFocus != focus)
+				opt = MenuOpt.MCHANGE;
 			pMenu.m_nFocus = focus;
+		}
 
 		return opt;
 	}
@@ -204,7 +208,7 @@ public abstract class MenuHandler {
 			if(opt != MenuOpt.ANY) mUseMouse = false;
 			MenuOpt mopt = mUpdateMouse(input);
 			if(mopt != null) opt = mopt;
-			
+
 			if(pMenu.mLoadRes(this, opt)) 
 				mMenuBack();
 
