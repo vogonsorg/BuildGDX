@@ -4541,7 +4541,6 @@ public abstract class Polymost extends GLRenderer {
 
 	@Override
 	public void nextpage() {
-		
 		if(this.getTexFormat() == PixelFormat.Pal8A)
 		{
 			if(frameTexture == null || framew != xdim || frameh != ydim)
@@ -4641,7 +4640,6 @@ public abstract class Polymost extends GLRenderer {
 		
 		if(format == PixelFormat.Rgb) {
 			int base1, base2, b1, b2;
-			byte tmp;
 			for (int p, b, a = 0; a < ydim / 2; a++) {
 				base1 = (ydim - a - 1) * xdim;
 				base2 = a * xdim;
@@ -4649,9 +4647,7 @@ public abstract class Polymost extends GLRenderer {
 					b1 = 3 * (base1 + b);
 					b2 = 3 * (base2 + b);
 					for (p = 0; p < 3; p++) {
-						tmp = rgbbuffer.get(b1 + p);
-						rgbbuffer.put(b1 + p, rgbbuffer.get(b2 + p));
-						rgbbuffer.put(b2 + p, tmp);
+						rgbbuffer.put(b2 + p, rgbbuffer.get(b1 + p));
 					}
 				}
 			}

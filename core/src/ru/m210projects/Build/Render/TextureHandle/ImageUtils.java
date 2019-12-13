@@ -42,141 +42,95 @@ public class ImageUtils {
 			data = null;
 		
 		boolean hasalpha = false;
-		switch(type)
-		{
-			case Pal8:
-			if (data == null) {
-				buffer.put(0, (byte) 0);
-				tsizx = tsizy = 1;
-				hasalpha = true;
-			} else {
-				int wpptr, wp;
-				for (int y = 0, x2, y2, x; y < ysiz; y++) {
-					y2 = (y < tsizy) ? y : y - tsizy;
-					wpptr = y * xsiz;
-					for (x = 0; x < xsiz; x++, wpptr++) {
-						wp = wpptr << 2;
-	
-						if (clamped && ((x >= tsizx) || (y >= tsizy))) { // Clamp texture
-							buffer.put(wp, (byte) 255);
-							continue;
-						}
-						x2 = (x < tsizx) ? x : x - tsizx;
-						buffer.put(wp, data[x2 * tsizy + y2]);
+		if (data == null) {
+			buffer.putInt(0, 0);
+			tsizx = tsizy = 1;
+			hasalpha = true;
+		} else {
+			if(type != PixelFormat.Pal8 && alphaMode) {
+				for(int i = 0; i < data.length; i++) {
+					if(data[i] == (byte) 255) {
+						hasalpha = true;
+						break;
 					}
 				}
 			}
-			return new PicInfo(buffer, hasalpha);
-			default:
-			if (data == null) {
-				buffer.putInt(0, 0);
-				tsizx = tsizy = 1;
-				hasalpha = true;
-			} else {
-//				int wpptr, wp, dacol;
-//				for (int y = 0, x2, y2, x; y < ysiz; y++) {
-//					y2 = (y < tsizy) ? y : y - tsizy;
-//					wpptr = y * xsiz;
-//					for (x = 0; x < xsiz; x++, wpptr++) {
-//						wp = wpptr << 2;
-//
-//						if (clamped && ((x >= tsizx) || (y >= tsizy))) { // Clamp texture
-//							buffer.putInt(wp, 0);
-//							continue;
-//						}
-//						x2 = (x < tsizx) ? x : x - tsizx;
-//						dacol = data[x2 * tsizy + y2] & 0xFF;
-//						if (alphaMode && dacol == 255) 
-//							hasalpha = true;
-//
-//						buffer.putInt(wp, getColor(dacol, dapal, alphaMode, type));
-//					}
-//				}
-				
-				if(alphaMode) {
-					for(int i = 0; i < data.length; i++) {
-						if(data[i] == (byte) 255) {
-							hasalpha = true;
-							break;
-						}
+
+			int dptr = 0;
+			int sptr = 0;
+			int xoffs = xsiz << 2;
+			if(clamped) {
+				for (int i = 0, j; i < tsizx << 2; i += 4) {
+					dptr = i;
+					for (j = 0; j < tsizy; j++) {
+						buffer.putInt(dptr, getColor(data[sptr++], dapal, alphaMode, type));
+						dptr += xoffs;
 					}
 				}
 
-				int dptr = 0;
-				int sptr = 0;
-				int xoffs = xsiz << 2;
-				if(clamped) {
-					for (int i = 0, j; i < tsizx << 2; i += 4) {
-						dptr = i;
-						for (j = 0; j < tsizy; j++) {
-							buffer.putInt(dptr, getColor(data[sptr++], dapal, alphaMode, type));
-							dptr += xoffs;
-						}
-					}
-	
-					if(tsizx != xsiz)  {
-						int pos = (tsizx - 1) << 2;
-						for (int i = 0; i < tsizy; i++) {
-							buffer.putInt(pos + 4, buffer.getInt(pos));
-							pos += xoffs;
-						}
-					}
-
-					if(tsizy != ysiz) {
-						int pos = (xsiz * (tsizy - 1)) << 2;
-						for (int i = 0; i <= tsizx; i++) {
-							buffer.putInt(pos + xoffs, buffer.getInt(pos));
-							pos += 4;
-						}
+				if(tsizx != xsiz)  {
+					int pos = (tsizx - 1) << 2;
+					for (int i = 0; i < tsizy; i++) {
+						buffer.putInt(pos + 4, buffer.getInt(pos));
+						pos += xoffs;
 					}
 				}
-				else
-				{
-					for (int i = 0, j; i < xsiz; i++) {
-						dptr = i << 2;
-						sptr = (i % tsizx) * tsizy;
-						for (j = 0; j < ysiz; j++) {
-							buffer.putInt(dptr, getColor(data[sptr + (j % tsizy)], dapal, alphaMode, type));
-							dptr += xoffs;
-						}
+
+				if(tsizy != ysiz) {
+					int pos = (xsiz * (tsizy - 1)) << 2;
+					for (int i = 0; i <= tsizx; i++) {
+						buffer.putInt(pos + xoffs, buffer.getInt(pos));
+						pos += 4;
 					}
 				}
 			}
-			if(data != null && hasalpha) 
-				fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
-
-			return new PicInfo(buffer, hasalpha);
+			else
+			{
+				int p = 0;
+				int len = data.length;
+				for (int i = 0, j; i < xoffs; i += 4) {
+					p = 0;
+					dptr = i;
+					for (j = 0; j < ysiz; j++) {
+						buffer.putInt(dptr, getColor(data[sptr + p++], dapal, alphaMode, type));
+						dptr += xoffs;
+						if(p >= tsizy) p = 0;
+					}
+					if((sptr += tsizy) >= len) sptr = 0;
+				}
+			}
 		}
+		if(type == PixelFormat.Rgb && data != null && hasalpha) 
+			fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
+
+		return new PicInfo(buffer, hasalpha);
+		
 	}
 	
-	private static int getColor(int dacol, int dapal, boolean alphaMode, PixelFormat type)
-	{
+	private static int getColor(int dacol, int dapal, boolean alphaMode, PixelFormat type) {
 		dacol &= 0xFF;
+		if(type == PixelFormat.Pal8)
+			return dacol;
+		
 		if(type == PixelFormat.Pal8A)
 		{
-			byte a = -1;
-			if (alphaMode && dacol == 255) {
-				a = 0;
-			}
-			
-			return dacol | ((a & 0xFF) << 24);
+			if (alphaMode && dacol == 255) 
+				return dacol;
+
+			return dacol | 0xFF000000;
 		}
-		else {
-			byte a = -1;
-			if (alphaMode && dacol == 255) {
-				a = 0;
-				dacol = 0;
-			} else {
-				if(UseBloodPal && dapal == 1) //Blood's pal 1
-				{
-					int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
-					dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-				} else
-					dacol = palookup[dapal][dacol] & 0xFF;
-			}
-			
-			return curpalette.getRGBA(dacol, a);
-		}
+		
+		if (alphaMode && dacol == 255) 
+			return curpalette.getRGBA(0, (byte) 0);
+		
+		if(UseBloodPal && dapal == 1) //Blood's pal 1
+		{
+			int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
+			dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
+		} else
+			dacol = palookup[dapal][dacol] & 0xFF;
+		
+		return curpalette.getRGBA(dacol, (byte) 0xFF);
 	}
 	
 	private static void fixtransparency(UnsafeDirectBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
@@ -232,8 +186,9 @@ public class ImageUtils {
 					b += dapic.get(index + 2) & 0xFF;
 					j++;
 				}
-				rgb = 0;
+
 				switch (j) {
+				case 0:
 				case 1:
 			        rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
 					break;
