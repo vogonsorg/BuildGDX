@@ -23,7 +23,7 @@ public class ImageUtils {
 	
 	private static final int TEX_MAX_SIZE = 1024;
 	private static UnsafeDirectBuffer tmp_buffer;
-
+	
 	public static class PicInfo {
 		public final ByteBuffer pic;
 		public final boolean hasalpha;
@@ -36,12 +36,12 @@ public class ImageUtils {
 
 	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, PixelFormat type) {
 		UnsafeDirectBuffer buffer = getTmpBuffer();
-		boolean hasalpha = false;
 		buffer.clear();
 		
 		if(data != null && tsizx * tsizy > data.length)
 			data = null;
 		
+		boolean hasalpha = false;
 		switch(type)
 		{
 			case Pal8:
@@ -93,51 +93,50 @@ public class ImageUtils {
 //					}
 //				}
 				
-				int dacol;
+				if(alphaMode) {
+					for(int i = 0; i < data.length; i++) {
+						if(data[i] == (byte) 255) {
+							hasalpha = true;
+							break;
+						}
+					}
+				}
+
 				int dptr = 0;
 				int sptr = 0;
+				int xoffs = xsiz << 2;
 				if(clamped) {
-					for (int i = 0, j; i < tsizx; i++) {
-						dptr = i << 2;
+					for (int i = 0, j; i < tsizx << 2; i += 4) {
+						dptr = i;
 						for (j = 0; j < tsizy; j++) {
-							dacol = data[sptr++] & 0xFF;
-							if (alphaMode && dacol == 255) 
-								hasalpha = true;
-							buffer.putInt(dptr, getColor(dacol, dapal, alphaMode, type));
-							dptr += (xsiz << 2);
+							buffer.putInt(dptr, getColor(data[sptr++], dapal, alphaMode, type));
+							dptr += xoffs;
+						}
+					}
+	
+					if(tsizx != xsiz && tsizy != ysiz)
+					{
+						int pos = (tsizx - 1) << 2;
+						for (int i = 0; i < tsizy; i++) {
+							buffer.putInt(pos + 4, buffer.getInt(pos));
+							pos += xoffs;
+						}
+
+						pos = (xsiz * (tsizy - 1)) << 2;
+						for (int i = 0; i <= tsizx; i++) {
+							buffer.putInt(pos + xoffs, buffer.getInt(pos));
+							pos += 4;
 						}
 					}
 				}
 				else
 				{
-//					for (int i = 0, j; i < xsiz; i++) {
-//						dptr = i << 2;
-//						sptr = (i % tsizx) * tsizy;
-//						for (j = 0; j < ysiz; j++) {
-//							dacol = data[sptr + (j & (tsizy - 1))] & 0xFF;
-//							if (alphaMode && dacol == 255) 
-//								hasalpha = true;
-//							buffer.putInt(dptr, getColor(dacol, dapal, alphaMode, type));
-//							dptr += (xsiz << 2);
-//						}
-//					}
-					
-					int wpptr, wp;
-					for (int y = 0, x2, y2, x; y < ysiz; y++) {
-						y2 = (y < tsizy) ? y : y - tsizy;
-						wpptr = y * xsiz;
-						for (x = 0; x < xsiz; x++, wpptr++) {
-							wp = wpptr << 2;
-							x2 = (x < tsizx) ? x : x - tsizx;
-							
-							if(x2 * tsizy + y2 >= data.length)
-								break;
-							
-							dacol = data[x2 * tsizy + y2] & 0xFF;
-							if (alphaMode && dacol == 255) 
-								hasalpha = true;
-	
-							buffer.putInt(wp, getColor(dacol, dapal, alphaMode, type));
+					for (int i = 0, j; i < xsiz; i++) {
+						dptr = i << 2;
+						sptr = (i % tsizx) * tsizy;
+						for (j = 0; j < ysiz; j++) {
+							buffer.putInt(dptr, getColor(data[sptr + (j % tsizy)], dapal, alphaMode, type));
+							dptr += xoffs;
 						}
 					}
 				}
@@ -151,6 +150,7 @@ public class ImageUtils {
 	
 	private static int getColor(int dacol, int dapal, boolean alphaMode, PixelFormat type)
 	{
+		dacol &= 0xFF;
 		if(type == PixelFormat.Pal8A)
 		{
 			byte a = -1;

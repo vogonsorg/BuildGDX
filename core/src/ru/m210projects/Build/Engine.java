@@ -1339,7 +1339,7 @@ public abstract class Engine {
 			}
 
 			if(m == null) {
-				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not support", OSDTEXT_YELLOW);
+				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not supported", OSDTEXT_YELLOW);
 				BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 				return false;
 			} else BuildGdx.graphics.setFullscreenMode(m);

@@ -149,13 +149,13 @@ public class ALSoundDrv implements Sound {
 		
 		if(al.alIsEFXSupport())
 			Console.Println("ALC_EXT_EFX enabled.");	
-		else Console.Println("ALC_EXT_EFX not support!");	 
+		else Console.Println("ALC_EXT_EFX not supported!");	 
 		
 		if(al.alIsSoftResamplerSupport()) {
 			Console.Println("AL_SOFT_Source_Resampler enabled. Using resampler: " + al.alGetSoftResamplerName(softResampler));	
 			setSoftResampler(softResampler);
 		}
-		else Console.Println("AL_SOFT_Source_Resampler not support!");	 
+		else Console.Println("AL_SOFT_Source_Resampler not supported!");	 
 
 		int error = al.alGetError();
 		if(error != AL_NO_ERROR) 

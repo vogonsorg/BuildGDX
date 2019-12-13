@@ -1903,7 +1903,7 @@ public abstract class Polymost extends GLRenderer {
 		
 		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * (double)viewingrange) / (65536.0 * 65536.0);
 		drawalls_vv[0] = drawalls_dd[0]
-				* ((tilesizy[globalpicnum] >> 1) + (floor ? parallaxyoffs - tilesizy[globalpicnum] : parallaxyoffs))
+				* ((tilesizy[globalpicnum] >> 1) + ((floor && r_parallaxskypanning == 1) ? parallaxyoffs - tilesizy[globalpicnum] : parallaxyoffs))
 				- drawalls_vv[1] * ghoriz;
 		int i = (1 << (picsiz[globalpicnum] >> 4));
 		if (i != tilesizy[globalpicnum])
