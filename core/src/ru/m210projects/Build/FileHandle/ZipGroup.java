@@ -22,6 +22,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +34,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class ZipGroup extends Group {
 
-	private static byte[] readbuf = new byte[4];
+	private static byte[] readbuf = new byte[1024];
 	
 	private ZipFile zfile;
 	
@@ -263,9 +264,52 @@ public class ZipGroup extends Group {
 		}
 		
 		@Override
+		public int read(byte[] buf, int offset, int len) {
+			synchronized(parent) {
+				if(position() >= size) 
+					return -1;
+				
+				len = Math.min(len, size - position());
+				
+				if(buffer != null)
+				{
+					buffer.get(buf, offset, len);
+					return len;
+				}
+
+				if(zfile == null)
+					return -1;
+				
+				len = bis.read(buf, offset, len);
+				if(len == -1)
+					return -1;
+
+				return len;
+			}
+		}
+		
+		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
 				return read(buf, buf.length);
+			}
+		}
+		
+		@Override
+		public int read(ByteBuffer bb, int offset, int len) {
+			synchronized(parent) {
+				int var = -1;
+				bb.position(offset);
+				int p = 0;
+				while(len > 0)
+				{
+					if((var = read(readbuf, 0, Math.min(len, readbuf.length))) == -1)
+						return p;
+					bb.put(readbuf, 0, var);
+					len -= var;
+					p += var;
+				}
+				return len;
 			}
 		}
 

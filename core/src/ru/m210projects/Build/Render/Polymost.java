@@ -117,7 +117,7 @@ public abstract class Polymost extends GLRenderer {
 		}
 	}
 	
-	class GLFog {
+	public class GLFog {
 		
 		public int shade, pal;
 		public float combvis;
@@ -213,8 +213,8 @@ public abstract class Polymost extends GLRenderer {
 		}
 	}
 	
-	private GLSurfaceArray surfaces = new GLSurfaceArray();
-	private int surfaceType = 0;
+	protected GLSurfaceArray surfaces = new GLSurfaceArray();
+	protected int surfaceType = 0;
 	public GLFog globalfog = new GLFog();
 	
 	public static int r_parallaxskyclamping = 1; //OSD CVAR XXX
@@ -1903,7 +1903,7 @@ public abstract class Polymost extends GLRenderer {
 		
 		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * (double)viewingrange) / (65536.0 * 65536.0);
 		drawalls_vv[0] = drawalls_dd[0]
-				* ((tilesizy[globalpicnum] >> 1) + parallaxyoffs)
+				* ((tilesizy[globalpicnum] >> 1) + (floor ? parallaxyoffs - tilesizy[globalpicnum] : parallaxyoffs))
 				- drawalls_vv[1] * ghoriz;
 		int i = (1 << (picsiz[globalpicnum] >> 4));
 		if (i != tilesizy[globalpicnum])
@@ -3453,7 +3453,7 @@ public abstract class Polymost extends GLRenderer {
 		}
 	}
 
-	private void calc_and_apply_fog(int shade, int vis, int pal)
+	protected void calc_and_apply_fog(int shade, int vis, int pal)
 	{
 		globalfog.shade = shade;
 		globalfog.combvis = globalvisibility * ((vis+16) & 0xFF);

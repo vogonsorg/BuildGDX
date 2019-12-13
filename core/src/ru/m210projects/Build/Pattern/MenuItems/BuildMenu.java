@@ -46,6 +46,23 @@ public class BuildMenu {
 	  	return m_nItems;
 	}
 	
+	public int removeItem(MenuItem pItem)
+	{
+		if(pItem == null) return -1;
+		
+		for(int i = 0; i < m_nItems; i++)
+			if(m_pItems[i] == pItem)
+			{
+				int pos = i;
+				while(pos < m_nItems) 
+					m_pItems[pos] = ++pos < m_nItems ? m_pItems[pos] : null;
+				m_nItems--;
+				return i;
+			}
+		
+		return -1;
+	}
+	
 	public int open(MenuHandler handler, int nItem)
 	{
 		if ( nItem >= 0 && nItem < nMaxGameMenuItems) {

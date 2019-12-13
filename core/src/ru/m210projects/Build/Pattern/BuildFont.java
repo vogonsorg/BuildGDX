@@ -100,6 +100,10 @@ public class BuildFont {
 		return width;
 	}
 	
+	public int getWidth(String text) {
+		return getWidth(toCharArray(text));
+	}
+	
 	public int getHeight()
 	{
 		return nHeight;
@@ -167,6 +171,10 @@ public class BuildFont {
 		}
 
 		return width;
+	}
+	
+	public int getWidth(String text, int scale) {
+		return getWidth(toCharArray(text), scale);
 	}
 	
 	public int getHeight(int scale)

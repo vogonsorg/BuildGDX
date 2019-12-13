@@ -29,7 +29,7 @@ import ru.m210projects.Build.Types.UnsafeBuffer;
 
 public class RffGroup extends Group {
 
-	private static byte[] readbuf = new byte[4];
+	private static byte[] readbuf = new byte[1024];
 	
 	private Resource file = null;
 	private boolean crypted;
@@ -92,7 +92,28 @@ public class RffGroup extends Group {
 	
 				len = file.read(buf,len);
 				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(buf, Math.min(256 - pos, len), pos);
+					encrypt(buf, 0, Math.min(256 - pos, len), pos);
+
+				pos += len;
+				return len;
+			}
+		}
+		
+		@Override
+		public int read(byte[] buf, int offs, int len) {
+			synchronized(parent) {
+				if(pos >= size) 
+					return -1;
+
+				len = Math.min(len, size - pos);
+				int i = offset + pos;
+				int groupfilpos = file.position();
+				if (i != groupfilpos) 
+					file.seek(i, Whence.Set);
+	
+				len = file.read(buf, offs, len);
+				if(((flags & 0x10) != 0) && pos < 256) 
+					encrypt(buf, offs, Math.min(256 - pos, len), pos);
 
 				pos += len;
 				return len;
@@ -103,6 +124,24 @@ public class RffGroup extends Group {
 		public int read(byte[] buf) {
 			synchronized(parent) {
 				return read(buf, buf.length);
+			}
+		}
+		
+		@Override
+		public int read(ByteBuffer bb, int offset, int len) {
+			synchronized(parent) {
+				int var = -1;
+				bb.position(offset);
+				int p = 0;
+				while(len > 0)
+				{
+					if((var = read(readbuf, 0, Math.min(len, readbuf.length))) == -1)
+						return p;
+					bb.put(readbuf, 0, var);
+					len -= var;
+					p += var;
+				}
+				return len;
 			}
 		}
 		
@@ -118,11 +157,11 @@ public class RffGroup extends Group {
 				if (i != groupfilpos) 
 					file.seek(i, Whence.Set);
 
-				if(file.read(readbuf, len) != len)
+				if(file.read(readbuf, 0, len) != len)
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(readbuf, Math.min(256 - pos, len), pos);
+					encrypt(readbuf, 0, Math.min(256 - pos, len), pos);
 				
 				pos += len;
 				return readbuf[0];
@@ -141,11 +180,11 @@ public class RffGroup extends Group {
 				if (i != groupfilpos) 
 					file.seek(i, Whence.Set);
 
-				if(file.read(readbuf, len) != len)
+				if(file.read(readbuf, 0, len) != len)
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(readbuf, Math.min(256 - pos, len), pos);
+					encrypt(readbuf, 0, Math.min(256 - pos, len), pos);
 				
 				pos += len;
 				return (short) ( ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF ) );
@@ -164,11 +203,11 @@ public class RffGroup extends Group {
 				if (i != groupfilpos) 
 					file.seek(i, Whence.Set);
 
-				if(file.read(readbuf, len) != len)
+				if(file.read(readbuf, 0, len) != len)
 					return null;
 				
 				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(readbuf, Math.min(256 - pos, len), pos);
+					encrypt(readbuf, 0, Math.min(256 - pos, len), pos);
 				
 				pos += len;
 				return ( (readbuf[3] & 0xFF) << 24 ) + ( (readbuf[2] & 0xFF) << 16 ) + ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF );
@@ -176,14 +215,16 @@ public class RffGroup extends Group {
 		}
 		
 		@Override
-		public String readString(int len)
-		{
+		public String readString(int len) {
 			synchronized(parent) {
-				byte[] data = new byte[len];
-				if(read(data) != len)
+				byte[] data;
+				if(len < readbuf.length)
+					data = readbuf;
+				else data = new byte[len];
+				if(read(data, 0, len) != len)
 					return null;
 				
-				return new String(data);
+				return new String(data, 0, len);
 			}
 		}
 
@@ -254,7 +295,7 @@ public class RffGroup extends Group {
 								
 								int pos = position() - length;
 								if(((flags & 0x10) != 0) && pos < 256) 
-									encrypt(dst, Math.min(256 - pos, length), pos);
+									encrypt(dst, 0, Math.min(256 - pos, length), pos);
 								
 								return this;
 							}
@@ -308,7 +349,7 @@ public class RffGroup extends Group {
 					}
 					
 					if((flags & 0x10) != 0) 
-						encrypt(data, Math.min(256, size), 0);
+						encrypt(data, 0, Math.min(256, size), 0);
 					
 					return data;
 				}
@@ -336,7 +377,7 @@ public class RffGroup extends Group {
 		
 		if(file.position() != 4) {
 			file.seek(0, Whence.Set);
-    		file.read(readbuf);
+    		file.read(readbuf, 0, 4);
 			if((char)readbuf[0] != 'R' || (char)readbuf[1] != 'F' || (char)readbuf[2] != 'F' || readbuf[3] != 0x1A)
 				throw new Exception("RFF header corrupted");
 		} //else already checked
@@ -373,9 +414,9 @@ public class RffGroup extends Group {
 			
 			if(crypted) {
 				if(revision == 0x0300)
-					encrypt(buffer, buffer.length, offFat);
+					encrypt(buffer, 0, buffer.length, offFat);
 				else if(revision == 0x0301) {
-					encrypt(buffer, buffer.length, offFat + offFat * (revision & 0xFF));
+					encrypt(buffer, 0, buffer.length, offFat + offFat * (revision & 0xFF));
 				}
 			}
 			
@@ -400,13 +441,13 @@ public class RffGroup extends Group {
 		}
 	}
 
-	private void encrypt(byte[] buffer, int size, int offFat) {
+	private void encrypt(byte[] buffer, int offset, int size, int offFat) {
 		int i = 0;
 		while(i < size) {
 			int key = offFat++ >> 1;
 	    	int data = buffer[i++];
 
-	    	buffer[i-1] = (byte) (data ^ key);
+	    	buffer[offset + i - 1] = (byte) (data ^ key);
 		}
 	}
 	

@@ -118,7 +118,10 @@ public abstract class UnsafeBuffer {
     {
     	try {
 	    	if(JAVA_VERSION < 9) {
-	    		((DirectBuffer) bb).cleaner().clean();
+	    		Object cleaner = ((DirectBuffer) bb).cleaner();
+	    		Method invokeCleaner = cleaner.getClass().getDeclaredMethod("clean");
+	    		invokeCleaner.setAccessible(true);
+	    		invokeCleaner.invoke(cleaner);
 	    	} else {
 	    		Method invokeCleaner = unsafe.getClass().getMethod("invokeCleaner", ByteBuffer.class);
 		    	invokeCleaner.invoke(unsafe, bb);

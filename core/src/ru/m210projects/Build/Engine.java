@@ -94,7 +94,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 	
-	public static final String version = "19.091"; //XX. - year, XX - month, X - build
+	public static final String version = "19.121"; //XX. - year, XX - month, X - build
 	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -118,7 +118,6 @@ public abstract class Engine {
 			this.y = y;
 			this.z = z;
 			this.num = num;
-			
 			return this;
 		}
 	}
@@ -1262,31 +1261,32 @@ public abstract class Engine {
 		bb = ByteBuffer.wrap(sprites);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
 		
-		for(int spriteid = 0; spriteid < numsprites; spriteid++) {
+    	for(int spriteid = 0; spriteid < numsprites; spriteid++) {
+//		for(int spriteid = numsprites - 1; spriteid >= 0; spriteid--) {
 			SPRITE spr = sprite[spriteid];
 			
-			spr.x = bb.getInt(0 + sizeof * spriteid);
-			spr.y = bb.getInt(4 + sizeof * spriteid);
-			spr.z = bb.getInt(8 + sizeof * spriteid);
-			spr.cstat = bb.getShort(12 + sizeof * spriteid);
-			spr.shade = bb.get(14 + sizeof * spriteid);
-			spr.pal = bb.get(15 + sizeof * spriteid);
-			spr.clipdist = bb.get(16 + sizeof * spriteid);
-			spr.xrepeat = (short) (bb.get(17 + sizeof * spriteid) & 0xFF);
-			spr.yrepeat = (short) (bb.get(18 + sizeof * spriteid) & 0xFF);
-			spr.xoffset = (short) (bb.get(19 + sizeof * spriteid) & 0xFF);
-			spr.yoffset = (short) (bb.get(20 + sizeof * spriteid) & 0xFF);
-			spr.picnum = bb.getShort(21 + sizeof * spriteid);
-			spr.ang = bb.getShort(23 + sizeof * spriteid);
-			spr.xvel = bb.getShort(25 + sizeof * spriteid);
-			spr.yvel = bb.getShort(27 + sizeof * spriteid);
-			spr.zvel = bb.getShort(29 + sizeof * spriteid);
-			spr.owner = bb.getShort(31 + sizeof * spriteid);
-			spr.sectnum = bb.getShort(33 + sizeof * spriteid);
-			spr.statnum = bb.getShort(35 + sizeof * spriteid);
-			spr.lotag = bb.getShort(37 + sizeof * spriteid);
-			spr.hitag = bb.getShort(39 + sizeof * spriteid);
-			spr.extra = bb.getShort(41 + sizeof * spriteid);
+			spr.x = bb.getInt();
+			spr.y = bb.getInt();
+			spr.z = bb.getInt();
+			spr.cstat = bb.getShort();
+			spr.shade = bb.get();
+			spr.pal = bb.get();
+			spr.clipdist = bb.get();
+			spr.xrepeat = (short) (bb.get() & 0xFF);
+			spr.yrepeat = (short) (bb.get() & 0xFF);
+			spr.xoffset = (short) (bb.get() & 0xFF);
+			spr.yoffset = (short) (bb.get() & 0xFF);
+			spr.picnum = bb.getShort();
+			spr.ang = bb.getShort();
+			spr.xvel = bb.getShort();
+			spr.yvel = bb.getShort();
+			spr.zvel = bb.getShort();
+			spr.owner = bb.getShort();
+			spr.sectnum = bb.getShort();
+			spr.statnum = bb.getShort();
+			spr.lotag = bb.getShort();
+			spr.hitag = bb.getShort();
+			spr.extra = bb.getShort();
 		}
 
 		for(int i=0;i<numsprites;i++) {

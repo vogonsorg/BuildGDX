@@ -52,6 +52,7 @@ public class LogoScreen extends SkippableAdapter {
 	public void show()
 	{
 		this.gTicks = 0;
+		game.pInput.ctrlResetKeyStatus();
 	}
 
 	@Override

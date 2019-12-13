@@ -174,7 +174,7 @@ public class Interpolation {
 		}
 	}
 
-	public void setsprinterpolate(int nSprite, SPRITE pSprite) {
+	public boolean setsprinterpolate(int nSprite, SPRITE pSprite) {
 		if ((gSpriteLoc[nSprite >> 3] & pow2char[nSprite & 7]) == 0) {
 			ILoc pLocation = gOldSpriteLoc[nSprite];
 			pLocation.x = pSprite.x;
@@ -182,7 +182,10 @@ public class Interpolation {
 			pLocation.z = pSprite.z;
 			pLocation.ang = pSprite.ang;
 			gSpriteLoc[nSprite >> 3] |= pow2char[nSprite & 7];
+			return true;
 		}
+		
+		return false;
 	}
 	
 	public void clearspriteinterpolate(int nSprite) {

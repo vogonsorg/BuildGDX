@@ -697,8 +697,10 @@ public abstract class BuildConfig extends IniFile {
 		saveBoolean(fil, "AutoloadFolder", autoloadFolder);
 		saveBoolean(fil, "UseHomeFolder", userfolder);
 		saveString(fil, "Path = ");
+		if(path != null) {
 			byte[] buf = path.getBytes(); //without this path can be distorted
 			fil.writeBytes(buf, buf.length);
+		}
 			
 		if(soundBank != null)	
 			saveString(fil, "\r\nSoundBank = " + soundBank.getAbsolutePath() + "\r\n");

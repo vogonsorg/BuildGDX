@@ -16,7 +16,10 @@
 
 package ru.m210projects.Build.Pattern.CommonMenus;
 
+import java.io.File;
+
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.MenuItems.BuildMenu;
@@ -54,7 +57,12 @@ public abstract class MenuLoadSave extends BuildMenu {
 			}
 		};
 		
-		list = new MenuSlotList(app.pEngine, app.pSavemgr, style, posx, posy, posyHelp, width, nItems, updateCallback, confirm, listPal, specPal, nBackground, saveMenu);
+		list = new MenuSlotList(app.pEngine, app.pSavemgr, style, posx, posy, posyHelp, width, nItems, updateCallback, confirm, listPal, specPal, nBackground, saveMenu) {
+			@Override
+			public boolean checkFile(String filename) {
+				return MenuLoadSave.this.checkFile(filename);
+			}
+		};
 		slider = new MenuScroller(app.pSlider, list, width + posx - app.pSlider.getScrollerWidth());
 		mInfo = getInfo(app, posx, posy);
 		
@@ -62,6 +70,12 @@ public abstract class MenuLoadSave extends BuildMenu {
 		addItem(mInfo, false);
 		addItem(list, true);
 		addItem(slider, false);
+	}
+	
+	public boolean checkFile(String filename)
+	{
+		File file = new File(Path.User.getPath() + filename);
+		return file.exists();
 	}
 	
 	public abstract boolean loadData(String filename);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>BuildEngine-desktop</name>
+	<name>BuildGDX-desktop</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -18,7 +18,7 @@
 		<link>
 			<name>assets</name>
 			<type>2</type>
-			<location>BuildEngine/android/assets</location>
+			<locationURI>BuildEngine/android/assets</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

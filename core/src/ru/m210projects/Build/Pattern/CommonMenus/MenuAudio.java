@@ -228,12 +228,8 @@ public abstract class MenuAudio extends BuildMenu {
 		}) {
 			@Override
 			public void open() {
-				if (this.list == null) {
-					this.list = new char[3][];
-					this.list[0] = "midi".toCharArray();
-					this.list[1] = "external".toCharArray();
-					this.list[2] = "cd audio".toCharArray();
-				}
+				if (this.list == null) 
+					this.list = getMusicTypeList();
 				cdaudio = ocdaudio = num = cfg.musicType;
 			}
 			
@@ -326,6 +322,16 @@ public abstract class MenuAudio extends BuildMenu {
 		addItem(sMusic, false);
 		addItem(sMusicType, false);
 		addItem(mApplyChanges, false);
+	}
+	
+	protected char[][] getMusicTypeList()
+	{
+		char[][] list = new char[3][];
+		list[0] = "midi".toCharArray();
+		list[1] = "external".toCharArray();
+		list[2] = "cd audio".toCharArray();
+		
+		return list;
 	}
 	
 	public abstract MenuTitle getTitle(BuildGame app, String text);

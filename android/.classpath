@@ -6,12 +6,12 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/BuildEngine-core"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="lib" path="libs/gdx-backend-android.jar" sourcepath="libs/gdx-backend-android-sources.jar"/>
 	<classpathentry kind="lib" path="libs/gdx-controllers-android.jar"/>
-	<classpathentry kind="lib" path="/BuildEngine-core/libs/gdx-1.9.10.jar"/>
+	<classpathentry kind="lib" path="/BuildGDX-core/libs/gdx-1.9.10.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/BuildGDX-core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

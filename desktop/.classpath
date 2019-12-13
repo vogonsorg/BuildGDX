@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/BuildEngine-core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/BuildGDX-core"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="libs/jna-openal-natives-linux.jar"/>
 	<classpathentry kind="lib" path="libs/jna-openal-natives-macos.jar"/>
@@ -17,6 +17,6 @@
 	<classpathentry kind="lib" path="libs/jinput-platform-2.0.7-natives-all.jar"/>
 	<classpathentry kind="lib" path="libs/gdx-controllers-1.9.10.jar"/>
 	<classpathentry kind="lib" path="libs/jorbis.jar"/>
-	<classpathentry kind="lib" path="/BuildEngine-core/libs/gdx-1.9.10.jar"/>
+	<classpathentry kind="lib" path="/BuildGDX-core/libs/gdx-1.9.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

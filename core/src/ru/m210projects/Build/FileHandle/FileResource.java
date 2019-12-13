@@ -20,13 +20,14 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 public class FileResource implements Resource {
 	
-	private static byte[] readbuf = new byte[4];
+	private static byte[] readbuf = new byte[1024];
 	
 	public static enum Mode { Read, Write }
 
@@ -125,6 +126,21 @@ public class FileResource implements Resource {
 	}
 
 	@Override
+	public int read(byte[] buf, int offset, int len) {
+		int var = -1;
+		if(isClosed()) return var;
+		
+		try {
+			var = raf.read(buf, offset, len);
+		} catch (EOFException e) {
+	    	return -1;
+	    } catch (Exception e) {
+			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
+	    }
+		return var;
+	}
+	
+	@Override
 	public int read(byte[] buf, int len) {
 		int var = -1;
 		if(isClosed()) return var;
@@ -141,17 +157,42 @@ public class FileResource implements Resource {
 	
 	@Override
 	public int read(byte[] buf) {
-		return read(buf, buf.length);
+		return read(buf, 0, buf.length);
 	}
 	
 	@Override
+	public int read(ByteBuffer bb, int offset, int len) {
+		try {
+			int var = -1;
+			bb.position(offset);
+			int p = 0;
+			while(len > 0)
+			{
+				if((var = raf.read(readbuf, 0, Math.min(len, readbuf.length))) == -1)
+					return p;
+				bb.put(readbuf, 0, var);
+				len -= var;
+				p += var;
+			}
+			return len;
+		} catch (EOFException e) {
+	    	return -1;
+	    } catch (Exception e) {
+			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
+	    }
+	}
+
+	@Override
 	public String readString(int len)
 	{
-		byte[] data = new byte[len];
-		if(read(data) != len)
+		byte[] data;
+		if(len < readbuf.length)
+			data = readbuf;
+		else data = new byte[len];
+		if(read(data, 0, len) != len)
 			return null;
 		
-		return new String(data);
+		return new String(data, 0, len);
 	}
 	
 	@Override
@@ -231,6 +272,27 @@ public class FileResource implements Resource {
 		return out;
 	}
 	
+	public int writeBytes(Object array) {
+		int len = 0;
+		if(array instanceof byte[]) 
+			len = ((byte[])array).length;
+		else if(array instanceof ByteBuffer) 
+			len = ((ByteBuffer) array).capacity();
+		else if(array instanceof short[]) 
+			len = ((short[])array).length;
+		else if(array instanceof int[]) 
+			len = ((int[])array).length;
+		else if(array instanceof char[])
+			len = ((char[]) array).length;
+		else if(array instanceof String) 
+			len = ((String)array).getBytes().length;
+
+		if(len != 0)
+			return writeBytes(array, len);
+		
+		return -1;
+	}
+	
 	public int writeBytes(Object array, int len) {
 		int var = -1;
 		if(isClosed() || getMode() != Mode.Write) return var;
@@ -244,6 +306,16 @@ public class FileResource implements Resource {
 				char[] src = (char[]) array;
 				for(int i = 0; i < Math.min(len, src.length); i++) 
 					data[i] = (byte) src[i];
+			}
+			else if(array instanceof ByteBuffer) {
+				ByteBuffer buf = (ByteBuffer) array;
+				buf.rewind();
+				if(!buf.isDirect()) 
+					data = buf.array();
+				else {
+					data = new byte[Math.min(len, buf.capacity())];
+					buf.get(data);
+				}
 			}
 			else if(array instanceof short[]) {
 				var = 0;
@@ -375,7 +447,7 @@ public class FileResource implements Resource {
 		int size = this.size();
 		if(size > 0) {
 			byte[] data = new byte[size];
-			if(this.read(data, size) != -1)
+			if(this.read(data) != -1)
 				return data;
 		}
 		return null;

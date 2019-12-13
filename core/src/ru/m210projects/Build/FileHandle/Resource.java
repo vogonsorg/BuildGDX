@@ -111,7 +111,11 @@ public interface Resource extends Closeable {
 	
 	public int read(byte[] buf, int len);
 	
+	public int read(byte[] buf, int offset, int len);
+	
 	public int read(byte[] buf);
+	
+	public int read(ByteBuffer bb, int offset, int len);
 	
 	public String readString(int len);
 	
