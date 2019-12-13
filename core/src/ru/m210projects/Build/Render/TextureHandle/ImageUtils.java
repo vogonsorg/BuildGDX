@@ -114,15 +114,16 @@ public class ImageUtils {
 						}
 					}
 	
-					if(tsizx != xsiz && tsizy != ysiz)
-					{
+					if(tsizx != xsiz)  {
 						int pos = (tsizx - 1) << 2;
 						for (int i = 0; i < tsizy; i++) {
 							buffer.putInt(pos + 4, buffer.getInt(pos));
 							pos += xoffs;
 						}
+					}
 
-						pos = (xsiz * (tsizy - 1)) << 2;
+					if(tsizy != ysiz) {
+						int pos = (xsiz * (tsizy - 1)) << 2;
 						for (int i = 0; i <= tsizx; i++) {
 							buffer.putInt(pos + xoffs, buffer.getInt(pos));
 							pos += 4;
