@@ -37,7 +37,6 @@ public class ImageUtils {
 	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, PixelFormat type) {
 		UnsafeDirectBuffer buffer = getTmpBuffer();
 		buffer.clear();
-		
 		if(data != null && tsizx * tsizy > data.length)
 			data = null;
 		
@@ -60,6 +59,7 @@ public class ImageUtils {
 			int sptr = 0;
 			int xoffs = xsiz << 2;
 			if(clamped) {
+				buffer.fill((xsiz * ysiz) << 2, (byte)0);
 				for (int i = 0, j; i < tsizx << 2; i += 4) {
 					dptr = i;
 					for (j = 0; j < tsizy; j++) {
@@ -67,27 +67,10 @@ public class ImageUtils {
 						dptr += xoffs;
 					}
 				}
-
-				if(tsizx != xsiz)  {
-					int pos = (tsizx - 1) << 2;
-					for (int i = 0; i < tsizy; i++) {
-						buffer.putInt(pos + 4, buffer.getInt(pos));
-						pos += xoffs;
-					}
-				}
-
-				if(tsizy != ysiz) {
-					int pos = (xsiz * (tsizy - 1)) << 2;
-					for (int i = 0; i <= tsizx; i++) {
-						buffer.putInt(pos + xoffs, buffer.getInt(pos));
-						pos += 4;
-					}
-				}
 			}
 			else
 			{
-				int p = 0;
-				int len = data.length;
+				int p, len = data.length;
 				for (int i = 0, j; i < xoffs; i += 4) {
 					p = 0;
 					dptr = i;
