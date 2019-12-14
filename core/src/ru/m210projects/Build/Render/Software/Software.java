@@ -3484,13 +3484,13 @@ public abstract class Software extends Renderer {
 	private ByteBuffer rgbbuffer;
 
 	@Override
-	public ByteBuffer getFrame(PixelFormat format) {
-
+	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
+		if(ysiz < 0) ysiz *= -1;
 		if (format == PixelFormat.Pal8) {
 			if (indexbuffer != null)
 				indexbuffer.clear();
-			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
-				indexbuffer = BufferUtils.newByteBuffer(xdim * ydim);
+			if (indexbuffer == null || indexbuffer.capacity() < xsiz * ysiz)
+				indexbuffer = BufferUtils.newByteBuffer(xsiz * ysiz);
 
 			indexbuffer.put(frameplace);
 			indexbuffer.rewind();
@@ -3498,10 +3498,10 @@ public abstract class Software extends Renderer {
 		} else if (format == PixelFormat.Rgb) {
 			if (rgbbuffer != null)
 				rgbbuffer.clear();
-			if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3)
-				rgbbuffer = BufferUtils.newByteBuffer(xdim * ydim * 3);
+			if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * 3)
+				rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * 3);
 
-			for (int i = 0; i < xdim * ydim; i++) {
+			for (int i = 0; i < xsiz * ysiz; i++) {
 				int dacol = frameplace[i] & 0xFF;
 				rgbbuffer.put((byte) curpalette.getRed(dacol));
 				rgbbuffer.put((byte) curpalette.getGreen(dacol));

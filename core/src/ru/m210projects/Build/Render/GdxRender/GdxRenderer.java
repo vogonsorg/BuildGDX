@@ -184,7 +184,7 @@ public class GdxRenderer extends GLRenderer {
 	}
 
 	@Override
-	public ByteBuffer getFrame(PixelFormat format) {
+	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
 		// TODO Auto-generated method stub
 		return null;
 	}

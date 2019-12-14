@@ -3827,7 +3827,7 @@ public abstract class Engine {
 		try {
 			capture = new Pixmap(w, h, Format.RGB888);
 			ByteBuffer pixels = capture.getPixels();
-			pixels.put(render.getFrame(PixelFormat.Rgb));
+			pixels.put(render.getFrame(PixelFormat.Rgb, xdim, -ydim));
 
 			File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
 			PixmapIO.writePNG(new FileHandle(pci), capture);
@@ -3851,8 +3851,8 @@ public abstract class Engine {
 
 		ByteBuffer frame;
 		if(render.getType() == RenderType.Software) {
-			frame = render.getFrame(PixelFormat.Pal8);
-		} else frame = render.getFrame(PixelFormat.Rgb);
+			frame = render.getFrame(PixelFormat.Pal8, xdim, ydim);
+		} else frame = render.getFrame(PixelFormat.Rgb, xdim, -ydim);
 		
 		int base;
 		for (int fx, fy = 0; fy < dheigth; fy++) {
@@ -3888,14 +3888,17 @@ public abstract class Engine {
 		if (data == null || data.length < width * heigth ) 
 			data = new byte[width * heigth];
 		
-		ByteBuffer frame;
-		if(render.getType() == RenderType.Software) {
-			frame = render.getFrame(PixelFormat.Pal8);
-		} else frame = render.getFrame(PixelFormat.Rgb);
-
-		for (int x, y = heigth - 1; y >= 0; y--)
-			for (x = 0; x < width; x++) 
-				data[x * heigth + y] = getcol(frame, x + y * xdim, render.getType().getFrameType());
+		ByteBuffer frame = render.getFrame(PixelFormat.Pal8, width, heigth);
+		
+		int dptr = 0;
+		int sptr = 0;
+		for (int i = width - 1, j; i >= 0; i--) {
+			dptr = i;
+			for (j = 0; j < heigth; j++) {
+				data[dptr] = frame.get(sptr++);
+				dptr += width;
+			}
+		}
 
 		return data;
 	}

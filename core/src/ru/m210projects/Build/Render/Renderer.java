@@ -86,7 +86,7 @@ public abstract class Renderer extends ParamLinker {
 	
 	public abstract void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 
-	public abstract ByteBuffer getFrame(PixelFormat format);
+	public abstract ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz);
 	
 	public abstract void drawline256(int x1, int y1, int x2, int y2, int col);
 	
