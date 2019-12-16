@@ -17,6 +17,7 @@ import static ru.m210projects.Build.Engine.palookup;
 import java.nio.ByteBuffer;
 
 import ru.m210projects.Build.Render.Renderer.PixelFormat;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 public class ImageUtils {
@@ -83,7 +84,7 @@ public class ImageUtils {
 				}
 			}
 		}
-		if(type == PixelFormat.Rgb && data != null && hasalpha) 
+		if(type == PixelFormat.Rgb && data != null && hasalpha && !GLSettings.textureFilter.get().retro) 
 			fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
 
 		return new PicInfo(buffer, hasalpha);

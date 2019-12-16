@@ -22,6 +22,7 @@ import static com.badlogic.gdx.utils.SharedLibraryLoader.isMac;
 import static com.badlogic.gdx.utils.SharedLibraryLoader.isWindows;
 
 import java.io.File;
+import java.util.Set;
 
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -33,27 +34,36 @@ import ru.m210projects.Build.Architecture.BuildController;
 import ru.m210projects.Build.Input.BuildControllers;
 
 public class JControllers extends BuildControllers {
-	
+
 	private boolean load;
 
 	@Override
 	protected void getControllers(Array<BuildController> gamepads) {
 		load();
-		
+
 		Controller[] inputs = ControllerEnvironment.getDefaultEnvironment().getControllers();
-		
-		for(int i = 0; i < inputs.length; i++) {
+
+		for (int i = 0; i < inputs.length; i++) {
 			Controller.Type type = inputs[i].getType();
-			if (type == Controller.Type.STICK || 
-					type == Controller.Type.GAMEPAD || 
-					type == Controller.Type.WHEEL ||
-					type == Controller.Type.FINGERSTICK) 
-                gamepads.add(new JController(inputs[i]));
+			if (type == Controller.Type.STICK || type == Controller.Type.GAMEPAD || type == Controller.Type.WHEEL
+					|| type == Controller.Type.FINGERSTICK)
+				gamepads.add(new JController(inputs[i]));
+		}
+
+		if (gamepads.size == 0) {
+			final Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+			for (final Thread thread : threadSet) {
+				final String name = thread.getClass().getName();
+				if (name.equals("net.java.games.input.RawInputEventQueue$QueueThread")) {
+					thread.interrupt(); //disable useless thread
+				}
+			}
 		}
 	}
-	
+
 	private void load() {
-		if (load) return;
+		if (load)
+			return;
 
 		SharedLibraryLoader loader = new SharedLibraryLoader();
 		File nativesDir = null;
@@ -64,7 +74,8 @@ public class JControllers extends BuildControllers {
 			} else if (isMac) {
 				nativesDir = loader.extractFile("libjinput-osx.jnilib", null).getParentFile();
 			} else if (isLinux) {
-				nativesDir = loader.extractFile(is64Bit ? "libjinput-linux64.so" : "libjinput-linux.so", null).getParentFile();
+				nativesDir = loader.extractFile(is64Bit ? "libjinput-linux64.so" : "libjinput-linux.so", null)
+						.getParentFile();
 				loader.extractFileTo(is64Bit ? "libjinput-linux64.so" : "libjinput-linux.so", nativesDir);
 			}
 		} catch (Throwable ex) {

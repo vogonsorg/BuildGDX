@@ -78,7 +78,7 @@ public class UnsafeDirectBuffer extends UnsafeWriteBuffer {
 	
 	public UnsafeDirectBuffer fill(int len, byte value)
 	{
-		unsafe.setMemory(null, address, len, value);
+		unsafe.setMemory(address, len, value);
 		return this;
 	}
 

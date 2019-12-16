@@ -23,13 +23,14 @@ import com.badlogic.gdx.Gdx;
 public class GLFilter {
 	public String name;
 	public int min,mag;
-	public boolean mipmaps;
+	public boolean mipmaps, retro;
 	
 	public GLFilter(String name, int min, int mag) {
 		this.name = name;
 		this.min = min;
 		this.mag = mag;
 		this.mipmaps = (min >= GL_NEAREST_MIPMAP_NEAREST || mag >= GL_NEAREST_MIPMAP_NEAREST);
+		this.retro = min == GL_NEAREST && mag == GL_NEAREST;
 	}
 	
 	public void apply()

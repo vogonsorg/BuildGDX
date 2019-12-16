@@ -215,6 +215,7 @@ public class InitScreen extends ScreenAdapter {
 				}
 			}
 		});
+		thread.setName("InitEngine thread");
 	}
 
 	public void start()

@@ -350,7 +350,7 @@ public class TextureCache {
 			for (Pthtyp pth=cache[i]; pth != null; pth = pth.next) {
 				bindTexture(pth.glpic);
 				setupBoundTexture(filter, anisotropy);
-				if(filter.mipmaps)
+				if(!filter.retro)
 					pth.setInvalidated(true);
 			}
 		}

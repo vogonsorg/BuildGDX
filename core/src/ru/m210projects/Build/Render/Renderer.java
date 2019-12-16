@@ -26,7 +26,7 @@ import ru.m210projects.Build.Types.TileFont;
 public abstract class Renderer extends ParamLinker {
 	
 	public Renderer() {
-		this.params.add(new SliderItem<Integer>("Field of view", BuildSettings.fov, 60, 130, 5, null));
+		this.params.add(new SliderItem<Integer>("Field of view", BuildSettings.fov, 60, 140, 5, null));
 		this.params.add(new SwitchItem<Boolean>("Vsync", BuildSettings.vsync));
 		String[] limits = new String[BuildSettings.fpslimits.length];
 		for(int i = 0; i < limits.length; i++)

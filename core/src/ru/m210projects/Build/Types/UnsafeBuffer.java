@@ -27,7 +27,7 @@ public abstract class UnsafeBuffer {
 
 	protected static Unsafe unsafe;
 	protected static long BYTE_ARRAY_BASE_OFFSET;
-	private static int JAVA_VERSION;
+	protected static int JAVA_VERSION;
 	
 	protected int position;
 	protected long address;
