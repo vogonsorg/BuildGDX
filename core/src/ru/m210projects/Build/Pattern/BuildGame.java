@@ -261,7 +261,7 @@ public abstract class BuildGame extends Game {
 	public void ThrowError(String msg, Throwable ex) {
 		if(!release) {
 			ex.printStackTrace();
-			BuildGdx.app.exit();
+			System.exit(0);
 		} else {
 			String stack = stackTraceToString(ex);
 			Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
@@ -275,7 +275,8 @@ public abstract class BuildGame extends Game {
 					saveToFTP();
 			} catch (Exception e) {	
 			} finally {
-				BuildGdx.app.exit();
+				this.dispose();
+				System.exit(0);
 			}
 		}
 	}
@@ -295,7 +296,8 @@ public abstract class BuildGame extends Game {
 				saveToFTP();
 		} catch (Exception e) {
 		} finally {
-			BuildGdx.app.exit();
+			this.dispose();
+			System.exit(0);
 		}
 	}
 	

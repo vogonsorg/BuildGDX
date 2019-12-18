@@ -25,13 +25,13 @@ import java.io.File;
 import java.util.Set;
 
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.SharedLibraryLoader;
 
 import net.java.games.input.Controller;
 import net.java.games.input.ControllerEnvironment;
 import ru.m210projects.Build.Architecture.BuildController;
 import ru.m210projects.Build.Input.BuildControllers;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class JControllers extends BuildControllers {
 
@@ -79,9 +79,12 @@ public class JControllers extends BuildControllers {
 				loader.extractFileTo(is64Bit ? "libjinput-linux64.so" : "libjinput-linux.so", nativesDir);
 			}
 		} catch (Throwable ex) {
-			throw new GdxRuntimeException("Unable to extract JInput natives.", ex);
+			Console.Println("Unable to extract JInput natives.", Console.OSDTEXT_RED);
+			Console.Println(ex.getMessage(), Console.OSDTEXT_RED);
 		}
-		System.setProperty("net.java.games.input.librarypath", nativesDir.getAbsolutePath());
+		
+		if(nativesDir != null) //FreeBSD not supported
+			System.setProperty("net.java.games.input.librarypath", nativesDir.getAbsolutePath());
 		load = true;
 	}
 

@@ -13,10 +13,10 @@
 	<classpathentry kind="lib" path="libs/lwjgl-platform-2.9.3-natives-linux.jar"/>
 	<classpathentry kind="lib" path="libs/lwjgl-platform-2.9.3-natives-osx.jar"/>
 	<classpathentry kind="lib" path="libs/lwjgl-platform-2.9.3-natives-windows.jar"/>
-	<classpathentry kind="lib" path="libs/jinput-2.0.7.jar"/>
 	<classpathentry kind="lib" path="libs/jinput-platform-2.0.7-natives-all.jar"/>
 	<classpathentry kind="lib" path="libs/gdx-controllers-1.9.10.jar"/>
 	<classpathentry kind="lib" path="libs/jorbis.jar"/>
 	<classpathentry kind="lib" path="/BuildGDX-core/libs/gdx-1.9.10.jar"/>
+	<classpathentry kind="lib" path="libs/jinput-2.0.7.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

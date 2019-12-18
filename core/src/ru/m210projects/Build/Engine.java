@@ -63,6 +63,37 @@ import com.badlogic.gdx.graphics.PixmapIO;
 public abstract class Engine {
 	
 	/*
+	 * TODO:
+	 * Software renderer: and the draw distance for voxel detail is really low
+	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
+	 * Software renderer: Voxel is not clipped by ceiling geometry
+	 * 
+	 * osdrows в сохранения конфига
+	 * Туман зависит от разрешения экрана (Polymost)
+	 * History list for last used IP's (client could be better for multiplayer) or copy paste IP if possible.
+	 * brz фильтр 
+	 * broadcast
+	 * Some sort of anti-aliasing option. The NVidia control panel's anti-aliasing works, but it introduces artifacting on voxels.
+	 * бинд в консоль 
+	 * плохой перенос строк в консоли если строк больше 2х
+	 * оптимизировать Bsprintf
+	 * сохранения в папку (почему то не находит файл)
+	 * render: некоторые горизонтальные модели не там где надо под определенным
+	 * углом пропадает спрайт 2д карта подглюкивает вылазиют полигоны за скайбокс
+	 * потолок
+	 * floor-alignment voxels for maphack 
+	 * 
+	 * для шейдеров:
+	 * затенения уровня в далеке(туман)
+	 * прекэш вокселей - палитра
+	 * FadeScreen
+	 * Проверить HRP модели для шейдеров
+	 * Отключить GL туман для шейдеров
+	 * Отключить фильтрацию текстур для шейдеров
+	 * Не работают текстуры в userepisode
+	 * 
+	 * 
+	 * Architecture:
 	 * 	Engine
 	 * 		messages
 	 * 		filecache
@@ -3328,7 +3359,7 @@ public abstract class Engine {
 	}
 
 	public void setaspect_new() { //eduke32 aspect
-		if (BuildSettings.usenewaspect.get() && newaspect_enable != 0 && (xdim != 1280 || ydim != 1024)) {
+		if (BuildSettings.usenewaspect.get() && newaspect_enable != 0 && (4 * xdim / 5) != ydim) {
 			// the correction factor 100/107 has been found
 			// out experimentally. squares ftw!
 			int yx = (65536 * 4 * 100) / (3 * 107);

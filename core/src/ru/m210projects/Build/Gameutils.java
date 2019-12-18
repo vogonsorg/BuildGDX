@@ -108,9 +108,12 @@ public class Gameutils {
 	public static int coordsConvertXScaled(int coord, ConvertType type)
 	{
 		int oxdim = xdim;
-		int xdim = (4 * ydim) / 3;
-		int offset = oxdim - xdim;
 		
+		int xdim = (4 * ydim) / 3;
+		if(4 * oxdim / 5 == ydim) //1280 : 1024
+			xdim = (5 * ydim) / 4;
+		
+		int offset = oxdim - xdim;
 		int buildim = 320;
 		if(type == ConvertType.Stretch)
 			buildim = buildim * xdim / oxdim;

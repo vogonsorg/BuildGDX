@@ -38,7 +38,8 @@ public class ImageUtils {
 	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, PixelFormat type) {
 		UnsafeDirectBuffer buffer = getTmpBuffer();
 		buffer.clear();
-		if(data != null && tsizx * tsizy > data.length)
+
+		if(data != null && (tsizx * tsizy > data.length || data.length == 0))
 			data = null;
 		
 		boolean hasalpha = false;
