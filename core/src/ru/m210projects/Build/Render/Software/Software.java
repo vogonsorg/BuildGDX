@@ -3208,7 +3208,7 @@ public abstract class Software extends Renderer {
 				globalx3 = (int) (globalx2 >> 10);
 				globaly3 = (int) (globaly2 >> 10);
 				a.asm3 = mulscale(y2, globalzd, 16) + (globalzx >> 6);
-				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1);
+				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3, globaly3, slopalookup);
 
 				if ((x & 15) == 0)
 					engine.faketimerhandler();
@@ -3437,6 +3437,7 @@ public abstract class Software extends Renderer {
 	public void nextpage() {
 		byte[] dst = ((SoftFrame) BuildGdx.app.getFrame()).getFrame();
 		System.arraycopy(frameplace, 0, dst, 0, Math.min(frameplace.length, dst.length));
+		engine.faketimerhandler();
 	}
 
 	@Override
