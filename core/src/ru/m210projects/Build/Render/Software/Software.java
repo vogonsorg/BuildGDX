@@ -334,6 +334,8 @@ public abstract class Software extends Renderer {
 		for (i = spritesortcnt - 1; i >= 0; i--)
 			tspriteptr[i] = tsprite[i];
 		for (i = spritesortcnt - 1; i >= 0; i--) {
+			if(tspriteptr[i].picnum < 0 || tspriteptr[i].picnum > MAXTILES) continue;
+			
 			xs = tspriteptr[i].x - globalposx;
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
@@ -386,6 +388,8 @@ public abstract class Software extends Renderer {
 				for (k = i; k < j; k++) {
 					spritesz[k] = tspriteptr[k].z;
 					if ((tspriteptr[k].cstat & 48) != 32) {
+						if(tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES) continue;
+						
 						yoff = (int) ((byte) ((picanm[tspriteptr[k].picnum] >> 16) & 255)) + (tspriteptr[k].yoffset);
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
 						yspan = (tilesizy[tspriteptr[k].picnum] * tspriteptr[k].yrepeat << 2);
@@ -1001,7 +1005,10 @@ public abstract class Software extends Renderer {
 		Voxel vtilenum = null;
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
-
+		
+		if (tspr.owner < 0 || tspr.picnum < 0 || tspr.picnum >= MAXTILES || tspr.sectnum < 0)
+			return;
+		
 		if ((picanm[tilenum] & 192) != 0)
 			tilenum += engine.animateoffs(tilenum, spritenum + 32768);
 		if ((tilesizx[tilenum] <= 0) || (tilesizy[tilenum] <= 0) || (spritenum < 0))
@@ -2209,6 +2216,9 @@ public abstract class Software extends Renderer {
 					voxend = slabxoffs + shortptr[y + 1];
 
 					if (voxptr == voxend)
+						continue;
+					
+					if((ny + y1) < 0 || (ny + y2) < 0)
 						continue;
 
 					lx = mulscale(nx >> 3, distrecip[(ny + y1) >> 14], 32) + halfxdimen;
