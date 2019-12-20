@@ -1903,7 +1903,7 @@ public abstract class Polymost extends GLRenderer {
 		
 		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * (double)viewingrange) / (65536.0 * 65536.0);
 		drawalls_vv[0] = drawalls_dd[0]
-				* ((tilesizy[globalpicnum] >> 1) + (floor ? parallaxyoffs - tilesizy[globalpicnum] : parallaxyoffs))
+				* ((tilesizy[globalpicnum] >> 1) + ((floor && r_parallaxskypanning == 1) ? parallaxyoffs - tilesizy[globalpicnum] : parallaxyoffs))
 				- drawalls_vv[1] * ghoriz;
 		int i = (1 << (picsiz[globalpicnum] >> 4));
 		if (i != tilesizy[globalpicnum])
@@ -4541,7 +4541,6 @@ public abstract class Polymost extends GLRenderer {
 
 	@Override
 	public void nextpage() {
-		
 		if(this.getTexFormat() == PixelFormat.Pal8A)
 		{
 			if(frameTexture == null || framew != xdim || frameh != ydim)
@@ -4631,47 +4630,66 @@ public abstract class Polymost extends GLRenderer {
 	private ByteBuffer indexbuffer;
 	
 	@Override
-	public ByteBuffer getFrame(PixelFormat format) {
+	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
 		if (rgbbuffer != null) rgbbuffer.clear();
-		if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3 )
-			rgbbuffer = BufferUtils.newByteBuffer(xdim * ydim * 3);
+		
+		boolean reverse = false;
+		if(ysiz < 0)
+		{
+			ysiz *= -1;
+			reverse = true;
+		}
+		
+		if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * 3 )
+			rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * 3);
 
 		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
-		gl.glReadPixels(0, 0, xdim, ydim, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
-		
+		gl.glReadPixels(0, ydim - ysiz, xsiz, ysiz, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
+
 		if(format == PixelFormat.Rgb) {
-			int base1, base2, b1, b2;
-			byte tmp;
-			for (int p, b, a = 0; a < ydim / 2; a++) {
-				base1 = (ydim - a - 1) * xdim;
-				base2 = a * xdim;
-				for (b = 0; b < xdim; b++) {
-					b1 = 3 * (base1 + b);
-					b2 = 3 * (base2 + b);
-					for (p = 0; p < 3; p++) {
-						tmp = rgbbuffer.get(b1 + p);
-						rgbbuffer.put(b1 + p, rgbbuffer.get(b2 + p));
-						rgbbuffer.put(b2 + p, tmp);
+			if(reverse)
+			{
+				int b1, b2 = 0;
+				for (int p, x, y = 0; y < ysiz / 2; y++) {
+					b1 = 3 * (ysiz - y - 1) * xsiz;
+					for (x = 0; x < xsiz; x++) {
+						for (p = 0; p < 3; p++) {
+							byte tmp = rgbbuffer.get(b1 + p);
+							rgbbuffer.put(b1 + p, rgbbuffer.get(b2 + p));
+							rgbbuffer.put(b2 + p, tmp);
+						}
+						b1 += 3;
+						b2 += 3;
 					}
 				}
 			}
-
 			rgbbuffer.rewind();
 			return rgbbuffer;
 		} else if(format == PixelFormat.Pal8) {
 			if (indexbuffer != null) indexbuffer.clear();
-			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
-				indexbuffer = BufferUtils.newByteBuffer(xdim * ydim);
+			if (indexbuffer == null || indexbuffer.capacity() < xsiz * ysiz)
+				indexbuffer = BufferUtils.newByteBuffer(xsiz * ysiz);
 
-			int base, r, g, b;
-			for (int x, y = 0; y < ydim; y++) {
-				base = (ydim - y - 1) * xdim;
-				for (x = 0; x < xdim; x++) {
-					rgbbuffer.position(3 * (base + x));
-					r = (rgbbuffer.get() & 0xFF) >> 2;
-					g = (rgbbuffer.get() & 0xFF) >> 2;
-					b = (rgbbuffer.get() & 0xFF) >> 2;
-				
+			int base = 0, r, g, b;
+			if(reverse)
+			{
+				for (int x, y = 0; y < ysiz; y++) {
+					base = 3 * (ysiz - y - 1) * xsiz;
+					for (x = 0; x < xsiz; x++) {
+						r = (rgbbuffer.get(base++) & 0xFF) >> 2;
+						g = (rgbbuffer.get(base++) & 0xFF) >> 2;
+						b = (rgbbuffer.get(base++) & 0xFF) >> 2;
+						indexbuffer.put(engine.getclosestcol(palette, r, g, b));
+					}
+				}
+			}
+			else
+			{
+				for(int i = 0; i < indexbuffer.capacity(); i++)
+				{
+					r = (rgbbuffer.get(base++) & 0xFF) >> 2;
+					g = (rgbbuffer.get(base++) & 0xFF) >> 2;
+					b = (rgbbuffer.get(base++) & 0xFF) >> 2;
 					indexbuffer.put(engine.getclosestcol(palette, r, g, b));
 				}
 			}

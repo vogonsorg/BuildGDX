@@ -334,6 +334,8 @@ public abstract class Software extends Renderer {
 		for (i = spritesortcnt - 1; i >= 0; i--)
 			tspriteptr[i] = tsprite[i];
 		for (i = spritesortcnt - 1; i >= 0; i--) {
+			if(tspriteptr[i].picnum < 0 || tspriteptr[i].picnum > MAXTILES) continue;
+			
 			xs = tspriteptr[i].x - globalposx;
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
@@ -386,6 +388,8 @@ public abstract class Software extends Renderer {
 				for (k = i; k < j; k++) {
 					spritesz[k] = tspriteptr[k].z;
 					if ((tspriteptr[k].cstat & 48) != 32) {
+						if(tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES) continue;
+						
 						yoff = (int) ((byte) ((picanm[tspriteptr[k].picnum] >> 16) & 255)) + (tspriteptr[k].yoffset);
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
 						yspan = (tilesizy[tspriteptr[k].picnum] * tspriteptr[k].yrepeat << 2);
@@ -1001,7 +1005,10 @@ public abstract class Software extends Renderer {
 		Voxel vtilenum = null;
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
-
+		
+		if (tspr.owner < 0 || tspr.picnum < 0 || tspr.picnum >= MAXTILES || tspr.sectnum < 0)
+			return;
+		
 		if ((picanm[tilenum] & 192) != 0)
 			tilenum += engine.animateoffs(tilenum, spritenum + 32768);
 		if ((tilesizx[tilenum] <= 0) || (tilesizy[tilenum] <= 0) || (spritenum < 0))
@@ -2210,6 +2217,9 @@ public abstract class Software extends Renderer {
 
 					if (voxptr == voxend)
 						continue;
+					
+					if((ny + y1) < 0 || (ny + y2) < 0)
+						continue;
 
 					lx = mulscale(nx >> 3, distrecip[(ny + y1) >> 14], 32) + halfxdimen;
 					if (lx < 0)
@@ -3208,7 +3218,7 @@ public abstract class Software extends Renderer {
 				globalx3 = (int) (globalx2 >> 10);
 				globaly3 = (int) (globaly2 >> 10);
 				a.asm3 = mulscale(y2, globalzd, 16) + (globalzx >> 6);
-				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1);
+				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3, globaly3, slopalookup);
 
 				if ((x & 15) == 0)
 					engine.faketimerhandler();
@@ -3437,6 +3447,7 @@ public abstract class Software extends Renderer {
 	public void nextpage() {
 		byte[] dst = ((SoftFrame) BuildGdx.app.getFrame()).getFrame();
 		System.arraycopy(frameplace, 0, dst, 0, Math.min(frameplace.length, dst.length));
+		engine.faketimerhandler();
 	}
 
 	@Override
@@ -3484,13 +3495,13 @@ public abstract class Software extends Renderer {
 	private ByteBuffer rgbbuffer;
 
 	@Override
-	public ByteBuffer getFrame(PixelFormat format) {
-
+	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
+		if(ysiz < 0) ysiz *= -1;
 		if (format == PixelFormat.Pal8) {
 			if (indexbuffer != null)
 				indexbuffer.clear();
-			if (indexbuffer == null || indexbuffer.capacity() < xdim * ydim)
-				indexbuffer = BufferUtils.newByteBuffer(xdim * ydim);
+			if (indexbuffer == null || indexbuffer.capacity() < xsiz * ysiz)
+				indexbuffer = BufferUtils.newByteBuffer(xsiz * ysiz);
 
 			indexbuffer.put(frameplace);
 			indexbuffer.rewind();
@@ -3498,10 +3509,10 @@ public abstract class Software extends Renderer {
 		} else if (format == PixelFormat.Rgb) {
 			if (rgbbuffer != null)
 				rgbbuffer.clear();
-			if (rgbbuffer == null || rgbbuffer.capacity() < xdim * ydim * 3)
-				rgbbuffer = BufferUtils.newByteBuffer(xdim * ydim * 3);
+			if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * 3)
+				rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * 3);
 
-			for (int i = 0; i < xdim * ydim; i++) {
+			for (int i = 0; i < xsiz * ysiz; i++) {
 				int dacol = frameplace[i] & 0xFF;
 				rgbbuffer.put((byte) curpalette.getRed(dacol));
 				rgbbuffer.put((byte) curpalette.getGreen(dacol));

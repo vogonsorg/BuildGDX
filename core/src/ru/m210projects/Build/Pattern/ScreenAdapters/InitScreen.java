@@ -143,7 +143,7 @@ public class InitScreen extends ScreenAdapter {
 			System.exit(1);
 			return;
 		}
-		
+
 		BuildConfig cfg = game.pCfg;
 		game.pFonts = factory.fonts();
 		
@@ -215,6 +215,7 @@ public class InitScreen extends ScreenAdapter {
 				}
 			}
 		});
+		thread.setName("InitEngine thread");
 	}
 
 	public void start()

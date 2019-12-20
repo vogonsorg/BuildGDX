@@ -63,6 +63,37 @@ import com.badlogic.gdx.graphics.PixmapIO;
 public abstract class Engine {
 	
 	/*
+	 * TODO:
+	 * Software renderer: and the draw distance for voxel detail is really low
+	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
+	 * Software renderer: Voxel is not clipped by ceiling geometry
+	 * 
+	 * osdrows в сохранения конфига
+	 * Туман зависит от разрешения экрана (Polymost)
+	 * History list for last used IP's (client could be better for multiplayer) or copy paste IP if possible.
+	 * brz фильтр 
+	 * broadcast
+	 * Some sort of anti-aliasing option. The NVidia control panel's anti-aliasing works, but it introduces artifacting on voxels.
+	 * бинд в консоль 
+	 * плохой перенос строк в консоли если строк больше 2х
+	 * оптимизировать Bsprintf
+	 * сохранения в папку (почему то не находит файл)
+	 * render: некоторые горизонтальные модели не там где надо под определенным
+	 * углом пропадает спрайт 2д карта подглюкивает вылазиют полигоны за скайбокс
+	 * потолок
+	 * floor-alignment voxels for maphack 
+	 * 
+	 * для шейдеров:
+	 * затенения уровня в далеке(туман)
+	 * прекэш вокселей - палитра
+	 * FadeScreen
+	 * Проверить HRP модели для шейдеров
+	 * Отключить GL туман для шейдеров
+	 * Отключить фильтрацию текстур для шейдеров
+	 * Не работают текстуры в userepisode
+	 * 
+	 * 
+	 * Architecture:
 	 * 	Engine
 	 * 		messages
 	 * 		filecache
@@ -94,7 +125,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 	
-	public static final String version = "19.121"; //XX. - year, XX - month, X - build
+	public static final String version = "19.122"; //XX. - year, XX - month, X - build
 	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -1339,7 +1370,7 @@ public abstract class Engine {
 			}
 
 			if(m == null) {
-				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not support", OSDTEXT_YELLOW);
+				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not supported", OSDTEXT_YELLOW);
 				BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 				return false;
 			} else BuildGdx.graphics.setFullscreenMode(m);
@@ -3328,7 +3359,7 @@ public abstract class Engine {
 	}
 
 	public void setaspect_new() { //eduke32 aspect
-		if (BuildSettings.usenewaspect.get() && newaspect_enable != 0 && (xdim != 1280 || ydim != 1024)) {
+		if (BuildSettings.usenewaspect.get() && newaspect_enable != 0 && (4 * xdim / 5) != ydim) {
 			// the correction factor 100/107 has been found
 			// out experimentally. squares ftw!
 			int yx = (65536 * 4 * 100) / (3 * 107);
@@ -3827,7 +3858,7 @@ public abstract class Engine {
 		try {
 			capture = new Pixmap(w, h, Format.RGB888);
 			ByteBuffer pixels = capture.getPixels();
-			pixels.put(render.getFrame(PixelFormat.Rgb));
+			pixels.put(render.getFrame(PixelFormat.Rgb, xdim, -ydim));
 
 			File pci = new File(userdir.getAbsolutePath() + fn + a + b + c + d + ".png");
 			PixmapIO.writePNG(new FileHandle(pci), capture);
@@ -3851,8 +3882,8 @@ public abstract class Engine {
 
 		ByteBuffer frame;
 		if(render.getType() == RenderType.Software) {
-			frame = render.getFrame(PixelFormat.Pal8);
-		} else frame = render.getFrame(PixelFormat.Rgb);
+			frame = render.getFrame(PixelFormat.Pal8, xdim, ydim);
+		} else frame = render.getFrame(PixelFormat.Rgb, xdim, -ydim);
 		
 		int base;
 		for (int fx, fy = 0; fy < dheigth; fy++) {
@@ -3888,14 +3919,17 @@ public abstract class Engine {
 		if (data == null || data.length < width * heigth ) 
 			data = new byte[width * heigth];
 		
-		ByteBuffer frame;
-		if(render.getType() == RenderType.Software) {
-			frame = render.getFrame(PixelFormat.Pal8);
-		} else frame = render.getFrame(PixelFormat.Rgb);
-
-		for (int x, y = heigth - 1; y >= 0; y--)
-			for (x = 0; x < width; x++) 
-				data[x * heigth + y] = getcol(frame, x + y * xdim, render.getType().getFrameType());
+		ByteBuffer frame = render.getFrame(PixelFormat.Pal8, width, heigth);
+		
+		int dptr = 0;
+		int sptr = 0;
+		for (int i = width - 1, j; i >= 0; i--) {
+			dptr = i;
+			for (j = 0; j < heigth; j++) {
+				data[dptr] = frame.get(sptr++);
+				dptr += width;
+			}
+		}
 
 		return data;
 	}

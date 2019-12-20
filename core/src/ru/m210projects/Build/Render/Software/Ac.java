@@ -17,12 +17,12 @@ import static ru.m210projects.Build.Engine.*;
 public class Ac {
 	
 	private Software r;
-	private int index, ch;
 	private int transmode = 0;
 	private int gbxinc, gbyinc, glogx, glogy;
 	private int gpal, gshade;
 	private int bpl, gpinc, ghlinepal;
 	private byte[] gtrans, gbuf;
+	
 	public int asm1, asm2, asm3;
 	public int hlinepal, hlineshade;
 	
@@ -48,7 +48,7 @@ public class Ac {
 		try {
 			for(;cnt>=0;cnt--)
 			{
-				index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
+				int index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
 				r.frameplace[p] = palookup[ghlinepal][(gbuf[index] & 0xFF) + paloffs];
 				bx -= gbxinc;
 				by -= gbyinc;
@@ -64,20 +64,21 @@ public class Ac {
 		gbuf = bufplc; gpinc = pinc;
 	}
 	
-	public void slopevlin(int p, int pal, int slopaloffs, int cnt, int bx, int by)
+	public void slopevlin(int p, int pal, int slopaloffs, int cnt, int bx, int by, int x3, int y3, int[] slopalookup)
 	{
 		try {
 			int bz = asm3; 
 			int bzinc = (asm1>>3);
-			int u, v, i;
+			int u, v, i, index;
 			for(;cnt>0;cnt--)
 			{
-				i = r.krecipasm(bz>>6); bz += bzinc;
-				u = bx+r.globalx3*i;
-				v = by+r.globaly3*i;
+				i = r.krecipasm(bz>>6); 
+				bz += bzinc;
+				u = bx + x3 * i;
+				v = by + y3 * i;
 	
 				index = ((u>>>(32-glogx))<<glogy)+(v>>>(32-glogy));
-				r.frameplace[p] = palookup[pal][(gbuf[index] & 0xFF) + r.slopalookup[slopaloffs]];
+				r.frameplace[p] = palookup[pal][(gbuf[index] & 0xFF) + slopalookup[slopaloffs]];
 				slopaloffs--;
 				p += gpinc;
 			}
@@ -88,14 +89,11 @@ public class Ac {
 	public void setupvlineasm(int neglogy) { glogy = neglogy; }
 	public void vlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p)
 	{
-		gbuf = bufplc;
-		gpal = pal;
-		gshade = shade;
 		try {
 			for(;cnt>=0;cnt--)
 			{
-				index = bufoffs + (vplc >>> glogy);
-				r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
+				int index = bufoffs + (vplc >>> glogy);
+				r.frameplace[p] = palookup[pal][(bufplc[index] & 0xFF) + shade];
 				p += bpl;
 				vplc += vinc;
 			}
@@ -105,16 +103,12 @@ public class Ac {
 	public void setupmvlineasm(int neglogy) { glogy = neglogy; }
 	public void mvlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p)
 	{
-		gbuf = bufplc;
-		gpal = pal;
-		gshade = shade;
-
 		try {
 			for(;cnt>=0;cnt--)
 			{
-				index =  bufoffs + (vplc >>> glogy);
-				ch = gbuf[index] & 0xFF;
-				if (ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
+				int index =  bufoffs + (vplc >>> glogy);
+				int ch = bufplc[index] & 0xFF;
+				if (ch != 255) r.frameplace[p] = palookup[pal][ch + shade];
 				p += bpl;
 				vplc += vinc;
 			}
@@ -125,19 +119,15 @@ public class Ac {
 	public void tvlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p)
 	{
 		int dacol;
-		
-		gbuf = bufplc;
-		gpal = pal;
-		gshade = shade;
 		try {
 			if (transmode != 0)
 			{
 				for(;cnt>=0;cnt--)
 				{
-					index = bufoffs + (vplc >>> glogy);
-					ch = gbuf[index] & 0xFF;
+					int index = bufoffs + (vplc >>> glogy);
+					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						dacol = palookup[pal][ch + shade] & 0xFF;
 						r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
 					}
 					p += bpl;
@@ -148,10 +138,10 @@ public class Ac {
 			{
 				for(;cnt>=0;cnt--)
 				{
-					index = bufoffs + (vplc >>> glogy);
-					ch = gbuf[index] & 0xFF;
+					int index = bufoffs + (vplc >>> glogy);
+					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						dacol = palookup[pal][ch + shade] & 0xFF;
 						r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];
 					}
 					p += bpl;
@@ -165,15 +155,12 @@ public class Ac {
 	public void msethlineshift(int logx, int logy) { glogx = logx; glogy = logy; }
 	public void mhline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p)
 	{
-		gbuf = bufplc;
-		gpal = hlinepal;
-		gshade = hlineshade;
 		try {
 			for(cntup16>>=16;cntup16>0;cntup16--)
 			{
-				index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
-				ch = gbuf[index] & 0xFF;
-				if (ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
+				int index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
+				int ch = bufplc[index] & 0xFF;
+				if (ch != 255) r.frameplace[p] = palookup[hlinepal][ch + hlineshade];
 	
 				bx += asm1;
 				by += asm2;
@@ -186,19 +173,15 @@ public class Ac {
 	public void thline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p)
 	{
 		int dacol;
-		
-		gbuf = bufplc;
-		gpal = hlinepal;
-		gshade = hlineshade;
 		try {
 			if (transmode != 0)
 			{
 				for(cntup16>>=16;cntup16>0;cntup16--)
 				{
-					index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
-					ch = gbuf[index] & 0xFF;
+					int index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
+					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						dacol = palookup[hlinepal][ch + hlineshade] & 0xFF;
 						r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
 					}
 					bx += asm1;
@@ -210,10 +193,10 @@ public class Ac {
 			{
 				for(cntup16>>=16;cntup16>0;cntup16--)
 				{
-					index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
-					ch = gbuf[index] & 0xFF;
+					int index = ((bx>>>(32-glogx))<<glogy)+(by>>>(32-glogy));
+					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[gpal][ch + gshade] & 0xFF;
+						dacol = palookup[hlinepal][ch + hlineshade] & 0xFF;
 						r.frameplace[p] = gtrans[+((r.frameplace[p]&0xFF)<<8)+dacol];
 					}
 					bx += asm1;
@@ -237,11 +220,10 @@ public class Ac {
 	public void spritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p)
 	{
 		try {
-			gbuf = bufplc;
 			for(;cnt>1;cnt--)
 			{
-				index = bufoffs + (bx>>16)*glogy+(by>>16);
-				r.frameplace[p] = palookup[gpal][(gbuf[index] & 0xFF) + gshade];
+				int index = bufoffs + (bx>>16)*glogy+(by>>16);
+				r.frameplace[p] = palookup[gpal][(bufplc[index] & 0xFF) + gshade];
 				
 				bx += gbxinc;
 				by += gbyinc;
@@ -263,12 +245,11 @@ public class Ac {
 	public void mspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p)
 	{
 		try {
-			gbuf = bufplc;
 			for(;cnt>1;cnt--)
 			{
-				index = bufoffs + (bx>>16)*glogy+(by>>16);
+				int index = bufoffs + (bx>>16)*glogy+(by>>16);
 				
-				ch = gbuf[index] & 0xFF;
+				int ch = bufplc[index] & 0xFF;
 				if(ch != 255) r.frameplace[p] = palookup[gpal][ch + gshade];
 	
 				bx += gbxinc;
@@ -291,14 +272,13 @@ public class Ac {
 	{
 		
 		int dacol;
-		gbuf = bufplc;
 		try {
 			if (transmode != 0)
 			{
 				for(;cnt>1;cnt--)
 				{
-					index = bufoffs + (bx>>16)*glogy+(by>>16);
-					ch = gbuf[index] & 0xFF;
+					int index = bufoffs + (bx>>16)*glogy+(by>>16);
+					int ch = bufplc[index] & 0xFF;
 					if(ch != 255) {
 						dacol = palookup[gpal][ch + gshade] & 0xFF;
 						r.frameplace[p] = gtrans[(r.frameplace[p]&0xFF)+(dacol<<8)];
@@ -312,8 +292,8 @@ public class Ac {
 			{
 				for(;cnt>1;cnt--)
 				{
-					index = bufoffs + (bx>>16)*glogy+(by>>16);
-					ch = gbuf[index] & 0xFF;
+					int index = bufoffs + (bx>>16)*glogy+(by>>16);
+					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
 						dacol = palookup[gpal][ch + gshade] & 0xFF;
 						r.frameplace[p] = gtrans[((r.frameplace[p]&0xFF)<<8)+dacol];

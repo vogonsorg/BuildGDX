@@ -26,7 +26,7 @@ import ru.m210projects.Build.Types.TileFont;
 public abstract class Renderer extends ParamLinker {
 	
 	public Renderer() {
-		this.params.add(new SliderItem<Integer>("Field of view", BuildSettings.fov, 60, 130, 5, null));
+		this.params.add(new SliderItem<Integer>("Field of view", BuildSettings.fov, 60, 140, 5, null));
 		this.params.add(new SwitchItem<Boolean>("Vsync", BuildSettings.vsync));
 		String[] limits = new String[BuildSettings.fpslimits.length];
 		for(int i = 0; i < limits.length; i++)
@@ -86,7 +86,7 @@ public abstract class Renderer extends ParamLinker {
 	
 	public abstract void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 
-	public abstract ByteBuffer getFrame(PixelFormat format);
+	public abstract ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz);
 	
 	public abstract void drawline256(int x1, int y1, int x2, int y2, int col);
 	

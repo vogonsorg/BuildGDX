@@ -91,10 +91,6 @@ public class Polymost2D extends OrphoRenderer {
 
 	// Overhead map settings
 
-	public boolean fullmap, showredwalls, showspr, showflspr, allplrs, scrollmode;
-	public int redwallcol, whitewallcol, sprcol, viewindex;
-	public int[] plrsprites;
-
 	public Polymost2D(Polymost parent) {
 		this.parent = parent;
 		this.gl = parent.gl;
@@ -185,6 +181,20 @@ public class Polymost2D extends OrphoRenderer {
 							if ((sprite[i].cstat & (64 + 8)) == (64 + 8))
 								continue;
 
+							if (tsprite[sortnum] == null)
+								tsprite[sortnum] = new SPRITE();
+							tsprite[sortnum].set(sprite[i]);
+							tsprite[sortnum++].owner = (short) i;
+						}
+				}
+
+				if(showspr)
+				{
+					for (i = headspritesect[s]; i >= 0; i = nextspritesect[i])
+						if ((show2dsprite[i >> 3] & pow2char[i & 7]) != 0) {
+							if (sortnum >= MAXSPRITESONSCREEN)
+								continue;
+		
 							if (tsprite[sortnum] == null)
 								tsprite[sortnum] = new SPRITE();
 							tsprite[sortnum].set(sprite[i]);
@@ -299,7 +309,7 @@ public class Polymost2D extends OrphoRenderer {
 
 			for (s = sortnum - 1; s >= 0; s--) {
 				SPRITE spr = sprite[tsprite[s].owner];
-				if ((spr.cstat & 48) == 32) {
+				if ((spr.cstat & 32768) == 0) {
 					npoints = 0;
 
 					tilenum = spr.picnum;

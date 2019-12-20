@@ -71,12 +71,12 @@ public class LwjglAL implements ALAudio {
 
 	@Override
 	public boolean alIsSoftResamplerSupport() {
-		return false; //not support
+		return false; //not supported
 	}
 
 	@Override
 	public String alGetSoftResamplerName(int num) {
-		return "Not support";
+		return "Not supported";
 	}
 	
 	@Override
@@ -106,7 +106,7 @@ public class LwjglAL implements ALAudio {
 	}
 
 	@Override
-	public void setSourceSoftResampler(int sourceId, int value) { /* not support */ }
+	public void setSourceSoftResampler(int sourceId, int value) { /* not supported */ }
 
 	@Override
 	public void setSourceReverb(int sourceId, boolean enable, float delay) {

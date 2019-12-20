@@ -72,6 +72,13 @@ public class UnsafeDirectBuffer extends UnsafeWriteBuffer {
 		bb.clear();
 		position = 0;
 		limit = capacity;
+		
+		return this;
+	}
+	
+	public UnsafeDirectBuffer fill(int len, byte value)
+	{
+		unsafe.setMemory(address, len, value);
 		return this;
 	}
 

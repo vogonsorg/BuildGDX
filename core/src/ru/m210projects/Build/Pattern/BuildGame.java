@@ -16,6 +16,7 @@
 
 package ru.m210projects.Build.Pattern;
 
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Strhandler.toLowerCase;
 import static ru.m210projects.Build.Net.Mmulti.myconnectindex;
 import static ru.m210projects.Build.Net.Mmulti.numplayers;
@@ -41,6 +42,7 @@ import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
 import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.Tools.Interpolation;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
+import ru.m210projects.Build.Render.Renderer.RenderType;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -261,7 +263,7 @@ public abstract class BuildGame extends Game {
 	public void ThrowError(String msg, Throwable ex) {
 		if(!release) {
 			ex.printStackTrace();
-			BuildGdx.app.exit();
+			System.exit(0);
 		} else {
 			String stack = stackTraceToString(ex);
 			Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
@@ -275,7 +277,8 @@ public abstract class BuildGame extends Game {
 					saveToFTP();
 			} catch (Exception e) {	
 			} finally {
-				BuildGdx.app.exit();
+				this.dispose();
+				System.exit(0);
 			}
 		}
 	}
@@ -295,7 +298,8 @@ public abstract class BuildGame extends Game {
 				saveToFTP();
 		} catch (Exception e) {
 		} finally {
-			BuildGdx.app.exit();
+			this.dispose();
+			System.exit(0);
 		}
 	}
 	
@@ -353,8 +357,14 @@ public abstract class BuildGame extends Game {
 			text += "Screen: " + getScrName() + "\r\n";
 			if(gPrevScreen != null)
 				text += "PrevScreen: " + gPrevScreen.getClass().getSimpleName() + "\r\n";
-			if(pEngine.getrender() != null)
+			if(pEngine.getrender() != null) {
 				text += "Renderer: " + pEngine.getrender().getType().getName() + "\r\n";
+				if(pEngine.getrender().getType() == RenderType.Software)
+				{
+					text += "	xdim: " + xdim + "\r\n";
+					text += "	ydim: " + ydim + "\r\n";
+				}
+			}
 			
 			os.write(text.getBytes());
 			try {
