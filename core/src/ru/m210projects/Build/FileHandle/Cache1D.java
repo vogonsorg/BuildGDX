@@ -76,6 +76,14 @@ public class Cache1D {
 		return null;
 	}
 	
+	public Group add(Group res)
+	{
+		if(res != null && res.numfiles != 0)
+			groupfil.add(res);
+		
+		return res;
+	}
+	
 	public UserGroup add(String name, boolean dynamic)
 	{
 		UserGroup group = new UserGroup(compat);

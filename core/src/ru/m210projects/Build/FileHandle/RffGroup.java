@@ -73,7 +73,7 @@ public class RffGroup extends Group {
 		        	case Current: pos += offset; break;
 		        	case End: pos = size + (int) offset;  break;
 		        }
-				file.seek(pos, Whence.Set);
+				file.seek(offset + pos, Whence.Set);
 		        return pos;
 			}
 		}

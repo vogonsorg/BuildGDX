@@ -74,7 +74,7 @@ public class GrpGroup extends Group {
 		        	case Current: pos += offset; break;
 		        	case End: pos = size + (int) offset;  break;
 		        }
-				file.seek(pos, Whence.Set);
+				file.seek(this.offset + pos, Whence.Set);
 		        return pos;
 			}
 		}

@@ -64,6 +64,8 @@ public abstract class Engine {
 	
 	/*
 	 * TODO:
+	 * Сбрасываются звуки voices если поставить 256 в настройках
+	 * Вставить credits в res.dat
 	 * Software renderer: and the draw distance for voxel detail is really low
 	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
 	 * Software renderer: Voxel is not clipped by ceiling geometry
@@ -91,6 +93,11 @@ public abstract class Engine {
 	 * Отключить GL туман для шейдеров
 	 * Отключить фильтрацию текстур для шейдеров
 	 * Не работают текстуры в userepisode
+	 * 
+	 * GameAdapter TODO:
+	 * SaveManager findSaves()
+	 * kOpen external file -> native bytebuffer (read only)
+	 * Launcher start parameters
 	 * 
 	 * 
 	 * Architecture:
@@ -328,10 +335,10 @@ public abstract class Engine {
 	public static Resource artfil = null;
 	public int artfilnum;
 	public int artfilplc;
-	private int[] tilefilenum;
-	private int[] tilefileoffs;
-	private int artversion;
-	private int mapversion;
+	protected int[] tilefilenum;
+	protected int[] tilefileoffs;
+	protected int artversion;
+	protected int mapversion;
 	protected long totalclocklock;
 	protected short[] sqrtable;
 	protected short[] shlookup;

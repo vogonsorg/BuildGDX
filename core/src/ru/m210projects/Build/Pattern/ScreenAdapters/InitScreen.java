@@ -136,8 +136,6 @@ public class InitScreen extends ScreenAdapter {
 		
 		Console.setFunction(factory.console());
 
-		engine.loadpics();
-		
 		if(engine.loadpics() == 0) {
 			BuildGdx.message.show("Build Engine Initialization Error!", "ART files not found " + new File(Path.Game.getPath() + engine.tilesPath).getAbsolutePath(), MessageType.Info);
 			System.exit(1);

@@ -50,18 +50,6 @@ import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.MemLog;
 
 public abstract class BuildGame extends Game {
-	
-	/*
-	 * OpenAL dispose method fixed for Linux
-	 * OpenAL init driver tweak
-	 *
-	 * TODO:
-	 * SaveManager findSaves()
-	 * VideoList refactoring
-	 * texture.bind(0) need fix (detail textures)
-	 * kOpen external file -> native bytebuffer (read only)
-	 * Launcher parameter for start
-	 */
 
 	public final String appname;
 	public final String sversion;
