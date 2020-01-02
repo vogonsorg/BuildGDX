@@ -1,4 +1,20 @@
-package ru.m210projects.Build.desktop.software;
+// This file has been modified from LibGDX's original release
+// by Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+// BuildGDX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// BuildGDX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
+package ru.m210projects.Build.desktop.AWT;
 
 import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
@@ -29,11 +45,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.Pool;
 
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
+import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildInput;
-import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 
-public class SoftInput implements BuildInput, KeyListener {
+public class AWTInput implements BuildInput, KeyListener {
 	class KeyEvent {
 		static final int KEY_DOWN = 0;
 		static final int KEY_UP = 1;
@@ -66,6 +83,8 @@ public class SoftInput implements BuildInput, KeyListener {
 			return new KeyEvent();
 		}
 	};
+	
+	protected BuildFrame frame;
 
 	List<KeyEvent> keyEvents = new ArrayList<KeyEvent>();
 	int keyCount = 0;
@@ -78,7 +97,6 @@ public class SoftInput implements BuildInput, KeyListener {
 
 	MouseInterface mouse;
 	long currentEventTimeStamp;
-	JDisplay display;
 
 	protected void reset()
 	{
@@ -91,7 +109,7 @@ public class SoftInput implements BuildInput, KeyListener {
 	}
 
 	public void update() {
-		if(!display.isActive())
+		if(!frame.isActive())
 			reset();
 	
 		synchronized (this) {
@@ -142,15 +160,17 @@ public class SoftInput implements BuildInput, KeyListener {
 		}
 	}
 	
-	public void init(JDisplay display)
+	public void init(BuildFrame frame)
 	{
-		this.display = display;
-
-		try {
-			if(display.getHwnd() != -1 && BuildGdx.app.getPlatform() == Platform.Windows) //if LwjglNativesLoader is loaded
+		this.frame = frame;
+		JDisplay display = ((AWTGraphics) frame.getGraphics()).display;
+		
+		if(BuildGdx.app.getPlatform() == Platform.Windows) {
+			try {
 				this.mouse = new LwjglMouse(display);
-		} catch (Exception e) {
-			e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		if(this.mouse == null)
@@ -712,7 +732,7 @@ public class SoftInput implements BuildInput, KeyListener {
 
 	@Override
 	public void setCursorPosition (int x, int y) {
-		if(!isInsideWindow() || !display.isActive()) 
+		if(!isInsideWindow() || !frame.isActive()) 
 			return;
 		
 		mouse.setCursorPosition(x, y);
@@ -747,10 +767,10 @@ public class SoftInput implements BuildInput, KeyListener {
 
 	@Override
 	public boolean cursorHandler() {
-		if (isInsideWindow() && display.isActive())
+		if (isInsideWindow() && frame.isActive())
 			mouse.showCursor(false);
 		else {
-			if(display.isActive())
+			if(frame.isActive())
 				mouse.reset();
 			mouse.showCursor(true);
 		}
@@ -794,5 +814,9 @@ public class SoftInput implements BuildInput, KeyListener {
 
 	@Override
 	public void setCatchKey(int arg0, boolean arg1) {
+	}
+
+	@Override
+	public void dispose() {
 	}
 }

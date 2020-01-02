@@ -77,9 +77,11 @@ public class MenuTextField extends MenuItem {
 
 				if(BuildGdx.input.isKeyPressed(Keys.CONTROL_LEFT) && ch == Keys.V)
 				{
-					String content = BuildGdx.app.getClipboard().getContents();
-					for(int i = 0; i < content.length(); i++)
-						type(content.charAt(i), charFlag);
+					if(BuildGdx.app.getClipboard() != null) {
+						String content = BuildGdx.app.getClipboard().getContents();
+						for(int i = 0; i < content.length(); i++)
+							type(content.charAt(i), charFlag);
+					}
 					return 0;
 				}
 

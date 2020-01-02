@@ -13,8 +13,8 @@ import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildNet;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
@@ -140,8 +140,8 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 	
 	@Override
 	public void pause () {
-		if (BuildGdx.app.getFrameType() == FrameType.GL)
-			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+		if (BuildGdx.graphics.getFrameType() == FrameType.GL) 
+			BuildGdx.graphics.extra(Option.GLDefConfiguration);
 	}
 
 	@Override

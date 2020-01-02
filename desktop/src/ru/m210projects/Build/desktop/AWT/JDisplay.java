@@ -14,9 +14,9 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.desktop.software;
+package ru.m210projects.Build.desktop.AWT;
 
-import java.awt.Canvas;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.DisplayMode;
@@ -26,33 +26,20 @@ import java.awt.Image;
 import java.awt.MouseInfo;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.swing.JFrame;
 
-import org.lwjgl.opengl.Display;
-
-import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
-
-import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.BuildApplication.Platform;
-
 public class JDisplay extends WindowAdapter
 {
 	protected final JFrame m_frame;
-	protected final JCanvas canvas;
-	protected boolean isCloseRequested = false;
-	protected boolean isFocus, isActive;
-	protected final GraphicsDevice device;
-	protected boolean isFullscreen;
-	protected boolean wasResized;
-	protected boolean undecorated;
-
-	protected Object displayImpl;
-	protected long handle;
-	public static final boolean IS_WINDOWS = BuildGdx.app.getPlatform() == Platform.Windows;
+	private final JCanvas canvas;
+	private boolean isCloseRequested = false;
+	private boolean isFocus, isActive;
+	private final GraphicsDevice device;
+	private boolean isFullscreen;
+	private boolean wasResized;
+	private boolean undecorated;
 
 	public JDisplay(int width, int height, boolean undecorated)
 	{
@@ -60,33 +47,14 @@ public class JDisplay extends WindowAdapter
 
 		this.canvas = new JCanvas(width, height);
 		this.m_frame = buildFrame(undecorated);
-		
-		try {
-			LwjglNativesLoader.load(); //This also needs for Pixmap working
-	
-			Method getImplementation = Display.class.getDeclaredMethod("getImplementation");
-			getImplementation.setAccessible(true);
-			displayImpl = getImplementation.invoke(null, (Object[])null);
-		} catch (Exception e) {
-			handle = -1;
-			e.printStackTrace();
-		}
-
 		updateSize(width, height);
-		
-		setWindowHandle();
-
 		this.isFullscreen = false;
 	}
 	
-	public long getHwnd()
+	private Runnable rebuildCallback;
+	protected void setRebuildCallback(Runnable handleCallback)
 	{
-		return handle;
-	}
-	
-	public Object getImpl()
-	{
-		return displayImpl;
+		this.rebuildCallback = handleCallback;
 	}
 
 	public DisplayMode[] getDisplayModes()
@@ -112,6 +80,18 @@ public class JDisplay extends WindowAdapter
 	{
 		m_frame.setVisible(false);
 		m_frame.dispose();
+	}
+	
+	protected void update() {
+		canvas.repaint();
+	}
+	
+	public int getWidth() {
+		return canvas.getWidth();
+	}
+
+	public int getHeight() {
+		return canvas.getHeight();
 	}
 	
 	public boolean isCloseRequested() {
@@ -203,7 +183,7 @@ public class JDisplay extends WindowAdapter
 		return out;
 	}
 	
-	public JCanvas getCanvas()
+	protected JCanvas getCanvas()
 	{
 		return canvas;
 	}
@@ -232,7 +212,8 @@ public class JDisplay extends WindowAdapter
 		m_frame.setUndecorated(undecorated);
 		m_frame.setVisible(true);
 		
-		setWindowHandle();
+		if(rebuildCallback != null)
+			rebuildCallback.run();
 	}
 	
 	public void setResizable(boolean resizable) {
@@ -278,31 +259,4 @@ public class JDisplay extends WindowAdapter
     public void windowLostFocus(WindowEvent e) {
     	isFocus = false;
     }
-	
-	private void setImplementVariable(String name, Object value) throws Exception
-	{
-		Field field = displayImpl.getClass().getDeclaredField(name);
-		field.setAccessible(true);
-		field.set(displayImpl, value);
-	}
-
-	private void setWindowHandle()
-	{
-		try {
-			handle = getWindowHandle(getCanvas());
-			setImplementVariable(IS_WINDOWS ? "hwnd" : "parent_window", handle);
-		} catch (Exception e) { e.printStackTrace(); };
-	}
-	
-	private long getWindowHandle(Canvas canvas) throws Exception {
-		boolean IS_MAC = System.getProperty("os.name").toLowerCase().contains("mac");
-		
-		if (IS_MAC)
-			return 0;
-
-		Method gethwnd = displayImpl.getClass().getDeclaredMethod(IS_WINDOWS ? "getHwnd" : "getHandle", Canvas.class);
-		gethwnd.setAccessible(true);
-
-		return (Long) gethwnd.invoke(displayImpl, canvas);
-	}
 }

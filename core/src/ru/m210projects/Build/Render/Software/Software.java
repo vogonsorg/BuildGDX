@@ -92,8 +92,9 @@ import java.util.Arrays;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.SoftFrame;
+import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Renderer;
@@ -3440,13 +3441,12 @@ public abstract class Software extends Renderer {
 
 	@Override
 	public void clearview(int dacol) {
-		Arrays.fill(frameplace, (byte) dacol);
+		Gameutils.fill(frameplace, dacol);
 	}
 
 	@Override
 	public void nextpage() {
-		byte[] dst = ((SoftFrame) BuildGdx.app.getFrame()).getFrame();
-		System.arraycopy(frameplace, 0, dst, 0, Math.min(frameplace.length, dst.length));
+		System.arraycopy(frameplace, 0, BuildGdx.graphics.extra(Option.SWGetFrame), 0, frameplace.length); //Math.min(frameplace.length, dst.length)
 		engine.faketimerhandler();
 	}
 
@@ -3572,7 +3572,7 @@ public abstract class Software extends Renderer {
 	}
 
 	public void changepalette(byte[] palette) {
-		((SoftFrame) BuildGdx.app.getFrame()).changepalette(palette);
+		BuildGdx.graphics.extra(Option.SWChangePalette, palette);
 	}
 
 	private void scansector(short sectnum) {

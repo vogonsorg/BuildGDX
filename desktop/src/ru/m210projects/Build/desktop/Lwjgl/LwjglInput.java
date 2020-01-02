@@ -1,5 +1,3 @@
-package ru.m210projects.Build.desktop.gl;
-
 /*******************************************************************************
  * Copyright 2011 See AUTHORS file.
  * 
@@ -16,7 +14,7 @@ package ru.m210projects.Build.desktop.gl;
  * limitations under the License.
  ******************************************************************************/
 
-import static ru.m210projects.Build.Input.Keymap.*;
+package ru.m210projects.Build.desktop.Lwjgl;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -49,16 +47,17 @@ import org.lwjgl.opengl.Display;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.backends.lwjgl.LwjglInput;
 import com.badlogic.gdx.utils.Pool;
 
+import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildInput;
 
 /** An implementation of the {@link Input} interface hooking a LWJGL panel for input.
  * 
  * @author mzechner */
-public class GLInput implements BuildInput {
+public class LwjglInput implements BuildInput {
 	
+	protected BuildFrame frame;
 	protected Cursor emptyCursor;
 	protected Cursor defCursor = Mouse.getNativeCursor();
 	
@@ -95,10 +94,13 @@ public class GLInput implements BuildInput {
 		}
 	};
 
-	public GLInput() {
+	public LwjglInput() {
 		Keyboard.enableRepeatEvents(false);
 		Mouse.setClipMouseCoordinatesToWindow(false);
 	}
+	
+	@Override
+	public void init(BuildFrame frame) { this.frame = frame; }
 
 	public float getAccelerometerX () {
 		return 0;
@@ -390,31 +392,31 @@ public class GLInput implements BuildInput {
 	
 	protected int getGdxKeyCode(int eventKey) {
 		switch (eventKey) {
-		case Keyboard.KEY_PAUSE:
-			return KEY_PAUSE;
-		case Keyboard.KEY_CAPITAL:
-			return KEY_CAPSLOCK;
-		case Keyboard.KEY_SCROLL:
-			return KEY_SCROLLOCK;
-		case Keyboard.KEY_DECIMAL:
-			return KEY_NUMDECIMAL;
+//		case Keyboard.KEY_PAUSE:
+//			return KEY_PAUSE;
+//		case Keyboard.KEY_CAPITAL:
+//			return KEY_CAPSLOCK;
+//		case Keyboard.KEY_SCROLL:
+//			return KEY_SCROLLOCK;
+//		case Keyboard.KEY_DECIMAL:
+//			return KEY_NUMDECIMAL;
 		default:
-			return LwjglInput.getGdxKeyCode(eventKey);
+			return com.badlogic.gdx.backends.lwjgl.LwjglInput.getGdxKeyCode(eventKey);
 		}
 	}
 
 	protected int getLwjglKeyCode (int gdxKeyCode) { 
 		switch (gdxKeyCode) {
-		case KEY_PAUSE:
-			return Keyboard.KEY_PAUSE;
-		case KEY_CAPSLOCK:
-			return Keyboard.KEY_CAPITAL;
-		case KEY_SCROLLOCK:
-			return Keyboard.KEY_SCROLL;
-		case KEY_NUMDECIMAL:
-			return Keyboard.KEY_DECIMAL;
+//		case KEY_PAUSE:
+//			return Keyboard.KEY_PAUSE;
+//		case KEY_CAPSLOCK:
+//			return Keyboard.KEY_CAPITAL;
+//		case KEY_SCROLLOCK:
+//			return Keyboard.KEY_SCROLL;
+//		case KEY_NUMDECIMAL:
+//			return Keyboard.KEY_DECIMAL;
 		default:
-			return LwjglInput.getLwjglKeyCode(gdxKeyCode);
+			return com.badlogic.gdx.backends.lwjgl.LwjglInput.getLwjglKeyCode(gdxKeyCode);
 		}
 	}
 	
@@ -647,8 +649,7 @@ public class GLInput implements BuildInput {
 
 	@Override
 	public boolean isPeripheralAvailable (Peripheral peripheral) {
-		if (peripheral == Peripheral.HardwareKeyboard) return true;
-		return false;
+		return peripheral == Peripheral.HardwareKeyboard;
 	}
 
 	@Override
@@ -759,5 +760,9 @@ public class GLInput implements BuildInput {
 		int scrollAmount;
 		int button;
 		int pointer;
+	}
+
+	@Override
+	public void dispose() {
 	}
 }

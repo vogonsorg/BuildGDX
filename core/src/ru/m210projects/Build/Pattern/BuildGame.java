@@ -33,9 +33,9 @@ import com.badlogic.gdx.Screen;
 
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.FileHandle.Compat.Path;
-import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
@@ -151,8 +151,8 @@ public abstract class BuildGame extends Game {
 	}
 	
 	public void updateColorCorrection() {
-		if (BuildGdx.app.getFrameType() == FrameType.GL) {
-			((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(1 - (GLSettings.gamma.get() / 4096.0f), GLSettings.brightness.get() / 4096.0f, GLSettings.contrast.get() / 4096.0f);
+		if (BuildGdx.graphics.getFrameType() == FrameType.GL) {
+			BuildGdx.graphics.extra(Option.GLSetConfiguration, 1 - (GLSettings.gamma.get() / 4096.0f), GLSettings.brightness.get() / 4096.0f, GLSettings.contrast.get() / 4096.0f);
 		}
 	}
 	
