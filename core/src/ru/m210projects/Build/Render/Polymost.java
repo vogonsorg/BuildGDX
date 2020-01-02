@@ -61,7 +61,6 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -343,7 +342,7 @@ public abstract class Polymost extends GLRenderer {
 		Arrays.fill(spritewall, -1);
 		
 		this.polymost2d = new Polymost2D(this);
-		Console.Println(Gdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION) + " initialized", OSDTEXT_GOLD);
+		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION) + " initialized", OSDTEXT_GOLD);
 	}
 	
 	@Override
@@ -500,7 +499,7 @@ public abstract class Polymost extends GLRenderer {
 
 		polymost2d.init();
 
-		if (Gdx.graphics.getGLVersion().getVendorString().compareTo("NVIDIA Corporation") == 0) {
+		if (BuildGdx.graphics.getGLVersion().getVendorString().compareTo("NVIDIA Corporation") == 0) {
 			gl.glHint(GL_FOG_HINT, GL_NICEST);
 		} else {
 			gl.glHint(GL_FOG_HINT, GL_DONT_CARE);

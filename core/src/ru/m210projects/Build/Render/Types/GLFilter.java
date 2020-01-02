@@ -18,7 +18,7 @@ package ru.m210projects.Build.Render.Types;
 
 import static com.badlogic.gdx.graphics.GL20.*;
 
-import com.badlogic.gdx.Gdx;
+import ru.m210projects.Build.Architecture.BuildGdx;
 
 public class GLFilter {
 	public String name;
@@ -35,7 +35,7 @@ public class GLFilter {
 	
 	public void apply()
 	{
-		Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this.mag);
-		Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this.min);
+		BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this.mag);
+		BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this.min);
 	}
 }
