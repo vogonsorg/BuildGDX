@@ -38,7 +38,8 @@ public abstract class GLRenderer extends Renderer {
 	
 	public GLRenderer()
 	{
-		BuildGdx.app.setFrame(FrameType.GL);
+		if(BuildGdx.graphics.getFrameType() != FrameType.GL)
+			BuildGdx.app.setFrame(FrameType.GL);
 		GLInfo.init();
 		
 		this.params.add(0, new SliderItem<Integer>("Gamma", BuildSettings.paletteGamma, 0, 15, 1, null) {

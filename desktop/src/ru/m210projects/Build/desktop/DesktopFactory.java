@@ -18,6 +18,8 @@ package ru.m210projects.Build.desktop;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Files;
+import com.badlogic.gdx.Graphics.DisplayMode;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglClipboard;
 import com.badlogic.gdx.backends.lwjgl.LwjglFiles;
 import com.badlogic.gdx.utils.Clipboard;
@@ -115,6 +117,16 @@ public class DesktopFactory implements ApplicationFactory {
 	@Override
 	public Clipboard getClipboard() {
 		return new LwjglClipboard();
+	}
+
+	@Override
+	public DisplayMode[] getDisplayModes() {
+		return LwjglApplicationConfiguration.getDisplayModes();
+	}
+
+	@Override
+	public DisplayMode getDesktopDisplayMode() {
+		return LwjglApplicationConfiguration.getDesktopDisplayMode();
 	}
 
 }
