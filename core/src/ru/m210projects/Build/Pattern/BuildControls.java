@@ -69,7 +69,7 @@ public abstract class BuildControls {
 	
 	public void resetMousePos()
 	{
-		if(BuildGdx.app.getFrame().isActive())
+		if(BuildGdx.app.isActive())
 			BuildGdx.input.setCursorPosition(xdim / 2, ydim / 2);
 		oldPosX = xdim / 2;
 		oldPosY = ydim / 2;

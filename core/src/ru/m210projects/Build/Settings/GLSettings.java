@@ -6,11 +6,9 @@ import static com.badlogic.gdx.graphics.GL20.GL_NEAREST;
 import static ru.m210projects.Build.Engine.pow2long;
 import static ru.m210projects.Build.OnSceenDisplay.Console.osd_argv;
 
-import com.badlogic.gdx.Gdx;
-
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.GLFrame;
+import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
@@ -44,7 +42,7 @@ public class GLSettings extends BuildSettings {
 		textureFilter = new BuildVariable<GLFilter>(cfg.glfilter < glfiltermodes.length ? glfiltermodes[cfg.glfilter] : glfiltermodes[0], "Changes the texture filtering settings") {
 			@Override
 			public void execute(GLFilter value) {
-				Gdx.app.postRunnable(new Runnable() { //it must be started at GLthread
+				BuildGdx.app.postRunnable(new Runnable() { //it must be started at GLthread
 					@Override
 					public void run() {
 						GLRenderer gl = engine.glrender();
@@ -71,7 +69,7 @@ public class GLSettings extends BuildSettings {
 		textureAnisotropy = new BuildVariable<Integer>(1, "Changes the texture anisotropy settings") {
 			@Override
 			public void execute(final Integer value) { 
-				Gdx.app.postRunnable(new Runnable() { //it must be started at GLthread
+				BuildGdx.app.postRunnable(new Runnable() { //it must be started at GLthread
 					@Override
 					public void run() {
 						GLRenderer gl = engine.glrender();
@@ -127,7 +125,7 @@ public class GLSettings extends BuildSettings {
 		useHighTile = new BooleanVar(true, "Use true color textures from high resolution pack") {
 			@Override
 			public void execute(Boolean value) {
-				Gdx.app.postRunnable(new Runnable() { //it must be started at GLthread
+				BuildGdx.app.postRunnable(new Runnable() { //it must be started at GLthread
 					@Override
 					public void run() {
 						GLRenderer gl = engine.glrender();
@@ -150,7 +148,7 @@ public class GLSettings extends BuildSettings {
 			protected Integer check(Object value) {
 				if(value instanceof Integer) {
 					float gamma = (Integer) value / 4096.0f;
-					if (engine.glrender() == null || ((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(1 - gamma, cfg.fbrightness, cfg.fcontrast))
+					if (engine.glrender() == null || (Boolean) BuildGdx.graphics.extra(Option.GLSetConfiguration, 1 - gamma, cfg.fbrightness, cfg.fcontrast))
 						return (Integer) value;
 				}
 				return null;
@@ -167,7 +165,7 @@ public class GLSettings extends BuildSettings {
 			protected Integer check(Object value) {
 				if(value instanceof Integer) {
 					float brightness = (Integer) value / 4096.0f;
-					if (engine.glrender() == null || ((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.fgamma, brightness, cfg.fcontrast))
+					if (engine.glrender() == null || (Boolean) BuildGdx.graphics.extra(Option.GLSetConfiguration, cfg.fgamma, brightness, cfg.fcontrast))
 						return (Integer) value;
 				}
 				return null;
@@ -184,7 +182,7 @@ public class GLSettings extends BuildSettings {
 			protected Integer check(Object value) {
 				if(value instanceof Integer) {
 					float contrast = (Integer) value / 4096.0f;
-					if (engine.glrender() == null || ((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(cfg.fgamma, cfg.fbrightness, contrast))
+					if (engine.glrender() == null || (Boolean) BuildGdx.graphics.extra(Option.GLSetConfiguration, cfg.fgamma, cfg.fbrightness, contrast))
 						return (Integer) value;
 				}
 				return null;

@@ -31,7 +31,7 @@ public class GdxControllers extends BuildControllers {
 	protected void getControllers(Array<BuildController> gamepads) {
 		Array<Controller> controllers = null;
 
-		if(BuildGdx.app.getFrameType() != FrameType.Canvas) {
+		if(BuildGdx.graphics.getFrameType() != FrameType.Canvas) {
 			try {
 				controllers = Controllers.getControllers();
 			} catch (Exception e) {

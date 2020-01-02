@@ -41,7 +41,6 @@ import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
 import ru.m210projects.Build.Types.MemLog;
-import ru.m210projects.Build.Types.ThreadProcessor;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
 public class InitScreen extends ScreenAdapter {
@@ -187,7 +186,7 @@ public class InitScreen extends ScreenAdapter {
 					BuildSettings.fov.set(cfg.gFov);
 					BuildSettings.fpsLimit.set(cfg.fpslimit);
 					
-					BuildGdx.threads = new ThreadProcessor();
+//					BuildGdx.threads = new ThreadProcessor();
 		
 					gameInitialized = game.init();
 					

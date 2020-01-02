@@ -30,7 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ru.m210projects.Build.desktop.software;
+package ru.m210projects.Build.desktop.AWT;
 
 /**
 * A highly accurate sync method that continually adapts to the system 

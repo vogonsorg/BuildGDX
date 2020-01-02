@@ -1,4 +1,20 @@
-package ru.m210projects.Build.desktop.gl;
+// This file has been modified from LibGDX's original release
+// by Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+// BuildGDX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// BuildGDX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
+package ru.m210projects.Build.desktop.Lwjgl;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -15,17 +31,17 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.GL10;
 
 public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glActiveTexture (int texture) {
-		if(Gdx.graphics.getGLVersion().isVersionEqualToOrHigher(1, 3))
+		if(BuildGdx.graphics.getGLVersion().isVersionEqualToOrHigher(1, 3))
 			GL13.glActiveTexture(texture);
 	}
 
@@ -491,7 +507,7 @@ public class LwjglGL10 extends GL10 {
 	@Override
 	public void glTexParameterf (int target, int pname, float param) {
 		// LwjglGraphics.major is should to be 1 if we are in LwjglGL10.
-		if(Gdx.graphics.getGLVersion().getMinorVersion() < 2 && param == GL12.GL_CLAMP_TO_EDGE) param = GL11.GL_CLAMP;
+		if(BuildGdx.graphics.getGLVersion().getMinorVersion() < 2 && param == GL12.GL_CLAMP_TO_EDGE) param = GL11.GL_CLAMP;
 		GL11.glTexParameterf(target, pname, param);
 	}
 

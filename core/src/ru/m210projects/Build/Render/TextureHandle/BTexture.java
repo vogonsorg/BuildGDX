@@ -20,8 +20,6 @@ package ru.m210projects.Build.Render.TextureHandle;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.badlogic.gdx.Application;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.TextureData;
@@ -29,6 +27,8 @@ import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
+import ru.m210projects.Build.Architecture.BuildApplication;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.GL10;
 
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
@@ -36,16 +36,16 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_2D;
 public class BTexture extends GLTexture {
 
 	TextureData data;
-	final static Map<Application, Array<BTexture>> managedTextures = new HashMap<Application, Array<BTexture>>();
+	final static Map<BuildApplication, Array<BTexture>> managedTextures = new HashMap<BuildApplication, Array<BTexture>>();
 	final int width, height;
 	
 	public BTexture (Pixmap pixmap, boolean useMipMaps) {
-		super(GL_TEXTURE_2D, Gdx.gl.glGenTexture());
+		super(GL_TEXTURE_2D, BuildGdx.gl.glGenTexture());
 		this.width = pixmap.getWidth();
 		this.height = pixmap.getHeight();
 		data = new PixmapTextureData(pixmap, null, useMipMaps, false);
 		load(data);
-		if (data.isManaged()) addManagedTexture(Gdx.app, this);
+		if (data.isManaged()) addManagedTexture(BuildGdx.app, this);
 	}
 
 	public BTexture(int width, int height) {
@@ -54,7 +54,7 @@ public class BTexture extends GLTexture {
 		this.height = height;
 	}
 	
-	private static void addManagedTexture (Application app, BTexture texture) {
+	private static void addManagedTexture (BuildApplication app, BTexture texture) {
 		Array<BTexture> managedTextureArray = managedTextures.get(app);
 		if (managedTextureArray == null) managedTextureArray = new Array<BTexture>();
 		managedTextureArray.add(texture);
@@ -73,7 +73,7 @@ public class BTexture extends GLTexture {
 
 		setFilter(minFilter, magFilter);
 		setWrap(uWrap, vWrap);
-		Gdx.gl.glBindTexture(glTarget, 0);
+		BuildGdx.gl.glBindTexture(glTarget, 0);
 	}
 
 	@Override
@@ -104,6 +104,6 @@ public class BTexture extends GLTexture {
 		if (glHandle == 0) return;
 		delete();
 		if (data != null && data.isManaged())
-			if (managedTextures.get(Gdx.app) != null) managedTextures.get(Gdx.app).removeValue(this, true);
+			if (managedTextures.get(BuildGdx.app) != null) managedTextures.get(BuildGdx.app).removeValue(this, true);
 	}
 }

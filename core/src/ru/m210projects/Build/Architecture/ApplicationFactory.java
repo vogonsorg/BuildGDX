@@ -16,22 +16,35 @@
 
 package ru.m210projects.Build.Architecture;
 
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.Files;
+import com.badlogic.gdx.utils.Clipboard;
 
-public interface BuildInput extends Input {
-	
-	public void init(BuildFrame frame);
-	
-	public void dispose();
-	
-	void update();
-	
-	void processEvents();
-	
-	public void processMessages();
-	
-	public boolean cursorHandler();
-	
-	public int getDWheel(); 
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Audio.BuildAudio;
+import ru.m210projects.Build.Input.BuildControllers;
 
+public interface ApplicationFactory {
+
+	public BuildConfiguration getConfiguration();
+	
+	public BuildMessage getMessage();
+	
+	public BuildAudio getAudio();
+
+	public Files getFiles();
+	
+	public BuildControllers getControllers();
+
+	public Platform getPlatform();
+	
+	public BuildInput getInput(FrameType type);
+	
+	public BuildGraphics getGraphics(FrameType type);
+
+	public ApplicationType getApplicationType();
+	
+	public Clipboard getClipboard();
+	
 }

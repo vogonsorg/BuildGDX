@@ -14,7 +14,7 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.desktop.software;
+package ru.m210projects.Build.desktop.AWT;
 
 import java.awt.Canvas;
 //import javax.swing.JPanel;
@@ -51,8 +51,6 @@ public class JCanvas extends Canvas {
 			display = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, paletteModel);
 			raster = ((DataBufferByte)display.getRaster().getDataBuffer()).getData();
 		} else display = new BufferedImage(paletteModel, display.getRaster(), false, null);
-		
-		
 	}
 
 	public void setSize(int width, int height)

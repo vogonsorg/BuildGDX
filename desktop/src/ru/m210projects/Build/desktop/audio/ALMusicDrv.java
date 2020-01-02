@@ -90,7 +90,10 @@ public class ALMusicDrv implements Music {
 		if(drv.noDevice || !inited) return null;
 		
 		Resource res = BuildGdx.cache.open(name, 0);
-		if(res == null) return null;
+		if(res == null) {
+			Console.Println("OpenAL Music: Unable to load " + name, OSDTEXT_RED);
+			return null;
+		}
 		
 		byte[] data = res.getBytes();
 		res.close();

@@ -17,31 +17,34 @@
 package ru.m210projects.Build.desktop;
 
 import java.awt.Toolkit;
-import java.net.URL;
-
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import com.badlogic.gdx.Graphics.DisplayMode;
 
+import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage;
 
 public class DesktopMessage implements BuildMessage {
-	private JOptionPane frame;
-	private URL icon;
+	private JOptionPane panel;
+	private BuildFrame frame;
 	private boolean update;
 	
-	public DesktopMessage(URL icon, boolean update)
+	public DesktopMessage(boolean update)
 	{
-		this.icon = icon;
 		this.update = update;
 	}
 	
 	@Override
+	public void setFrame(BuildFrame frame) {
+		this.frame = frame;
+	}
+	
+	@Override
 	public synchronized boolean show(String header, String message, MessageType type) {
-		if(frame == null && (frame = InitFrame()) == null)
+		if(panel == null && (panel = InitPanel()) == null)
 			return false;
 		
 		if(message.length() >= 384)
@@ -67,27 +70,15 @@ public class DesktopMessage implements BuildMessage {
 		case Question:
 		case Crash:
 			if(type == MessageType.Crash) {
-				frame.setMessageType(JOptionPane.ERROR_MESSAGE);
-				frame.setMessage(message + "\r\n \r\n      Do you want to send a crash report?");
+				ShowPanel(JOptionPane.ERROR_MESSAGE, JOptionPane.YES_NO_OPTION, header, message + "\r\n \r\n      Do you want to send a crash report?");
 			} else {
-				frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-				frame.setMessage(message);
+				ShowPanel(JOptionPane.INFORMATION_MESSAGE, JOptionPane.YES_NO_OPTION, header, message);
 			}
-			frame.setOptionType(JOptionPane.YES_NO_OPTION);
-			JDialog dialog = frame.createDialog(header);
-			if(icon != null)
-				dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
-			frame.setBackground(dialog.getBackground());
-			dialog.setLocation(BuildGdx.app.getFrame().getX() + (BuildGdx.graphics.getWidth() - dialog.getWidth()) / 2, 
-					BuildGdx.app.getFrame().getY() + (BuildGdx.graphics.getHeight() - dialog.getHeight()) / 2);
-			dialog.setAlwaysOnTop(true);
-	        dialog.setVisible(true);
-	        dialog.dispose();
-	        
+
 	        if(fullscreen != null)
 	        	BuildGdx.graphics.setFullscreenMode(fullscreen);
 	        
-	        Object selectedValue = frame.getValue();
+	        Object selectedValue = panel.getValue();
 	        if (selectedValue instanceof Integer) {
 	        	if(((Integer)selectedValue).intValue() == JOptionPane.YES_OPTION)
 					return true;
@@ -95,19 +86,7 @@ public class DesktopMessage implements BuildMessage {
 
 			return false;
 		case Info:
-			frame.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-			frame.setMessage(message);
-			frame.setOptionType(JOptionPane.DEFAULT_OPTION);		
-			final JDialog dlog = frame.createDialog(header);
-			if(icon != null)
-				dlog.setIconImage(Toolkit.getDefaultToolkit().getImage(icon));
-			frame.setBackground(dlog.getBackground());
-			dlog.setLocation(BuildGdx.app.getFrame().getX() + (BuildGdx.graphics.getWidth() - dlog.getWidth()) / 2, 
-					BuildGdx.app.getFrame().getY() + (BuildGdx.graphics.getHeight() - dlog.getHeight()) / 2);
-			dlog.setAlwaysOnTop(true);
-			dlog.setVisible(true);
-			dlog.dispose();
-			
+			ShowPanel(JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, header, message);
 			if(fullscreen != null)
 	        	BuildGdx.graphics.setFullscreenMode(fullscreen);
 			
@@ -117,7 +96,25 @@ public class DesktopMessage implements BuildMessage {
 		return false;
 	}
 	
-	protected JOptionPane InitFrame()
+	protected JDialog ShowPanel(int messageType, int optionType, String header, String message)
+	{
+		panel.setMessageType(messageType);
+		panel.setMessage(message);
+		panel.setOptionType(optionType);		
+		final JDialog dialog = panel.createDialog(header);
+		if(frame.icon != null)
+			dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(frame.icon));
+		panel.setBackground(dialog.getBackground());
+		dialog.setLocation(frame.getX() + (BuildGdx.graphics.getWidth() - dialog.getWidth()) / 2, 
+				frame.getY() + (BuildGdx.graphics.getHeight() - dialog.getHeight()) / 2);
+		dialog.setAlwaysOnTop(true);
+		dialog.setVisible(true);
+		dialog.dispose();
+		
+		return dialog;
+	}
+	
+	protected JOptionPane InitPanel()
 	{
 		JOptionPane frame = null;
 		try {
@@ -130,6 +127,6 @@ public class DesktopMessage implements BuildMessage {
 
 	@Override
 	public void dispose() {
-		frame = null;
+		panel = null;
 	}
 }

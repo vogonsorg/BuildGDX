@@ -14,28 +14,45 @@
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Render.Types;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+package ru.m210projects.Build.desktop.AWT;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
+import com.badlogic.gdx.InputProcessor;
 
-public class GLFilter {
-	public String name;
-	public int min,mag;
-	public boolean mipmaps, retro;
+public interface MouseInterface {
+
+	public void reset();
+
+	public int getX();
+
+	public int getY();
 	
-	public GLFilter(String name, int min, int mag) {
-		this.name = name;
-		this.min = min;
-		this.mag = mag;
-		this.mipmaps = (min >= GL_NEAREST_MIPMAP_NEAREST || mag >= GL_NEAREST_MIPMAP_NEAREST);
-		this.retro = min == GL_NEAREST && mag == GL_NEAREST;
-	}
+	public int getDeltaX();
+
+	public int getDeltaY();
+
+	public boolean isTouched();
 	
-	public void apply()
-	{
-		BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this.mag);
-		BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this.min);
-	}
+	public boolean justTouched();
+	
+	public boolean isButtonPressed(int button);
+
+	public boolean isButtonJustPressed(int button);
+	
+	public int getDWheel();
+
+	public long processEvents(InputProcessor processor);
+
+	public void setCursorCatched(boolean catched);
+
+	public boolean isCursorCatched();
+
+	public void setCursorPosition(int x, int y);
+
+	public void showCursor(boolean b);
+
+	public boolean isInsideWindow();
+	
+	public void setWindowHandle();
+
 }

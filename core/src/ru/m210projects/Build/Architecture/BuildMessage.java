@@ -1,7 +1,5 @@
-package ru.m210projects.Build.Architecture;
-
 //This file is part of BuildGDX.
-//Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//Copyright (C) 2017-2020  Alexander Makarov-[M210] (m210-2007@mail.ru)
 //
 //BuildGDX is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -16,10 +14,13 @@ package ru.m210projects.Build.Architecture;
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
+package ru.m210projects.Build.Architecture;
 
 public interface BuildMessage {
 	
 	public enum MessageType { Question, Info, Crash }
+	
+	public void setFrame(BuildFrame frame);
 
 	public boolean show(String header, String text, MessageType type);
 	
