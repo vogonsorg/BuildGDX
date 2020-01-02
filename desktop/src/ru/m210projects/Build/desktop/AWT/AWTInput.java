@@ -19,6 +19,7 @@ package ru.m210projects.Build.desktop.AWT;
 import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
 import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
 import static ru.m210projects.Build.Input.Keymap.KEY_SCROLLOCK;
+import static ru.m210projects.Build.Input.Keymap.KEY_NUMDECIMAL;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -431,6 +432,8 @@ public class AWTInput implements BuildInput, KeyListener {
 		switch (ke.getKeyCode()) {
 		case java.awt.event.KeyEvent.VK_MULTIPLY:
 			return Keys.STAR;
+		case java.awt.event.KeyEvent.VK_DECIMAL:
+			return KEY_NUMDECIMAL;
 		case java.awt.event.KeyEvent.VK_PAUSE:
 			return KEY_PAUSE;
 		case java.awt.event.KeyEvent.VK_CAPS_LOCK:
@@ -575,8 +578,6 @@ public class AWTInput implements BuildInput, KeyListener {
 			return Keys.SPACE;
 		case java.awt.event.KeyEvent.VK_TAB:
 			return Keys.TAB;
-		case java.awt.event.KeyEvent.VK_DECIMAL:
-			return Keys.FORWARD_DEL; // Keys.DEL;
 		case java.awt.event.KeyEvent.VK_CONTROL:
 			if(ke.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_LEFT)
 				return Keys.CONTROL_LEFT;

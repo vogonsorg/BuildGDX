@@ -16,6 +16,11 @@
 
 package ru.m210projects.Build.desktop.Lwjgl;
 
+import static ru.m210projects.Build.Input.Keymap.KEY_CAPSLOCK;
+import static ru.m210projects.Build.Input.Keymap.KEY_PAUSE;
+import static ru.m210projects.Build.Input.Keymap.KEY_SCROLLOCK;
+import static ru.m210projects.Build.Input.Keymap.KEY_NUMDECIMAL;
+
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.event.WindowEvent;
@@ -392,14 +397,14 @@ public class LwjglInput implements BuildInput {
 	
 	protected int getGdxKeyCode(int eventKey) {
 		switch (eventKey) {
-//		case Keyboard.KEY_PAUSE:
-//			return KEY_PAUSE;
-//		case Keyboard.KEY_CAPITAL:
-//			return KEY_CAPSLOCK;
-//		case Keyboard.KEY_SCROLL:
-//			return KEY_SCROLLOCK;
-//		case Keyboard.KEY_DECIMAL:
-//			return KEY_NUMDECIMAL;
+		case Keyboard.KEY_PAUSE:
+			return KEY_PAUSE;
+		case Keyboard.KEY_CAPITAL:
+			return KEY_CAPSLOCK;
+		case Keyboard.KEY_SCROLL:
+			return KEY_SCROLLOCK;
+		case Keyboard.KEY_DECIMAL:
+			return KEY_NUMDECIMAL;
 		default:
 			return com.badlogic.gdx.backends.lwjgl.LwjglInput.getGdxKeyCode(eventKey);
 		}
@@ -407,14 +412,14 @@ public class LwjglInput implements BuildInput {
 
 	protected int getLwjglKeyCode (int gdxKeyCode) { 
 		switch (gdxKeyCode) {
-//		case KEY_PAUSE:
-//			return Keyboard.KEY_PAUSE;
-//		case KEY_CAPSLOCK:
-//			return Keyboard.KEY_CAPITAL;
-//		case KEY_SCROLLOCK:
-//			return Keyboard.KEY_SCROLL;
-//		case KEY_NUMDECIMAL:
-//			return Keyboard.KEY_DECIMAL;
+		case KEY_PAUSE:
+			return Keyboard.KEY_PAUSE;
+		case KEY_CAPSLOCK:
+			return Keyboard.KEY_CAPITAL;
+		case KEY_SCROLLOCK:
+			return Keyboard.KEY_SCROLL;
+		case KEY_NUMDECIMAL:
+			return Keyboard.KEY_DECIMAL;
 		default:
 			return com.badlogic.gdx.backends.lwjgl.LwjglInput.getLwjglKeyCode(gdxKeyCode);
 		}
