@@ -1,20 +1,4 @@
-// This file has been modified from LibGDX's original release
-// by Alexander Makarov-[M210] (m210-2007@mail.ru)
-//
-// BuildGDX is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// BuildGDX is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
-
-package ru.m210projects.Build.desktop.Lwjgl;
+package ru.m210projects.Build.desktop.GLFW;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -31,17 +15,17 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.GL10;
 
-public class LwjglGL10 extends GL10 {
+public class Lwjgl3GL10 extends GL10 {
 
 	@Override
 	public void glActiveTexture (int texture) {
-		if(BuildGdx.graphics.getGLVersion().isVersionEqualToOrHigher(1, 3))
+		if(Gdx.graphics.getGLVersion().isVersionEqualToOrHigher(1, 3))
 			GL13.glActiveTexture(texture);
 	}
 
@@ -336,12 +320,12 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glGetBooleanv (int pname, Buffer params) {
-		GL11.glGetBoolean(pname, (ByteBuffer)params);
+		GL11.glGetBooleanv(pname, (ByteBuffer)params);
 	}
 
 	@Override
 	public void glGetBufferParameteriv (int target, int pname, IntBuffer params) {
-		GL15.glGetBufferParameter(target, pname, params);
+		GL15.glGetBufferParameteriv(target, pname, params);
 	}
 
 	@Override
@@ -351,22 +335,22 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glGetFloatv (int pname, FloatBuffer params) {
-		GL11.glGetFloat(pname, params);
+		GL11.glGetFloatv(pname, params);
 	}
 
 	@Override
 	public void glGetFramebufferAttachmentParameteriv (int target, int attachment, int pname, IntBuffer params) {
-		EXTFramebufferObject.glGetFramebufferAttachmentParameterEXT(target, attachment, pname, params);
+		EXTFramebufferObject.glGetFramebufferAttachmentParameterivEXT(target, attachment, pname, params);
 	}
 
 	@Override
 	public void glGetIntegerv (int pname, IntBuffer params) {
-		GL11.glGetInteger(pname, params);
+		GL11.glGetIntegerv(pname, params);
 	}
 
 	@Override
 	public void glGetRenderbufferParameteriv (int target, int pname, IntBuffer params) {
-		EXTFramebufferObject.glGetRenderbufferParameterEXT(target, pname, params);
+		EXTFramebufferObject.glGetRenderbufferParameterivEXT(target, pname, params);
 	}
 
 	@Override
@@ -376,12 +360,12 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glGetTexParameterfv (int target, int pname, FloatBuffer params) {
-		GL11.glGetTexParameter(target, pname, params);
+		GL11.glGetTexParameterfv(target, pname, params);
 	}
 
 	@Override
 	public void glGetTexParameteriv (int target, int pname, IntBuffer params) {
-		GL11.glGetTexParameter(target, pname, params);
+		GL11.glGetTexParameteriv(target, pname, params);
 	}
 
 	@Override
@@ -507,13 +491,13 @@ public class LwjglGL10 extends GL10 {
 	@Override
 	public void glTexParameterf (int target, int pname, float param) {
 		// LwjglGraphics.major is should to be 1 if we are in LwjglGL10.
-		if(BuildGdx.graphics.getGLVersion().getMinorVersion() < 2 && param == GL12.GL_CLAMP_TO_EDGE) param = GL11.GL_CLAMP;
+		if(Gdx.graphics.getGLVersion().getMinorVersion() < 2 && param == GL12.GL_CLAMP_TO_EDGE) param = GL11.GL_CLAMP;
 		GL11.glTexParameterf(target, pname, param);
 	}
 
 	@Override
 	public void glTexParameterfv (int target, int pname, FloatBuffer params) {
-		GL11.glTexParameter(target, pname, params);
+		GL11.glTexParameterfv(target, pname, params);
 	}
 
 	@Override
@@ -523,7 +507,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glTexParameteriv (int target, int pname, IntBuffer params) {
-		GL11.glTexParameter(target, pname, params);
+		GL11.glTexParameteriv(target, pname, params);
 	}
 
 	@Override
@@ -571,11 +555,11 @@ public class LwjglGL10 extends GL10 {
 	@Override
 	public void glColorPointer (int size, int type, int stride, Buffer pointer) {
 		if (pointer instanceof FloatBuffer && type == GL11.GL_FLOAT)
-			GL11.glColorPointer(size, stride, (FloatBuffer)pointer);
+			GL11.glColorPointer(size, type, stride, (FloatBuffer)pointer);
 		else if (pointer instanceof ByteBuffer && type == GL11.GL_FLOAT)
-			GL11.glColorPointer(size, stride, ((ByteBuffer)pointer).asFloatBuffer());
+			GL11.glColorPointer(size, type, stride, ((ByteBuffer)pointer).asFloatBuffer());
 		else if (pointer instanceof ByteBuffer && type == GL11.GL_UNSIGNED_BYTE)
-			GL11.glColorPointer(size, true, stride, (ByteBuffer)pointer);
+			GL11.glColorPointer(size, type, stride, (ByteBuffer)pointer);
 		else
 			throw new GdxRuntimeException("Can't use " + pointer.getClass().getName()
 				+ " with this method, use FloatBuffer or ByteBuffer. blame LWJGL");
@@ -598,7 +582,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glFogfv (int pname, FloatBuffer params) {
-		GL11.glFog(pname, params);
+		GL11.glFogfv(pname, params);
 	}
 
 	@Override
@@ -613,7 +597,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glLightModelfv (int pname, FloatBuffer params) {
-		GL11.glLightModel(pname, params);
+		GL11.glLightModelfv(pname, params);
 	}
 
 	@Override
@@ -623,7 +607,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glLightfv (int light, int pname, FloatBuffer params) {
-		GL11.glLight(light, pname, params);
+		GL11.glLightfv(light, pname, params);
 	}
 
 	@Override
@@ -633,7 +617,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glLoadMatrixf (FloatBuffer m) {
-		GL11.glLoadMatrix(m);
+		GL11.glLoadMatrixf(m);
 	}
 
 	@Override
@@ -648,7 +632,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glMaterialfv (int face, int pname, FloatBuffer params) {
-		GL11.glMaterial(face, pname, params);
+		GL11.glMaterialfv(face, pname, params);
 	}
 
 	@Override
@@ -658,7 +642,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glMultMatrixf (FloatBuffer m) {
-		GL11.glMultMatrix(m);
+		GL11.glMultMatrixf(m);
 	}
 
 	@Override
@@ -674,11 +658,11 @@ public class LwjglGL10 extends GL10 {
 	@Override
 	public void glNormalPointer (int type, int stride, Buffer pointer) {
 		if (pointer instanceof FloatBuffer && type == GL11.GL_FLOAT)
-			GL11.glNormalPointer(stride, (FloatBuffer)pointer);
+			GL11.glNormalPointer(type, stride, (FloatBuffer)pointer);
 		else if (pointer instanceof ByteBuffer && type == GL11.GL_FLOAT)
-			GL11.glNormalPointer(stride, ((ByteBuffer)pointer).asFloatBuffer());
+			GL11.glNormalPointer(type, stride, ((ByteBuffer)pointer).asFloatBuffer());
 		else if (pointer instanceof ByteBuffer && type == GL11.GL_BYTE)
-			GL11.glNormalPointer(stride, (ByteBuffer)pointer);
+			GL11.glNormalPointer(type, stride, (ByteBuffer)pointer);
 		else
 			throw new GdxRuntimeException("Can't use " + pointer.getClass().getName()
 				+ " with this method. GL10.GL_SHORT not supported. Use FloatBuffer instead. Blame LWJGL");
@@ -722,13 +706,13 @@ public class LwjglGL10 extends GL10 {
 	@Override
 	public void glTexCoordPointer (int size, int type, int stride, Buffer pointer) {
 		if (pointer instanceof ShortBuffer && type == GL11.GL_SHORT)
-			GL11.glTexCoordPointer(size, stride, (ShortBuffer)pointer);
+			GL11.glTexCoordPointer(size, type, stride, (ShortBuffer)pointer);
 		else if (pointer instanceof ByteBuffer && type == GL11.GL_SHORT)
-			GL11.glTexCoordPointer(size, stride, ((ByteBuffer)pointer).asShortBuffer());
+			GL11.glTexCoordPointer(size, type, stride, ((ByteBuffer)pointer).asShortBuffer());
 		else if (pointer instanceof FloatBuffer && type == GL11.GL_FLOAT)
-			GL11.glTexCoordPointer(size, stride, (FloatBuffer)pointer);
+			GL11.glTexCoordPointer(size, type, stride, (FloatBuffer)pointer);
 		else if (pointer instanceof ByteBuffer && type == GL11.GL_FLOAT)
-			GL11.glTexCoordPointer(size, stride, ((ByteBuffer)pointer).asFloatBuffer());
+			GL11.glTexCoordPointer(size, type, stride, ((ByteBuffer)pointer).asFloatBuffer());
 		else
 			throw new GdxRuntimeException(
 				"Can't use "
@@ -743,7 +727,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glTexEnvfv (int target, int pname, FloatBuffer params) {
-		GL11.glTexEnv(target, pname, params);
+		GL11.glTexEnvfv(target, pname, params);
 	}
 
 	@Override
@@ -754,9 +738,9 @@ public class LwjglGL10 extends GL10 {
 	@Override
 	public void glVertexPointer (int size, int type, int stride, Buffer pointer) {
 		if (pointer instanceof FloatBuffer && type == GL11.GL_FLOAT)
-			GL11.glVertexPointer(size, stride, ((FloatBuffer)pointer));
+			GL11.glVertexPointer(size, type, stride, ((FloatBuffer)pointer));
 		else if (pointer instanceof ByteBuffer && type == GL11.GL_FLOAT)
-			GL11.glVertexPointer(size, stride, ((ByteBuffer)pointer).asFloatBuffer());
+			GL11.glVertexPointer(size, type, stride, ((ByteBuffer)pointer).asFloatBuffer());
 		else
 			throw new GdxRuntimeException("Can't use " + pointer.getClass().getName()
 				+ " with this method. Use FloatBuffer or ByteBuffers with GL10.GL_FLOAT instead. Blame LWJGL");
@@ -774,7 +758,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glFogfv (int pname, float[] params, int offset) {
-		GL11.glFog(pname, toBuffer(params, offset));
+		GL11.glFogfv(pname, toBuffer(params, offset));
 	}
 
 	@Override
@@ -786,7 +770,7 @@ public class LwjglGL10 extends GL10 {
 	IntBuffer getBuffer = BufferUtils.createIntBuffer(100);
 	@Override
 	public void glGetIntegerv (int pname, int[] params, int offset) {
-		GL11.glGetInteger(pname, getBuffer);
+		GL11.glGetIntegerv(pname, getBuffer);
 		// FIXME Yeah, so. This sucks as well :D LWJGL does not set pos/lim.
 		for (int i = offset, j = 0; i < params.length; i++, j++) {
 			if (j == getBuffer.capacity()) return;
@@ -796,32 +780,32 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glLightModelfv (int pname, float[] params, int offset) {
-		GL11.glLightModel(pname, toBuffer(params, offset));
+		GL11.glLightModelfv(pname, toBuffer(params, offset));
 	}
 
 	@Override
 	public void glLightfv (int light, int pname, float[] params, int offset) {
-		GL11.glLight(light, pname, toBuffer(params, offset));
+		GL11.glLightfv(light, pname, toBuffer(params, offset));
 	}
 
 	@Override
 	public void glLoadMatrixf (float[] m, int offset) {
-		GL11.glLoadMatrix(toBuffer(m, offset));
+		GL11.glLoadMatrixf(toBuffer(m, offset));
 	}
 
 	@Override
 	public void glMaterialfv (int face, int pname, float[] params, int offset) {
-		GL11.glMaterial(face, pname, toBuffer(params, offset));
+		GL11.glMaterialfv(face, pname, toBuffer(params, offset));
 	}
 
 	@Override
 	public void glMultMatrixf (float[] m, int offset) {
-		GL11.glMultMatrix(toBuffer(m, offset));
+		GL11.glMultMatrixf(toBuffer(m, offset));
 	}
 
 	@Override
 	public void glTexEnvfv (int target, int pname, float[] params, int offset) {
-		GL11.glTexEnv(target, pname, toBuffer(params, offset));
+		GL11.glTexEnvfv(target, pname, toBuffer(params, offset));
 	}
 
 	@Override
@@ -842,17 +826,17 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glGetLightfv (int light, int pname, FloatBuffer params) {
-		GL11.glGetLight(light, pname, params);
+		GL11.glGetLightfv(light, pname, params);
 	}
 
 	@Override
 	public void glGetMaterialfv (int face, int pname, FloatBuffer params) {
-		GL11.glGetMaterial(face, pname, params);
+		GL11.glGetMaterialfv(face, pname, params);
 	}
 
 	@Override
 	public void glGetTexEnviv (int env, int pname, IntBuffer params) {
-		GL11.glGetTexEnv(env, pname, params);
+		GL11.glGetTexEnviv(env, pname, params);
 	}
 
 	@Override
@@ -862,7 +846,7 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glPointParameterfv (int pname, FloatBuffer params) {
-		GL14.glPointParameter(pname, params);
+		GL14.glPointParameterfv(pname, params);
 	}
 
 	@Override
@@ -872,22 +856,22 @@ public class LwjglGL10 extends GL10 {
 
 	@Override
 	public void glTexEnviv (int target, int pname, int[] params, int offset) {
-		GL11.glTexEnv(target, pname, toBuffer(params, offset));
+		GL11.glTexEnviv(target, pname, toBuffer(params, offset));
 	}
 
 	@Override
 	public void glTexEnviv (int target, int pname, IntBuffer params) {
-		GL11.glTexEnv(target, pname, params);
+		GL11.glTexEnviv(target, pname, params);
 	}
 
 	@Override
 	public void glTexParameterfv (int target, int pname, float[] params, int offset) {
-		GL11.glTexParameter(target, pname, toBuffer(params, offset));
+		GL11.glTexParameterfv(target, pname, toBuffer(params, offset));
 	}
 
 	@Override
 	public void glTexParameteriv (int target, int pname, int[] params, int offset) {
-		GL11.glTexParameter(target, pname, toBuffer(params, offset));
+		GL11.glTexParameteriv(target, pname, toBuffer(params, offset));
 	}
 
 	@Override
@@ -937,7 +921,7 @@ public class LwjglGL10 extends GL10 {
 		for(int i = 0; i < m.length; i++) 
 			matrixBuffer.put(m[i]);	
 		matrixBuffer.rewind();
-		GL11.glLoadMatrix(matrixBuffer);
+		GL11.glLoadMatrixf(matrixBuffer);
 	}
 
 	@Override
@@ -945,7 +929,7 @@ public class LwjglGL10 extends GL10 {
 		matrixBuffer.clear();
 		matrixBuffer.put(m.getValues());
 		matrixBuffer.rewind();
-		GL11.glLoadMatrix(matrixBuffer);
+		GL11.glLoadMatrixf(matrixBuffer);
 	}
 
 	@Override

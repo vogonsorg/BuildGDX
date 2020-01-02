@@ -46,9 +46,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.Pool;
 
-import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildFrame;
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildInput;
 
 public class AWTInput implements BuildInput, KeyListener {
@@ -165,17 +163,7 @@ public class AWTInput implements BuildInput, KeyListener {
 	{
 		this.frame = frame;
 		JDisplay display = ((AWTGraphics) frame.getGraphics()).display;
-		
-		if(BuildGdx.app.getPlatform() == Platform.Windows) {
-			try {
-				this.mouse = new LwjglMouse(display);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		if(this.mouse == null)
-			this.mouse = new AWTMouse(display);
+		this.mouse = new AWTMouse(display);
 
 		this.setListeners(display.getCanvas());
 	}

@@ -19,9 +19,9 @@ package ru.m210projects.Build.desktop;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Graphics.DisplayMode;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.badlogic.gdx.backends.lwjgl.LwjglClipboard;
-import com.badlogic.gdx.backends.lwjgl.LwjglFiles;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Clipboard;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Files;
 import com.badlogic.gdx.utils.Clipboard;
 
 import ru.m210projects.Build.Architecture.ApplicationFactory;
@@ -36,8 +36,8 @@ import ru.m210projects.Build.Input.BuildControllers;
 import ru.m210projects.Build.desktop.AWT.AWTGraphics;
 import ru.m210projects.Build.desktop.AWT.AWTInput;
 import ru.m210projects.Build.desktop.Controllers.JControllers;
-import ru.m210projects.Build.desktop.Lwjgl.LwjglGraphics;
-import ru.m210projects.Build.desktop.Lwjgl.LwjglInput;
+import ru.m210projects.Build.desktop.GLFW.Lwjgl3Graphics;
+import ru.m210projects.Build.desktop.GLFW.Lwjgl3Input;
 
 public class DesktopFactory implements ApplicationFactory {
 
@@ -64,7 +64,7 @@ public class DesktopFactory implements ApplicationFactory {
 
 	@Override
 	public Files getFiles() {
-		return new LwjglFiles();
+		return new Lwjgl3Files();
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class DesktopFactory implements ApplicationFactory {
 	@Override
 	public BuildInput getInput(FrameType type) {
 		if(type == FrameType.GL) 
-			return new LwjglInput();
+			return new Lwjgl3Input();
 		
 		if(type == FrameType.Canvas)
 			return new AWTInput();
@@ -101,7 +101,7 @@ public class DesktopFactory implements ApplicationFactory {
 	@Override
 	public BuildGraphics getGraphics(FrameType type) {
 		if(type == FrameType.GL) 
-			return new LwjglGraphics(cfg);
+			return new Lwjgl3Graphics(cfg);
 		
 		if(type == FrameType.Canvas)
 			return new AWTGraphics(cfg);
@@ -116,17 +116,17 @@ public class DesktopFactory implements ApplicationFactory {
 
 	@Override
 	public Clipboard getClipboard() {
-		return new LwjglClipboard();
+		return new Lwjgl3Clipboard();
 	}
 
 	@Override
 	public DisplayMode[] getDisplayModes() {
-		return LwjglApplicationConfiguration.getDisplayModes();
+		return Lwjgl3ApplicationConfiguration.getDisplayModes();
 	}
 
 	@Override
 	public DisplayMode getDesktopDisplayMode() {
-		return LwjglApplicationConfiguration.getDesktopDisplayMode();
+		return Lwjgl3ApplicationConfiguration.getDisplayMode();
 	}
 
 }
