@@ -46,11 +46,10 @@ public class LwjglMouse extends AWTMouse {
 		
 		LwjglNativesLoader.load(); //This also needs for Pixmap working
 		displayImpl = getImplementation.invoke(null, (Object[])null);
-
-		if(handle == -1 || BuildGdx.app.getPlatform() != Platform.Windows) 
+		setWindowHandle();
+		if(handle == -1 || !IS_WINDOWS) 
 			throw new UnsupportedOperationException("not implemented"); 
 		
-		setWindowHandle();
 		display.setRebuildCallback(new Runnable() {
 			@Override
 			public void run() {

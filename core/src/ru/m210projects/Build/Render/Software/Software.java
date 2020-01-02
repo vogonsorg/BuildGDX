@@ -211,7 +211,8 @@ public abstract class Software extends Renderer {
 	protected SoftwareOrpho orpho;
 
 	public Software(Engine engine) {
-		BuildGdx.app.setFrame(FrameType.Canvas);
+		if(BuildGdx.graphics.getFrameType() != FrameType.Canvas)
+			BuildGdx.app.setFrame(FrameType.Canvas);
 		this.engine = engine;
 		a = new Ac(this);
 

@@ -17,12 +17,16 @@
 package ru.m210projects.Build.Architecture;
 
 import com.badlogic.gdx.Application.ApplicationType;
+
+import static ru.m210projects.Build.Render.VideoMode.initVideoModes;
+
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Clipboard;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Render.Renderer.RenderType;
 
 public class BuildApplication {
@@ -42,7 +46,9 @@ public class BuildApplication {
 	protected final Array<Runnable> runnables = new Array<Runnable>();
 	protected final Array<Runnable> executedRunnables = new Array<Runnable>();
 
-	public BuildApplication (ApplicationListener listener, final ApplicationFactory factory, RenderType type) {
+	public BuildApplication (BuildGame listener, final ApplicationFactory factory, RenderType type) {
+		initVideoModes(factory.getDisplayModes(), factory.getDesktopDisplayMode());
+		
 		this.factory = factory;
 		this.listener = listener;
 		this.config = factory.getConfiguration();
@@ -94,6 +100,7 @@ public class BuildApplication {
 				}
 			}
 		};
+		mainLoopThread.setPriority(Thread.MAX_PRIORITY);
 		mainLoopThread.start();
 	}
 	
