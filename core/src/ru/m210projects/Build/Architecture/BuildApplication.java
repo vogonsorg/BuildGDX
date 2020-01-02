@@ -100,6 +100,7 @@ public class BuildApplication {
 				}
 			}
 		};
+		mainLoopThread.setPriority(Thread.MAX_PRIORITY);
 		mainLoopThread.start();
 	}
 	
