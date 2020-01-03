@@ -153,7 +153,7 @@ public class Lwjgl3Input implements BuildInput {
 			deltaY = (int)y - logicalMouseY;
 			mouseX = logicalMouseX = (int)x;
 			mouseY = logicalMouseY = (int)y;
-			
+
 			if(frame.getConfig().hdpiMode == HdpiMode.Pixels) {
 				float xScale = frame.getGraphics().getBackBufferWidth() / (float)frame.getGraphics().getLogicalWidth();
 				float yScale = frame.getGraphics().getBackBufferHeight() / (float)frame.getGraphics().getLogicalHeight();				
@@ -514,7 +514,9 @@ public class Lwjgl3Input implements BuildInput {
 			x = (int)(x * xScale);
 			y = (int)(y * yScale);
 		}
-		GLFW.glfwSetCursorPos(windowHandle, x, y);		
+		mouseX = x;
+		mouseY = y;
+		GLFW.glfwSetCursorPos(windowHandle, x, y);
 	}
 	
 	private char characterForKeyCode (int key) {
