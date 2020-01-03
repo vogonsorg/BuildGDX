@@ -18,8 +18,6 @@ package ru.m210projects.Build.Architecture;
 
 import com.badlogic.gdx.Application.ApplicationType;
 
-import static ru.m210projects.Build.Render.VideoMode.initVideoModes;
-
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Clipboard;
@@ -47,8 +45,6 @@ public class BuildApplication {
 	protected final Array<Runnable> executedRunnables = new Array<Runnable>();
 
 	public BuildApplication (BuildGame listener, final ApplicationFactory factory, RenderType type) {
-		initVideoModes(factory.getDisplayModes(), factory.getDesktopDisplayMode());
-		
 		this.factory = factory;
 		this.listener = listener;
 		this.config = factory.getConfiguration();
