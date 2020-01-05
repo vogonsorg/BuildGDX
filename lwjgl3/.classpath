@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/BuildGDX-core"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="libs/jna-openal-natives-linux.jar"/>
+	<classpathentry kind="lib" path="libs/jna-openal-natives-macos.jar"/>
+	<classpathentry kind="lib" path="libs/jna-openal-natives-windows.jar"/>
+	<classpathentry kind="lib" path="libs/jna-5.4.0.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-platform-1.9.10-natives-desktop.jar"/>
+	<classpathentry kind="lib" path="libs/jinput-platform-2.0.7-natives-all.jar"/>
+	<classpathentry kind="lib" path="libs/jorbis.jar"/>
+	<classpathentry kind="lib" path="/BuildGDX-core/libs/gdx-1.9.10.jar"/>
+	<classpathentry kind="lib" path="libs/jinput-2.0.7.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-glfw-natives-linux-arm32.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-glfw-natives-linux-arm64.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-glfw-natives-linux.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-glfw-natives-macos.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-glfw-natives-windows-x86.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-glfw-natives-windows.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-glfw.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-natives-linux-arm32.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-natives-linux-arm64.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-natives-linux.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-natives-macos.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-natives-windows-x86.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-natives-windows.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-opengl-natives-linux-arm32.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-opengl-natives-linux-arm64.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-opengl-natives-linux.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-opengl-natives-macos.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-opengl-natives-windows-x86.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-opengl-natives-windows.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl-opengl.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-backend-lwjgl3-1.9.10.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl3.2.3/lwjgl.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

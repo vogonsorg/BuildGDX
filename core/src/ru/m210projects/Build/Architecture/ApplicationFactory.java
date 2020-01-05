@@ -17,7 +17,6 @@
 package ru.m210projects.Build.Architecture;
 
 import com.badlogic.gdx.Application.ApplicationType;
-import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.utils.Clipboard;
 
@@ -48,8 +47,4 @@ public interface ApplicationFactory {
 	
 	public Clipboard getClipboard();
 	
-	public DisplayMode[] getDisplayModes();
-	
-	public DisplayMode getDesktopDisplayMode();
-
 }

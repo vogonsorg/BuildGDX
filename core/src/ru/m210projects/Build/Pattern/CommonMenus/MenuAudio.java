@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
@@ -76,7 +77,7 @@ public abstract class MenuAudio extends BuildMenu {
 			public void open() {
 				if (this.list == null) {
 					List<String> names = new ArrayList<String>();
-					BuildGdx.audio.getDeviceslList(Driver.Sound, names);
+					BuildAudio.getDeviceslList(Driver.Sound, names);
 					this.list = new char[names.size()][];
 					for (int i = 0; i < list.length; i++)
 						this.list[i] = names.get(i).toCharArray();
@@ -101,7 +102,7 @@ public abstract class MenuAudio extends BuildMenu {
 			public void open() {
 				if (this.list == null) {
 					List<String> names = new ArrayList<String>();
-					BuildGdx.audio.getDeviceslList(Driver.Music, names);
+					BuildAudio.getDeviceslList(Driver.Music, names);
 					this.list = new char[names.size()][];
 					for (int i = 0; i < list.length; i++)
 						this.list[i] = names.get(i).toCharArray();
