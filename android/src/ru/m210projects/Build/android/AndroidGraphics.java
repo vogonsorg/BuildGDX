@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.glutils.GLVersion;
 import com.badlogic.gdx.math.WindowedMean;
+import com.badlogic.gdx.utils.GdxNativesLoader;
 
 import android.app.Activity;
 import android.graphics.Point;
@@ -39,6 +40,11 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 
 public class AndroidGraphics extends BuildGraphics implements Renderer {
+	
+	static {
+//		GdxNativesLoader.load(); XXX
+	}
+	
 	private final int r = 5, g = 6, b = 5, a = 0; //16bit
 	
 	protected final Activity app;
@@ -63,6 +69,12 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	private float ppcX = 0;
 	private float ppcY = 0;
 	private float density = 1;
+	
+	volatile boolean created = false;
+	volatile boolean running = false;
+	volatile boolean pause = false;
+	volatile boolean resume = false;
+	volatile boolean destroy = false;
 
 	public AndroidGraphics(Activity application, BuildConfiguration config, ResolutionStrategy resolutionStrategy) {
 		this.config = config;
@@ -398,12 +410,12 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		this.width = outSize.x;
 		this.height = outSize.y;
 		this.mean = new WindowedMean(5);
-		
-//		gl.glViewport(0, 0, this.width, this.height);
-		
+
 		Gdx.gl = BuildGdx.gl = getGL10();
 		Gdx.gl20 = BuildGdx.gl20 = getGL20();
 		Gdx.gl30 = BuildGdx.gl30 = getGL30();
+		
+		Gdx.gl.glViewport(0, 0, this.width, this.height);
 	}
 	
 	protected void updateSafeAreaInsets() {
@@ -447,7 +459,19 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	
 	@Override
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
-		BuildGdx.app.getApplicationListener().create();
+		this.width = width;
+		this.height = height;
+		updatePpi();
+		updateSafeAreaInsets();
+		BuildGdx.gl.glViewport(0, 0, this.width, this.height);
+		if (created == false) {
+			BuildGdx.app.getApplicationListener().create();
+			created = true;
+			synchronized (this) {
+				running = true;
+			}
+		}
+		BuildGdx.app.getApplicationListener().resize(width, height);
 	}
 
 	@Override
