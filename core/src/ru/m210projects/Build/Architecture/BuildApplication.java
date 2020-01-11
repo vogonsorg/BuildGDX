@@ -80,24 +80,29 @@ public class BuildApplication {
 	}
 
 	private void initialize (final FrameType type) {
-		mainLoopThread = new Thread("Build Application") { //ContextGL
-			@Override
-			public void run () {
-				try {
-					frame.setType(type);
-					
-					mainLoop();
-				} catch (Throwable t) {
-					destroyLoop();
-					
-					if (t instanceof RuntimeException)
-						throw (RuntimeException)t;
-					else throw new GdxRuntimeException(t);
+		if(platform == Platform.Android) {
+			frame.setType(type);
+		}
+		else {
+			mainLoopThread = new Thread("Build Application") { //ContextGL
+				@Override
+				public void run () {
+					try {
+						frame.setType(type);
+						
+						mainLoop();
+					} catch (Throwable t) {
+						destroyLoop();
+						
+						if (t instanceof RuntimeException)
+							throw (RuntimeException)t;
+						else throw new GdxRuntimeException(t);
+					}
 				}
-			}
-		};
-		mainLoopThread.setPriority(Thread.MAX_PRIORITY);
-		mainLoopThread.start();
+			};
+			mainLoopThread.setPriority(Thread.MAX_PRIORITY);
+			mainLoopThread.start();
+		}
 	}
 	
 	private void mainLoop () {
@@ -179,6 +184,11 @@ public class BuildApplication {
 			executedRunnables.pop().run();
 		while (executedRunnables.size > 0);
 		return true;
+	}
+	
+	public ApplicationListener getApplicationListener()
+	{
+		return listener;
 	}
 	
 	public void setFrame(FrameType type)

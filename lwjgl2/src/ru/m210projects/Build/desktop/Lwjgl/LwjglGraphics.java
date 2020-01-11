@@ -97,7 +97,6 @@ public class LwjglGraphics extends BuildGraphics {
 				}
 			}
 			
-			System.err.println(bestMode);
 			if(bestMode == null) {
 				bestMode = this.getDesktopDisplayMode();
 			}

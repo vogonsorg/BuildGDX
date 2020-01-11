@@ -18,20 +18,30 @@ package ru.m210projects.Build.android;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildMessage;
 
 public class AndroidMessage implements BuildMessage {
-	AndroidApplication app;
-	public AndroidMessage(AndroidApplication app)
+	private Activity app;
+	private BuildFrame frame;
+	private boolean update;
+	
+	public AndroidMessage(Activity app)
 	{
 		this.app = app;
 	}
 	
 	@Override
+	public void setFrame(BuildFrame frame) {
+		this.frame = frame;
+	}
+	
+	@Override
 	public boolean show(final String header, final String text, MessageType type) {
-		app.runOnUiThread(new Runnable(){
+		app.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				AlertDialog.Builder bld;
