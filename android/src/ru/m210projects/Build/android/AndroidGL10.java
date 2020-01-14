@@ -12,7 +12,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
-import android.opengl.GLES10;
 import android.opengl.GLES11;
 import android.opengl.GLES20;
 import ru.m210projects.Build.Render.Types.GL10;
@@ -48,7 +47,7 @@ public class AndroidGL10 extends GL10 {
 	
 	@Override
 	public void glGenTextures(int n, IntBuffer textures) {
-		GLES10.glGenTextures(n, textures);
+		GLES11.glGenTextures(n, textures);
 	}
 	
 	@Override
@@ -163,11 +162,6 @@ public class AndroidGL10 extends GL10 {
 	public void glPolygonOffset(float factor, float units) {
 		GLES11.glPolygonOffset(factor, units);
 	}
-	
-	@Override
-	public void glPolygonMode(int face, int mode) {
-		//GLES11.glPolygonMode(face, mode); XXX
-	}
 
 	@Override
 	public void glLoadIdentity() { 
@@ -256,22 +250,7 @@ public class AndroidGL10 extends GL10 {
 	public void glColor4ub(int red, int green, int blue, int alpha) {
 		GLES11.glColor4f((red&0xFF)/255f, (green&0xFF)/255f, (blue&0xFF)/255f, (alpha&0xFF)/255f);
 	}
-	
-	@Override
-	public void glPopAttrib() {
-//		GLES11.glPopAttrib(); XXX
-	}
-	
-	@Override
-	public void glPushAttrib(int mask) {
-//		GLES11.glPushAttrib(mask); XXX
-	}
-	
-	@Override
-	public void glMultiTexCoord2d(int target, double s, double t) {
-//		GL13.glMultiTexCoord2d(target, s, t); XXX
-	}
-	
+
 	@Override
 	public void glActiveTexture(int texture) {
 		GLES11.glActiveTexture (texture);
@@ -323,7 +302,7 @@ public class AndroidGL10 extends GL10 {
 	/**
 	 * Starts a new list of primitives. The primitiveType
 	 * specifies which primitives to draw. Can be any of
-	 * GLES10.GL_TRIANGLES, GLES10.GL_LINES and so on. A maximum
+	 * GLES11.GL_TRIANGLES, GLES11.GL_LINES and so on. A maximum
 	 * of 6000 vertices can be drawn at once.
 	 * 
 	 * @param primitiveType the primitive type.
@@ -411,48 +390,49 @@ public class AndroidGL10 extends GL10 {
 		if( idxPos == 0 )
 			return;
 		
-		GLES11.glEnableClientState( GLES10.GL_VERTEX_ARRAY );	
+		GLES11.glEnableClientState( GLES11.GL_VERTEX_ARRAY );	
 		positionsBuffer.clear();
 		positionsBuffer.put( positions, 0, idxPos );
 		positionsBuffer.flip();
-		GLES11.glVertexPointer( 3, GLES10.GL_FLOAT, 0, positionsBuffer );
+		GLES11.glVertexPointer( 3, GLES11.GL_FLOAT, 0, positionsBuffer );
 		
 		if( colorsDefined )
 		{
-			GLES11.glEnableClientState( GLES10.GL_COLOR_ARRAY );
+			GLES11.glEnableClientState( GLES11.GL_COLOR_ARRAY );
 			colorsBuffer.clear();
 			colorsBuffer.put( colors, 0, idxCols );
 			colorsBuffer.flip();
-			GLES11.glColorPointer( 4, GLES10.GL_FLOAT, 0, colorsBuffer );
+			GLES11.glColorPointer( 4, GLES11.GL_FLOAT, 0, colorsBuffer );
 		}
 		
 		if( normalsDefined )
 		{
-			GLES11.glEnableClientState( GLES10.GL_NORMAL_ARRAY );
+			GLES11.glEnableClientState( GLES11.GL_NORMAL_ARRAY );
 			normalsBuffer.clear();
 			normalsBuffer.put( normals, 0, idxNors );
 			normalsBuffer.flip();
-			GLES11.glNormalPointer( GLES10.GL_FLOAT, 0, normalsBuffer );
+			GLES11.glNormalPointer( GLES11.GL_FLOAT, 0, normalsBuffer );
 		}
 		
 		if( texCoordsDefined )
 		{
-			glClientActiveTexture( GLES10.GL_TEXTURE0);
-			GLES11.glEnableClientState( GLES10.GL_TEXTURE_COORD_ARRAY );
+			glClientActiveTexture( GLES11.GL_TEXTURE0);
+			GLES11.glEnableClientState( GLES11.GL_TEXTURE_COORD_ARRAY );
 			texCoordsBuffer.clear();
 			texCoordsBuffer.put( texCoords, 0, idxTexCoords );
 			texCoordsBuffer.flip();
-			GLES11.glTexCoordPointer( 2, GLES10.GL_FLOAT, 0, texCoordsBuffer );
+			GLES11.glTexCoordPointer( 2, GLES11.GL_FLOAT, 0, texCoordsBuffer );
 		}
 		
 		GLES11.glDrawArrays( primitiveType, 0, idxPos / 3 );
 		
+		GLES11.glDisableClientState( GLES11.GL_VERTEX_ARRAY );
 		if( colorsDefined )
-			GLES11.glDisableClientState( GLES10.GL_COLOR_ARRAY );
+			GLES11.glDisableClientState( GLES11.GL_COLOR_ARRAY );
 		if( normalsDefined )
-			GLES11.glDisableClientState( GLES10.GL_NORMAL_ARRAY );
+			GLES11.glDisableClientState( GLES11.GL_NORMAL_ARRAY );
 		if( texCoordsDefined )
-			GLES11.glDisableClientState( GLES10.GL_TEXTURE_COORD_ARRAY );
+			GLES11.glDisableClientState( GLES11.GL_TEXTURE_COORD_ARRAY );
 	}
 
 	@Override
@@ -553,12 +533,12 @@ public class AndroidGL10 extends GL10 {
 
 	@Override
 	public void glBufferData (int target, int size, Buffer data, int usage) {
-		GLES20.glBufferData (target, size, data, usage);
+		GLES11.glBufferData (target, size, data, usage);
 	}
 
 	@Override
 	public void glBufferSubData (int target, int offset, int size, Buffer data) {
-		GLES20.glBufferSubData (target, offset, size, data);
+		GLES11.glBufferSubData (target, offset, size, data);
 	}
 
 	@Override
@@ -726,7 +706,7 @@ public class AndroidGL10 extends GL10 {
 
 	@Override
 	public int glGetError() {
-		return GLES10.glGetError();
+		return GLES11.glGetError();
 	}
 
 	@Override
@@ -747,17 +727,17 @@ public class AndroidGL10 extends GL10 {
 
 	@Override
 	public void glGetTexParameterfv (int target, int pname, FloatBuffer params) {
-		GLES20.glGetTexParameterfv (target, pname, params);
+		GLES11.glGetTexParameterfv (target, pname, params);
 	}
 
 	@Override
 	public void glGetTexParameteriv (int target, int pname, IntBuffer params) {
-		GLES20.glGetTexParameteriv (target, pname, params);
+		GLES11.glGetTexParameteriv (target, pname, params);
 	}
 
 	@Override
 	public void glGetVertexAttribPointerv (int index, int pname, Buffer pointer) {
-		// FIXME won't implement this shit
+		// won't implement this shit
 //		GLES20.glGetVertexAttribPointerv(index, pname, pointer);
 	}
 
@@ -799,6 +779,11 @@ public class AndroidGL10 extends GL10 {
 	@Override
 	public void glRenderbufferStorage (int target, int internalformat, int width, int height) {
 		GLES20.glRenderbufferStorage (target, internalformat, width, height);
+	}
+	
+	@Override
+	public void glFramebufferRenderbuffer(int target, int attachment, int renderbuffertarget, int renderbuffer) {
+		GLES20.glFramebufferRenderbuffer (target, attachment, renderbuffertarget, renderbuffer);
 	}
 
 	@Override
@@ -848,7 +833,7 @@ public class AndroidGL10 extends GL10 {
 
 	@Override
 	public void glClientActiveTexture (int texture) {
-//		GL13.glClientActiveTexture(texture); XXX
+		GLES11.glClientActiveTexture(texture);
 	}
 
 	@Override
@@ -903,7 +888,7 @@ public class AndroidGL10 extends GL10 {
 
 	@Override
 	public void glMultiTexCoord4f (int target, float s, float t, float r, float q) {
-//		GL13.glMultiTexCoord4f(target, s, t, r, q); XXX
+		GLES11.glMultiTexCoord4f(target, s, t, r, q);
 	}
 
 	@Override
@@ -961,7 +946,6 @@ public class AndroidGL10 extends GL10 {
 	@Override
 	public void glGetIntegerv (int pname, int[] params, int offset) {
 		glGetIntegerv(pname, getBuffer);
-		// FIXME Yeah, so. This sucks as well :D LWJGL does not set pos/lim.
 		for (int i = offset, j = 0; i < params.length; i++, j++) {
 			if (j == getBuffer.capacity()) return;
 			params[i] = getBuffer.get(j);
@@ -1000,7 +984,7 @@ public class AndroidGL10 extends GL10 {
 
 	@Override
 	public void glDeleteBuffers (int n, int[] buffers, int offset) {
-//		GL15.glDeleteBuffers(toBuffer(n, buffers, offset)); XXX
+		GLES11.glDeleteBuffers(n, buffers, offset);
 	}
 
 	@Override
@@ -1026,12 +1010,12 @@ public class AndroidGL10 extends GL10 {
 
 	@Override
 	public void glPointParameterf (int pname, float param) {
-//		GL14.glPointParameterfs(pname, param); XXX
+		GLES11.glPointParameterf(pname, param);
 	}
 
 	@Override
 	public void glPointParameterfv (int pname, FloatBuffer params) {
-//		GL14.glPointParameter(pname, params); XXX
+		GLES11.glPointParameterfv(pname, params);
 	}
 
 	@Override
@@ -1095,20 +1079,6 @@ public class AndroidGL10 extends GL10 {
 	}
 
 	@Override
-	public void glGetTexImage(int target, int level, int format, int type, Buffer pixels) {
-//		if (pixels instanceof ByteBuffer) XXX
-//			GLES11.glGetTexImage(target, level, format, type, (ByteBuffer)pixels);
-//		else if (pixels instanceof IntBuffer)
-//			GLES11.glGetTexImage(target, level, format, type, (IntBuffer)pixels);
-//		else if (pixels instanceof FloatBuffer)
-//			GLES11.glGetTexImage(target, level, format, type, (FloatBuffer)pixels);
-//		else if (pixels instanceof DoubleBuffer)
-//			GLES11.glGetTexImage(target, level, format, type, (DoubleBuffer)pixels);
-//		else if (pixels instanceof ShortBuffer) 
-//			GLES11.glGetTexImage(target, level, format, type, (ShortBuffer)pixels);
-	}
-	
-	@Override
 	public void glClipPlanef(int plane, float a, float b, float c, float d) {
 		GLES11.glClipPlanef(plane, toPlaneBufferf(a,b,c,d));
 	}
@@ -1121,7 +1091,23 @@ public class AndroidGL10 extends GL10 {
 	}
 
 	@Override
-	public void glFramebufferRenderbuffer(int target, int attachment, int renderbuffertarget, int renderbuffer) {
-		GLES20.glFramebufferRenderbuffer (target, attachment, renderbuffertarget, renderbuffer);
+	public void glPolygonMode(int face, int mode) {
+//		GLES11.glPolygonMode(face, mode);
+	}
+	
+	@Override
+	public void glPopAttrib() {
+//		GLES11.glPopAttrib(); XXX
+	}
+	
+	@Override
+	public void glPushAttrib(int mask) {
+//		GLES11.glPushAttrib(mask); XXX
+	}
+	
+	@Override
+	public void glMultiTexCoord2d(int target, double s, double t) {
+//		GL13.glMultiTexCoord2d(target, s, t); XXX
+		GLES11.glMultiTexCoord4f(target, (float) s, (float) t, 0, 0);
 	}
 }

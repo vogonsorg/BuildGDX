@@ -1014,20 +1014,6 @@ public class LwjglGL10 extends GL10 {
 	}
 
 	@Override
-	public void glGetTexImage(int target, int level, int format, int type, Buffer pixels) {
-		if (pixels instanceof ByteBuffer)
-			GL11.glGetTexImage(target, level, format, type, (ByteBuffer)pixels);
-		else if (pixels instanceof IntBuffer)
-			GL11.glGetTexImage(target, level, format, type, (IntBuffer)pixels);
-		else if (pixels instanceof FloatBuffer)
-			GL11.glGetTexImage(target, level, format, type, (FloatBuffer)pixels);
-		else if (pixels instanceof DoubleBuffer)
-			GL11.glGetTexImage(target, level, format, type, (DoubleBuffer)pixels);
-		else if (pixels instanceof ShortBuffer) 
-			GL11.glGetTexImage(target, level, format, type, (ShortBuffer)pixels);
-	}
-	
-	@Override
 	public void glClipPlanef(int plane, float a, float b, float c, float d) {
 		GL11.glClipPlane(plane, toPlaneBufferd(a,b,c,d));
 	}

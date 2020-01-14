@@ -35,28 +35,27 @@ import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 import ru.m210projects.Build.Architecture.BuildConfiguration;
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameStatus;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 
 public class AndroidGraphics extends BuildGraphics implements Renderer {
-	
+
 	static {
 //		GdxNativesLoader.load(); XXX
 	}
-	
-	private final int r = 5, g = 6, b = 5, a = 0; //16bit
-	
+
+	private final int r = 5, g = 6, b = 5, a = 0; // 16bit
 
 	protected final Activity app;
 	protected final AndroidFrame frame;
 	protected final ResolutionStrategy resolutionStrategy;
 	protected View view;
 	private int rate;
-	
+
 	private BufferFormat bufferFormat = new BufferFormat(5, 6, 5, 0, 16, 0, 0, false);
-	
+
 	static volatile boolean enforceContinuousRendering = false;
 	int width;
 	int height;
@@ -65,15 +64,15 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	GLVersion glVersion;
 	String extensions;
 	protected WindowedMean mean = new WindowedMean(5);
-	
+
 	private boolean wasResized = false;
-	
+
 	private float ppiX = 0;
 	private float ppiY = 0;
 	private float ppcX = 0;
 	private float ppcY = 0;
 	private float density = 1;
-	
+
 	volatile boolean created = false;
 	volatile boolean running = false;
 //	volatile boolean pause = false;
@@ -85,12 +84,16 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		this.app = frame.activity;
 		this.resolutionStrategy = resolutionStrategy;
 	}
-	
+
 	@Override
 	protected void init() throws Exception {
-		view = createGLSurfaceView(app, resolutionStrategy);
-		preserveEGLContextOnPause();
+		GLSurfaceView view = new GLSurfaceView(app); //XXX
+		view.setRenderer(this);
 		
+//		view = createGLSurfaceView(app, resolutionStrategy);
+
+		preserveEGLContextOnPause();
+
 		view.setFocusable(true);
 		view.setFocusableInTouchMode(true);
 
@@ -99,28 +102,29 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		} catch (Exception ex) {
 //			log("AndroidApplication", "Content already displayed, cannot request FEATURE_NO_TITLE", ex);
 		}
-		
-		app.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+		app.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		app.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 		app.setContentView(view, createLayoutParams());
 	}
-	
-	protected FrameLayout.LayoutParams createLayoutParams () {
-		FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-			android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+
+	protected FrameLayout.LayoutParams createLayoutParams() {
+		FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+				android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
 		layoutParams.gravity = Gravity.CENTER;
 		return layoutParams;
 	}
-	
-	protected void preserveEGLContextOnPause () {
+
+	protected void preserveEGLContextOnPause() {
 		int sdkVersion = android.os.Build.VERSION.SDK_INT;
-		if (sdkVersion >= 11 && view instanceof GLSurfaceView20) ((GLSurfaceView20) view).setPreserveEGLContextOnPause(true);
-		if (view instanceof GLSurfaceView20API18) ((GLSurfaceView20API18) view).setPreserveEGLContextOnPause(true);
+		if (sdkVersion >= 11 && view instanceof GLSurfaceView20)
+			((GLSurfaceView20) view).setPreserveEGLContextOnPause(true);
+		if (view instanceof GLSurfaceView20API18)
+			((GLSurfaceView20API18) view).setPreserveEGLContextOnPause(true);
 	}
-	
-	protected View createGLSurfaceView (Activity application, ResolutionStrategy resolutionStrategy) {
-//		if (!checkGL20()) throw new GdxRuntimeException("Libgdx requires OpenGL ES 2.0");
-		
+
+	protected View createGLSurfaceView(Activity application, ResolutionStrategy resolutionStrategy) {
 		BuildConfiguration config = frame.getConfig();
 
 		EGLConfigChooser configChooser = getEglConfigChooser(config);
@@ -145,8 +149,8 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 			return view;
 		}
 	}
-	
-	protected EGLConfigChooser getEglConfigChooser (BuildConfiguration config) {
+
+	protected EGLConfigChooser getEglConfigChooser(BuildConfiguration config) {
 		int samples = 0;
 		return new GdxEglConfigChooser(r, g, b, a, config.depth, config.stencil, samples);
 	}
@@ -164,8 +168,10 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	@Override
 	protected boolean isDirty() {
 		if (view != null) {
-			if (view instanceof GLSurfaceViewAPI18) return ((GLSurfaceViewAPI18)view).isDirty();
-			if (view instanceof GLSurfaceView) return ((GLSurfaceView)view).isDirty();
+			if (view instanceof GLSurfaceViewAPI18)
+				return ((GLSurfaceViewAPI18) view).isDirty();
+			if (view instanceof GLSurfaceView)
+				return ((GLSurfaceView) view).isDirty();
 		}
 		return false;
 	}
@@ -175,7 +181,8 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	}
 
 	@Override
-	protected void update() {}
+	protected void update() {
+	}
 
 	@Override
 	protected void updateSize(int width, int height) {
@@ -212,8 +219,10 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	@Override
 	protected boolean isActive() {
 		if (view != null) {
-			if (view instanceof GLSurfaceViewAPI18) return ((GLSurfaceViewAPI18)view).isShown();
-			if (view instanceof GLSurfaceView) return ((GLSurfaceView)view).isShown();
+			if (view instanceof GLSurfaceViewAPI18)
+				return ((GLSurfaceViewAPI18) view).isShown();
+			if (view instanceof GLSurfaceView)
+				return ((GLSurfaceView) view).isShown();
 		}
 		return false;
 	}
@@ -243,60 +252,60 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	}
 
 	@Override
-	public boolean supportsDisplayModeChange () {
+	public boolean supportsDisplayModeChange() {
 		return false;
 	}
 
 	@Override
-	public boolean setFullscreenMode (DisplayMode displayMode) {
+	public boolean setFullscreenMode(DisplayMode displayMode) {
 		return false;
 	}
-	
+
 	private class AndroidMonitor extends Monitor {
-		public AndroidMonitor (int virtualX, int virtualY, String name) {
+		public AndroidMonitor(int virtualX, int virtualY, String name) {
 			super(virtualX, virtualY, name);
 		}
 	}
 
 	@Override
-	public Monitor getPrimaryMonitor () {
+	public Monitor getPrimaryMonitor() {
 		return new AndroidMonitor(0, 0, "Primary Monitor");
 	}
 
 	@Override
-	public Monitor getMonitor () {
+	public Monitor getMonitor() {
 		return getPrimaryMonitor();
 	}
 
 	@Override
-	public Monitor[] getMonitors () {
+	public Monitor[] getMonitors() {
 		return new Monitor[] { getPrimaryMonitor() };
 	}
 
 	@Override
-	public DisplayMode[] getDisplayModes (Monitor monitor) {
+	public DisplayMode[] getDisplayModes(Monitor monitor) {
 		return getDisplayModes();
 	}
 
 	@Override
-	public DisplayMode getDisplayMode (Monitor monitor) {
+	public DisplayMode getDisplayMode(Monitor monitor) {
 		return getDisplayMode();
 	}
 
 	@Override
-	public DisplayMode[] getDisplayModes () {
-		return new DisplayMode[] {getDisplayMode()};
+	public DisplayMode[] getDisplayModes() {
+		return new DisplayMode[] { getDisplayMode() };
 	}
-	
+
 	@Override
 	public DisplayMode getDisplayMode() {
 		DisplayMetrics metrics = new DisplayMetrics();
 		app.getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		return new AndroidDisplayMode(metrics.widthPixels, metrics.heightPixels, 0, 0);
 	}
-	
+
 	private class AndroidDisplayMode extends DisplayMode {
-		protected AndroidDisplayMode (int width, int height, int refreshRate, int bitsPerPixel) {
+		protected AndroidDisplayMode(int width, int height, int refreshRate, int bitsPerPixel) {
 			super(width, height, refreshRate, bitsPerPixel);
 		}
 	}
@@ -336,27 +345,33 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 
 	@Override
 	public boolean supportsExtension(String extension) {
-		if (extensions == null) extensions = BuildGdx.gl.glGetString(GL10.GL_EXTENSIONS);
+		if (extensions == null)
+			extensions = BuildGdx.gl.glGetString(GL10.GL_EXTENSIONS);
 		return extensions.contains(extension);
 	}
-	
+
 	@Override
-	public void setContinuousRendering (boolean isContinuous) {
+	public void setContinuousRendering(boolean isContinuous) {
 		if (view != null) {
 			// ignore setContinuousRendering(false) while pausing
 			this.isContinuous = enforceContinuousRendering || isContinuous;
-			int renderMode = this.isContinuous ? GLSurfaceView.RENDERMODE_CONTINUOUSLY : GLSurfaceView.RENDERMODE_WHEN_DIRTY;
-			if (view instanceof GLSurfaceViewAPI18) ((GLSurfaceViewAPI18)view).setRenderMode(renderMode);
-			if (view instanceof GLSurfaceView) ((GLSurfaceView)view).setRenderMode(renderMode);
+			int renderMode = this.isContinuous ? GLSurfaceView.RENDERMODE_CONTINUOUSLY
+					: GLSurfaceView.RENDERMODE_WHEN_DIRTY;
+			if (view instanceof GLSurfaceViewAPI18)
+				((GLSurfaceViewAPI18) view).setRenderMode(renderMode);
+			if (view instanceof GLSurfaceView)
+				((GLSurfaceView) view).setRenderMode(renderMode);
 			mean.clear();
 		}
 	}
-	
+
 	@Override
-	public void requestRendering () {
+	public void requestRendering() {
 		if (view != null) {
-			if (view instanceof GLSurfaceViewAPI18) ((GLSurfaceViewAPI18)view).requestRender();
-			if (view instanceof GLSurfaceView) ((GLSurfaceView)view).requestRender();
+			if (view instanceof GLSurfaceViewAPI18)
+				((GLSurfaceViewAPI18) view).requestRender();
+			if (view instanceof GLSurfaceView)
+				((GLSurfaceView) view).requestRender();
 		}
 	}
 
@@ -366,16 +381,16 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	}
 
 	@Override
-	public Cursor newCursor (Pixmap pixmap, int xHotspot, int yHotspot) {
+	public Cursor newCursor(Pixmap pixmap, int xHotspot, int yHotspot) {
 		return null;
 	}
 
 	@Override
-	public void setCursor (Cursor cursor) {
+	public void setCursor(Cursor cursor) {
 	}
 
 	@Override
-	public void setSystemCursor (SystemCursor systemCursor) {
+	public void setSystemCursor(SystemCursor systemCursor) {
 	}
 
 	@Override
@@ -389,28 +404,28 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	}
 
 	@Override
-	public float getPpiX () {
+	public float getPpiX() {
 		return ppiX;
 	}
 
 	@Override
-	public float getPpiY () {
+	public float getPpiY() {
 		return ppiY;
 	}
 
 	@Override
-	public float getPpcX () {
+	public float getPpcX() {
 		return ppcX;
 	}
 
 	@Override
-	public float getPpcY () {
+	public float getPpcY() {
 		return ppcY;
 	}
-	
+
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
-		eglContext = ((EGL10)EGLContext.getEGL()).eglGetCurrentContext();
+		eglContext = ((EGL10) EGLContext.getEGL()).eglGetCurrentContext();
 		setupGL();
 		updatePpi();
 		updateSafeAreaInsets();
@@ -426,7 +441,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		Gdx.gl20 = BuildGdx.gl20 = getGL20();
 		Gdx.gl30 = BuildGdx.gl30 = getGL30();
 	}
-	
+
 	protected void updateSafeAreaInsets() {
 		safeInsetLeft = 0;
 		safeInsetTop = 0;
@@ -434,30 +449,35 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		safeInsetBottom = 0;
 	}
 
-	/** This instantiates the GL10, GL11 and GL20 instances. Includes the check for certain devices that pretend to support GL11 but
-	 * fuck up vertex buffer objects. This includes the pixelflinger which segfaults when buffers are deleted as well as the
-	 * Motorola CLIQ and the Samsung Behold II.
+	/**
+	 * This instantiates the GL10, GL11 and GL20 instances. Includes the check for
+	 * certain devices that pretend to support GL11 but fuck up vertex buffer
+	 * objects. This includes the pixelflinger which segfaults when buffers are
+	 * deleted as well as the Motorola CLIQ and the Samsung Behold II.
 	 *
-	 * @param gl */
-	protected void setupGL () {
+	 * @param gl
+	 */
+	protected void setupGL() {
 		BuildConfiguration config = frame.getConfig();
 		gl10 = new AndroidGL10();
-	
-		String versionString = gl10.glGetString(GL10.GL_VERSION);
+
+		String versionString = "OpenGL ES 3.2 v1.r19p0-01rel0.###other-sha0123456789ABCDEF0###"; //gl10.glGetString(GL10.GL_VERSION); XXX
 		String vendorString = gl10.glGetString(GL10.GL_VENDOR);
 		String rendererString = gl10.glGetString(GL10.GL_RENDERER);
 		glVersion = new GLVersion(Application.ApplicationType.Android, versionString, vendorString, rendererString);
 
 		if (config.useGL30 && glVersion.getMajorVersion() > 2) {
-			if (gl30 != null) return;
+			if (gl30 != null)
+				return;
 			gl20 = gl30 = new AndroidGL30();
 		} else {
-			if (gl20 != null) return;
+			if (gl20 != null)
+				return;
 			gl20 = new AndroidGL20();
 		}
 	}
-	
-	protected void updatePpi () {
+
+	protected void updatePpi() {
 		DisplayMetrics metrics = new DisplayMetrics();
 		app.getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
@@ -467,9 +487,9 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		ppcY = metrics.ydpi / 2.54f;
 		density = metrics.density;
 	}
-	
+
 	Object synch = new Object();
-	
+
 	@Override
 	public void onSurfaceChanged(GL10 unused, int width, int height) {
 		this.width = width;
@@ -483,29 +503,30 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 				running = true;
 			}
 		}
-		
+
 		synchronized (synch) {
 			resize = true;
 		}
 	}
-
+	
 	@Override
 	public void onDrawFrame(GL10 unused) {
 		BuildGdx.input.processMessages();
 		ApplicationListener listener = BuildGdx.app.getApplicationListener();
 		BuildConfiguration config = frame.getConfig();
-		
+
 		FrameStatus status = null;
 		synchronized (synch) {
 			status = frame.getStatus();
 		}
 
-		switch(status) {
-		default: return;
+		switch (status) {
+		default:
+			return;
 		case Closed:
 			destroyLoop();
 			break;
-		case Running: 
+		case Running:
 			break;
 		case Pause:
 			listener.pause();
@@ -519,7 +540,8 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		}
 
 		boolean shouldRender = false;
-		if (BuildGdx.app.executeRunnables()) shouldRender = true;
+		if (BuildGdx.app.executeRunnables())
+			shouldRender = true;
 
 		// If one of the runnables set running to false, for example after an exit().
 		if (!running) {
@@ -527,24 +549,24 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 			return;
 		}
 
-		if(frame.process(shouldRender)) {
+		if (frame.process(shouldRender)) {
 			listener.render();
 			frame.update();
 		}
 	}
-	
+
 	private void destroyLoop() {
 		ApplicationListener listener = BuildGdx.app.getApplicationListener();
-		
-		if(BuildGdx.input != null)
+
+		if (BuildGdx.input != null)
 			BuildGdx.input.setCursorCatched(false);
-		if(listener != null) {
+		if (listener != null) {
 			listener.pause();
 			listener.dispose();
 		}
-		if(BuildGdx.audio != null)
+		if (BuildGdx.audio != null)
 			BuildGdx.audio.dispose();
-		if(BuildGdx.message != null)
+		if (BuildGdx.message != null)
 			BuildGdx.message.dispose();
 		frame.dispose();
 		app.finish();
