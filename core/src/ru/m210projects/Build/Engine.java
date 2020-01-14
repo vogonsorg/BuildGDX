@@ -1341,6 +1341,12 @@ public abstract class Engine {
 
 	// JBF: davidoption now functions as a windowed-mode flag (0 == windowed, 1 == fullscreen)
 	public boolean setgamemode(int davidoption, int daxdim, int daydim) { //jfBuild + gdxBuild
+		if(BuildGdx.app.getType() == ApplicationType.Android) {
+			daxdim = BuildGdx.graphics.getWidth();
+			daydim = BuildGdx.graphics.getHeight();
+			davidoption = 0;
+		}
+		
 		daxdim = max(320, daxdim);
 		daydim = max(200, daydim);
 
@@ -1358,14 +1364,7 @@ public abstract class Engine {
 		if(render.isInited())
 			render.uninit();
 		render.init();
-		
-		if(BuildGdx.app.getType() == ApplicationType.Android) {
-			daxdim = BuildGdx.graphics.getWidth();
-			daydim = BuildGdx.graphics.getHeight();
-			BuildGdx.graphics.setWindowedMode(daxdim, daydim);
-			return true;
-		}
-		
+
 		if(davidoption == 1)
 		{
 			DisplayMode m = null;

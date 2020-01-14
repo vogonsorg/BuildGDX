@@ -112,7 +112,7 @@ public abstract class UnsafeBuffer {
     		unsafe.copyMemory(null, getAddress(nextIndex(length)), dst, BYTE_ARRAY_BASE_OFFSET + offset, length);
     	else { //no such method copyMemory
     		for(int i = 0; i < length; i++)
-    			dst[offset + i] = get();
+    			dst[offset + i] = unsafe.getByte(getAddress(nextIndex(1)));
     	}
         return this;
     }

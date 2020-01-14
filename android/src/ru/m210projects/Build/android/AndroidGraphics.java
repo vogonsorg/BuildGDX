@@ -23,6 +23,7 @@ import com.badlogic.gdx.math.WindowedMean;
 
 import android.app.Activity;
 import android.graphics.Point;
+import android.opengl.GLES11;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.EGLConfigChooser;
 import android.opengl.GLSurfaceView.Renderer;
@@ -89,7 +90,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	protected void init() throws Exception {
 		GLSurfaceView view = new GLSurfaceView(app); //XXX
 		view.setRenderer(this);
-		
+
 //		view = createGLSurfaceView(app, resolutionStrategy);
 
 		preserveEGLContextOnPause();
@@ -346,7 +347,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	@Override
 	public boolean supportsExtension(String extension) {
 		if (extensions == null)
-			extensions = BuildGdx.gl.glGetString(GL10.GL_EXTENSIONS);
+			extensions = BuildGdx.gl.glGetString(GLES11.GL_EXTENSIONS);
 		return extensions.contains(extension);
 	}
 
@@ -395,7 +396,21 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 
 	@Override
 	public Object extra(Option opt, Object... obj) {
-		return null;
+		switch(opt)
+		{
+		case GLSetConfiguration:
+			if(obj.length < 3) 
+				return false;
+//			float gamma = (Float) obj[0];
+//			float brightness = (Float) obj[1];
+//			float contrast = (Float) obj[2];
+			
+			return false;
+		case GLDefConfiguration:
+			return true;
+		default:
+			throw new UnsupportedOperationException("not implemented"); 
+		}
 	}
 
 	@Override
@@ -426,6 +441,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	@Override
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		eglContext = ((EGL10) EGLContext.getEGL()).eglGetCurrentContext();
+		
 		setupGL();
 		updatePpi();
 		updateSafeAreaInsets();
@@ -461,9 +477,9 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		BuildConfiguration config = frame.getConfig();
 		gl10 = new AndroidGL10();
 
-		String versionString = "OpenGL ES 3.2 v1.r19p0-01rel0.###other-sha0123456789ABCDEF0###"; //gl10.glGetString(GL10.GL_VERSION); XXX
-		String vendorString = gl10.glGetString(GL10.GL_VENDOR);
-		String rendererString = gl10.glGetString(GL10.GL_RENDERER);
+		String versionString = "OpenGL ES 1.1"; //gl10.glGetString(GLES11.GL_VERSION); XXX
+		String vendorString = gl10.glGetString(GLES11.GL_VENDOR);
+		String rendererString = gl10.glGetString(GLES11.GL_RENDERER);
 		glVersion = new GLVersion(Application.ApplicationType.Android, versionString, vendorString, rendererString);
 
 		if (config.useGL30 && glVersion.getMajorVersion() > 2) {
