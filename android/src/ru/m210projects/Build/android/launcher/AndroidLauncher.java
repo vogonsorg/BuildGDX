@@ -3,22 +3,26 @@ package ru.m210projects.Build.android.launcher;
 import java.io.File;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import ru.m210projects.Build.Architecture.ApplicationFactory;
 import ru.m210projects.Build.Architecture.BuildApplication;
 import ru.m210projects.Build.Architecture.BuildConfiguration;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.FileHandle.Cache1D;
 import ru.m210projects.Build.FileHandle.Compat;
 import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.android.AndroidFactory;
+import ru.m210projects.Build.android.AndroidMessage;
 
 public class AndroidLauncher extends Activity {
 
-	public static String appversion = "v1.06";
+	public static String appversion = "v1.07";
 	public static final String appname = "BuildGDX";
 
 	public enum Game {
@@ -66,44 +70,44 @@ public class AndroidLauncher extends Activity {
 		}
 		return null;
 	}
-
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-
-		Game game = Game.Duke3d;
-		String filepath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "BuildGDX"
-				+ File.separator;
-
+	
+	private String getPath(Game game, String gdxPath)
+	{
 		switch (game) {
 		case Blood:
-			filepath += "Blood" + File.separator;
+			gdxPath += "Blood" + File.separator;
 			break;
 		case Duke3d:
-			filepath += "Duke3D" + File.separator;
+			gdxPath += "Duke3D" + File.separator;
 			break;
 		case RR:
-			filepath += "RR" + File.separator;
+			gdxPath += "RR" + File.separator;
 			break;
 		case Powerslave:
-			filepath += "Powerslave" + File.separator;
+			gdxPath += "Powerslave" + File.separator;
 			break;
 		case Tekwar:
-			filepath += "Tekwar" + File.separator;
+			gdxPath += "Tekwar" + File.separator;
 			break;
 		case Witchaven:
-			filepath += "Witchaven" + File.separator;
+			gdxPath += "Witchaven" + File.separator;
 			break;
 		case LSP:
-			filepath += "LSP" + File.separator;
+			gdxPath += "LSP" + File.separator;
 			break;
 		}
-
-		File folder = new File(filepath);
-		if (!folder.exists() && !folder.mkdir())
-			System.err.println("Folder isn't created: " + folder);
-
-		BuildGdx.compat = new Compat(filepath, filepath);
+		
+		return gdxPath;
+	}
+	
+	private boolean checkPermission(Context context)
+	{
+	    return context.checkCallingOrSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;            
+	}
+	
+	private void launchPort(String path, Game game)
+	{
+		BuildGdx.compat = new Compat(path, path);
 		BuildGdx.cache = new Cache1D(BuildGdx.compat);
 
 		BuildConfig cfg = getConfig(game);
@@ -117,6 +121,24 @@ public class AndroidLauncher extends Activity {
 			ApplicationFactory factory = new AndroidFactory(this, appcfg);
 	
 			new BuildApplication(ga, factory, cfg.renderType);
+		}
+	}
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		Game game = Game.Blood;
+		
+		if (checkPermission(this)) {
+			String filepath = getPath(game, Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "BuildGDX" + File.separator);
+			File folder = new File(filepath);
+			if (!folder.exists() && !folder.mkdir())
+				System.err.println("Folder isn't created: " + folder);
+
+			launchPort(filepath, game);
+		} else {
+			new AndroidMessage(this).show("Permission denied!", "You have no write permissions for the external storage", MessageType.Crash);
 		}
 	}
 }
