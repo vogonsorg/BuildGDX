@@ -22,7 +22,7 @@ public class AndroidLauncher extends Activity {
 	public static final String appname = "BuildGDX";
 
 	public enum Game {
-		Blood, Duke3d
+		Blood, Duke3d, RR, Powerslave, Tekwar, Witchaven, LSP
 	};
 	
 	private BuildGame getApplication(Game game, BuildConfig cfg)
@@ -32,6 +32,16 @@ public class AndroidLauncher extends Activity {
 			return new ru.m210projects.Blood.Main(cfg, "BloodGDX", appversion, false, false);
 		case Duke3d:
 			return new ru.m210projects.Duke3D.Main(cfg, "DukeGDX", appversion, false, false);
+		case RR:
+			return new ru.m210projects.Redneck.Main(cfg, "RedneckGDX", appversion, false, false);
+		case Powerslave:
+			return new ru.m210projects.Powerslave.Main(cfg, "PowerslaveGDX", appversion, false);
+		case Tekwar:
+			return new ru.m210projects.Tekwar.Main(cfg, "TekwarGDX", appversion, false, false);
+		case Witchaven:
+			return new ru.m210projects.Witchaven.Main(cfg, "WitchavenGDX", appversion, false, false);
+		case LSP:
+			return new ru.m210projects.LSP.Main(cfg, "LSPGDX", appversion, false);
 		}
 		return null;
 	}
@@ -43,6 +53,16 @@ public class AndroidLauncher extends Activity {
 			return new ru.m210projects.Blood.Config(Path.Game.getPath(), "BloodGDX" + ".ini");
 		case Duke3d:
 			return new ru.m210projects.Duke3D.Config(Path.Game.getPath(), "DukeGDX" + ".ini");
+		case RR:
+			return new ru.m210projects.Redneck.Config(Path.Game.getPath(), "RedneckGDX" + ".ini");
+		case Powerslave:
+			return new ru.m210projects.Powerslave.Config(Path.Game.getPath(), "PowerslaveGDX" + ".ini");
+		case Tekwar:
+			return new ru.m210projects.Tekwar.Config(Path.Game.getPath(), "TekwarGDX" + ".ini");
+		case Witchaven:
+			return new ru.m210projects.Witchaven.Config(Path.Game.getPath(), "WitchavenGDX" + ".ini");
+		case LSP:
+			return new ru.m210projects.LSP.Config(Path.Game.getPath(), "LSPGDX" + ".ini");
 		}
 		return null;
 	}
@@ -61,6 +81,21 @@ public class AndroidLauncher extends Activity {
 			break;
 		case Duke3d:
 			filepath += "Duke3D" + File.separator;
+			break;
+		case RR:
+			filepath += "RR" + File.separator;
+			break;
+		case Powerslave:
+			filepath += "Powerslave" + File.separator;
+			break;
+		case Tekwar:
+			filepath += "Tekwar" + File.separator;
+			break;
+		case Witchaven:
+			filepath += "Witchaven" + File.separator;
+			break;
+		case LSP:
+			filepath += "LSP" + File.separator;
 			break;
 		}
 

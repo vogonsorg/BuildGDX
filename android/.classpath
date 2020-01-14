@@ -11,5 +11,10 @@
 	<classpathentry exported="true" kind="lib" path="/BuildGDX-core/libs/gdx-1.9.10.jar"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/BloodGDX-core"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/DukeGDX-core"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/LSPGDX-core"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/PowerslaveGDX-core"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/RedneckGDX-core"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/TekwarGDX-core"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/WitchavenGDX-core"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
