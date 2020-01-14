@@ -16,8 +16,6 @@
 
 package ru.m210projects.Build.android;
 
-import com.badlogic.gdx.backends.android.AndroidApplication;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;

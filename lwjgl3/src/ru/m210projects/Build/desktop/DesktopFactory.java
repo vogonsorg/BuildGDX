@@ -26,6 +26,7 @@ import com.badlogic.gdx.utils.Clipboard;
 import ru.m210projects.Build.Architecture.ApplicationFactory;
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildConfiguration;
+import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 import ru.m210projects.Build.Architecture.BuildInput;
@@ -90,27 +91,32 @@ public class DesktopFactory implements ApplicationFactory {
 		
 		return platform;
 	}
-
+	
 	@Override
-	public BuildInput getInput(FrameType type) {
-		if(type == FrameType.GL) 
-			return new Lwjgl3Input();
-		
-		if(type == FrameType.Canvas)
-			return new AWTInput();
-		
-		throw new UnsupportedOperationException("Unsupported frame type: " + type); 
-	}
+	public BuildFrame getFrame(BuildConfiguration config, FrameType type) {
+		return new BuildFrame(config) {
+			@Override
+			public BuildGraphics getGraphics(FrameType type) {
+				if(type == FrameType.GL) 
+					return new Lwjgl3Graphics(cfg);
+				
+				if(type == FrameType.Canvas)
+					return new AWTGraphics(cfg);
+				
+				throw new UnsupportedOperationException("Unsupported frame type: " + type); 
+			}
 
-	@Override
-	public BuildGraphics getGraphics(FrameType type) {
-		if(type == FrameType.GL) 
-			return new Lwjgl3Graphics(cfg);
-		
-		if(type == FrameType.Canvas)
-			return new AWTGraphics(cfg);
-		
-		throw new UnsupportedOperationException("Unsupported frame type: " + type); 
+			@Override
+			public BuildInput getInput(FrameType type) {
+				if(type == FrameType.GL) 
+					return new Lwjgl3Input();
+				
+				if(type == FrameType.Canvas)
+					return new AWTInput();
+				
+				throw new UnsupportedOperationException("Unsupported frame type: " + type); 
+			}
+		};
 	}
 
 	@Override

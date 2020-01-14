@@ -39,9 +39,7 @@ public interface ApplicationFactory {
 
 	public Platform getPlatform();
 	
-	public BuildInput getInput(FrameType type);
-	
-	public BuildGraphics getGraphics(FrameType type);
+	public BuildFrame getFrame(BuildConfiguration config, FrameType type);
 
 	public ApplicationType getApplicationType();
 	

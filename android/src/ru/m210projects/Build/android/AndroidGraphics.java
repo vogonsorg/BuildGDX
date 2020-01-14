@@ -6,6 +6,7 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
 import com.badlogic.gdx.Application;
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidGL20;
 import com.badlogic.gdx.backends.android.AndroidGL30;
@@ -19,7 +20,6 @@ import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.glutils.GLVersion;
 import com.badlogic.gdx.math.WindowedMean;
-import com.badlogic.gdx.utils.GdxNativesLoader;
 
 import android.app.Activity;
 import android.graphics.Point;
@@ -36,6 +36,7 @@ import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 import ru.m210projects.Build.Architecture.BuildConfiguration;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameStatus;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 
@@ -47,8 +48,9 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	
 	private final int r = 5, g = 6, b = 5, a = 0; //16bit
 	
+
 	protected final Activity app;
-	protected final BuildConfiguration config;
+	protected final AndroidFrame frame;
 	protected final ResolutionStrategy resolutionStrategy;
 	protected View view;
 	private int rate;
@@ -64,6 +66,8 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	String extensions;
 	protected WindowedMean mean = new WindowedMean(5);
 	
+	private boolean wasResized = false;
+	
 	private float ppiX = 0;
 	private float ppiY = 0;
 	private float ppcX = 0;
@@ -72,13 +76,13 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	
 	volatile boolean created = false;
 	volatile boolean running = false;
-	volatile boolean pause = false;
-	volatile boolean resume = false;
-	volatile boolean destroy = false;
+//	volatile boolean pause = false;
+//	volatile boolean resume = false;
+//	volatile boolean destroy = false;
 
-	public AndroidGraphics(Activity application, BuildConfiguration config, ResolutionStrategy resolutionStrategy) {
-		this.config = config;
-		this.app = application;
+	public AndroidGraphics(AndroidFrame frame, ResolutionStrategy resolutionStrategy) {
+		this.frame = frame;
+		this.app = frame.activity;
 		this.resolutionStrategy = resolutionStrategy;
 	}
 	
@@ -116,8 +120,10 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	
 	protected View createGLSurfaceView (Activity application, ResolutionStrategy resolutionStrategy) {
 //		if (!checkGL20()) throw new GdxRuntimeException("Libgdx requires OpenGL ES 2.0");
+		
+		BuildConfiguration config = frame.getConfig();
 
-		EGLConfigChooser configChooser = getEglConfigChooser();
+		EGLConfigChooser configChooser = getEglConfigChooser(config);
 //		int sdkVersion = android.os.Build.VERSION.SDK_INT;
 //		if (sdkVersion <= 10 && config.useGLSurfaceView20API18) {
 //			GLSurfaceView20API18 view = new GLSurfaceView20API18(application, resolutionStrategy);
@@ -140,7 +146,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		}
 	}
 	
-	protected EGLConfigChooser getEglConfigChooser () {
+	protected EGLConfigChooser getEglConfigChooser (BuildConfiguration config) {
 		int samples = 0;
 		return new GdxEglConfigChooser(r, g, b, a, config.depth, config.stencil, samples);
 	}
@@ -157,6 +163,10 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 
 	@Override
 	protected boolean isDirty() {
+		if (view != null) {
+			if (view instanceof GLSurfaceViewAPI18) return ((GLSurfaceViewAPI18)view).isDirty();
+			if (view instanceof GLSurfaceView) return ((GLSurfaceView)view).isDirty();
+		}
 		return false;
 	}
 
@@ -165,21 +175,19 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	}
 
 	@Override
-	protected void update() {
-		// TODO Auto-generated method stub
-		
-	}
+	protected void update() {}
 
 	@Override
 	protected void updateSize(int width, int height) {
-		// TODO Auto-generated method stub
-		
+		if (BuildGdx.gl != null)
+			BuildGdx.gl.glViewport(0, 0, width, height);
 	}
 
 	@Override
 	protected boolean wasResized() {
-		// TODO Auto-generated method stub
-		return false;
+		boolean out = wasResized;
+		wasResized = false;
+		return out;
 	}
 
 	@Override
@@ -194,7 +202,6 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 
 	@Override
 	protected boolean isCloseRequested() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -204,7 +211,11 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 
 	@Override
 	protected boolean isActive() {
-		return true; //XXX
+		if (view != null) {
+			if (view instanceof GLSurfaceViewAPI18) return ((GLSurfaceViewAPI18)view).isShown();
+			if (view instanceof GLSurfaceView) return ((GLSurfaceView)view).isShown();
+		}
+		return false;
 	}
 
 	@Override
@@ -325,7 +336,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 
 	@Override
 	public boolean supportsExtension(String extension) {
-		if (extensions == null) extensions = Gdx.gl.glGetString(GL10.GL_EXTENSIONS);
+		if (extensions == null) extensions = BuildGdx.gl.glGetString(GL10.GL_EXTENSIONS);
 		return extensions.contains(extension);
 	}
 	
@@ -398,9 +409,9 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	}
 	
 	@Override
-	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		eglContext = ((EGL10)EGLContext.getEGL()).eglGetCurrentContext();
-		setupGL(gl);
+		setupGL();
 		updatePpi();
 		updateSafeAreaInsets();
 
@@ -414,8 +425,6 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		Gdx.gl = BuildGdx.gl = getGL10();
 		Gdx.gl20 = BuildGdx.gl20 = getGL20();
 		Gdx.gl30 = BuildGdx.gl30 = getGL30();
-		
-		Gdx.gl.glViewport(0, 0, this.width, this.height);
 	}
 	
 	protected void updateSafeAreaInsets() {
@@ -430,13 +439,15 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	 * Motorola CLIQ and the Samsung Behold II.
 	 *
 	 * @param gl */
-	protected void setupGL (javax.microedition.khronos.opengles.GL10 gl) {
-		String versionString = gl.glGetString(GL10.GL_VERSION);
-		String vendorString = gl.glGetString(GL10.GL_VENDOR);
-		String rendererString = gl.glGetString(GL10.GL_RENDERER);
-		glVersion = new GLVersion(Application.ApplicationType.Android, versionString, vendorString, rendererString);
-		
+	protected void setupGL () {
+		BuildConfiguration config = frame.getConfig();
 		gl10 = new AndroidGL10();
+	
+		String versionString = gl10.glGetString(GL10.GL_VERSION);
+		String vendorString = gl10.glGetString(GL10.GL_VENDOR);
+		String rendererString = gl10.glGetString(GL10.GL_RENDERER);
+		glVersion = new GLVersion(Application.ApplicationType.Android, versionString, vendorString, rendererString);
+
 		if (config.useGL30 && glVersion.getMajorVersion() > 2) {
 			if (gl30 != null) return;
 			gl20 = gl30 = new AndroidGL30();
@@ -457,13 +468,14 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		density = metrics.density;
 	}
 	
+	Object synch = new Object();
+	
 	@Override
-	public void onSurfaceChanged(GL10 gl, int width, int height) {
+	public void onSurfaceChanged(GL10 unused, int width, int height) {
 		this.width = width;
 		this.height = height;
 		updatePpi();
 		updateSafeAreaInsets();
-		BuildGdx.gl.glViewport(0, 0, this.width, this.height);
 		if (created == false) {
 			BuildGdx.app.getApplicationListener().create();
 			created = true;
@@ -471,13 +483,70 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 				running = true;
 			}
 		}
-		BuildGdx.app.getApplicationListener().resize(width, height);
+		
+		synchronized (synch) {
+			resize = true;
+		}
 	}
 
 	@Override
-	public void onDrawFrame(GL10 gl) {
-		// TODO Auto-generated method stub
+	public void onDrawFrame(GL10 unused) {
+		BuildGdx.input.processMessages();
+		ApplicationListener listener = BuildGdx.app.getApplicationListener();
+		BuildConfiguration config = frame.getConfig();
 		
-	}
+		FrameStatus status = null;
+		synchronized (synch) {
+			status = frame.getStatus();
+		}
 
+		switch(status) {
+		default: return;
+		case Closed:
+			destroyLoop();
+			break;
+		case Running: 
+			break;
+		case Pause:
+			listener.pause();
+			break;
+		case Resume:
+			listener.resume();
+			break;
+		case Changed:
+			listener.resize(config.width, config.height);
+			break;
+		}
+
+		boolean shouldRender = false;
+		if (BuildGdx.app.executeRunnables()) shouldRender = true;
+
+		// If one of the runnables set running to false, for example after an exit().
+		if (!running) {
+			destroyLoop();
+			return;
+		}
+
+		if(frame.process(shouldRender)) {
+			listener.render();
+			frame.update();
+		}
+	}
+	
+	private void destroyLoop() {
+		ApplicationListener listener = BuildGdx.app.getApplicationListener();
+		
+		if(BuildGdx.input != null)
+			BuildGdx.input.setCursorCatched(false);
+		if(listener != null) {
+			listener.pause();
+			listener.dispose();
+		}
+		if(BuildGdx.audio != null)
+			BuildGdx.audio.dispose();
+		if(BuildGdx.message != null)
+			BuildGdx.message.dispose();
+		frame.dispose();
+		app.finish();
+	}
 }

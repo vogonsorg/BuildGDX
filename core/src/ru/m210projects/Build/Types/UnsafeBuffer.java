@@ -20,6 +20,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
+import com.badlogic.gdx.Application.ApplicationType;
+
+import ru.m210projects.Build.Architecture.BuildGdx;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
@@ -105,7 +108,12 @@ public abstract class UnsafeBuffer {
 	}
     
     public UnsafeBuffer get(byte[] dst, int offset, int length) {
-    	unsafe.copyMemory(null, getAddress(nextIndex(length)), dst, BYTE_ARRAY_BASE_OFFSET + offset, length);
+    	if(BuildGdx.app.getType() != ApplicationType.Android)
+    		unsafe.copyMemory(null, getAddress(nextIndex(length)), dst, BYTE_ARRAY_BASE_OFFSET + offset, length);
+    	else { //no such method copyMemory
+    		for(int i = 0; i < length; i++)
+    			dst[offset + i] = get();
+    	}
         return this;
     }
 

@@ -51,18 +51,7 @@ public class BuildApplication {
 		
 		if (config.title == null) config.title = listener.getClass().getSimpleName();
 		
-		frame = new BuildFrame(config) {
-			@Override
-			public BuildGraphics getGraphics(FrameType type) {
-				return factory.getGraphics(type);
-			}
-
-			@Override
-			public BuildInput getInput(FrameType type) {
-				return factory.getInput(type);
-			}
-		};
-		
+		frame = factory.getFrame(config, type.getFrameType());
 		if(config.getIconPaths().size > 0)
 			frame.icon = this.getClass().getResource("/" + config.getIconPaths().first());
 		

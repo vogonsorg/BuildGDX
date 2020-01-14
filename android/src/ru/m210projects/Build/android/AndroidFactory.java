@@ -4,16 +4,14 @@ import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.backends.android.AndroidClipboard;
 import com.badlogic.gdx.backends.android.AndroidFiles;
-import com.badlogic.gdx.backends.android.surfaceview.FillResolutionStrategy;
 import com.badlogic.gdx.utils.Clipboard;
 
 import android.app.Activity;
 import ru.m210projects.Build.Architecture.ApplicationFactory;
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildConfiguration;
+import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
-import ru.m210projects.Build.Architecture.BuildGraphics;
-import ru.m210projects.Build.Architecture.BuildInput;
 import ru.m210projects.Build.Architecture.BuildMessage;
 import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Input.BuildControllers;
@@ -60,13 +58,8 @@ public class AndroidFactory implements ApplicationFactory {
 	}
 
 	@Override
-	public BuildInput getInput(FrameType type) {
-		return new AndroidInput();
-	}
-
-	@Override
-	public BuildGraphics getGraphics(FrameType type) {
-		return new AndroidGraphics(activity, cfg, new FillResolutionStrategy());
+	public BuildFrame getFrame(BuildConfiguration config, FrameType type) {
+		return new AndroidFrame(activity, config, type);
 	}
 
 	@Override
@@ -78,5 +71,4 @@ public class AndroidFactory implements ApplicationFactory {
 	public Clipboard getClipboard() {
 		return new AndroidClipboard(activity);
 	}
-
 }
