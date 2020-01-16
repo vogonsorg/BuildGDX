@@ -19,13 +19,11 @@ package ru.m210projects.Build.FileHandle;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import ru.m210projects.Build.FileHandle.Cache1D.PackageType;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
-import ru.m210projects.Build.Types.UnsafeBuffer;
 
 public class RffGroup extends Group {
 
@@ -243,19 +241,21 @@ public class RffGroup extends Group {
 					}
 					
 					if(file instanceof FileResource) {
-						ResourceData fileData = ((FileResource)file).read(size, new Runnable() {
-							@Override
-							public void run() {
-								flush();
-							}
-						});
+						ByteBuffer fileData = ((FileResource)file).readBuffer(size);
 						if(fileData == null)
 						{
 							Console.Println("Error loading resource!");
 							return null;
 						}
 						
-						buffer = new ResourceData(fileData.getBuffer()) {
+						buffer = new ResourceData(fileData) {
+							@Override
+							public void dispose()
+							{
+								flush();
+								super.dispose();
+							}
+							
 							@Override
 							public byte get(int i) {
 								if((flags & 0x10) != 0 && i < 256)
@@ -290,7 +290,7 @@ public class RffGroup extends Group {
 							}
 							
 							@Override
-							public UnsafeBuffer get(byte[] dst, int offset, int length) {
+							public ResourceData get(byte[] dst, int offset, int length) {
 								super.get(dst, offset, length);
 								
 								int pos = position() - length;
@@ -298,26 +298,6 @@ public class RffGroup extends Group {
 									encrypt(dst, 0, Math.min(256 - pos, length), pos);
 								
 								return this;
-							}
-							
-							@Override
-							public ByteBuffer getBuffer() { 
-								if((flags & 0x10) != 0) {
-									byte[] bytes = new byte[512];
-									ByteBuffer bb = ByteBuffer.allocateDirect(size);
-
-									int rem, len;
-									while((rem = buffer.remaining()) > 0) {
-										len = Math.min(512, rem);
-										buffer.get(bytes, 0, len);
-										bb.put(bytes, 0, len);
-									}
-									bb.rewind();
-									
-									return bb.order(ByteOrder.LITTLE_ENDIAN);
-								}
-								
-								return super.getBuffer();
 							}
 						};
 					} else {

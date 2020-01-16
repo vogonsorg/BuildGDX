@@ -234,15 +234,21 @@ public class GrpGroup extends Group {
 					}
 					
 					if(file instanceof FileResource) {
-						if((buffer = ((FileResource)file).read(size, new Runnable() {
-							@Override
-							public void run() {
-								flush();
-							}
-						})) == null) {
+						ByteBuffer fileData = ((FileResource)file).readBuffer(size);
+						if(fileData == null)
+						{
 							Console.Println("Error loading resource!");
 							return null;
 						}
+						
+						buffer = new ResourceData(fileData) {
+							@Override
+							public void dispose()
+							{
+								flush();
+								super.dispose();
+							}
+						};
 					} else {
 						byte[] tmp = getBytes();
 						if(tmp == null) return null;

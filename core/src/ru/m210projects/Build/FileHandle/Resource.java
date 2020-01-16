@@ -41,11 +41,6 @@ public interface Resource extends Closeable {
 			this.setAddress(bb);
 		}
 
-		public ByteBuffer getBuffer() { 
-			rewind();
-			return bb;
-		}
-		
 		public String getString(int len)
 		{
 			if(remaining() < len) return null;

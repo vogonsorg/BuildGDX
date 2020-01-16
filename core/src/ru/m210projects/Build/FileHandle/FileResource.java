@@ -244,24 +244,15 @@ public class FileResource implements Resource {
 	    }
 	}
 
-	public ResourceData read(int len, final Runnable dispose) {
-		ResourceData out = null;
+	protected ByteBuffer readBuffer(int len)
+	{
+		ByteBuffer out = null;
 		if(isClosed()) return null;
 		
 		try {
 			FileChannel ch = raf.getChannel();
 			long pos = ch.position();
-			
-			if(dispose != null) {
-				out = new ResourceData(raf.getChannel().map(FileChannel.MapMode.READ_ONLY, pos, len)) {
-					@Override
-					public void dispose()
-					{
-						dispose.run();
-						super.dispose();
-					}
-				};
-			} else out = new ResourceData(raf.getChannel().map(FileChannel.MapMode.READ_ONLY, pos, len));
+			out = ch.map(FileChannel.MapMode.READ_ONLY, pos, len);
 			ch.position(pos + len);
 		} catch (EOFException e) {
 	    	return null;
