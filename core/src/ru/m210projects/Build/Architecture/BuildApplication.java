@@ -16,9 +16,18 @@
 
 package ru.m210projects.Build.Architecture;
 
-import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.Application;
 
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.ApplicationLogger;
+import com.badlogic.gdx.Audio;
+import com.badlogic.gdx.Files;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.LifecycleListener;
+import com.badlogic.gdx.Net;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Clipboard;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -27,7 +36,7 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Render.Renderer.RenderType;
 
-public class BuildApplication {
+public class BuildApplication implements Application {
 	
 	public enum Platform { Windows, Linux, MacOSX, Android };
 	
@@ -55,8 +64,8 @@ public class BuildApplication {
 		if(config.getIconPaths().size > 0)
 			frame.icon = this.getClass().getResource("/" + config.getIconPaths().first());
 		
-		BuildGdx.app = this;
-		BuildGdx.files = factory.getFiles();
+		Gdx.app = BuildGdx.app = this;
+		Gdx.files = BuildGdx.files = factory.getFiles();
 		BuildGdx.audio = factory.getAudio();
 		BuildGdx.message = factory.getMessage();
 		BuildGdx.message.setFrame(frame);
@@ -64,7 +73,7 @@ public class BuildApplication {
 		this.platform = factory.getPlatform();
 		this.type = factory.getApplicationType();
 		this.clipboard = factory.getClipboard();
-		
+
 		initialize(type.getFrameType());
 	}
 
@@ -207,4 +216,94 @@ public class BuildApplication {
 	public ApplicationType getType() {
 		return type;
 	}
+
+	//Gdx Application
+	
+	@Override
+	public Graphics getGraphics() {
+		return BuildGdx.graphics;
+	}
+
+	@Override
+	public Input getInput() {
+		return BuildGdx.input;
+	}
+
+	@Override
+	public Files getFiles() {
+		return BuildGdx.files;
+	}
+	
+	@Override
+	public int getVersion() {
+		return 1910;
+	}
+
+	@Override
+	public long getJavaHeap() {
+		return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+	}
+
+	@Override
+	public long getNativeHeap() {
+		return getJavaHeap();
+	}
+	
+	//Gdx Application unused
+
+	@Override
+	public Net getNet() {
+		return null;
+	}
+	
+
+	@Override
+	public Audio getAudio() {
+		return null;
+	}
+
+	@Override
+	public void log(String tag, String message) {}
+
+	@Override
+	public void log(String tag, String message, Throwable exception) {}
+
+	@Override
+	public void error(String tag, String message) {}
+
+	@Override
+	public void error(String tag, String message, Throwable exception) {}
+
+	@Override
+	public void debug(String tag, String message) {}
+
+	@Override
+	public void debug(String tag, String message, Throwable exception) {}
+
+	@Override
+	public void setLogLevel(int logLevel) {}
+
+	@Override
+	public int getLogLevel() {
+		return 0;
+	}
+
+	@Override
+	public void setApplicationLogger(ApplicationLogger applicationLogger) {}
+
+	@Override
+	public ApplicationLogger getApplicationLogger() {
+		return null;
+	}
+
+	@Override
+	public Preferences getPreferences(String name) {
+		return null;
+	}
+
+	@Override
+	public void addLifecycleListener(LifecycleListener listener) {}
+
+	@Override
+	public void removeLifecycleListener(LifecycleListener listener) {}
 }
