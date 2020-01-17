@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import static ru.m210projects.Build.Strhandler.toLowerCase;
@@ -34,6 +35,7 @@ public class FileResource implements Resource {
 	private RandomAccessFile raf;
 	private Mode mode;
 	private String ext;
+	private MappedByteBuffer fbuf;
 	
 	protected FileResource open(File file, Mode mode)
 	{
@@ -43,6 +45,9 @@ public class FileResource implements Resource {
 			{
 				case Read:
 					raf = new RandomAccessFile(file, "r");
+					FileChannel ch = raf.getChannel();
+					fbuf = ch.map(FileChannel.MapMode.READ_ONLY, 0, raf.length());
+					
 					handle(file);
 					return this;
 				case Write:
@@ -95,6 +100,7 @@ public class FileResource implements Resource {
 		if(isClosed()) return;
 		
 		try {
+			//XXX fbuf.dispose
 			raf.close();
 			raf = null;
 		} catch (Exception e) {
@@ -110,14 +116,17 @@ public class FileResource implements Resource {
 		try {
 			if(whence == Whence.Set) {
 				if(offset < 0) return -1;
-				raf.getChannel().position(offset);			
 			} else if(whence == Whence.Current) {
-				raf.getChannel().position(raf.getChannel().position() + offset);		
+				offset += position();
 			} else if(whence == Whence.End) {
-				raf.getChannel().position(raf.getChannel().size() + offset);			
+				offset += size();		
 			}
 			
-			var = (int) raf.getChannel().position();
+			if(fbuf != null)
+				fbuf.position((int)offset);
+			else raf.getChannel().position(offset);		
+			
+			var = position();
 		} catch (Exception e) {
 			e.printStackTrace();
 	    } 
@@ -131,7 +140,11 @@ public class FileResource implements Resource {
 		if(isClosed()) return var;
 		
 		try {
-			var = raf.read(buf, offset, len);
+			if(fbuf != null)
+			{
+				fbuf.get(buf, offset, len);
+				var = len; //XXX
+			} else var = raf.read(buf, offset, len);
 		} catch (EOFException e) {
 	    	return -1;
 	    } catch (Exception e) {
@@ -142,17 +155,7 @@ public class FileResource implements Resource {
 	
 	@Override
 	public int read(byte[] buf, int len) {
-		int var = -1;
-		if(isClosed()) return var;
-		
-		try {
-			var = raf.read(buf, 0, len);
-		} catch (EOFException e) {
-	    	return -1;
-	    } catch (Exception e) {
-			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
-	    }
-		return var;
+		return read(buf, 0, len);
 	}
 	
 	@Override
@@ -168,8 +171,15 @@ public class FileResource implements Resource {
 			int p = 0;
 			while(len > 0)
 			{
-				if((var = raf.read(readbuf, 0, Math.min(len, readbuf.length))) == -1)
-					return p;
+				if(fbuf != null)
+				{
+					var = Math.min(len, readbuf.length);
+					if(var > fbuf.remaining()) return p;
+					fbuf.get(readbuf, 0, var);
+				} else {
+					if((var = raf.read(readbuf, 0, Math.min(len, readbuf.length))) == -1)
+						return p;
+				}
 				bb.put(readbuf, 0, var);
 				len -= var;
 				p += var;
@@ -198,36 +208,39 @@ public class FileResource implements Resource {
 	@Override
 	public Integer readInt()
 	{
-		Integer var = null;
-		if(isClosed()) return var;
-		
-		try {
-			if(raf.read(readbuf, 0, 4) == 4)
-				return ( (readbuf[3] & 0xFF) << 24 ) + ( (readbuf[2] & 0xFF) << 16 ) + ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF );
-			
-		} catch (EOFException e) {
-	    	return null;
-	    } catch (Exception e) {
-			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
-	    }
-		return var;
+		if(read(readbuf, 0, 4) == 4)
+			return ( (readbuf[3] & 0xFF) << 24 ) + ( (readbuf[2] & 0xFF) << 16 ) + ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF );
+		return null;
+	}
+	
+	@Override
+	public Long readLong() {
+		if(read(readbuf, 0, 8) == 8)
+			 return  (((long)readbuf[7] & 0xFF) << 56) +
+					 (((long)readbuf[6] & 0xFF) << 48) +
+					 (((long)readbuf[5] & 0xFF) << 40) +
+					 (((long)readbuf[4] & 0xFF) << 32) +
+					 (((long)readbuf[3] & 0xFF) << 24) +
+					 (((long)readbuf[2] & 0xFF) << 16) +
+					 (((long)readbuf[1] & 0xFF) <<  8) +
+					 (((long)readbuf[0] & 0xFF)      );
+		return null;
+	}
+	
+	@Override
+	public Float readFloat() {
+		Integer i = readInt();
+		if(i != null)
+			return Float.intBitsToFloat( i );
+		return null;
 	}
 	
 	@Override
 	public Short readShort()
 	{
-		Short var = null;
-		if(isClosed()) return var;
-		
-		try {
-			if(raf.read(readbuf, 0, 2) == 2)
-				return (short) ( ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF ) );
-		} catch (EOFException e) {
-	    	return null;
-	    } catch (Exception e) {
-			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
-	    }
-		return var;
+		if(read(readbuf, 0, 2) == 2)
+			return (short) ( ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF ) );
+		return null;
 	}
 	
 	@Override
@@ -236,12 +249,22 @@ public class FileResource implements Resource {
 		if(isClosed()) return null;
 		
 		try {
+			if(fbuf != null)
+				return fbuf.get();
 			return raf.readByte();
 		} catch (EOFException e) {
 	    	return null;
 	    } catch (Exception e) {
 			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
 	    }
+	}
+	
+	@Override
+	public Boolean readBoolean() {
+		Byte var = readByte();
+		if(var != null)
+			return var == 1;
+		return null;
 	}
 
 	protected ByteBuffer readBuffer(int len)
@@ -399,7 +422,9 @@ public class FileResource implements Resource {
 		if(isClosed()) return var;
 		
 		try {
-			var = (int) raf.length();
+			if(fbuf != null)
+				var = fbuf.capacity();
+			else var = (int) raf.length();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -412,26 +437,28 @@ public class FileResource implements Resource {
 		if(isClosed()) return var;
 
 		try {
-			var = (int) raf.getChannel().position();
+			if(fbuf != null)
+				var = fbuf.position();
+			else var = (int) raf.getChannel().position();		
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return var;
 	}
 
-	@Override
-	public ResourceData getData() {
-		ResourceData out = null;
-		if(isClosed()) return null;
-		
-		try {
-			out = new ResourceData(raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, raf.length()));
-		} catch (Exception e) {
-			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
-	    }
-		
-		return out;
-	}
+//	@Override
+//	public IResourceData getData() {
+//		IResourceData out = null;
+//		if(isClosed()) return null;
+//		
+//		try {
+//			out = new ResourceData(raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, raf.length()));
+//		} catch (Exception e) {
+//			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
+//	    }
+//		
+//		return out;
+//	}
 	
 	@Override
 	public byte[] getBytes() {
@@ -452,5 +479,15 @@ public class FileResource implements Resource {
 	@Override
 	public String getExtension() {
 		return ext;
+	}
+
+	@Override
+	public int remaining() {
+		return size() - position();
+	}
+
+	@Override
+	public boolean hasRemaining() {
+		return position() < size();
 	}
 }

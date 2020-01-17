@@ -28,7 +28,6 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.Resource;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -1429,32 +1428,32 @@ public abstract class Engine {
 	
 	public synchronized void loadpic(String filename) //gdxBuild
 	{
-		ResourceData fil = null; 
-		if ((fil = BuildGdx.cache.getData(filename, 0)) != null) {
-			artversion = fil.getInt();
+		Resource fil = null; 
+		if ((fil = BuildGdx.cache.open(filename, 0)) != null) {
+			artversion = fil.readInt();
 			if (artversion != 1)
 				return;
-			numtiles = fil.getInt();
-			int localtilestart = fil.getInt();
-			int localtileend = fil.getInt();
+			numtiles = fil.readInt();
+			int localtilestart = fil.readInt();
+			int localtileend = fil.readInt();
 			
 			for (int i = localtilestart; i <= localtileend; i++) {
-				tilesizx[i] = fil.getShort();
+				tilesizx[i] = fil.readShort();
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				tilesizy[i] = fil.getShort();
+				tilesizy[i] = fil.readShort();
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				picanm[i] = fil.getInt();
+				picanm[i] = fil.readInt();
 			}
 
 			for (int i = localtilestart; i <= localtileend; i++) {
 				int dasiz = tilesizx[i] * tilesizy[i];
 				waloff[i] = new byte[dasiz];
-				fil.get(waloff[i], 0, dasiz);
+				fil.read(waloff[i]);
 				setpicsiz(i);
 			}
-			fil.dispose();
+			fil.close();
 		}
 	}
 	
@@ -1477,7 +1476,7 @@ public abstract class Engine {
 		buildString(artfilename, 0, tilesPath);
 
 		numtilefiles = 0;
-		ResourceData fil = null;
+		Resource fil = null;
 		do {
 			k = numtilefiles;
 
@@ -1486,23 +1485,23 @@ public abstract class Engine {
 			artfilename[5] = (char) (((k / 100) % 10) + 48);
 			String name = String.copyValueOf(artfilename);
 
-			if ((fil = BuildGdx.cache.getData(name, 0)) != null) {
-				artversion = fil.getInt();
+			if ((fil = BuildGdx.cache.open(name, 0)) != null) {
+				artversion = fil.readInt();
 				if (artversion != 1)
 					return (-1);
 
-				numtiles = fil.getInt();
-				localtilestart = fil.getInt();
-				localtileend = fil.getInt();
+				numtiles = fil.readInt();
+				localtilestart = fil.readInt();
+				localtileend = fil.readInt();
 
 				for (i = localtilestart; i <= localtileend; i++) {
-					tilesizx[i] = fil.getShort();
+					tilesizx[i] = fil.readShort();
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					tilesizy[i] = fil.getShort();
+					tilesizy[i] = fil.readShort();
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					picanm[i] = fil.getInt();
+					picanm[i] = fil.readInt();
 				}
 				offscount = 4 + 4 + 4 + 4 + ((localtileend - localtilestart + 1) << 3);
 				for (i = localtilestart; i <= localtileend; i++) {
@@ -1513,7 +1512,7 @@ public abstract class Engine {
 				}
 
 				numtilefiles++;
-				fil.dispose();
+				fil.close();
 			}
 		} while (k != numtilefiles);
 

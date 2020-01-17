@@ -54,10 +54,9 @@ public class UnsafeDirectBuffer extends UnsafeWriteBuffer {
 	}
 	
 	@Override
-	public UnsafeDirectBuffer rewind() {
+	public void rewind() {
 		bb.rewind();
 		position = 0;
-		return this;
 	}
 
 	public UnsafeDirectBuffer flip() {

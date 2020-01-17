@@ -16,14 +16,15 @@
 
 package ru.m210projects.Build.Loader.MD2;
 
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Loader.Model;
 
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class MD2Loader {	
 
-	public static Model load(ResourceData bb) {
+	public static Model load(Resource bb) {
 		MD2Header header = loadHeader(bb);
 		
 		if ((header.ident != 0x32504449) || (header.version != 8)) return null; //"IDP2"
@@ -65,17 +66,17 @@ public class MD2Loader {
 	}
 
 	private static final byte[] charBuffer = new byte[16];
-	private static MD2Frame[] loadFrames (MD2Header header, ResourceData bb) {
-		bb.position(header.offsetFrames);
+	private static MD2Frame[] loadFrames (MD2Header header, Resource bb) {
+		bb.seek(header.offsetFrames, Whence.Set);
 		MD2Frame[] frames = new MD2Frame[header.numFrames];
 		
 		for (int i = 0; i < header.numFrames; i++) {
 			MD2Frame frame = new MD2Frame();
 			frame.vertices = new float[header.numVertices][3];
 	
-			float scaleX = bb.getFloat(), scaleY = bb.getFloat(), scaleZ = bb.getFloat();
-			float transX = bb.getFloat(), transY = bb.getFloat(), transZ = bb.getFloat();
-			bb.get(charBuffer);
+			float scaleX = bb.readFloat(), scaleY = bb.readFloat(), scaleZ = bb.readFloat();
+			float transX = bb.readFloat(), transY = bb.readFloat(), transZ = bb.readFloat();
+			bb.read(charBuffer);
 	
 			int len;
 			for (len = 0; len < charBuffer.length; len++)
@@ -84,10 +85,10 @@ public class MD2Loader {
 	
 			frame.name = new String(charBuffer, 0, len);
 			for (int j = 0; j < header.numVertices; j++) {
-				float x = (bb.get() & 0xFF) * scaleX + transX;
-				float y = (bb.get() & 0xFF) * scaleY + transY;
-				float z = (bb.get() & 0xFF) * scaleZ + transZ;
-				bb.get(); // normal index
+				float x = (bb.readByte() & 0xFF) * scaleX + transX;
+				float y = (bb.readByte() & 0xFF) * scaleY + transY;
+				float z = (bb.readByte() & 0xFF) * scaleZ + transZ;
+				bb.readByte(); // normal index
 				
 				frame.vertices[j][0] = x;
 				frame.vertices[j][1] = y;
@@ -99,71 +100,71 @@ public class MD2Loader {
 		return frames;
 	}
 
-	private static MD2Triangle[] loadTriangles (MD2Header header, ResourceData bb) {
+	private static MD2Triangle[] loadTriangles (MD2Header header, Resource bb) {
 		
-		bb.position(header.offsetTriangles);
+		bb.seek(header.offsetTriangles, Whence.Set);
 		MD2Triangle[] triangles = new MD2Triangle[header.numTriangles];
 
 		for (int i = 0; i < header.numTriangles; i++) {
 			MD2Triangle triangle = new MD2Triangle();
-			triangle.vertices[0] = bb.getShort();
-			triangle.vertices[1] = bb.getShort();
-			triangle.vertices[2] = bb.getShort();
-			triangle.texCoords[0] = bb.getShort();
-			triangle.texCoords[1] = bb.getShort();
-			triangle.texCoords[2] = bb.getShort();
+			triangle.vertices[0] = bb.readShort();
+			triangle.vertices[1] = bb.readShort();
+			triangle.vertices[2] = bb.readShort();
+			triangle.texCoords[0] = bb.readShort();
+			triangle.texCoords[1] = bb.readShort();
+			triangle.texCoords[2] = bb.readShort();
 			triangles[i] = triangle;
 		}
 
 		return triangles;
 	}
 
-	private static float[] loadTexCoords (MD2Header header,ResourceData bb) {
-		bb.position(header.offsetTexCoords);
+	private static float[] loadTexCoords (MD2Header header,Resource bb) {
+		bb.seek(header.offsetTexCoords, Whence.Set);
 		float[] texCoords = new float[header.numTexCoords * 2];
 		float width = header.skinWidth;
 		float height = header.skinHeight;
 
 		for (int i = 0; i < header.numTexCoords; i++) {
-			short u = bb.getShort();
-			short v = bb.getShort();
+			short u = bb.readShort();
+			short v = bb.readShort();
 			texCoords[2 * i] = (u / width);
 			texCoords[2 * i + 1] =(v / height);
 		}
 		return texCoords;
 	}
 
-	private static MD2Header loadHeader (ResourceData bb) {
+	private static MD2Header loadHeader (Resource bb) {
 		MD2Header header = new MD2Header();
 
-		header.ident = bb.getInt();
-		header.version = bb.getInt();
-		header.skinWidth = bb.getInt();
-		header.skinHeight = bb.getInt();
-		header.frameSize = bb.getInt();
-		header.numSkins = bb.getInt();
-		header.numVertices = bb.getInt();
-		header.numTexCoords = bb.getInt();
-		header.numTriangles = bb.getInt();
-		header.numGLCommands = bb.getInt();
-		header.numFrames = bb.getInt();
-		header.offsetSkin = bb.getInt();
-		header.offsetTexCoords = bb.getInt();
-		header.offsetTriangles = bb.getInt();
-		header.offsetFrames = bb.getInt();
-		header.offsetGLCommands = bb.getInt();
-		header.offsetEnd = bb.getInt();
+		header.ident = bb.readInt();
+		header.version = bb.readInt();
+		header.skinWidth = bb.readInt();
+		header.skinHeight = bb.readInt();
+		header.frameSize = bb.readInt();
+		header.numSkins = bb.readInt();
+		header.numVertices = bb.readInt();
+		header.numTexCoords = bb.readInt();
+		header.numTriangles = bb.readInt();
+		header.numGLCommands = bb.readInt();
+		header.numFrames = bb.readInt();
+		header.offsetSkin = bb.readInt();
+		header.offsetTexCoords = bb.readInt();
+		header.offsetTriangles = bb.readInt();
+		header.offsetFrames = bb.readInt();
+		header.offsetGLCommands = bb.readInt();
+		header.offsetEnd = bb.readInt();
 
 		return header;
 	}
 	
-	public static int[] loadGLCommands(MD2Header header, ResourceData bb)
+	public static int[] loadGLCommands(MD2Header header, Resource bb)
 	{
-		bb.position(header.offsetGLCommands);
+		bb.seek(header.offsetGLCommands, Whence.Set);
 		int[] glcmds = new int[header.numGLCommands];
 		
 		for (int i = 0; i < header.numGLCommands; i++)
-			glcmds[i] = bb.getInt();
+			glcmds[i] = bb.readInt();
 		return glcmds;
 	}
 

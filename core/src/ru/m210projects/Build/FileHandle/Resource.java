@@ -18,78 +18,56 @@ package ru.m210projects.Build.FileHandle;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import ru.m210projects.Build.Types.UnsafeBuffer;
 
 public interface Resource extends Closeable {
 
-	public class ResourceData extends UnsafeBuffer {
-
-		private ByteBuffer bb;
-		public ResourceData(ByteBuffer bb)
-		{
-			this.bb = bb.order(ByteOrder.LITTLE_ENDIAN);
-			this.setAddress(bb);
-		}
+	public interface IResourceData {
 		
-		public ResourceData(byte[] data)
-		{
-			this.bb = ByteBuffer.allocateDirect(data.length);
-			this.bb.order(ByteOrder.LITTLE_ENDIAN);
-			this.bb.put(data).rewind();
-			this.setAddress(bb);
-		}
+		public byte get();
 
-		public String getString(int len)
-		{
-			if(remaining() < len) return null;
-			
-			byte[] buf = new byte[len];
-			get(buf);
-			return new String(buf);
-		}
+	    public byte get(int i);
+	    
+	    public short getShort();
 
-	    public int capacity() {
-			return bb.capacity();
-		}
+	    public short getShort(int i);
 		
-		public ResourceData rewind() {
-			bb.rewind();
-			position = 0;
-			return this;
-		}
+		public int getInt();
 
-		public ResourceData flip() {
-			bb.rewind();
-			bb.limit(position);
-			position = 0;
-			return this;
-		}
-
-		public ResourceData clear() {
-			bb.clear();
-			position = 0;
-			return this;
-		}
+		public int getInt(int i);
 		
-		public void dispose()
-		{
-			dispose(bb);
-		}
+		public float getFloat(int i);
 		
-		public void limit(int newLimit)
-		{
-			bb.limit(newLimit);
-		}
+		public float getFloat();
+		
+		public long getLong(int i);
+		
+		public long getLong();
+		
+		public int position();
+		
+		public void position(int newPosition);
+		
+		public void get(byte[] dst);
+	    
+	    public void get(byte[] dst, int offset, int length);
 
-		public int remaining() {
-			return bb.limit() - position;
-		}
+		public String getString(int len);
 
-		public boolean hasRemaining() {
-			return position < bb.limit();
-		}
+	    public int capacity();
+		
+		public void rewind();
+
+		public void flip();
+
+		public void clear();
+		
+		public void dispose();
+		
+		public void limit(int newLimit);
+
+		public int remaining();
+
+		public boolean hasRemaining();
 	}
 
 	public static enum Whence { Set, Current, End };
@@ -120,11 +98,21 @@ public interface Resource extends Closeable {
 	
 	public Byte readByte();
 	
+	public Boolean readBoolean();
+	
+	public Long readLong();
+	
+	public Float readFloat();
+	
 	public int size();
 	
 	public int position();
 	
-	public ResourceData getData();
+	public int remaining();
+	
+	public boolean hasRemaining();
+	
+//	public IResourceData getData();
 	
 	public byte[] getBytes();
 

@@ -28,9 +28,9 @@ public abstract class UnsafeWriteBuffer extends UnsafeBuffer {
         return this;
     }
     
-    public UnsafeBuffer wrap(byte[] src) {
+    public void wrap(byte[] src) {
     	unsafe.copyMemory(src, BYTE_ARRAY_BASE_OFFSET, null, address, src.length);
-    	return rewind();
+    	rewind();
     }
     
     public UnsafeBuffer putBytes(byte[] src, int offset, int length) {

@@ -19,7 +19,8 @@ package ru.m210projects.Build.Loader.MD3;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Loader.Model;
 
 import com.badlogic.gdx.math.Matrix4;
@@ -30,7 +31,7 @@ public class MD3Loader {
 	private static int maxtris = 0;
 	private static int maxverts = 0;	
 	
-	public static Model load(ResourceData bb) {
+	public static Model load(Resource bb) {
 		MD3Header header = loadHeader(bb);
 		
 		if ((header.ident != 0x33504449) || (header.version != 15)) return null; //"IDP3"
@@ -54,34 +55,34 @@ public class MD3Loader {
 		return m;
 	}
 
-	private static MD3Header loadHeader (ResourceData bb) {
+	private static MD3Header loadHeader (Resource bb) {
 		MD3Header header = new MD3Header();
 
-		header.ident = bb.getInt();
-		header.version = bb.getInt();
+		header.ident = bb.readInt();
+		header.version = bb.readInt();
 		header.filename = readString(bb, 64);
-		header.flags = bb.getInt();
-		header.numFrames = bb.getInt();
-		header.numTags = bb.getInt();
-		header.numSurfaces = bb.getInt();
-		header.numSkins = bb.getInt();
-		header.offsetFrames = bb.getInt();
-		header.offsetTags = bb.getInt();
-		header.offsetSurfaces = bb.getInt();
-		header.offsetEnd = bb.getInt();
+		header.flags = bb.readInt();
+		header.numFrames = bb.readInt();
+		header.numTags = bb.readInt();
+		header.numSurfaces = bb.readInt();
+		header.numSkins = bb.readInt();
+		header.offsetFrames = bb.readInt();
+		header.offsetTags = bb.readInt();
+		header.offsetSurfaces = bb.readInt();
+		header.offsetEnd = bb.readInt();
 
 		return header;
 	}
 	
-	private static MD3Frame[] loadFrames (MD3Header header, ResourceData bb) {
-		bb.position(header.offsetFrames);
+	private static MD3Frame[] loadFrames (MD3Header header, Resource bb) {
+		bb.seek(header.offsetFrames, Whence.Set);
 		MD3Frame[] out = new MD3Frame[header.numFrames];
         for(int i = 0; i < header.numFrames; i++) {
         	MD3Frame frame = new MD3Frame();
-        	frame.min = new Vector3(bb.getFloat(), bb.getFloat(), bb.getFloat());
-        	frame.max = new Vector3(bb.getFloat(), bb.getFloat(), bb.getFloat());
-        	frame.origin = new Vector3(bb.getFloat(), bb.getFloat(), bb.getFloat());
-        	frame.radius = bb.getFloat();
+        	frame.min = new Vector3(bb.readFloat(), bb.readFloat(), bb.readFloat());
+        	frame.max = new Vector3(bb.readFloat(), bb.readFloat(), bb.readFloat());
+        	frame.origin = new Vector3(bb.readFloat(), bb.readFloat(), bb.readFloat());
+        	frame.radius = bb.readFloat();
         	frame.name = readString(bb, 16);
         	out[i] = frame;
         }
@@ -89,18 +90,18 @@ public class MD3Loader {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static HashMap<String, Matrix4>[] loadTags (MD3Header header, ResourceData bb) {
-		bb.position(header.offsetTags);
+	private static HashMap<String, Matrix4>[] loadTags (MD3Header header, Resource bb) {
+		bb.seek(header.offsetTags, Whence.Set);
 		HashMap<String, Matrix4>[] out = (HashMap<String, Matrix4>[]) new HashMap[header.numFrames];
 		for (int k = 0; k < header.numFrames; k++) {
 			out[k] = new HashMap<String, Matrix4>();
 		    for (int i = 0; i < header.numTags; i++) {
 		    	String tagName = readString(bb, 64);
 
-		        Vector3 pos = new Vector3(bb.getFloat(), bb.getFloat(), bb.getFloat());
-		        Vector3 xAxis = new Vector3(bb.getFloat(), bb.getFloat(), bb.getFloat());
-		        Vector3 yAxis = new Vector3(bb.getFloat(), bb.getFloat(), bb.getFloat());
-		        Vector3 zAxis = new Vector3(bb.getFloat(), bb.getFloat(), bb.getFloat());
+		        Vector3 pos = new Vector3(bb.readFloat(), bb.readFloat(), bb.readFloat());
+		        Vector3 xAxis = new Vector3(bb.readFloat(), bb.readFloat(), bb.readFloat());
+		        Vector3 yAxis = new Vector3(bb.readFloat(), bb.readFloat(), bb.readFloat());
+		        Vector3 zAxis = new Vector3(bb.readFloat(), bb.readFloat(), bb.readFloat());
 		        Matrix4 mat = new Matrix4();
 		        mat.set(xAxis, yAxis, zAxis, pos);
 
@@ -110,24 +111,24 @@ public class MD3Loader {
 		return out;
 	}
 	
-	private static MD3Surface[] loadSurfaces(MD3Header header, ResourceData bb) {
+	private static MD3Surface[] loadSurfaces(MD3Header header, Resource bb) {
 		int offsetSurfaces = header.offsetSurfaces;
 		MD3Surface[] out = new MD3Surface[header.numSurfaces];
         for(int i = 0; i < header.numSurfaces; i++) {
-        	bb.position(offsetSurfaces);
+        	bb.seek(offsetSurfaces, Whence.Set);
         	MD3Surface surf = new MD3Surface();
-        	surf.id = bb.getInt();
+        	surf.id = bb.readInt();
         	surf.nam = readString(bb, 64);
-        	surf.flags = bb.getInt();
-        	surf.numframes = bb.getInt();
-        	surf.numshaders = bb.getInt();
-        	surf.numverts = bb.getInt();
-        	surf.numtris = bb.getInt();
-        	surf.ofstris = bb.getInt();
-        	surf.ofsshaders = bb.getInt();
-        	surf.ofsuv = bb.getInt();
-        	surf.ofsxyzn = bb.getInt();
-        	surf.ofsend = bb.getInt();
+        	surf.flags = bb.readInt();
+        	surf.numframes = bb.readInt();
+        	surf.numshaders = bb.readInt();
+        	surf.numverts = bb.readInt();
+        	surf.numtris = bb.readInt();
+        	surf.ofstris = bb.readInt();
+        	surf.ofsshaders = bb.readInt();
+        	surf.ofsuv = bb.readInt();
+        	surf.ofsxyzn = bb.readInt();
+        	surf.ofsend = bb.readInt();
         	
         	surf.tris = loadTriangles(surf, offsetSurfaces, bb);
         	surf.shaders = loadShaders(surf, offsetSurfaces, bb);
@@ -142,63 +143,63 @@ public class MD3Loader {
         return out;
 	}
 	
-	private static int[][] loadTriangles(MD3Surface surf, int offsetSurfaces, ResourceData bb)
+	private static int[][] loadTriangles(MD3Surface surf, int offsetSurfaces, Resource bb)
 	{
-		bb.position(offsetSurfaces + surf.ofstris);
+		bb.seek(offsetSurfaces + surf.ofstris, Whence.Set);
 		int[][] out = new int[surf.numtris][3];
 		for(int i = 0; i < surf.numtris; i++) {
-			out[i][0] = bb.getInt();
-			out[i][1] = bb.getInt();
-			out[i][2] = bb.getInt();
+			out[i][0] = bb.readInt();
+			out[i][1] = bb.readInt();
+			out[i][2] = bb.readInt();
 		}
 		return out;
 	}
 	
-	private static FloatBuffer loadUVs(MD3Surface surf, int offsetSurfaces, ResourceData bb)
+	private static FloatBuffer loadUVs(MD3Surface surf, int offsetSurfaces, Resource bb)
 	{
-		bb.position(offsetSurfaces +  surf.ofsuv);
+		bb.seek(offsetSurfaces +  surf.ofsuv, Whence.Set);
 		FloatBuffer out = BufferUtils.newFloatBuffer(2 * surf.numverts);
 		for(int i = 0; i < surf.numverts; i++) {
-			out.put(bb.getFloat());
-			out.put(bb.getFloat());
+			out.put(bb.readFloat());
+			out.put(bb.readFloat());
 		}
 		out.flip();
 		return out;
 	}
 	
-	private static MD3Vertice[] loadVertices(MD3Surface surf, int offsetSurfaces, ResourceData bb)
+	private static MD3Vertice[] loadVertices(MD3Surface surf, int offsetSurfaces, Resource bb)
 	{
-		bb.position(offsetSurfaces +  surf.ofsxyzn);
+		bb.seek(offsetSurfaces +  surf.ofsxyzn, Whence.Set);
 		MD3Vertice[] out = new MD3Vertice[surf.numframes * surf.numverts];
 		for(int i = 0; i < out.length; i++)
 		{
 			MD3Vertice xyzn = new MD3Vertice();
-			xyzn.x = bb.getShort();
-			xyzn.y = bb.getShort();
-			xyzn.z = bb.getShort();
-			xyzn.nlat = (short) (bb.get() & 0xFF);
-			xyzn.nlng = (short) (bb.get() & 0xFF);
+			xyzn.x = bb.readShort();
+			xyzn.y = bb.readShort();
+			xyzn.z = bb.readShort();
+			xyzn.nlat = (short) (bb.readByte() & 0xFF);
+			xyzn.nlng = (short) (bb.readByte() & 0xFF);
 			out[i] = xyzn;
 		}
 		return out;
 	}
 	
-	private static MD3Shader[] loadShaders(MD3Surface surf, int offsetSurfaces, ResourceData bb)
+	private static MD3Shader[] loadShaders(MD3Surface surf, int offsetSurfaces, Resource bb)
 	{
-		bb.position(offsetSurfaces + surf.ofsshaders);
+		bb.seek(offsetSurfaces + surf.ofsshaders, Whence.Set);
 		MD3Shader[] out = new MD3Shader[surf.numshaders];
 		for(int i = 0; i < surf.numshaders; i++) {
 			MD3Shader shader = new MD3Shader();
 			shader.name = readString(bb, 64);
-			shader.index = bb.getInt();
+			shader.index = bb.readInt();
 			out[i] = shader;
 		}
 		return out;
 	}
 	
-	private static String readString(ResourceData bb, int len) {
+	private static String readString(Resource bb, int len) {
 		byte[] buf = new byte[len];
-		bb.get(buf);
+		bb.read(buf);
 
 		for(int i = 0; i < buf.length; i++) {
         	if(buf[i] == 0) 

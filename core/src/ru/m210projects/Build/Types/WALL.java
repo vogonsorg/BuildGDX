@@ -16,7 +16,8 @@ import static ru.m210projects.Build.Engine.MAXWALLS;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.DataResource;
+import ru.m210projects.Build.FileHandle.Resource;
 
 public class WALL {
 	public static final int sizeof = 32;
@@ -32,33 +33,33 @@ public class WALL {
 	public WALL() {}
 	
 	public WALL(byte[] data) {
-    	buildWall(new ResourceData(data));
+    	buildWall(new DataResource(null, "", -1, data));
 	}
 	
-	public void buildWall(ResourceData bb)
+	public void buildWall(Resource bb)
 	{
-		x = bb.getInt();
-    	y = bb.getInt();
-    	point2 = bb.getShort();
+		x = bb.readInt();
+    	y = bb.readInt();
+    	point2 = bb.readShort();
     	if(point2 < 0 || point2 >= MAXWALLS) point2 = 0;
-    	nextwall = bb.getShort();
+    	nextwall = bb.readShort();
     	if(nextwall < 0 || nextwall >= MAXWALLS) nextwall = -1;
-    	nextsector = bb.getShort();
+    	nextsector = bb.readShort();
     	if(nextsector < 0 || nextsector >= MAXSECTORS) nextsector = -1;
-    	cstat = bb.getShort();
-    	picnum = bb.getShort();
+    	cstat = bb.readShort();
+    	picnum = bb.readShort();
     	if(picnum < 0 || picnum >= MAXTILES) picnum = 0;
-    	overpicnum = bb.getShort();
+    	overpicnum = bb.readShort();
     	if(overpicnum < 0 || overpicnum >= MAXTILES) overpicnum = 0;
-    	shade = bb.get();
-    	pal = (short) (bb.get()&0xFF);
-    	xrepeat = (short) (bb.get()&0xFF);
-    	yrepeat = (short) (bb.get()&0xFF);
-    	xpanning = (short) (bb.get()&0xFF);
-    	ypanning = (short) (bb.get()&0xFF);
-    	lotag = bb.getShort();
-    	hitag = bb.getShort();
-    	extra = bb.getShort();
+    	shade = bb.readByte();
+    	pal = (short) (bb.readByte()&0xFF);
+    	xrepeat = (short) (bb.readByte()&0xFF);
+    	yrepeat = (short) (bb.readByte()&0xFF);
+    	xpanning = (short) (bb.readByte()&0xFF);
+    	ypanning = (short) (bb.readByte()&0xFF);
+    	lotag = bb.readShort();
+    	hitag = bb.readShort();
+    	extra = bb.readShort();
 	}
 	
 	public void set(WALL src) {

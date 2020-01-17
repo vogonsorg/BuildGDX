@@ -103,18 +103,17 @@ public abstract class UnsafeBuffer {
 		return getLong(nextIndex((1 << 3)));
 	}
 	
-	public UnsafeBuffer get(byte[] dst) {
-		return get(dst, 0, dst.length);
+	public void get(byte[] dst) {
+		get(dst, 0, dst.length);
 	}
     
-    public UnsafeBuffer get(byte[] dst, int offset, int length) {
+    public void get(byte[] dst, int offset, int length) {
     	if(BuildGdx.app.getType() != ApplicationType.Android)
     		unsafe.copyMemory(null, getAddress(nextIndex(length)), dst, BYTE_ARRAY_BASE_OFFSET + offset, length);
     	else { //no such method copyMemory
     		for(int i = 0; i < length; i++)
     			dst[offset + i] = unsafe.getByte(getAddress(nextIndex(1)));
     	}
-        return this;
     }
 
     protected void setAddress(ByteBuffer bb)
@@ -153,10 +152,9 @@ public abstract class UnsafeBuffer {
 		return position;
 	}
 	
-	public UnsafeBuffer position(int newPosition) {
+	public void position(int newPosition) {
 		position = newPosition;
-		return this;
 	}
 	
-	public abstract UnsafeBuffer rewind();
+	public abstract void rewind();
 }

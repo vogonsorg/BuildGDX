@@ -19,6 +19,7 @@ package ru.m210projects.Build.FileHandle;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import ru.m210projects.Build.FileHandle.Cache1D.PackageType;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
@@ -162,6 +163,14 @@ public class GrpGroup extends Group {
 		}
 		
 		@Override
+		public Boolean readBoolean() {
+			Byte var = readByte();
+			if(var != null)
+				return var == 1;
+			return null;
+		}
+		
+		@Override
 		public Short readShort() {
 			synchronized(parent) {
 				int len = 2;
@@ -204,6 +213,35 @@ public class GrpGroup extends Group {
 		}
 		
 		@Override
+		public Long readLong() {
+			synchronized(parent) {
+				int len = 8;
+				if(len > size - pos)
+					return null;
+				
+				int i = offset + pos;
+				int groupfilpos = file.position();
+				if (i != groupfilpos) 
+					file.seek(i, Whence.Set);
+
+				Long out;
+				if((out = file.readLong()) == null)
+					return null;
+
+				pos += len;
+				return out;
+			}
+		}
+		
+		@Override
+		public Float readFloat() {
+			Integer i = readInt();
+			if(i != null)
+				return Float.intBitsToFloat( i );
+			return null;
+		}
+		
+		@Override
 		public String readString(int len) {
 			synchronized(parent) {
 				byte[] data;
@@ -224,40 +262,20 @@ public class GrpGroup extends Group {
 			}
 		}
 
-		@Override
-		public ResourceData getData() {
+		public void loadData() {
 			synchronized(parent) {
 				if(buffer == null) {
 					if(file.seek(offset, Whence.Set) == -1) {
 						Console.Println("Error seeking to resource!");
-						return null;
+						return;
 					}
 					
-					if(file instanceof FileResource) {
-						ByteBuffer fileData = ((FileResource)file).readBuffer(size);
-						if(fileData == null)
-						{
-							Console.Println("Error loading resource!");
-							return null;
-						}
-						
-						buffer = new ResourceData(fileData) {
-							@Override
-							public void dispose()
-							{
-								flush();
-								super.dispose();
-							}
-						};
-					} else {
-						byte[] tmp = getBytes();
-						if(tmp == null) return null;
-						buffer = new ResourceData(tmp);
-					}
+					buffer = ByteBuffer.allocateDirect(size);
+					buffer.order(ByteOrder.LITTLE_ENDIAN);
+					file.read(buffer, 0, size);
 				}
 	
 				buffer.rewind();
-				return buffer;
 			}
 		}
 		
@@ -290,14 +308,32 @@ public class GrpGroup extends Group {
 				return true;
 			}
 		}
+
+		@Override
+		public int remaining() {
+			synchronized(parent) {
+				if(file != null)
+					return file.remaining();
+				return 0;
+			}
+		}
+
+		@Override
+		public boolean hasRemaining() {
+			synchronized(parent) {
+				if(file != null)
+					return file.hasRemaining();
+				return true;
+			}
+		}
 	}
 
 	public GrpGroup(Resource groupFile, PackageType type) throws Exception {
 		this.file = groupFile;
 		this.type = type;
 		
-		if(type == PackageType.PackedGrp)
-			file.getData();
+		if(type == PackageType.PackedGrp) 
+			((GrpResource) file).loadData();
 		
 		if(file.position() != 12) {
 			file.seek(0, Whence.Set);

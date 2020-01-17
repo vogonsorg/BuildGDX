@@ -15,7 +15,8 @@ import static ru.m210projects.Build.Engine.MAXSECTORS;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.DataResource;
+import ru.m210projects.Build.FileHandle.Resource;
 
 public class SPRITE {
 	public static final int sizeof = 44;
@@ -40,36 +41,36 @@ public class SPRITE {
 	public SPRITE() { }
 	
 	public void init(byte[] data) {
-    	buildSprite(new ResourceData(data));
+    	buildSprite(new DataResource(null, "", -1, data));
 	}
 	
-	public void buildSprite(ResourceData bb)
+	public void buildSprite(Resource bb)
 	{
-		x = bb.getInt();
-    	y = bb.getInt();
-    	z = bb.getInt();
-    	cstat = bb.getShort();
-    	picnum = bb.getShort();
+		x = bb.readInt();
+    	y = bb.readInt();
+    	z = bb.readInt();
+    	cstat = bb.readShort();
+    	picnum = bb.readShort();
     	if(picnum < 0 || picnum >= MAXTILES) picnum = 0;
-    	shade = bb.get();
-    	pal = (short) (bb.get() & 0xFF);
-    	clipdist = bb.get() & 0xFF;
-    	detail = bb.get();
-    	xrepeat = (short) (bb.get() & 0xFF);
-    	yrepeat = (short) (bb.get() & 0xFF);
-    	xoffset = bb.get();
-    	yoffset = bb.get();
-    	sectnum = bb.getShort();
+    	shade = bb.readByte();
+    	pal = (short) (bb.readByte() & 0xFF);
+    	clipdist = bb.readByte() & 0xFF;
+    	detail = bb.readByte();
+    	xrepeat = (short) (bb.readByte() & 0xFF);
+    	yrepeat = (short) (bb.readByte() & 0xFF);
+    	xoffset = bb.readByte();
+    	yoffset = bb.readByte();
+    	sectnum = bb.readShort();
     	if(sectnum < 0 || sectnum >= MAXSECTORS) sectnum = 0;
-    	statnum = bb.getShort();
-    	ang = bb.getShort();
-    	owner = bb.getShort();
-    	xvel = bb.getShort();
-    	yvel = bb.getShort();
-    	zvel = bb.getShort();
-    	lotag = bb.getShort();
-    	hitag = bb.getShort();
-    	extra = bb.getShort();
+    	statnum = bb.readShort();
+    	ang = bb.readShort();
+    	owner = bb.readShort();
+    	xvel = bb.readShort();
+    	yvel = bb.readShort();
+    	zvel = bb.readShort();
+    	lotag = bb.readShort();
+    	hitag = bb.readShort();
+    	extra = bb.readShort();
 	}
 	
 	public byte[] getBytes()

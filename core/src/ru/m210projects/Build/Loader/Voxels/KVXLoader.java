@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.Resource;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Loader.Voxels.VOXModel.voxrect_t;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 
@@ -39,7 +39,7 @@ public class KVXLoader {
 	private static FloatArray uvs;
 	private static int[] pal;
 
-	public static Voxel load(ResourceData buffer)
+	public static Voxel load(Resource buffer)
 	{
 		vertices = new FloatArray();
 		indicies = new ShortArray();
@@ -88,16 +88,18 @@ public class KVXLoader {
 		Resource res = BuildGdx.cache.open(filepath, 0);
 		if(res == null) return null;
 
-	    return KVXLoader.load(res.getData());
+		Voxel m = KVXLoader.load(res);
+		res.close();
+	    return m;
 	}
 	
-	private static int[] getPalette(ResourceData dat)
+	private static int[] getPalette(Resource dat)
 	{
 		int pal[] = new int[256];
-		dat.position(dat.capacity() - 768);			
+		dat.seek(dat.size() - 768, Whence.Set);			
 		    
 		byte[] buf = new byte[768];
-		dat.get(buf);
+		dat.read(buf);
 		    
 		for (int i=0; i<256; i++)
 			pal[i] = ((buf[3 * i + 0])<<18)+((buf[3 * i + 1])<<10)+((buf[3 * i + 2])<<2)+(i<<24);

@@ -331,10 +331,18 @@ public class ZipGroup extends Group {
 		}
 		
 		@Override
+		public Boolean readBoolean() {
+			Byte var = readByte();
+			if(var != null)
+				return var == 1;
+			return null;
+		}
+		
+		@Override
 		public Short readShort() {
 			synchronized(parent) {
 				int len = 2;
-				if(len > size - position())
+				if(len > remaining())
 					return null;
 				
 				if(buffer != null)
@@ -351,7 +359,7 @@ public class ZipGroup extends Group {
 		public Integer readInt() {
 			synchronized(parent) {
 				int len = 4;
-				if(len > size - position())
+				if(len > remaining())
 					return null;
 				
 				if(buffer != null)
@@ -362,6 +370,38 @@ public class ZipGroup extends Group {
 				
 				return ( (readbuf[3] & 0xFF) << 24 ) + ( (readbuf[2] & 0xFF) << 16 ) + ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF );
 			}
+		}
+		
+		@Override
+		public Long readLong() {
+			synchronized(parent) {
+				int len = 8;
+				if(len > remaining())
+					return null;
+				
+				if(buffer != null)
+					return buffer.getLong();
+				
+				if(zfile == null || bis.read(readbuf, 0, len) != len)
+					return null;
+				
+				return  (((long)readbuf[7] & 0xFF) << 56) +
+						 (((long)readbuf[6] & 0xFF) << 48) +
+						 (((long)readbuf[5] & 0xFF) << 40) +
+						 (((long)readbuf[4] & 0xFF) << 32) +
+						 (((long)readbuf[3] & 0xFF) << 24) +
+						 (((long)readbuf[2] & 0xFF) << 16) +
+						 (((long)readbuf[1] & 0xFF) <<  8) +
+						 (((long)readbuf[0] & 0xFF)      );
+			}
+		}
+		
+		@Override
+		public Float readFloat() {
+			Integer i = readInt();
+			if(i != null)
+				return Float.intBitsToFloat( i );
+			return null;
 		}
 		
 		@Override
@@ -385,24 +425,6 @@ public class ZipGroup extends Group {
 			}
 		}
 
-		@Override
-		public ResourceData getData() {
-			synchronized(parent) {
-				if(isClosed())
-					parent.open(this);
-				
-				if(buffer == null) {
-					byte[] tmp = getBytes();
-					if(tmp == null) return null;
-					
-					buffer = new ResourceData(tmp);
-				}
-	
-				buffer.rewind();
-				return buffer;
-			}
-		}
-		
 		@Override
 		public byte[] getBytes() {
 			synchronized(parent) {
@@ -442,6 +464,16 @@ public class ZipGroup extends Group {
 		public boolean isClosed() {
 			return bis == null && buffer == null;
 		}
+		
+		@Override
+		public int remaining() {
+			return size() - position();
+		}
+
+		@Override
+		public boolean hasRemaining() {
+			return position() < size();
+		}	
 	}
 
 	public ZipGroup(String path) throws IOException

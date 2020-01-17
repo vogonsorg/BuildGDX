@@ -6,7 +6,7 @@
 
 package ru.m210projects.Build.Loader.Voxels;
 
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource;
 
 public class Voxel {
 	
@@ -21,7 +21,7 @@ public class Voxel {
 	
 	public VOXModel model;
 	
-	public Voxel(ResourceData dat) throws Exception
+	public Voxel(Resource dat) throws Exception
 	{
 		int i, j;
 		int mip = 0;
@@ -38,32 +38,32 @@ public class Voxel {
 		slabxoffs = new int[MAXVOXMIPS][];
 		data = new byte[MAXVOXMIPS][];
 
-		while(dat.position() < dat.capacity() - 768) {
-		    int mip1leng = dat.getInt();
-		    int xs = xsiz[mip] = dat.getInt();
-		    int ys = ysiz[mip] = dat.getInt();
-		    zsiz[mip] = dat.getInt();
+		while(dat.position() < dat.size() - 768) {
+		    int mip1leng = dat.readInt();
+		    int xs = xsiz[mip] = dat.readInt();
+		    int ys = ysiz[mip] = dat.readInt();
+		    zsiz[mip] = dat.readInt();
 		    
-		    xpiv[mip] = dat.getInt();
-		    ypiv[mip] = dat.getInt();
-		    zpiv[mip] = dat.getInt();
+		    xpiv[mip] = dat.readInt();
+		    ypiv[mip] = dat.readInt();
+		    zpiv[mip] = dat.readInt();
 
 		    int offset = ((xs + 1) << 2) + (xs * (ys + 1) << 1);
 		    slabxoffs[mip] = new int[xs+1];
 		    for(i = 0; i <= xs; i++) 
-		    	slabxoffs[mip][i] = dat.getInt() - offset;
+		    	slabxoffs[mip][i] = dat.readInt() - offset;
 	
 		    xyoffs[mip] = new short[xs][ys+1];
 		    for (i = 0; i < xs; ++i)
 				for (j = 0; j <= ys; ++j)
-					xyoffs[mip][i][j] = dat.getShort();
+					xyoffs[mip][i][j] = dat.readShort();
 		    
-		    i = dat.capacity() - dat.position() - 768;
+		    i = dat.size() - dat.position() - 768;
 		    if(i < mip1leng-(24+offset)) 
 		    	break;
 
 		    data[mip] = new byte[mip1leng-(24+offset)];
-		    dat.get(data[mip]);
+		    dat.read(data[mip]);
 
 		    mip++;
 		}

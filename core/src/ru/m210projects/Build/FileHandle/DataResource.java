@@ -17,6 +17,7 @@
 package ru.m210projects.Build.FileHandle;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class DataResource extends GroupResource {
 
@@ -28,8 +29,9 @@ public class DataResource extends GroupResource {
 		this.handleName(filename);
 		this.fileid = fileid;
 		if(data != null) {
-			buffer = new ResourceData(data);
-			buffer.rewind();
+			buffer = ByteBuffer.allocateDirect(data.length);
+			buffer.order(ByteOrder.LITTLE_ENDIAN);
+			buffer.put(data).rewind();
 			this.size = data.length;
 		}
 	}
@@ -113,6 +115,14 @@ public class DataResource extends GroupResource {
 	}
 	
 	@Override
+	public Boolean readBoolean() {
+		Byte var = readByte();
+		if(var != null)
+			return var == 1;
+		return null;
+	}
+	
+	@Override
 	public Short readShort() {
 		synchronized(parent != null ? parent : this) {
 			return buffer.getShort();
@@ -123,6 +133,20 @@ public class DataResource extends GroupResource {
 	public Integer readInt() {
 		synchronized(parent != null ? parent : this) {
 			return buffer.getInt();
+		}
+	}
+	
+	@Override
+	public Long readLong() {
+		synchronized(parent != null ? parent : this) {
+			return buffer.getLong();
+		}
+	}
+	
+	@Override
+	public Float readFloat() {
+		synchronized(parent != null ? parent : this) {
+			return buffer.getFloat();
 		}
 	}
 
@@ -145,13 +169,13 @@ public class DataResource extends GroupResource {
 		}
 	}
 
-	@Override
-	public ResourceData getData() {
-		synchronized(parent != null ? parent : this) {
-			buffer.rewind();
-			return buffer;
-		}
-	}
+//	@Override
+//	public IResourceData getData() {
+//		synchronized(parent != null ? parent : this) {
+//			buffer.rewind();
+//			return buffer;
+//		}
+//	}
 
 	@Override
 	public byte[] getBytes() {
@@ -170,4 +194,17 @@ public class DataResource extends GroupResource {
 		}
 	}
 
+	@Override
+	public int remaining() {
+		synchronized(parent != null ? parent : this) {
+			return buffer.remaining();
+		}
+	}
+
+	@Override
+	public boolean hasRemaining() {
+		synchronized(parent != null ? parent : this) {
+			return buffer.hasRemaining();
+		}
+	}
 }
