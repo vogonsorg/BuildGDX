@@ -48,6 +48,7 @@ public class BuildApplication implements Application {
 	protected final ApplicationType type;
 	protected final Clipboard clipboard;
 	
+	protected int version;
 	protected boolean running = true;
 	protected Thread mainLoopThread;
 	protected final Array<Runnable> runnables = new Array<Runnable>();
@@ -73,6 +74,7 @@ public class BuildApplication implements Application {
 		this.platform = factory.getPlatform();
 		this.type = factory.getApplicationType();
 		this.clipboard = factory.getClipboard();
+		this.version = factory.getVersion();
 
 		initialize(type.getFrameType());
 	}
@@ -236,7 +238,7 @@ public class BuildApplication implements Application {
 	
 	@Override
 	public int getVersion() {
-		return 1910;
+		return version;
 	}
 
 	@Override

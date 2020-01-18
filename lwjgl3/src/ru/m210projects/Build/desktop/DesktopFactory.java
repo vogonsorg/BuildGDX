@@ -47,6 +47,7 @@ import ru.m210projects.Build.desktop.audio.GdxAL;
 public class DesktopFactory implements ApplicationFactory {
 
 	private BuildConfiguration cfg;
+
 	public DesktopFactory(BuildConfiguration cfg)
 	{
 		this.cfg = cfg;
@@ -128,6 +129,17 @@ public class DesktopFactory implements ApplicationFactory {
 	public Clipboard getClipboard() {
 		return new Lwjgl3Clipboard();
 	}
+	
+	@Override
+	public int getVersion() {
+		String version = System.getProperty("java.version");
+	    if(version.startsWith("1.")) {
+	        version = version.substring(2, 3);
+	    } else {
+	        int dot = version.indexOf(".");
+	        if(dot != -1) { version = version.substring(0, dot); }
+	    } return Integer.parseInt(version);
+	}
 
 	public static void InitVideoModes()
 	{
@@ -142,5 +154,4 @@ public class DesktopFactory implements ApplicationFactory {
 			}
 		}, "OpenAL 1.18.1"));
 	}
-
 }

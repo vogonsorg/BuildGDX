@@ -36,9 +36,9 @@ import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Renderer.PixelFormat;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Script.TextureHDInfo;
 import ru.m210projects.Build.Settings.GLSettings;
-import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.files.FileHandle;
@@ -421,7 +421,7 @@ public class TextureCache {
 	
 	private BTexture createPalette(byte[] paldata, int shade)
 	{
-		UnsafeDirectBuffer buffer = getTmpBuffer();
+		TextureBuffer buffer = getTmpBuffer();
 		buffer.clear();
 		for(int p = 0; p < MAXPALOOKUPS; p++) {
 			int pal = p;
@@ -436,8 +436,7 @@ public class TextureCache {
 //				buffer.putByte(paldata[3 * dacol + 2]); 
 			}
 		}
-		buffer.flip();
-
+		
 		BTexture palette = new BTexture(256, MAXPALOOKUPS);
 		palette.bind(1);
 		BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, palette.getWidth(), palette.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.getBuffer());

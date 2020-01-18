@@ -97,16 +97,6 @@ public class UserGroup extends Group {
 		}
 
 		@Override
-		public int read(byte[] buf, int len) {
-			synchronized(parent) {
-				if(fil != null)
-					return fil.read(buf, len);
-				
-				return -1;
-			}
-		}
-		
-		@Override
 		public int read(byte[] buf, int offset, int len) {
 			synchronized(parent) {
 				if(fil != null)
@@ -119,7 +109,7 @@ public class UserGroup extends Group {
 		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
-				return read(buf, buf.length);
+				return read(buf, 0, buf.length);
 			}
 		}
 
@@ -224,18 +214,16 @@ public class UserGroup extends Group {
 			}
 		}
 
-//		@Override
-//		public IResourceData getData() {
-//			synchronized(parent) {
-//				if(isClosed())
-//					parent.open(this);
-//				
-//				if(fil != null)
-//					return fil.getData();
-//				
-//				return null;
-//			}
-//		}
+		@Override
+		public void toMemory() {
+			synchronized(parent) {
+				if(isClosed())
+					parent.open(this);
+				
+				if(fil != null)
+					fil.toMemory();
+			}
+		}
 
 		@Override
 		public byte[] getBytes() {

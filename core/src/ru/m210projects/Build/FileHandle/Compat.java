@@ -238,16 +238,4 @@ public class Compat {
 		
 		return out;
 	}
-	
-//	public IResourceData getData(FileEntry entry)
-//	{
-//		IResourceData out = null;
-//		Resource res = open(entry);
-//		if(res != null) {
-//			out = res.getData();
-//			res.close();
-//		}
-//		
-//		return out;
-//	}
 }

@@ -21,55 +21,6 @@ import java.nio.ByteBuffer;
 
 public interface Resource extends Closeable {
 
-	public interface IResourceData {
-		
-		public byte get();
-
-	    public byte get(int i);
-	    
-	    public short getShort();
-
-	    public short getShort(int i);
-		
-		public int getInt();
-
-		public int getInt(int i);
-		
-		public float getFloat(int i);
-		
-		public float getFloat();
-		
-		public long getLong(int i);
-		
-		public long getLong();
-		
-		public int position();
-		
-		public void position(int newPosition);
-		
-		public void get(byte[] dst);
-	    
-	    public void get(byte[] dst, int offset, int length);
-
-		public String getString(int len);
-
-	    public int capacity();
-		
-		public void rewind();
-
-		public void flip();
-
-		public void clear();
-		
-		public void dispose();
-		
-		public void limit(int newLimit);
-
-		public int remaining();
-
-		public boolean hasRemaining();
-	}
-
 	public static enum Whence { Set, Current, End };
 
 	public String getExtension();
@@ -81,8 +32,6 @@ public interface Resource extends Closeable {
 	public boolean isClosed();
 	
 	public int seek(long offset, Whence whence);
-	
-	public int read(byte[] buf, int len);
 	
 	public int read(byte[] buf, int offset, int len);
 	
@@ -112,7 +61,7 @@ public interface Resource extends Closeable {
 	
 	public boolean hasRemaining();
 	
-//	public IResourceData getData();
+	public void toMemory();
 	
 	public byte[] getBytes();
 

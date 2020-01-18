@@ -26,6 +26,8 @@ import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Input.BuildControllers;
 
 public interface ApplicationFactory {
+	
+	public int getVersion();
 
 	public BuildConfiguration getConfiguration();
 	
@@ -44,5 +46,5 @@ public interface ApplicationFactory {
 	public ApplicationType getApplicationType();
 	
 	public Clipboard getClipboard();
-	
+
 }

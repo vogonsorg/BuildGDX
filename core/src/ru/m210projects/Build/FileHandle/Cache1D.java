@@ -351,29 +351,4 @@ public class Cache1D {
 		
 		return out;
 	}
-	
-//	public IResourceData getData(String filename, int searchfirst)
-//	{
-//		IResourceData out = null;
-//		Resource res = open(filename, searchfirst);
-//		if(res != null) {
-//			out = res.getData();
-//			res.close();
-//		}
-//		
-//		return out;
-//	}
-//	
-//	public IResourceData getData(int fileid, String type)
-//	{
-//		IResourceData out = null;
-//		Resource res = open(fileid, type);
-//		if(res != null) {
-//			out = res.getData();
-//			res.close();
-//		}
-//		
-//		return out;
-//	}
-	
 }

@@ -473,16 +473,20 @@ public abstract class BuildConfig extends IniFile {
 	{
 		if(!isInited) { //has saving from launcher
 			FileResource fil = compat.open(cfgPath + name, Path.Absolute, Mode.Write);
-			SaveUninited(fil);
-			fil.close();
+			if(fil != null) {
+				SaveUninited(fil);
+				fil.close();
+			}
 			return;
 		}
 		
 		FileResource fil = compat.open(cfgPath + name, Path.Absolute, Mode.Write);
-		SaveMain(fil, path);
-		SaveCommon(fil);
-		SaveConfig(fil);
-		fil.close();
+		if(fil != null) {
+			SaveMain(fil, path);
+			SaveCommon(fil);
+			SaveConfig(fil);
+			fil.close();
+		}
 	}
 	
 	public void SaveCommon(FileResource fil)

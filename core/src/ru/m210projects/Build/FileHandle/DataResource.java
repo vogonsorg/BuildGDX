@@ -37,6 +37,9 @@ public class DataResource extends GroupResource {
 	}
 	
 	@Override
+	public void toMemory() { buffer.rewind(); }
+	
+	@Override
 	public void flush() { /* nothing */ }
 
 	@Override
@@ -56,18 +59,6 @@ public class DataResource extends GroupResource {
 	}
 
 	@Override
-	public int read(byte[] buf, int len) {
-		synchronized(parent != null ? parent : this) {
-			if(position() >= size) 
-				return -1;
-			
-			len = Math.min(len, size - position());
-			buffer.get(buf, 0, len);
-			return len;
-		}
-	}
-	
-	@Override
 	public int read(byte[] buf, int offset, int len) {
 		synchronized(parent != null ? parent : this) {
 			if(position() >= size) 
@@ -82,7 +73,7 @@ public class DataResource extends GroupResource {
 	@Override
 	public int read(byte[] buf) {
 		synchronized(parent != null ? parent : this) {
-			return read(buf, buf.length);
+			return read(buf, 0, buf.length);
 		}
 	}
 	
@@ -168,14 +159,6 @@ public class DataResource extends GroupResource {
 			return buffer.position();
 		}
 	}
-
-//	@Override
-//	public IResourceData getData() {
-//		synchronized(parent != null ? parent : this) {
-//			buffer.rewind();
-//			return buffer;
-//		}
-//	}
 
 	@Override
 	public byte[] getBytes() {

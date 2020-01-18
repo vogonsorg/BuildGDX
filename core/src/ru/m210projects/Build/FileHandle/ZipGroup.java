@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -239,31 +240,6 @@ public class ZipGroup extends Group {
 		}
 
 		@Override
-		public int read(byte[] buf, int len) {
-			synchronized(parent) {
-				if(position() >= size) 
-					return -1;
-				
-				len = Math.min(len, size - position());
-				
-				if(buffer != null)
-				{
-					buffer.get(buf, 0, len);
-					return len;
-				}
-
-				if(zfile == null)
-					return -1;
-				
-				len = bis.read(buf, 0, len);
-				if(len == -1)
-					return -1;
-
-				return len;
-			}
-		}
-		
-		@Override
 		public int read(byte[] buf, int offset, int len) {
 			synchronized(parent) {
 				if(position() >= size) 
@@ -291,7 +267,7 @@ public class ZipGroup extends Group {
 		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
-				return read(buf, buf.length);
+				return read(buf, 0, buf.length);
 			}
 		}
 		
@@ -424,6 +400,25 @@ public class ZipGroup extends Group {
 				return bis.position();
 			}
 		}
+		
+		@Override
+		public void toMemory() {
+			synchronized(parent) {
+				if(isClosed())
+					parent.open(this);
+				
+				if(buffer == null) {
+					byte[] tmp = getBytes();
+					if(tmp == null) return;
+					
+					buffer = ByteBuffer.allocateDirect(size);
+					buffer.order(ByteOrder.LITTLE_ENDIAN);
+					buffer.put(tmp);
+				}
+				buffer.rewind();
+			}
+		}
+
 
 		@Override
 		public byte[] getBytes() {

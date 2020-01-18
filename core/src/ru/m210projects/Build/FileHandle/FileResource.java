@@ -20,14 +20,28 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import sun.misc.Unsafe;
 
 import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 public class FileResource implements Resource {
 	
+	private static Unsafe unsafe;
+	static {
+		try {
+			Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+			theUnsafe.setAccessible(true);
+			unsafe = (Unsafe) theUnsafe.get(null);
+		} catch (Exception e) {}
+	}
+
 	private static byte[] readbuf = new byte[1024];
 	
 	public static enum Mode { Read, Write }
@@ -100,12 +114,29 @@ public class FileResource implements Resource {
 		if(isClosed()) return;
 		
 		try {
-			//XXX fbuf.dispose
+			if(fbuf != null)
+				free(fbuf);
 			raf.close();
 			raf = null;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void free(MappedByteBuffer bb) {
+		try {
+	    	if(BuildGdx.app.getPlatform() != Platform.Android && BuildGdx.app.getVersion() < 9) {
+	    		Object cleaner = ((sun.nio.ch.DirectBuffer) bb).cleaner();
+	    		Method invokeCleaner = cleaner.getClass().getDeclaredMethod("clean");
+	    		invokeCleaner.setAccessible(true);
+	    		invokeCleaner.invoke(cleaner);
+	    	} else {
+	    		Method invokeCleaner = Unsafe.class.getMethod("invokeCleaner", ByteBuffer.class);
+		    	invokeCleaner.invoke(unsafe, bb);
+	    	}
+    	} catch (Throwable e) {
+    		e.printStackTrace();
+    	}
 	}
 
 	@Override
@@ -142,8 +173,10 @@ public class FileResource implements Resource {
 		try {
 			if(fbuf != null)
 			{
-				fbuf.get(buf, offset, len);
-				var = len; //XXX
+				if(fbuf.remaining() >= len) {
+					fbuf.get(buf, offset, len);
+					var = len;
+				}
 			} else var = raf.read(buf, offset, len);
 		} catch (EOFException e) {
 	    	return -1;
@@ -152,12 +185,7 @@ public class FileResource implements Resource {
 	    }
 		return var;
 	}
-	
-	@Override
-	public int read(byte[] buf, int len) {
-		return read(buf, 0, len);
-	}
-	
+
 	@Override
 	public int read(byte[] buf) {
 		return read(buf, 0, buf.length);
@@ -446,20 +474,9 @@ public class FileResource implements Resource {
 		return var;
 	}
 
-//	@Override
-//	public IResourceData getData() {
-//		IResourceData out = null;
-//		if(isClosed()) return null;
-//		
-//		try {
-//			out = new ResourceData(raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, raf.length()));
-//		} catch (Exception e) {
-//			throw new RuntimeException("Couldn't read file \r\n" + e.getMessage());
-//	    }
-//		
-//		return out;
-//	}
-	
+	@Override
+	public void toMemory() { /* nothing */ }
+
 	@Override
 	public byte[] getBytes() {
 		int size = this.size();

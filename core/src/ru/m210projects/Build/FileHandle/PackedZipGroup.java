@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -108,6 +109,7 @@ public class PackedZipGroup extends Group {
 					if(handleName(entry.getName()).equals(res.filenamext)) {
 						byte[] data = new byte[512];
 						res.buffer = ByteBuffer.allocateDirect(res.size);
+						res.buffer.order(ByteOrder.LITTLE_ENDIAN);
 						int len = 0;
 						while((len = zis.read(data)) != -1) 
 							res.buffer.put(data, 0, len);

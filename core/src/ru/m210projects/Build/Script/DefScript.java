@@ -36,7 +36,6 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.FileHandle.FileUtils;
 import ru.m210projects.Build.FileHandle.Resource;
-import ru.m210projects.Build.FileHandle.Resource.IResourceData;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
@@ -673,7 +672,6 @@ public class DefScript implements Disposable {
     {
 		String fn;
 		Token token;
-//		IResourceData buffer;
 		Resource res;
 		Integer ivalue;
 		Double dvalue;

@@ -81,24 +81,6 @@ public class GrpGroup extends Group {
 		}
 
 		@Override
-		public int read(byte[] buf, int len) {
-			synchronized(parent) {
-				if(pos >= size) 
-					return -1;
-				
-				len = Math.min(len, size - pos);
-				int i = offset + pos;
-				int groupfilpos = file.position();
-				if (i != groupfilpos) 
-					file.seek(i, Whence.Set);
-	
-				len = file.read(buf,len);
-				pos += len;
-				return len;
-			}
-		}
-		
-		@Override
 		public int read(byte[] buf, int offs, int len) {
 			synchronized(parent) {
 				if(pos >= size) 
@@ -119,7 +101,7 @@ public class GrpGroup extends Group {
 		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
-				return read(buf, buf.length);
+				return read(buf, 0, buf.length);
 			}
 		}
 		
@@ -261,8 +243,9 @@ public class GrpGroup extends Group {
 				return pos;
 			}
 		}
-
-		public void loadData() {
+		
+		@Override
+		public void toMemory() { 
 			synchronized(parent) {
 				if(buffer == null) {
 					if(file.seek(offset, Whence.Set) == -1) {
@@ -278,7 +261,7 @@ public class GrpGroup extends Group {
 				buffer.rewind();
 			}
 		}
-		
+
 		@Override
 		public byte[] getBytes() {
 			synchronized(parent) {
@@ -290,7 +273,7 @@ public class GrpGroup extends Group {
 					}
 					
 					byte[] data = new byte[size];
-					if(file.read(data, size) == -1) {
+					if(file.read(data) == -1) {
 						Console.Println("Error loading resource!");
 						return null;
 					}
@@ -333,7 +316,7 @@ public class GrpGroup extends Group {
 		this.type = type;
 		
 		if(type == PackageType.PackedGrp) 
-			((GrpResource) file).loadData();
+			file.toMemory();
 		
 		if(file.position() != 12) {
 			file.seek(0, Whence.Set);
