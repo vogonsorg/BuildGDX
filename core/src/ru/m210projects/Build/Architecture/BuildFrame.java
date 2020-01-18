@@ -38,7 +38,7 @@ public abstract class BuildFrame {
 	protected BuildGraphics graphics;
 	private final BuildConfiguration config;
 	
-	private boolean wasActive = true;
+	protected boolean wasActive = true;
 
 	public BuildFrame(BuildConfiguration config)
 	{
@@ -90,7 +90,7 @@ public abstract class BuildFrame {
 		return this;
 	}
 	
-	private boolean isChanged() {
+	protected boolean isChanged() {
 		getConfig().x = graphics.getX();
 		getConfig().y = graphics.getY();
 		if (graphics.resize || graphics.wasResized()
@@ -134,7 +134,7 @@ public abstract class BuildFrame {
 	
 	public FrameStatus getStatus()
 	{
-		if(graphics.isCloseRequested())
+		if(graphics.isCloseRequested() || !BuildGdx.app.running)
 			return FrameStatus.Closed;
 		
 		boolean isActive = graphics.isActive();

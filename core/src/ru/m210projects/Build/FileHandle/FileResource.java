@@ -114,8 +114,10 @@ public class FileResource implements Resource {
 		if(isClosed()) return;
 		
 		try {
-			if(fbuf != null)
+			if(fbuf != null) {
 				free(fbuf);
+				fbuf = null;
+			}
 			raf.close();
 			raf = null;
 		} catch (Exception e) {
@@ -134,9 +136,7 @@ public class FileResource implements Resource {
 	    		Method invokeCleaner = Unsafe.class.getMethod("invokeCleaner", ByteBuffer.class);
 		    	invokeCleaner.invoke(unsafe, bb);
 	    	}
-    	} catch (Throwable e) {
-    		e.printStackTrace();
-    	}
+    	} catch (Throwable e) {}
 	}
 
 	@Override

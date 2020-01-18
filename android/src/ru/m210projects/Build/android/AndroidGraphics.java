@@ -18,14 +18,17 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.glutils.GLVersion;
 import com.badlogic.gdx.math.WindowedMean;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.opengl.GLES11;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.EGLConfigChooser;
 import android.opengl.GLSurfaceView.Renderer;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
@@ -66,7 +69,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	private float density = 1;
 
 	volatile boolean created = false;
-	volatile boolean running = false;
+//	volatile boolean running = false;
 //	volatile boolean pause = false;
 //	volatile boolean resume = false;
 //	volatile boolean destroy = false;
@@ -75,6 +78,38 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		this.frame = frame;
 		this.app = frame.activity;
 		this.resolutionStrategy = resolutionStrategy;
+	}
+	
+	public boolean isCreated()
+	{
+		return created;
+	}
+	
+	public void onPause()
+	{
+		if(!isCreated())
+			return;
+		
+		boolean isContinuous = isContinuousRendering();
+		boolean isContinuousEnforced = enforceContinuousRendering;
+		// from here we don't want non continuous rendering
+		enforceContinuousRendering = true;
+		setContinuousRendering(true);
+		enforceContinuousRendering = isContinuousEnforced;
+		setContinuousRendering(isContinuous);
+
+		BuildGdx.app.getApplicationListener().pause();
+		view.onPause();
+	}
+	
+	public void onResume()
+	{
+		if(!isCreated())
+			return;
+
+		BuildGdx.app.getApplicationListener().resume();
+		view.onResume();
+		useImmersiveMode(true);
 	}
 
 	@Override
@@ -94,6 +129,40 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		app.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 		app.setContentView(view, createLayoutParams());
+		
+		createWakeLock(true);
+		hideStatusBar(true);
+		useImmersiveMode(true);
+
+		Gdx.graphics = BuildGdx.graphics = this;
+	}
+	
+	@TargetApi(Build.VERSION_CODES.KITKAT)
+	public void useImmersiveMode (boolean use) {
+		if (!use || BuildGdx.app.getVersion() < Build.VERSION_CODES.KITKAT) return;
+
+		View view = app.getWindow().getDecorView();
+		int code = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+			| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN
+			| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+		view.setSystemUiVisibility(code);
+	}
+	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	protected void hideStatusBar (boolean hide) {
+		if (!hide || BuildGdx.app.getVersion() < Build.VERSION_CODES.HONEYCOMB) return;
+
+		View rootView = app.getWindow().getDecorView();
+
+		if (BuildGdx.app.getVersion() <= Build.VERSION_CODES.HONEYCOMB_MR2) 
+			rootView.setSystemUiVisibility(0x0);
+		rootView.setSystemUiVisibility(0x1);
+	}
+	
+	protected void createWakeLock (boolean use) {
+		if (use) {
+			app.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		}
 	}
 
 	protected FrameLayout.LayoutParams createLayoutParams() {
@@ -181,7 +250,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	@Override
 	protected boolean isActive() {
 		if (view != null) 
-			view.isShown();
+			return view.isShown();
 		return false;
 	}
 
@@ -389,6 +458,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		eglContext = ((EGL10) EGLContext.getEGL()).eglGetCurrentContext();
 		
@@ -465,9 +535,6 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		if (created == false) {
 			BuildGdx.app.getApplicationListener().create();
 			created = true;
-			synchronized (this) {
-				running = true;
-			}
 		}
 
 		synchronized (synch) {
@@ -491,14 +558,8 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 			return;
 		case Closed:
 			destroyLoop();
-			break;
+			return;
 		case Running:
-			break;
-		case Pause:
-			listener.pause();
-			break;
-		case Resume:
-			listener.resume();
 			break;
 		case Changed:
 			listener.resize(config.width, config.height);
@@ -508,12 +569,6 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		boolean shouldRender = false;
 		if (BuildGdx.app.executeRunnables())
 			shouldRender = true;
-
-		// If one of the runnables set running to false, for example after an exit().
-		if (!running) {
-			destroyLoop();
-			return;
-		}
 
 		if (frame.process(shouldRender)) {
 			listener.render();
@@ -536,5 +591,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 			BuildGdx.message.dispose();
 		frame.dispose();
 		app.finish();
+		
+		System.exit(0);
 	}
 }

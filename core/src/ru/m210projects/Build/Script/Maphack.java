@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Types;
+package ru.m210projects.Build.Script;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,7 +25,6 @@ import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.Spriteext;
-import ru.m210projects.Build.Script.Scriptfile;
 
 public class Maphack extends Scriptfile {
 	

@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import sun.misc.Unsafe;
-import sun.nio.ch.DirectBuffer;
 
 public class FastTextureBuffer implements TextureBuffer {
 
@@ -46,7 +45,7 @@ public class FastTextureBuffer implements TextureBuffer {
 		
 		this.unsafe = (Unsafe) theUnsafe.get(null);
 		this.BYTE_ARRAY_BASE_OFFSET = unsafe.arrayBaseOffset(byte[].class);
-		this.address = ((DirectBuffer) bb).address();
+		this.address = ((sun.nio.ch.DirectBuffer) bb).address();
 		this.position = 0;
 	}
 	

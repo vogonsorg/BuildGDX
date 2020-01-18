@@ -41,12 +41,12 @@ public class BuildApplication implements Application {
 	public enum Platform { Windows, Linux, MacOSX, Android };
 	
 	protected BuildFrame frame;
-	protected final ApplicationFactory factory;
 	protected final BuildConfiguration config;
 	protected final ApplicationListener listener;
 	protected final Platform platform;
 	protected final ApplicationType type;
 	protected final Clipboard clipboard;
+	protected final Files files;
 	
 	protected int version;
 	protected boolean running = true;
@@ -55,7 +55,6 @@ public class BuildApplication implements Application {
 	protected final Array<Runnable> executedRunnables = new Array<Runnable>();
 
 	public BuildApplication (BuildGame listener, final ApplicationFactory factory, RenderType type) {
-		this.factory = factory;
 		this.listener = listener;
 		this.config = factory.getConfiguration();
 		
@@ -66,7 +65,7 @@ public class BuildApplication implements Application {
 			frame.icon = this.getClass().getResource("/" + config.getIconPaths().first());
 		
 		Gdx.app = BuildGdx.app = this;
-		Gdx.files = BuildGdx.files = factory.getFiles();
+		Gdx.files = BuildGdx.files = files = factory.getFiles();
 		BuildGdx.audio = factory.getAudio();
 		BuildGdx.message = factory.getMessage();
 		BuildGdx.message.setFrame(frame);
@@ -198,7 +197,7 @@ public class BuildApplication implements Application {
 	
 	public boolean isActive()
 	{
-		return BuildGdx.graphics.isActive();
+		return frame.getGraphics().isActive();
 	}
 	
 	public void postRunnable (Runnable runnable) {
@@ -223,17 +222,17 @@ public class BuildApplication implements Application {
 	
 	@Override
 	public Graphics getGraphics() {
-		return BuildGdx.graphics;
+		return frame.getGraphics();
 	}
 
 	@Override
 	public Input getInput() {
-		return BuildGdx.input;
+		return frame.getInput();
 	}
 
 	@Override
 	public Files getFiles() {
-		return BuildGdx.files;
+		return files;
 	}
 	
 	@Override

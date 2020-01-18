@@ -1,340 +1,295 @@
 package ru.m210projects.Build.android;
 
+import com.badlogic.gdx.Application;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.badlogic.gdx.backends.android.AndroidInputFactory;
 
+import android.content.Context;
 import ru.m210projects.Build.Architecture.BuildFrame;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildInput;
 
 public class AndroidInput implements BuildInput {
 
+	private com.badlogic.gdx.backends.android.AndroidInput input;
 	@Override
 	public void init(BuildFrame frame) {
-		// TODO Auto-generated method stub
+		Application activity = BuildGdx.app;
+		Context context = ((AndroidFrame) frame).activity;
+		Object view = ((AndroidGraphics) frame.getGraphics()).view;
+		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
+		input = AndroidInputFactory.newAndroidInput(activity, context, view, config);
+		Gdx.input = BuildGdx.input = this;
 		
+		input.setCatchBackKey(true);
 	}
-
+	
 	@Override
 	public void cancelVibrate() {
-		// TODO Auto-generated method stub
-		
+		input.cancelVibrate();
 	}
 
 	@Override
 	public float getAccelerometerX() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getAccelerometerX();
 	}
 
 	@Override
 	public float getAccelerometerY() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getAccelerometerY();
 	}
 
 	@Override
 	public float getAccelerometerZ() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getAccelerometerZ();
 	}
 
 	@Override
 	public float getAzimuth() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getAzimuth();
 	}
 
 	@Override
 	public long getCurrentEventTime() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getCurrentEventTime();
 	}
 
 	@Override
 	public int getDeltaX() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getDeltaX();
 	}
 
 	@Override
-	public int getDeltaX(int arg0) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int getDeltaX(int pointer) {
+		return input.getDeltaX(pointer);
 	}
 
 	@Override
 	public int getDeltaY() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getDeltaY();
 	}
 
 	@Override
-	public int getDeltaY(int arg0) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int getDeltaY(int pointer) {
+		return input.getDeltaY(pointer);
 	}
 
 	@Override
 	public float getGyroscopeX() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getGyroscopeX();
 	}
 
 	@Override
 	public float getGyroscopeY() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getGyroscopeY();
 	}
 
 	@Override
 	public float getGyroscopeZ() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public InputProcessor getInputProcessor() {
-		// TODO Auto-generated method stub
-		return null;
+		return input.getGyroscopeZ();
 	}
 
 	@Override
 	public int getMaxPointers() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public Orientation getNativeOrientation() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public float getPitch() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public float getPressure() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public float getPressure(int arg0) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public float getRoll() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getRotation() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void getRotationMatrix(float[] arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void getTextInput(TextInputListener arg0, String arg1, String arg2, String arg3) {
-		// TODO Auto-generated method stub
-		
+		return 0; //input.getMaxPointers();
 	}
 
 	@Override
 	public int getX() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getX();
 	}
 
 	@Override
-	public int getX(int arg0) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int getX(int pointer) {
+		return input.getX(pointer);
 	}
 
 	@Override
 	public int getY() {
-		// TODO Auto-generated method stub
-		return 0;
+		return input.getY();
 	}
 
 	@Override
-	public int getY(int arg0) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public boolean isButtonJustPressed(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isButtonPressed(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isCatchBackKey() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isCatchKey(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isCatchMenuKey() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isCursorCatched() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isKeyJustPressed(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isKeyPressed(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isPeripheralAvailable(Peripheral arg0) {
-		// TODO Auto-generated method stub
-		return false;
+	public int getY(int pointer) {
+		return input.getY(pointer);
 	}
 
 	@Override
 	public boolean isTouched() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isTouched(int arg0) {
-		// TODO Auto-generated method stub
-		return false;
+		return input.isTouched();
 	}
 
 	@Override
 	public boolean justTouched() {
-		// TODO Auto-generated method stub
-		return false;
+		return input.justTouched();
 	}
 
 	@Override
-	public void setCatchBackKey(boolean arg0) {
-		// TODO Auto-generated method stub
-		
+	public boolean isTouched(int pointer) {
+		return input.isTouched(pointer);
 	}
 
 	@Override
-	public void setCatchKey(int arg0, boolean arg1) {
-		// TODO Auto-generated method stub
-		
+	public float getPressure() {
+		return 0; // input.getPressure();
 	}
 
 	@Override
-	public void setCatchMenuKey(boolean arg0) {
-		// TODO Auto-generated method stub
-		
+	public float getPressure(int pointer) {
+		return 0; //input.getPressure(pointer);
 	}
 
 	@Override
-	public void setCursorCatched(boolean arg0) {
-		// TODO Auto-generated method stub
-		
+	public boolean isButtonPressed(int button) {
+		return input.isButtonPressed(button);
 	}
 
 	@Override
-	public void setCursorPosition(int arg0, int arg1) {
-		// TODO Auto-generated method stub
-		
+	public boolean isButtonJustPressed(int button) {
+		return false; //input.isButtonJustPressed(button);
 	}
 
 	@Override
-	public void setInputProcessor(InputProcessor arg0) {
-		// TODO Auto-generated method stub
-		
+	public boolean isKeyPressed(int key) {
+		return input.isKeyPressed(key);
 	}
 
 	@Override
-	public void setOnscreenKeyboardVisible(boolean arg0) {
-		// TODO Auto-generated method stub
-		
+	public boolean isKeyJustPressed(int key) {
+		return input.isKeyJustPressed(key);
 	}
 
 	@Override
-	public void vibrate(int arg0) {
-		// TODO Auto-generated method stub
-		
+	public void getTextInput(TextInputListener listener, String title, String text, String hint) {
+		 input.getTextInput(listener, title, text, hint);
 	}
 
 	@Override
-	public void vibrate(long[] arg0, int arg1) {
-		// TODO Auto-generated method stub
-		
+	public void setOnscreenKeyboardVisible(boolean visible) {
+		 input.setOnscreenKeyboardVisible(visible);
 	}
 
 	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
-		
+	public void vibrate(int milliseconds) {
+		 input.vibrate(milliseconds);
 	}
 
 	@Override
-	public void update() {
-		// TODO Auto-generated method stub
-		
+	public void vibrate(long[] pattern, int repeat) {
+		 input.vibrate(pattern, repeat);
 	}
+
+	@Override
+	public float getPitch() {
+		return input.getPitch();
+	}
+
+	@Override
+	public float getRoll() {
+		return input.getRoll();
+	}
+
+	@Override
+	public void getRotationMatrix(float[] matrix) {
+		input.getRotationMatrix(matrix);
+	}
+
+	@Override
+	public void setCatchBackKey(boolean catchBack) {
+		input.setCatchBackKey(catchBack);
+	}
+
+	@Override
+	public boolean isCatchBackKey() {
+		return input.isCatchBackKey();
+	}
+
+	@Override
+	public void setCatchMenuKey(boolean catchMenu) {
+		input.setCatchBackKey(catchMenu);
+	}
+
+	@Override
+	public boolean isCatchMenuKey() {
+		return input.isCatchMenuKey();
+	}
+
+	@Override
+	public void setCatchKey(int keycode, boolean catchKey) {
+//		input.setCatchKey(keycode, catchKey);
+	}
+
+	@Override
+	public boolean isCatchKey(int keycode) {
+		return false; //input.isCatchKey(keycode);
+	}
+
+	@Override
+	public void setInputProcessor(InputProcessor processor) {
+		input.setInputProcessor(processor);
+	}
+
+	@Override
+	public InputProcessor getInputProcessor() {
+		return input.getInputProcessor();
+	}
+
+	@Override
+	public boolean isPeripheralAvailable(Peripheral peripheral) {
+		return input.isPeripheralAvailable(peripheral);
+	}
+
+	@Override
+	public int getRotation() {
+		return input.getRotation();
+	}
+
+	@Override
+	public Orientation getNativeOrientation() {
+		return input.getNativeOrientation();
+	}
+
+	@Override
+	public void setCursorCatched(boolean catched) {
+		input.setCursorCatched(catched);
+	}
+
+	@Override
+	public boolean isCursorCatched() {
+		return input.isCursorCatched();
+	}
+
+	@Override
+	public void setCursorPosition(int x, int y) {
+		input.setCursorPosition(x, y);
+	}
+
+	@Override
+	public void dispose() {}
+	
+
+	@Override
+	public void update() {}
 
 	@Override
 	public void processEvents() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void processMessages() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public boolean cursorHandler() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public int getDWheel() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
-
 }
