@@ -63,14 +63,12 @@ public class MemLog {
 	
 	public static int used()
 	{
-		
 		Runtime instance = Runtime.getRuntime();
 		return (int) ((instance.totalMemory() - instance.freeMemory()) / mb);
 	}
 	
 	public static int total()
 	{
-		
 		Runtime instance = Runtime.getRuntime();
 		return (int) (instance.maxMemory() / mb);
 	}
