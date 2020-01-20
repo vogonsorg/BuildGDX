@@ -33,7 +33,11 @@ public class WALL {
 	public WALL() {}
 	
 	public WALL(byte[] data) {
-    	buildWall(new DataResource(null, "", -1, data));
+    	buildWall(new DataResource(data));
+	}
+	
+	public WALL(Resource data) {
+    	buildWall(data);
 	}
 	
 	public void buildWall(Resource bb)
@@ -123,8 +127,8 @@ public class WALL {
 		out += "yrepeat " + yrepeat + " \r\n";
 		out += "xpanning " + xpanning + " \r\n";
 		out += "ypanning " + ypanning + " \r\n";
-		out += "type " + lotag + " \r\n";
-		out += "flags " + hitag + " \r\n";
+		out += "lotag " + lotag + " \r\n";
+		out += "hitag " + hitag + " \r\n";
 		out += "extra " + extra + " \r\n";
 
 		return out;

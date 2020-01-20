@@ -38,10 +38,14 @@ public class SPRITE {
 	 */
 	public short extra = -1;
 
-	public SPRITE() { }
+	public SPRITE() {}
 	
 	public void init(byte[] data) {
-    	buildSprite(new DataResource(null, "", -1, data));
+    	buildSprite(new DataResource(data));
+	}
+	
+	public void init(Resource data) {
+    	buildSprite(data);
 	}
 	
 	public void buildSprite(Resource bb)
@@ -126,8 +130,8 @@ public class SPRITE {
 		out += "xvel " + xvel + " \r\n";
 		out += "yvel " + yvel + " \r\n";
 		out += "zvel " + zvel + " \r\n";
-		out += "type " + lotag + " \r\n";
-		out += "flags " + hitag + " \r\n";
+		out += "lotag " + lotag + " \r\n";
+		out += "hitag " + hitag + " \r\n";
 		out += "extra " + extra + " \r\n";
     	
 		return out;

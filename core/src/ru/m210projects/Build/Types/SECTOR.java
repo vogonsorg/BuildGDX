@@ -34,10 +34,15 @@ public class SECTOR {
 	public short floorpal, floorxpanning, floorypanning; //3
 	public short visibility, filler; //2
 	public short lotag, hitag, extra; //6
-	public SECTOR() { }
+	
+	public SECTOR() {}
 	
 	public SECTOR(byte[] data) {
-    	buildSector(new DataResource(null, "", -1, data));
+		buildSector(new DataResource(data));
+	}
+	
+	public SECTOR(Resource data) {
+    	buildSector(data);
 	}
 	
 	public void buildSector(Resource bb)
@@ -151,8 +156,8 @@ public class SECTOR {
 		out += "floorypanning " + floorypanning + " \r\n";
 		out += "visibility " + visibility + " \r\n";
 		out += "filler " + filler + " \r\n";
-		out += "type " + lotag + " \r\n";
-		out += "flags " + hitag + " \r\n";
+		out += "lotag " + lotag + " \r\n";
+		out += "hitag " + hitag + " \r\n";
 		out += "extra " + extra + " \r\n";
     	
 		return out;

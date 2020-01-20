@@ -22,12 +22,22 @@ import java.nio.ByteOrder;
 public class DataResource extends GroupResource {
 
 	private static final byte[] tmp = new byte[1024];
+
+	public DataResource(byte[] data) {
+		super(null);
+		initBuffer(data);
+	}
 	
 	public DataResource(Group parent, String filename, int fileid, byte[] data) {
 		super(parent);
 		
 		this.handleName(filename);
 		this.fileid = fileid;
+		initBuffer(data);
+	}
+	
+	private void initBuffer(byte[] data)
+	{
 		if(data != null) {
 			buffer = ByteBuffer.allocateDirect(data.length);
 			buffer.order(ByteOrder.LITTLE_ENDIAN);

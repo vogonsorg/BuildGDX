@@ -1163,35 +1163,16 @@ public abstract class Engine {
 		dacursectnum[0] = fil.readShort();
 		
 		numsectors = fil.readShort();
-		byte[] sectors = new byte[SECTOR.sizeof * numsectors];
-		fil.read(sectors);
-		ByteBuffer bb = ByteBuffer.wrap(sectors);
-		byte[] sectorReader = new byte[SECTOR.sizeof];
-		for (i = 0; i < numsectors; i++) {
-			bb.get(sectorReader);
-			sector[i] = new SECTOR(sectorReader);
-		}
+		for (i = 0; i < numsectors; i++) 
+			sector[i] = new SECTOR(fil);
 		
 		numwalls = fil.readShort();
-		byte[] walls = new byte[WALL.sizeof * numwalls];
-		fil.read(walls);
-		bb = ByteBuffer.wrap(walls);
-		byte[] wallReader = new byte[WALL.sizeof];
-		
-		for(int w = 0; w < numwalls; w++) {
-			bb.get(wallReader);
-			wall[w] = new WALL(wallReader);
-		}
-		
+		for(int w = 0; w < numwalls; w++) 
+			wall[w] = new WALL(fil);
+
 		numsprites = fil.readShort();
-		byte[] sprites = new byte[SPRITE.sizeof*numsprites];
-		fil.read(sprites);
-		bb = ByteBuffer.wrap(sprites);
-		byte[] spriteReader = new byte[SPRITE.sizeof];
-		for(int s = 0; s < numsprites; s++) {
-			bb.get(spriteReader);
-			sprite[s].init(spriteReader);
-		}
+		for(int s = 0; s < numsprites; s++) 
+			sprite[s].init(fil);
 
 		for(i=0;i<numsprites;i++) 
 			insertsprite(sprite[i].sectnum, sprite[i].statnum);
