@@ -48,6 +48,7 @@ import ru.m210projects.Build.desktop.audio.LwjglAL;
 public class DesktopFactory implements ApplicationFactory {
 
 	private BuildConfiguration cfg;
+
 	public DesktopFactory(BuildConfiguration cfg)
 	{
 		this.cfg = cfg;
@@ -130,6 +131,17 @@ public class DesktopFactory implements ApplicationFactory {
 		return new LwjglClipboard();
 	}
 
+	@Override
+	public int getVersion() {
+		String version = System.getProperty("java.version");
+	    if(version.startsWith("1.")) {
+	        version = version.substring(2, 3);
+	    } else {
+	        int dot = version.indexOf(".");
+	        if(dot != -1) { version = version.substring(0, dot); }
+	    } return Integer.parseInt(version);
+	}
+	
 	public static void InitVideoModes()
 	{
 		VideoMode.initVideoModes(LwjglApplicationConfiguration.getDisplayModes(), LwjglApplicationConfiguration.getDesktopDisplayMode());

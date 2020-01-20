@@ -14,7 +14,6 @@ import java.nio.channels.FileChannel;
 
 import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.FileHandle.Resource;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 
 public class CRC32 {
@@ -74,17 +73,7 @@ public class CRC32 {
         crc = crc ^ 0xffffffff;
 		return crc & 0xFFFFFFFFL;
 	}
-	
-	public static long getChecksum(ResourceData bb) {
-		int crc = 0xffffffff;
-		while(bb.remaining() != 0) 
-			crc = (crc >>> 8) ^ table[(crc ^ bb.get()) & 0xff];
 
-        // flip bits
-        crc = crc ^ 0xffffffff;
-		return crc & 0xFFFFFFFFL;
-	}
-	
 	public static long getChecksum(FileEntry file)
 	{
 		long value = -1;

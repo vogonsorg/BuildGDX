@@ -201,6 +201,7 @@ public abstract class BuildConfig extends IniFile {
 	public int mPort = NETPORT;
 	
 	public RenderType renderType = RenderType.Polymost;
+	public boolean gPrecache = true;
 
 	public BuildConfig(String path, String name) {
 		super();	
@@ -337,6 +338,8 @@ public abstract class BuildConfig extends IniFile {
 			if(value != -1) GLSettings.useModels.set(value == 1);
 			value = GetKeyInt("UseHightiles");
 			if(value != -1) GLSettings.useHighTile.set(value == 1);
+			value = GetKeyInt("UsePrecache");
+			if(value != -1) gPrecache = (value == 1);
 	
 			String name = GetKeyString("Player_name");
 			if(name != null) pName = name;
@@ -473,16 +476,20 @@ public abstract class BuildConfig extends IniFile {
 	{
 		if(!isInited) { //has saving from launcher
 			FileResource fil = compat.open(cfgPath + name, Path.Absolute, Mode.Write);
-			SaveUninited(fil);
-			fil.close();
+			if(fil != null) {
+				SaveUninited(fil);
+				fil.close();
+			}
 			return;
 		}
 		
 		FileResource fil = compat.open(cfgPath + name, Path.Absolute, Mode.Write);
-		SaveMain(fil, path);
-		SaveCommon(fil);
-		SaveConfig(fil);
-		fil.close();
+		if(fil != null) {
+			SaveMain(fil, path);
+			SaveCommon(fil);
+			SaveConfig(fil);
+			fil.close();
+		}
 	}
 	
 	public void SaveCommon(FileResource fil)
@@ -550,6 +557,7 @@ public abstract class BuildConfig extends IniFile {
 		saveBoolean(fil, "UseVoxels", BuildSettings.useVoxels.get());
 		saveBoolean(fil, "UseModels", GLSettings.useModels.get());
 		saveBoolean(fil, "UseHightiles", GLSettings.useHighTile.get());
+		saveBoolean(fil, "UsePrecache", gPrecache);
 		saveString(fil,  "Player_name", pName);	
 		saveString(fil,  "IP_Address", mAddress);	
 		saveInteger(fil, "Port", mPort);

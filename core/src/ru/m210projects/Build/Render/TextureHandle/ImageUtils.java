@@ -16,27 +16,32 @@ import static ru.m210projects.Build.Engine.palookup;
 
 import java.nio.ByteBuffer;
 
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Renderer.PixelFormat;
+import ru.m210projects.Build.Render.Types.AndroidTextureBuffer;
+import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
+import ru.m210projects.Build.Render.Types.FastTextureBuffer;
+import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Settings.GLSettings;
-import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 public class ImageUtils {
 	
 	private static final int TEX_MAX_SIZE = 1024;
-	private static UnsafeDirectBuffer tmp_buffer;
+	private static TextureBuffer tmp_buffer;
 	
 	public static class PicInfo {
 		public final ByteBuffer pic;
 		public final boolean hasalpha;
 
-		public PicInfo(UnsafeDirectBuffer unsafe, boolean hasalpha) {
-			this.pic = unsafe.getBuffer();
+		public PicInfo(ByteBuffer pic, boolean hasalpha) {
+			this.pic = pic;
 			this.hasalpha = hasalpha;
 		}
 	}
 
 	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, PixelFormat type) {
-		UnsafeDirectBuffer buffer = getTmpBuffer();
+		TextureBuffer buffer = getTmpBuffer();
 		buffer.clear();
 
 		if(data != null && (tsizx * tsizy > data.length || data.length == 0))
@@ -48,7 +53,7 @@ public class ImageUtils {
 			tsizx = tsizy = 1;
 			hasalpha = true;
 		} else {
-			if(type != PixelFormat.Pal8 && alphaMode) {
+			if(alphaMode && type != PixelFormat.Pal8) {
 				for(int i = 0; i < data.length; i++) {
 					if(data[i] == (byte) 255) {
 						hasalpha = true;
@@ -61,7 +66,7 @@ public class ImageUtils {
 			int sptr = 0;
 			int xoffs = xsiz << 2;
 			if(clamped) {
-				buffer.fill((xsiz * ysiz) << 2, (byte)0);
+				buffer.fill(0, (xsiz * ysiz) << 2, (byte)0);
 				for (int i = 0, j; i < tsizx << 2; i += 4) {
 					dptr = i;
 					for (j = 0; j < tsizy; j++) {
@@ -88,7 +93,7 @@ public class ImageUtils {
 		if(type == PixelFormat.Rgb && data != null && hasalpha && !GLSettings.textureFilter.get().retro) 
 			fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
 
-		return new PicInfo(buffer, hasalpha);
+		return new PicInfo(buffer.getBuffer(), hasalpha);
 		
 	}
 	
@@ -118,7 +123,7 @@ public class ImageUtils {
 		return curpalette.getRGBA(dacol, (byte) 0xFF);
 	}
 	
-	private static void fixtransparency(UnsafeDirectBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
+	private static void fixtransparency(TextureBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
 		int dox = daxsiz2 - 1;
 		int doy = daysiz2 - 1;
 		if (clamping) {
@@ -195,9 +200,17 @@ public class ImageUtils {
 		}
 	}
 	
-	public static UnsafeDirectBuffer getTmpBuffer() {
+	public static TextureBuffer getTmpBuffer() {
 		if (tmp_buffer == null) {
-			tmp_buffer = new UnsafeDirectBuffer(TEX_MAX_SIZE * TEX_MAX_SIZE * 4);
+			int size = TEX_MAX_SIZE * TEX_MAX_SIZE * 4;
+			try {
+				if(BuildGdx.app.getPlatform() != Platform.Android)
+					tmp_buffer = new FastTextureBuffer(size);
+				else tmp_buffer = new AndroidTextureBuffer(size);
+			} catch (Exception e) {
+				e.printStackTrace();
+				tmp_buffer = new DirectTextureBuffer(size);
+			}
 		}
 		return tmp_buffer;
 	}

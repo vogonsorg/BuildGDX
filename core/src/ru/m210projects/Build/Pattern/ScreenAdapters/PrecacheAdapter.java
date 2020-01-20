@@ -46,6 +46,8 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 	
 	public void addQueue(String name, Runnable runnable)
 	{
+		if(!game.pCfg.gPrecache)
+			return;
 		queues.add(new PrecacheQueue(name, runnable));
 	}
 	

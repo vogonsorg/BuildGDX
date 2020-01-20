@@ -25,5 +25,4 @@ public class AndroidFrame extends BuildFrame {
 	public BuildInput getInput(FrameType type) {
 		return new AndroidInput();
 	}
-
 }

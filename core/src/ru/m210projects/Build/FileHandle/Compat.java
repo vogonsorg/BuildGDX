@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.m210projects.Build.FileHandle.FileResource.Mode;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -234,18 +233,6 @@ public class Compat {
 		Resource res = open(entry);
 		if(res != null) {
 			out = res.getBytes();
-			res.close();
-		}
-		
-		return out;
-	}
-	
-	public ResourceData getData(FileEntry entry)
-	{
-		ResourceData out = null;
-		Resource res = open(entry);
-		if(res != null) {
-			out = res.getData();
 			res.close();
 		}
 		

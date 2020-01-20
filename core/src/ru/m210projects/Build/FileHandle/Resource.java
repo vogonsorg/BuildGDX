@@ -18,79 +18,8 @@ package ru.m210projects.Build.FileHandle;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import ru.m210projects.Build.Types.UnsafeBuffer;
 
 public interface Resource extends Closeable {
-
-	public class ResourceData extends UnsafeBuffer {
-
-		private ByteBuffer bb;
-		public ResourceData(ByteBuffer bb)
-		{
-			this.bb = bb.order(ByteOrder.LITTLE_ENDIAN);
-			this.setAddress(bb);
-		}
-		
-		public ResourceData(byte[] data)
-		{
-			this.bb = ByteBuffer.allocateDirect(data.length);
-			this.bb.order(ByteOrder.LITTLE_ENDIAN);
-			this.bb.put(data).rewind();
-			this.setAddress(bb);
-		}
-
-		public String getString(int len)
-		{
-			if(remaining() < len) return null;
-			
-			byte[] buf = new byte[len];
-			get(buf);
-			return new String(buf);
-		}
-
-	    public int capacity() {
-			return bb.capacity();
-		}
-		
-		public ResourceData rewind() {
-			bb.rewind();
-			position = 0;
-			return this;
-		}
-
-		public ResourceData flip() {
-			bb.rewind();
-			bb.limit(position);
-			position = 0;
-			return this;
-		}
-
-		public ResourceData clear() {
-			bb.clear();
-			position = 0;
-			return this;
-		}
-		
-		public void dispose()
-		{
-			dispose(bb);
-		}
-		
-		public void limit(int newLimit)
-		{
-			bb.limit(newLimit);
-		}
-
-		public int remaining() {
-			return bb.limit() - position;
-		}
-
-		public boolean hasRemaining() {
-			return position < bb.limit();
-		}
-	}
 
 	public static enum Whence { Set, Current, End };
 
@@ -103,8 +32,6 @@ public interface Resource extends Closeable {
 	public boolean isClosed();
 	
 	public int seek(long offset, Whence whence);
-	
-	public int read(byte[] buf, int len);
 	
 	public int read(byte[] buf, int offset, int len);
 	
@@ -120,11 +47,21 @@ public interface Resource extends Closeable {
 	
 	public Byte readByte();
 	
+	public Boolean readBoolean();
+	
+	public Long readLong();
+	
+	public Float readFloat();
+	
 	public int size();
 	
 	public int position();
 	
-	public ResourceData getData();
+	public int remaining();
+	
+	public boolean hasRemaining();
+	
+	public void toMemory();
 	
 	public byte[] getBytes();
 

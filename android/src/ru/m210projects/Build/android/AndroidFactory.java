@@ -1,6 +1,9 @@
 package ru.m210projects.Build.android;
 
 import com.badlogic.gdx.Application.ApplicationType;
+
+import java.io.File;
+
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.backends.android.AndroidClipboard;
 import com.badlogic.gdx.backends.android.AndroidFiles;
@@ -43,8 +46,11 @@ public class AndroidFactory implements ApplicationFactory {
 
 	@Override
 	public Files getFiles() {
-		activity.getFilesDir(); // workaround for Android bug #10515463
-		return new AndroidFiles(activity.getAssets(), activity.getFilesDir().getAbsolutePath());
+		String path = File.separator;
+		if(activity.getFilesDir() != null) 
+			path = activity.getFilesDir().getAbsolutePath();
+
+		return new AndroidFiles(activity.getAssets(), path);
 	}
 
 	@Override
@@ -70,5 +76,10 @@ public class AndroidFactory implements ApplicationFactory {
 	@Override
 	public Clipboard getClipboard() {
 		return new AndroidClipboard(activity);
+	}
+
+	@Override
+	public int getVersion() {
+		return android.os.Build.VERSION.SDK_INT;
 	}
 }

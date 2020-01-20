@@ -22,7 +22,6 @@ import java.util.List;
 
 import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 
 import static ru.m210projects.Build.FileHandle.Group.*;
@@ -352,29 +351,4 @@ public class Cache1D {
 		
 		return out;
 	}
-	
-	public ResourceData getData(String filename, int searchfirst)
-	{
-		ResourceData out = null;
-		Resource res = open(filename, searchfirst);
-		if(res != null) {
-			out = res.getData();
-			res.close();
-		}
-		
-		return out;
-	}
-	
-	public ResourceData getData(int fileid, String type)
-	{
-		ResourceData out = null;
-		Resource res = open(fileid, type);
-		if(res != null) {
-			out = res.getData();
-			res.close();
-		}
-		
-		return out;
-	}
-	
 }

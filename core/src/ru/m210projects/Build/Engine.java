@@ -28,7 +28,6 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.Resource;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -132,7 +131,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 	
-	public static final String version = "19.122"; //XX. - year, XX - month, X - build
+	public static final String version = "20.011"; //XX. - year, XX - month, X - build
 	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -476,8 +475,8 @@ public abstract class Engine {
 					radarang[320] = 0x4000;
 				}
 
-				res.read(textfont, 1024);
-				res.read(smalltextfont, 1024);
+				res.read(textfont, 0, 1024);
+				res.read(smalltextfont, 0, 1024);
 				
 				pTextfont = new TextFont();
 				pSmallTextfont = new SmallTextFont();
@@ -548,7 +547,7 @@ public abstract class Engine {
 		if ((fil = BuildGdx.cache.open("palette.dat", 0)) == null) 
 			throw new Exception("Failed to load \"palette.dat\"!");
 	
-		fil.read(palette, 768);
+		fil.read(palette);
 
 		boolean hastransluc = false;
 		if(releasedEngine) {
@@ -570,17 +569,17 @@ public abstract class Engine {
 
 		globalpal = 0;
 		Console.Println("Loading gamma correcion tables");
-		fil.read(palookup[globalpal], numshades<<8);
+		fil.read(palookup[globalpal], 0, numshades<<8);
 		Console.Println("Loading translucency table");
 		if(releasedEngine)
-			fil.read(transluc, 65536);
+			fil.read(transluc);
 		else {
 			if (hastransluc)
 			{
 				byte[] tmp = new byte[256];
 				for(int i = 0; i < 255; i++)
 				{
-					fil.read(tmp, 255-i);
+					fil.read(tmp, 0, 255-i);
 					System.arraycopy(tmp, 0, transluc, (i<<8)+i+1, 255-i);
 					for(int j = i + 1; j < 256; j++)
 						transluc[(j<<8)+i] = transluc[(i<<8)+j];
@@ -1165,7 +1164,7 @@ public abstract class Engine {
 		
 		numsectors = fil.readShort();
 		byte[] sectors = new byte[SECTOR.sizeof * numsectors];
-		fil.read(sectors, sectors.length);
+		fil.read(sectors);
 		ByteBuffer bb = ByteBuffer.wrap(sectors);
 		byte[] sectorReader = new byte[SECTOR.sizeof];
 		for (i = 0; i < numsectors; i++) {
@@ -1175,7 +1174,7 @@ public abstract class Engine {
 		
 		numwalls = fil.readShort();
 		byte[] walls = new byte[WALL.sizeof * numwalls];
-		fil.read(walls, walls.length);
+		fil.read(walls);
 		bb = ByteBuffer.wrap(walls);
 		byte[] wallReader = new byte[WALL.sizeof];
 		
@@ -1186,7 +1185,7 @@ public abstract class Engine {
 		
 		numsprites = fil.readShort();
 		byte[] sprites = new byte[SPRITE.sizeof*numsprites];
-		fil.read(sprites, SPRITE.sizeof*numsprites);
+		fil.read(sprites);
 		bb = ByteBuffer.wrap(sprites);
 		byte[] spriteReader = new byte[SPRITE.sizeof];
 		for(int s = 0; s < numsprites; s++) {
@@ -1223,7 +1222,7 @@ public abstract class Engine {
 		int sizeof = 37;
 		numsectors = fil.readShort();
 		byte[] sectors = new byte[sizeof*numsectors];
-		fil.read(sectors, sizeof* numsectors);
+		fil.read(sectors);
 		ByteBuffer bb = ByteBuffer.wrap(sectors);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
     	
@@ -1263,7 +1262,7 @@ public abstract class Engine {
 		sizeof = WALL.sizeof;
 		numwalls = fil.readShort();
 		byte[] walls = new byte[sizeof * numwalls];
-		fil.read(walls, sizeof * numwalls);
+		fil.read(walls);
 		bb = ByteBuffer.wrap(walls);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
 		
@@ -1294,7 +1293,7 @@ public abstract class Engine {
 		sizeof = 43;
 		numsprites = fil.readShort();
 		byte[] sprites = new byte[sizeof*numsprites];
-		fil.read(sprites, sizeof*numsprites);
+		fil.read(sprites);
 
 		bb = ByteBuffer.wrap(sprites);
     	bb.order( ByteOrder.LITTLE_ENDIAN);
@@ -1429,32 +1428,32 @@ public abstract class Engine {
 	
 	public synchronized void loadpic(String filename) //gdxBuild
 	{
-		ResourceData fil = null; 
-		if ((fil = BuildGdx.cache.getData(filename, 0)) != null) {
-			artversion = fil.getInt();
+		Resource fil = null; 
+		if ((fil = BuildGdx.cache.open(filename, 0)) != null) {
+			artversion = fil.readInt();
 			if (artversion != 1)
 				return;
-			numtiles = fil.getInt();
-			int localtilestart = fil.getInt();
-			int localtileend = fil.getInt();
+			numtiles = fil.readInt();
+			int localtilestart = fil.readInt();
+			int localtileend = fil.readInt();
 			
 			for (int i = localtilestart; i <= localtileend; i++) {
-				tilesizx[i] = fil.getShort();
+				tilesizx[i] = fil.readShort();
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				tilesizy[i] = fil.getShort();
+				tilesizy[i] = fil.readShort();
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				picanm[i] = fil.getInt();
+				picanm[i] = fil.readInt();
 			}
 
 			for (int i = localtilestart; i <= localtileend; i++) {
 				int dasiz = tilesizx[i] * tilesizy[i];
 				waloff[i] = new byte[dasiz];
-				fil.get(waloff[i], 0, dasiz);
+				fil.read(waloff[i]);
 				setpicsiz(i);
 			}
-			fil.dispose();
+			fil.close();
 		}
 	}
 	
@@ -1477,7 +1476,7 @@ public abstract class Engine {
 		buildString(artfilename, 0, tilesPath);
 
 		numtilefiles = 0;
-		ResourceData fil = null;
+		Resource fil = null;
 		do {
 			k = numtilefiles;
 
@@ -1486,23 +1485,23 @@ public abstract class Engine {
 			artfilename[5] = (char) (((k / 100) % 10) + 48);
 			String name = String.copyValueOf(artfilename);
 
-			if ((fil = BuildGdx.cache.getData(name, 0)) != null) {
-				artversion = fil.getInt();
+			if ((fil = BuildGdx.cache.open(name, 0)) != null) {
+				artversion = fil.readInt();
 				if (artversion != 1)
 					return (-1);
 
-				numtiles = fil.getInt();
-				localtilestart = fil.getInt();
-				localtileend = fil.getInt();
+				numtiles = fil.readInt();
+				localtilestart = fil.readInt();
+				localtileend = fil.readInt();
 
 				for (i = localtilestart; i <= localtileend; i++) {
-					tilesizx[i] = fil.getShort();
+					tilesizx[i] = fil.readShort();
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					tilesizy[i] = fil.getShort();
+					tilesizy[i] = fil.readShort();
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					picanm[i] = fil.getInt();
+					picanm[i] = fil.readInt();
 				}
 				offscount = 4 + 4 + 4 + 4 + ((localtileend - localtilestart + 1) << 3);
 				for (i = localtilestart; i <= localtileend; i++) {
@@ -1513,7 +1512,7 @@ public abstract class Engine {
 				}
 
 				numtilefiles++;
-				fil.dispose();
+				fil.close();
 			}
 		} while (k != numtilefiles);
 
@@ -1565,7 +1564,7 @@ public abstract class Engine {
 			faketimerhandler();
 		}
 
-		if(artfil.read(waloff[tilenume], dasiz) == -1)
+		if(artfil.read(waloff[tilenume]) == -1)
 			return null;
 		
 		faketimerhandler();

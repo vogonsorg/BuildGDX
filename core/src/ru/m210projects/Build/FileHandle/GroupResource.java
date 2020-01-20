@@ -18,11 +18,13 @@ package ru.m210projects.Build.FileHandle;
 
 import static ru.m210projects.Build.Strhandler.toLowerCase;
 
+import java.nio.ByteBuffer;
+
 public abstract class GroupResource implements Resource {
 
 	public static enum ResourceType { Data, GroupFile };
 	
-	protected ResourceData buffer;
+	protected ByteBuffer buffer;
 	protected Group parent;
 	
 	protected String filename;

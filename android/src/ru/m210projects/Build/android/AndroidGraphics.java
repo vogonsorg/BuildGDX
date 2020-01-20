@@ -10,9 +10,6 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidGL20;
 import com.badlogic.gdx.backends.android.AndroidGL30;
-import com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20;
-import com.badlogic.gdx.backends.android.surfaceview.GLSurfaceView20API18;
-import com.badlogic.gdx.backends.android.surfaceview.GLSurfaceViewAPI18;
 import com.badlogic.gdx.backends.android.surfaceview.GdxEglConfigChooser;
 import com.badlogic.gdx.backends.android.surfaceview.ResolutionStrategy;
 import com.badlogic.gdx.graphics.Cursor;
@@ -21,12 +18,13 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.glutils.GLVersion;
 import com.badlogic.gdx.math.WindowedMean;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
-import android.graphics.Point;
 import android.opengl.GLES11;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.EGLConfigChooser;
 import android.opengl.GLSurfaceView.Renderer;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Gravity;
@@ -43,16 +41,12 @@ import ru.m210projects.Build.Architecture.BuildGraphics;
 
 public class AndroidGraphics extends BuildGraphics implements Renderer {
 
-	static {
-//		GdxNativesLoader.load(); XXX
-	}
-
 	private final int r = 5, g = 6, b = 5, a = 0; // 16bit
 
 	protected final Activity app;
 	protected final AndroidFrame frame;
 	protected final ResolutionStrategy resolutionStrategy;
-	protected View view;
+	protected GLSurfaceView view;
 	private int rate;
 
 	private BufferFormat bufferFormat = new BufferFormat(5, 6, 5, 0, 16, 0, 0, false);
@@ -75,7 +69,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	private float density = 1;
 
 	volatile boolean created = false;
-	volatile boolean running = false;
+//	volatile boolean running = false;
 //	volatile boolean pause = false;
 //	volatile boolean resume = false;
 //	volatile boolean destroy = false;
@@ -85,16 +79,43 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		this.app = frame.activity;
 		this.resolutionStrategy = resolutionStrategy;
 	}
+	
+	public boolean isCreated()
+	{
+		return created;
+	}
+	
+	public void onPause()
+	{
+		if(!isCreated())
+			return;
+		
+		boolean isContinuous = isContinuousRendering();
+		boolean isContinuousEnforced = enforceContinuousRendering;
+		// from here we don't want non continuous rendering
+		enforceContinuousRendering = true;
+		setContinuousRendering(true);
+		enforceContinuousRendering = isContinuousEnforced;
+		setContinuousRendering(isContinuous);
+
+		BuildGdx.app.getApplicationListener().pause();
+		view.onPause();
+	}
+	
+	public void onResume()
+	{
+		if(!isCreated())
+			return;
+
+		BuildGdx.app.getApplicationListener().resume();
+		view.onResume();
+		useImmersiveMode(true);
+	}
 
 	@Override
 	protected void init() throws Exception {
-		GLSurfaceView view = new GLSurfaceView(app); //XXX
-		view.setRenderer(this);
-
-//		view = createGLSurfaceView(app, resolutionStrategy);
-
-		preserveEGLContextOnPause();
-
+		view = createGLSurfaceView(app);
+		
 		view.setFocusable(true);
 		view.setFocusableInTouchMode(true);
 
@@ -108,6 +129,40 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		app.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 		app.setContentView(view, createLayoutParams());
+		
+		createWakeLock(true);
+		hideStatusBar(true);
+		useImmersiveMode(true);
+
+		Gdx.graphics = BuildGdx.graphics = this;
+	}
+	
+	@TargetApi(Build.VERSION_CODES.KITKAT)
+	public void useImmersiveMode (boolean use) {
+		if (!use || BuildGdx.app.getVersion() < Build.VERSION_CODES.KITKAT) return;
+
+		View view = app.getWindow().getDecorView();
+		int code = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+			| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN
+			| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+		view.setSystemUiVisibility(code);
+	}
+	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	protected void hideStatusBar (boolean hide) {
+		if (!hide || BuildGdx.app.getVersion() < Build.VERSION_CODES.HONEYCOMB) return;
+
+		View rootView = app.getWindow().getDecorView();
+
+		if (BuildGdx.app.getVersion() <= Build.VERSION_CODES.HONEYCOMB_MR2) 
+			rootView.setSystemUiVisibility(0x0);
+		rootView.setSystemUiVisibility(0x1);
+	}
+	
+	protected void createWakeLock (boolean use) {
+		if (use) {
+			app.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		}
 	}
 
 	protected FrameLayout.LayoutParams createLayoutParams() {
@@ -117,38 +172,17 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		return layoutParams;
 	}
 
-	protected void preserveEGLContextOnPause() {
-		int sdkVersion = android.os.Build.VERSION.SDK_INT;
-		if (sdkVersion >= 11 && view instanceof GLSurfaceView20)
-			((GLSurfaceView20) view).setPreserveEGLContextOnPause(true);
-		if (view instanceof GLSurfaceView20API18)
-			((GLSurfaceView20API18) view).setPreserveEGLContextOnPause(true);
-	}
-
-	protected View createGLSurfaceView(Activity application, ResolutionStrategy resolutionStrategy) {
+	protected GLSurfaceView createGLSurfaceView(Activity application) {
 		BuildConfiguration config = frame.getConfig();
 
 		EGLConfigChooser configChooser = getEglConfigChooser(config);
-//		int sdkVersion = android.os.Build.VERSION.SDK_INT;
-//		if (sdkVersion <= 10 && config.useGLSurfaceView20API18) {
-//			GLSurfaceView20API18 view = new GLSurfaceView20API18(application, resolutionStrategy);
-//			if (configChooser != null)
-//				view.setEGLConfigChooser(configChooser);
-//			else
-//				view.setEGLConfigChooser(r, g, b, a, config.depth, config.stencil);
-//			view.setRenderer(this);
-//			return view;
-//		} 
-//		else 
-		{
-			GLSurfaceView20 view = new GLSurfaceView20(application, resolutionStrategy, config.useGL30 ? 3 : 2);
-			if (configChooser != null)
-				view.setEGLConfigChooser(configChooser);
-			else
-				view.setEGLConfigChooser(r, g, b, a, config.depth, config.stencil);
-			view.setRenderer(this);
-			return view;
-		}
+		GLSurfaceView view = new GLSurfaceView(app);
+		if (configChooser != null)
+			view.setEGLConfigChooser(configChooser);
+		else
+			view.setEGLConfigChooser(r, g, b, a, config.depth, config.stencil);
+		view.setRenderer(this);
+		return view;
 	}
 
 	protected EGLConfigChooser getEglConfigChooser(BuildConfiguration config) {
@@ -168,12 +202,8 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 
 	@Override
 	protected boolean isDirty() {
-		if (view != null) {
-			if (view instanceof GLSurfaceViewAPI18)
-				return ((GLSurfaceViewAPI18) view).isDirty();
-			if (view instanceof GLSurfaceView)
-				return ((GLSurfaceView) view).isDirty();
-		}
+//		if (view != null) //XXX
+//			view.isDirty();
 		return false;
 	}
 
@@ -219,12 +249,8 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 
 	@Override
 	protected boolean isActive() {
-		if (view != null) {
-			if (view instanceof GLSurfaceViewAPI18)
-				return ((GLSurfaceViewAPI18) view).isShown();
-			if (view instanceof GLSurfaceView)
-				return ((GLSurfaceView) view).isShown();
-		}
+		if (view != null) 
+			return view.isShown();
 		return false;
 	}
 
@@ -358,22 +384,15 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 			this.isContinuous = enforceContinuousRendering || isContinuous;
 			int renderMode = this.isContinuous ? GLSurfaceView.RENDERMODE_CONTINUOUSLY
 					: GLSurfaceView.RENDERMODE_WHEN_DIRTY;
-			if (view instanceof GLSurfaceViewAPI18)
-				((GLSurfaceViewAPI18) view).setRenderMode(renderMode);
-			if (view instanceof GLSurfaceView)
-				((GLSurfaceView) view).setRenderMode(renderMode);
+			view.setRenderMode(renderMode);
 			mean.clear();
 		}
 	}
 
 	@Override
 	public void requestRendering() {
-		if (view != null) {
-			if (view instanceof GLSurfaceViewAPI18)
-				((GLSurfaceViewAPI18) view).requestRender();
-			if (view instanceof GLSurfaceView)
-				((GLSurfaceView) view).requestRender();
-		}
+		if (view != null) 
+			view.requestRender();
 	}
 
 	@Override
@@ -439,6 +458,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		eglContext = ((EGL10) EGLContext.getEGL()).eglGetCurrentContext();
 		
@@ -447,10 +467,10 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		updateSafeAreaInsets();
 
 		Display display = app.getWindowManager().getDefaultDisplay();
-		Point outSize = new Point();
-		display.getSize(outSize);
-		this.width = outSize.x;
-		this.height = outSize.y;
+//		Point outSize = new Point();
+//		display.getSize(outSize);
+		this.width = display.getWidth(); //outSize.x;
+		this.height = display.getHeight(); //outSize.y;
 		this.mean = new WindowedMean(5);
 
 		Gdx.gl = BuildGdx.gl = getGL10();
@@ -515,9 +535,6 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		if (created == false) {
 			BuildGdx.app.getApplicationListener().create();
 			created = true;
-			synchronized (this) {
-				running = true;
-			}
 		}
 
 		synchronized (synch) {
@@ -541,14 +558,8 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 			return;
 		case Closed:
 			destroyLoop();
-			break;
+			return;
 		case Running:
-			break;
-		case Pause:
-			listener.pause();
-			break;
-		case Resume:
-			listener.resume();
 			break;
 		case Changed:
 			listener.resize(config.width, config.height);
@@ -558,12 +569,6 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 		boolean shouldRender = false;
 		if (BuildGdx.app.executeRunnables())
 			shouldRender = true;
-
-		// If one of the runnables set running to false, for example after an exit().
-		if (!running) {
-			destroyLoop();
-			return;
-		}
 
 		if (frame.process(shouldRender)) {
 			listener.render();
@@ -586,5 +591,7 @@ public class AndroidGraphics extends BuildGraphics implements Renderer {
 			BuildGdx.message.dispose();
 		frame.dispose();
 		app.finish();
+		
+		System.exit(0);
 	}
 }
