@@ -870,8 +870,9 @@ public abstract class Engine {
 	}
 
 	protected Clip raytrace(int x3, int y3, int x4, int y4) { //jfBuild
-		int x1, y1, x2, y2, bot, topu, nintx, ninty, cnt;
+		int x1, y1, x2, y2, nintx, ninty, cnt;
 		int x21, y21, x43, y43;
+		long topu, bot;
 
 		int rayx = x4;
 		int rayy = y4;
@@ -1172,7 +1173,7 @@ public abstract class Engine {
 
 		numsprites = fil.readShort();
 		for(int s = 0; s < numsprites; s++) 
-			sprite[s].init(fil);
+			sprite[s].buildSprite(fil);
 
 		for(i=0;i<numsprites;i++) 
 			insertsprite(sprite[i].sectnum, sprite[i].statnum);

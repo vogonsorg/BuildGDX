@@ -9,8 +9,7 @@
 
 package ru.m210projects.Build.Types;
 
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXWALLS;
+import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -48,21 +47,21 @@ public class SECTOR {
 	public void buildSector(Resource bb)
 	{
 		wallptr = bb.readShort();
-		if(wallptr < 0 || wallptr >= MAXWALLS) wallptr = 0;
+		if(!isValidWall(wallptr)) wallptr = 0;
     	wallnum = bb.readShort();
     	ceilingz = bb.readInt();
     	floorz = bb.readInt();
     	ceilingstat = bb.readShort();
     	floorstat = bb.readShort();
     	ceilingpicnum = bb.readShort();
-    	if(ceilingpicnum < 0 || ceilingpicnum >= MAXTILES) ceilingpicnum = 0;
+    	if(!isValidTile(ceilingpicnum)) ceilingpicnum = 0;
     	ceilingheinum = bb.readShort();
     	ceilingshade = bb.readByte();
     	ceilingpal = (short) (bb.readByte()&0xFF);
     	ceilingxpanning = (short) (bb.readByte()&0xFF);
     	ceilingypanning = (short) (bb.readByte()&0xFF);
     	floorpicnum = bb.readShort();
-    	if(floorpicnum < 0 || floorpicnum >= MAXTILES) floorpicnum = 0;
+    	if(!isValidTile(floorpicnum)) floorpicnum = 0;
     	floorheinum = bb.readShort();
     	floorshade = bb.readByte();
     	floorpal = (short) (bb.readByte()&0xFF);

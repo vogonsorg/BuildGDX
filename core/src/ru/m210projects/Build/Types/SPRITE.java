@@ -9,13 +9,11 @@
 
 package ru.m210projects.Build.Types;
 
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXSECTORS;
+import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import ru.m210projects.Build.FileHandle.DataResource;
 import ru.m210projects.Build.FileHandle.Resource;
 
 public class SPRITE {
@@ -32,22 +30,8 @@ public class SPRITE {
 	public short sectnum, statnum; //4
 	public short ang, owner = -1, xvel, yvel, zvel; //10
 	public short lotag, hitag;
-	/**
-	 * An index to {@link ru.m210projects.Blood.DB#xsprite} array linking
-	 * this {@link SPRITE} with its corresponding {@link XSPRITE}.
-	 */
 	public short extra = -1;
 
-	public SPRITE() {}
-	
-	public void init(byte[] data) {
-    	buildSprite(new DataResource(data));
-	}
-	
-	public void init(Resource data) {
-    	buildSprite(data);
-	}
-	
 	public void buildSprite(Resource bb)
 	{
 		x = bb.readInt();
@@ -55,7 +39,7 @@ public class SPRITE {
     	z = bb.readInt();
     	cstat = bb.readShort();
     	picnum = bb.readShort();
-    	if(picnum < 0 || picnum >= MAXTILES) picnum = 0;
+    	if(!isValidTile(picnum)) picnum = 0;
     	shade = bb.readByte();
     	pal = (short) (bb.readByte() & 0xFF);
     	clipdist = bb.readByte() & 0xFF;
@@ -65,7 +49,7 @@ public class SPRITE {
     	xoffset = bb.readByte();
     	yoffset = bb.readByte();
     	sectnum = bb.readShort();
-    	if(sectnum < 0 || sectnum >= MAXSECTORS) sectnum = 0;
+    	if(!isValidSector(sectnum)) sectnum = 0;
     	statnum = bb.readShort();
     	ang = bb.readShort();
     	owner = bb.readShort();

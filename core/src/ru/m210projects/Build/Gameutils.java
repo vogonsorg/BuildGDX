@@ -121,6 +121,11 @@ public class Gameutils {
 	{
 		return !isValidWall(wal.point2) || wall[wal.point2] == null;
 	}
+
+	public static boolean isValidTile(int tile)
+	{
+		return tile >= 0 && tile < MAXTILES;
+	}
 	
 	public enum ConvertType { Normal, AlignLeft, AlignRight, Stretch };
 	

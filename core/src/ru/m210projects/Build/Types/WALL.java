@@ -9,9 +9,7 @@
 
 package ru.m210projects.Build.Types;
 
-import static ru.m210projects.Build.Engine.MAXSECTORS;
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXWALLS;
+import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -45,16 +43,16 @@ public class WALL {
 		x = bb.readInt();
     	y = bb.readInt();
     	point2 = bb.readShort();
-    	if(point2 < 0 || point2 >= MAXWALLS) point2 = 0;
+    	if(!isValidWall(point2)) point2 = 0;
     	nextwall = bb.readShort();
-    	if(nextwall < 0 || nextwall >= MAXWALLS) nextwall = -1;
+    	if(!isValidWall(nextwall)) nextwall = -1;
     	nextsector = bb.readShort();
-    	if(nextsector < 0 || nextsector >= MAXSECTORS) nextsector = -1;
+    	if(!isValidSector(nextsector)) nextsector = -1;
     	cstat = bb.readShort();
     	picnum = bb.readShort();
-    	if(picnum < 0 || picnum >= MAXTILES) picnum = 0;
+    	if(!isValidTile(picnum)) picnum = 0;
     	overpicnum = bb.readShort();
-    	if(overpicnum < 0 || overpicnum >= MAXTILES) overpicnum = 0;
+    	if(!isValidTile(overpicnum)) overpicnum = 0;
     	shade = bb.readByte();
     	pal = (short) (bb.readByte()&0xFF);
     	xrepeat = (short) (bb.readByte()&0xFF);
