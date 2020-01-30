@@ -27,6 +27,7 @@ import java.util.Iterator;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
+import ru.m210projects.Build.FileHandle.FileResource;
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Input.KeyInput;
@@ -180,6 +181,7 @@ public abstract class Engine {
 	public boolean compatibleMode;
 	public static boolean UseBloodPal = false;
 	public String tilesPath = "tilesXXX.art";
+	public int fpscol = 31;
 	
 	public Renderer render;
 	private static KeyInput input;
@@ -1320,6 +1322,29 @@ public abstract class Engine {
 		return 0;
 	}
 
+	public void saveboard(FileResource fil, int daposx, int daposy, int daposz, int daang, int dacursectnum)
+	{
+		fil.writeInt(7); //mapversion
+		
+		fil.writeInt(daposx);
+		fil.writeInt(daposy);
+		fil.writeInt(daposz);
+		fil.writeShort(daang);
+		fil.writeShort(dacursectnum);
+		
+		fil.writeShort(numsectors);
+		for (int s = 0; s < numsectors; s++) 
+			fil.writeBytes(sector[s].getBytes());
+		
+		fil.writeShort(numwalls);
+		for (int s = 0; s < numwalls; s++) 
+			fil.writeBytes(wall[s].getBytes());
+
+		fil.writeShort(numsprites);
+		for (int s = 0; s < numsprites; s++) 
+			fil.writeBytes(sprite[s].getBytes());
+	}
+	
 	// JBF: davidoption now functions as a windowed-mode flag (0 == windowed, 1 == fullscreen)
 	public boolean setgamemode(int davidoption, int daxdim, int daydim) { //jfBuild + gdxBuild
 		if(BuildGdx.app.getType() == ApplicationType.Android) {
@@ -4128,7 +4153,7 @@ public abstract class Engine {
         	}
     		fpstime = System.currentTimeMillis();
     	} 
-    	render.printext(fpsx, fpsy, 31, -1, fpsbuffer, 0, scale);
+    	render.printext(fpsx, fpsy, fpscol, -1, fpsbuffer, 0, scale);
     }
 
     private DefScript defs;

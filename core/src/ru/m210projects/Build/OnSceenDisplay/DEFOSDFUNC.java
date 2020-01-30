@@ -28,18 +28,24 @@ import ru.m210projects.Build.Engine;
 public class DEFOSDFUNC implements OSDFunc {
 	
 	protected Engine engine;
-	private int white = -1;
+	protected int white = -1;
 	protected char[] charbuf = new char[1];
 	public DEFOSDFUNC(Engine engine){
 		this.engine = engine;
-		
-		// find the palette index closest to white
-        int k = 0;
-        for (int i = 0; i < 256; i+=3)
-        {
-            int j = (palette[3*i]&0xFF)+(palette[3*i+1]&0xFF)+(palette[3*i+2]&0xFF);
-            if (j > k) { k = j; white = i; }
-        }
+	}
+	
+	protected int getwhite() {
+		if(white == -1) {
+			// find the palette index closest to white
+	        int k = 0;
+	        for (int i = 0; i < 256; i++)
+	        {
+	            int j = (palette[3*i]&0xFF)+(palette[3*i+1]&0xFF)+(palette[3*i+2]&0xFF);
+	            if (j > k) { k = j; white = i; }
+	        }
+		}
+        
+        return white;
 	}
 
 	@Override
@@ -49,7 +55,7 @@ public class DEFOSDFUNC implements OSDFunc {
 		
 		
 		charbuf[0] = ch;
-		engine.printext256(x, y, white, -1, charbuf, 0, scale / 65536.0f);
+		engine.printext256(x, y, getwhite(), -1, charbuf, 0, scale / 65536.0f);
 	}
 
 	@Override
@@ -57,13 +63,13 @@ public class DEFOSDFUNC implements OSDFunc {
 		char[][] osdtext = Console.getTextPtr();
 		if (ptr >= 0 && ptr < osdtext.length) {
 			char[] text = osdtext[ptr];
-			engine.printext256(mulscale(4+(x<<3), scale, 16),mulscale(4+(y<<3), scale, 16), white, -1, text, 0, scale / 65536.0f);
+			engine.printext256(mulscale(4+(x<<3), scale, 16),mulscale(4+(y<<3), scale, 16), getwhite(), -1, text, 0, scale / 65536.0f);
 		}
 	}
 
 	@Override
 	public void drawstr(int x, int y, char[] text, int len, int shade, int pal, int scale) {
-		engine.printext256(mulscale(4+(x<<3), scale, 16),mulscale((y<<3), scale, 16), white, -1, text, 0, scale / 65536.0f);
+		engine.printext256(mulscale(4+(x<<3), scale, 16),mulscale((y<<3), scale, 16), getwhite(), -1, text, 0, scale / 65536.0f);
 	}
 	
 	@Override
@@ -74,7 +80,7 @@ public class DEFOSDFUNC implements OSDFunc {
 		
 		if ((lastkeypress & 0x40l) == 0) {
 			charbuf[0] = ch;
-			engine.printext256(mulscale(4+(x<<3), scale, 16), mulscale((y<<3) + 2, scale, 16), white, -1, charbuf, 0, scale / 65536.0f);
+			engine.printext256(mulscale(4+(x<<3), scale, 16), mulscale((y<<3) + 2, scale, 16), getwhite(), -1, charbuf, 0, scale / 65536.0f);
 		}
 	}
 	

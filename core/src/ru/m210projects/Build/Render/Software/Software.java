@@ -3545,6 +3545,7 @@ public abstract class Software extends Renderer {
 					lookups[horizlookup2 + i] = (int) divscale(klabs(lookups[horizlookup + i]), j, 14);
 				}
 		}
+		
 		if ((xdimen != oxdimen) || (viewingrange != oviewingrange)) {
 			oxdimen = xdimen;
 			oviewingrange = viewingrange;
@@ -3555,7 +3556,7 @@ public abstract class Software extends Renderer {
 				j = x & 65535;
 				k = x >> 16;
 				x += xinc;
-				if(k < 0 || k >= 1279) break;
+				if(k < 0 || k >= radarang.length - 1) break;
 
 				if (j != 0)
 					j = mulscale(radarang[k + 1] - radarang[k], j, 16);
