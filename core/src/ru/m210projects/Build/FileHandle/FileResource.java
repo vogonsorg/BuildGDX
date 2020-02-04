@@ -25,6 +25,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import sun.misc.Unsafe;
@@ -42,7 +43,7 @@ public class FileResource implements Resource {
 		} catch (Exception e) {}
 	}
 
-	private static byte[] readbuf = new byte[1024];
+	private static byte[] tmpbuf = new byte[1024];
 	
 	public static enum Mode { Read, Write }
 
@@ -201,18 +202,18 @@ public class FileResource implements Resource {
 			{
 				if(fbuf != null)
 				{
-					var = Math.min(len, readbuf.length);
+					var = Math.min(len, tmpbuf.length);
 					if(var > fbuf.remaining()) return p;
-					fbuf.get(readbuf, 0, var);
+					fbuf.get(tmpbuf, 0, var);
 				} else {
-					if((var = raf.read(readbuf, 0, Math.min(len, readbuf.length))) == -1)
+					if((var = raf.read(tmpbuf, 0, Math.min(len, tmpbuf.length))) == -1)
 						return p;
 				}
-				bb.put(readbuf, 0, var);
+				bb.put(tmpbuf, 0, var);
 				len -= var;
 				p += var;
 			}
-			return len;
+			return p;
 		} catch (EOFException e) {
 	    	return -1;
 	    } catch (Exception e) {
@@ -224,8 +225,8 @@ public class FileResource implements Resource {
 	public String readString(int len)
 	{
 		byte[] data;
-		if(len < readbuf.length)
-			data = readbuf;
+		if(len < tmpbuf.length)
+			data = tmpbuf;
 		else data = new byte[len];
 		if(read(data, 0, len) != len)
 			return null;
@@ -236,22 +237,22 @@ public class FileResource implements Resource {
 	@Override
 	public Integer readInt()
 	{
-		if(read(readbuf, 0, 4) == 4)
-			return ( (readbuf[3] & 0xFF) << 24 ) + ( (readbuf[2] & 0xFF) << 16 ) + ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF );
+		if(read(tmpbuf, 0, 4) == 4)
+			return ( (tmpbuf[3] & 0xFF) << 24 ) + ( (tmpbuf[2] & 0xFF) << 16 ) + ( (tmpbuf[1] & 0xFF) << 8 ) + ( tmpbuf[0] & 0xFF );
 		return null;
 	}
 	
 	@Override
 	public Long readLong() {
-		if(read(readbuf, 0, 8) == 8)
-			 return  (((long)readbuf[7] & 0xFF) << 56) +
-					 (((long)readbuf[6] & 0xFF) << 48) +
-					 (((long)readbuf[5] & 0xFF) << 40) +
-					 (((long)readbuf[4] & 0xFF) << 32) +
-					 (((long)readbuf[3] & 0xFF) << 24) +
-					 (((long)readbuf[2] & 0xFF) << 16) +
-					 (((long)readbuf[1] & 0xFF) <<  8) +
-					 (((long)readbuf[0] & 0xFF)      );
+		if(read(tmpbuf, 0, 8) == 8)
+			 return  (((long)tmpbuf[7] & 0xFF) << 56) +
+					 (((long)tmpbuf[6] & 0xFF) << 48) +
+					 (((long)tmpbuf[5] & 0xFF) << 40) +
+					 (((long)tmpbuf[4] & 0xFF) << 32) +
+					 (((long)tmpbuf[3] & 0xFF) << 24) +
+					 (((long)tmpbuf[2] & 0xFF) << 16) +
+					 (((long)tmpbuf[1] & 0xFF) <<  8) +
+					 (((long)tmpbuf[0] & 0xFF)      );
 		return null;
 	}
 	
@@ -266,8 +267,8 @@ public class FileResource implements Resource {
 	@Override
 	public Short readShort()
 	{
-		if(read(readbuf, 0, 2) == 2)
-			return (short) ( ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF ) );
+		if(read(tmpbuf, 0, 2) == 2)
+			return (short) ( ( (tmpbuf[1] & 0xFF) << 8 ) + ( tmpbuf[0] & 0xFF ) );
 		return null;
 	}
 	
@@ -328,29 +329,40 @@ public class FileResource implements Resource {
 			len = ((char[]) array).length;
 		else if(array instanceof String) 
 			len = ((String)array).getBytes().length;
-
+		else throw new UnsupportedOperationException("Couldn't write to file. \r\n + Not implemented!");
+		
 		if(len != 0)
 			return writeBytes(array, len);
 		
 		return -1;
 	}
 	
-	public int writeBytes(Object array, int len) {
+	public int writeBytes(Object obj, int len) {
 		int var = -1;
 		if(isClosed() || getMode() != Mode.Write) return var;
 		
 		try {
 			byte[] data = null;
-			if(array instanceof byte[])
-				data = (byte[])array;
-			else if(array instanceof char[]) {
+			if(obj instanceof Byte) {
+				int rem = len;
+				while(rem > 0) {
+					int l = Math.min(rem, tmpbuf.length);
+					Gameutils.fill(tmpbuf, 0, l, (byte) obj);
+					raf.write(tmpbuf, 0, l);
+					rem -= l;
+				}
+				return len;
+			}
+			else if(obj instanceof byte[])
+				data = (byte[])obj;
+			else if(obj instanceof char[]) {
 				data = new byte[len];
-				char[] src = (char[]) array;
+				char[] src = (char[]) obj;
 				for(int i = 0; i < Math.min(len, src.length); i++) 
 					data[i] = (byte) src[i];
 			}
-			else if(array instanceof ByteBuffer) {
-				ByteBuffer buf = (ByteBuffer) array;
+			else if(obj instanceof ByteBuffer) {
+				ByteBuffer buf = (ByteBuffer) obj;
 				buf.rewind();
 				if(!buf.isDirect()) 
 					data = buf.array();
@@ -359,23 +371,23 @@ public class FileResource implements Resource {
 					buf.get(data);
 				}
 			}
-			else if(array instanceof short[]) {
+			else if(obj instanceof short[]) {
 				var = 0;
-				short[] shortArr = (short[])array;
+				short[] shortArr = (short[])obj;
 				len = Math.min(len, shortArr.length);
 				for(int i = 0; i < len; i++) 
 					var += writeShort(shortArr[i]);
 			}
-			else if(array instanceof int[]) {
+			else if(obj instanceof int[]) {
 				var = 0;
-				int[] intArr = (int[])array;
+				int[] intArr = (int[])obj;
 				len = Math.min(len, intArr.length);
 				for(int i = 0; i < len; i++) 
 					var += writeInt(intArr[i]);
 			}
-			else if(array instanceof String) {
-				data = ((String)array).getBytes();
-			}
+			else if(obj instanceof String) {
+				data = ((String)obj).getBytes();
+			} else throw new UnsupportedOperationException("Couldn't write to file. \r\n + Not implemented!");
 
 			if(data != null) {
 				len = Math.min(len, data.length);
@@ -394,10 +406,10 @@ public class FileResource implements Resource {
 		int var = -1;
 		if(isClosed() || getMode() != Mode.Write) return var;
 		
-		readbuf[0] = (byte) value;
+		tmpbuf[0] = (byte) value;
 		
 		try {  
-			raf.write(readbuf, 0, 1);
+			raf.write(tmpbuf, 0, 1);
 			var = 1;
 		} catch (Exception e) {
 			throw new RuntimeException("Couldn't write to file \r\n" + e.getMessage());
@@ -411,11 +423,11 @@ public class FileResource implements Resource {
 		int var = -1;
 		if(isClosed() || getMode() != Mode.Write) return var;
 		
-		readbuf[0] = (byte) ( ( value >>> 0 ) & 0xFF );
-		readbuf[1] = (byte) ( ( value >>> 8 ) & 0xFF );
+		tmpbuf[0] = (byte) ( ( value >>> 0 ) & 0xFF );
+		tmpbuf[1] = (byte) ( ( value >>> 8 ) & 0xFF );
 		
 		try {  
-			raf.write(readbuf, 0, 2);
+			raf.write(tmpbuf, 0, 2);
 			var = 2;
 		} catch (Exception e) {
 			throw new RuntimeException("Couldn't write to file \r\n" + e.getMessage());
@@ -429,13 +441,13 @@ public class FileResource implements Resource {
 		int var = -1;
 		if(isClosed() || getMode() != Mode.Write) return var;
 		
-		readbuf[0] = (byte) ( ( value >>> 0 ) & 0xFF );
-		readbuf[1] = (byte) ( ( value >>> 8 ) & 0xFF );
-		readbuf[2] = (byte) ( ( value >>> 16 ) & 0xFF );
-		readbuf[3] = (byte) ( ( value >>> 24 ) & 0xFF );
+		tmpbuf[0] = (byte) ( ( value >>> 0 ) & 0xFF );
+		tmpbuf[1] = (byte) ( ( value >>> 8 ) & 0xFF );
+		tmpbuf[2] = (byte) ( ( value >>> 16 ) & 0xFF );
+		tmpbuf[3] = (byte) ( ( value >>> 24 ) & 0xFF );
 		
 		try {  
-			raf.write(readbuf, 0, 4);
+			raf.write(tmpbuf, 0, 4);
 			var = 4;
 		} catch (Exception e) {
 			throw new RuntimeException("Couldn't write to file \r\n" + e.getMessage());

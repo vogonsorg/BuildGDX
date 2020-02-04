@@ -291,23 +291,15 @@ public class GrpGroup extends Group {
 				return true;
 			}
 		}
-
+		
 		@Override
 		public int remaining() {
-			synchronized(parent) {
-				if(file != null)
-					return file.remaining();
-				return 0;
-			}
+			return size() - position();
 		}
 
 		@Override
 		public boolean hasRemaining() {
-			synchronized(parent) {
-				if(file != null)
-					return file.hasRemaining();
-				return true;
-			}
+			return position() < size();
 		}
 	}
 
