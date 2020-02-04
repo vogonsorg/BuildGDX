@@ -20,6 +20,7 @@ import static ru.m210projects.Build.Engine.*;
 
 import java.util.HashSet;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 
@@ -66,7 +67,7 @@ public class TileFont {
 	
 	public void dispose()
 	{
-		if(atlas != null)
+		if(atlas != null && BuildGdx.gl != null)
 			atlas.glpic.dispose();
 		
 		managedFont.remove(this);
