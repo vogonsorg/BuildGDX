@@ -2607,13 +2607,13 @@ public abstract class Engine {
 					bsz = walldist;
 					if (gx < 0)
 						bsz = -bsz;
-					addclipline(x1 - bsz, y1 - bsz, x1 - bsz, y1 + bsz, (short) j + 32768);
-					addclipline(x2 - bsz, y2 - bsz, x2 - bsz, y2 + bsz, (short) j + 32768);
+					addclipline(x1 - bsz, y1 - bsz, x1 - bsz, y1 + bsz, j + 32768);
+					addclipline(x2 - bsz, y2 - bsz, x2 - bsz, y2 + bsz, j + 32768);
 					bsz = walldist;
 					if (gy < 0)
 						bsz = -bsz;
-					addclipline(x1 + bsz, y1 - bsz, x1 - bsz, y1 - bsz, (short) j + 32768);
-					addclipline(x2 + bsz, y2 - bsz, x2 - bsz, y2 - bsz, (short) j + 32768);
+					addclipline(x1 + bsz, y1 - bsz, x1 - bsz, y1 - bsz, j + 32768);
+					addclipline(x2 + bsz, y2 - bsz, x2 - bsz, y2 - bsz, j + 32768);
 
 					dax = walldist;
 					if (dy > 0)
@@ -2621,7 +2621,7 @@ public abstract class Engine {
 					day = walldist;
 					if (dx < 0)
 						day = -day;
-					addclipline(x1 + dax, y1 + day, x2 + dax, y2 + day, (short) j + 32768);
+					addclipline(x1 + dax, y1 + day, x2 + dax, y2 + day, j + 32768);
 				} else {
 					for (i = clipsectnum - 1; i >= 0; i--)
 						if (wal.nextsector == clipsectorlist[i])
