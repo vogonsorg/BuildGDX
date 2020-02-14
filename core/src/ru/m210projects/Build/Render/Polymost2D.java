@@ -1242,7 +1242,6 @@ public class Polymost2D extends OrphoRenderer {
 		int ogshade, ogpal;
 
 		int oldviewingrange;
-		float ogxyaspect;
 		float x1, y1, z1;
 		if (hudsprite == null)
 			hudsprite = new SPRITE();
@@ -1265,7 +1264,7 @@ public class Polymost2D extends OrphoRenderer {
 		globalshade = dashade;
 		ogpal = globalpal;
 		globalpal = dapalnum;
-		ogxyaspect = parent.gxyaspect;
+		double ogxyaspect = parent.gxyaspect;
 		parent.gxyaspect = 1.0f;
 		oldviewingrange = viewingrange;
 		viewingrange = 65536;
