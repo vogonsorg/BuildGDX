@@ -10,6 +10,8 @@
 package ru.m210projects.Build;
 
 import static java.lang.Math.*;
+import static ru.m210projects.Build.Engine.MAXSECTORS;
+import static ru.m210projects.Build.Engine.MAXSECTORSV8;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Gameutils.*;
@@ -61,95 +63,72 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.PixmapIO;
 
 public abstract class Engine {
-	
+
 	/*
-	 * TODO:
-	 * Software renderer: and the draw distance for voxel detail is really low
-	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
-	 * Software renderer: Voxel is not clipped by ceiling geometry
+	 * TODO: Software renderer: and the draw distance for voxel detail is really low
+	 * Software renderer: You might want to look at wall sprites. I noticed a lot of
+	 * them clipping through geometry in classic render Software renderer: Voxel is
+	 * not clipped by ceiling geometry
 	 * 
-	 * osdrows в сохранения конфига
-	 * Туман зависит от разрешения экрана (Polymost)
-	 * History list for last used IP's (client could be better for multiplayer) or copy paste IP if possible.
-	 * brz фильтр 
-	 * broadcast
-	 * Some sort of anti-aliasing option. The NVidia control panel's anti-aliasing works, but it introduces artifacting on voxels.
-	 * бинд в консоль 
-	 * плохой перенос строк в консоли если строк больше 2х
-	 * оптимизировать Bsprintf
-	 * сохранения в папку (почему то не находит файл)
-	 * render: некоторые горизонтальные модели не там где надо под определенным
-	 * углом пропадает спрайт 2д карта подглюкивает вылазиют полигоны за скайбокс
-	 * потолок
-	 * floor-alignment voxels for maphack 
+	 * osdrows в сохранения конфига Туман зависит от разрешения экрана (Polymost)
+	 * History list for last used IP's (client could be better for multiplayer) or
+	 * copy paste IP if possible. brz фильтр broadcast Some sort of anti-aliasing
+	 * option. The NVidia control panel's anti-aliasing works, but it introduces
+	 * artifacting on voxels. бинд в консоль плохой перенос строк в консоли если
+	 * строк больше 2х оптимизировать Bsprintf сохранения в папку (почему то не
+	 * находит файл) render: некоторые горизонтальные модели не там где надо под
+	 * определенным углом пропадает спрайт 2д карта подглюкивает вылазиют полигоны
+	 * за скайбокс потолок floor-alignment voxels for maphack
 	 * 
-	 * для шейдеров:
-	 * затенения уровня в далеке(туман)
-	 * прекэш вокселей - палитра
-	 * FadeScreen
-	 * Проверить HRP модели для шейдеров
-	 * Отключить GL туман для шейдеров
-	 * Отключить фильтрацию текстур для шейдеров
-	 * Не работают текстуры в userepisode
+	 * для шейдеров: затенения уровня в далеке(туман) прекэш вокселей - палитра
+	 * FadeScreen Проверить HRP модели для шейдеров Отключить GL туман для шейдеров
+	 * Отключить фильтрацию текстур для шейдеров Не работают текстуры в userepisode
 	 * 
-	 * GameAdapter TODO:
-	 * SaveManager findSaves()
-	 * kOpen external file -> native bytebuffer (read only)
-	 * Launcher start parameters
+	 * GameAdapter TODO: SaveManager findSaves() kOpen external file -> native
+	 * bytebuffer (read only) Launcher start parameters
 	 * 
 	 * 
-	 * Architecture:
-	 * 	Engine
-	 * 		messages
-	 * 		filecache
-	 * 		filegroup		-> 		filecache
-	 * 		(net) mmulti
-	 * 		audiomanger (BAudio)
-	 * 			midimodule
-	 * 			openal
-	 * 		renderer				
-	 * 			polymost	->    texturecache
-	 * 			software
-	 * 		input
-	 * 			keyboard -> input()
-	 * 			gamepad	-> gpmanager
-	 * 		
-	 * 		OnScreenDisplay
-	 * 			Console
-	 * 		loader
-	 * 			md2
-	 * 			md3
-	 * 			vox
-	 * 			wav
-	 * 		
+	 * Architecture: Engine messages filecache filegroup -> filecache (net) mmulti
+	 * audiomanger (BAudio) midimodule openal renderer polymost -> texturecache
+	 * software input keyboard -> input() gamepad -> gpmanager
 	 * 
-	 *  Utils
-	 *  	string handler
-	 *  	def loader + common + scriptfile	-> texturecache / mdloader
-	 *  	pragmas
-	 *  	bithandler
+	 * OnScreenDisplay Console loader md2 md3 vox wav
+	 * 
+	 * 
+	 * Utils string handler def loader + common + scriptfile -> texturecache /
+	 * mdloader pragmas bithandler
 	 */
-	
-	public static final String version = "20.021"; //XX. - year, XX - month, X - build
-	
+
+	public static final String version = "20.021"; // XX. - year, XX - month, X - build
+
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
-	
+
 	protected class Line {
 		public int x1, y1, x2, y2;
 	}
-	
+
 	protected class Clip {
 		private int x, y, z;
 		private short num;
-		
-		public int getX() { return x; }
-		public int getY() { return y; }
-		public int getZ() { return z; }
-		public short getNum() { return num; }
-		
-		public Clip set(int x, int y, int z, short num)
-		{
+
+		public int getX() {
+			return x;
+		}
+
+		public int getY() {
+			return y;
+		}
+
+		public int getZ() {
+			return z;
+		}
+
+		public short getNum() {
+			return num;
+		}
+
+		public Clip set(int x, int y, int z, short num) {
 			this.x = x;
 			this.y = y;
 			this.z = z;
@@ -157,20 +136,27 @@ public abstract class Engine {
 			return this;
 		}
 	}
-	
+
 	public class Point {
 		private int x, y, z;
-		
-		public int getX() { return x; }
-		public int getY() { return y; }
-		public int getZ() { return z; }
-		
-		public Point set(int x, int y, int z)
-		{
+
+		public int getX() {
+			return x;
+		}
+
+		public int getY() {
+			return y;
+		}
+
+		public int getZ() {
+			return z;
+		}
+
+		public Point set(int x, int y, int z) {
 			this.x = x;
 			this.y = y;
 			this.z = z;
-			
+
 			return this;
 		}
 	}
@@ -180,14 +166,14 @@ public abstract class Engine {
 	public static boolean UseBloodPal = false;
 	public String tilesPath = "tilesXXX.art";
 	public int fpscol = 31;
-	
+
 	public Renderer render;
 	private static KeyInput input;
-	
+
 	public static TileFont pTextfont, pSmallTextfont;
 
 	public static boolean offscreenrendering;
-	
+
 	public static float TRANSLUSCENT1 = 0.66f;
 	public static float TRANSLUSCENT2 = 0.33f;
 	public static float MAXDRUNKANGLE = 2.5f;
@@ -196,7 +182,7 @@ public abstract class Engine {
 	public static int[] bakwindowx1, bakwindowy1;
 	public static int[] bakwindowx2, bakwindowy2;
 	public static int baktile;
-	
+
 	public static final int CLIPMASK0 = (((1) << 16) + 1);
 	public static final int CLIPMASK1 = (((256) << 16) + 64);
 	public static final int MAXPSKYTILES = 256;
@@ -221,7 +207,8 @@ public abstract class Engine {
 	public static final int MAXSPRITESONSCREEN = 1024;
 	public static final int MAXVOXELS = MAXSPRITES;
 //	public static final int EXTRATILES = (MAXTILES / 8);
-	public static final int MAXUNIQHUDID = 256; //Extra slots so HUD models can store animation state without messing game sprites
+	public static final int MAXUNIQHUDID = 256; // Extra slots so HUD models can store animation state without messing
+												// game sprites
 	public static final int MAXPSKYMULTIS = 8;
 	public static final int MAXPLAYERS = 16;
 	public static final int MAXXDIM = 4096;
@@ -259,30 +246,30 @@ public abstract class Engine {
 	private final char[] fpsbuffer = new char[15];
 	private long fpstime = 0;
 	private int fpsx, fpsy;
-	
+
 	public static byte[] gotpic;
 	public static byte[] gotsector;
 	public static int spritesortcnt;
 	public static int windowx1, windowy1, windowx2, windowy2;
 	public static int xdim, ydim;
 	public static int yxaspect, viewingrange;
-	
-	//OUTPUT VALUES
+
+	// OUTPUT VALUES
 	public static int mirrorx, mirrory;
 	public static float mirrorang;
-	
+
 	public static Point intersect;
 	public static Point keep;
 	public static Clip ray;
-	
+
 	private static int[] zofslope;
 	private float fovFactor = 1.0f;
-	
+
 	public static int rayx = 0;
 	public static int rayy = 0;
 	public static Hitscan pHitInfo;
 	public static Neartag neartag;
-	
+
 	public static int fullscreen;
 	public static int paletteloaded = 0;
 	public static int tablesloaded = 0;
@@ -292,23 +279,16 @@ public abstract class Engine {
 	public static int xdimen = -1, halfxdimen, xdimenscale, xdimscale;
 	public static int wx1, wy1, wx2, wy2, ydimen;
 	public static final short pow2char[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
-	public static final int[] pow2long = {
-		1, 2, 4, 8,
-		16, 32, 64, 128,
-		256, 512, 1024, 2048,
-		4096, 8192, 16384, 32768,
-		65536, 131072, 262144, 524288,
-		1048576, 2097152, 4194304, 8388608,
-		16777216, 33554432, 67108864, 134217728,
-		268435456, 536870912, 1073741824, 2147483647,
-	};
+	public static final int[] pow2long = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
+			65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, 67108864, 134217728,
+			268435456, 536870912, 1073741824, 2147483647, };
 
 	public static Palette curpalette;
 	public static FadeEffect palfadergb;
 
 	public static int clipmoveboxtracenum = 3;
 	public static int hitscangoalx = (1 << 29) - 1, hitscangoaly = (1 << 29) - 1;
-	public static int globalposx, globalposy, globalposz; //polymost
+	public static int globalposx, globalposy, globalposz; // polymost
 	public static float globalhoriz, globalang;
 	public static float pitch;
 	public static short globalcursectnum;
@@ -344,7 +324,7 @@ public abstract class Engine {
 	private int hitallsprites = 0;
 	private final int MAXCLIPNUM = 1024;
 	protected final int MAXCLIPDIST = 1024;
-	
+
 //	private int[] lookups;
 	protected short clipnum;
 
@@ -359,7 +339,7 @@ public abstract class Engine {
 
 	private int[] rdist, gdist, bdist;
 	private final int FASTPALGRIDSIZ = 8;
-	
+
 	private byte[] colhere;
 	private byte[] colhead;
 	private short[] colnext;
@@ -370,22 +350,23 @@ public abstract class Engine {
 	public static short[] radarang;
 	public static byte[] transluc;
 
-	//Engine.c
+	// Engine.c
 
-	public int getpalookup(int davis, int dashade) //jfBuild
+	public int getpalookup(int davis, int dashade) // jfBuild
 	{
-	    return(min(max(dashade+(davis>>8),0),numshades-1));
+		return (min(max(dashade + (davis >> 8), 0), numshades - 1));
 	}
 
 	private ByteBuffer shortbuf = ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN);
-	public int animateoffs(int tilenum, int nInfo) { //jfBuild + gdxBuild
+
+	public int animateoffs(int tilenum, int nInfo) { // jfBuild + gdxBuild
 		long clock, index = 0;
 
-		int speed = (picanm[tilenum] >> 24) & 15; //picanm[nTile].speed
+		int speed = (picanm[tilenum] >> 24) & 15; // picanm[nTile].speed
 		if ((nInfo & 0xC000) == 0x8000) // sprite
 		{
 			// hash sprite frame by info variable
-			shortbuf.putShort(0, (short) nInfo); 
+			shortbuf.putShort(0, (short) nInfo);
 			clock = (totalclocklock + CRC32.getChecksum(shortbuf.array())) >> speed;
 		} else
 			clock = totalclocklock >> speed;
@@ -393,7 +374,7 @@ public abstract class Engine {
 		int frames = picanm[tilenum] & 63;
 
 		if (frames > 0) {
-			switch (picanm[tilenum] & 192) //picanm[nTile].type
+			switch (picanm[tilenum] & 192) // picanm[nTile].type
 			{
 			case 64: // Oscil
 				index = clock % (frames * 2);
@@ -410,24 +391,28 @@ public abstract class Engine {
 		return (int) index;
 	}
 
-	public void initksqrt() { //jfBuild
-		
+	public void initksqrt() { // jfBuild
+
 		sqrtable = new short[4096];
 		shlookup = new short[4096 + 256];
-		
+
 		int i, j = 1, k = 0;
 		for (i = 0; i < 4096; i++) {
-			if (i >= j) { j <<= 2; k++; }
+			if (i >= j) {
+				j <<= 2;
+				k++;
+			}
 
-			sqrtable[i] = (short)((int)sqrt(((i << 18) + 131072)) << 1);
+			sqrtable[i] = (short) ((int) sqrt(((i << 18) + 131072)) << 1);
 			shlookup[i] = (short) ((k << 1) + ((10 - k) << 8));
-			if (i < 256) shlookup[i + 4096] = (short) (((k + 6) << 1) + ((10 - (k + 6)) << 8));
+			if (i < 256)
+				shlookup[i + 4096] = (short) (((k + 6) << 1) + ((10 - (k + 6)) << 8));
 		}
 	}
 
-	protected void calcbritable() { //jfBuild
+	protected void calcbritable() { // jfBuild
 		britable = new byte[16][256];
-		
+
 		float a, b;
 		for (int i = 0, j; i < 16; i++) {
 			a = 8.0f / (i + 8);
@@ -438,46 +423,40 @@ public abstract class Engine {
 		}
 	}
 
-	public void loadtables() throws Exception { //jfBuild + gdxBuild
+	public void loadtables() throws Exception { // jfBuild + gdxBuild
 		if (tablesloaded == 0) {
 			initksqrt();
-			
+
 			sintable = new short[2048];
 			textfont = new byte[2048];
 			smalltextfont = new byte[2048];
-			radarang = new short[1280]; //1024
-			
+			radarang = new short[1280]; // 1024
+
 			Resource res = BuildGdx.cache.open("tables.dat", 0);
 			if (res != null) {
 				byte[] buf = new byte[2048 * 2];
-				
+
 				res.read(buf);
-				ByteBuffer.wrap(buf)
-					.order(ByteOrder.LITTLE_ENDIAN)
-					.asShortBuffer().get(sintable);
+				ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(sintable);
 
 				if (releasedEngine) {
 					buf = new byte[640 * 2];
 					res.read(buf);
-					ByteBuffer.wrap(buf)
-						.order(ByteOrder.LITTLE_ENDIAN)
-						.asShortBuffer().get(radarang, 0, 640);
-					for (int i = 0; i < 640; i++) 
+					ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(radarang, 0, 640);
+					for (int i = 0; i < 640; i++)
 						radarang[1279 - i] = (short) -radarang[i];
 				} else {
-					res.seek(4096, Whence.Current); //tantable
+					res.seek(4096, Whence.Current); // tantable
 
 					buf = new byte[640];
 					res.read(buf);
-					ByteBuffer.wrap(buf)
-						.order(ByteOrder.LITTLE_ENDIAN)
-						.asShortBuffer().get(radarang, 0, 320);
+					ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(radarang, 0, 320);
 					radarang[320] = 0x4000;
 				}
 
 				res.read(textfont, 0, 1024);
 				res.read(smalltextfont, 0, 1024);
-				
+
 				pTextfont = new TextFont();
 				pSmallTextfont = new SmallTextFont();
 
@@ -485,14 +464,14 @@ public abstract class Engine {
 
 				calcbritable();
 				res.close();
-			} else 
+			} else
 				throw new Exception("ERROR: Failed to load TABLES.DAT!");
-			
+
 			tablesloaded = 1;
 		}
 	}
 
-	public void initfastcolorlookup(int rscale, int gscale, int bscale) { //jfBuild
+	public void initfastcolorlookup(int rscale, int gscale, int bscale) { // jfBuild
 		int i, x, y, z;
 
 		int j = 0;
@@ -511,21 +490,20 @@ public abstract class Engine {
 			int r = palette[pal1] & 0xFF;
 			int g = palette[pal1 + 1] & 0xFF;
 			int b = palette[pal1 + 2] & 0xFF;
-			j = (r >> 3) * FASTPALGRIDSIZ * FASTPALGRIDSIZ
-					+ (g >> 3) * FASTPALGRIDSIZ
-					+ (b >> 3)
-					+ FASTPALGRIDSIZ * FASTPALGRIDSIZ
-					+ FASTPALGRIDSIZ + 1;
+			j = (r >> 3) * FASTPALGRIDSIZ * FASTPALGRIDSIZ + (g >> 3) * FASTPALGRIDSIZ + (b >> 3)
+					+ FASTPALGRIDSIZ * FASTPALGRIDSIZ + FASTPALGRIDSIZ + 1;
 			if ((colhere[j >> 3] & pow2char[j & 7]) != 0)
 				colnext[i] = (short) (colhead[j] & 0xFF);
-			else colnext[i] = -1;
-			
+			else
+				colnext[i] = -1;
+
 			colhead[j] = (byte) i;
 			colhere[j >> 3] |= pow2char[j & 7];
 		}
 
 		i = 0;
-		for (x = -FASTPALGRIDSIZ * FASTPALGRIDSIZ; x <= FASTPALGRIDSIZ * FASTPALGRIDSIZ; x += FASTPALGRIDSIZ * FASTPALGRIDSIZ)
+		for (x = -FASTPALGRIDSIZ * FASTPALGRIDSIZ; x <= FASTPALGRIDSIZ * FASTPALGRIDSIZ; x += FASTPALGRIDSIZ
+				* FASTPALGRIDSIZ)
 			for (y = -FASTPALGRIDSIZ; y <= FASTPALGRIDSIZ; y += FASTPALGRIDSIZ)
 				for (z = -1; z <= 1; z++)
 					colscan[i++] = x + y + z;
@@ -534,136 +512,136 @@ public abstract class Engine {
 		colscan[26] = i;
 	}
 
-	public void loadpalette() throws Exception //jfBuild + gdxBuild
+	public void loadpalette() throws Exception // jfBuild + gdxBuild
 	{
 		Resource fil;
-		if (paletteloaded != 0) return;
-		
+		if (paletteloaded != 0)
+			return;
+
 		palette = new byte[768];
 		curpalette = new Palette();
 		palookup = new byte[MAXPALOOKUPS][];
 
 		Console.Println("Loading palettes");
-		if ((fil = BuildGdx.cache.open("palette.dat", 0)) == null) 
+		if ((fil = BuildGdx.cache.open("palette.dat", 0)) == null)
 			throw new Exception("Failed to load \"palette.dat\"!");
-	
+
 		fil.read(palette);
 
 		boolean hastransluc = false;
-		if(releasedEngine) {
+		if (releasedEngine) {
 			numshades = fil.readShort();
 		} else {
 			int file_len = fil.size();
 			numshades = (short) ((file_len - 768) >> 7);
-		    if ( (((file_len - 768) >> 7) & 1) <= 0 )
-		    	numshades >>= 1;
-		    else {
-		    	numshades = (short) ((numshades - 255) >> 1);
-		    	hastransluc = true;
-		    }
+			if ((((file_len - 768) >> 7) & 1) <= 0)
+				numshades >>= 1;
+			else {
+				numshades = (short) ((numshades - 255) >> 1);
+				hastransluc = true;
+			}
 		}
-		if (palookup[0] == null) 
-			palookup[0] = new byte[numshades<<8];
+		if (palookup[0] == null)
+			palookup[0] = new byte[numshades << 8];
 		if (transluc == null)
 			transluc = new byte[65536];
 
 		globalpal = 0;
 		Console.Println("Loading gamma correcion tables");
-		fil.read(palookup[globalpal], 0, numshades<<8);
+		fil.read(palookup[globalpal], 0, numshades << 8);
 		Console.Println("Loading translucency table");
-		if(releasedEngine)
+		if (releasedEngine)
 			fil.read(transluc);
 		else {
-			if (hastransluc)
-			{
+			if (hastransluc) {
 				byte[] tmp = new byte[256];
-				for(int i = 0; i < 255; i++)
-				{
-					fil.read(tmp, 0, 255-i);
-					System.arraycopy(tmp, 0, transluc, (i<<8)+i+1, 255-i);
-					for(int j = i + 1; j < 256; j++)
-						transluc[(j<<8)+i] = transluc[(i<<8)+j];
+				for (int i = 0; i < 255; i++) {
+					fil.read(tmp, 0, 255 - i);
+					System.arraycopy(tmp, 0, transluc, (i << 8) + i + 1, 255 - i);
+					for (int j = i + 1; j < 256; j++)
+						transluc[(j << 8) + i] = transluc[(i << 8) + j];
 				}
-				for(int i = 0; i < 256; i++)
-					transluc[(i<<8)+i] = (byte) i;
+				for (int i = 0; i < 256; i++)
+					transluc[(i << 8) + i] = (byte) i;
 			}
 		}
 
 		fil.close();
 
-		initfastcolorlookup(30,59,11);
+		initfastcolorlookup(30, 59, 11);
 
 		paletteloaded = 1;
 	}
 
-	public byte getclosestcol(byte[] palette, int r, int g, int b) { //jfBuild
+	public byte getclosestcol(byte[] palette, int r, int g, int b) { // jfBuild
 		int i, k, dist;
 		byte retcol;
 		int pal1;
 
-		int j = (r>>3)*FASTPALGRIDSIZ*FASTPALGRIDSIZ+(g>>3)*FASTPALGRIDSIZ+(b>>3)+FASTPALGRIDSIZ*FASTPALGRIDSIZ+FASTPALGRIDSIZ+1;
-		int mindist = min(rdist[(coldist[r&7] & 0xFF)+64+8],gdist[(coldist[g&7] & 0xFF)+64+8]);
-		mindist = min(mindist,bdist[(coldist[b&7] & 0xFF)+64+8]);
+		int j = (r >> 3) * FASTPALGRIDSIZ * FASTPALGRIDSIZ + (g >> 3) * FASTPALGRIDSIZ + (b >> 3)
+				+ FASTPALGRIDSIZ * FASTPALGRIDSIZ + FASTPALGRIDSIZ + 1;
+		int mindist = min(rdist[(coldist[r & 7] & 0xFF) + 64 + 8], gdist[(coldist[g & 7] & 0xFF) + 64 + 8]);
+		mindist = min(mindist, bdist[(coldist[b & 7] & 0xFF) + 64 + 8]);
 		mindist++;
 
-		r = 64-r; g = 64-g; b = 64-b;
-		
+		r = 64 - r;
+		g = 64 - g;
+		b = 64 - b;
+
 		retcol = -1;
-		for(k=26;k>=0;k--)
-		{
-			i = colscan[k] + j; 
+		for (k = 26; k >= 0; k--) {
+			i = colscan[k] + j;
 			if ((colhere[i >> 3] & pow2char[i & 7]) == 0)
 				continue;
-			
+
 			i = colhead[i] & 0xFF;
-			do
-			{
+			do {
 				pal1 = i * 3;
-				dist = gdist[(palette[pal1 + 1] & 0xFF)+g];
-				if (dist < mindist)
-				{
-					dist += rdist[(palette[pal1] & 0xFF)+r];
-					if (dist < mindist)
-					{
-						dist += bdist[(palette[pal1 + 2] & 0xFF)+b];
-						if (dist < mindist) { mindist = dist; retcol = (byte)i; }
+				dist = gdist[(palette[pal1 + 1] & 0xFF) + g];
+				if (dist < mindist) {
+					dist += rdist[(palette[pal1] & 0xFF) + r];
+					if (dist < mindist) {
+						dist += bdist[(palette[pal1 + 2] & 0xFF) + b];
+						if (dist < mindist) {
+							mindist = dist;
+							retcol = (byte) i;
+						}
 					}
 				}
 				i = colnext[i];
 			} while (i >= 0);
 		}
-		if (retcol >= 0) 
+		if (retcol >= 0)
 			return retcol;
 
 		mindist = 0x7fffffff;
-		for(i=255;i>=0;i--,pal1-=3)
-		{
+		for (i = 255; i >= 0; i--, pal1 -= 3) {
 			pal1 = i * 3;
-			dist = gdist[(palette[pal1 + 1] & 0xFF) + g]; 
-			if (dist >= mindist) 
+			dist = gdist[(palette[pal1 + 1] & 0xFF) + g];
+			if (dist >= mindist)
 				continue;
 
-			dist += rdist[(palette[pal1] & 0xFF) + r]; 
-			if (dist >= mindist) 
+			dist += rdist[(palette[pal1] & 0xFF) + r];
+			if (dist >= mindist)
 				continue;
-			
-			dist += bdist[(palette[pal1 + 2] & 0xFF) + b]; 
-			if (dist >= mindist) 
+
+			dist += bdist[(palette[pal1 + 2] & 0xFF) + b];
+			if (dist >= mindist)
 				continue;
-			
-			mindist = dist; 
+
+			mindist = dist;
 			retcol = (byte) i;
 		}
-		
+
 		return retcol;
 	}
 
-	//////////SPRITE LIST MANIPULATION FUNCTIONS //////////
+	////////// SPRITE LIST MANIPULATION FUNCTIONS //////////
 
-	public short insertspritesect(short sectnum) //jfBuild
+	public short insertspritesect(short sectnum) // jfBuild
 	{
 		if ((sectnum >= MAXSECTORS) || (headspritesect[MAXSECTORS] == -1))
-			return(-1);  //list full
+			return (-1); // list full
 
 		short blanktouse = headspritesect[MAXSECTORS];
 
@@ -679,13 +657,13 @@ public abstract class Engine {
 
 		sprite[blanktouse].sectnum = sectnum;
 
-		return(blanktouse);
+		return (blanktouse);
 	}
 
-	public short insertspritestat(short newstatnum) //jfBuild
+	public short insertspritestat(short newstatnum) // jfBuild
 	{
 		if ((newstatnum >= MAXSTATUS) || (headspritestat[MAXSTATUS] == -1))
-			return(-1);  //list full
+			return (-1); // list full
 
 		short blanktouse = headspritestat[MAXSTATUS];
 
@@ -701,95 +679,111 @@ public abstract class Engine {
 
 		sprite[blanktouse].statnum = newstatnum;
 
-		return(blanktouse);
+		return (blanktouse);
 	}
 
-	public short insertsprite(short sectnum, short statnum) //jfBuild
+	public short insertsprite(short sectnum, short statnum) // jfBuild
 	{
 		insertspritestat(statnum);
-		return(insertspritesect(sectnum));
+		return (insertspritesect(sectnum));
 	}
 
-	public short deletesprite(short spritenum) //jfBuild
+	public short deletesprite(short spritenum) // jfBuild
 	{
 		GLRenderer gl = glrender();
-		if(gl != null) gl.removeSpriteCorr(spritenum);
+		if (gl != null)
+			gl.removeSpriteCorr(spritenum);
 		deletespritestat(spritenum);
-		return(deletespritesect(spritenum));
+		return (deletespritesect(spritenum));
 	}
 
-	public short changespritesect(short spritenum, short newsectnum) //jfBuild
+	public short changespritesect(short spritenum, short newsectnum) // jfBuild
 	{
-		if ((newsectnum < 0) || (newsectnum > MAXSECTORS)) return(-1);
-		if (sprite[spritenum].sectnum == newsectnum) return(0);
-		if (sprite[spritenum].sectnum == MAXSECTORS) return(-1);
-		if (deletespritesect(spritenum) < 0) return(-1);
+		if ((newsectnum < 0) || (newsectnum > MAXSECTORS))
+			return (-1);
+		if (sprite[spritenum].sectnum == newsectnum)
+			return (0);
+		if (sprite[spritenum].sectnum == MAXSECTORS)
+			return (-1);
+		if (deletespritesect(spritenum) < 0)
+			return (-1);
 		insertspritesect(newsectnum);
-		return(0);
-	}
-	
-	public short changespritestat(short spritenum, short newstatnum) //jfBuild
-	{
-		if ((newstatnum < 0) || (newstatnum > MAXSTATUS)) return(-1);
-		if (sprite[spritenum].statnum == newstatnum) return(0);
-		if (sprite[spritenum].statnum == MAXSTATUS) return(-1);
-		if (deletespritestat(spritenum) < 0) return(-1);
-		insertspritestat(newstatnum);
-		return(0);
+		return (0);
 	}
 
-	public short deletespritesect(short spritenum) //jfBuild
+	public short changespritestat(short spritenum, short newstatnum) // jfBuild
+	{
+		if ((newstatnum < 0) || (newstatnum > MAXSTATUS))
+			return (-1);
+		if (sprite[spritenum].statnum == newstatnum)
+			return (0);
+		if (sprite[spritenum].statnum == MAXSTATUS)
+			return (-1);
+		if (deletespritestat(spritenum) < 0)
+			return (-1);
+		insertspritestat(newstatnum);
+		return (0);
+	}
+
+	public short deletespritesect(short spritenum) // jfBuild
 	{
 		if (sprite[spritenum].sectnum == MAXSECTORS)
-			return(-1);
+			return (-1);
 
 		if (headspritesect[sprite[spritenum].sectnum] == spritenum)
 			headspritesect[sprite[spritenum].sectnum] = nextspritesect[spritenum];
 
-		if (prevspritesect[spritenum] >= 0) nextspritesect[prevspritesect[spritenum]] = nextspritesect[spritenum];
-		if (nextspritesect[spritenum] >= 0) prevspritesect[nextspritesect[spritenum]] = prevspritesect[spritenum];
+		if (prevspritesect[spritenum] >= 0)
+			nextspritesect[prevspritesect[spritenum]] = nextspritesect[spritenum];
+		if (nextspritesect[spritenum] >= 0)
+			prevspritesect[nextspritesect[spritenum]] = prevspritesect[spritenum];
 
-		if (headspritesect[MAXSECTORS] >= 0) prevspritesect[headspritesect[MAXSECTORS]] = spritenum;
+		if (headspritesect[MAXSECTORS] >= 0)
+			prevspritesect[headspritesect[MAXSECTORS]] = spritenum;
 		prevspritesect[spritenum] = -1;
 		nextspritesect[spritenum] = headspritesect[MAXSECTORS];
 		headspritesect[MAXSECTORS] = spritenum;
 
 		sprite[spritenum].sectnum = (short) MAXSECTORS;
-		return(0);
+		return (0);
 	}
-	
-	public short deletespritestat (short spritenum) //jfBuild
+
+	public short deletespritestat(short spritenum) // jfBuild
 	{
 		if (sprite[spritenum].statnum == MAXSTATUS)
-			return(-1);
+			return (-1);
 
 		if (headspritestat[sprite[spritenum].statnum] == spritenum)
 			headspritestat[sprite[spritenum].statnum] = nextspritestat[spritenum];
 
-		if (prevspritestat[spritenum] >= 0) nextspritestat[prevspritestat[spritenum]] = nextspritestat[spritenum];
-		if (nextspritestat[spritenum] >= 0) prevspritestat[nextspritestat[spritenum]] = prevspritestat[spritenum];
+		if (prevspritestat[spritenum] >= 0)
+			nextspritestat[prevspritestat[spritenum]] = nextspritestat[spritenum];
+		if (nextspritestat[spritenum] >= 0)
+			prevspritestat[nextspritestat[spritenum]] = prevspritestat[spritenum];
 
-		if (headspritestat[MAXSTATUS] >= 0) prevspritestat[headspritestat[MAXSTATUS]] = spritenum;
+		if (headspritestat[MAXSTATUS] >= 0)
+			prevspritestat[headspritestat[MAXSTATUS]] = spritenum;
 		prevspritestat[spritenum] = -1;
 		nextspritestat[spritenum] = headspritestat[MAXSTATUS];
 		headspritestat[MAXSTATUS] = spritenum;
 
 		sprite[spritenum].statnum = MAXSTATUS;
-		return(0);
+		return (0);
 	}
 
-	public Point lintersect(int x1, int y1, int z1, int x2, int y2, int z2, int x3, //jfBuild
+	public Point lintersect(int x1, int y1, int z1, int x2, int y2, int z2, int x3, // jfBuild
 			int y3, int x4, int y4) {
-		
+
 		// p1 to p2 is a line segment
 		int x21 = x2 - x1, x34 = x3 - x4;
-	    int y21 = y2 - y1, y34 = y3 - y4;
-	    int bot = x21 * y34 - y21 * x34;
-	    
-	    if (bot == 0) return null;
-	    
-	    int x31 = x3 - x1, y31 = y3 - y1;
-	    int topt = x31 * y34 - y31 * x34;
+		int y21 = y2 - y1, y34 = y3 - y4;
+		int bot = x21 * y34 - y21 * x34;
+
+		if (bot == 0)
+			return null;
+
+		int x31 = x3 - x1, y31 = y3 - y1;
+		int topt = x31 * y34 - y31 * x34;
 
 		if (bot > 0) {
 			if ((topt < 0) || (topt >= bot))
@@ -812,44 +806,47 @@ public abstract class Engine {
 
 		return intersect;
 	}
-	
-	protected Point rintersect(int x1, int y1, int z1, int vx, int vy, int vz, int x3, //jfBuild
-			int y3, int x4, int y4) { //p1 towards p2 is a ray
+
+	protected Point rintersect(int x1, int y1, int z1, int vx, int vy, int vz, int x3, // jfBuild
+			int y3, int x4, int y4) { // p1 towards p2 is a ray
 		int x34, y34, x31, y31, bot, topt, topu;
 
 		x34 = x3 - x4;
 		y34 = y3 - y4;
 		bot = vx * y34 - vy * x34;
-		if (bot == 0) return null;
-		
+		if (bot == 0)
+			return null;
+
 		if (bot > 0) {
-			
+
 			x31 = x3 - x1;
 			y31 = y3 - y1;
 			topt = x31 * y34 - y31 * x34;
-			if (topt < 0) return null;
+			if (topt < 0)
+				return null;
 			topu = vx * y31 - vy * x31;
-			if ((topu < 0) || (topu >= bot)) 
+			if ((topu < 0) || (topu >= bot))
 				return null;
 		} else {
 			x31 = x3 - x1;
 			y31 = y3 - y1;
 			topt = x31 * y34 - y31 * x34;
-			if (topt > 0) return null;
+			if (topt > 0)
+				return null;
 			topu = vx * y31 - vy * x31;
 			if ((topu > 0) || (topu <= bot))
 				return null;
 		}
-		
+
 		long t = divscale(topt, bot, 16);
 		intersect.x = x1 + mulscale(vx, t, 16);
 		intersect.y = y1 + mulscale(vy, t, 16);
 		intersect.z = z1 + mulscale(vz, t, 16);
-		
+
 		return intersect;
 	}
 
-	protected Point keepaway(int x, int y, int w) { 
+	protected Point keepaway(int x, int y, int w) {
 		int x1 = clipit[w].x1;
 		int dx = clipit[w].x2 - x1;
 		int y1 = clipit[w].y1;
@@ -857,7 +854,7 @@ public abstract class Engine {
 		int ox = ksgn(-dy);
 		int oy = ksgn(dx);
 		int first = (klabs(dx) <= klabs(dy) ? 1 : 0);
-		
+
 		while (true) {
 			if (dx * (y - y1) > (x - x1) * dy)
 				return keep.set(x, y, 0);
@@ -869,7 +866,7 @@ public abstract class Engine {
 		}
 	}
 
-	protected Clip raytrace(int x3, int y3, int x4, int y4) { //jfBuild
+	protected Clip raytrace(int x3, int y3, int x4, int y4) { // jfBuild
 		int x1, y1, x2, y2, nintx, ninty, cnt;
 		int x21, y21, x43, y43;
 		long topu, bot;
@@ -877,7 +874,7 @@ public abstract class Engine {
 		int rayx = x4;
 		int rayy = y4;
 		short hitwall = -1;
-		
+
 		for (short z = (short) (clipnum - 1); z >= 0; z--) {
 			x1 = clipit[z].x1;
 			x2 = clipit[z].x2;
@@ -927,20 +924,20 @@ public abstract class Engine {
 	//
 	// Exported Engine Functions
 	//
-	
-	public void InitArrays() //gdxBuild
+
+	public void InitArrays() // gdxBuild
 	{
 		intersect = new Point();
 		keep = new Point();
 		ray = new Clip();
-		
+
 		zofslope = new int[2];
 		sectbitmap = new byte[MAXSECTORS >> 3];
 		palookupfog = new byte[MAXPALOOKUPS][3];
 		pskyoff = new short[MAXPSKYTILES];
 		zeropskyoff = new short[MAXPSKYTILES];
-		
-		tilesizx = new short[MAXTILES]; 
+
+		tilesizx = new short[MAXTILES];
 		tilesizy = new short[MAXTILES];
 		picanm = new int[MAXTILES];
 		show2dsector = new byte[(MAXSECTORS + 7) >> 3];
@@ -950,11 +947,11 @@ public abstract class Engine {
 		wall = new WALL[MAXWALLS];
 		sprite = new SPRITE[MAXSPRITES];
 		tsprite = new SPRITE[MAXSPRITESONSCREEN + 1];
-		headspritesect = new short[MAXSECTORS + 1]; 
+		headspritesect = new short[MAXSECTORS + 1];
 		headspritestat = new short[MAXSTATUS + 1];
-		prevspritesect = new short[MAXSPRITES]; 
+		prevspritesect = new short[MAXSPRITES];
 		prevspritestat = new short[MAXSPRITES];
-		nextspritesect = new short[MAXSPRITES]; 
+		nextspritesect = new short[MAXSPRITES];
 		nextspritestat = new short[MAXSPRITES];
 		gotpic = new byte[(MAXTILES + 7) >> 3];
 		gotsector = new byte[(MAXSECTORS + 7) >> 3];
@@ -965,47 +962,48 @@ public abstract class Engine {
 		tilefilenum = new int[MAXTILES];
 		tilefileoffs = new int[MAXTILES];
 
-		rxi = new int[4]; 
+		rxi = new int[4];
 		ryi = new int[4];
 		hitwalls = new short[clipmoveboxtracenum + 1];
 		clipit = new Line[MAXCLIPNUM];
 		clipsectorlist = new short[MAXCLIPNUM];
 		clipobjectval = new int[MAXCLIPNUM];
-		rdist = new int[129]; 
-		gdist = new int[129]; 
+		rdist = new int[129];
+		gdist = new int[129];
 		bdist = new int[129];
 		colhere = new byte[((FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)) >> 3];
 		colhead = new byte[(FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2) * (FASTPALGRIDSIZ + 2)];
 		colnext = new short[256];
 		colscan = new int[27];
 
-		Arrays.fill(show2dsector, (byte)0);
-		Arrays.fill(show2dsprite, (byte)0);
-		Arrays.fill(show2dwall, (byte)0);
-		
-		bakwindowx1 = new int[4]; 
+		Arrays.fill(show2dsector, (byte) 0);
+		Arrays.fill(show2dsprite, (byte) 0);
+		Arrays.fill(show2dwall, (byte) 0);
+
+		bakwindowx1 = new int[4];
 		bakwindowy1 = new int[4];
-		bakwindowx2 = new int[4]; 
+		bakwindowx2 = new int[4];
 		bakwindowy2 = new int[4];
-		
+
 		waloff = new byte[MAXTILES][];
 		palfadergb = new FadeEffect(GL10.GL_ONE_MINUS_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA) {
 			@Override
-			public void update(int intensive) {}
+			public void update(int intensive) {
+			}
 		};
-		
-		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID]; //for nextpage
+
+		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID]; // for nextpage
 		for (int i = 0; i < spriteext.length; i++)
 			spriteext[i] = new Spriteext();
 	}
 
-	public Engine(boolean releasedEngine) throws Exception { //gdxBuild
+	public Engine(boolean releasedEngine) throws Exception { // gdxBuild
 		this.releasedEngine = releasedEngine;
 
 		InitArrays();
 
 		loadtables();
-		
+
 		parallaxtype = 2;
 		parallaxyoffs = 0;
 		parallaxyscale = 65536;
@@ -1023,74 +1021,73 @@ public abstract class Engine {
 		initkeys();
 
 		Console.setFunction(new DEFOSDFUNC(this));
-		randomseed = 1; //random for voxels
+		randomseed = 1; // random for voxels
 	}
 
-	public void uninit() //gdxBuild
+	public void uninit() // gdxBuild
 	{
 		Iterator<TileFont> it;
-	    while((it = TileFont.managedFont.iterator()).hasNext()) {
-	    	TileFont font = (TileFont) it.next();
-	    	font.dispose();
-	    }
+		while ((it = TileFont.managedFont.iterator()).hasNext()) {
+			TileFont font = (TileFont) it.next();
+			font.dispose();
+		}
 
-		if(render != null && render.isInited())
+		if (render != null && render.isInited())
 			render.uninit();
 
 		if (artfil != null)
 			artfil.close();
 
 		for (int i = 0; i < MAXPALOOKUPS; i++)
-			if (palookup[i] != null) 
+			if (palookup[i] != null)
 				palookup[i] = null;
 
 		uninitmultiplayer();
-		
+
 		BuildGdx.audio.dispose();
 		BuildGdx.message.dispose();
 	}
 
-	public void initspritelists() //jfBuild
+	public void initspritelists() // jfBuild
 	{
-		for (int i=0;i<MAXSECTORS;i++)     //Init doubly-linked sprite sector lists
+		for (int i = 0; i < MAXSECTORS; i++) // Init doubly-linked sprite sector lists
 			headspritesect[i] = -1;
 		headspritesect[MAXSECTORS] = 0;
-		
-		for(int i=0;i<MAXSPRITES;i++)
-		{
-			if(sprite[i] == null)
+
+		for (int i = 0; i < MAXSPRITES; i++) {
+			if (sprite[i] == null)
 				sprite[i] = new SPRITE();
-			else sprite[i].reset();
-			prevspritesect[i] = (short) (i-1);
-			nextspritesect[i] = (short) (i+1);
+			else
+				sprite[i].reset();
+			prevspritesect[i] = (short) (i - 1);
+			nextspritesect[i] = (short) (i + 1);
 			sprite[i].sectnum = (short) MAXSECTORS;
 		}
 		prevspritesect[0] = -1;
-		nextspritesect[MAXSPRITES-1] = -1;
+		nextspritesect[MAXSPRITES - 1] = -1;
 
-
-		for(int i=0;i<MAXSTATUS;i++)      //Init doubly-linked sprite status lists
+		for (int i = 0; i < MAXSTATUS; i++) // Init doubly-linked sprite status lists
 			headspritestat[i] = -1;
 		headspritestat[MAXSTATUS] = 0;
-		for(int i=0;i<MAXSPRITES;i++)
-		{
-			prevspritestat[i] = (short) (i-1);
-			nextspritestat[i] = (short) (i+1);
+		for (int i = 0; i < MAXSPRITES; i++) {
+			prevspritestat[i] = (short) (i - 1);
+			nextspritestat[i] = (short) (i + 1);
 			sprite[i].statnum = (short) MAXSTATUS;
 		}
 		prevspritestat[0] = -1;
-		nextspritestat[MAXSPRITES-1] = -1;
-		
-		for(int i=0;i<MAXSPRITESONSCREEN;i++)
-		{
-			if(tsprite[i] == null)
+		nextspritestat[MAXSPRITES - 1] = -1;
+
+		for (int i = 0; i < MAXSPRITESONSCREEN; i++) {
+			if (tsprite[i] == null)
 				tsprite[i] = new SPRITE();
-			else tsprite[i].reset();
+			else
+				tsprite[i].reset();
 		}
 	}
 
-	public int drawrooms(float daposx, float daposy, float daposz,
-			float daang, float dahoriz, short dacursectnum) { //eDuke32 visibility set
+	public int drawrooms(float daposx, float daposy, float daposz, float daang, float dahoriz, short dacursectnum) { // eDuke32
+																														// visibility
+																														// set
 
 		beforedrawrooms = 0;
 
@@ -1100,125 +1097,131 @@ public abstract class Engine {
 
 		globalang = BClampAngle(daang);
 		globalhoriz = ((dahoriz - 100) * xdimenscale / viewingrange) + (ydimen >> 1);
-		pitch = (float)(-getangle(160, (int)(dahoriz-100))) / (2048.0f / 360.0f);
+		pitch = (float) (-getangle(160, (int) (dahoriz - 100))) / (2048.0f / 360.0f);
 
-		globalvisibility = scale(visibility<<2, xdimen, 1680);
+		globalvisibility = scale(visibility << 2, xdimen, 1680);
 
 		globalcursectnum = dacursectnum;
 		totalclocklock = totalclock;
 
 		cosglobalang = (int) BCosAngle(globalang);
 		singlobalang = (int) BSinAngle(globalang);
-		 
+
 		cosviewingrangeglobalang = mulscale(cosglobalang, viewingrange, 16);
 		sinviewingrangeglobalang = mulscale(singlobalang, viewingrange, 16);
 
-		Arrays.fill(gotpic, (byte)0);
-		Arrays.fill(gotsector, (byte)0);
+		Arrays.fill(gotpic, (byte) 0);
+		Arrays.fill(gotsector, (byte) 0);
 
 		render.drawrooms();
 		return 0;
 	}
 
-	public void drawmasks() { //gdxBuild
+	public void drawmasks() { // gdxBuild
 		render.drawmasks();
 	}
 
-	public void drawmapview(int dax, int day, int zoome, int ang) { //gdxBuild
+	public void drawmapview(int dax, int day, int zoome, int ang) { // gdxBuild
 		render.drawmapview(dax, day, zoome, ang);
 	}
 
-	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) { //gdxBuild
+	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) { // gdxBuild
 		render.drawoverheadmap(cposx, cposy, czoom, cang);
 	}
 
-	public int loadboard(String filename, int[] daposx, int[] daposy, int[] daposz, //jfBuild + gdxBuild
+	public int loadboard(String filename, int[] daposx, int[] daposy, int[] daposz, // jfBuild + gdxBuild
 			short[] daang, short[] dacursectnum) {
 		int i = 0;
-		
+
 		Resource fil;
-		if ((fil = BuildGdx.cache.open(filename, i)) == null)
-			{ mapversion = 7; return(-1); }
+		if ((fil = BuildGdx.cache.open(filename, i)) == null) {
+			mapversion = 7;
+			return (-1);
+		}
 
 		mapversion = fil.readInt();
-		if(mapversion == 6) 
+		switch (mapversion) {
+		case 6:
 			return loadoldboard(fil, daposx, daposy, daposz, daang, dacursectnum);
-		
-		if(mapversion != 7)
-		{
+		case 7:
+			break;
+		case 8:
+			if(MAXSECTORS == MAXSECTORSV8)
+				break;
+		default:
 			Console.Println("Invalid map version!");
 			fil.close();
-			return(-2);
+			return (-2);
 		}
-		
+
 		initspritelists();
-			
-		Arrays.fill(show2dsector, (byte)0);
-		Arrays.fill(show2dsprite, (byte)0);
-		Arrays.fill(show2dwall, (byte)0);
+
+		Arrays.fill(show2dsector, (byte) 0);
+		Arrays.fill(show2dsprite, (byte) 0);
+		Arrays.fill(show2dwall, (byte) 0);
 
 		daposx[0] = fil.readInt();
 		daposy[0] = fil.readInt();
 		daposz[0] = fil.readInt();
 		daang[0] = fil.readShort();
 		dacursectnum[0] = fil.readShort();
-		
+
 		numsectors = fil.readShort();
-		for (i = 0; i < numsectors; i++) 
+		for (i = 0; i < numsectors; i++)
 			sector[i] = new SECTOR(fil);
-		
+
 		numwalls = fil.readShort();
-		for(int w = 0; w < numwalls; w++) 
+		for (int w = 0; w < numwalls; w++)
 			wall[w] = new WALL(fil);
 
 		numsprites = fil.readShort();
-		for(int s = 0; s < numsprites; s++) 
+		for (int s = 0; s < numsprites; s++)
 			sprite[s].buildSprite(fil);
 
-		for(i=0;i<numsprites;i++) 
+		for (i = 0; i < numsprites; i++)
 			insertsprite(sprite[i].sectnum, sprite[i].statnum);
 
-		//Must be after loading sectors, etc!
+		// Must be after loading sectors, etc!
 		dacursectnum[0] = updatesector(daposx[0], daposy[0], (short) dacursectnum[0]);
-	
+
 		fil.close();
-		
-		return(0);
+
+		return (0);
 	}
-	
-	public int loadoldboard(Resource fil, int[] daposx, int[] daposy, int[] daposz, //gdxBuild
+
+	public int loadoldboard(Resource fil, int[] daposx, int[] daposy, int[] daposz, // gdxBuild
 			short[] daang, short[] dacursectnum) {
 
 		initspritelists();
-		
-		Arrays.fill(show2dsector, (byte)0);
-		Arrays.fill(show2dsprite, (byte)0);
-		Arrays.fill(show2dwall, (byte)0);
-		
+
+		Arrays.fill(show2dsector, (byte) 0);
+		Arrays.fill(show2dsprite, (byte) 0);
+		Arrays.fill(show2dwall, (byte) 0);
+
 		daposx[0] = fil.readInt();
 		daposy[0] = fil.readInt();
 		daposz[0] = fil.readInt();
 		daang[0] = fil.readShort();
 		dacursectnum[0] = fil.readShort();
-		
+
 		int sizeof = 37;
 		numsectors = fil.readShort();
-		byte[] sectors = new byte[sizeof*numsectors];
+		byte[] sectors = new byte[sizeof * numsectors];
 		fil.read(sectors);
 		ByteBuffer bb = ByteBuffer.wrap(sectors);
-    	bb.order( ByteOrder.LITTLE_ENDIAN);
-    	
-		for(int sectorid = 0; sectorid < numsectors; sectorid++) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+
+		for (int sectorid = 0; sectorid < numsectors; sectorid++) {
 			SECTOR sec = new SECTOR();
-			
+
 			sec.wallptr = bb.getShort(0 + sizeof * sectorid);
 			sec.wallnum = bb.getShort(2 + sizeof * sectorid);
 			sec.ceilingpicnum = bb.getShort(4 + sizeof * sectorid);
 			sec.floorpicnum = bb.getShort(6 + sizeof * sectorid);
 			int ceilingheinum = bb.getShort(8 + sizeof * sectorid);
-			sec.ceilingheinum = (short) max(min(ceilingheinum<<5,32767),-32768);
+			sec.ceilingheinum = (short) max(min(ceilingheinum << 5, 32767), -32768);
 			int floorheinum = bb.getShort(10 + sizeof * sectorid);
-			sec.floorheinum = (short) max(min(floorheinum<<5,32767),-32768);
+			sec.floorheinum = (short) max(min(floorheinum << 5, 32767), -32768);
 			sec.ceilingz = bb.getInt(12 + sizeof * sectorid);
 			sec.floorz = bb.getInt(16 + sizeof * sectorid);
 			sec.ceilingshade = bb.get(20 + sizeof * sectorid);
@@ -1228,29 +1231,31 @@ public abstract class Engine {
 			sec.ceilingypanning = (short) (bb.get(24 + sizeof * sectorid) & 0xFF);
 			sec.floorypanning = (short) (bb.get(25 + sizeof * sectorid) & 0xFF);
 			sec.ceilingstat = bb.get(26 + sizeof * sectorid);
-			if ((sec.ceilingstat&2) == 0) sec.ceilingheinum = 0;
+			if ((sec.ceilingstat & 2) == 0)
+				sec.ceilingheinum = 0;
 			sec.floorstat = bb.get(27 + sizeof * sectorid);
-			if ((sec.floorstat&2) == 0) sec.floorheinum = 0;
+			if ((sec.floorstat & 2) == 0)
+				sec.floorheinum = 0;
 			sec.ceilingpal = bb.get(28 + sizeof * sectorid);
 			sec.floorpal = bb.get(29 + sizeof * sectorid);
 			sec.visibility = bb.get(30 + sizeof * sectorid);
 			sec.lotag = bb.getShort(31 + sizeof * sectorid);
 			sec.hitag = bb.getShort(33 + sizeof * sectorid);
 			sec.extra = bb.getShort(35 + sizeof * sectorid);
-			
+
 			sector[sectorid] = sec;
 		}
-		
+
 		sizeof = WALL.sizeof;
 		numwalls = fil.readShort();
 		byte[] walls = new byte[sizeof * numwalls];
 		fil.read(walls);
 		bb = ByteBuffer.wrap(walls);
-    	bb.order( ByteOrder.LITTLE_ENDIAN);
-		
-		for(int wallid = 0; wallid < numwalls; wallid++) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+
+		for (int wallid = 0; wallid < numwalls; wallid++) {
 			WALL wal = new WALL();
-			
+
 			wal.x = bb.getInt(0 + sizeof * wallid);
 			wal.y = bb.getInt(4 + sizeof * wallid);
 			wal.point2 = bb.getShort(8 + sizeof * wallid);
@@ -1259,7 +1264,7 @@ public abstract class Engine {
 			wal.picnum = bb.getShort(14 + sizeof * wallid);
 			wal.overpicnum = bb.getShort(16 + sizeof * wallid);
 			wal.shade = bb.get(18 + sizeof * wallid);
-			wal.pal = (short) (bb.get(19 + sizeof * wallid)&0xFF);
+			wal.pal = (short) (bb.get(19 + sizeof * wallid) & 0xFF);
 			wal.cstat = bb.getShort(20 + sizeof * wallid);
 			wal.xrepeat = (short) (bb.get(22 + sizeof * wallid) & 0xFF);
 			wal.yrepeat = (short) (bb.get(23 + sizeof * wallid) & 0xFF);
@@ -1268,22 +1273,22 @@ public abstract class Engine {
 			wal.lotag = bb.getShort(26 + sizeof * wallid);
 			wal.hitag = bb.getShort(28 + sizeof * wallid);
 			wal.extra = bb.getShort(30 + sizeof * wallid);
-			
+
 			wall[wallid] = wal;
 		}
 
 		sizeof = 43;
 		numsprites = fil.readShort();
-		byte[] sprites = new byte[sizeof*numsprites];
+		byte[] sprites = new byte[sizeof * numsprites];
 		fil.read(sprites);
 
 		bb = ByteBuffer.wrap(sprites);
-    	bb.order( ByteOrder.LITTLE_ENDIAN);
-		
-    	for(int spriteid = 0; spriteid < numsprites; spriteid++) {
+		bb.order(ByteOrder.LITTLE_ENDIAN);
+
+		for (int spriteid = 0; spriteid < numsprites; spriteid++) {
 //		for(int spriteid = numsprites - 1; spriteid >= 0; spriteid--) {
 			SPRITE spr = sprite[spriteid];
-			
+
 			spr.x = bb.getInt();
 			spr.y = bb.getInt();
 			spr.z = bb.getInt();
@@ -1308,49 +1313,49 @@ public abstract class Engine {
 			spr.extra = bb.getShort();
 		}
 
-		for(int i=0;i<numsprites;i++) {
+		for (int i = 0; i < numsprites; i++) {
 			insertsprite(sprite[i].sectnum, sprite[i].statnum);
 		}
-	
-		//Must be after loading sectors, etc!
+
+		// Must be after loading sectors, etc!
 		dacursectnum[0] = updatesector(daposx[0], daposy[0], (short) dacursectnum[0]);
-	
+
 		fil.close();
 
 		return 0;
 	}
 
-	public void saveboard(FileResource fil, int daposx, int daposy, int daposz, int daang, int dacursectnum)
-	{
-		fil.writeInt(7); //mapversion
-		
+	public void saveboard(FileResource fil, int daposx, int daposy, int daposz, int daang, int dacursectnum) {
+		fil.writeInt(7); // mapversion
+
 		fil.writeInt(daposx);
 		fil.writeInt(daposy);
 		fil.writeInt(daposz);
 		fil.writeShort(daang);
 		fil.writeShort(dacursectnum);
-		
+
 		fil.writeShort(numsectors);
-		for (int s = 0; s < numsectors; s++) 
+		for (int s = 0; s < numsectors; s++)
 			fil.writeBytes(sector[s].getBytes());
-		
+
 		fil.writeShort(numwalls);
-		for (int s = 0; s < numwalls; s++) 
+		for (int s = 0; s < numwalls; s++)
 			fil.writeBytes(wall[s].getBytes());
 
 		fil.writeShort(numsprites);
-		for (int s = 0; s < numsprites; s++) 
+		for (int s = 0; s < numsprites; s++)
 			fil.writeBytes(sprite[s].getBytes());
 	}
-	
-	// JBF: davidoption now functions as a windowed-mode flag (0 == windowed, 1 == fullscreen)
-	public boolean setgamemode(int davidoption, int daxdim, int daydim) { //jfBuild + gdxBuild
-		if(BuildGdx.app.getType() == ApplicationType.Android) {
+
+	// JBF: davidoption now functions as a windowed-mode flag (0 == windowed, 1 ==
+	// fullscreen)
+	public boolean setgamemode(int davidoption, int daxdim, int daydim) { // jfBuild + gdxBuild
+		if (BuildGdx.app.getType() == ApplicationType.Android) {
 			daxdim = BuildGdx.graphics.getWidth();
 			daydim = BuildGdx.graphics.getHeight();
 			davidoption = 0;
 		}
-		
+
 		daxdim = max(320, daxdim);
 		daydim = max(200, daydim);
 
@@ -1362,43 +1367,44 @@ public abstract class Engine {
 
 		setview(0, 0, xdim - 1, ydim - 1);
 		setbrightness(curbrightness, palette, 0);
-		
+
 		Console.ResizeDisplay(daxdim, daydim);
 
-		if(render.isInited())
+		if (render.isInited())
 			render.uninit();
 		render.init();
 
-		if(davidoption == 1)
-		{
+		if (davidoption == 1) {
 			DisplayMode m = null;
-			for(DisplayMode mode: BuildGdx.graphics.getDisplayModes()) {
-				if(mode.width == daxdim && mode.height == daydim)
-					if(m == null || m.refreshRate < BuildGdx.graphics.getDisplayMode().refreshRate) {
+			for (DisplayMode mode : BuildGdx.graphics.getDisplayModes()) {
+				if (mode.width == daxdim && mode.height == daydim)
+					if (m == null || m.refreshRate < BuildGdx.graphics.getDisplayMode().refreshRate) {
 						m = mode;
 					}
 			}
 
-			if(m == null) {
+			if (m == null) {
 				Console.Println("Warning: " + daxdim + "x" + daydim + " fullscreen not supported", OSDTEXT_YELLOW);
 				BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 				return false;
-			} else BuildGdx.graphics.setFullscreenMode(m);
-		} else BuildGdx.graphics.setWindowedMode(daxdim, daydim);
+			} else
+				BuildGdx.graphics.setFullscreenMode(m);
+		} else
+			BuildGdx.graphics.setWindowedMode(daxdim, daydim);
 
 		return true;
 	}
 
-	public void inittimer(int tickspersecond) { //jfBuild
+	public void inittimer(int tickspersecond) { // jfBuild
 		if (timerfreq != 0)
 			return; // already installed
 
 		timerfreq = 1000;
 		timerticspersec = tickspersecond;
-		timerlastsample = System.nanoTime() * timerticspersec / (timerfreq * 1000000); 
+		timerlastsample = System.nanoTime() * timerticspersec / (timerfreq * 1000000);
 	}
 
-	public void sampletimer() { //jfBuild
+	public void sampletimer() { // jfBuild
 		if (timerfreq == 0)
 			return;
 
@@ -1409,31 +1415,34 @@ public abstract class Engine {
 		}
 	}
 
-	public long getticks() { //gdxBuild
+	public long getticks() { // gdxBuild
 		return System.currentTimeMillis();
 	}
-	
+
 	HashMap<String, FadeEffect> fades;
-	public void registerFade(String fadename, FadeEffect effect) { //gdxBuild
-		if(fades == null) fades = new HashMap<String, FadeEffect>();
+
+	public void registerFade(String fadename, FadeEffect effect) { // gdxBuild
+		if (fades == null)
+			fades = new HashMap<String, FadeEffect>();
 		fades.put(fadename, effect);
 	}
-	
-	public void updateFade(String fadename, int intensive) //gdxBuild
+
+	public void updateFade(String fadename, int intensive) // gdxBuild
 	{
 		FadeEffect effect = fades.get(fadename);
-		if(effect != null)
+		if (effect != null)
 			effect.update(intensive);
 	}
 
-	public void showfade() { //gdxBuild
+	public void showfade() { // gdxBuild
 		GLRenderer gl = glrender();
-		if(gl != null) gl.palfade(fades);
+		if (gl != null)
+			gl.palfade(fades);
 	}
-	
-	public synchronized void loadpic(String filename) //gdxBuild
+
+	public synchronized void loadpic(String filename) // gdxBuild
 	{
-		Resource fil = null; 
+		Resource fil = null;
 		if ((fil = BuildGdx.cache.open(filename, 0)) != null) {
 			artversion = fil.readInt();
 			if (artversion != 1)
@@ -1441,7 +1450,7 @@ public abstract class Engine {
 			numtiles = fil.readInt();
 			int localtilestart = fil.readInt();
 			int localtileend = fil.readInt();
-			
+
 			for (int i = localtilestart; i <= localtileend; i++) {
 				tilesizx[i] = fil.readShort();
 			}
@@ -1461,8 +1470,8 @@ public abstract class Engine {
 			fil.close();
 		}
 	}
-	
-	public void setpicsiz(int tilenum) //jfBuild
+
+	public void setpicsiz(int tilenum) // jfBuild
 	{
 		int j = 15;
 		while ((j > 1) && (pow2long[j] > tilesizx[tilenum]))
@@ -1474,7 +1483,7 @@ public abstract class Engine {
 		picsiz[tilenum] += (j << 4);
 	}
 
-	public synchronized int loadpics() { //jfBuild
+	public synchronized int loadpics() { // jfBuild
 		int offscount, localtilestart, localtileend, dasiz;
 		int i, k;
 
@@ -1529,15 +1538,15 @@ public abstract class Engine {
 		artfil = null;
 		artfilnum = -1;
 		artfilplc = 0;
-		
+
 		return (numtilefiles);
 	}
 
-	public synchronized byte[] loadtile(int tilenume) { //jfBuild
+	public synchronized byte[] loadtile(int tilenume) { // jfBuild
 		if (tilenume >= MAXTILES)
 			return null;
 		int dasiz = tilesizx[tilenume] * tilesizy[tilenume];
-		
+
 		if (dasiz <= 0)
 			return null;
 
@@ -1557,11 +1566,11 @@ public abstract class Engine {
 
 			faketimerhandler();
 		}
-		
-		if(artfil == null)
+
+		if (artfil == null)
 			return null;
 
-		if (waloff[tilenume] == null) 
+		if (waloff[tilenume] == null)
 			waloff[tilenume] = new byte[dasiz];
 
 		if (artfilplc != tilefileoffs[tilenume]) {
@@ -1569,16 +1578,16 @@ public abstract class Engine {
 			faketimerhandler();
 		}
 
-		if(artfil.read(waloff[tilenume]) == -1)
+		if (artfil.read(waloff[tilenume]) == -1)
 			return null;
-		
+
 		faketimerhandler();
 		artfilplc = (int) (tilefileoffs[tilenume] + dasiz);
 
 		return waloff[tilenume];
 	}
 
-	public byte[] allocatepermanenttile(int tilenume, int xsiz, int ysiz) { //jfBuild
+	public byte[] allocatepermanenttile(int tilenume, int xsiz, int ysiz) { // jfBuild
 		if ((xsiz <= 0) || (ysiz <= 0) || (tilenume >= MAXTILES))
 			return null;
 
@@ -1595,10 +1604,11 @@ public abstract class Engine {
 		return (waloff[tilenume]);
 	}
 
-	public int clipinsidebox(int x, int y, short wallnum, int walldist) { //jfBuild
+	public int clipinsidebox(int x, int y, short wallnum, int walldist) { // jfBuild
 		int r = (walldist << 1);
 		WALL wal = wall[wallnum];
-		if(wal == null || isCorruptWall(wal)) return 0;
+		if (wal == null || isCorruptWall(wal))
+			return 0;
 		int x1 = wal.x + walldist - x;
 		int y1 = wal.y + walldist - y;
 		wal = wall[wal.point2];
@@ -1616,7 +1626,7 @@ public abstract class Engine {
 
 		x2 -= x1;
 		y2 -= y1;
-		if (x2 * (walldist - y1) >= y2 * (walldist - x1)) //Front
+		if (x2 * (walldist - y1) >= y2 * (walldist - x1)) // Front
 		{
 			if (x2 > 0)
 				x2 *= (0 - y1);
@@ -1639,7 +1649,7 @@ public abstract class Engine {
 		return ((x2 >= y2 ? 1 : 0) << 1);
 	}
 
-	public int clipinsideboxline(int x, int y, int x1, int y1, int x2, int y2, int walldist) { //jfBuild
+	public int clipinsideboxline(int x, int y, int x1, int y1, int x2, int y2, int walldist) { // jfBuild
 		int r = walldist << 1;
 
 		x1 += walldist - x;
@@ -1669,7 +1679,7 @@ public abstract class Engine {
 		return (x2 >= y2 ? 1 : 0) << 1;
 	}
 
-	public int inside(int x, int y, short sectnum) { //jfBuild
+	public int inside(int x, int y, short sectnum) { // jfBuild
 		if ((sectnum < 0) || (sectnum >= numsectors))
 			return (-1);
 
@@ -1677,10 +1687,11 @@ public abstract class Engine {
 		short wallid = sector[sectnum].wallptr;
 		int i = sector[sectnum].wallnum;
 
-		if(wallid < 0) return -1;
+		if (wallid < 0)
+			return -1;
 		do {
 			WALL wal = wall[wallid];
-			if(wal == null || isCorruptWall(wal))
+			if (wal == null || isCorruptWall(wal))
 				return -1;
 			int y1 = wal.y - y;
 			int y2 = wall[wal.point2].y - y;
@@ -1701,7 +1712,7 @@ public abstract class Engine {
 		return (cnt >>> 31);
 	}
 
-	public short getangle(int xvect, int yvect) { //jfBuild + gdxBuild
+	public short getangle(int xvect, int yvect) { // jfBuild + gdxBuild
 		if (releasedEngine) {
 			if ((xvect | yvect) == 0)
 				return (0);
@@ -1717,7 +1728,8 @@ public abstract class Engine {
 			if (klabs(xvect) > klabs(yvect)) {
 				return (short) (((radarang[640 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047);
 			}
-			return (short) (((radarang[640 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10)) & 2047);
+			return (short) (((radarang[640 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10))
+					& 2047);
 		} else {
 			if ((xvect | yvect) == 0)
 				return (0);
@@ -1733,48 +1745,51 @@ public abstract class Engine {
 			if (klabs(xvect) > klabs(yvect)) {
 				return (short) (((radarang[160 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047);
 			}
-			return (short) (((radarang[160 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10)) & 2047);
+			return (short) (((radarang[160 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10))
+					& 2047);
 		}
 	}
 
-	public int ksqrt(int a) { //jfBuild + gdxBuild
-		if(compatibleMode) {
+	public int ksqrt(int a) { // jfBuild + gdxBuild
+		if (compatibleMode) {
 			long out = a & 0xFFFFFFFFL;
 			int value;
-			if ( (out & 0xFF000000) != 0 )
+			if ((out & 0xFF000000) != 0)
 				value = shlookup[(int) ((out >> 24) + 4096)] & 0xFFFF;
 			else
 				value = shlookup[(int) (out >> 12)] & 0xFFFF;
-			
-			out >>= value & 0xff;				
-			out = (out & 0xffff0000) | (sqrtable[(int) out] & 0xFFFF);	
-			out >>= ((value & 0xff00) >> 8);		
-								
+
+			out >>= value & 0xff;
+			out = (out & 0xffff0000) | (sqrtable[(int) out] & 0xFFFF);
+			out >>= ((value & 0xff00) >> 8);
+
 			return (int) out;
-		} else return (int) sqrt(a & 0xFFFFFFFFL);
+		} else
+			return (int) sqrt(a & 0xFFFFFFFFL);
 	}
 
 	protected static int SETSPRITEZ = 0;
-	public short setsprite(short spritenum, int newx, int newy, int newz) //jfBuild
+
+	public short setsprite(short spritenum, int newx, int newy, int newz) // jfBuild
 	{
 		sprite[spritenum].x = newx;
 		sprite[spritenum].y = newy;
 		sprite[spritenum].z = newz;
 
 		short tempsectnum = sprite[spritenum].sectnum;
-		if(SETSPRITEZ == 1)
-			tempsectnum = updatesectorz(newx,newy,newz,tempsectnum);
+		if (SETSPRITEZ == 1)
+			tempsectnum = updatesectorz(newx, newy, newz, tempsectnum);
 		else
-			tempsectnum = updatesector(newx,newy,tempsectnum);
+			tempsectnum = updatesector(newx, newy, tempsectnum);
 		if (tempsectnum < 0)
-			return(-1);
+			return (-1);
 		if (tempsectnum != sprite[spritenum].sectnum)
-			changespritesect(spritenum,tempsectnum);
+			changespritesect(spritenum, tempsectnum);
 
-		return(0);
+		return (0);
 	}
 
-	public int nextsectorneighborz(int sectnum, int thez, int topbottom, int direction) { //jfBuild
+	public int nextsectorneighborz(int sectnum, int thez, int topbottom, int direction) { // jfBuild
 		int nextz = 0x80000000;
 		if (direction == 1)
 			nextz = 0x7fffffff;
@@ -1821,12 +1836,15 @@ public abstract class Engine {
 		return (sectortouse);
 	}
 
-	public boolean cansee(int x1, int y1, int z1, short sect1, int x2, int y2, int z2, short sect2) { //eduke32 sectbitmap
+	public boolean cansee(int x1, int y1, int z1, short sect1, int x2, int y2, int z2, short sect2) { // eduke32
+																										// sectbitmap
 
 		Arrays.fill(sectbitmap, (byte) 0);
-		
-		if(sect1 < 0 || sect1 >= MAXSECTORS) return false;
-		if(sect2 < 0 || sect2 >= MAXSECTORS) return false;
+
+		if (sect1 < 0 || sect1 >= MAXSECTORS)
+			return false;
+		if (sect2 < 0 || sect2 >= MAXSECTORS)
+			return false;
 
 		if ((x1 == x2) && (y1 == y2))
 			return (sect1 == sect2);
@@ -1841,17 +1859,21 @@ public abstract class Engine {
 
 		for (int dacnt = 0; dacnt < danum; dacnt++) {
 			short dasectnum = clipsectorlist[dacnt];
-			if(dasectnum < 0) continue;
-			
+			if (dasectnum < 0)
+				continue;
+
 			SECTOR sec = sector[dasectnum];
 
-			if(sec == null) continue;
+			if (sec == null)
+				continue;
 			short startwall = sec.wallptr;
 			int endwall = startwall + sec.wallnum - 1;
-			if(startwall < 0 || endwall < 0) continue;
+			if (startwall < 0 || endwall < 0)
+				continue;
 			for (int w = startwall; w <= endwall; w++) {
 				WALL wal = wall[w];
-				if(wal == null || isCorruptWall(wal)) continue;
+				if (wal == null || isCorruptWall(wal))
+					continue;
 				WALL wal2 = wall[wal.point2];
 				int x31 = wal.x - x1;
 				int x34 = wal.x - wal2.x;
@@ -1884,8 +1906,8 @@ public abstract class Engine {
 				if ((z <= zofslope[CEIL]) || (z >= zofslope[FLOOR]))
 					return false;
 
-				//				for(i=danum-1;i>=0;i--) if (clipsectorlist[i] == nexts) break;
-				//				if (i < 0) clipsectorlist[danum++] = (short) nexts;
+				// for(i=danum-1;i>=0;i--) if (clipsectorlist[i] == nexts) break;
+				// if (i < 0) clipsectorlist[danum++] = (short) nexts;
 
 				if ((sectbitmap[nexts >> 3] & (1 << (nexts & 7))) == 0) {
 					sectbitmap[nexts >> 3] |= (1 << (nexts & 7));
@@ -1893,14 +1915,14 @@ public abstract class Engine {
 				}
 			}
 		}
-		//		for(i=danum-1;i>=0;i--) if (clipsectorlist[i] == sect2) return(1);
+		// for(i=danum-1;i>=0;i--) if (clipsectorlist[i] == sect2) return(1);
 		if ((sectbitmap[sect2 >> 3] & (1 << (sect2 & 7))) != 0)
 			return true;
 
 		return false;
 	}
 
-	public int hitscan(int xs, int ys, int zs, short sectnum, int vx, int vy, int vz, //jfBuild
+	public int hitscan(int xs, int ys, int zs, short sectnum, int vx, int vy, int vz, // jfBuild
 			Hitscan hit, int cliptype) {
 
 		int zz, x1, y1 = 0, z1 = 0, x2, y2, x3, y3, x4, y4;
@@ -1930,9 +1952,15 @@ public abstract class Engine {
 		short tempshortnum = 1;
 		do {
 			dasector = clipsectorlist[tempshortcnt];
-			if(dasector < 0)  { tempshortcnt++; continue; }
+			if (dasector < 0) {
+				tempshortcnt++;
+				continue;
+			}
 			SECTOR sec = sector[dasector];
-			if(sec == null) { tempshortcnt++; continue; }
+			if (sec == null) {
+				tempshortcnt++;
+				continue;
+			}
 			x1 = 0x7fffffff;
 			if ((sec.ceilingstat & 2) != 0) {
 				WALL wal = wall[sec.wallptr];
@@ -1965,7 +1993,8 @@ public abstract class Engine {
 					y1 = ys + mulscale(vy, i, 30);
 				}
 			}
-			if ((x1 != 0x7fffffff) && (klabs(x1 - xs) + klabs(y1 - ys) < klabs((hit.hitx) - xs) + klabs((hit.hity) - ys)))
+			if ((x1 != 0x7fffffff)
+					&& (klabs(x1 - xs) + klabs(y1 - ys) < klabs((hit.hitx) - xs) + klabs((hit.hity) - ys)))
 				if (inside(x1, y1, dasector) != 0) {
 					hit.hitsect = dasector;
 					hit.hitwall = -1;
@@ -2007,7 +2036,8 @@ public abstract class Engine {
 					y1 = ys + mulscale(vy, i, 30);
 				}
 			}
-			if ((x1 != 0x7fffffff) && (klabs(x1 - xs) + klabs(y1 - ys) < klabs((hit.hitx) - xs) + klabs((hit.hity) - ys)))
+			if ((x1 != 0x7fffffff)
+					&& (klabs(x1 - xs) + klabs(y1 - ys) < klabs((hit.hitx) - xs) + klabs((hit.hity) - ys)))
 				if (inside(x1, y1, dasector) != 0) {
 					hit.hitsect = dasector;
 					hit.hitwall = -1;
@@ -2019,12 +2049,16 @@ public abstract class Engine {
 
 			startwall = sec.wallptr;
 			endwall = (startwall + sec.wallnum);
-			
-			if(startwall < 0 || endwall < 0) { tempshortcnt++; continue; }
+
+			if (startwall < 0 || endwall < 0) {
+				tempshortcnt++;
+				continue;
+			}
 			Point out;
 			for (z = startwall; z < endwall; z++) {
 				WALL wal = wall[z];
-				if(wal == null || isCorruptWall(wal)) continue;
+				if (wal == null || isCorruptWall(wal))
+					continue;
 				WALL wal2 = wall[wal.point2];
 				x1 = wal.x;
 				y1 = wal.y;
@@ -2033,10 +2067,10 @@ public abstract class Engine {
 
 				if ((x1 - xs) * (y2 - ys) < (x2 - xs) * (y1 - ys))
 					continue;
-				
+
 				if ((out = rintersect(xs, ys, zs, vx, vy, vz, x1, y1, x2, y2)) == null)
 					continue;
-				
+
 				intx = out.getX();
 				inty = out.getY();
 				intz = out.getZ();
@@ -2125,8 +2159,8 @@ public abstract class Engine {
 					hit.hitz = intz;
 					break;
 				case 16:
-					//These lines get the 2 points of the rotated sprite
-					//Given: (x1, y1) starts out as the center point
+					// These lines get the 2 points of the rotated sprite
+					// Given: (x1, y1) starts out as the center point
 					tilenum = spr.picnum;
 					xoff = (int) ((byte) ((picanm[tilenum] >> 8) & 255)) + (spr.xoffset);
 					if ((cstat & 4) > 0)
@@ -2142,13 +2176,13 @@ public abstract class Engine {
 					y1 -= mulscale(day, k, 16);
 					y2 = y1 + mulscale(day, l, 16);
 
-					if ((cstat & 64) != 0) //back side of 1-way sprite
+					if ((cstat & 64) != 0) // back side of 1-way sprite
 						if ((x1 - xs) * (y2 - ys) < (x2 - xs) * (y1 - ys))
 							continue;
 
 					if ((out = rintersect(xs, ys, zs, vx, vy, vz, x1, y1, x2, y2)) == null)
 						continue;
-					
+
 					intx = out.getX();
 					inty = out.getY();
 					intz = out.getZ();
@@ -2261,13 +2295,14 @@ public abstract class Engine {
 		return (0);
 	}
 
-	public void nextpage() { //gdxBuild
+	public void nextpage() { // gdxBuild
 		Console.draw();
 		render.nextpage();
 		BuildGdx.audio.update();
 	}
 
-	public int neartag(int xs, int ys, int zs, short sectnum, short ange, Neartag near, int neartagrange, int tagsearch) { //jfBuild
+	public int neartag(int xs, int ys, int zs, short sectnum, short ange, Neartag near, int neartagrange,
+			int tagsearch) { // jfBuild
 
 		int i, zz, x1, y1, z1, x2, y2, endwall;
 		int topt, topu, bot, dist, offx, offy;
@@ -2292,18 +2327,24 @@ public abstract class Engine {
 		clipsectorlist[0] = sectnum;
 		short tempshortcnt = 0;
 		short tempshortnum = 1;
-		
+
 		Point out = null;
 		do {
 			dasector = clipsectorlist[tempshortcnt];
-			if(dasector < 0) { tempshortcnt++; continue; }
+			if (dasector < 0) {
+				tempshortcnt++;
+				continue;
+			}
 
 			startwall = sector[dasector].wallptr;
 			endwall = (startwall + sector[dasector].wallnum - 1);
-			if(startwall < 0 || endwall < 0) { tempshortcnt++; continue; }
+			if (startwall < 0 || endwall < 0) {
+				tempshortcnt++;
+				continue;
+			}
 			for (z = startwall; z <= endwall; z++) {
 				WALL wal = wall[z];
-				WALL  wal2 = wall[wal.point2];
+				WALL wal2 = wall[wal.point2];
 				x1 = wal.x;
 				y1 = wal.y;
 				x2 = wal2.x;
@@ -2334,7 +2375,8 @@ public abstract class Engine {
 							near.tagsector = nextsector;
 						if ((good & 2) != 0)
 							near.tagwall = z;
-						near.taghitdist = dmulscale(out.getX() - xs, sintable[(ange + 2560) & 2047], out.getY() - ys, sintable[(ange + 2048) & 2047], 14);
+						near.taghitdist = dmulscale(out.getX() - xs, sintable[(ange + 2560) & 2047], out.getY() - ys,
+								sintable[(ange + 2048) & 2047], 14);
 						xe = out.getX();
 						ye = out.getY();
 						ze = out.getZ();
@@ -2384,7 +2426,8 @@ public abstract class Engine {
 									int inty = ys + scale(vy, topt, bot);
 									if (klabs(intx - xs) + klabs(inty - ys) < klabs(xe - xs) + klabs(ye - ys)) {
 										near.tagsprite = z;
-										near.taghitdist = dmulscale(intx - xs, sintable[(ange + 2560) & 2047], inty - ys, sintable[(ange + 2048) & 2047], 14);
+										near.taghitdist = dmulscale(intx - xs, sintable[(ange + 2560) & 2047],
+												inty - ys, sintable[(ange + 2048) & 2047], 14);
 										xe = intx;
 										ye = inty;
 										ze = intz;
@@ -2401,7 +2444,7 @@ public abstract class Engine {
 		return (0);
 	}
 
-	public long qdist(long dx, long dy) { //gdxBuild
+	public long qdist(long dx, long dy) { // gdxBuild
 		dx = abs(dx);
 		dy = abs(dy);
 
@@ -2413,19 +2456,19 @@ public abstract class Engine {
 		return dx + dy;
 	}
 
-	public void dragpoint(short pointhighlight, int dax, int day) { //jfBuild
+	public void dragpoint(short pointhighlight, int dax, int day) { // jfBuild
 		wall[pointhighlight].x = dax;
 		wall[pointhighlight].y = day;
 
 		short cnt = (short) MAXWALLS;
-		short tempshort = pointhighlight; //search points CCW
+		short tempshort = pointhighlight; // search points CCW
 		do {
 			if (wall[tempshort].nextwall >= 0) {
 				tempshort = wall[wall[tempshort].nextwall].point2;
 				wall[tempshort].x = dax;
 				wall[tempshort].y = day;
 			} else {
-				tempshort = (short) pointhighlight; //search points CW if not searched all the way around
+				tempshort = (short) pointhighlight; // search points CW if not searched all the way around
 				do {
 					if (wall[lastwall(tempshort)].nextwall >= 0) {
 						tempshort = wall[lastwall(tempshort)].nextwall;
@@ -2442,10 +2485,10 @@ public abstract class Engine {
 		} while ((tempshort != pointhighlight) && (cnt > 0));
 	}
 
-	public int lastwall(int point) { //jfBuild
+	public int lastwall(int point) { // jfBuild
 		if ((point > 0) && (wall[point - 1].point2 == point))
 			return (point - 1);
-		
+
 		int i = point, j;
 		int cnt = MAXWALLS;
 		do {
@@ -2458,7 +2501,7 @@ public abstract class Engine {
 		return (point);
 	}
 
-	protected void addclipline(int dax1, int day1, int dax2, int day2, int daoval) { //jfBuild
+	protected void addclipline(int dax1, int day1, int dax2, int day2, int daoval) { // jfBuild
 		if (clipnum < MAXCLIPNUM) {
 			if (clipit[clipnum] == null)
 				clipit[clipnum] = new Line();
@@ -2473,9 +2516,9 @@ public abstract class Engine {
 
 	public static int clipmove_x, clipmove_y, clipmove_z;
 	public static short clipmove_sectnum;
-	public int clipmove(int x, int y, int z, short sectnum, //jfBuild
-			long xvect, long yvect,
-			int walldist, int ceildist, int flordist, int cliptype) {
+
+	public int clipmove(int x, int y, int z, short sectnum, // jfBuild
+			long xvect, long yvect, int walldist, int ceildist, int flordist, int cliptype) {
 		clipmove_x = x;
 		clipmove_y = y;
 		clipmove_z = z;
@@ -2511,7 +2554,7 @@ public abstract class Engine {
 
 		cx = (clipmove_x + goalx) >> 1;
 		cy = (clipmove_y + goaly) >> 1;
-		//Extra walldist for sprites on sector lines
+		// Extra walldist for sprites on sector lines
 		gx = goalx - clipmove_x;
 		gy = goaly - clipmove_y;
 		rad = (ksqrt(gx * gx + gy * gy) + MAXCLIPDIST + walldist + 8);
@@ -2520,22 +2563,25 @@ public abstract class Engine {
 		xmax = cx + rad;
 		ymax = cy + rad;
 
-		dawalclipmask = (cliptype & 65535); //CLIPMASK0 = 0x00010001
-		dasprclipmask = (cliptype >> 16); //CLIPMASK1 = 0x01000040
+		dawalclipmask = (cliptype & 65535); // CLIPMASK0 = 0x00010001
+		dasprclipmask = (cliptype >> 16); // CLIPMASK1 = 0x01000040
 
 		clipsectorlist[0] = (short) clipmove_sectnum;
 		clipsectcnt = 0;
 		clipsectnum = 1;
 		do {
 			dasect = clipsectorlist[clipsectcnt++];
-			if(dasect < 0) continue;
+			if (dasect < 0)
+				continue;
 			sec = sector[dasect];
 			startwall = sec.wallptr;
 			endwall = startwall + sec.wallnum;
-			if(startwall < 0 || endwall < 0) continue;
+			if (startwall < 0 || endwall < 0)
+				continue;
 			for (j = startwall; j < endwall; j++) {
 				wal = wall[j];
-				if(wal == null || isCorruptWall(wal)) continue;
+				if (wal == null || isCorruptWall(wal))
+					continue;
 				wal2 = wall[wal.point2];
 				if ((wal.x < xmin) && (wal2.x < xmin))
 					continue;
@@ -2554,7 +2600,7 @@ public abstract class Engine {
 				dx = x2 - x1;
 				dy = y2 - y1;
 				if (dx * ((clipmove_y) - y1) < ((clipmove_x) - x1) * dy)
-					continue; //If wall's not facing you
+					continue; // If wall's not facing you
 
 				if (dx > 0)
 					dax = dx * (ymin - y1);
@@ -2585,7 +2631,8 @@ public abstract class Engine {
 					daz2 = getflorzofslope(wal.nextsector, dax, day);
 
 					sec2 = sector[wal.nextsector];
-					if(sec2 == null) continue;
+					if (sec2 == null)
+						continue;
 					if (daz2 < daz - (1 << 8))
 						if ((sec2.floorstat & 1) == 0)
 							if ((clipmove_z) >= daz2 - (flordist - 1))
@@ -2601,7 +2648,7 @@ public abstract class Engine {
 				}
 
 				if (clipyou == 1) {
-					//Add 2 boxes at endpoints
+					// Add 2 boxes at endpoints
 					bsz = walldist;
 					if (gx < 0)
 						bsz = -bsz;
@@ -2675,8 +2722,8 @@ public abstract class Engine {
 					daz += ceildist;
 					daz2 -= flordist;
 					if (((clipmove_z) < daz) && ((clipmove_z) > daz2)) {
-						//These lines get the 2 points of the rotated sprite
-						//Given: (x1, y1) starts out as the center point
+						// These lines get the 2 points of the rotated sprite
+						// Given: (x1, y1) starts out as the center point
 						tilenum = spr.picnum;
 						xoff = (byte) ((picanm[tilenum] >> 8) & 255) + spr.xoffset;
 						if ((cstat & 4) > 0)
@@ -2696,7 +2743,7 @@ public abstract class Engine {
 							dax = mulscale(sintable[(spr.ang + 256 + 512) & 2047], walldist, 14);
 							day = mulscale(sintable[(spr.ang + 256) & 2047], walldist, 14);
 
-							if ((x1 - (clipmove_x)) * (y2 - (clipmove_y)) >= (x2 - (clipmove_x)) * (y1 - (clipmove_y))) //Front
+							if ((x1 - (clipmove_x)) * (y2 - (clipmove_y)) >= (x2 - (clipmove_x)) * (y1 - (clipmove_y))) // Front
 							{
 								addclipline(x1 + dax, y1 + day, x2 + day, y2 - dax, (short) j + 49152);
 							} else {
@@ -2705,7 +2752,7 @@ public abstract class Engine {
 								addclipline(x2 - dax, y2 - day, x1 - day, y1 + dax, (short) j + 49152);
 							}
 
-							//Side blocker
+							// Side blocker
 							if ((x2 - x1) * ((clipmove_x) - x1) + (y2 - y1) * ((clipmove_y) - y1) < 0) {
 								addclipline(x1 - day, y1 + dax, x1 + dax, y1 + day, (short) j + 49152);
 							} else if ((x1 - x2) * ((clipmove_x) - x2) + (y1 - y2) * ((clipmove_y) - y2) < 0) {
@@ -2757,18 +2804,22 @@ public abstract class Engine {
 						dax = mulscale(sintable[(spr.ang - 256 + 512) & 2047], walldist, 14);
 						day = mulscale(sintable[(spr.ang - 256) & 2047], walldist, 14);
 
-						if ((rxi[0] - (clipmove_x)) * (ryi[1] - (clipmove_y)) < (rxi[1] - (clipmove_x)) * (ryi[0] - (clipmove_y))) {
+						if ((rxi[0] - (clipmove_x)) * (ryi[1] - (clipmove_y)) < (rxi[1] - (clipmove_x))
+								* (ryi[0] - (clipmove_y))) {
 							if (clipinsideboxline(cx, cy, rxi[1], ryi[1], rxi[0], ryi[0], rad) != 0)
 								addclipline(rxi[1] - day, ryi[1] + dax, rxi[0] + dax, ryi[0] + day, (short) j + 49152);
-						} else if ((rxi[2] - (clipmove_x)) * (ryi[3] - (clipmove_y)) < (rxi[3] - (clipmove_x)) * (ryi[2] - (clipmove_y))) {
+						} else if ((rxi[2] - (clipmove_x)) * (ryi[3] - (clipmove_y)) < (rxi[3] - (clipmove_x))
+								* (ryi[2] - (clipmove_y))) {
 							if (clipinsideboxline(cx, cy, rxi[3], ryi[3], rxi[2], ryi[2], rad) != 0)
 								addclipline(rxi[3] + day, ryi[3] - dax, rxi[2] - dax, ryi[2] - day, (short) j + 49152);
 						}
 
-						if ((rxi[1] - (clipmove_x)) * (ryi[2] - (clipmove_y)) < (rxi[2] - (clipmove_x)) * (ryi[1] - (clipmove_y))) {
+						if ((rxi[1] - (clipmove_x)) * (ryi[2] - (clipmove_y)) < (rxi[2] - (clipmove_x))
+								* (ryi[1] - (clipmove_y))) {
 							if (clipinsideboxline(cx, cy, rxi[2], ryi[2], rxi[1], ryi[1], rad) != 0)
 								addclipline(rxi[2] - dax, ryi[2] - day, rxi[1] - day, ryi[1] + dax, (short) j + 49152);
-						} else if ((rxi[3] - (clipmove_x)) * (ryi[0] - (clipmove_y)) < (rxi[0] - (clipmove_x)) * (ryi[3] - (clipmove_y))) {
+						} else if ((rxi[3] - (clipmove_x)) * (ryi[0] - (clipmove_y)) < (rxi[0] - (clipmove_x))
+								* (ryi[3] - (clipmove_y))) {
 							if (clipinsideboxline(cx, cy, rxi[0], ryi[0], rxi[3], ryi[3], rad) != 0)
 								addclipline(rxi[0] + dax, ryi[0] + day, rxi[3] + day, ryi[3] - dax, (short) j + 49152);
 						}
@@ -2813,7 +2864,7 @@ public abstract class Engine {
 				Point goal = keepaway(goalx, goaly, hitwall);
 				goalx = goal.getX();
 				goaly = goal.getY();
-				
+
 				xvect = ((goalx - intx) << 14);
 				yvect = ((goaly - inty) << 14);
 
@@ -2869,8 +2920,9 @@ public abstract class Engine {
 
 	public static int pushmove_x, pushmove_y, pushmove_z;
 	public static short pushmove_sectnum;
-	public int pushmove(int x, int y, int z, short sectnum, //jfBuild
-			int walldist, int ceildist, int flordist, int cliptype) { 
+
+	public int pushmove(int x, int y, int z, short sectnum, // jfBuild
+			int walldist, int ceildist, int flordist, int cliptype) {
 		pushmove_x = x;
 		pushmove_y = y;
 		pushmove_z = z;
@@ -2910,9 +2962,13 @@ public abstract class Engine {
 					startwall = (short) (endwall + sec.wallnum);
 				}
 
-				if(startwall < 0 || endwall < 0) { clipsectcnt++; continue; }
+				if (startwall < 0 || endwall < 0) {
+					clipsectcnt++;
+					continue;
+				}
 				for (i = startwall; i != endwall; i += dir) {
-					if(i >= MAXWALLS) break;
+					if (i >= MAXWALLS)
+						break;
 					wal = wall[i];
 					if (clipinsidebox(pushmove_x, pushmove_y, (short) i, walldist - 4) == 1) {
 						j = 0;
@@ -2923,7 +2979,7 @@ public abstract class Engine {
 						if (j == 0) {
 							sec2 = sector[wal.nextsector];
 
-							//Find closest point on wall (dax, day) to (*x, *y)
+							// Find closest point on wall (dax, day) to (*x, *y)
 							dax = wall[wal.point2].x - wal.x;
 							day = wall[wal.point2].y - wal.y;
 							daz = dax * ((pushmove_x) - wal.x) + day * ((pushmove_y) - wal.y);
@@ -2941,7 +2997,8 @@ public abstract class Engine {
 
 							daz = getflorzofslope(clipsectorlist[clipsectcnt], dax, day);
 							daz2 = getflorzofslope(wal.nextsector, dax, day);
-							if(sec2 == null) continue;
+							if (sec2 == null)
+								continue;
 							if ((daz2 < daz - (1 << 8)) && ((sec2.floorstat & 1) == 0))
 								if (pushmove_z >= daz2 - (flordist - 1))
 									j = 1;
@@ -2989,7 +3046,7 @@ public abstract class Engine {
 		return (bad);
 	}
 
-	public short updatesector(int x, int y, short sectnum) { //jfBuild
+	public short updatesector(int x, int y, short sectnum) { // jfBuild
 		if (inside(x, y, sectnum) == 1)
 			return sectnum;
 
@@ -2997,11 +3054,17 @@ public abstract class Engine {
 		if ((sectnum >= 0) && (sectnum < numsectors)) {
 			short wallid = sector[sectnum].wallptr;
 			int j = sector[sectnum].wallnum;
-			if(wallid < 0) return -1;
+			if (wallid < 0)
+				return -1;
 			do {
-				if(wallid >= MAXWALLS) break;
+				if (wallid >= MAXWALLS)
+					break;
 				WALL wal = wall[wallid];
-				if(wal == null) { wallid++; j--; continue; }
+				if (wal == null) {
+					wallid++;
+					j--;
+					continue;
+				}
 				i = wal.nextsector;
 				if (i >= 0)
 					if (inside(x, y, i) == 1) {
@@ -3020,7 +3083,7 @@ public abstract class Engine {
 		return -1;
 	}
 
-	public short updatesectorz(int x, int y, int z, short sectnum) { //jfBuild
+	public short updatesectorz(int x, int y, int z, short sectnum) { // jfBuild
 		getzsofslope(sectnum, x, y, zofslope);
 		if ((z >= zofslope[CEIL]) && (z <= zofslope[FLOOR]))
 			if (inside(x, y, sectnum) != 0)
@@ -3028,13 +3091,19 @@ public abstract class Engine {
 
 		short i;
 		if ((sectnum >= 0) && (sectnum < numsectors)) {
-			if(sector[sectnum] == null) return -1;
+			if (sector[sectnum] == null)
+				return -1;
 			short wallid = sector[sectnum].wallptr;
 			int j = sector[sectnum].wallnum;
 			do {
-				if(wallid >= MAXWALLS) break;
+				if (wallid >= MAXWALLS)
+					break;
 				WALL wal = wall[wallid];
-				if(wal == null) { wallid++; j--; continue; }
+				if (wal == null) {
+					wallid++;
+					j--;
+					continue;
+				}
 				i = wal.nextsector;
 				if (i >= 0) {
 					getzsofslope(i, x, y, zofslope);
@@ -3060,39 +3129,41 @@ public abstract class Engine {
 	}
 
 	protected Point rotatepoint = new Point();
-	public Point rotatepoint(int xpivot, int ypivot, int x, int y, short daang) { //jfBuild
+
+	public Point rotatepoint(int xpivot, int ypivot, int x, int y, short daang) { // jfBuild
 		int dacos = sintable[(daang + 2560) & 2047];
 		int dasin = sintable[(daang + 2048) & 2047];
 		x -= xpivot;
 		y -= ypivot;
 		rotatepoint.x = dmulscale(x, dacos, -y, dasin, 14) + xpivot;
 		rotatepoint.y = dmulscale(y, dacos, x, dasin, 14) + ypivot;
-		
+
 		return rotatepoint;
 	}
 
-	public void srand(int seed) //gdxBuild
+	public void srand(int seed) // gdxBuild
 	{
 		randomseed = seed;
 	}
-	
-	public int getrand() //gdxBuild
+
+	public int getrand() // gdxBuild
 	{
 		return randomseed;
 	}
 
-	public int krand() { //jfBuild
+	public int krand() { // jfBuild
 		randomseed = (randomseed * 27584621) + 1;
-		return (int) ((randomseed&0xFFFFFFFFL) >> 16);
+		return (int) ((randomseed & 0xFFFFFFFFL) >> 16);
 	}
-	
-	public int rand() //gdxBuild
+
+	public int rand() // gdxBuild
 	{
 		return (int) (Math.random() * 32767);
 	}
 
 	public static int zr_ceilz, zr_ceilhit, zr_florz, zr_florhit;
-	public void getzrange(int x, int y, int z, short sectnum, //jfBuild
+
+	public void getzrange(int x, int y, int z, short sectnum, // jfBuild
 			int walldist, int cliptype) {
 		SECTOR sec;
 		WALL wal, wal2;
@@ -3113,7 +3184,7 @@ public abstract class Engine {
 			return;
 		}
 
-		//Extra walldist for sprites on sector lines
+		// Extra walldist for sprites on sector lines
 		i = walldist + MAXCLIPDIST + 1;
 		xmin = x - i;
 		ymin = y - i;
@@ -3134,17 +3205,24 @@ public abstract class Engine {
 		clipsectcnt = 0;
 		clipsectnum = 1;
 
-		do //Collect sectors inside your square first
+		do // Collect sectors inside your square first
 		{
-			if(clipsectorlist[clipsectcnt] < 0)  { clipsectcnt++; continue; }
+			if (clipsectorlist[clipsectcnt] < 0) {
+				clipsectcnt++;
+				continue;
+			}
 			sec = sector[clipsectorlist[clipsectcnt]];
 
 			startwall = sec.wallptr;
 			endwall = startwall + sec.wallnum;
-			if(startwall < 0 || endwall < 0) { clipsectcnt++; continue; }
+			if (startwall < 0 || endwall < 0) {
+				clipsectcnt++;
+				continue;
+			}
 			for (j = startwall; j < endwall; j++) {
 				wal = wall[j];
-				if(wal == null || isCorruptWall(wal)) continue;
+				if (wal == null || isCorruptWall(wal))
+					continue;
 				k = wal.nextsector;
 				if (k >= 0) {
 					wal2 = wall[wal.point2];
@@ -3164,7 +3242,7 @@ public abstract class Engine {
 					dx = x2 - x1;
 					dy = y2 - y1;
 					if (dx * (y - y1) < (x - x1) * dy)
-						continue; //back
+						continue; // back
 					if (dx > 0)
 						dax = dx * (ymin - y1);
 					else
@@ -3179,13 +3257,14 @@ public abstract class Engine {
 					if ((wal.cstat & dawalclipmask) != 0)
 						continue;
 					sec = sector[k];
-					if(sec == null) continue;
-					
+					if (sec == null)
+						continue;
+
 					if (((sec.ceilingstat & 1) == 0) && (z <= sec.ceilingz + (3 << 8)))
 						continue;
 					if (((sec.floorstat & 1) == 0) && (z >= sec.floorz - (3 << 8)))
 						continue;
-					
+
 					for (i = clipsectnum - 1; i >= 0; i--)
 						if (clipsectorlist[i] == k)
 							break;
@@ -3211,7 +3290,7 @@ public abstract class Engine {
 					if (dax >= day)
 						continue;
 
-					//It actually got here, through all the continue's!!!
+					// It actually got here, through all the continue's!!!
 					getzsofslope((short) k, x, y, zofslope);
 
 					if (zofslope[CEIL] > zr_ceilz) {
@@ -3245,7 +3324,8 @@ public abstract class Engine {
 							if ((cstat & 128) != 0)
 								zofslope[CEIL] += k;
 							if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-								zofslope[CEIL] -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255)) * spr.yrepeat << 2);
+								zofslope[CEIL] -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255))
+										* spr.yrepeat << 2);
 							zofslope[FLOOR] = zofslope[CEIL] - (k << 1);
 							clipyou = 1;
 						}
@@ -3271,7 +3351,8 @@ public abstract class Engine {
 							if ((cstat & 128) != 0)
 								zofslope[CEIL] += k;
 							if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-								zofslope[CEIL] -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255)) * spr.yrepeat << 2);
+								zofslope[CEIL] -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255))
+										* spr.yrepeat << 2);
 							zofslope[FLOOR] = zofslope[CEIL] - (k << 1);
 							clipyou = 1;
 						}
@@ -3368,7 +3449,7 @@ public abstract class Engine {
 		}
 	}
 
-	public void setaspect_new() { //eduke32 aspect
+	public void setaspect_new() { // eduke32 aspect
 		if (BuildSettings.usenewaspect.get() && newaspect_enable != 0 && (4 * xdim / 5) != ydim) {
 			// the correction factor 100/107 has been found
 			// out experimentally. squares ftw!
@@ -3383,7 +3464,7 @@ public abstract class Engine {
 			setaspect(65536, (int) divscale(ydim * 320, xdim * 200, 16));
 	}
 
-	public void setview(int x1, int y1, int x2, int y2) { //jfBuild
+	public void setview(int x1, int y1, int x2, int y2) { // jfBuild
 		windowx1 = x1;
 		wx1 = (x1 << 12);
 		windowy1 = y1;
@@ -3398,12 +3479,12 @@ public abstract class Engine {
 		ydimen = (y2 - y1) + 1;
 
 		setaspect_new();
-		
-		if(render.getType() == RenderType.Software) 
+
+		if (render.getType() == RenderType.Software)
 			((Software) render).updateview();
 	}
 
-	public void setaspect(int daxrange, int daaspect) { //jfBuild
+	public void setaspect(int daxrange, int daaspect) { // jfBuild
 		viewingrange = (int) (daxrange * fovFactor);
 		viewingrangerecip = (int) divscale(1, viewingrange, 32);
 
@@ -3412,76 +3493,69 @@ public abstract class Engine {
 		xdimenscale = scale(xdimen, yxaspect, 320);
 		xdimscale = scale(320, xyaspect, xdimen);
 	}
-	
-	public void setFov(int fov)
-	{
+
+	public void setFov(int fov) {
 		this.fovFactor = (float) Math.tan(fov * Math.PI / 360.0);
 		setaspect_new();
 	}
 
-	//dastat&1    :translucence
-	//dastat&2    :auto-scale mode (use 320*200 coordinates)
-	//dastat&4    :y-flip
-	//dastat&8    :don't clip to startumost/startdmost
-	//dastat&16   :force point passed to be top-left corner, 0:Editart center
-	//dastat&32   :reverse translucence
-	//dastat&64   :non-masked, 0:masked
-	//dastat&128  :draw all pages (permanent)
-	//dastat&256  :align to the left (widescreen support)
-	//dastat&512  :align to the right (widescreen support)
-	//dastat&1024 :stretch to screen resolution (distorts aspect ration)
+	// dastat&1 :translucence
+	// dastat&2 :auto-scale mode (use 320*200 coordinates)
+	// dastat&4 :y-flip
+	// dastat&8 :don't clip to startumost/startdmost
+	// dastat&16 :force point passed to be top-left corner, 0:Editart center
+	// dastat&32 :reverse translucence
+	// dastat&64 :non-masked, 0:masked
+	// dastat&128 :draw all pages (permanent)
+	// dastat&256 :align to the left (widescreen support)
+	// dastat&512 :align to the right (widescreen support)
+	// dastat&1024 :stretch to screen resolution (distorts aspect ration)
 
-	public void rotatesprite(int sx, int sy, int z, int a, int picnum, //gdxBuild
-			int dashade, int dapalnum, int dastat,
-			int cx1, int cy1, int cx2, int cy2) {
+	public void rotatesprite(int sx, int sy, int z, int a, int picnum, // gdxBuild
+			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2, int cy2) {
 		render.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
 	}
 
-	public void makepalookup(int palnum, byte[] remapbuf, int r, int g, int b, int dastat)  //jfBuild
+	public void makepalookup(int palnum, byte[] remapbuf, int r, int g, int b, int dastat) // jfBuild
 	{
-		if (paletteloaded == 0) return;
+		if (paletteloaded == 0)
+			return;
 
-		//Allocate palookup buffer
+		// Allocate palookup buffer
 		if (palookup[palnum] == null)
-			palookup[palnum] = new byte[numshades<<8];
-		
-		if (dastat == 0) return;
-		if ((r|g|b|63) != 63) return;
+			palookup[palnum] = new byte[numshades << 8];
 
-		if ((r|g|b) == 0)
-		{
-			for(int i=0;i<256;i++)
-			{
-				for (int j=0; j<numshades; j++) {
+		if (dastat == 0)
+			return;
+		if ((r | g | b | 63) != 63)
+			return;
+
+		if ((r | g | b) == 0) {
+			for (int i = 0; i < 256; i++) {
+				for (int j = 0; j < numshades; j++) {
 					palookup[palnum][i + j * 256] = palookup[0][(remapbuf[i] & 0xFF) + j * 256];
 				}
 			}
 			palookupfog[palnum][0] = 0;
 			palookupfog[palnum][1] = 0;
 			palookupfog[palnum][2] = 0;
-		}
-		else
-		{
+		} else {
 			byte[] pal = new byte[768];
 			System.arraycopy(curpalette.getBytes(), 0, pal, 0, 768);
 			for (int j = 0; j < 768; j++)
 				pal[j] = (byte) ((pal[j] & 0xFF) >> 2);
-			
-			for (int i=0; i<numshades; i++)
-	        {
-	            long palscale = divscale(i,numshades, 16);
-	            for (int j = 0; j < 256; j++)
-	            {
-	            	int rptr = pal[3 * (remapbuf[j] & 0xFF)] & 0xFF;
-	            	int gptr = pal[3 * (remapbuf[j] & 0xFF) + 1] & 0xFF;
-	            	int bptr = pal[3 * (remapbuf[j] & 0xFF) + 2] &  0xFF;
 
-	                palookup[palnum][j + i * 256] = (byte) getclosestcol(pal, 
-	                		rptr+mulscale(r-rptr,palscale, 16),
-	                        gptr+mulscale(g-gptr,palscale, 16),
-	                        bptr+mulscale(b-bptr,palscale, 16));
-	            }
-	        }
+			for (int i = 0; i < numshades; i++) {
+				long palscale = divscale(i, numshades, 16);
+				for (int j = 0; j < 256; j++) {
+					int rptr = pal[3 * (remapbuf[j] & 0xFF)] & 0xFF;
+					int gptr = pal[3 * (remapbuf[j] & 0xFF) + 1] & 0xFF;
+					int bptr = pal[3 * (remapbuf[j] & 0xFF) + 2] & 0xFF;
+
+					palookup[palnum][j + i * 256] = (byte) getclosestcol(pal, rptr + mulscale(r - rptr, palscale, 16),
+							gptr + mulscale(g - gptr, palscale, 16), bptr + mulscale(b - bptr, palscale, 16));
+				}
+			}
 			palookupfog[palnum][0] = (byte) r;
 			palookupfog[palnum][1] = (byte) g;
 			palookupfog[palnum][2] = (byte) b;
@@ -3489,15 +3563,14 @@ public abstract class Engine {
 	}
 
 	// flags:
-	//  2: use gltexinvalidateall()
+	// 2: use gltexinvalidateall()
 
-	public void setbrightness(int dabrightness, byte[] dapal, int flags) { //jfBuild
+	public void setbrightness(int dabrightness, byte[] dapal, int flags) { // jfBuild
 		GLRenderer gl = glrender();
 		curbrightness = BClipRange(dabrightness, 0, 15);
-		
-		if((gl == null || gl.getType().getFrameType() != FrameType.GL) && curbrightness != 0)
-		{
-			for(int i = 0; i < dapal.length; i++) 
+
+		if ((gl == null || gl.getType().getFrameType() != FrameType.GL) && curbrightness != 0) {
+			for (int i = 0; i < dapal.length; i++)
 				temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
 			changepalette(temppal);
 		} else {
@@ -3506,15 +3579,15 @@ public abstract class Engine {
 		}
 
 		if ((flags & 2) != 0) {
-			if(gl != null) gl.gltexinvalidateall(flags);
+			if (gl != null)
+				gl.gltexinvalidateall(flags);
 		}
 
 		palfadergb.r = palfadergb.g = palfadergb.b = 0;
 		palfadergb.a = 0;
 	}
-	
-	public void changepalette(final byte[] palette)
-	{
+
+	public void changepalette(final byte[] palette) {
 		curpalette.update(palette, false);
 		BuildGdx.app.postRunnable(new Runnable() {
 			@Override
@@ -3525,105 +3598,108 @@ public abstract class Engine {
 	}
 
 	protected byte[] temppal = new byte[768];
-	public void setpalettefade(int r, int g, int b, int offset) { //jfBuild
+
+	public void setpalettefade(int r, int g, int b, int offset) { // jfBuild
 		palfadergb.r = min(63, r) << 2;
 		palfadergb.g = min(63, g) << 2;
 		palfadergb.b = min(63, b) << 2;
 		palfadergb.a = (min(63, offset) << 2);
 
-		if(glrender() == null) { //if 8bit renderer
+		if (glrender() == null) { // if 8bit renderer
 			int k = 0;
 			for (int i = 0; i < 256; i++) {
-				temppal[k++] = (byte) ( curpalette.getRed(i) + ( ((palfadergb.r - curpalette.getRed(i)) * offset) >> 6 ) );
-				temppal[k++] = (byte) ( curpalette.getGreen(i) + ( ((palfadergb.g - curpalette.getGreen(i)) * offset) >> 6 ) );
-				temppal[k++] = (byte) ( curpalette.getBlue(i) + ( ((palfadergb.b - curpalette.getBlue(i)) * offset) >> 6 ) );
+				temppal[k++] = (byte) (curpalette.getRed(i) + (((palfadergb.r - curpalette.getRed(i)) * offset) >> 6));
+				temppal[k++] = (byte) (curpalette.getGreen(i)
+						+ (((palfadergb.g - curpalette.getGreen(i)) * offset) >> 6));
+				temppal[k++] = (byte) (curpalette.getBlue(i)
+						+ (((palfadergb.b - curpalette.getBlue(i)) * offset) >> 6));
 			}
-	
+
 			render.changepalette(temppal);
 		}
 	}
 
-	public void clearview(int dacol) { //gdxBuild
+	public void clearview(int dacol) { // gdxBuild
 		render.clearview(dacol);
 	}
-	
-	public void setviewtotile(int tilenume, int xsiz, int ysiz) //jfBuild
+
+	public void setviewtotile(int tilenume, int xsiz, int ysiz) // jfBuild
 	{
-		if(render.getType() == RenderType.Software) {
+		if (render.getType() == RenderType.Software) {
 			((Software) render).setviewtotile(tilenume, tilesizx[tilenume], tilesizy[tilenume]);
 			return;
 		}
-		
-	    //DRAWROOMS TO TILE BACKUP&SET CODE
-	    tilesizx[tilenume] = (short)xsiz; tilesizy[tilenume] = (short)ysiz;
-	    bakwindowx1[setviewcnt] = windowx1; bakwindowy1[setviewcnt] = windowy1;
-	    bakwindowx2[setviewcnt] = windowx2; bakwindowy2[setviewcnt] = windowy2;
 
-	    if (setviewcnt == 0)
-	        baktile = tilenume;
-	   
-	    offscreenrendering = true;
-	    
-	    setviewcnt++;
-	    setview(0,0,ysiz-1,xsiz-1);
-	    setaspect(65536,65536);
+		// DRAWROOMS TO TILE BACKUP&SET CODE
+		tilesizx[tilenume] = (short) xsiz;
+		tilesizy[tilenume] = (short) ysiz;
+		bakwindowx1[setviewcnt] = windowx1;
+		bakwindowy1[setviewcnt] = windowy1;
+		bakwindowx2[setviewcnt] = windowx2;
+		bakwindowy2[setviewcnt] = windowy2;
+
+		if (setviewcnt == 0)
+			baktile = tilenume;
+
+		offscreenrendering = true;
+
+		setviewcnt++;
+		setview(0, 0, ysiz - 1, xsiz - 1);
+		setaspect(65536, 65536);
 	}
-	
-	public void setviewback() //jfBuild
+
+	public void setviewback() // jfBuild
 	{
-	    if (setviewcnt <= 0) return;
-	    setviewcnt--;
+		if (setviewcnt <= 0)
+			return;
+		setviewcnt--;
 
-	    offscreenrendering = (setviewcnt>0);
+		offscreenrendering = (setviewcnt > 0);
 
-	    if (setviewcnt == 0 && render.getType() != RenderType.Software) {
-	    	waloff[baktile] = setviewbuf();
-	        invalidatetile(baktile,-1,-1);
-	    }
-	    
-	    setview(bakwindowx1[setviewcnt],bakwindowy1[setviewcnt],
-	            bakwindowx2[setviewcnt],bakwindowy2[setviewcnt]); 
-	    
-	    if(render.getType() == RenderType.Software) 
+		if (setviewcnt == 0 && render.getType() != RenderType.Software) {
+			waloff[baktile] = setviewbuf();
+			invalidatetile(baktile, -1, -1);
+		}
+
+		setview(bakwindowx1[setviewcnt], bakwindowy1[setviewcnt], bakwindowx2[setviewcnt], bakwindowy2[setviewcnt]);
+
+		if (render.getType() == RenderType.Software)
 			((Software) render).setviewback();
 	}
-	
-	public void squarerotatetile(int tilenume)
-	{
-		int xsiz = tilesizx[tilenume]; 
+
+	public void squarerotatetile(int tilenume) {
+		int xsiz = tilesizx[tilenume];
 		int ysiz = tilesizy[tilenume];
 
-		//supports square tiles only for rotation part
-		if (xsiz == ysiz)
-		{
-			int k = (xsiz<<1);
+		// supports square tiles only for rotation part
+		if (xsiz == ysiz) {
+			int k = (xsiz << 1);
 			int ptr1, ptr2;
-			for(int i=xsiz-1,j;i>=0;i--) {
-				ptr1 = i*(xsiz+1); 
+			for (int i = xsiz - 1, j; i >= 0; i--) {
+				ptr1 = i * (xsiz + 1);
 				ptr2 = ptr1;
-				if ((i&1) != 0) { 
-					ptr1--; 
-					ptr2 -= xsiz; 
+				if ((i & 1) != 0) {
+					ptr1--;
+					ptr2 -= xsiz;
 					squarerotatetileswap(tilenume, ptr1, ptr2);
 				}
-				for(j=(i>>1)-1;j>=0;j--) {
-					ptr1 -= 2; 
-					ptr2 -= k; 
+				for (j = (i >> 1) - 1; j >= 0; j--) {
+					ptr1 -= 2;
+					ptr2 -= k;
 					squarerotatetileswap(tilenume, ptr1, ptr2);
 					squarerotatetileswap(tilenume, ptr1 + 1, ptr2 + xsiz);
 				}
 			}
 		}
 	}
-	
-	private void squarerotatetileswap(int tilenume, int p1, int p2)
-	{
+
+	private void squarerotatetileswap(int tilenume, int p1, int p2) {
 		byte tmp = waloff[tilenume][p1];
 		waloff[tilenume][p1] = waloff[tilenume][p2];
 		waloff[tilenume][p2] = tmp;
 	}
 
-	public void preparemirror(int dax, int day, int daz, float daang, float dahoriz, int dawall, int dasector) { //jfBuild
+	public void preparemirror(int dax, int day, int daz, float daang, float dahoriz, int dawall, int dasector) { // jfBuild
 		int x = wall[dawall].x;
 		int dx = wall[wall[dawall].point2].x - x;
 		int y = wall[dawall].y;
@@ -3639,11 +3715,11 @@ public abstract class Engine {
 		inpreparemirror = true;
 	}
 
-	public void completemirror() { 
+	public void completemirror() {
 		render.completemirror();
 	}
 
-	public short sectorofwall(short theline) { //jfBuild
+	public short sectorofwall(short theline) { // jfBuild
 		if ((theline < 0) || (theline >= numwalls))
 			return (-1);
 		short i = wall[theline].nextwall;
@@ -3666,8 +3742,8 @@ public abstract class Engine {
 		return (i);
 	}
 
-	public int getceilzofslope(short sectnum, int dax, int day) { //jfBuild
-		if(sectnum < 0 || sectnum >= MAXSECTORS || sector[sectnum] == null) 
+	public int getceilzofslope(short sectnum, int dax, int day) { // jfBuild
+		if (sectnum < 0 || sectnum >= MAXSECTORS || sector[sectnum] == null)
 			return 0;
 		if ((sector[sectnum].ceilingstat & 2) == 0)
 			return (sector[sectnum].ceilingz);
@@ -3679,12 +3755,12 @@ public abstract class Engine {
 		if (i == 0)
 			return (sector[sectnum].ceilingz);
 		long j = dmulscale(dx, day - wal.y, -dy, dax - wal.x, 3);
-		
+
 		return sector[sectnum].ceilingz + (scale(sector[sectnum].ceilingheinum, j, i));
 	}
 
-	public int getflorzofslope(short sectnum, int dax, int day) { //jfBuild
-		if(sectnum < 0 || sectnum >= MAXSECTORS || sector[sectnum] == null) 
+	public int getflorzofslope(short sectnum, int dax, int day) { // jfBuild
+		if (sectnum < 0 || sectnum >= MAXSECTORS || sector[sectnum] == null)
 			return 0;
 		if ((sector[sectnum].floorstat & 2) == 0)
 			return (sector[sectnum].floorz);
@@ -3700,11 +3776,12 @@ public abstract class Engine {
 	}
 
 	public void getzsofslope(short sectnum, int dax, int day, int[] outz) {
-		if(sectnum < 0 || sectnum >= MAXSECTORS || sector[sectnum] == null) 
+		if (sectnum < 0 || sectnum >= MAXSECTORS || sector[sectnum] == null)
 			return;
-	
+
 		SECTOR sec = sector[sectnum];
-		if(sec == null) return;
+		if (sec == null)
+			return;
 		outz[CEIL] = sec.ceilingz;
 		outz[FLOOR] = sec.floorz;
 		if (((sec.ceilingstat | sec.floorstat) & 2) != 0) {
@@ -3713,9 +3790,10 @@ public abstract class Engine {
 			int dx = wal2.x - wal.x;
 			int dy = wal2.y - wal.y;
 			int i = (ksqrt(dx * dx + dy * dy) << 5);
-			if (i == 0) return;
+			if (i == 0)
+				return;
 			long j = dmulscale(dx, day - wal.y, -dy, dax - wal.x, 3);
-	
+
 			if ((sec.ceilingstat & 2) != 0)
 				outz[CEIL] += scale(sec.ceilingheinum, j, i);
 			if ((sec.floorstat & 2) != 0)
@@ -3723,7 +3801,7 @@ public abstract class Engine {
 		}
 	}
 
-	public void alignceilslope(short dasect, int x, int y, int z) { //jfBuild
+	public void alignceilslope(short dasect, int x, int y, int z) { // jfBuild
 		WALL wal = wall[sector[dasect].wallptr];
 		int dax = wall[wal.point2].x - wal.x;
 		int day = wall[wal.point2].y - wal.y;
@@ -3731,7 +3809,8 @@ public abstract class Engine {
 		int i = (y - wal.y) * dax - (x - wal.x) * day;
 		if (i == 0)
 			return;
-		sector[dasect].ceilingheinum = (short) scale((z - sector[dasect].ceilingz) << 8, ksqrt(dax * dax + day * day), i);
+		sector[dasect].ceilingheinum = (short) scale((z - sector[dasect].ceilingz) << 8, ksqrt(dax * dax + day * day),
+				i);
 
 		if (sector[dasect].ceilingheinum == 0)
 			sector[dasect].ceilingstat &= ~2;
@@ -3739,7 +3818,7 @@ public abstract class Engine {
 			sector[dasect].ceilingstat |= 2;
 	}
 
-	public void alignflorslope(short dasect, int x, int y, int z) { //jfBuild
+	public void alignflorslope(short dasect, int x, int y, int z) { // jfBuild
 		WALL wal = wall[sector[dasect].wallptr];
 		int dax = wall[wal.point2].x - wal.x;
 		int day = wall[wal.point2].y - wal.y;
@@ -3747,8 +3826,7 @@ public abstract class Engine {
 		int i = (y - wal.y) * dax - (x - wal.x) * day;
 		if (i == 0)
 			return;
-		sector[dasect].floorheinum = (short) scale((z - sector[dasect].floorz) << 8,
-				ksqrt(dax * dax + day * day), i);
+		sector[dasect].floorheinum = (short) scale((z - sector[dasect].floorz) << 8, ksqrt(dax * dax + day * day), i);
 
 		if (sector[dasect].floorheinum == 0)
 			sector[dasect].floorstat &= ~2;
@@ -3756,7 +3834,7 @@ public abstract class Engine {
 			sector[dasect].floorstat |= 2;
 	}
 
-	public int loopnumofsector(int sectnum, int wallnum) { //jfBuild
+	public int loopnumofsector(int sectnum, int wallnum) { // jfBuild
 		int numloops = 0;
 		int startwall = sector[sectnum].wallptr;
 		int endwall = startwall + sector[sectnum].wallnum;
@@ -3769,7 +3847,7 @@ public abstract class Engine {
 		return (-1);
 	}
 
-	public void setfirstwall(short sectnum, short newfirstwall) { //jfBuild
+	public void setfirstwall(short sectnum, short newfirstwall) { // jfBuild
 		int startwall = sector[sectnum].wallptr;
 		int danumwalls = sector[sectnum].wallnum;
 		int endwall = startwall + danumwalls;
@@ -3788,7 +3866,7 @@ public abstract class Engine {
 			i = wall[i].point2;
 		} while (i != newfirstwall);
 
-		//Put correct loop at beginning
+		// Put correct loop at beginning
 		int dagoalloop = loopnumofsector(sectnum, newfirstwall), j, k;
 		if (dagoalloop > 0) {
 			j = 0;
@@ -3836,16 +3914,16 @@ public abstract class Engine {
 				wall[wall[i].nextwall].nextwall = (short) i;
 	}
 
-	public void printext256(int xpos, int ypos, int col, int backcol, char[] name, int fontsize, float scale) { //gdxBuild
+	public void printext256(int xpos, int ypos, int col, int backcol, char[] name, int fontsize, float scale) { // gdxBuild
 		render.printext(xpos, ypos, col, backcol, name, fontsize, scale);
 	}
-	
-	public String screencapture(String fn) { //jfBuild + gdxBuild (screenshot)
+
+	public String screencapture(String fn) { // jfBuild + gdxBuild (screenshot)
 		int a, b, c, d;
 		fn = fn.replaceAll("[^a-zA-Z0-9_. \\[\\]-]", "");
-		
+
 		fn = fn.substring(0, fn.lastIndexOf('.') - 4);
-		
+
 		DirectoryEntry userdir = BuildGdx.compat.getDirectory(Path.User);
 
 		int capturecount = 0;
@@ -3858,11 +3936,11 @@ public abstract class Engine {
 			c = ((capturecount / 10) % 10);
 			d = (capturecount % 10);
 
-			if(userdir.checkFile(fn + a + b + c + d + ".png") == null)
+			if (userdir.checkFile(fn + a + b + c + d + ".png") == null)
 				break;
 			capturecount++;
 		} while (true);
-		
+
 		int w = xdim, h = ydim;
 		Pixmap capture = null;
 		try {
@@ -3875,41 +3953,42 @@ public abstract class Engine {
 			userdir.addFile(pci);
 			capture.dispose();
 			return fn + a + b + c + d + ".png";
-		} catch(Throwable e) {
-			if(capture != null)
+		} catch (Throwable e) {
+			if (capture != null)
 				capture.dispose();
 			return null;
 		}
 	}
-	
+
 	private byte[] capture;
-	public byte[] screencapture(int dwidth, int dheigth) { //gdxBuild (savegame file)
-		if (capture == null || capture.length < dwidth * dheigth ) 
+
+	public byte[] screencapture(int dwidth, int dheigth) { // gdxBuild (savegame file)
+		if (capture == null || capture.length < dwidth * dheigth)
 			capture = new byte[dwidth * dheigth];
-	
+
 		long xf = divscale(xdim, dwidth, 16);
 		long yf = divscale(ydim, dheigth, 16);
 
 		ByteBuffer frame;
-		if(render.getType() == RenderType.Software) {
+		if (render.getType() == RenderType.Software) {
 			frame = render.getFrame(PixelFormat.Pal8, xdim, ydim);
-		} else frame = render.getFrame(PixelFormat.Rgb, xdim, -ydim);
-		
+		} else
+			frame = render.getFrame(PixelFormat.Rgb, xdim, -ydim);
+
 		int base;
 		for (int fx, fy = 0; fy < dheigth; fy++) {
 			base = mulscale(fy, yf, 16) * xdim;
 			for (fx = 0; fx < dwidth; fx++) {
-				capture[dheigth * fx + fy] = getcol(frame, base + mulscale(fx, xf, 16), render.getType().getFrameType());
+				capture[dheigth * fx + fy] = getcol(frame, base + mulscale(fx, xf, 16),
+						render.getType().getFrameType());
 			}
 		}
 
 		return capture;
 	}
-	
-	private byte getcol(ByteBuffer frame, int pos, FrameType format)
-	{
-		switch(format)
-		{
+
+	private byte getcol(ByteBuffer frame, int pos, FrameType format) {
+		switch (format) {
 		case Canvas:
 			frame.position(pos);
 			return frame.get();
@@ -3921,16 +4000,16 @@ public abstract class Engine {
 			return getclosestcol(palette, r, g, b);
 		}
 	}
-	
-	private byte[] setviewbuf() { //gdxBuild
+
+	private byte[] setviewbuf() { // gdxBuild
 		int width = tilesizx[baktile];
 		int heigth = tilesizy[baktile];
 		byte[] data = waloff[baktile];
-		if (data == null || data.length < width * heigth ) 
+		if (data == null || data.length < width * heigth)
 			data = new byte[width * heigth];
-		
+
 		ByteBuffer frame = render.getFrame(PixelFormat.Pal8, width, heigth);
-		
+
 		int dptr = 0;
 		int sptr = 0;
 		for (int i = width - 1, j; i >= 0; i--) {
@@ -3944,45 +4023,46 @@ public abstract class Engine {
 		return data;
 	}
 
-	public int setrendermode(Renderer render) { //gdxBuild
+	public int setrendermode(Renderer render) { // gdxBuild
 		this.render = render;
 		render.setDefs(getDefs());
 		return 0;
 	}
-	
-	public Renderer getrender() //gdxBuild
+
+	public Renderer getrender() // gdxBuild
 	{
 		return render;
 	}
-	
-	public GLRenderer glrender()
-	{
-		if(render != null && getrender().getType().getFrameType() == FrameType.GL)
+
+	public GLRenderer glrender() {
+		if (render != null && getrender().getType().getFrameType() == FrameType.GL)
 			return (GLRenderer) render;
-		
+
 		return null;
 	}
 
 	//
 	// invalidatetile
-	//  pal: pass -1 to invalidate all palettes for the tile, or >=0 for a particular palette
-	//  how: pass -1 to invalidate all instances of the tile in texture memory, or a bitfield
-	//	         bit 0: opaque or masked (non-translucent) texture, using repeating
-	//	         bit 1: ignored
-	//	         bit 2: ignored (33% translucence, using repeating)
-	//	         bit 3: ignored (67% translucence, using repeating)
-	//	         bit 4: opaque or masked (non-translucent) texture, using clamping
-	//	         bit 5: ignored
-	//	         bit 6: ignored (33% translucence, using clamping)
-	//	         bit 7: ignored (67% translucence, using clamping)
-	//	       clamping is for sprites, repeating is for walls
+	// pal: pass -1 to invalidate all palettes for the tile, or >=0 for a particular
+	// palette
+	// how: pass -1 to invalidate all instances of the tile in texture memory, or a
+	// bitfield
+	// bit 0: opaque or masked (non-translucent) texture, using repeating
+	// bit 1: ignored
+	// bit 2: ignored (33% translucence, using repeating)
+	// bit 3: ignored (67% translucence, using repeating)
+	// bit 4: opaque or masked (non-translucent) texture, using clamping
+	// bit 5: ignored
+	// bit 6: ignored (33% translucence, using clamping)
+	// bit 7: ignored (67% translucence, using clamping)
+	// clamping is for sprites, repeating is for walls
 	//
-	
-	public void invalidatetile(int tilenume, int pal, int how) { //jfBuild
+
+	public void invalidatetile(int tilenume, int pal, int how) { // jfBuild
 		GLRenderer gl = glrender();
-		if(gl == null) //not initialized...
+		if (gl == null) // not initialized...
 			return;
-		
+
 		int numpal, firstpal, np;
 		int hp;
 
@@ -4004,7 +4084,7 @@ public abstract class Engine {
 		}
 	}
 
-	public void copytilepiece(int tilenume1, int sx1, int sy1, int xsiz, int ysiz, //jfBuild
+	public void copytilepiece(int tilenume1, int sx1, int sy1, int xsiz, int ysiz, // jfBuild
 			int tilenume2, int sx2, int sy2) {
 
 		int xsiz1 = tilesizx[tilenume1];
@@ -4042,11 +4122,11 @@ public abstract class Engine {
 
 	public abstract void faketimerhandler();
 
-	public void setgotpic(int tilenume) { //jfBuild
+	public void setgotpic(int tilenume) { // jfBuild
 		gotpic[tilenume >> 3] |= pow2char[tilenume & 7];
 	}
 
-	public int clockdir(short wallstart) //Returns: 0 is CW, 1 is CCW
+	public int clockdir(short wallstart) // Returns: 0 is CW, 1 is CCW
 	{
 		int minx = 0x7fffffff;
 		int themin = -1;
@@ -4081,7 +4161,7 @@ public abstract class Engine {
 	public int loopinside(int x, int y, short startwall) {
 		int cnt = clockdir(startwall);
 		int i = startwall;
-		
+
 		int x1, x2, y1, y2, templong;
 		do {
 			x1 = wall[i].x;
@@ -4121,50 +4201,48 @@ public abstract class Engine {
 		}
 	}
 
-	public static KeyInput getInput() //gdxBuild
+	public static KeyInput getInput() // gdxBuild
 	{
 		return input;
 	}
 
-	public void handleevents() { //gdxBuild
+	public void handleevents() { // gdxBuild
 		input.handleevents();
 		Console.HandleScanCode();
-		
+
 		sampletimer();
 	}
 
-	public void initkeys() { //gdxBuild
+	public void initkeys() { // gdxBuild
 		input = new KeyInput();
 	}
 
-    public void printfps(float scale) {
-    	if(System.currentTimeMillis() - fpstime >= 1000)
-    	{
-    		int fps = BuildGdx.graphics.getFramesPerSecond();
-        	int rate = (int)(BuildGdx.graphics.getDeltaTime() * 1000);
-        	if(fps <= 9999 && rate <= 9999) {
-    	    	int chars = Bitoa(rate, fpsbuffer);
-    			chars = buildString(fpsbuffer, chars, "ms ", fps);
-    			chars = buildString(fpsbuffer, chars, "fps");
-    			fpsx = windowx2 - (int) ((chars << 3) * scale);
-    			fpsy = windowy1 + 1;
-        	}
-    		fpstime = System.currentTimeMillis();
-    	} 
-    	render.printext(fpsx, fpsy, fpscol, -1, fpsbuffer, 0, scale);
-    }
+	public void printfps(float scale) {
+		if (System.currentTimeMillis() - fpstime >= 1000) {
+			int fps = BuildGdx.graphics.getFramesPerSecond();
+			int rate = (int) (BuildGdx.graphics.getDeltaTime() * 1000);
+			if (fps <= 9999 && rate <= 9999) {
+				int chars = Bitoa(rate, fpsbuffer);
+				chars = buildString(fpsbuffer, chars, "ms ", fps);
+				chars = buildString(fpsbuffer, chars, "fps");
+				fpsx = windowx2 - (int) ((chars << 3) * scale);
+				fpsy = windowy1 + 1;
+			}
+			fpstime = System.currentTimeMillis();
+		}
+		render.printext(fpsx, fpsy, fpscol, -1, fpsbuffer, 0, scale);
+	}
 
-    private DefScript defs;
-    public void setDefs(DefScript defs)
-    {
-    	this.defs = defs;  
-    	if(getrender() == null)
-    		throw new NullPointerException("Renderer is not initialized!");
-    	getrender().setDefs(defs);
-    }
-    
-    public DefScript getDefs()
-    {
-    	return defs;
-    }
+	private DefScript defs;
+
+	public void setDefs(DefScript defs) {
+		this.defs = defs;
+		if (getrender() == null)
+			throw new NullPointerException("Renderer is not initialized!");
+		getrender().setDefs(defs);
+	}
+
+	public DefScript getDefs() {
+		return defs;
+	}
 }
