@@ -372,7 +372,7 @@ public abstract class BuildConfig extends IniFile {
 			if(value >= 0 && value < 1.0)
 				soundVolume = value;
 			int voices = GetKeyInt("MaxVoices");
-			if(voices >= 0 && voices < 256)
+			if(voices >= 0 && voices <= 256)
 				maxvoices = voices;
 			int resampler = GetKeyInt("Resampler"); 
 			if(resampler != -1) resampler_num = resampler;

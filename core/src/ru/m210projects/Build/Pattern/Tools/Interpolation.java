@@ -64,8 +64,10 @@ public class Interpolation {
 	}
 
 	protected void setinterpolation(Object obj, InterpolationType type) {
-		if (InterpolationCount == MAXINTERPOLATIONS)
+		if (InterpolationCount == MAXINTERPOLATIONS) {
 			Console.Println("Too many interpolations", Console.OSDTEXT_RED);
+			return;
+		}
 
 		IData data = gInterpolationData[InterpolationCount++];
 

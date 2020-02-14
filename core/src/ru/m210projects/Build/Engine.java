@@ -64,8 +64,6 @@ public abstract class Engine {
 	
 	/*
 	 * TODO:
-	 * Сбрасываются звуки voices если поставить 256 в настройках
-	 * Вставить credits в res.dat
 	 * Software renderer: and the draw distance for voxel detail is really low
 	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
 	 * Software renderer: Voxel is not clipped by ceiling geometry
@@ -132,7 +130,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 	
-	public static final String version = "20.011"; //XX. - year, XX - month, X - build
+	public static final String version = "20.021"; //XX. - year, XX - month, X - build
 	
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;

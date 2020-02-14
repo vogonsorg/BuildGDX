@@ -180,8 +180,8 @@ public abstract class Software extends Renderer {
 	public int[] reciptable = new int[2048];
 	public int xdimenrecip;
 
-	public int smostwall[] = new int[MAXWALLSB], smostwallcnt = -1;
-	public short smost[] = new short[MAXYSAVES], smostcnt;
+	public int smostwall[] = new int[MAXWALLSB], smostwallcnt = -1, smostcnt;
+	public short smost[] = new short[MAXYSAVES];
 	public int smoststart[] = new int[MAXWALLSB];
 	public byte[] smostwalltype = new byte[MAXWALLSB];
 
@@ -702,7 +702,7 @@ public abstract class Software extends Renderer {
 			int gotswall = 0;
 
 			int startsmostwallcnt = smostwallcnt;
-			short startsmostcnt = smostcnt;
+			int startsmostcnt = smostcnt;
 
 			if (nextsectnum >= 0) {
 				nextsec = sector[nextsectnum];
@@ -1709,6 +1709,7 @@ public abstract class Software extends Renderer {
 			int rpoint = -1;
 			long rmax = 0x80000000;
 			for (z = 0; z < npoints; z++) {
+				if(rzi[z] == 0) continue;
 				xsi[z] = scale(rxi[z], xdimen << 15, rzi[z]) + (xdimen << 15);
 				ysi[z] = scale(ryi[z], xdimen << 15, rzi[z]) + ((int) globalhoriz << 16);
 				if (xsi[z] < 0)
