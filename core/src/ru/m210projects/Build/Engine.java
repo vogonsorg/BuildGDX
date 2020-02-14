@@ -10,8 +10,6 @@
 package ru.m210projects.Build;
 
 import static java.lang.Math.*;
-import static ru.m210projects.Build.Engine.MAXSECTORS;
-import static ru.m210projects.Build.Engine.MAXSECTORSV8;
 import static ru.m210projects.Build.FileHandle.Compat.*;
 import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Gameutils.*;
