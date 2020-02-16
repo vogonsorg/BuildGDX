@@ -35,6 +35,7 @@ import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Engine.Point;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
@@ -4640,26 +4641,33 @@ public abstract class Polymost extends GLRenderer {
 			reverse = true;
 		}
 		
-		if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * 3 )
-			rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * 3);
-
+		int byteperpixel = 3;
+		int fmt = GL10.GL_RGB;
+		if(BuildGdx.app.getPlatform() == Platform.Android) {
+			byteperpixel = 4;
+			fmt = GL10.GL_RGBA;
+		}
+		
+		if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * byteperpixel )
+			rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * byteperpixel);
 		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
-		gl.glReadPixels(0, ydim - ysiz, xsiz, ysiz, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
+		gl.glReadPixels(0, ydim - ysiz, xsiz, ysiz, fmt, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
+		
 
 		if(format == PixelFormat.Rgb) {
 			if(reverse)
 			{
 				int b1, b2 = 0;
 				for (int p, x, y = 0; y < ysiz / 2; y++) {
-					b1 = 3 * (ysiz - y - 1) * xsiz;
+					b1 = byteperpixel * (ysiz - y - 1) * xsiz;
 					for (x = 0; x < xsiz; x++) {
-						for (p = 0; p < 3; p++) {
+						for (p = 0; p < byteperpixel; p++) {
 							byte tmp = rgbbuffer.get(b1 + p);
 							rgbbuffer.put(b1 + p, rgbbuffer.get(b2 + p));
 							rgbbuffer.put(b2 + p, tmp);
 						}
-						b1 += 3;
-						b2 += 3;
+						b1 += byteperpixel;
+						b2 += byteperpixel;
 					}
 				}
 			}
@@ -4674,7 +4682,7 @@ public abstract class Polymost extends GLRenderer {
 			if(reverse)
 			{
 				for (int x, y = 0; y < ysiz; y++) {
-					base = 3 * (ysiz - y - 1) * xsiz;
+					base = byteperpixel * (ysiz - y - 1) * xsiz;
 					for (x = 0; x < xsiz; x++) {
 						r = (rgbbuffer.get(base++) & 0xFF) >> 2;
 						g = (rgbbuffer.get(base++) & 0xFF) >> 2;
@@ -4690,6 +4698,7 @@ public abstract class Polymost extends GLRenderer {
 					r = (rgbbuffer.get(base++) & 0xFF) >> 2;
 					g = (rgbbuffer.get(base++) & 0xFF) >> 2;
 					b = (rgbbuffer.get(base++) & 0xFF) >> 2;
+					if(byteperpixel == 4) base++; //Android
 					indexbuffer.put(engine.getclosestcol(palette, r, g, b));
 				}
 			}

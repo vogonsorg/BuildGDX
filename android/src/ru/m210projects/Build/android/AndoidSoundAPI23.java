@@ -27,6 +27,7 @@ import java.util.List;
 import android.media.MediaPlayer;
 import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.Sound;
+import ru.m210projects.Build.Audio.SoundData;
 import ru.m210projects.Build.Audio.Source;
 import ru.m210projects.Build.Audio.SourceCallback;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -388,6 +389,12 @@ public class AndoidSoundAPI23 implements Sound {
 			// TODO Auto-generated method stub
 			
 		}
+	}
+
+	@Override
+	public SoundData decodeSound(byte[] data) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

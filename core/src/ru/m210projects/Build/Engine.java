@@ -4006,25 +4006,29 @@ public abstract class Engine {
 		} else
 			frame = render.getFrame(PixelFormat.Rgb, xdim, -ydim);
 
+		int byteperpixel = 3;
+		if (BuildGdx.app.getType() == ApplicationType.Android)
+			byteperpixel = 4;
+	
 		int base;
 		for (int fx, fy = 0; fy < dheigth; fy++) {
 			base = mulscale(fy, yf, 16) * xdim;
 			for (fx = 0; fx < dwidth; fx++) {
 				capture[dheigth * fx + fy] = getcol(frame, base + mulscale(fx, xf, 16),
-						render.getType().getFrameType());
+						render.getType().getFrameType(), byteperpixel);
 			}
 		}
 
 		return capture;
 	}
 
-	private byte getcol(ByteBuffer frame, int pos, FrameType format) {
+	private byte getcol(ByteBuffer frame, int pos, FrameType format, int byteperpixel) {
 		switch (format) {
 		case Canvas:
 			frame.position(pos);
 			return frame.get();
 		default:
-			frame.position(3 * pos);
+			frame.position(byteperpixel * pos);
 			int r = (frame.get() & 0xFF) >> 2;
 			int g = (frame.get() & 0xFF) >> 2;
 			int b = (frame.get() & 0xFF) >> 2;
