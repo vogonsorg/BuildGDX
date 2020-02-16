@@ -228,6 +228,10 @@ public class BuildAudio implements Disposable {
 		return null;
 	}
 	
+	public SoundData decodeSound(byte[] data) {
+		return fx.decodeSound(data);
+	}
+	
 	public Source newSound(ByteBuffer data, int rate, int bits, int priority)
 	{
 		if(priority == 0) priority = 1;

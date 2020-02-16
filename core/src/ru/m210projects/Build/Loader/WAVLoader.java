@@ -17,14 +17,11 @@
 package ru.m210projects.Build.Loader;
 
 import java.nio.ByteBuffer;
+
+import ru.m210projects.Build.Audio.SoundData;
 import ru.m210projects.Build.Types.LittleEndian;
 
-public class WAVLoader {
-
-	public int samplerate;
-	public int channels;
-	public int samplebits;
-	public ByteBuffer sampledata;
+public class WAVLoader extends SoundData {
 
 	public WAVLoader(byte[] data) throws Exception
 	{
@@ -32,9 +29,9 @@ public class WAVLoader {
 			throw new Exception("Wrong file size");
 		
 		getInfo(data);
-		sampledata = ByteBuffer.allocateDirect(data.length - 44);
-		sampledata.put(data, 44, sampledata.capacity());
-		sampledata.rewind();
+		this.data = ByteBuffer.allocateDirect(data.length - 44);
+		this.data.put(data, 44, this.data.capacity());
+		this.data.rewind();
 	}
 	
 	private void getInfo(byte[] data) throws Exception
@@ -60,9 +57,9 @@ public class WAVLoader {
 		channels = LittleEndian.getShort(data, ptr); ptr += 2;
 		if (channels != 1 && channels != 2)
 			throw new Exception("WAV files must have 1 or 2 channels: " + channels);
-		samplerate = LittleEndian.getInt(data, ptr); ptr += 4;
+		rate = LittleEndian.getInt(data, ptr); ptr += 4;
 		ptr += 4; //byte rate
 		ptr += 2; //block align
-		samplebits = LittleEndian.getShort(data, ptr);
+		bits = LittleEndian.getShort(data, ptr);
 	}	
 }

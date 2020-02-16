@@ -89,8 +89,6 @@ public abstract class BuildGame extends Game {
 		this.pCfg = cfg;
 		this.date = new Date("MMM dd, yyyy HH:mm:ss");
 		this.baseDef = new DefScript(false);
-		this.pInt = new Interpolation();
-		this.pSavemgr = new SaveManager();
 	}
 
 	@Override

@@ -36,6 +36,8 @@ import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
+import ru.m210projects.Build.Pattern.Tools.Interpolation;
+import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -133,6 +135,9 @@ public class InitScreen extends ScreenAdapter {
 			return;
 		}
 		
+		game.pInt = new Interpolation();
+		game.pSavemgr = new SaveManager();
+		
 		Console.setFunction(factory.console());
 
 		if(engine.loadpics() == 0) {
@@ -165,7 +170,7 @@ public class InitScreen extends ScreenAdapter {
 					game.pMenu = factory.menus();
 					game.pNet = factory.net();
 					game.pSlider = factory.slider();
-
+		
 					uninitmultiplayer();
 					
 					cfg.snddrv = BuildGdx.audio.checkNum(Driver.Sound, cfg.snddrv);
@@ -187,7 +192,7 @@ public class InitScreen extends ScreenAdapter {
 					BuildSettings.fpsLimit.set(cfg.fpslimit);
 					
 //					BuildGdx.threads = new ThreadProcessor();
-		
+
 					gameInitialized = game.init();
 					
 					ConsoleInit();

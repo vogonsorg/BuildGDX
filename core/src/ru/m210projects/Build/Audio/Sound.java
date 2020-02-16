@@ -49,5 +49,6 @@ public interface Sound {
 	public void stopAllSounds();
 	public boolean isAvailable(int priority);
 	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority);
+	public SoundData decodeSound(byte[] data);
 	public void update();
 }
