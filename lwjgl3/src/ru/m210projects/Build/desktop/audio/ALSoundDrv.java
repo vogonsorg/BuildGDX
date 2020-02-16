@@ -37,7 +37,10 @@ import static ru.m210projects.Build.desktop.audio.ALAudio.AL_SOURCE_RELATIVE;
 import static ru.m210projects.Build.desktop.audio.ALAudio.AL_TRUE;
 import static ru.m210projects.Build.desktop.audio.ALAudio.AL_VELOCITY;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -46,9 +49,14 @@ import java.util.List;
 
 import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.Sound;
+import ru.m210projects.Build.Audio.SoundData;
 import ru.m210projects.Build.Audio.Source;
+import ru.m210projects.Build.Loader.WAVLoader;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+
+import com.badlogic.gdx.backends.lwjgl3.audio.OggInputStream;
 import com.badlogic.gdx.utils.BufferUtils;
+import com.badlogic.gdx.utils.StreamUtils;
 
 public class ALSoundDrv implements Sound {
 	
@@ -263,6 +271,43 @@ public class ALSoundDrv implements Sound {
 			Console.Println("OpenAL Error newSound " + error, OSDTEXT_RED);
 		
 		return source;
+	}
+	
+	public SoundData decodeSound(byte[] data) {
+		if(data == null)
+			return null;
+		
+		if(data[0] == 0x52 && data[1] == 0x59 && data[2] == 0x46 && data[3] == 0x46) { //RIFF
+			try {
+				return new WAVLoader(data);
+			} catch (Exception e) {}
+		} else {
+			if(data[0] == 0x4F && data[1] == 0x67 && data[2] == 0x67) { //OGG
+				OggInputStream input = null;
+				try {
+					input = new OggInputStream(new ByteArrayInputStream(data, 0, data.length));
+					ByteArrayOutputStream output = new ByteArrayOutputStream(4096);
+					byte[] buffer = new byte[2048];
+					while (!input.atEnd()) {
+						int length = input.read(buffer);
+						if (length == -1) break;
+						output.write(buffer, 0, length);
+					}
+					SoundData ogg = new SoundData();
+					ogg.channels = input.getChannels();
+					ogg.rate = input.getSampleRate();
+					ogg.bits = 16;
+					ogg.data = ByteBuffer.allocateDirect(output.size()).order(ByteOrder.LITTLE_ENDIAN);
+					ogg.data.put(output.toByteArray());
+					ogg.data.rewind();
+					return ogg;
+				} finally {
+					StreamUtils.closeQuietly(input);
+				}
+			}
+		}
+
+		return null;
 	}
 
 	@Override
