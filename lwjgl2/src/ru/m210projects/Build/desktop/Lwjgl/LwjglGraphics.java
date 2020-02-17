@@ -128,6 +128,7 @@ public class LwjglGraphics extends BuildGraphics {
 		Display.setResizable(config.resizable);
 		Display.setInitialBackground(0, 0, 0);
 		Display.setLocation(config.x, config.y);
+		setUndecorated(config.borderless);
 		
 		int gles30ContextMajorVersion = 3;
 		int gles30ContextMinorVersion = 2;

@@ -245,6 +245,8 @@ public class Lwjgl3Graphics extends BuildGraphics {
 			this.gl30 = null;
 		}
 		updateFramebufferInfo();
+		
+		setUndecorated(config.borderless);
 		GLFW.glfwShowWindow(windowHandle);
 	}
 
