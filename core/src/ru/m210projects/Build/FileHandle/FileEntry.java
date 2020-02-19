@@ -22,7 +22,7 @@ import java.io.File;
 
 import ru.m210projects.Build.CRC32;
 
-public class FileEntry {
+public class FileEntry implements Comparable<FileEntry> {
 	private File file;
 	private String extension;
 	private String relPath;
@@ -75,5 +75,25 @@ public class FileEntry {
 	public String toString()
 	{
 		return file.getAbsolutePath() + ", Extension: " + extension;
+	}
+
+	@Override
+	public int compareTo(FileEntry f) {
+		String s1 = this.getName();
+		String s2 = f.getName();
+		
+		String t1 = s1.replaceAll("\\d", "");
+		String t2 = s2.replaceAll("\\d", "");
+		
+		int c = t1.compareTo(t2);
+		if(c != 0) return c;
+
+		String n1 = s1.replaceAll("\\D", "");
+		String n2 = s2.replaceAll("\\D", "");
+
+		if(!n1.isEmpty() && !n2.isEmpty()) 
+			return Integer.parseInt(n1) - Integer.parseInt(n2);
+
+		return 0;
 	}
 }

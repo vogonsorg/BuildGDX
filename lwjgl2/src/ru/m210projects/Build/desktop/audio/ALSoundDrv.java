@@ -277,7 +277,7 @@ public class ALSoundDrv implements Sound {
 		if(data == null)
 			return null;
 		
-		if(data[0] == 0x52 && data[1] == 0x59 && data[2] == 0x46 && data[3] == 0x46) { //RIFF
+		if(data[0] == 0x52 && data[1] == 0x49 && data[2] == 0x46 && data[3] == 0x46) { //RIFF
 			try {
 				return new WAVLoader(data);
 			} catch (Exception e) {}
