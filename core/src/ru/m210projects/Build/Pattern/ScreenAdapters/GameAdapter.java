@@ -91,11 +91,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 					if(prestart != null)
 						prestart.run();
 					startboard(startboard);
-				} else {
-					game.setPrevScreen();
-					if (game.isCurrentScreen(GameAdapter.this)) 
-						game.pNet.ready2send = true;
-				}
+				} //do nothing, it's better to handle it in each game manualy
 			}
 		});
 		
