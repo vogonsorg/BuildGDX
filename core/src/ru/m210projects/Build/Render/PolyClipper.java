@@ -15,7 +15,7 @@ import static java.lang.Math.abs;
 public class PolyClipper {
 	
 	class vsptyp {
-		float x, cy[] = new float[2], fy[] = new float[2];
+		double x, cy[] = new double[2], fy[] = new double[2];
 		int n, p, tag, ctag, ftag;
 
 		public void set(vsptyp src) {
@@ -38,7 +38,7 @@ public class PolyClipper {
 	private final int VSPMAX = 4096; // <- careful!
 	private vsptyp[] vsp = new vsptyp[VSPMAX];
 	private final Surface[] domost = new Surface[4];
-	private final float[] domost_cy = new float[2], domost_cv = new float[2];
+	private final double[] domost_cy = new double[2], domost_cv = new double[2];
 	private Polymost r;
 	
 	public PolyClipper(Polymost render)
@@ -67,8 +67,8 @@ public class PolyClipper {
 			if (px[i] < px[imin])
 				imin = i;
 
-		vsp[vcnt].x = (float) px[imin];
-		vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = (float) py[imin];
+		vsp[vcnt].x = px[imin];
+		vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = py[imin];
 		vcnt++;
 		
 		i = imin + 1;
@@ -80,12 +80,12 @@ public class PolyClipper {
 			if (px[i] < px[j]) {
 				if ((vcnt > 1) && (px[i] <= vsp[vcnt - 1].x))
 					vcnt--;
-				vsp[vcnt].x = (float) px[i];
-				vsp[vcnt].cy[0] = (float) py[i];
+				vsp[vcnt].x = px[i];
+				vsp[vcnt].cy[0] = py[i];
 				k = j + 1;
 				if (k >= n)
 					k = 0;
-				vsp[vcnt].fy[0] = (float) ((px[i] - px[k]) * (py[j] - py[k])
+				vsp[vcnt].fy[0] = ((px[i] - px[k]) * (py[j] - py[k])
 						/ (px[j] - px[k]) + py[k]);
 				vcnt++;
 				i++;
@@ -94,15 +94,15 @@ public class PolyClipper {
 			} else if (px[j] < px[i]) {
 				if ((vcnt > 1) && (px[j] <= vsp[vcnt - 1].x))
 					vcnt--;
-				vsp[vcnt].x = (float) px[j];
-				vsp[vcnt].fy[0] = (float) py[j];
+				vsp[vcnt].x = px[j];
+				vsp[vcnt].fy[0] = py[j];
 				k = i - 1;
 				if (k < 0)
 					k = n - 1;
 				// (px[k],py[k])
 				// (px[j],?)
 				// (px[i],py[i])
-				vsp[vcnt].cy[0] = (float) ((px[j] - px[k]) * (py[i] - py[k])
+				vsp[vcnt].cy[0] = ((px[j] - px[k]) * (py[i] - py[k])
 						/ (px[i] - px[k]) + py[k]);
 				vcnt++;
 				j--;
@@ -111,9 +111,9 @@ public class PolyClipper {
 			} else {
 				if ((vcnt > 1) && (px[i] <= vsp[vcnt - 1].x))
 					vcnt--;
-				vsp[vcnt].x = (float) px[i];
-				vsp[vcnt].cy[0] = (float) py[i];
-				vsp[vcnt].fy[0] = (float) py[j];
+				vsp[vcnt].x = px[i];
+				vsp[vcnt].cy[0] = py[i];
+				vsp[vcnt].fy[0] = py[j];
 				vcnt++;
 				i++;
 				if (i >= n)
@@ -127,8 +127,8 @@ public class PolyClipper {
 		} while (i != j);
 
 		if (px[i] > vsp[vcnt - 1].x) {
-			vsp[vcnt].x = (float) px[i];
-			vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = (float) py[i];
+			vsp[vcnt].x = px[i];
+			vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = py[i];
 			vcnt++;
 		}
 
@@ -154,8 +154,8 @@ public class PolyClipper {
 		vsp[vcnt].p = VSPMAX - 1;
 	}
 	
-	public void domost(float x0, float y0, float x1, float y1) {
-		float d, f, n, t, slop, dx, dx0, dx1, nx, nx0, ny0, nx1, ny1;
+	public void domost(double x0, double y0, double x1, double y1) {
+		double d, f, n, t, slop, dx, dx0, dx1, nx, nx0, ny0, nx1, ny1;
 		int i, j, k, z, ni, vcnt = 0, scnt, newi;
 
 		boolean dir = (x0 < x1);
@@ -198,7 +198,7 @@ public class PolyClipper {
 			if ((x0 > nx0) && (x0 < nx1)) {
 				t = (x0 - nx0) * domost_cv[dir?1:0] - (y0 - domost_cy[dir?1:0]) * dx;
 				if (((!dir) && (t < 0)) || ((dir) && (t > 0))) {
-					domost[scnt].spx = x0;
+					domost[scnt].spx = (float) x0;
 					domost[scnt].spt = -1;
 					scnt++;
 				}
@@ -212,7 +212,7 @@ public class PolyClipper {
 					t = n / d;
 					nx = (x1 - x0) * t + x0;
 					if ((nx > nx0) && (nx < nx1)) {
-						domost[scnt].spx = nx;
+						domost[scnt].spx = (float) nx;
 						domost[scnt].spt = j;
 						scnt++;
 					}
@@ -223,7 +223,7 @@ public class PolyClipper {
 			if ((scnt >= 2) && (domost[scnt - 1].spx < domost[scnt - 2].spx)) {
 				f = domost[scnt - 1].spx;
 				domost[scnt - 1].spx = domost[scnt - 2].spx;
-				domost[scnt - 2].spx = f;
+				domost[scnt - 2].spx = (float) f;
 				j = domost[scnt - 1].spt;
 				domost[scnt - 1].spt = domost[scnt - 2].spt;
 				domost[scnt - 2].spt = j;
@@ -233,7 +233,7 @@ public class PolyClipper {
 			if ((x1 > nx0) && (x1 < nx1)) {
 				t = (x1 - nx0) * domost_cv[dir?1:0] - (y1 - domost_cy[dir?1:0]) * dx;
 				if (((!dir) && (t < 0)) || ((dir) && (t > 0))) {
-					domost[scnt].spx = x1;
+					domost[scnt].spx = (float) x1;
 					domost[scnt].spt = -1;
 					scnt++;
 				}
@@ -439,7 +439,7 @@ public class PolyClipper {
 		}
 	}
 	
-	public int testvisiblemost(float x0, float x1) {
+	public int testvisiblemost(double x0, double x1) {
 		int i, newi;
 		for (i = vsp[0].n; i != 0; i = newi) {
 			newi = vsp[i].n;

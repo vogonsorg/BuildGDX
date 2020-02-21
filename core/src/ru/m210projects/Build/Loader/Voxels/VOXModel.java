@@ -25,7 +25,7 @@ import java.nio.FloatBuffer;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.Types.GLFilter;
-import ru.m210projects.Build.Types.UnsafeDirectBuffer;
+import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class VOXModel extends Model {
 	
@@ -63,7 +63,7 @@ public class VOXModel extends Model {
 			return texid[dapal];
 
 //		long startticks = System.currentTimeMillis();
-		UnsafeDirectBuffer buffer = getTmpBuffer();
+		TextureBuffer buffer = getTmpBuffer();
 		
 		int wpptr, wp, dacol;
 		for (int x, y = 0; y < mytexy; y++) {

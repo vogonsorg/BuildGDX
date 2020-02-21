@@ -17,22 +17,37 @@
 package ru.m210projects.Build.FileHandle;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class DataResource extends GroupResource {
 
 	private static final byte[] tmp = new byte[1024];
+
+	public DataResource(byte[] data) {
+		super(null);
+		initBuffer(data);
+	}
 	
 	public DataResource(Group parent, String filename, int fileid, byte[] data) {
 		super(parent);
 		
 		this.handleName(filename);
 		this.fileid = fileid;
+		initBuffer(data);
+	}
+	
+	private void initBuffer(byte[] data)
+	{
 		if(data != null) {
-			buffer = new ResourceData(data);
-			buffer.rewind();
+			buffer = ByteBuffer.allocateDirect(data.length);
+			buffer.order(ByteOrder.LITTLE_ENDIAN);
+			buffer.put(data).rewind();
 			this.size = data.length;
 		}
 	}
+	
+	@Override
+	public void toMemory() { buffer.rewind(); }
 	
 	@Override
 	public void flush() { /* nothing */ }
@@ -54,18 +69,6 @@ public class DataResource extends GroupResource {
 	}
 
 	@Override
-	public int read(byte[] buf, int len) {
-		synchronized(parent != null ? parent : this) {
-			if(position() >= size) 
-				return -1;
-			
-			len = Math.min(len, size - position());
-			buffer.get(buf, 0, len);
-			return len;
-		}
-	}
-	
-	@Override
 	public int read(byte[] buf, int offset, int len) {
 		synchronized(parent != null ? parent : this) {
 			if(position() >= size) 
@@ -80,7 +83,7 @@ public class DataResource extends GroupResource {
 	@Override
 	public int read(byte[] buf) {
 		synchronized(parent != null ? parent : this) {
-			return read(buf, buf.length);
+			return read(buf, 0, buf.length);
 		}
 	}
 	
@@ -113,6 +116,14 @@ public class DataResource extends GroupResource {
 	}
 	
 	@Override
+	public Boolean readBoolean() {
+		Byte var = readByte();
+		if(var != null)
+			return var == 1;
+		return null;
+	}
+	
+	@Override
 	public Short readShort() {
 		synchronized(parent != null ? parent : this) {
 			return buffer.getShort();
@@ -123,6 +134,20 @@ public class DataResource extends GroupResource {
 	public Integer readInt() {
 		synchronized(parent != null ? parent : this) {
 			return buffer.getInt();
+		}
+	}
+	
+	@Override
+	public Long readLong() {
+		synchronized(parent != null ? parent : this) {
+			return buffer.getLong();
+		}
+	}
+	
+	@Override
+	public Float readFloat() {
+		synchronized(parent != null ? parent : this) {
+			return buffer.getFloat();
 		}
 	}
 
@@ -146,14 +171,6 @@ public class DataResource extends GroupResource {
 	}
 
 	@Override
-	public ResourceData getData() {
-		synchronized(parent != null ? parent : this) {
-			buffer.rewind();
-			return buffer;
-		}
-	}
-
-	@Override
 	public byte[] getBytes() {
 		synchronized(parent != null ? parent : this) {
 			byte[] data = new byte[buffer.capacity()];
@@ -170,4 +187,17 @@ public class DataResource extends GroupResource {
 		}
 	}
 
+	@Override
+	public int remaining() {
+		synchronized(parent != null ? parent : this) {
+			return buffer.remaining();
+		}
+	}
+
+	@Override
+	public boolean hasRemaining() {
+		synchronized(parent != null ? parent : this) {
+			return buffer.hasRemaining();
+		}
+	}
 }

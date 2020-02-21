@@ -116,7 +116,9 @@ public abstract class MenuSlotList extends MenuList
 					if(m_pMenu.mGetFocusedItem(this)) {
 						if(typing) {
 							Arrays.fill(typingBuf, (char) 0);
-							System.arraycopy(getInput().getMessageBuffer(), 0, typingBuf, 0, getInput().getMessageLength()+1);
+							char[] buf = getInput().getMessageBuffer();
+							int messlen = getInput().getMessageLength()+1;
+							System.arraycopy(buf, 0, typingBuf, 0, Math.min(messlen, typingBuf.length));
 							rtext = typingBuf;
 							shade = -128;
 						}
@@ -137,7 +139,9 @@ public abstract class MenuSlotList extends MenuList
 				rtext = toCharArray("New saved game");
 				if(typing) {
 					Arrays.fill(typingBuf, (char) 0);
-					System.arraycopy(getInput().getMessageBuffer(), 0, typingBuf, 0, getInput().getMessageLength()+1);
+					char[] buf = getInput().getMessageBuffer();
+					int messlen = getInput().getMessageLength()+1;
+					System.arraycopy(buf, 0, typingBuf, 0, Math.min(messlen, typingBuf.length));
 					rtext = typingBuf;
 					shade = -128;
 				}

@@ -23,6 +23,25 @@ import ru.m210projects.Build.Types.WALL;
 
 public class Gameutils {
 	
+	public static void fill(byte[] array, int value) {
+		int len = array.length;
+		if (len > 0) 
+			array[0] = (byte) value;
+
+		for (int i = 1; i < len; i += i) 
+			System.arraycopy(array, 0, array, i, ((len - i) < i) ? (len - i) : i);
+	}
+	
+	public static void fill(byte[] array, int start, int end, int value) {
+		if (array.length > 0) 
+			array[start] = (byte) value;
+		
+		int len = end - start;
+
+		for (int i = 1; i < len; i += i) 
+			System.arraycopy(array, start, array, start + i, ((len - i) < i) ? (len - i) : i);
+	}
+	
 	public static float BClampAngle(float angle)
     {
 		return angle < 0 ? (angle % 2048) + 2048 : angle % 2048;
@@ -101,6 +120,11 @@ public class Gameutils {
 	public static boolean isCorruptWall(WALL wal)
 	{
 		return !isValidWall(wal.point2) || wall[wal.point2] == null;
+	}
+
+	public static boolean isValidTile(int tile)
+	{
+		return tile >= 0 && tile < MAXTILES;
 	}
 	
 	public enum ConvertType { Normal, AlignLeft, AlignRight, Stretch };

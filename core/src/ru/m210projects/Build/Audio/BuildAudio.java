@@ -64,7 +64,7 @@ public class BuildAudio implements Disposable {
 			mxdrivers.add((Music) drv);
 	}
 	
-	public List<String> getDeviceslList(Driver type, List<String> list)
+	public static List<String> getDeviceslList(Driver type, List<String> list)
 	{
 		if(type == Driver.Sound) 
 			for(Sound s : fxdrivers)
@@ -226,6 +226,10 @@ public class BuildAudio implements Disposable {
 		}
 		
 		return null;
+	}
+	
+	public SoundData decodeSound(byte[] data) {
+		return fx.decodeSound(data);
 	}
 	
 	public Source newSound(ByteBuffer data, int rate, int bits, int priority)

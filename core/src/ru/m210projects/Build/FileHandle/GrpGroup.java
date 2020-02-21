@@ -19,6 +19,7 @@ package ru.m210projects.Build.FileHandle;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import ru.m210projects.Build.FileHandle.Cache1D.PackageType;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
@@ -74,29 +75,11 @@ public class GrpGroup extends Group {
 		        	case Current: pos += offset; break;
 		        	case End: pos = size + (int) offset;  break;
 		        }
-				file.seek(pos, Whence.Set);
+				file.seek(this.offset + pos, Whence.Set);
 		        return pos;
 			}
 		}
 
-		@Override
-		public int read(byte[] buf, int len) {
-			synchronized(parent) {
-				if(pos >= size) 
-					return -1;
-				
-				len = Math.min(len, size - pos);
-				int i = offset + pos;
-				int groupfilpos = file.position();
-				if (i != groupfilpos) 
-					file.seek(i, Whence.Set);
-	
-				len = file.read(buf,len);
-				pos += len;
-				return len;
-			}
-		}
-		
 		@Override
 		public int read(byte[] buf, int offs, int len) {
 			synchronized(parent) {
@@ -118,7 +101,7 @@ public class GrpGroup extends Group {
 		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
-				return read(buf, buf.length);
+				return read(buf, 0, buf.length);
 			}
 		}
 		
@@ -159,6 +142,14 @@ public class GrpGroup extends Group {
 				pos += len;
 				return out;
 			}
+		}
+		
+		@Override
+		public Boolean readBoolean() {
+			Byte var = readByte();
+			if(var != null)
+				return var == 1;
+			return null;
 		}
 		
 		@Override
@@ -204,6 +195,35 @@ public class GrpGroup extends Group {
 		}
 		
 		@Override
+		public Long readLong() {
+			synchronized(parent) {
+				int len = 8;
+				if(len > size - pos)
+					return null;
+				
+				int i = offset + pos;
+				int groupfilpos = file.position();
+				if (i != groupfilpos) 
+					file.seek(i, Whence.Set);
+
+				Long out;
+				if((out = file.readLong()) == null)
+					return null;
+
+				pos += len;
+				return out;
+			}
+		}
+		
+		@Override
+		public Float readFloat() {
+			Integer i = readInt();
+			if(i != null)
+				return Float.intBitsToFloat( i );
+			return null;
+		}
+		
+		@Override
 		public String readString(int len) {
 			synchronized(parent) {
 				byte[] data;
@@ -223,38 +243,25 @@ public class GrpGroup extends Group {
 				return pos;
 			}
 		}
-
+		
 		@Override
-		public ResourceData getData() {
+		public void toMemory() { 
 			synchronized(parent) {
 				if(buffer == null) {
 					if(file.seek(offset, Whence.Set) == -1) {
 						Console.Println("Error seeking to resource!");
-						return null;
+						return;
 					}
 					
-					if(file instanceof FileResource) {
-						if((buffer = ((FileResource)file).read(size, new Runnable() {
-							@Override
-							public void run() {
-								flush();
-							}
-						})) == null) {
-							Console.Println("Error loading resource!");
-							return null;
-						}
-					} else {
-						byte[] tmp = getBytes();
-						if(tmp == null) return null;
-						buffer = new ResourceData(tmp);
-					}
+					buffer = ByteBuffer.allocateDirect(size);
+					buffer.order(ByteOrder.LITTLE_ENDIAN);
+					file.read(buffer, 0, size);
 				}
 	
 				buffer.rewind();
-				return buffer;
 			}
 		}
-		
+
 		@Override
 		public byte[] getBytes() {
 			synchronized(parent) {
@@ -266,7 +273,7 @@ public class GrpGroup extends Group {
 					}
 					
 					byte[] data = new byte[size];
-					if(file.read(data, size) == -1) {
+					if(file.read(data) == -1) {
 						Console.Println("Error loading resource!");
 						return null;
 					}
@@ -284,14 +291,24 @@ public class GrpGroup extends Group {
 				return true;
 			}
 		}
+		
+		@Override
+		public int remaining() {
+			return size() - position();
+		}
+
+		@Override
+		public boolean hasRemaining() {
+			return position() < size();
+		}
 	}
 
 	public GrpGroup(Resource groupFile, PackageType type) throws Exception {
 		this.file = groupFile;
 		this.type = type;
 		
-		if(type == PackageType.PackedGrp)
-			file.getData();
+		if(type == PackageType.PackedGrp) 
+			file.toMemory();
 		
 		if(file.position() != 12) {
 			file.seek(0, Whence.Set);

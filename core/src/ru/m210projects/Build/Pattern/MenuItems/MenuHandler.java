@@ -247,7 +247,7 @@ public abstract class MenuHandler {
 		
 		gShowMenu = false;
 		
-		if(!BuildGdx.app.getFrame().isActive())
+		if(!BuildGdx.app.isActive())
 			return;
 		
     	BuildGdx.input.setCursorCatched(true);

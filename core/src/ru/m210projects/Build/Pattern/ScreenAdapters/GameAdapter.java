@@ -24,8 +24,8 @@ import static ru.m210projects.Build.Pattern.BuildNet.*;
 import com.badlogic.gdx.ScreenAdapter;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
@@ -91,7 +91,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 					if(prestart != null)
 						prestart.run();
 					startboard(startboard);
-				}
+				} //do nothing, it's better to handle it in each game manualy
 			}
 		});
 		
@@ -196,8 +196,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 			sndHandlePause(game.gPaused);
 		}
 
-		if (BuildGdx.app.getFrameType() == FrameType.GL)
-			((GLFrame) BuildGdx.app.getFrame()).setDefaultDisplayConfiguration();
+		if (BuildGdx.graphics.getFrameType() == FrameType.GL) 
+			BuildGdx.graphics.extra(Option.GLDefConfiguration);
 	}
 
 	@Override

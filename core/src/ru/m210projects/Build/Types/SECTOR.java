@@ -9,13 +9,13 @@
 
 package ru.m210projects.Build.Types;
 
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXWALLS;
+import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.DataResource;
+import ru.m210projects.Build.FileHandle.Resource;
 
 public class SECTOR {
 	public static final int sizeof = 40;
@@ -33,40 +33,45 @@ public class SECTOR {
 	public short floorpal, floorxpanning, floorypanning; //3
 	public short visibility, filler; //2
 	public short lotag, hitag, extra; //6
-	public SECTOR() { }
+	
+	public SECTOR() {}
 	
 	public SECTOR(byte[] data) {
-    	buildSector(new ResourceData(data));
+		buildSector(new DataResource(data));
 	}
 	
-	public void buildSector(ResourceData bb)
+	public SECTOR(Resource data) {
+    	buildSector(data);
+	}
+	
+	public void buildSector(Resource bb)
 	{
-		wallptr = bb.getShort();
-		if(wallptr < 0 || wallptr >= MAXWALLS) wallptr = 0;
-    	wallnum = bb.getShort();
-    	ceilingz = bb.getInt();
-    	floorz = bb.getInt();
-    	ceilingstat = bb.getShort();
-    	floorstat = bb.getShort();
-    	ceilingpicnum = bb.getShort();
-    	if(ceilingpicnum < 0 || ceilingpicnum >= MAXTILES) ceilingpicnum = 0;
-    	ceilingheinum = bb.getShort();
-    	ceilingshade = bb.get();
-    	ceilingpal = (short) (bb.get()&0xFF);
-    	ceilingxpanning = (short) (bb.get()&0xFF);
-    	ceilingypanning = (short) (bb.get()&0xFF);
-    	floorpicnum = bb.getShort();
-    	if(floorpicnum < 0 || floorpicnum >= MAXTILES) floorpicnum = 0;
-    	floorheinum = bb.getShort();
-    	floorshade = bb.get();
-    	floorpal = (short) (bb.get()&0xFF);
-    	floorxpanning = (short) (bb.get()&0xFF);
-    	floorypanning = (short) (bb.get()&0xFF);
-    	visibility = (short) (bb.get()&0xFF);
-    	filler = bb.get();
-      	lotag = bb.getShort();
-    	hitag = bb.getShort();
-    	extra = bb.getShort();
+		wallptr = bb.readShort();
+		if(!isValidWall(wallptr)) wallptr = 0;
+    	wallnum = bb.readShort();
+    	ceilingz = bb.readInt();
+    	floorz = bb.readInt();
+    	ceilingstat = bb.readShort();
+    	floorstat = bb.readShort();
+    	ceilingpicnum = bb.readShort();
+    	if(!isValidTile(ceilingpicnum)) ceilingpicnum = 0;
+    	ceilingheinum = bb.readShort();
+    	ceilingshade = bb.readByte();
+    	ceilingpal = (short) (bb.readByte()&0xFF);
+    	ceilingxpanning = (short) (bb.readByte()&0xFF);
+    	ceilingypanning = (short) (bb.readByte()&0xFF);
+    	floorpicnum = bb.readShort();
+    	if(!isValidTile(floorpicnum)) floorpicnum = 0;
+    	floorheinum = bb.readShort();
+    	floorshade = bb.readByte();
+    	floorpal = (short) (bb.readByte()&0xFF);
+    	floorxpanning = (short) (bb.readByte()&0xFF);
+    	floorypanning = (short) (bb.readByte()&0xFF);
+    	visibility = (short) (bb.readByte()&0xFF);
+    	filler = bb.readByte();
+      	lotag = bb.readShort();
+    	hitag = bb.readShort();
+    	extra = bb.readShort();
 	}
 	
 	public void set(SECTOR src)
@@ -150,8 +155,8 @@ public class SECTOR {
 		out += "floorypanning " + floorypanning + " \r\n";
 		out += "visibility " + visibility + " \r\n";
 		out += "filler " + filler + " \r\n";
-		out += "type " + lotag + " \r\n";
-		out += "flags " + hitag + " \r\n";
+		out += "lotag " + lotag + " \r\n";
+		out += "hitag " + hitag + " \r\n";
 		out += "extra " + extra + " \r\n";
     	
 		return out;

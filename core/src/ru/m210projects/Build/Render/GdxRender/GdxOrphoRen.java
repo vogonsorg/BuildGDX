@@ -45,12 +45,12 @@ import static ru.m210projects.Build.Strhandler.Bstrlen;
 
 import java.nio.ByteBuffer;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
@@ -109,7 +109,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 			
 			int internalformat = GL_INTENSITY; // ... and GL_LUMINANCE doesn't work in GL3.0
 			int format = GL_LUMINANCE;
-			Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, textAtlas.getWidth(), textAtlas.getHeight(), 0, format, GL_UNSIGNED_BYTE, ub);
+			BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, textAtlas.getWidth(), textAtlas.getHeight(), 0, format, GL_UNSIGNED_BYTE, ub);
 			setupBoundTexture(glfiltermodes[0], 0);
 		}
 	}
@@ -136,9 +136,9 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
-		Gdx.gl.glDisable(GL_ALPHA_TEST);
-		Gdx.gl.glDepthMask(false); // disable writing to the z-buffer
-		Gdx.gl.glEnable(GL_BLEND);
+		BuildGdx.gl.glDisable(GL_ALPHA_TEST);
+		BuildGdx.gl.glDepthMask(false); // disable writing to the z-buffer
+		BuildGdx.gl.glEnable(GL_BLEND);
 		
 		int xsiz = (fontsize != 0 ? 4 : 8);
 		int ysiz = (fontsize != 0 ? 6 : 8);
@@ -171,7 +171,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 			xpos += scale * (xsiz << 16);
 			c++;
 		}
-		Gdx.gl.glDepthMask(true); // re-enable writing to the z-buffer
+		BuildGdx.gl.glDepthMask(true); // re-enable writing to the z-buffer
 	}
 
 	@Override

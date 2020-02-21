@@ -36,12 +36,13 @@ import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
+import ru.m210projects.Build.Pattern.Tools.Interpolation;
+import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
 import ru.m210projects.Build.Types.MemLog;
-import ru.m210projects.Build.Types.ThreadProcessor;
 import ru.m210projects.Build.Pattern.BuildFactory;
 
 public class InitScreen extends ScreenAdapter {
@@ -134,10 +135,11 @@ public class InitScreen extends ScreenAdapter {
 			return;
 		}
 		
+		game.pInt = new Interpolation();
+		game.pSavemgr = new SaveManager();
+		
 		Console.setFunction(factory.console());
 
-		engine.loadpics();
-		
 		if(engine.loadpics() == 0) {
 			BuildGdx.message.show("Build Engine Initialization Error!", "ART files not found " + new File(Path.Game.getPath() + engine.tilesPath).getAbsolutePath(), MessageType.Info);
 			System.exit(1);
@@ -168,7 +170,7 @@ public class InitScreen extends ScreenAdapter {
 					game.pMenu = factory.menus();
 					game.pNet = factory.net();
 					game.pSlider = factory.slider();
-
+		
 					uninitmultiplayer();
 					
 					cfg.snddrv = BuildGdx.audio.checkNum(Driver.Sound, cfg.snddrv);
@@ -189,8 +191,8 @@ public class InitScreen extends ScreenAdapter {
 					BuildSettings.fov.set(cfg.gFov);
 					BuildSettings.fpsLimit.set(cfg.fpslimit);
 					
-					BuildGdx.threads = new ThreadProcessor();
-		
+//					BuildGdx.threads = new ThreadProcessor();
+
 					gameInitialized = game.init();
 					
 					ConsoleInit();

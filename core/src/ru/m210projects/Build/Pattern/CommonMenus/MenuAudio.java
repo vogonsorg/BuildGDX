@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.BuildGame;
@@ -76,7 +77,7 @@ public abstract class MenuAudio extends BuildMenu {
 			public void open() {
 				if (this.list == null) {
 					List<String> names = new ArrayList<String>();
-					BuildGdx.audio.getDeviceslList(Driver.Sound, names);
+					BuildAudio.getDeviceslList(Driver.Sound, names);
 					this.list = new char[names.size()][];
 					for (int i = 0; i < list.length; i++)
 						this.list[i] = names.get(i).toCharArray();
@@ -101,7 +102,7 @@ public abstract class MenuAudio extends BuildMenu {
 			public void open() {
 				if (this.list == null) {
 					List<String> names = new ArrayList<String>();
-					BuildGdx.audio.getDeviceslList(Driver.Music, names);
+					BuildAudio.getDeviceslList(Driver.Music, names);
 					this.list = new char[names.size()][];
 					for (int i = 0; i < list.length; i++)
 						this.list[i] = names.get(i).toCharArray();
@@ -151,8 +152,9 @@ public abstract class MenuAudio extends BuildMenu {
 				}, false) {
 
 				@Override
-				public void open() {
+				public void draw(MenuHandler handler) {
 					mCheckEnableItem(!cfg.noSound && BuildGdx.audio.IsInited(Driver.Sound));
+					super.draw(handler);
 				}
 		};
 		
@@ -164,9 +166,14 @@ public abstract class MenuAudio extends BuildMenu {
 			}
 		}, true) {
 			@Override
+			public void draw(MenuHandler handler) {
+				mCheckEnableItem(!cfg.noSound && BuildGdx.audio.IsInited(Driver.Sound));
+				super.draw(handler);
+			}
+			
+			@Override
 			public void open() {
 				value = voices = ovoices = cfg.maxvoices;
-				mCheckEnableItem(!cfg.noSound && BuildGdx.audio.IsInited(Driver.Sound));
 			}
 		};
 		
@@ -199,9 +206,11 @@ public abstract class MenuAudio extends BuildMenu {
 						BuildGdx.audio.setVolume(Driver.Music, cfg.musicVolume);				
 					}
 				}, false) {
+			
 			@Override
-			public void open() {
+			public void draw(MenuHandler handler) {
 				mCheckEnableItem(!cfg.muteMusic && BuildGdx.audio.IsInited(Driver.Music));
+				super.draw(handler);
 			}
 		};
 		
@@ -217,7 +226,13 @@ public abstract class MenuAudio extends BuildMenu {
 				
 				sMusic.mCheckEnableItem(!cfg.muteMusic);
 			}
-		}, null, null);
+		}, null, null) {
+			@Override
+			public void draw(MenuHandler handler) {
+				value = !cfg.muteMusic;
+				super.draw(handler);
+			}
+		};
 
 		sMusicType = new MenuConteiner("Music type:", menuItems, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override

@@ -9,14 +9,13 @@
 
 package ru.m210projects.Build.Types;
 
-import static ru.m210projects.Build.Engine.MAXSECTORS;
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXWALLS;
+import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.DataResource;
+import ru.m210projects.Build.FileHandle.Resource;
 
 public class WALL {
 	public static final int sizeof = 32;
@@ -32,33 +31,37 @@ public class WALL {
 	public WALL() {}
 	
 	public WALL(byte[] data) {
-    	buildWall(new ResourceData(data));
+    	buildWall(new DataResource(data));
 	}
 	
-	public void buildWall(ResourceData bb)
+	public WALL(Resource data) {
+    	buildWall(data);
+	}
+	
+	public void buildWall(Resource bb)
 	{
-		x = bb.getInt();
-    	y = bb.getInt();
-    	point2 = bb.getShort();
-    	if(point2 < 0 || point2 >= MAXWALLS) point2 = 0;
-    	nextwall = bb.getShort();
-    	if(nextwall < 0 || nextwall >= MAXWALLS) nextwall = -1;
-    	nextsector = bb.getShort();
-    	if(nextsector < 0 || nextsector >= MAXSECTORS) nextsector = -1;
-    	cstat = bb.getShort();
-    	picnum = bb.getShort();
-    	if(picnum < 0 || picnum >= MAXTILES) picnum = 0;
-    	overpicnum = bb.getShort();
-    	if(overpicnum < 0 || overpicnum >= MAXTILES) overpicnum = 0;
-    	shade = bb.get();
-    	pal = (short) (bb.get()&0xFF);
-    	xrepeat = (short) (bb.get()&0xFF);
-    	yrepeat = (short) (bb.get()&0xFF);
-    	xpanning = (short) (bb.get()&0xFF);
-    	ypanning = (short) (bb.get()&0xFF);
-    	lotag = bb.getShort();
-    	hitag = bb.getShort();
-    	extra = bb.getShort();
+		x = bb.readInt();
+    	y = bb.readInt();
+    	point2 = bb.readShort();
+    	if(!isValidWall(point2)) point2 = 0;
+    	nextwall = bb.readShort();
+    	if(!isValidWall(nextwall)) nextwall = -1;
+    	nextsector = bb.readShort();
+    	if(!isValidSector(nextsector)) nextsector = -1;
+    	cstat = bb.readShort();
+    	picnum = bb.readShort();
+    	if(!isValidTile(picnum)) picnum = 0;
+    	overpicnum = bb.readShort();
+    	if(!isValidTile(overpicnum)) overpicnum = 0;
+    	shade = bb.readByte();
+    	pal = (short) (bb.readByte()&0xFF);
+    	xrepeat = (short) (bb.readByte()&0xFF);
+    	yrepeat = (short) (bb.readByte()&0xFF);
+    	xpanning = (short) (bb.readByte()&0xFF);
+    	ypanning = (short) (bb.readByte()&0xFF);
+    	lotag = bb.readShort();
+    	hitag = bb.readShort();
+    	extra = bb.readShort();
 	}
 	
 	public void set(WALL src) {
@@ -122,8 +125,8 @@ public class WALL {
 		out += "yrepeat " + yrepeat + " \r\n";
 		out += "xpanning " + xpanning + " \r\n";
 		out += "ypanning " + ypanning + " \r\n";
-		out += "type " + lotag + " \r\n";
-		out += "flags " + hitag + " \r\n";
+		out += "lotag " + lotag + " \r\n";
+		out += "hitag " + hitag + " \r\n";
 		out += "extra " + extra + " \r\n";
 
 		return out;

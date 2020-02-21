@@ -25,7 +25,6 @@ import ru.m210projects.Build.FileHandle.Cache1D.PackageType;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Types.LittleEndian;
-import ru.m210projects.Build.Types.UnsafeBuffer;
 
 public class RffGroup extends Group {
 
@@ -73,32 +72,11 @@ public class RffGroup extends Group {
 		        	case Current: pos += offset; break;
 		        	case End: pos = size + (int) offset;  break;
 		        }
-				file.seek(pos, Whence.Set);
+				file.seek(offset + pos, Whence.Set);
 		        return pos;
 			}
 		}
 
-		@Override
-		public int read(byte[] buf, int len) {
-			synchronized(parent) {
-				if(pos >= size) 
-					return -1;
-
-				len = Math.min(len, size - pos);
-				int i = offset + pos;
-				int groupfilpos = file.position();
-				if (i != groupfilpos) 
-					file.seek(i, Whence.Set);
-	
-				len = file.read(buf,len);
-				if(((flags & 0x10) != 0) && pos < 256) 
-					encrypt(buf, 0, Math.min(256 - pos, len), pos);
-
-				pos += len;
-				return len;
-			}
-		}
-		
 		@Override
 		public int read(byte[] buf, int offs, int len) {
 			synchronized(parent) {
@@ -123,7 +101,7 @@ public class RffGroup extends Group {
 		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
-				return read(buf, buf.length);
+				return read(buf, 0, buf.length);
 			}
 		}
 		
@@ -166,6 +144,14 @@ public class RffGroup extends Group {
 				pos += len;
 				return readbuf[0];
 			}
+		}
+		
+		@Override
+		public Boolean readBoolean() {
+			Byte var = readByte();
+			if(var != null)
+				return var == 1;
+			return null;
 		}
 		
 		@Override
@@ -215,6 +201,44 @@ public class RffGroup extends Group {
 		}
 		
 		@Override
+		public Long readLong() {
+			synchronized(parent) {
+				int len = 8;
+				if(len > size - pos)
+					return null;
+				
+				int i = offset + pos;
+				int groupfilpos = file.position();
+				if (i != groupfilpos) 
+					file.seek(i, Whence.Set);
+
+				if(file.read(readbuf, 0, len) != len)
+					return null;
+				
+				if(((flags & 0x10) != 0) && pos < 256) 
+					encrypt(readbuf, 0, Math.min(256 - pos, len), pos);
+				
+				pos += len;
+				return  (((long)readbuf[7] & 0xFF) << 56) +
+						 (((long)readbuf[6] & 0xFF) << 48) +
+						 (((long)readbuf[5] & 0xFF) << 40) +
+						 (((long)readbuf[4] & 0xFF) << 32) +
+						 (((long)readbuf[3] & 0xFF) << 24) +
+						 (((long)readbuf[2] & 0xFF) << 16) +
+						 (((long)readbuf[1] & 0xFF) <<  8) +
+						 (((long)readbuf[0] & 0xFF)      );
+			}
+		}
+		
+		@Override
+		public Float readFloat() {
+			Integer i = readInt();
+			if(i != null)
+				return Float.intBitsToFloat( i );
+			return null;
+		}
+		
+		@Override
 		public String readString(int len) {
 			synchronized(parent) {
 				byte[] data;
@@ -232,106 +256,26 @@ public class RffGroup extends Group {
 		public int position() {
 			synchronized(parent) { return pos; }
 		}
-
-		@Override
-		public ResourceData getData() {
+		
+		public void toMemory() {
 			synchronized(parent) {
 				if(buffer == null) {
 					if(file.seek(offset, Whence.Set) == -1) {
 						Console.Println("Error seeking to resource!");
-						return null;
+						return;
 					}
 					
-					if(file instanceof FileResource) {
-						ResourceData fileData = ((FileResource)file).read(size, new Runnable() {
-							@Override
-							public void run() {
-								flush();
-							}
-						});
-						if(fileData == null)
-						{
-							Console.Println("Error loading resource!");
-							return null;
-						}
-						
-						buffer = new ResourceData(fileData.getBuffer()) {
-							@Override
-							public byte get(int i) {
-								if((flags & 0x10) != 0 && i < 256)
-									return (byte) (super.get(i) ^ (i >> 1));
-								return super.get(i);
-							}
-							
-							@Override
-							public short getShort(int i) {
-								if((flags & 0x10) != 0) {
-									byte b1 = get(i);
-									byte b2 = get(i + 1);
-									
-									return (short) (( (b2 & 0xFF) << 8 ) + ( b1 & 0xFF ));
-								} 
-								
-								return super.getShort(i);
-							}
-							
-							@Override
-							public int getInt(int i) {
-								if((flags & 0x10) != 0) {
-									byte b1 = get(i);
-									byte b2 = get(i + 1);
-									byte b3 = get(i + 2);
-									byte b4 = get(i + 3);
-									
-									return ( (b4 & 0xFF) << 24 ) + ( (b3 & 0xFF) << 16 ) + ( (b2 & 0xFF) << 8 ) + ( b1 & 0xFF );
-								} 
-								
-								return super.getInt(i);
-							}
-							
-							@Override
-							public UnsafeBuffer get(byte[] dst, int offset, int length) {
-								super.get(dst, offset, length);
-								
-								int pos = position() - length;
-								if(((flags & 0x10) != 0) && pos < 256) 
-									encrypt(dst, 0, Math.min(256 - pos, length), pos);
-								
-								return this;
-							}
-							
-							@Override
-							public ByteBuffer getBuffer() { 
-								if((flags & 0x10) != 0) {
-									byte[] bytes = new byte[512];
-									ByteBuffer bb = ByteBuffer.allocateDirect(size);
-
-									int rem, len;
-									while((rem = buffer.remaining()) > 0) {
-										len = Math.min(512, rem);
-										buffer.get(bytes, 0, len);
-										bb.put(bytes, 0, len);
-									}
-									bb.rewind();
-									
-									return bb.order(ByteOrder.LITTLE_ENDIAN);
-								}
-								
-								return super.getBuffer();
-							}
-						};
-					} else {
-						byte[] tmp = getBytes();
-						if(tmp == null) return null;
-						buffer = new ResourceData(tmp);
-					}
+					buffer = ByteBuffer.allocateDirect(size);
+					buffer.order(ByteOrder.LITTLE_ENDIAN);
+					byte[] data = getBytes();
+					if((flags & 0x10) != 0) 
+						encrypt(data, 0, Math.min(256, size), 0);
+					buffer.put(data);
 				}
-	
 				buffer.rewind();
-				return buffer;
 			}
 		}
-		
+	
 		@Override
 		public byte[] getBytes() {
 			synchronized(parent) {
@@ -343,7 +287,7 @@ public class RffGroup extends Group {
 					}
 	
 					byte[] data = new byte[size];
-					if(file.read(data, size) == -1) {
+					if(file.read(data) == -1) {
 						Console.Println("Error loading resource!");
 						return null;
 					}
@@ -365,6 +309,16 @@ public class RffGroup extends Group {
 				return true;
 			}
 		}
+		
+		@Override
+		public int remaining() {
+			return size() - position();
+		}
+
+		@Override
+		public boolean hasRemaining() {
+			return position() < size();
+		}	
 	}
 	
 	public RffGroup(Resource groupFile, PackageType type) throws Exception
@@ -372,9 +326,9 @@ public class RffGroup extends Group {
 		this.file = groupFile;
 		this.type = type;
 		
-		if(type == PackageType.PackedRff)
-			file.getData();
-		
+		if(type == PackageType.PackedRff) 
+			file.toMemory();
+
 		if(file.position() != 4) {
 			file.seek(0, Whence.Set);
     		file.read(readbuf, 0, 4);
@@ -409,7 +363,7 @@ public class RffGroup extends Group {
 			if(file.seek(offFat, Whence.Set) == -1)
 				throw new Exception("r == -1");
 
-			if(file.read(buffer, buffer.length) == -1)
+			if(file.read(buffer) == -1)
 				throw new Exception("RFF dictionary corrupted");
 			
 			if(crypted) {
@@ -435,9 +389,9 @@ public class RffGroup extends Group {
 		{
 			RffResource res = (RffResource) gres;
 			if((res.flags & 4) != 0) //preload
-	    		res.getData();
+				res.toMemory();
 			if((res.flags & 8) != 0) //prelock
-				res.getData();
+				res.toMemory();
 		}
 	}
 

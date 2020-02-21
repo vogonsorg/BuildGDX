@@ -151,26 +151,12 @@ public class BuildFont {
 	public int getWidth(char ch, int scale)
 	{
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
-		return  scale(charInfo[ch].nWidth, zoom, nScale);
+		return  scale(getWidth(ch), zoom, nScale);
 	}
 	
 	public int getWidth(char[] text, int scale) {
-		int width = 0;
-	
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
-		
-		if (text != null) {
-			int pos = 0;
-			while (pos < text.length && text[pos] != 0) {
-				if(!charBounds(text[pos])) {
-					pos++;
-					continue;
-				}
-				width += scale(charInfo[text[pos++]].nWidth, zoom, nScale);
-			}
-		}
-
-		return width;
+		return  scale(getWidth(text), zoom, nScale);
 	}
 	
 	public int getWidth(String text, int scale) {
@@ -180,7 +166,7 @@ public class BuildFont {
 	public int getHeight(int scale)
 	{
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
-		return scale(nHeight, zoom, nScale);
+		return scale(getHeight(), zoom, nScale);
 	}
 	
 	public int drawChar(int x, int y, char ch, int scale, int shade, int pal, int nBits, boolean shadow) {

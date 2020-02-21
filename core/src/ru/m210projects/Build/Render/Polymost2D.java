@@ -767,6 +767,7 @@ public class Polymost2D extends OrphoRenderer {
 	@Override
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
+		
 		if (font.type == FontType.Tilemap) {
 			if (palookup[col] == null)
 				col = 0;
@@ -780,6 +781,8 @@ public class Polymost2D extends OrphoRenderer {
 		if (pth == null)
 			return;
 
+		int opal = globalpal;
+		globalpal = col;
 		bindTexture(pth.glpic);
 
 		setpolymost2dview();
@@ -846,6 +849,8 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glEnd();
 
 		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+		
+		globalpal = opal;
 	}
 
 	@Override
@@ -1242,7 +1247,6 @@ public class Polymost2D extends OrphoRenderer {
 		int ogshade, ogpal;
 
 		int oldviewingrange;
-		float ogxyaspect;
 		float x1, y1, z1;
 		if (hudsprite == null)
 			hudsprite = new SPRITE();
@@ -1265,7 +1269,7 @@ public class Polymost2D extends OrphoRenderer {
 		globalshade = dashade;
 		ogpal = globalpal;
 		globalpal = dapalnum;
-		ogxyaspect = parent.gxyaspect;
+		double ogxyaspect = parent.gxyaspect;
 		parent.gxyaspect = 1.0f;
 		oldviewingrange = viewingrange;
 		viewingrange = 65536;

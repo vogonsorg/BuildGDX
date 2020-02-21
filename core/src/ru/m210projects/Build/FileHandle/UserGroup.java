@@ -97,16 +97,6 @@ public class UserGroup extends Group {
 		}
 
 		@Override
-		public int read(byte[] buf, int len) {
-			synchronized(parent) {
-				if(fil != null)
-					return fil.read(buf, len);
-				
-				return -1;
-			}
-		}
-		
-		@Override
 		public int read(byte[] buf, int offset, int len) {
 			synchronized(parent) {
 				if(fil != null)
@@ -119,7 +109,7 @@ public class UserGroup extends Group {
 		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
-				return read(buf, buf.length);
+				return read(buf, 0, buf.length);
 			}
 		}
 
@@ -156,6 +146,14 @@ public class UserGroup extends Group {
 		}
 		
 		@Override
+		public Boolean readBoolean() {
+			Byte var = readByte();
+			if(var != null)
+				return var == 1;
+			return null;
+		}
+		
+		@Override
 		public Short readShort() {
 			synchronized(parent) {
 				if(fil != null)
@@ -170,6 +168,26 @@ public class UserGroup extends Group {
 			synchronized(parent) {
 				if(fil != null)
 					return fil.readInt();
+				
+				return null;
+			}
+		}
+		
+		@Override
+		public Long readLong() {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.readLong();
+				
+				return null;
+			}
+		}
+		
+		@Override
+		public Float readFloat() {
+			synchronized(parent) {
+				if(fil != null)
+					return fil.readFloat();
 				
 				return null;
 			}
@@ -197,15 +215,13 @@ public class UserGroup extends Group {
 		}
 
 		@Override
-		public ResourceData getData() {
+		public void toMemory() {
 			synchronized(parent) {
 				if(isClosed())
 					parent.open(this);
 				
 				if(fil != null)
-					return fil.getData();
-				
-				return null;
+					fil.toMemory();
 			}
 		}
 
@@ -227,6 +243,16 @@ public class UserGroup extends Group {
 			if(fil != null)
 				return fil.isClosed();
 			return true;
+		}
+
+		@Override
+		public int remaining() {
+			return size() - position();
+		}
+
+		@Override
+		public boolean hasRemaining() {
+			return position() < size();
 		}	
 	}
 

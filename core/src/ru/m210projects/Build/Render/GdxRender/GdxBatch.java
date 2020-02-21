@@ -25,7 +25,6 @@ import static ru.m210projects.Build.Engine.yxaspect;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GLTexture;
@@ -36,6 +35,8 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.NumberUtils;
+
+import ru.m210projects.Build.Architecture.BuildGdx;
 
 public class GdxBatch {
 
@@ -90,7 +91,7 @@ public class GdxBatch {
 			new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
 			new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
 
-		projectionMatrix.setToOrtho(0, Gdx.graphics.getWidth() - 1, Gdx.graphics.getHeight() - 1, 0, 0, 1);
+		projectionMatrix.setToOrtho(0, BuildGdx.graphics.getWidth() - 1, BuildGdx.graphics.getHeight() - 1, 0, 0, 1);
 
 		int VERTEX_SIZE = 2 + 1 + 2;
 		int SPRITE_SIZE = 4 * VERTEX_SIZE;
@@ -165,7 +166,7 @@ public class GdxBatch {
 	public void begin () {
 		if (drawing) throw new IllegalStateException("GdxBatch.end must be called before begin.");
 
-		Gdx.gl.glDepthMask(false);
+		BuildGdx.gl.glDepthMask(false);
 		if (customShader != null)
 			customShader.begin();
 		else
@@ -181,7 +182,7 @@ public class GdxBatch {
 		lastTexture = null;
 		drawing = false;
 
-		GL20 gl = Gdx.gl;
+		GL20 gl = BuildGdx.gl;
 		gl.glDepthMask(true);
 		if (isBlendingEnabled()) gl.glDisable(GL20.GL_BLEND);
 
@@ -375,10 +376,10 @@ public class GdxBatch {
 		mesh.getIndicesBuffer().limit(count);
 
 		if (blendingDisabled) {
-			Gdx.gl.glDisable(GL20.GL_BLEND);
+			BuildGdx.gl.glDisable(GL20.GL_BLEND);
 		} else {
-			Gdx.gl.glEnable(GL20.GL_BLEND);
-			if (blendSrcFunc != -1) Gdx.gl.glBlendFuncSeparate(blendSrcFunc, blendDstFunc, blendSrcFuncAlpha, blendDstFuncAlpha);
+			BuildGdx.gl.glEnable(GL20.GL_BLEND);
+			if (blendSrcFunc != -1) BuildGdx.gl.glBlendFuncSeparate(blendSrcFunc, blendDstFunc, blendSrcFuncAlpha, blendDstFuncAlpha);
 		}
 
 		mesh.render(customShader != null ? customShader : shader, GL20.GL_TRIANGLES, 0, count);

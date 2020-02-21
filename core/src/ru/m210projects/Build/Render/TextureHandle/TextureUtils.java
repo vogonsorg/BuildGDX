@@ -13,11 +13,10 @@ import static ru.m210projects.Build.Render.GLInfo.*;
 
 import java.nio.ByteBuffer;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Settings.GLSettings;
-
-import com.badlogic.gdx.Gdx;
 
 public class TextureUtils {
 
@@ -43,9 +42,9 @@ public class TextureUtils {
 		int mipLevel = calcMipLevel(xsiz, ysiz, gltexmaxsize);
 		if (mipLevel == 0) {
 			if (doalloc) {
-				Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, intexfmt, xsiz, ysiz, 0, texfmt, GL_UNSIGNED_BYTE, pic); // loading 1st time
+				BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, intexfmt, xsiz, ysiz, 0, texfmt, GL_UNSIGNED_BYTE, pic); // loading 1st time
 			} else {
-				Gdx.gl.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, xsiz, ysiz, texfmt, GL_UNSIGNED_BYTE, pic); // overwrite old texture
+				BuildGdx.gl.glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, xsiz, ysiz, texfmt, GL_UNSIGNED_BYTE, pic); // overwrite old texture
 			}
 		} else {
 			System.err.println("Uploading non-zero mipmap level textures is unimplemented");
@@ -54,7 +53,7 @@ public class TextureUtils {
 		if(GLSettings.textureFilter.get().mipmaps) {
 			//Build 2D Mipmaps
 			if (supportsGenerateMipmaps) 
-				Gdx.gl.glGenerateMipmap(GL_TEXTURE_2D);
+				BuildGdx.gl.glGenerateMipmap(GL_TEXTURE_2D);
 			else generateMipMapCPU(doalloc, mipLevel, xsiz, ysiz, intexfmt, texfmt, pic);
 		}
 	}
@@ -144,9 +143,9 @@ public class TextureUtils {
 	        if (j >= mipLevel)
 	        {
 	        	if (doalloc) {
-					Gdx.gl.glTexImage2D(GL_TEXTURE_2D, j - mipLevel, intexfmt, x3, y3, 0, texfmt, GL_UNSIGNED_BYTE, pic); // loading 1st time
+	        		BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, j - mipLevel, intexfmt, x3, y3, 0, texfmt, GL_UNSIGNED_BYTE, pic); // loading 1st time
 				} else {
-					Gdx.gl.glTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, texfmt, GL_UNSIGNED_BYTE, pic); // overwrite old texture
+					BuildGdx.gl.glTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, texfmt, GL_UNSIGNED_BYTE, pic); // overwrite old texture
 				}
 	        }
 	        x2 = x3; y2 = y3;
@@ -164,12 +163,12 @@ public class TextureUtils {
 	public static void setupBoundTexture(GLFilter filter, int anisotropy) {
 		filter.apply();
 		if (anisotropy >= 1) { // 1 if you want to disable anisotropy
-			Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+			BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}
 	}
 
 	public static void setupBoundTextureWrap(int wrap) {
-		Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-		Gdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+		BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+		BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
 	}
 }

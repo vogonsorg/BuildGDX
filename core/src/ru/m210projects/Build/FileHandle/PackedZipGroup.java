@@ -20,12 +20,12 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import ru.m210projects.Build.FileHandle.Cache1D.PackageType;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 
 import static ru.m210projects.Build.Strhandler.toLowerCase;
@@ -108,12 +108,11 @@ public class PackedZipGroup extends Group {
 				while ((entry = zis.getNextEntry()) != null) {
 					if(handleName(entry.getName()).equals(res.filenamext)) {
 						byte[] data = new byte[512];
-						ByteBuffer bb = ByteBuffer.allocateDirect(res.size);
+						res.buffer = ByteBuffer.allocateDirect(res.size);
+						res.buffer.order(ByteOrder.LITTLE_ENDIAN);
 						int len = 0;
 						while((len = zis.read(data)) != -1) 
-							bb.put(data, 0, len);
-
-						res.buffer = new ResourceData(bb);
+							res.buffer.put(data, 0, len);
 						res.buffer.rewind();
 						return true;
 					}

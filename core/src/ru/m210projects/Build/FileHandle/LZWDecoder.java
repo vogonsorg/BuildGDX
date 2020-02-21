@@ -45,7 +45,7 @@ public class LZWDecoder implements Closeable {
 		if(leng == null)
 			return -1;
 
-		if (fil.read(lzwbuf5, leng) != leng)
+		if (fil.read(lzwbuf5, 0, leng) != leng)
 			return -1;
 		int k = 0;
 		int kgoal = lzwuncompress(lzwbuf5, leng, lzwbuf4);
@@ -59,7 +59,7 @@ public class LZWDecoder implements Closeable {
 				if(leng == null) //EOF reached
 					return ptr + dasizeof;
 				
-				if (fil.read(lzwbuf5, leng) != leng)
+				if (fil.read(lzwbuf5, 0, leng) != leng)
 					return -1;
 				k = 0;
 				kgoal = lzwuncompress(lzwbuf5, leng, lzwbuf4);

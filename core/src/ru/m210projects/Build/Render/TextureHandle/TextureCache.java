@@ -36,13 +36,12 @@ import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Renderer.PixelFormat;
 import ru.m210projects.Build.Render.TextureHandle.ImageUtils.PicInfo;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Script.TextureHDInfo;
 import ru.m210projects.Build.Settings.GLSettings;
-import ru.m210projects.Build.Types.UnsafeDirectBuffer;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
@@ -146,7 +145,7 @@ public class TextureCache {
 		bindTexture(pth.glpic);
 		int intexfmt = (picInfo.hasalpha ? (type == PixelFormat.Pal8A ? GL_LUMINANCE_ALPHA : GL_RGBA) : GL_RGB);
 
-		if (Gdx.app.getType() == ApplicationType.Android)
+		if (BuildGdx.app.getType() == ApplicationType.Android)
 			intexfmt = GL_RGBA; // android bug? black textures fix
 
 		uploadBoundTexture(doalloc, xsiz, ysiz, intexfmt, GL_RGBA, picInfo.pic);
@@ -422,7 +421,7 @@ public class TextureCache {
 	
 	private BTexture createPalette(byte[] paldata, int shade)
 	{
-		UnsafeDirectBuffer buffer = getTmpBuffer();
+		TextureBuffer buffer = getTmpBuffer();
 		buffer.clear();
 		for(int p = 0; p < MAXPALOOKUPS; p++) {
 			int pal = p;
@@ -437,11 +436,10 @@ public class TextureCache {
 //				buffer.putByte(paldata[3 * dacol + 2]); 
 			}
 		}
-		buffer.flip();
-
+		
 		BTexture palette = new BTexture(256, MAXPALOOKUPS);
 		palette.bind(1);
-		Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, palette.getWidth(), palette.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.getBuffer());
+		BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, palette.getWidth(), palette.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.getBuffer());
 		setupBoundTexture(glfiltermodes[0], 0);
 		
 		return palette;
@@ -487,7 +485,7 @@ public class TextureCache {
 
         palette = new BTexture[numshades];
 
-        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+        BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
         
         return shader;
 	}
@@ -502,7 +500,7 @@ public class TextureCache {
 	{
 		if(shader != null) {
 			shader.end();
-			Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 		}
 	}
 	

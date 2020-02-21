@@ -9,13 +9,12 @@
 
 package ru.m210projects.Build.Types;
 
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXSECTORS;
+import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource;
 
 public class SPRITE {
 	public static final int sizeof = 44;
@@ -31,45 +30,35 @@ public class SPRITE {
 	public short sectnum, statnum; //4
 	public short ang, owner = -1, xvel, yvel, zvel; //10
 	public short lotag, hitag;
-	/**
-	 * An index to {@link ru.m210projects.Blood.DB#xsprite} array linking
-	 * this {@link SPRITE} with its corresponding {@link XSPRITE}.
-	 */
 	public short extra = -1;
 
-	public SPRITE() { }
-	
-	public void init(byte[] data) {
-    	buildSprite(new ResourceData(data));
-	}
-	
-	public void buildSprite(ResourceData bb)
+	public void buildSprite(Resource bb)
 	{
-		x = bb.getInt();
-    	y = bb.getInt();
-    	z = bb.getInt();
-    	cstat = bb.getShort();
-    	picnum = bb.getShort();
-    	if(picnum < 0 || picnum >= MAXTILES) picnum = 0;
-    	shade = bb.get();
-    	pal = (short) (bb.get() & 0xFF);
-    	clipdist = bb.get() & 0xFF;
-    	detail = bb.get();
-    	xrepeat = (short) (bb.get() & 0xFF);
-    	yrepeat = (short) (bb.get() & 0xFF);
-    	xoffset = bb.get();
-    	yoffset = bb.get();
-    	sectnum = bb.getShort();
-    	if(sectnum < 0 || sectnum >= MAXSECTORS) sectnum = 0;
-    	statnum = bb.getShort();
-    	ang = bb.getShort();
-    	owner = bb.getShort();
-    	xvel = bb.getShort();
-    	yvel = bb.getShort();
-    	zvel = bb.getShort();
-    	lotag = bb.getShort();
-    	hitag = bb.getShort();
-    	extra = bb.getShort();
+		x = bb.readInt();
+    	y = bb.readInt();
+    	z = bb.readInt();
+    	cstat = bb.readShort();
+    	picnum = bb.readShort();
+    	if(!isValidTile(picnum)) picnum = 0;
+    	shade = bb.readByte();
+    	pal = (short) (bb.readByte() & 0xFF);
+    	clipdist = bb.readByte() & 0xFF;
+    	detail = bb.readByte();
+    	xrepeat = (short) (bb.readByte() & 0xFF);
+    	yrepeat = (short) (bb.readByte() & 0xFF);
+    	xoffset = bb.readByte();
+    	yoffset = bb.readByte();
+    	sectnum = bb.readShort();
+    	if(!isValidSector(sectnum)) sectnum = 0;
+    	statnum = bb.readShort();
+    	ang = bb.readShort();
+    	owner = bb.readShort();
+    	xvel = bb.readShort();
+    	yvel = bb.readShort();
+    	zvel = bb.readShort();
+    	lotag = bb.readShort();
+    	hitag = bb.readShort();
+    	extra = bb.readShort();
 	}
 	
 	public byte[] getBytes()
@@ -125,8 +114,8 @@ public class SPRITE {
 		out += "xvel " + xvel + " \r\n";
 		out += "yvel " + yvel + " \r\n";
 		out += "zvel " + zvel + " \r\n";
-		out += "type " + lotag + " \r\n";
-		out += "flags " + hitag + " \r\n";
+		out += "lotag " + lotag + " \r\n";
+		out += "hitag " + hitag + " \r\n";
 		out += "extra " + extra + " \r\n";
     	
 		return out;

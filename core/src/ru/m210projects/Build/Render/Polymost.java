@@ -35,6 +35,7 @@ import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Engine.Point;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
@@ -61,7 +62,6 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -277,8 +277,9 @@ public abstract class Polymost extends GLRenderer {
 	private int frameh;
 	private int framesize;
 
-	protected float gyxscale, gxyaspect, gviewxrange, ghalfx, grhalfxdown10,
+	protected float gyxscale, gviewxrange, ghalfx, grhalfxdown10,
 			grhalfxdown10x;
+	protected double gxyaspect;
 	protected float ghoriz;
 	protected float gcosang, gsinang, gcosang2, gsinang2;
 	protected float gchang, gshang, ogshang, gctang, gstang;
@@ -343,7 +344,7 @@ public abstract class Polymost extends GLRenderer {
 		Arrays.fill(spritewall, -1);
 		
 		this.polymost2d = new Polymost2D(this);
-		Console.Println(Gdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION) + " initialized", OSDTEXT_GOLD);
+		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION) + " initialized", OSDTEXT_GOLD);
 	}
 	
 	@Override
@@ -500,7 +501,7 @@ public abstract class Polymost extends GLRenderer {
 
 		polymost2d.init();
 
-		if (Gdx.graphics.getGLVersion().getVendorString().compareTo("NVIDIA Corporation") == 0) {
+		if (BuildGdx.graphics.getGLVersion().getVendorString().compareTo("NVIDIA Corporation") == 0) {
 			gl.glHint(GL_FOG_HINT, GL_NICEST);
 		} else {
 			gl.glHint(GL_FOG_HINT, GL_DONT_CARE);
@@ -2128,9 +2129,9 @@ public abstract class Polymost extends GLRenderer {
 			drawalls_ft[3] = ((float) singlobalang)
 					* (1.f / 2147483648.f);
 			gdx = 0;
-			gdy = gxyaspect * -(1.f / 4194304.f);
+			gdy = gxyaspect * -(1.0 / 4194304.0);
 			if(floor)
-				gdy = gxyaspect * (1.f / 4194304.f);
+				gdy = gxyaspect * (1.0 / 4194304.0);
 			gdo = -ghoriz * gdy;
 			gux = (double) drawalls_ft[3] * ((double) viewingrange)
 					/ -65536.0;
@@ -2192,13 +2193,13 @@ public abstract class Polymost extends GLRenderer {
 
 			drawingskybox = (short) (i + 1); // i+1th texture/index i of skybox
 
-			gdx = (_ryp0 - _ryp1) * gxyaspect * (1.f / 512.f)
+			gdx = (_ryp0 - _ryp1) * gxyaspect * (1.0 / 512.0)
 					/ (_ox0 - _ox1);
 			gdy = 0;
-			gdo = _ryp0 * gxyaspect * (1.f / 512.f) - gdx * _ox0;
+			gdo = _ryp0 * gxyaspect * (1.0 / 512.0) - gdx * _ox0;
 			gux = (_t0 * _ryp0 - _t1 * _ryp1) * gxyaspect
-					* (64.f / 512.f) / (_ox0 - _ox1);
-			guo = _t0 * _ryp0 * gxyaspect * (64.f / 512.f) - gux
+					* (64.0 / 512.0) / (_ox0 - _ox1);
+			guo = _t0 * _ryp0 * gxyaspect * (64.0 / 512.0) - gux
 					* _ox0;
 			guy = 0;
 			_t0 = -8192.0 * _ryp0 + ghoriz;
@@ -2261,9 +2262,9 @@ public abstract class Polymost extends GLRenderer {
 		drawalls_ft[3] = ((float) singlobalang)
 				* (1.f / 2147483648.f);
 		gdx = 0;
-		gdy = gxyaspect * (1.f / 4194304.f);
+		gdy = gxyaspect * (1.0 / 4194304.0);
 		if(floor)
-			gdy = gxyaspect * (-1.f / 4194304.f);
+			gdy = gxyaspect * (-1.0 / 4194304.0);
 		gdo = -ghoriz * gdy;
 		gux = (double) drawalls_ft[3] * ((double) viewingrange)
 				/ -65536.0;
@@ -2343,7 +2344,7 @@ public abstract class Polymost extends GLRenderer {
 		// Polymost supports true look up/down :) Here, we convert horizon to angle.
 		// gchang&gshang are cos&sin of this angle (respectively)
 		gyxscale = xdimenscale / 131072.0f;
-		gxyaspect = (viewingrange / 65536.0f) * xyaspect * 5.0f / 262144.0f;
+		gxyaspect = (viewingrange / 65536.0) * xyaspect * 5.0 / 262144.0;
 		gviewxrange = viewingrange * xdimen / (32768.0f * 1024.0f);
 		gcosang = cosglobalang / 262144.0f;
 		gsinang = singlobalang / 262144.0f;
@@ -2604,11 +2605,11 @@ public abstract class Polymost extends GLRenderer {
 		gdo = ryp0 * gxyaspect - gdx * x0;
 
 		gux = (t0 * ryp0 - t1 * ryp1) * gxyaspect
-				* (float) (wal.xrepeat & 0xFF) * 8.f / (x0 - x1);
-		guo = t0 * ryp0 * gxyaspect * (float) (wal.xrepeat & 0xFF) * 8.f - gux
+				* ((wal.xrepeat & 0xFF) * 8.0) / (x0 - x1);
+		guo = t0 * ryp0 * gxyaspect * ((wal.xrepeat & 0xFF) * 8.0) - gux
 				* x0;
-		guo += (float) wal.xpanning * gdo;
-		gux += (float) wal.xpanning * gdx;
+		guo += wal.xpanning * gdo;
+		gux += wal.xpanning * gdx;
 		guy = 0;
 
 		// mask
@@ -3099,10 +3100,10 @@ public abstract class Polymost extends GLRenderer {
 				t1 -= ((float) (spriteext[spritenum].xpanning) / 255.f);
 				srepeat = 1;
 			}
-			gux = (t0 * ryp0 - t1 * ryp1) * gxyaspect * (float) tsizx
+			gux = (t0 * ryp0 - t1 * ryp1) * gxyaspect * tsizx
 					/ (sx0 - sx1);
 			guy = 0;
-			guo = t0 * ryp0 * gxyaspect * (float) tsizx - gux * sx0;
+			guo = t0 * ryp0 * gxyaspect * tsizx - gux * sx0;
 
 			f = (float) ((tsizy) * (gdx * sx0 + gdo) / ((sx0 - sx1) * (sc0 - sf0)));
 			if ((globalorientation & 8) == 0) {
@@ -3974,7 +3975,7 @@ public abstract class Polymost extends GLRenderer {
         }
         
         f = (65536.0f*512.0f)/((float)(xdimen*viewingrange));
-        g = (float) (32.0f/((float)(xdimen*gxyaspect)));
+        g = (float) (32.0/(xdimen*gxyaspect));
         cScale.scl(f, -f, g);
         nScale.scl(f, -f, g);
         
@@ -4640,26 +4641,33 @@ public abstract class Polymost extends GLRenderer {
 			reverse = true;
 		}
 		
-		if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * 3 )
-			rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * 3);
-
+		int byteperpixel = 3;
+		int fmt = GL10.GL_RGB;
+		if(BuildGdx.app.getPlatform() == Platform.Android) {
+			byteperpixel = 4;
+			fmt = GL10.GL_RGBA;
+		}
+		
+		if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * byteperpixel )
+			rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * byteperpixel);
 		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
-		gl.glReadPixels(0, ydim - ysiz, xsiz, ysiz, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
+		gl.glReadPixels(0, ydim - ysiz, xsiz, ysiz, fmt, GL10.GL_UNSIGNED_BYTE, rgbbuffer);
+		
 
 		if(format == PixelFormat.Rgb) {
 			if(reverse)
 			{
 				int b1, b2 = 0;
 				for (int p, x, y = 0; y < ysiz / 2; y++) {
-					b1 = 3 * (ysiz - y - 1) * xsiz;
+					b1 = byteperpixel * (ysiz - y - 1) * xsiz;
 					for (x = 0; x < xsiz; x++) {
-						for (p = 0; p < 3; p++) {
+						for (p = 0; p < byteperpixel; p++) {
 							byte tmp = rgbbuffer.get(b1 + p);
 							rgbbuffer.put(b1 + p, rgbbuffer.get(b2 + p));
 							rgbbuffer.put(b2 + p, tmp);
 						}
-						b1 += 3;
-						b2 += 3;
+						b1 += byteperpixel;
+						b2 += byteperpixel;
 					}
 				}
 			}
@@ -4674,7 +4682,7 @@ public abstract class Polymost extends GLRenderer {
 			if(reverse)
 			{
 				for (int x, y = 0; y < ysiz; y++) {
-					base = 3 * (ysiz - y - 1) * xsiz;
+					base = byteperpixel * (ysiz - y - 1) * xsiz;
 					for (x = 0; x < xsiz; x++) {
 						r = (rgbbuffer.get(base++) & 0xFF) >> 2;
 						g = (rgbbuffer.get(base++) & 0xFF) >> 2;
@@ -4690,6 +4698,7 @@ public abstract class Polymost extends GLRenderer {
 					r = (rgbbuffer.get(base++) & 0xFF) >> 2;
 					g = (rgbbuffer.get(base++) & 0xFF) >> 2;
 					b = (rgbbuffer.get(base++) & 0xFF) >> 2;
+					if(byteperpixel == 4) base++; //Android
 					indexbuffer.put(engine.getclosestcol(palette, r, g, b));
 				}
 			}

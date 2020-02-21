@@ -18,7 +18,7 @@ package ru.m210projects.Build;
 
 import java.util.Arrays;
 
-import com.badlogic.gdx.Gdx;
+import ru.m210projects.Build.Architecture.BuildGdx;
 
 public class TouchControl {
 	public final int ACTION_FREE = -1;
@@ -56,7 +56,7 @@ public class TouchControl {
 	public void getInput()
 	{
 		for(int i = 0; i < 10; i++) {
-			if(Gdx.input.isTouched(i))
+			if(BuildGdx.input.isTouched(i))
 			{
 				if(action[i] == ACTION_FREE)
 					action[i] = ACTION_DOWN;
@@ -97,32 +97,32 @@ class ActionInput
 	{
 		engine.rotatesprite(x << 16, y << 16, 65536, 0, 0, 8, 0, 24, 0, 0, Engine.xdim, Engine.ydim);
 		if(id != -1) {
-			int rx = Gdx.input.getX(id) - (x + 32);
-			int ry = Gdx.input.getY(id) - (y + 32);
+			int rx = BuildGdx.input.getX(id) - (x + 32);
+			int ry = BuildGdx.input.getY(id) - (y + 32);
 			int dist = rx*rx + ry*ry;
-			engine.rotatesprite(Gdx.input.getX(id) << 16, Gdx.input.getY(id) << 16, 8192, 0, 0, 8, 7, 16, 0, 0, Engine.xdim, Engine.ydim);
+			engine.rotatesprite(BuildGdx.input.getX(id) << 16, BuildGdx.input.getY(id) << 16, 8192, 0, 0, 8, 7, 16, 0, 0, Engine.xdim, Engine.ydim);
 		}
 	}
 	
 	public void getInput(int i, int action)
 	{
-		if(Gdx.input.isTouched(i))
+		if(BuildGdx.input.isTouched(i))
 		{
-			if(Gdx.input.getX(i) >= x && Gdx.input.getX(i) < (x + width) &&
-				Gdx.input.getY(i) >= y && Gdx.input.getY(i) < (y + heigth))
+			if(BuildGdx.input.getX(i) >= x && BuildGdx.input.getX(i) < (x + width) &&
+					BuildGdx.input.getY(i) >= y && BuildGdx.input.getY(i) < (y + heigth))
 			{
 				if(action == 0 && id == -1)
 				{
-					touchX = Gdx.input.getX(i);
-					touchY = Gdx.input.getY(i);
+					touchX = BuildGdx.input.getX(i);
+					touchY = BuildGdx.input.getY(i);
 					id = i;
 				}
 			}
 		} 
 		
 		if(id == i) {
-			if(Gdx.input.isTouched(i) && id != -1)
-				System.out.println(i + " " + name + " " + (Gdx.input.getX(i) - touchX));
+			if(BuildGdx.input.isTouched(i) && id != -1)
+				System.out.println(i + " " + name + " " + (BuildGdx.input.getX(i) - touchX));
 			else if( action == 2 ) {
 				touchX = -1;
 				touchY = -1;

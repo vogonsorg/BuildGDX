@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/BuildGDX-core"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="libs/jna-openal-natives-linux.jar"/>
+	<classpathentry kind="lib" path="libs/jna-openal-natives-macos.jar"/>
+	<classpathentry kind="lib" path="libs/jna-openal-natives-windows.jar"/>
+	<classpathentry kind="lib" path="libs/jna-5.4.0.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-platform-1.9.10-natives-desktop.jar"/>
+	<classpathentry kind="lib" path="libs/jinput-platform-2.0.7-natives-all.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-controllers-1.9.10.jar"/>
+	<classpathentry kind="lib" path="libs/jorbis.jar"/>
+	<classpathentry kind="lib" path="/BuildGDX-core/libs/gdx-1.9.10.jar"/>
+	<classpathentry kind="lib" path="libs/jinput-2.0.7.jar"/>
+	<classpathentry kind="lib" path="libs/gdx-backend-lwjgl-1.9.10.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl2.9.3/lwjgl-2.9.3.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl2.9.3/lwjgl-platform-2.9.3-natives-linux.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl2.9.3/lwjgl-platform-2.9.3-natives-osx.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl2.9.3/lwjgl-platform-2.9.3-natives-windows.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

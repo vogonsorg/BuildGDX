@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.Types.BuildPos;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
@@ -67,7 +67,7 @@ public abstract class Board {
 
 	protected abstract int sqrt(int i);
 
-	protected abstract boolean load(ResourceData bb);
+	protected abstract boolean load(Resource bb);
 
 	protected abstract int getMaxSprites();
 
@@ -78,10 +78,10 @@ public abstract class Board {
 	////////// INITIALIZATION FUNCTIONS //////////
 
 	public Board(String filename) throws Exception {
-		this(filename, BuildGdx.cache.open(filename, 0).getData());
+		this(filename, BuildGdx.cache.open(filename, 0));
 	}
 
-	public Board(String name, ResourceData bb) throws Exception {
+	public Board(String name, Resource bb) throws Exception {
 		sector = new SECTOR[getMaxSectors()];
 		wall = new WALL[getMaxWalls()];
 		sprite = new SPRITE[getMaxSprites()];
@@ -99,7 +99,7 @@ public abstract class Board {
 		initspritelists();
 
 		this.name = name;
-		this.mapversion = bb.getInt();
+		this.mapversion = bb.readInt();
 		if (load(bb)) 
 			this.buffer = initmapbuffer();
 		else this.buffer = null;

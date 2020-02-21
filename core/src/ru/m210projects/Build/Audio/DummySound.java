@@ -24,6 +24,8 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 
 public class DummySound implements Sound {
 
+	public static final String name = "Dummy sound";
+	
 	@Override
 	public boolean init(SystemType system, int kMaxSFXChannels, int softResampler) {
 		Console.Println(getName() + " initialized", OSDTEXT_GOLD);
@@ -41,7 +43,7 @@ public class DummySound implements Sound {
 
 	@Override
 	public String getName() {
-		return "Dummy sound";
+		return name;
 	}
 
 	@Override
@@ -67,6 +69,11 @@ public class DummySound implements Sound {
 
 	@Override
 	public Source newSound(ByteBuffer data, int rate, int bits, int channels, int priority) {
+		return null;
+	}
+	
+	@Override
+	public SoundData decodeSound(byte[] data) {
 		return null;
 	}
 

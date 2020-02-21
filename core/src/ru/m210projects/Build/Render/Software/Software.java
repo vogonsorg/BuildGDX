@@ -92,8 +92,9 @@ import java.util.Arrays;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Architecture.SoftFrame;
+import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Renderer;
@@ -179,8 +180,8 @@ public abstract class Software extends Renderer {
 	public int[] reciptable = new int[2048];
 	public int xdimenrecip;
 
-	public int smostwall[] = new int[MAXWALLSB], smostwallcnt = -1;
-	public short smost[] = new short[MAXYSAVES], smostcnt;
+	public int smostwall[] = new int[MAXWALLSB], smostwallcnt = -1, smostcnt;
+	public short smost[] = new short[MAXYSAVES];
 	public int smoststart[] = new int[MAXWALLSB];
 	public byte[] smostwalltype = new byte[MAXWALLSB];
 
@@ -210,7 +211,8 @@ public abstract class Software extends Renderer {
 	protected SoftwareOrpho orpho;
 
 	public Software(Engine engine) {
-		BuildGdx.app.setFrame(FrameType.Canvas);
+		if(BuildGdx.graphics.getFrameType() != FrameType.Canvas)
+			BuildGdx.app.setFrame(FrameType.Canvas);
 		this.engine = engine;
 		a = new Ac(this);
 
@@ -700,7 +702,7 @@ public abstract class Software extends Renderer {
 			int gotswall = 0;
 
 			int startsmostwallcnt = smostwallcnt;
-			short startsmostcnt = smostcnt;
+			int startsmostcnt = smostcnt;
 
 			if (nextsectnum >= 0) {
 				nextsec = sector[nextsectnum];
@@ -1707,6 +1709,7 @@ public abstract class Software extends Renderer {
 			int rpoint = -1;
 			long rmax = 0x80000000;
 			for (z = 0; z < npoints; z++) {
+				if(rzi[z] == 0) continue;
 				xsi[z] = scale(rxi[z], xdimen << 15, rzi[z]) + (xdimen << 15);
 				ysi[z] = scale(ryi[z], xdimen << 15, rzi[z]) + ((int) globalhoriz << 16);
 				if (xsi[z] < 0)
@@ -3440,13 +3443,12 @@ public abstract class Software extends Renderer {
 
 	@Override
 	public void clearview(int dacol) {
-		Arrays.fill(frameplace, (byte) dacol);
+		Gameutils.fill(frameplace, dacol);
 	}
 
 	@Override
 	public void nextpage() {
-		byte[] dst = ((SoftFrame) BuildGdx.app.getFrame()).getFrame();
-		System.arraycopy(frameplace, 0, dst, 0, Math.min(frameplace.length, dst.length));
+		System.arraycopy(frameplace, 0, BuildGdx.graphics.extra(Option.SWGetFrame), 0, frameplace.length); //Math.min(frameplace.length, dst.length)
 		engine.faketimerhandler();
 	}
 
@@ -3544,6 +3546,7 @@ public abstract class Software extends Renderer {
 					lookups[horizlookup2 + i] = (int) divscale(klabs(lookups[horizlookup + i]), j, 14);
 				}
 		}
+		
 		if ((xdimen != oxdimen) || (viewingrange != oviewingrange)) {
 			oxdimen = xdimen;
 			oviewingrange = viewingrange;
@@ -3554,7 +3557,7 @@ public abstract class Software extends Renderer {
 				j = x & 65535;
 				k = x >> 16;
 				x += xinc;
-				if(k < 0 || k >= 1279) break;
+				if(k < 0 || k >= radarang.length - 1) break;
 
 				if (j != 0)
 					j = mulscale(radarang[k + 1] - radarang[k], j, 16);
@@ -3572,7 +3575,7 @@ public abstract class Software extends Renderer {
 	}
 
 	public void changepalette(byte[] palette) {
-		((SoftFrame) BuildGdx.app.getFrame()).changepalette(palette);
+		BuildGdx.graphics.extra(Option.SWChangePalette, palette);
 	}
 
 	private void scansector(short sectnum) {

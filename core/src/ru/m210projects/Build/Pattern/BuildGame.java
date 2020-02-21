@@ -33,9 +33,9 @@ import com.badlogic.gdx.Screen;
 
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.FileHandle.Compat.Path;
-import ru.m210projects.Build.Architecture.GLFrame;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
@@ -50,18 +50,6 @@ import ru.m210projects.Build.Types.LittleEndian;
 import ru.m210projects.Build.Types.MemLog;
 
 public abstract class BuildGame extends Game {
-	
-	/*
-	 * OpenAL dispose method fixed for Linux
-	 * OpenAL init driver tweak
-	 *
-	 * TODO:
-	 * SaveManager findSaves()
-	 * VideoList refactoring
-	 * texture.bind(0) need fix (detail textures)
-	 * kOpen external file -> native bytebuffer (read only)
-	 * Launcher parameter for start
-	 */
 
 	public final String appname;
 	public final String sversion;
@@ -101,8 +89,6 @@ public abstract class BuildGame extends Game {
 		this.pCfg = cfg;
 		this.date = new Date("MMM dd, yyyy HH:mm:ss");
 		this.baseDef = new DefScript(false);
-		this.pInt = new Interpolation();
-		this.pSavemgr = new SaveManager();
 	}
 
 	@Override
@@ -163,8 +149,8 @@ public abstract class BuildGame extends Game {
 	}
 	
 	public void updateColorCorrection() {
-		if (BuildGdx.app.getFrameType() == FrameType.GL) {
-			((GLFrame) BuildGdx.app.getFrame()).setDisplayConfiguration(1 - (GLSettings.gamma.get() / 4096.0f), GLSettings.brightness.get() / 4096.0f, GLSettings.contrast.get() / 4096.0f);
+		if (BuildGdx.graphics.getFrameType() == FrameType.GL) {
+			BuildGdx.graphics.extra(Option.GLSetConfiguration, 1 - (GLSettings.gamma.get() / 4096.0f), GLSettings.brightness.get() / 4096.0f, GLSettings.contrast.get() / 4096.0f);
 		}
 	}
 	

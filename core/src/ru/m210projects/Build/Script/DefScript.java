@@ -36,7 +36,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.FileHandle.FileUtils;
 import ru.m210projects.Build.FileHandle.Resource;
-import ru.m210projects.Build.FileHandle.Resource.ResourceData;
+import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.MD2.MD2Loader;
@@ -672,7 +672,7 @@ public class DefScript implements Disposable {
     {
 		String fn;
 		Token token;
-		ResourceData buffer;
+		Resource res;
 		Integer ivalue;
 		Double dvalue;
 
@@ -716,27 +716,27 @@ public class DefScript implements Disposable {
     	        if ((modelfn = script.getstring()) == null) break;
                 if ((modelend = script.getbraces()) == -1) break;
                 
-                Resource res = BuildGdx.cache.open(modelfn, 0);
+                res = BuildGdx.cache.open(modelfn, 0);
         		if(res == null) {
         			Console.Println("Warning: File not found" + modelfn, OSDTEXT_YELLOW);
                     script.textptr = modelend+1;
                     break;
         		}
-        		
-        		buffer = res.getData();
-        		
+
         		Model m = null;
-        	    switch (buffer.getInt(0))
+        		int sign = res.readInt();
+        		res.seek(0, Whence.Set);
+        	    switch (sign)
         	    {
         		    case 0x32504449: //IDP2
-        		        m = MD2Loader.load(buffer);
+        		        m = MD2Loader.load(res);
         		        break;
         		    case 0x33504449: //IDP3
-        		        m = MD3Loader.load(buffer);
+        		        m = MD3Loader.load(res);
         		        break; 
         		    default:
         		    	if (res.getExtension().equals("kvx"))
-                		    m = KVXLoader.load(buffer).model;  
+                		    m = KVXLoader.load(res).model;  
         		    	break;
         	    }
         	    res.close();
@@ -1177,20 +1177,22 @@ public class DefScript implements Disposable {
 
                 if ((vmodelend = script.getbraces()) == -1) break;
                 
-                buffer = BuildGdx.cache.getData(fn, 0);
-        		if(buffer == null) {
+                res = BuildGdx.cache.open(fn, 0);
+        		if(res == null) {
         			Console.Println("Warning: File not found" + fn, OSDTEXT_YELLOW);
                     script.textptr = vmodelend+1;
                     break;
         		}
-        		Voxel vox = KVXLoader.load(buffer); 
+        		Voxel vox = KVXLoader.load(res); 
+        		res.close();
                 if (vox == null)
                 {
                 	Console.Println("Warning: Failed loading MD2/MD3 model " + fn, OSDTEXT_YELLOW);
                     script.textptr = vmodelend+1;
+                   
                     break;
                 }
-               
+                
                 while (script.textptr < vmodelend)
                 {
                     switch (gettoken(script, voxeltokens))

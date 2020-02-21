@@ -69,7 +69,8 @@ public abstract class MenuRendererSettings extends BuildMenu {
 
 		currentRenderer = app.pEngine.getrender();
 		currentFormat = app.pEngine.getrender().getTexFormat();
-		title.text = (app.pEngine.getrender().getType().getName() + " settings").toCharArray();
+		if(title != null)
+			title.text = (app.pEngine.getrender().getType().getName() + " settings").toCharArray();
 		
 		addItem(title, false);
 		
