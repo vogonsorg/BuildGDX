@@ -94,7 +94,6 @@ public abstract class Engine {
 	 * 
 	 * GameAdapter TODO:
 	 * SaveManager findSaves()
-	 * kOpen external file -> native bytebuffer (read only)
 	 * Launcher start parameters
 	 * 
 	 * 
