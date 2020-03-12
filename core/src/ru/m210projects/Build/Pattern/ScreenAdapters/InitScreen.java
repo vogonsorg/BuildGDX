@@ -234,10 +234,9 @@ public class InitScreen extends ScreenAdapter {
 		try { 
 			if(thread != null) {
 				disposing = true;
-				BuildGdx.app.exit();
 				thread.join();
 			}
-		} catch (InterruptedException e) { }
+		} catch (Exception e) { }
 	}
 
 	@Override

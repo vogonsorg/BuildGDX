@@ -1062,8 +1062,12 @@ public abstract class Engine {
 			font.dispose();
 		}
 
-		if (render != null && render.isInited())
-			render.uninit();
+		try {
+			if (render != null && render.isInited())
+				render.uninit();
+		} catch (Exception e) {
+			
+		}
 
 		if (artfil != null)
 			artfil.close();

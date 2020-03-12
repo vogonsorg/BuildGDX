@@ -210,9 +210,9 @@ public class BuildAudio implements Disposable {
 	
 	public void update()
 	{
-		if(fx.isInited()) 
+		if(fx != null && fx.isInited()) 
 			fx.update();
-		if(mx.isInited()) 
+		if(mx != null && mx.isInited()) 
 			mx.update();
 	}
 	
