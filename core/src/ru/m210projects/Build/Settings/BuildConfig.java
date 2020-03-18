@@ -37,6 +37,9 @@ import ru.m210projects.Build.Pattern.Tools.IniFile;
 import ru.m210projects.Build.Render.Renderer.RenderType;
 
 public abstract class BuildConfig extends IniFile {
+	
+	public static final int MINFOV = 60;
+	public static final int MAXFOV = 140;
 
 	public final int cfgVersion = 1901; //year XX, num XX
 	public boolean isInited;
@@ -305,7 +308,7 @@ public abstract class BuildConfig extends IniFile {
 				value = GetKeyInt("WideScreen");
 				if(value != -1) widescreen = value;
 				value = GetKeyInt("FieldOfView");
-				if(value != -1 && value >= 60 && value <= 130) 
+				if(value != -1 && value >= MINFOV && value <= MAXFOV) 
 					gFov = value;
 			}
 				

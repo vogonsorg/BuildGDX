@@ -19,6 +19,7 @@ package ru.m210projects.Build.Render;
 import java.nio.ByteBuffer;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Types.ParamLinker;
 import ru.m210projects.Build.Types.TileFont;
@@ -26,7 +27,7 @@ import ru.m210projects.Build.Types.TileFont;
 public abstract class Renderer extends ParamLinker {
 	
 	public Renderer() {
-		this.params.add(new SliderItem<Integer>("Field of view", BuildSettings.fov, 60, 140, 5, null));
+		this.params.add(new SliderItem<Integer>("Field of view", BuildSettings.fov, BuildConfig.MINFOV, BuildConfig.MAXFOV, 5, null));
 		this.params.add(new SwitchItem<Boolean>("Vsync", BuildSettings.vsync));
 		String[] limits = new String[BuildSettings.fpslimits.length];
 		for(int i = 0; i < limits.length; i++)
