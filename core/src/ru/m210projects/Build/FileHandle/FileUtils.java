@@ -29,6 +29,11 @@ public class FileUtils {
 			return null;
 		return filename.substring(filename.lastIndexOf('.') + 1);
 	}
+	
+	public static String getNameWithoutExtension(String filename)
+	{
+		return filename.substring(0, filename.lastIndexOf('.'));
+	}
 
 	public static String getFullName(String path) {
 		if (path != null) {

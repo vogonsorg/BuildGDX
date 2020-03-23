@@ -62,6 +62,12 @@ public class ALSource extends Source {
 		if(!drv.isInited()) return false;
 		return al.alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PLAYING;
 	}
+	
+	@Override
+	public boolean isGlobal() {
+		if(!drv.isInited()) return false;
+		return al.alGetSourcei(sourceId, AL_SOURCE_RELATIVE) == 1;
+	}
 
 	@Override
 	public void setPosition(float x, float y, float z) {
@@ -114,7 +120,7 @@ public class ALSource extends Source {
 	@Override
 	public boolean isActive() {
 		if(!drv.isInited()) return false;
-		return isPlaying() && priority != 0 && !free;
+		return (isPlaying() || al.alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PAUSED) && priority != 0 && !free;
 	}
 
 	@Override

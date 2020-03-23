@@ -100,10 +100,16 @@ public class ALSource extends Source {
 	public void setGlobal(int num) {
 		if(!drv.isInited()) return;
 		al.alSourcei(sourceId, AL_SOURCE_RELATIVE,  num);
-		
+
 		int error = al.alGetError();
 		if(error != AL_NO_ERROR) 
 			Console.Println("OpenAL Error setGlobal " + error + ", value is " + num, OSDTEXT_RED);
+	}
+	
+	@Override
+	public boolean isGlobal() {
+		if(!drv.isInited()) return false;
+		return al.alGetSourcei(sourceId, AL_SOURCE_RELATIVE) == 1;
 	}
 
 	@Override
@@ -114,7 +120,7 @@ public class ALSource extends Source {
 	@Override
 	public boolean isActive() {
 		if(!drv.isInited()) return false;
-		return isPlaying() && priority != 0 && !free;
+		return (isPlaying() || al.alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PAUSED) && priority != 0 && !free;
 	}
 
 	@Override
