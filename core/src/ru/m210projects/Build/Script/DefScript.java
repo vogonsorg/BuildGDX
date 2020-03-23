@@ -220,6 +220,7 @@ public class DefScript implements Disposable {
 	    NODOWNSIZE,
 	    CRC,
 	    
+	    ANIMRANGE,
 	    IFADDON
     	
 		;
@@ -260,6 +261,7 @@ public class DefScript implements Disposable {
 			
 			// other stuff
 			put("tilefromtexture",   Token.T_TILEFROMTEXTURE );
+			put("animtilerange", Token.ANIMRANGE);
 			
 			//gdx
 			put("music", Token.MUSIC );
@@ -537,6 +539,25 @@ public class DefScript implements Disposable {
 
 		return deftile;
 	}
+
+	protected void animtilerange(Scriptfile script)
+	{
+		Integer tile0, tile1, speed, anm;
+		if ((tile0 = script.getsymbol()) == null) return;
+		if ((tile1 = script.getsymbol()) == null) return;
+		if ((speed = script.getsymbol()) == null) return;
+		if ((anm = script.getsymbol()) == null) return;
+
+		int length = (tile1 - tile0);
+		if(length <= 0)
+		{
+			Console.Println("Warning: Animation lenght < 0, skipping", Console.OSDTEXT_RED);
+			return;
+		}
+
+		picanm[tile0] &= ~0x0F0000FF;
+		picanm[tile0] |= ((anm & 3) << 6) | ((speed & 15) << 24) | length & 0x3F;
+	}
 	
 	protected void tilefromtextureparser(Scriptfile script) //XXX
 	{
@@ -698,6 +719,9 @@ public class DefScript implements Disposable {
 				break;
 			case T_TILEFROMTEXTURE:
 				tilefromtextureparser(script);
+				break;
+			case ANIMRANGE:
+				animtilerange(script);
 				break;
 			case INCLUDE:
     			if ((fn = getFile(script)) == null) break;
