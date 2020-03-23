@@ -2334,6 +2334,7 @@ public abstract class Engine {
 		Console.draw();
 		render.nextpage();
 		BuildGdx.audio.update();
+		totalclocklock = totalclock;
 	}
 
 	public int neartag(int xs, int ys, int zs, short sectnum, short ange, Neartag near, int neartagrange,
