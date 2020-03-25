@@ -333,7 +333,8 @@ public class ALSoundDrv implements Sound {
 		Iterator<Source> it = sourceManager.iterator();
 	    while(it.hasNext()) {
 	    	Source s = (Source)it.next();
-	    	al.setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
+	    	if(s.flags != Source.Locked) //Don't set reverb for music
+	    		al.setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
 	    }
 	}
 	
@@ -438,15 +439,13 @@ public class ALSoundDrv implements Sound {
 		protected void update()
 		{
 			for(int i = 0; i < allSources.length; i++) {
-				if(allSources[i] != null && !allSources[i].free && !allSources[i].isPlaying() && allSources[i].flags != Source.Locked)
+				if(allSources[i] != null && !allSources[i].free && !allSources[i].isActive() && allSources[i].flags != Source.Locked)
 					freeSource(allSources[i]);
 			}
 		}
 		
 		protected Source obtainSource(int priority)
 		{
-//			update();
-			
 //			System.out.println("obtainSource()");
 //			Iterator<Source> it = this.iterator();
 //		    while(it.hasNext()) {

@@ -1453,6 +1453,9 @@ public class DefScript implements Disposable {
 					if(!found) continue;
 				}
 	        }
+	        
+	        if(tile.waloff == null)
+	        	continue;
 
 			waloff[i] = new byte[tile.waloff.length];
 			System.arraycopy(tile.waloff, 0, waloff[i], 0, tile.waloff.length);

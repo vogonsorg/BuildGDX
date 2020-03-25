@@ -333,7 +333,8 @@ public class ALSoundDrv implements Sound {
 		Iterator<Source> it = sourceManager.iterator();
 	    while(it.hasNext()) {
 	    	Source s = (Source)it.next();
-	    	al.setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
+	    	if(s.flags != Source.Locked) //Don't set reverb for music
+	    		al.setSourceReverb(s.sourceId, alReverbEnable, alReverbDelay);
 	    }
 	}
 	
