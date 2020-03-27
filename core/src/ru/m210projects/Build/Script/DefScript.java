@@ -274,6 +274,8 @@ public class DefScript implements Disposable {
 		private static final long serialVersionUID = 1L;
 		{
 			put("id",     Token.ID);
+			put("midi",     Token.ID);
+			put("map",     Token.ID);
 			put("file",	  Token.FILE);
 		}
     };
