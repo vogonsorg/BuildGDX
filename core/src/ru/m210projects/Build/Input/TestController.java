@@ -103,6 +103,9 @@ public class TestController implements BuildController {
 	}
 	
 	private float getAxis(int value) {
+		if(BuildGdx.input.isKeyPressed(Keys.SHIFT_LEFT))
+			value -= 2;
+		
 		if(value == 0) {
 			if(BuildGdx.input.isKeyPressed(Keys.UP))
 				return -1.0f;

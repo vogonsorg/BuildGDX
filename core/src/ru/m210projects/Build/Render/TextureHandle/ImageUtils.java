@@ -113,6 +113,9 @@ public class ImageUtils {
 		if (alphaMode && dacol == 255) 
 			return curpalette.getRGBA(0, (byte) 0);
 		
+		if(dacol >= palookup[dapal].length)
+			return 0;
+		
 		if(UseBloodPal && dapal == 1) //Blood's pal 1
 		{
 			int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));

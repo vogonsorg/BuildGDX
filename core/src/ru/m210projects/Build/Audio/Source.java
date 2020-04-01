@@ -65,9 +65,11 @@ public abstract class Source implements Comparable<Source> {
 	public abstract void setGlobal(int num);
 	public abstract void setPriority(int priority);
 	
+	
 	public abstract boolean isActive();	
 	public abstract boolean isLooping();
 	public abstract boolean isPlaying();
+	public abstract boolean isGlobal();
 	
 	public abstract void setCallback(SourceCallback callback, int num);
 }

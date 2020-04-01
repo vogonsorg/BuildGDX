@@ -38,7 +38,7 @@ public class Scriptfile {
 
 	public String getstring() {
 		int out = gettoken();
-		if (out == -1) {
+		if (out == -1 || out == -2) {
 			// initprintf("Error on line %s:%d: unexpected
 			// eof\n",sf.filename,scriptfile_getlinum(sf,sf.textptr));
 			return null;

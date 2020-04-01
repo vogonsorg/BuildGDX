@@ -53,6 +53,7 @@ public class InitScreen extends ScreenAdapter {
 	private Thread thread;
 	private BuildGame game;
 	private boolean gameInitialized;
+	private boolean disposing;
 	
 	@Override
 	public void show()
@@ -60,6 +61,7 @@ public class InitScreen extends ScreenAdapter {
 		frames = 0;
 		Console.fullscreen(true);
 		gameInitialized = false;
+		disposing = false;
 	}
 	
 	@Override
@@ -228,10 +230,13 @@ public class InitScreen extends ScreenAdapter {
 
 	public void dispose()
 	{
+		if(disposing) return;
 		try { 
-			if(thread != null)
+			if(thread != null) {
+				disposing = true;
 				thread.join();
-		} catch (InterruptedException e) { }
+			}
+		} catch (Exception e) { }
 	}
 
 	@Override

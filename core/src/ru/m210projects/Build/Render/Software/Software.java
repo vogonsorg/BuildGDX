@@ -642,7 +642,7 @@ public abstract class Software extends Renderer {
 			tempbuf[mirrorsx2] = tempbuf[mirrorsx2 - 1];
 			copybufreverse(tempbuf, mirrorsx2, frameplace, p + i, mirrorsx2 + 1);
 			p += ylookup[1];
-			engine.faketimerhandler();
+//			engine.faketimerhandler();
 		}
 	}
 
@@ -2412,7 +2412,7 @@ public abstract class Software extends Renderer {
 			transmaskvline(x);
 			x++;
 		}
-		engine.faketimerhandler();
+//		engine.faketimerhandler();
 	}
 
 	private void transmaskvline(int x) {
@@ -2573,7 +2573,7 @@ public abstract class Software extends Renderer {
 					x + frameoffset + ylookup[y1ve]);
 		}
 
-		engine.faketimerhandler();
+//		engine.faketimerhandler();
 	}
 
 	private void wallscan(int x1, int x2, short[] uwal, short[] dwal, int[] swal, int[] lwal) {
@@ -2634,7 +2634,7 @@ public abstract class Software extends Renderer {
 					x + frameoffset + ylookup[y1ve]);
 		}
 
-		engine.faketimerhandler();
+//		engine.faketimerhandler();
 	}
 
 	private void florscan(int x1, int x2, int sectnum) {
@@ -2787,7 +2787,7 @@ public abstract class Software extends Renderer {
 			}
 			while (y1 < y2 - 1)
 				hline(x2, ++y1);
-			engine.faketimerhandler();
+//			engine.faketimerhandler();
 			return;
 		}
 
@@ -2841,7 +2841,7 @@ public abstract class Software extends Renderer {
 		}
 		while (y1 < y2 - 1)
 			slowhline(x2, ++y1);
-		engine.faketimerhandler();
+//		engine.faketimerhandler();
 	}
 
 	private void parascan(int dax1, int dax2, short sectnum, int dastat, int bunch) {
@@ -3009,7 +3009,7 @@ public abstract class Software extends Renderer {
 		}
 		while (y1 < y2 - 1)
 			ceilspritehline(x2, ++y1);
-		engine.faketimerhandler();
+//		engine.faketimerhandler();
 	}
 
 	private void ceilspritehline(int x2, int y) {
@@ -3223,8 +3223,8 @@ public abstract class Software extends Renderer {
 				a.asm3 = mulscale(y2, globalzd, 16) + (globalzx >> 6);
 				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3, globaly3, slopalookup);
 
-				if ((x & 15) == 0)
-					engine.faketimerhandler();
+//				if ((x & 15) == 0)
+//					engine.faketimerhandler();
 			}
 			globalx2 += globalx;
 			globaly2 += globaly;
@@ -3383,7 +3383,7 @@ public abstract class Software extends Renderer {
 			}
 			while (y1 < y2 - 1)
 				hline(x2, ++y1);
-			engine.faketimerhandler();
+//			engine.faketimerhandler();
 			return;
 		}
 
@@ -3438,7 +3438,7 @@ public abstract class Software extends Renderer {
 		}
 		while (y1 < y2 - 1)
 			slowhline(x2, ++y1);
-		engine.faketimerhandler();
+//		engine.faketimerhandler();
 	}
 
 	@Override
@@ -3462,8 +3462,10 @@ public abstract class Software extends Renderer {
 																										// same person
 																										// who provided
 																										// this too?
-		for (int i = 0; i < num; i++) {
-			bufptr[i + offset] = (short) (val >> 16);
+		int len = num + offset;
+		if(offset < 0 || len == 0) return;
+		for (int i = offset; i < len; i++) {
+			bufptr[i] = (short) (val >> 16);
 			val += add;
 		}
 	}
@@ -3471,8 +3473,11 @@ public abstract class Software extends Renderer {
 	protected void qinterpolatedown16(int[] bufptr, int offset, int num, long val, long add) { // gee, I wonder who
 																								// could have provided
 																								// this...
-		for (int i = 0; i < num; i++) {
-			bufptr[i + offset] = (int) (val >> 16);
+		int len = num + offset;
+		if(offset < 0 || len == 0) return;
+		
+		for (int i = offset; i < len; i++) {
+			bufptr[i] = (int) (val >> 16);
 			val += add;
 		}
 	}

@@ -67,6 +67,7 @@ public abstract class Engine {
 	 * Software renderer: and the draw distance for voxel detail is really low
 	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
 	 * Software renderer: Voxel is not clipped by ceiling geometry
+	 * в консоли может одновременно две одинаковых строки показать (console default font)
 	 * 
 	 * osdrows в сохранения конфига
 	 * Туман зависит от разрешения экрана (Polymost)
@@ -129,7 +130,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 
-	public static final String version = "20.021"; // XX. - year, XX - month, X - build
+	public static final String version = "20.031"; // XX. - year, XX - month, X - build
 
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -1062,8 +1063,12 @@ public abstract class Engine {
 			font.dispose();
 		}
 
-		if (render != null && render.isInited())
-			render.uninit();
+		try {
+			if (render != null && render.isInited())
+				render.uninit();
+		} catch (Exception e) {
+			
+		}
 
 		if (artfil != null)
 			artfil.close();
@@ -2329,6 +2334,7 @@ public abstract class Engine {
 		Console.draw();
 		render.nextpage();
 		BuildGdx.audio.update();
+		totalclocklock = totalclock;
 	}
 
 	public int neartag(int xs, int ys, int zs, short sectnum, short ange, Neartag near, int neartagrange,

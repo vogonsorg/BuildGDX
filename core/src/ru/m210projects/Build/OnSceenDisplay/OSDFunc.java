@@ -21,6 +21,8 @@ public interface OSDFunc {
 	public void drawosdstr(int x, int y, int ptr, int len, int shade, int pal, int scale);
 	public void drawstr(int x, int y, char[] text, int len, int shade, int pal, int scale);
 	public void drawcursor(int x, int y, int type, int lastkeypress, int scale);
+	public void drawlogo(int daydim);
+	
 	public void clearbg(int col, int row);
 	public void showosd(int shown);
 	public int gettime();

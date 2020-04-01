@@ -118,17 +118,7 @@ public class DEFOSDFUNC implements OSDFunc {
 						65536, 0, BGTILE, SHADE, PALETTE, bits, 0,
 						0, xdim, daydim);
 
-		if(BGCTILE != -1) {
-			xsiz = tilesizx[BGCTILE];
-			ysiz = tilesizy[BGCTILE];
-	
-			if (xsiz > 0 && ysiz > 0)
-			{
-				engine.rotatesprite((xdim - xsiz) << 15,
-						(daydim - ysiz) << 16, 65536, 0, BGCTILE,
-						SHADE - 32, PALETTE, BITSTL, 0, 0, xdim, daydim);
-			}
-		}
+		drawlogo(daydim);
 
 		if(BORDTILE != -1) {
 			xsiz = tilesizy[BORDTILE];
@@ -166,5 +156,20 @@ public class DEFOSDFUNC implements OSDFunc {
 	@Override
 	public boolean textHandler(String text) {
 		return false;
+	}
+
+	@Override
+	public void drawlogo(int daydim) {
+		if(BGCTILE != -1) {
+			int xsiz = tilesizx[BGCTILE];
+			int ysiz = tilesizy[BGCTILE];
+	
+			if (xsiz > 0 && ysiz > 0)
+			{
+				engine.rotatesprite((xdim - xsiz) << 15,
+						(daydim - ysiz) << 16, 65536, 0, BGCTILE,
+						SHADE - 32, PALETTE, BITSTL, 0, 0, xdim, daydim);
+			}
+		}
 	}
 }

@@ -70,6 +70,23 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 public abstract class Polymost extends GLRenderer {
 	
+	public enum Rendering {
+		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling;
+		
+		private int index;
+		public int getIndex() {
+			return index;
+		}
+		
+		public Rendering setIndex(int i)
+		{
+			this.index = i;
+			return this;
+		}
+	}
+	
+	public Rendering rendering = Rendering.Nothing;
+	
 	public static long TexDebug = -1;
 	class GLSurfaceArray {
 		
@@ -1430,6 +1447,7 @@ public abstract class Polymost extends GLRenderer {
 			fy1 = (dfloorzsofslope - globalposz) * ryp1 + ghoriz;
 
 			{ //DRAW FLOOR
+				rendering = Rendering.Floor.setIndex(sectnum);
 				globalpicnum = sec.floorpicnum;
 				globalshade = sec.floorshade;
 				globalpal = sec.floorpal;
@@ -1454,6 +1472,7 @@ public abstract class Polymost extends GLRenderer {
 			} //END DRAW FLOOR
 			
 			{ //DRAW CEILING
+				rendering = Rendering.Ceiling.setIndex(sectnum);
 				globalpicnum = sec.ceilingpicnum;
 				globalshade = sec.ceilingshade;
 				globalpal = sec.ceilingpal & 0xFF;
@@ -1477,6 +1496,7 @@ public abstract class Polymost extends GLRenderer {
 		
 			} //END DRAW CEILING
 
+			rendering = Rendering.Wall.setIndex(wallnum);
 			gdx = (ryp0 - ryp1) * gxyaspect / (x0 - x1);
 			gdy = 0;
 			gdo = ryp0 * gxyaspect - gdx * x0;
@@ -2341,6 +2361,8 @@ public abstract class Polymost extends GLRenderer {
 		gl.glDepthFunc(GL_LEQUAL); // NEVER,LESS,(,L)EQUAL,GREATER,(NOT,G)EQUAL,ALWAYS
 		gl.glDepthRange(defznear, defzfar); //<- this is more widely supported than glPolygonOffset
 
+		rendering = Rendering.Nothing;
+		
 		// Polymost supports true look up/down :) Here, we convert horizon to angle.
 		// gchang&gshang are cos&sin of this angle (respectively)
 		gyxscale = xdimenscale / 131072.0f;
@@ -2527,6 +2549,8 @@ public abstract class Polymost extends GLRenderer {
 		
 		if(sectnum == -1 || wal.nextsector == -1) 
 			return;
+		
+		rendering = Rendering.MaskWall.setIndex(thewall[z]);
 		
 		sec = sector[sectnum];
 		nsec = sector[wal.nextsector];
@@ -2799,6 +2823,7 @@ public abstract class Polymost extends GLRenderer {
 		globalpal = tspr.pal & 0xFF;
 		globalorientation = tspr.cstat;
 		spritenum = tspr.owner;
+		rendering = Rendering.Sprite.setIndex(snum);
 
 //		globvis = globalvisibility;
 //		if (sector[tspr.sectnum].visibility != 0)

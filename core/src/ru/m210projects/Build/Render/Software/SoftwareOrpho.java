@@ -81,7 +81,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 			int mscale = (int) (scale * 65536);
 			int ctx, cty, textsize = mulscale(font.charsizx, mscale, 16);
 
-			for (int i = 0; i < text.length && text[i] != 0; i++) {
+			for (int i = 0; i < text.length && text[i] != 0; i++, xpos += textsize) {
+				if(xpos < 0) continue;
 				tx = (text[i] % font.cols) / (float) font.cols;
 				ty = (text[i] / font.cols) / (float) font.rows;
 
@@ -90,15 +91,12 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 				engine.rotatesprite((xpos - ctx) << 16, (ypos - cty) << 16, mscale, 0, nTile, shade, col, 8 | 16 | flags, xpos, ypos,
 						xpos + textsize - 1, ypos + textsize - 1);
-
-				xpos += textsize;
 			}
 		} else {
 			int fontsize = 0;
 			if(font.ptr == smalltextfont)
 				fontsize = 1;
-			
-			
+
 			printext(xpos, ypos, col, -1, text, fontsize, scale);
 		}
 	}
@@ -983,7 +981,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			globalposy += globaly2;
 			ptr += MAXNODESPERLINE;
 		}
-		engine.faketimerhandler();
+//		engine.faketimerhandler();
 	}
 
 	@Override
@@ -1309,6 +1307,9 @@ public class SoftwareOrpho extends OrphoRenderer {
 				parent.a.settransnormal();
 		}
 
+		if(x1 < 0) 
+			return; //GDX 24.03.2020 crash fix
+		
 		for (x = x1; x < x2; x++) {
 			bx += xv2;
 			by += yv2;
@@ -1355,7 +1356,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			} else {
 				parent.a.tspritevline(bx & 65535, by & 65535, y2 - y1 + 1, bufplc, (bx >> 16) * ysiz + (by >> 16), p);
 			}
-			engine.faketimerhandler();
+//			engine.faketimerhandler();
 		}
 	}
 
