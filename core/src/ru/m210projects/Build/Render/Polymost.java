@@ -368,7 +368,7 @@ public abstract class Polymost extends GLRenderer {
 	public void setDefs(DefScript defs) {
 		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
 		if(this.defs != null)
-			gltexinvalidateall();
+			gltexinvalidateall(1);
 		this.defs = defs;
 	}
 
