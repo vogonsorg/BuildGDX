@@ -44,6 +44,7 @@ import javax.swing.event.DocumentListener;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.backends.lwjgl.LwjglNativesLoader;
 import com.badlogic.gdx.utils.Pool;
 
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
@@ -172,7 +173,7 @@ public class AWTInput implements BuildInput, KeyListener {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
+		} else LwjglNativesLoader.load(); //This also needs for Pixmap working
 		
 		if(this.mouse == null)
 			this.mouse = new AWTMouse(display);
