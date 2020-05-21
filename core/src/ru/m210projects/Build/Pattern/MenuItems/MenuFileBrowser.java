@@ -68,8 +68,8 @@ public abstract class MenuFileBrowser extends MenuItem {
 					return c;
 			}
 
-//			if(o1 instanceof FileEntry && o2 instanceof FileEntry) 
-//				return ((FileEntry)o1).compareTo((FileEntry) o2);
+			if(o1 instanceof FileEntry && o2 instanceof FileEntry) 
+				return ((FileEntry)o1).compareTo((FileEntry) o2);
 
 			return s1.compareTo(s2);
 		}
@@ -103,7 +103,7 @@ public abstract class MenuFileBrowser extends MenuItem {
 	private int nBackground = 0;
 	private int scrollerHeight;
 	protected BuildFont topFont, pathFont;
-	public int topPal, pathPal, listPal, backPal, backgroundPal;
+	public int topPal, pathPal, listPal, backgroundPal;
 	public int transparent = 1;
 	
 	private long checkDirectory; //checking for new files
@@ -247,8 +247,8 @@ public abstract class MenuFileBrowser extends MenuItem {
 				pal = handler.getPal(font, m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 
 			text = toCharArray(list[DIRECTORY].get(i));
-			if(list[DIRECTORY].get(i).equals(back))
-				pal = backPal;
+//			if(list[DIRECTORY].get(i).equals(back))
+//				pal = backPal;
 			brDrawText(font, text, px, py, shade, pal, 0, this.x + this.width / 2 - 4);
 			py += mFontOffset();
 		}

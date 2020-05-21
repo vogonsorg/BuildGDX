@@ -22,6 +22,8 @@ import java.nio.ByteBuffer;
 public interface Resource extends Closeable {
 
 	public static enum Whence { Set, Current, End };
+	
+	public String getFullName();
 
 	public String getExtension();
 	

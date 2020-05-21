@@ -9,6 +9,7 @@
 
 package ru.m210projects.Build.Types;
 
+import static ru.m210projects.Build.Engine.MAXSECTORS;
 import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
@@ -49,7 +50,7 @@ public class SPRITE {
     	xoffset = bb.readByte();
     	yoffset = bb.readByte();
     	sectnum = bb.readShort();
-    	if(!isValidSector(sectnum)) sectnum = 0;
+    	if(sectnum < 0 || sectnum >= MAXSECTORS) sectnum = 0;
     	statnum = bb.readShort();
     	ang = bb.readShort();
     	owner = bb.readShort();

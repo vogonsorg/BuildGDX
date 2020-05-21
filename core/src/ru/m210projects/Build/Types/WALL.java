@@ -9,6 +9,8 @@
 
 package ru.m210projects.Build.Types;
 
+import static ru.m210projects.Build.Engine.MAXSECTORS;
+import static ru.m210projects.Build.Engine.MAXWALLS;
 import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
@@ -43,11 +45,11 @@ public class WALL {
 		x = bb.readInt();
     	y = bb.readInt();
     	point2 = bb.readShort();
-    	if(!isValidWall(point2)) point2 = 0;
+    	if(point2 < 0 || point2 >= MAXWALLS) point2 = 0;
     	nextwall = bb.readShort();
-    	if(!isValidWall(nextwall)) nextwall = -1;
+    	if(nextwall < 0 || nextwall >= MAXWALLS) nextwall = -1;
     	nextsector = bb.readShort();
-    	if(!isValidSector(nextsector)) nextsector = -1;
+    	if(nextsector < 0 || nextsector >= MAXSECTORS) nextsector = -1;
     	cstat = bb.readShort();
     	picnum = bb.readShort();
     	if(!isValidTile(picnum)) picnum = 0;

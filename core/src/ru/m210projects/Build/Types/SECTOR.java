@@ -9,6 +9,7 @@
 
 package ru.m210projects.Build.Types;
 
+import static ru.m210projects.Build.Engine.MAXWALLS;
 import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
@@ -47,7 +48,7 @@ public class SECTOR {
 	public void buildSector(Resource bb)
 	{
 		wallptr = bb.readShort();
-		if(!isValidWall(wallptr)) wallptr = 0;
+		if(wallptr < 0 || wallptr >= MAXWALLS) wallptr = 0;
     	wallnum = bb.readShort();
     	ceilingz = bb.readInt();
     	floorz = bb.readInt();

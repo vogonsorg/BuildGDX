@@ -2,17 +2,7 @@ package ru.m210projects.Build.Pattern;
 
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.*;
-import static ru.m210projects.Build.Net.Mmulti.canSend;
-import static ru.m210projects.Build.Net.Mmulti.connecthead;
-import static ru.m210projects.Build.Net.Mmulti.connectpoint2;
-import static ru.m210projects.Build.Net.Mmulti.getpacket;
-import static ru.m210projects.Build.Net.Mmulti.inet;
-import static ru.m210projects.Build.Net.Mmulti.kPacketTick;
-import static ru.m210projects.Build.Net.Mmulti.myconnectindex;
-import static ru.m210projects.Build.Net.Mmulti.numplayers;
-import static ru.m210projects.Build.Net.Mmulti.otherpacket;
-import static ru.m210projects.Build.Net.Mmulti.sendpacket;
-import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
+import static ru.m210projects.Build.Net.Mmulti.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.ksgn;
@@ -64,7 +54,7 @@ public abstract class BuildNet {
 	public int bufferJitter = 0;
 	public byte[] playerReady = new byte[MAXPLAYERS];
 	
-	public byte[] packbuf = new byte[256];
+	public byte[] packbuf = new byte[MAXPAKSIZ];
 	
 	public int[] gChecksum = new int[4]; //CheckSize XXX
 	public final int CheckSize = 4 * 4;

@@ -62,7 +62,7 @@ public abstract class MenuMouse extends BuildMenu {
 		
 		advancedMenu = buildAdvancedAxisMenu(app, posx, posy, width, menuHeight, style);
 		
-		mEnable = new MenuSwitch("Mouse in game:", style, posx, posy += menuHeight, width, cfg.useMouse, new MenuProc() {
+		mEnable = new MenuSwitch("Mouse in game", style, posx, posy += menuHeight, width, cfg.useMouse, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
@@ -71,7 +71,7 @@ public abstract class MenuMouse extends BuildMenu {
 		}, "Yes", "No");
 		mEnable.pal = buttonPal;
 
-		mMenuEnab = new MenuSwitch("Mouse in menu:", style, posx, posy += menuHeight, width, cfg.menuMouse,
+		mMenuEnab = new MenuSwitch("Mouse in menu", style, posx, posy += menuHeight, width, cfg.menuMouse,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -82,7 +82,7 @@ public abstract class MenuMouse extends BuildMenu {
 		mMenuEnab.pal = buttonPal;
 		
 		posy += separatorHeight;
-		mSens = new MenuSlider(app.pSlider, "Mouse Sensitivity:", style, posx, posy += menuHeight, width, cfg.gSensitivity, 0x1000,
+		mSens = new MenuSlider(app.pSlider, "Mouse Sensitivity", style, posx, posy += menuHeight, width, cfg.gSensitivity, 0x1000,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -93,7 +93,7 @@ public abstract class MenuMouse extends BuildMenu {
 		mSens.digitalMax = 65536f;
 		mSens.pal = buttonPal;
 
-		mTurn = new MenuSlider(app.pSlider, "Turning speed:", style, posx, posy += menuHeight, width, cfg.gMouseTurnSpeed, 0,
+		mTurn = new MenuSlider(app.pSlider, "Turning speed", style, posx, posy += menuHeight, width, cfg.gMouseTurnSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -104,7 +104,7 @@ public abstract class MenuMouse extends BuildMenu {
 		mTurn.digitalMax = 65536f;
 		mTurn.pal = buttonPal;
 
-		mLook = new MenuSlider(app.pSlider, "aiming up/down speed:", style, posx, posy += menuHeight, width, cfg.gMouseLookSpeed, 0,
+		mLook = new MenuSlider(app.pSlider, "Aiming up/down speed", style, posx, posy += menuHeight, width, cfg.gMouseLookSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -115,7 +115,7 @@ public abstract class MenuMouse extends BuildMenu {
 		mLook.digitalMax = 65536f;
 		mLook.pal = buttonPal;
 
-		mMove = new MenuSlider(app.pSlider, "Forward/Backward speed:", style, posx, posy += menuHeight, width, cfg.gMouseMoveSpeed,
+		mMove = new MenuSlider(app.pSlider, "Forward/Backward speed", style, posx, posy += menuHeight, width, cfg.gMouseMoveSpeed,
 				0, 0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -126,7 +126,7 @@ public abstract class MenuMouse extends BuildMenu {
 		mMove.digitalMax = 65536f;
 		mMove.pal = buttonPal;
 
-		mStrafe = new MenuSlider(app.pSlider, "Strafing speed:", style, posx, posy += menuHeight, width, cfg.gMouseStrafeSpeed, 0,
+		mStrafe = new MenuSlider(app.pSlider, "Strafing speed", style, posx, posy += menuHeight, width, cfg.gMouseStrafeSpeed, 0,
 				0x28000, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -139,7 +139,7 @@ public abstract class MenuMouse extends BuildMenu {
 
 		posy += separatorHeight;
 
-		mAiming = new MenuSwitch("Mouse aiming:", style, posx, posy += menuHeight, width, cfg.gMouseAim, new MenuProc() {
+		mAiming = new MenuSwitch("Mouse aiming", style, posx, posy += menuHeight, width, cfg.gMouseAim, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;
@@ -148,7 +148,7 @@ public abstract class MenuMouse extends BuildMenu {
 		}, null, null);
 		mAiming.pal = buttonPal;
 		
-		mInvert = new MenuSwitch("Invert mouse aim:", style, posx, posy += menuHeight, width, cfg.gInvertmouse,
+		mInvert = new MenuSwitch("Invert mouse aim", style, posx, posy += menuHeight, width, cfg.gInvertmouse,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -187,7 +187,7 @@ public abstract class MenuMouse extends BuildMenu {
 		for (int i = 1; i < keymaplist.length; i++)
 			keymaplist[i] = cfg.keymap[i - 1].getName().toCharArray();
 
-		mAxisUp = new MenuConteiner("Digital up: ", style, posx, posy += 10, width, null, 0, null) {
+		mAxisUp = new MenuConteiner("Digital up", style, posx, posy += 10, width, null, 0, null) {
 			@Override
 			public void open() {
 				num = cfg.mouseaxis[AXISUP] + 1;
@@ -199,7 +199,7 @@ public abstract class MenuMouse extends BuildMenu {
 			}
 		};
 		
-		mAxisDown = new MenuConteiner("Digital down: ", style, posx, posy += 10, width, null, 0, null) {
+		mAxisDown = new MenuConteiner("Digital down", style, posx, posy += 10, width, null, 0, null) {
 			@Override
 			public void open() {
 				num = cfg.mouseaxis[AXISDOWN] + 1;
@@ -211,7 +211,7 @@ public abstract class MenuMouse extends BuildMenu {
 			}
 		};
 		
-		mAxisLeft = new MenuConteiner("Digital left: ", style, posx, posy += 10, width, null, 0, null) {
+		mAxisLeft = new MenuConteiner("Digital left", style, posx, posy += 10, width, null, 0, null) {
 			@Override
 			public void open() {
 				num = cfg.mouseaxis[AXISLEFT] + 1;
@@ -223,7 +223,7 @@ public abstract class MenuMouse extends BuildMenu {
 			}
 		};
 		
-		mAxisRight = new MenuConteiner("Digital right: ", style, posx, posy += 10, width, null, 0, null) {
+		mAxisRight = new MenuConteiner("Digital right", style, posx, posy += 10, width, null, 0, null) {
 			@Override
 			public void open() {
 				num = cfg.mouseaxis[AXISRIGHT] + 1;

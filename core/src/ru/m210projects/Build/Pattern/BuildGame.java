@@ -257,10 +257,13 @@ public abstract class BuildGame extends Game {
 			CloseLogFile();
 	
 			try {
+				String currScreen = getScrName();
+				String prevScreen = gPrevScreen != null ? gPrevScreen.getClass().getSimpleName() : null;
+				
 				if(nNetMode == NetMode.Multiplayer)
 					pNet.NetDisconnect(myconnectindex);
 				if (BuildGdx.message.show(msg, stack, MessageType.Crash))
-					saveToFTP();
+					saveToFTP(currScreen, prevScreen);
 			} catch (Exception e) {	
 			} finally {
 				this.dispose();
@@ -279,9 +282,13 @@ public abstract class BuildGame extends Game {
 		CloseLogFile();
 
 		try {
-			pNet.NetDisconnect(myconnectindex);
+			String currScreen = getScrName();
+			String prevScreen = gPrevScreen != null ? gPrevScreen.getClass().getSimpleName() : null;
+			
+			if(nNetMode == NetMode.Multiplayer)
+				pNet.NetDisconnect(myconnectindex);
 			if (BuildGdx.message.show("FatalError", msg, MessageType.Crash))
-				saveToFTP();
+				saveToFTP(currScreen, prevScreen);
 		} catch (Exception e) {
 		} finally {
 			this.dispose();
@@ -324,7 +331,7 @@ public abstract class BuildGame extends Game {
 		return buffer;
 	}
 	
-	private void saveToFTP()
+	private void saveToFTP(String curr, String prev)
 	{
 		if(!release)
 			return;
@@ -340,9 +347,9 @@ public abstract class BuildGame extends Game {
 			OutputStream os = urlc.getOutputStream();
 			String text = Console.GetLog();
 			text += "\r\n";
-			text += "Screen: " + getScrName() + "\r\n";
-			if(gPrevScreen != null)
-				text += "PrevScreen: " + gPrevScreen.getClass().getSimpleName() + "\r\n";
+			text += "Screen: " + curr + "\r\n";
+			if(prev != null)
+				text += "PrevScreen: " + prev + "\r\n";
 			if(pEngine.getrender() != null) {
 				text += "Renderer: " + pEngine.getrender().getType().getName() + "\r\n";
 				if(pEngine.getrender().getType() == RenderType.Software)

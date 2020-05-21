@@ -51,6 +51,7 @@ import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.Sound;
 import ru.m210projects.Build.Audio.SoundData;
 import ru.m210projects.Build.Audio.Source;
+import ru.m210projects.Build.Audio.SourceCallback;
 import ru.m210projects.Build.Loader.WAVLoader;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
@@ -420,6 +421,12 @@ public class ALSoundDrv implements Sound {
 		public void freeSource(Source source)
 		{
 			if(remove(source)) {
+				if(source.callback != null) {
+					SourceCallback<Object> callback = source.callback;
+					source.callback = null;
+					callback.run(source.channel);
+				}
+
 				source.free = true;
 				source.priority = 0;
 				source.flags = 0;
@@ -427,11 +434,7 @@ public class ALSoundDrv implements Sound {
 				source.format = 0;
 				source.rate = 0;
 				source.data = null;
-				if(source.callback != null) {
-					source.callback.run(source.channel);
-					source.callback = null;
-				}
-
+	
 				add(source);
 			}
 		}
@@ -443,26 +446,19 @@ public class ALSoundDrv implements Sound {
 					freeSource(allSources[i]);
 			}
 		}
-		
+
 		protected Source obtainSource(int priority)
 		{
-//			System.out.println("obtainSource()");
-//			Iterator<Source> it = this.iterator();
-//		    while(it.hasNext()) {
-//		      Source obj = (Source)it.next();
-//		      System.out.println(obj.sourceId + " " + obj.free + " " + obj.priority + " " + obj.flags);
-//		    }
-//		    System.out.println();
-
-			if(element().priority < priority || !element().isPlaying())
+			if(size() > 0 && (element().priority < priority || !element().isPlaying()))
 			{
 				Source source = remove();
 				int sourceId = source.sourceId;
 				source.priority = priority;
 				source.free = false;
 				if(source.callback != null) {
-					source.callback.run(source.channel);
+					SourceCallback<Object> callback = source.callback;
 					source.callback = null;
+					callback.run(source.channel);
 				}
 				
 				al.alSourceStop(sourceId);
@@ -510,10 +506,23 @@ public class ALSoundDrv implements Sound {
 		}
 	}
 	
+	public void printSources(SourceManager sourceManager)
+	{
+		Iterator<Source> it = sourceManager.iterator();
+	    while(it.hasNext()) {
+	      Source obj = (Source)it.next();
+	      System.out.println("#" + obj.sourceId + " isFree: " + obj.free + " pri: " + obj.priority + " vol: " + String.format("%.2f", obj.getVolume()).replace(',', '.') + " pitch: " + String.format("%.2f", obj.getPitch()).replace(',', '.') + " flags: " + obj.flags);
+	    }
+	    System.out.println();
+	}
+	
 	@Override
 	public void update() {
 		if(noDevice) return;
 		
+//		System.out.println("update()");
+//		printSources(this.sourceManager);
+
 		mus.update();
 
 		int error = al.alGetError();

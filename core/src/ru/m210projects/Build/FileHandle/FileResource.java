@@ -177,6 +177,10 @@ public class FileResource implements Resource {
 				if(fbuf.remaining() >= len) {
 					fbuf.get(buf, offset, len);
 					var = len;
+				} else if( fbuf.remaining() > 0) {
+					len = fbuf.remaining();
+					fbuf.get(buf, offset, len);
+					var = len;
 				}
 			} else var = raf.read(buf, offset, len);
 		} catch (EOFException e) {
@@ -518,5 +522,10 @@ public class FileResource implements Resource {
 	@Override
 	public boolean hasRemaining() {
 		return position() < size();
+	}
+
+	@Override
+	public String getFullName() {
+		return FileUtils.getFullName(getPath());
 	}
 }

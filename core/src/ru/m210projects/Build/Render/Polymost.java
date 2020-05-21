@@ -810,6 +810,7 @@ public abstract class Polymost extends GLRenderer {
 			hackscy = pth.scaley;
 			tsizx = pth.sizx;
 			tsizy = pth.sizy;
+			HOM = false;
 		} else {
 			hackscx = 1.0f;
 			hackscy = 1.0f;
@@ -836,7 +837,7 @@ public abstract class Polymost extends GLRenderer {
 				al = pth.hicr.alphacut;
 			if (alphahackarray[globalpicnum] != 0)
 				al = alphahackarray[globalpicnum];
-			if (waloff[globalpicnum] == null)
+			if (HOM)
 				al = 0.0f; // invalid textures ignore the alpha cutoff settings
 
 			gl.glAlphaFunc(GL_GREATER, al);
@@ -1808,9 +1809,9 @@ public abstract class Polymost extends GLRenderer {
 			yp2 = 0;
 			if(startwall < 0 || endwall < 0) continue;
 			for (z = startwall; z < endwall; z++) {
-				wal = wall[z];
-				if(wal == null || isCorruptWall(wal)) continue;
+				if(isCorruptWall(z)) continue;
 				
+				wal = wall[z];
 				wal2 = wall[wal.point2];
 				x1 = wal.x - globalposx;
 				y1 = wal.y - globalposy;
@@ -2891,13 +2892,13 @@ public abstract class Polymost extends GLRenderer {
 					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
 					if(dist < 48000L * 48000L && entry.voxel != null && entry.voxel.getModel() != null) {
 						if ((tspr.cstat & 48) != 48) {
-							if (voxdraw(entry.voxel.getModel(), tspr, xoff, yoff) != 0)
+							if (voxdraw(entry.voxel.getModel(), tspr) != 0)
 								return;
 							break; // else, render as flat sprite
 						}
 			
 						if ((tspr.cstat & 48) == 48) {
-							voxdraw(entry.voxel.getModel(), tspr, xoff, yoff);
+							voxdraw(entry.voxel.getModel(), tspr);
 							return;
 						}
 					}
@@ -3926,7 +3927,7 @@ public abstract class Polymost extends GLRenderer {
 		if(vm == null) return 0;
 
 		try {
-			if (vm.mdnum == 1) { return voxdraw((VOXModel) vm,tspr, xoff, yoff); }
+			if (vm.mdnum == 1) { return voxdraw((VOXModel) vm,tspr); }
 		    if (vm.mdnum == 2) { return md2draw((MD2Model) vm, tspr, xoff, yoff); }
 		    if (vm.mdnum == 3) { return md3draw((MD3Model) vm, tspr, xoff, yoff); }
 		} catch(Exception e) {
@@ -4351,21 +4352,25 @@ public abstract class Polymost extends GLRenderer {
 	static final float dvoxphack[] = new float[2], dvoxclut[] = { 1, 1, 1, 1, 1, 1 };
 	static final Vector3 dvoxfp = new Vector3(), dvoxm0 = new Vector3(), modela0 = new Vector3();
 
-	public int voxdraw(VOXModel m, SPRITE tspr, int xoff, int yoff) {
+	public int voxdraw(VOXModel m, SPRITE tspr) {
 		int i, j, fi, xx, yy, zz;
 		float ru, rv;
 		float f, g;
-	
+
 		if (m == null)
 			return 0;
+		
 		if ((sprite[tspr.owner].cstat & 48) == 32)
 			return 0;
+	
+		boolean xflip = (globalorientation & 4) != 0;
+		boolean yflip = (globalorientation & 8) != 0;
 
 		dvoxm0.x = m.scale;
 		dvoxm0.y = m.scale;
 		dvoxm0.z = m.scale;
 		modela0.x = modela0.y = 0;
-		modela0.z = ((globalorientation & 8) != 0 ? -m.zadd : m.zadd) * m.scale;
+		modela0.z = (yflip ? -m.zadd : m.zadd) * m.scale;
 
 		f = ((float) tspr.xrepeat) * (256.0f / 320.0f) / 64.0f * m.bscale;
 		if ((sprite[tspr.owner].cstat & 48) == 16)
@@ -4385,31 +4390,12 @@ public abstract class Polymost extends GLRenderer {
 		float x0 = (float) tspr.x;
 		float k0 = (float) tspr.z;
 		
-		boolean xflip = false;
-		boolean yflip = false;
+		if ((globalorientation & 128) == 0) 
+			//k0 -= (tilesizy[tspr.picnum] * tspr.yrepeat) << 1; GDX this more correct, but disabled for compatible with eduke
+			k0 -= ((m.zsiz * tspr.yrepeat) << 1);
 
-		if (xflip = (globalorientation & 4) != 0)
-			xoff = -xoff;
-		
-		if (yflip = (globalorientation & 8) != 0)
-			yoff = -yoff;
-		
-		if (!yflip)
-		{
-			k0 -= ((yoff * tspr.yrepeat) << 2);
-			if ((globalorientation & 128) != 0)
-				k0 += ((m.zsiz * tspr.yrepeat) << 1);
-		} 
-		else
-		{
-			k0 += ((m.zsiz * tspr.yrepeat) << 1);
-			if((globalorientation & 128) != 0)
-				k0 -= ((m.zsiz * tspr.yrepeat) << 2);
-			
-			k0 -= (yoff * tspr.yrepeat) << 2;
-		}
-		
-		x0 += xoff * (tspr.xrepeat >> 2);
+		if(yflip && (globalorientation & 16) == 0)
+			k0 += ((tilesizy[tspr.picnum] * 0.5f) - m.zpiv) * tspr.yrepeat * 8.0f;
 
 		f = (65536.0f * 512.0f) / ((float) (xdimen * viewingrange));
 		g = 32.0f / (float) (xdimen * gxyaspect);
@@ -4427,7 +4413,7 @@ public abstract class Polymost extends GLRenderer {
 		if(yflip) dvoxm0.z *= -1;
 		modela0.z = (((float) (k0 - globalposz)) / -16384.0f + modela0.z) * g;
 
-		if ((grhalfxdown10x >= 0) ^((globalorientation&8) != 0) ^((globalorientation&4) != 0)) 
+		if ((grhalfxdown10x >= 0) ^ yflip ^ xflip) 
 			gl.glFrontFace(GL_CW); else gl.glFrontFace(GL_CCW);
 
 		gl.glEnable(GL_CULL_FACE);
@@ -4483,10 +4469,8 @@ public abstract class Polymost extends GLRenderer {
 		} else {
 			gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
 			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
-			gl.glTranslatef(-m.xpiv, -m.ypiv, -(m.zpiv + m.zsiz * 0.5f));
+			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
 		}
-		
-		
 
 		ru = 1.f / ((float) m.mytexx);
 		rv = 1.f / ((float) m.mytexy);

@@ -695,6 +695,7 @@ public class DefScript implements Disposable {
     {
 		String fn;
 		Token token;
+		Token basetoken;
 		Resource res;
 		Integer ivalue;
 		Double dvalue;
@@ -703,7 +704,7 @@ public class DefScript implements Disposable {
 		
 		while (true)
         {
-			switch(gettoken(script, basetokens))
+			switch(basetoken = gettoken(script, basetokens))
 			{
 			case IFADDON: 
 				if(addonsIncludes == null)
@@ -1257,38 +1258,54 @@ public class DefScript implements Disposable {
                 }
                 vox.getModel().setMisc((float)vscale,0,0,0,vrotate ? MD_ROTATE : 0);
 				break;
+			case DEFINESKYBOX:
 			case SKYBOX:
 				int sskyend, stile = -1, spal = 0;
     			String[] sfn = new String[6];
     			
-    			if ((sskyend = script.getbraces()) == -1) break;
-    			while (script.textptr < sskyend)
-                {
-    				try {
-    					switch (gettoken(script,skyboxtokens))
-    					{
-	                    case TILE:
-	                    	if((ivalue = script.getsymbol()) != null)
-	                    		stile = ivalue; break;
-	                    case PAL:
-	                    	if((ivalue = script.getsymbol()) != null)
-	                    		spal = ivalue; break;
-	                    case FRONT:
-	                    	sfn[0] = getFile(script); break;
-	                    case RIGHT:
-	                    	sfn[1] = getFile(script); break;
-	                    case BACK:
-	                    	sfn[2] = getFile(script); break;
-	                    case LEFT:
-	                    	sfn[3] = getFile(script); break;
-	                    case TOP:
-	                    	sfn[4] = getFile(script); break;
-	                    case BOTTOM:
-	                    	sfn[5] = getFile(script); break;
-	                    default: break;
-	                    }
-    				} catch(Exception e) { }
-                }
+    			if(basetoken == Token.DEFINESKYBOX) {
+    				if((ivalue = script.getsymbol()) != null)
+	            		stile = ivalue;
+					if((ivalue = script.getsymbol()) != null)
+                		spal = ivalue;
+					script.getsymbol();
+					
+					sfn[0] = getFile(script);
+	            	sfn[1] = getFile(script);
+	            	sfn[2] = getFile(script);
+	            	sfn[3] = getFile(script);
+	            	sfn[4] = getFile(script);
+	            	sfn[5] = getFile(script);
+    			} else {
+    				if ((sskyend = script.getbraces()) == -1) break;
+	    			while (script.textptr < sskyend)
+	                {
+	    				try {
+	    					switch (gettoken(script,skyboxtokens))
+	    					{
+		                    case TILE:
+		                    	if((ivalue = script.getsymbol()) != null)
+		                    		stile = ivalue; break;
+		                    case PAL:
+		                    	if((ivalue = script.getsymbol()) != null)
+		                    		spal = ivalue; break;
+		                    case FRONT:
+		                    	sfn[0] = getFile(script); break;
+		                    case RIGHT:
+		                    	sfn[1] = getFile(script); break;
+		                    case BACK:
+		                    	sfn[2] = getFile(script); break;
+		                    case LEFT:
+		                    	sfn[3] = getFile(script); break;
+		                    case TOP:
+		                    	sfn[4] = getFile(script); break;
+		                    case BOTTOM:
+		                    	sfn[5] = getFile(script); break;
+		                    default: break;
+		                    }
+	    				} catch(Exception e) { }
+	                }
+    			}
     			
     			if (stile < 0) {
     				Console.Println("Error: skybox: missing 'tile number' near line " + script.filename + ":" + script.getlinum(script.ltextptr), OSDTEXT_RED);
@@ -1459,6 +1476,8 @@ public class DefScript implements Disposable {
 	        if(tile.waloff == null)
 	        	continue;
 
+	        engine.invalidatetile(i, -1, -1);
+	        
 			waloff[i] = new byte[tile.waloff.length];
 			System.arraycopy(tile.waloff, 0, waloff[i], 0, tile.waloff.length);
 
@@ -1470,7 +1489,7 @@ public class DefScript implements Disposable {
 			picanm[i] |= (tile.yoffset & 0xFF) << 16;
 			
 			engine.setpicsiz(i);
-			
+	
 			//replace hrp info
 			texInfo.addTexture(i, 0, tile.hrp, (float)(0xFF - (tile.alphacut & 0xFF)) * (1.0f / 255.0f), 1.0f, 1.0f, 1.0f, 1.0f, 0);
 		}

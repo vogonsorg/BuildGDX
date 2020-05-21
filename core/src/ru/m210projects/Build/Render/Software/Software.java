@@ -1920,9 +1920,13 @@ public abstract class Software extends Renderer {
 			else
 				nyrepeat = tspr.yrepeat * vtilenum.scale;
 
-			tspr.z -= mulscale(yoff, nyrepeat, 14);
+			//tspr.z -= mulscale(yoff, nyrepeat, 14);
 			if ((cstat & 128) == 0)
-				tspr.z -= mulscale((int) vtilenum.zpiv[0], nyrepeat, 22);
+				//tspr.z -= mulscale(tilesizy[tspr.picnum], nyrepeat, 15); // GDX this more correct, but disabled for compatible with eduke
+				tspr.z -= mulscale(vtilenum.zpiv[0], nyrepeat, 22);
+			
+			if ((cstat & 8) != 0 && (cstat & 16) != 0)
+				tspr.z -= mulscale((tilesizy[tspr.picnum] / 2) - vtilenum.zpiv[0], nyrepeat, 22);
 
 			globvis = globalvisibility;
 			globalorientation = cstat;
@@ -2188,6 +2192,11 @@ public abstract class Software extends Renderer {
 			short oand = (short) (pow2char[((xs < backx) ? 1 : 0) + 0] + pow2char[((ys < backy) ? 1 : 0) + 2]);
 			short oand16 = (short) (oand + 16);
 			short oand32 = (short) (oand + 32);
+			
+			if (yflip) {
+	            oand16 = (short) (oand + 32);
+	            oand32 =  (short) (oand + 16);
+	        }
 
 			if (yi > 0) {
 				dagxinc = gxinc;
@@ -2278,6 +2287,11 @@ public abstract class Software extends Renderer {
 								z1 = daumost[lx];
 							} else
 								yplc = 0;
+							
+							if(yflip) {
+								 yinc = -yinc;
+								 yplc = (zleng<<16) - yplc + yinc;
+							}
 						}
 						if (z2 > dadmost[lx])
 							z2 = dadmost[lx];

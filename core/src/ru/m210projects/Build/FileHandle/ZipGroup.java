@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import ru.m210projects.Build.StringUtils;
 import ru.m210projects.Build.FileHandle.Cache1D.PackageType;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
@@ -174,7 +175,7 @@ public class ZipGroup extends Group {
 		@Override
 		protected void handleName(String fullname) //zips can handle folders, so we must add separators to replacer
 		{
-			this.filenamext = toLowerCase(fullname).replaceAll("[^a-zA-Z0-9_. /-]", "");
+			this.filenamext = toLowerCase(StringUtils.toUnicode(fullname));
 			if(filenamext.contains("/")) filenamext = filenamext.replace("/", File.separator);
 			
 			int point = filenamext.lastIndexOf('.');

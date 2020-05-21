@@ -1,7 +1,10 @@
 package ru.m210projects.Build.Types;
 
+import ru.m210projects.Build.CRC32;
+
 public class Palette {
 	
+	private long crc32;
 	private byte[] bytes;
 	private int[] values;
 	
@@ -10,16 +13,19 @@ public class Palette {
 		values = new int[256];
 	}
 	
-	public void update(byte[] palette, boolean buildPalette)
+	public void update(byte[] palette)
 	{
 		System.arraycopy(palette, 0, bytes, 0, palette.length);
-		if(buildPalette)
-			for(int i = 0; i < palette.length; i++) 
-				bytes[i] <<= 2;
-		
 		int p = 0;
-		for(int i = 0; i < palette.length / 3; i++) 
+		int len = palette.length / 3;
+		for(int i = 0; i < len; i++) 
 			values[i] = (bytes[p++] & 0xFF) | ( (bytes[p++] & 0xFF) << 8 ) | ( (bytes[p++] & 0xFF) << 16 ) | (255 << 24);
+		crc32 = CRC32.getChecksum(bytes);
+	}
+	
+	public long getCrc32()
+	{
+		return crc32;
 	}
 
 	public byte[] getBytes() {

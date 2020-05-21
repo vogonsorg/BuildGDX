@@ -27,13 +27,13 @@ import ru.m210projects.Build.Types.WALL;
 
 public class Interpolation {
 	
-	private boolean requestUpdating;
+	protected boolean requestUpdating;
 
 	public enum InterpolationType {
-		WallX, WallY, FloorZ, CeilZ, FloorH
+		WallX, WallY, FloorZ, CeilZ, FloorH, CeilH
 	};
 
-	private class IData {
+	public class IData {
 		public Object ptr;
 		public InterpolationType type;
 		public int oldpos;
@@ -51,9 +51,10 @@ public class Interpolation {
 	protected IData[] gInterpolationData = new IData[MAXINTERPOLATIONS];
 
 	protected int gWallLoc[] = new int[MAXWALLS >> 3];
-	protected int gSectorLoc[] = new int[MAXSECTORS >> 3];
+	protected int gFloorHeinumLoc[] = new int[MAXSECTORS >> 3];
 	protected int gFloorLoc[] = new int[MAXSECTORS >> 3];
 	protected int gCeilLoc[] = new int[MAXSECTORS >> 3];
+	protected int gCeilHeinumLoc[] = new int[MAXSECTORS >> 3];
 	protected int gSpriteLoc[] = new int[MAXSPRITES >> 3];
 
 	public Interpolation() {
@@ -90,6 +91,9 @@ public class Interpolation {
 		case FloorH:
 			data.oldpos = ((SECTOR) obj).floorheinum;
 			break;
+		case CeilH:
+			data.oldpos = ((SECTOR) obj).ceilingheinum;
+			break;
 		}
 	}
 
@@ -110,7 +114,8 @@ public class Interpolation {
 		
 		InterpolationCount = 0;
 		Arrays.fill(gWallLoc, 0);
-		Arrays.fill(gSectorLoc, 0);
+		Arrays.fill(gFloorHeinumLoc, 0);
+		Arrays.fill(gCeilHeinumLoc, 0);
 		Arrays.fill(gFloorLoc, 0);
 		Arrays.fill(gCeilLoc, 0);
 		Arrays.fill(gSpriteLoc, 0);
@@ -148,6 +153,10 @@ public class Interpolation {
 				gInt.bakpos = ((SECTOR) obj).floorheinum;
 				((SECTOR) obj).floorheinum = (short) (gInt.oldpos + ((((SECTOR) obj).floorheinum - gInt.oldpos) * smoothratio / 65536.0f));
 				break;
+			case CeilH:
+				gInt.bakpos = ((SECTOR) obj).ceilingheinum;
+				((SECTOR) obj).ceilingheinum = (short) (gInt.oldpos + ((((SECTOR) obj).ceilingheinum - gInt.oldpos) * smoothratio / 65536.0f));
+				break;
 			}
 		}
 	}
@@ -171,6 +180,9 @@ public class Interpolation {
 				break;
 			case FloorH:
 				((SECTOR) obj).floorheinum = (short) gInt.bakpos;
+				break;
+			case CeilH:
+				((SECTOR) obj).ceilingheinum = (short) gInt.bakpos;
 				break;
 			}
 		}
@@ -218,16 +230,30 @@ public class Interpolation {
 	}
 
 	public void setfheinuminterpolate(int nSector, SECTOR pSector) {
-		if ((gSectorLoc[nSector >> 3] & pow2char[nSector & 7]) == 0) {
+		if ((gFloorHeinumLoc[nSector >> 3] & pow2char[nSector & 7]) == 0) {
 			setinterpolation(pSector, InterpolationType.FloorH);
-			gSectorLoc[nSector >> 3] |= pow2char[nSector & 7];
+			gFloorHeinumLoc[nSector >> 3] |= pow2char[nSector & 7];
 		}
 	}
 
 	public void clearfheinuminterpolate(int nSector, SECTOR pSector) {
-		if ((gSectorLoc[nSector >> 3] & pow2char[nSector & 7]) != 0) {
+		if ((gFloorHeinumLoc[nSector >> 3] & pow2char[nSector & 7]) != 0) {
 			stopinterpolation(pSector, InterpolationType.FloorH);
-			gSectorLoc[nSector >> 3] &= ~pow2char[nSector & 7];
+			gFloorHeinumLoc[nSector >> 3] &= ~pow2char[nSector & 7];
+		}
+	}
+	
+	public void setcheinuminterpolate(int nSector, SECTOR pSector) {
+		if ((gCeilHeinumLoc[nSector >> 3] & pow2char[nSector & 7]) == 0) {
+			setinterpolation(pSector, InterpolationType.CeilH);
+			gCeilHeinumLoc[nSector >> 3] |= pow2char[nSector & 7];
+		}
+	}
+
+	public void clearcheinuminterpolate(int nSector, SECTOR pSector) {
+		if ((gCeilHeinumLoc[nSector >> 3] & pow2char[nSector & 7]) != 0) {
+			stopinterpolation(pSector, InterpolationType.CeilH);
+			gCeilHeinumLoc[nSector >> 3] &= ~pow2char[nSector & 7];
 		}
 	}
 

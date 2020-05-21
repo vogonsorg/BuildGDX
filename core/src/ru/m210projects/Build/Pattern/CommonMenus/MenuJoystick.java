@@ -65,7 +65,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		
 		joyButtons = getJoyButtonsMenu(this, app, width, style, posx, posy, list_len);
 		
-		mJoyDevices = new MenuConteiner("Device:", style, posx, posy, width, null, 0,
+		mJoyDevices = new MenuConteiner("Device", style, posx, posy, width, null, 0,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -108,7 +108,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		final char[][] StickName = { "Stick1_Y".toCharArray(), "Stick1_X".toCharArray(), "Stick2_Y".toCharArray(),
 				"Stick2_X".toCharArray(), };
 
-		mJoyTurn = new MenuConteiner("Turn axis:", style, posx, posy += separatorHeight, width, null, 0, new MenuProc() {
+		mJoyTurn = new MenuConteiner("Turn axis", style, posx, posy += separatorHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -122,7 +122,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		};
 		mJoyTurn.list = StickName;
 
-		mJoyLook = new MenuConteiner("Look axis:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		mJoyLook = new MenuConteiner("Look axis", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -136,7 +136,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		};
 		mJoyLook.list = StickName;
 
-		mJoyStrafe = new MenuConteiner("Strafe axis:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		mJoyStrafe = new MenuConteiner("Strafe axis", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -150,7 +150,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		};
 		mJoyStrafe.list = StickName;
 
-		mJoyMove = new MenuConteiner("Move axis:", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
+		mJoyMove = new MenuConteiner("Move axis", style, posx, posy += menuHeight, width, null, 0, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuConteiner item = (MenuConteiner) pItem;
@@ -165,7 +165,7 @@ public abstract class MenuJoystick extends BuildMenu {
 		mJoyMove.list = StickName;
 
 		posy += 5;
-		mDeadZone = new MenuSlider(app.pSlider, "Dead zone:", style, posx, posy += menuHeight, width, cfg.gJoyDeadZone, 0, 65536,
+		mDeadZone = new MenuSlider(app.pSlider, "Dead zone", style, posx, posy += menuHeight, width, cfg.gJoyDeadZone, 0, 65536,
 				2048, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -176,7 +176,7 @@ public abstract class MenuJoystick extends BuildMenu {
 				}, true);
 		mDeadZone.digitalMax = 65536.0f;
 
-		mLookSpeed = new MenuSlider(app.pSlider, "Look speed:", style, posx, posy += menuHeight, width, cfg.gJoyLookSpeed, 0,
+		mLookSpeed = new MenuSlider(app.pSlider, "Look speed", style, posx, posy += menuHeight, width, cfg.gJoyLookSpeed, 0,
 				999424, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -186,7 +186,7 @@ public abstract class MenuJoystick extends BuildMenu {
 				}, true);
 		mLookSpeed.digitalMax = 65536.0f;
 
-		mTurnSpeed = new MenuSlider(app.pSlider, "Turn speed:", style, posx, posy += menuHeight, width, cfg.gJoyTurnSpeed, 0,
+		mTurnSpeed = new MenuSlider(app.pSlider, "Turn speed", style, posx, posy += menuHeight, width, cfg.gJoyTurnSpeed, 0,
 				999424, 4096, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -196,7 +196,7 @@ public abstract class MenuJoystick extends BuildMenu {
 				}, true);
 		mTurnSpeed.digitalMax = 65536.0f;
 
-		mInvert = new MenuSwitch("Invert look axis:", style, posx, posy += separatorHeight, width, cfg.gJoyInvert, new MenuProc() {
+		mInvert = new MenuSwitch("Invert look axis", style, posx, posy += separatorHeight, width, cfg.gJoyInvert, new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
 				MenuSwitch sw = (MenuSwitch) pItem;

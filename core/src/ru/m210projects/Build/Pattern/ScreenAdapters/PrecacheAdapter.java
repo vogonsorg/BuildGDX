@@ -94,6 +94,17 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 	}
 	
 	protected abstract void draw(String title, int index);
+	
+	protected Runnable glpreload = new Runnable() {
+		@Override
+		public void run() {
+			GLRenderer gl = engine.glrender();
+			if(gl != null) gl.preload();
+			
+			BuildGdx.app.postRunnable(toLoad);
+			toLoad = null;
+		}
+	};
 
 	@Override
 	public void render(float delta) {
@@ -102,11 +113,7 @@ public abstract class PrecacheAdapter extends ScreenAdapter {
 		{
 			draw("Getting ready...", -1);
 			if(toLoad != null) {
-				GLRenderer gl = engine.glrender();
-				if(gl != null) gl.preload();
-				
-				BuildGdx.app.postRunnable(toLoad);
-				toLoad = null;
+				BuildGdx.app.postRunnable(glpreload);
 			}
 		} else {
 			PrecacheQueue current = queues.get(currentIndex);

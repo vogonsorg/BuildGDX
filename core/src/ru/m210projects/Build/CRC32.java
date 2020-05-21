@@ -63,12 +63,19 @@ public class CRC32 {
 
 		return crc & 0xFFFFFFFFL;
 	}
-	
-	public static long getChecksum(ByteBuffer bb) {
-		int crc = 0xffffffff;
-		while(bb.remaining() != 0) 
-			crc = (crc >>> 8) ^ table[(crc ^ bb.get()) & 0xff];
 
+	public static long getChecksum(ByteBuffer bb) {
+		int rem = 0;
+		int crc = 0xffffffff;
+		byte[] bytes = new byte[2048];
+
+		while((rem = bb.remaining()) != 0) {
+			int len = Math.min(rem, bytes.length);
+			bb.get(bytes, 0, len);
+			for(int i = 0; i < len; i++) 
+	            crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xff];
+		}
+	
         // flip bits
         crc = crc ^ 0xffffffff;
 		return crc & 0xFFFFFFFFL;

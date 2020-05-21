@@ -38,6 +38,9 @@ public abstract class MenuSlotList extends MenuList
 	public int specPal, backgroundPal;
 	public int transparent = 1;
 	
+	//to draw own cursor in mPostDraw (MenuHandler)
+	public boolean owncursor = false;
+	
 	protected SaveManager saveManager;
 	protected Engine draw;
 	protected int nBackground;
@@ -117,7 +120,9 @@ public abstract class MenuSlotList extends MenuList
 						if(typing) {
 							Arrays.fill(typingBuf, (char) 0);
 							char[] buf = getInput().getMessageBuffer();
-							int messlen = getInput().getMessageLength()+1;
+							int messlen = getInput().getMessageLength();
+							if(!owncursor)
+								messlen += 1;
 							System.arraycopy(buf, 0, typingBuf, 0, Math.min(messlen, typingBuf.length));
 							rtext = typingBuf;
 							shade = -128;
@@ -140,7 +145,9 @@ public abstract class MenuSlotList extends MenuList
 				if(typing) {
 					Arrays.fill(typingBuf, (char) 0);
 					char[] buf = getInput().getMessageBuffer();
-					int messlen = getInput().getMessageLength()+1;
+					int messlen = getInput().getMessageLength();
+					if(!owncursor)
+						messlen += 1;
 					System.arraycopy(buf, 0, typingBuf, 0, Math.min(messlen, typingBuf.length));
 					rtext = typingBuf;
 					shade = -128;
@@ -153,9 +160,20 @@ public abstract class MenuSlotList extends MenuList
 		pal = helpPal;
 		if(deleteQuestion)
 		{
-			draw.setpalettefade(0, 0, 0, 48);
-			draw.showfade();
+//			draw.setpalettefade(0, 0, 0, 48); 
+//			draw.showfade();
 			
+			int tile = nBackground;
+			float kt = xdim / (float) ydim;
+			float kv = tilesizx[tile] / (float) tilesizy[tile];
+			float scale;
+			if (kv >= kt)
+				scale = (ydim + 1) / (float) tilesizy[tile];
+			else
+				scale = (xdim + 1) / (float) tilesizx[tile];
+
+			draw.rotatesprite(0, 0, (int) (scale * 65536), 0, tile, 127, 4, 8 | 16 | transparent, 0, 0, xdim - 1, ydim - 1);
+
 			int shade = handler.getShade(m_pMenu.m_pItems[m_pMenu.m_nFocus]);
 			
 			char[] ctext = toCharArray("Do you want to delete \"" + SaveName() + "\"");
@@ -170,6 +188,8 @@ public abstract class MenuSlotList extends MenuList
 		
 		handler.mPostDraw(this);
 	}
+	
+	
 
 	@Override
 	public boolean callback(MenuHandler handler, MenuOpt opt) {
@@ -208,7 +228,7 @@ public abstract class MenuSlotList extends MenuList
 		if(typing) 
 		{
 			if(opt != MenuOpt.ESC) {
-				if(getInput().putMessage(typingBuf.length, true, false, false) == 1 || opt == MenuOpt.ENTER)
+				if(getInput().putMessage(typingBuf.length, !owncursor, false, false) == 1 || opt == MenuOpt.ENTER)
 				{
 					typed = new String(getInput().getMessageBuffer(), 0, getInput().getMessageLength());
 					typing = false;

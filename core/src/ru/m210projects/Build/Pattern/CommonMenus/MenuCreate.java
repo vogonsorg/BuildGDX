@@ -49,7 +49,7 @@ public abstract class MenuCreate extends BuildMenu {
 	{
 		addItem(getTitle(app, "Multiplayer"), false);
 		
-		mPlayerNum = new MenuSlider(app.pSlider, "Number of players:", style, posx, posy += menuHeight, width, mPlayers, 1,
+		mPlayerNum = new MenuSlider(app.pSlider, "Number of players", style, posx, posy += menuHeight, width, mPlayers, 1,
 				kMaxPlayers, 1, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -58,7 +58,7 @@ public abstract class MenuCreate extends BuildMenu {
 					}
 				}, true);
 
-		mPortnum = new MenuTextField("Network socket number:", "" + app.pCfg.mPort, style, posx, posy += menuHeight, width,
+		mPortnum = new MenuTextField("Network socket number", "" + app.pCfg.mPort, style, posx, posy += menuHeight, width,
 				NUMBERS, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -73,7 +73,7 @@ public abstract class MenuCreate extends BuildMenu {
 					}
 				});
 
-		mPlayer = new MenuTextField("Player name:", app.pCfg.pName, style, posx, posy += menuHeight, width, NUMBERS | LETTERS,
+		mPlayer = new MenuTextField("Player name", app.pCfg.pName, style, posx, posy += menuHeight, width, NUMBERS | LETTERS,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
