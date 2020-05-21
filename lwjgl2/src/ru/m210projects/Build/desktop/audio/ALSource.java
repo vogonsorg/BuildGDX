@@ -84,11 +84,23 @@ public class ALSource extends Source {
 		if(error != AL_NO_ERROR) 
 			Console.Println("OpenAL Error setVolume " + error + ", value is " + volume, OSDTEXT_RED);
 	}
+	
+	@Override
+	public float getVolume() {
+		if(!drv.isInited()) return 0;
+		return al.alGetSourcef(sourceId, AL_GAIN);
+	}
+	
+	@Override
+	public float getPitch() {
+		if(!drv.isInited()) return 0;
+		return al.alGetSourcef(sourceId, AL_PITCH);
+	}
 
 	@Override
 	public void setPitch(float pitch) {
 		if(!drv.isInited()) return;
-		pitch = Math.min(Math.max(pitch, 0.0f), 1.0f);
+		pitch = Math.min(Math.max(pitch, 0.0f), 2.0f);
 		al.alSourcef(sourceId, AL_PITCH, pitch);
 		
 		int error = al.alGetError();
@@ -187,8 +199,9 @@ public class ALSource extends Source {
 	}
 
 	@Override
-	public void setCallback(SourceCallback callback, int num) {
-		this.callback = callback;
+	@SuppressWarnings("unchecked")
+	public <T> void setCallback(SourceCallback<T> callback, T num) {
+		this.callback = (SourceCallback<Object>) callback;
 		this.channel = num;
 	}
 }

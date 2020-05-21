@@ -135,7 +135,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		} else pNet.bufferJitter = 0;
 		
 		PreFrame(pNet);
-
+		
 		int i;
 		while (pNet.gNetFifoHead[myconnectindex] - pNet.gNetFifoTail > pNet.bufferJitter && !game.gExit) {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
@@ -187,6 +187,11 @@ public abstract class GameAdapter extends ScreenAdapter {
 				captBuffer = pEngine.screencapture(width, height);
 			}
 		};
+	}
+	
+	public boolean isScreenSaving()
+	{
+		return gScreenCapture != null;
 	}
 	
 	@Override

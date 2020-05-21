@@ -19,8 +19,6 @@ package ru.m210projects.Build;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Pragmas.scale;
 
-import ru.m210projects.Build.Types.WALL;
-
 public class Gameutils {
 	
 	public static void fill(byte[] array, int value) {
@@ -99,7 +97,7 @@ public class Gameutils {
 	
 	public static boolean isValidSector(int i)
 	{
-		return i >= 0 && i < MAXSECTORS;
+		return i >= 0 && i < MAXSECTORS && sector[i] != null;
 	}
 	
 	public static boolean isValidStat(int i)
@@ -109,17 +107,17 @@ public class Gameutils {
 	
 	public static boolean isValidSprite(int i)
 	{
-		return i >= 0 && i < MAXSPRITES;
+		return i >= 0 && i < MAXSPRITES && sprite[i] != null;
 	}
 	
 	public static boolean isValidWall(int i)
 	{
-		return i >= 0 && i < MAXWALLS;
+		return i >= 0 && i < MAXWALLS && wall[i] != null;
 	}
 	
-	public static boolean isCorruptWall(WALL wal)
+	public static boolean isCorruptWall(int i)
 	{
-		return !isValidWall(wal.point2) || wall[wal.point2] == null;
+		return !isValidWall(i) || !isValidWall(wall[i].point2);
 	}
 
 	public static boolean isValidTile(int tile)

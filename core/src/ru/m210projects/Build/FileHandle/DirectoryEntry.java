@@ -17,8 +17,10 @@
 package ru.m210projects.Build.FileHandle;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.Compat.Path;
@@ -116,10 +118,19 @@ public class DirectoryEntry {
 	{
 		return files;
 	}
-
+	
 	public HashMap<String, DirectoryEntry> getDirectories()
 	{
 		return subDirectory;
+	}
+	
+	public List<FEntryResource> getList() {
+		List<FEntryResource> list = new ArrayList<FEntryResource>();
+		for (Iterator<FileEntry> it = getFiles().values().iterator(); it.hasNext();) {
+			FileEntry file = it.next();
+			list.add(new FEntryResource(file));	
+		}
+		return list;
 	}
 	
 	public String getName()

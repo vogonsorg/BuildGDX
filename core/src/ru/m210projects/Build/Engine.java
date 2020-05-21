@@ -130,7 +130,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 
-	public static final String version = "20.031"; // XX. - year, XX - month, X - build
+	public static final String version = "20.041"; // XX. - year, XX - month, X - build
 
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -293,7 +293,7 @@ public abstract class Engine {
 	public static Point keep;
 	public static Clip ray;
 
-	private static int[] zofslope;
+	protected static int[] zofslope;
 	private float fovFactor = 1.0f;
 
 	public static int rayx = 0;
@@ -376,7 +376,7 @@ public abstract class Engine {
 	private short[] colnext;
 	private final byte[] coldist = { 0, 1, 2, 3, 4, 3, 2, 1 };
 	private int[] colscan;
-	private int randomseed = 1;
+	protected int randomseed = 1;
 
 	public static short[] radarang;
 	public static byte[] transluc;
@@ -691,7 +691,7 @@ public abstract class Engine {
 		return (blanktouse);
 	}
 
-	public short insertspritestat(short newstatnum) // jfBuild
+	public short insertspritestat(int newstatnum) // jfBuild
 	{
 		if ((newstatnum >= MAXSTATUS) || (headspritestat[MAXSTATUS] == -1))
 			return (-1); // list full
@@ -708,7 +708,7 @@ public abstract class Engine {
 			prevspritestat[headspritestat[newstatnum]] = blanktouse;
 		headspritestat[newstatnum] = blanktouse;
 
-		sprite[blanktouse].statnum = newstatnum;
+		sprite[blanktouse].statnum = (short) newstatnum;
 
 		return (blanktouse);
 	}
@@ -728,7 +728,7 @@ public abstract class Engine {
 		return (deletespritesect(spritenum));
 	}
 
-	public short changespritesect(short spritenum, short newsectnum) // jfBuild
+	public short changespritesect(int spritenum, short newsectnum) // jfBuild
 	{
 		if ((newsectnum < 0) || (newsectnum > MAXSECTORS))
 			return (-1);
@@ -736,13 +736,13 @@ public abstract class Engine {
 			return (0);
 		if (sprite[spritenum].sectnum == MAXSECTORS)
 			return (-1);
-		if (deletespritesect(spritenum) < 0)
+		if (deletespritesect((short)spritenum) < 0)
 			return (-1);
 		insertspritesect(newsectnum);
 		return (0);
 	}
 
-	public short changespritestat(short spritenum, short newstatnum) // jfBuild
+	public short changespritestat(int spritenum, int newstatnum) // jfBuild
 	{
 		if ((newstatnum < 0) || (newstatnum > MAXSTATUS))
 			return (-1);
@@ -750,7 +750,7 @@ public abstract class Engine {
 			return (0);
 		if (sprite[spritenum].statnum == MAXSTATUS)
 			return (-1);
-		if (deletespritestat(spritenum) < 0)
+		if (deletespritestat((short)spritenum) < 0)
 			return (-1);
 		insertspritestat(newstatnum);
 		return (0);
@@ -1498,8 +1498,10 @@ public abstract class Engine {
 
 			for (int i = localtilestart; i <= localtileend; i++) {
 				int dasiz = tilesizx[i] * tilesizy[i];
-				waloff[i] = new byte[dasiz];
-				fil.read(waloff[i]);
+				if(dasiz > 0) {
+					waloff[i] = new byte[dasiz];
+					fil.read(waloff[i]);
+				}
 				setpicsiz(i);
 			}
 			fil.close();
@@ -1641,9 +1643,10 @@ public abstract class Engine {
 
 	public int clipinsidebox(int x, int y, short wallnum, int walldist) { // jfBuild
 		int r = (walldist << 1);
-		WALL wal = wall[wallnum];
-		if (wal == null || isCorruptWall(wal))
+		if (isCorruptWall(wallnum))
 			return 0;
+		
+		WALL wal = wall[wallnum];
 		int x1 = wal.x + walldist - x;
 		int y1 = wal.y + walldist - y;
 		wal = wall[wal.point2];
@@ -1715,7 +1718,7 @@ public abstract class Engine {
 	}
 
 	public int inside(int x, int y, short sectnum) { // jfBuild
-		if ((sectnum < 0) || (sectnum >= numsectors))
+		if (!isValidSector(sectnum))
 			return (-1);
 
 		int cnt = 0;
@@ -1725,9 +1728,10 @@ public abstract class Engine {
 		if (wallid < 0)
 			return -1;
 		do {
-			WALL wal = wall[wallid];
-			if (wal == null || isCorruptWall(wal))
+			if (isCorruptWall(wallid))
 				return -1;
+			
+			WALL wal = wall[wallid];
 			int y1 = wal.y - y;
 			int y2 = wall[wal.point2].y - y;
 
@@ -1805,7 +1809,7 @@ public abstract class Engine {
 
 	protected static int SETSPRITEZ = 0;
 
-	public short setsprite(short spritenum, int newx, int newy, int newz) // jfBuild
+	public short setsprite(int spritenum, int newx, int newy, int newz) // jfBuild
 	{
 		sprite[spritenum].x = newx;
 		sprite[spritenum].y = newy;
@@ -1819,7 +1823,7 @@ public abstract class Engine {
 		if (tempsectnum < 0)
 			return (-1);
 		if (tempsectnum != sprite[spritenum].sectnum)
-			changespritesect(spritenum, tempsectnum);
+			changespritesect((short) spritenum, tempsectnum);
 
 		return (0);
 	}
@@ -1876,9 +1880,9 @@ public abstract class Engine {
 
 		Arrays.fill(sectbitmap, (byte) 0);
 
-		if (sect1 < 0 || sect1 >= MAXSECTORS)
+		if (!isValidSector(sect1))
 			return false;
-		if (sect2 < 0 || sect2 >= MAXSECTORS)
+		if (!isValidSector(sect2))
 			return false;
 
 		if ((x1 == x2) && (y1 == y2))
@@ -1894,21 +1898,20 @@ public abstract class Engine {
 
 		for (int dacnt = 0; dacnt < danum; dacnt++) {
 			short dasectnum = clipsectorlist[dacnt];
-			if (dasectnum < 0)
+			if (!isValidSector(dasectnum))
 				continue;
-
+			
 			SECTOR sec = sector[dasectnum];
-
-			if (sec == null)
-				continue;
 			short startwall = sec.wallptr;
 			int endwall = startwall + sec.wallnum - 1;
 			if (startwall < 0 || endwall < 0)
 				continue;
+			
 			for (int w = startwall; w <= endwall; w++) {
-				WALL wal = wall[w];
-				if (wal == null || isCorruptWall(wal))
+				if (isCorruptWall(w))
 					continue;
+				
+				WALL wal = wall[w];
 				WALL wal2 = wall[wal.point2];
 				int x31 = wal.x - x1;
 				int x34 = wal.x - wal2.x;
@@ -2091,9 +2094,10 @@ public abstract class Engine {
 			}
 			Point out;
 			for (z = startwall; z < endwall; z++) {
-				WALL wal = wall[z];
-				if (wal == null || isCorruptWall(wal))
+				if (isCorruptWall(z))
 					continue;
+				
+				WALL wal = wall[z];
 				WALL wal2 = wall[wal.point2];
 				x1 = wal.x;
 				y1 = wal.y;
@@ -2607,17 +2611,19 @@ public abstract class Engine {
 		clipsectnum = 1;
 		do {
 			dasect = clipsectorlist[clipsectcnt++];
-			if (dasect < 0)
+			if(!isValidSector(dasect))
 				continue;
+			
 			sec = sector[dasect];
 			startwall = sec.wallptr;
 			endwall = startwall + sec.wallnum;
 			if (startwall < 0 || endwall < 0)
 				continue;
 			for (j = startwall; j < endwall; j++) {
-				wal = wall[j];
-				if (wal == null || isCorruptWall(wal))
+				if (isCorruptWall(j))
 					continue;
+				
+				wal = wall[j];
 				wal2 = wall[wal.point2];
 				if ((wal.x < xmin) && (wal2.x < xmin))
 					continue;
@@ -3087,20 +3093,13 @@ public abstract class Engine {
 			return sectnum;
 
 		short i;
-		if ((sectnum >= 0) && (sectnum < numsectors)) {
+		if (isValidSector(sectnum)) {
 			short wallid = sector[sectnum].wallptr;
 			int j = sector[sectnum].wallnum;
-			if (wallid < 0)
-				return -1;
 			do {
-				if (wallid >= MAXWALLS)
-					break;
+				if(!isValidWall(wallid)) break;
+				
 				WALL wal = wall[wallid];
-				if (wal == null) {
-					wallid++;
-					j--;
-					continue;
-				}
 				i = wal.nextsector;
 				if (i >= 0)
 					if (inside(x, y, i) == 1) {
@@ -3126,20 +3125,13 @@ public abstract class Engine {
 				return sectnum;
 
 		short i;
-		if ((sectnum >= 0) && (sectnum < numsectors)) {
-			if (sector[sectnum] == null)
-				return -1;
+		if (isValidSector(sectnum)) {
 			short wallid = sector[sectnum].wallptr;
 			int j = sector[sectnum].wallnum;
 			do {
-				if (wallid >= MAXWALLS)
-					break;
+				if(!isValidWall(wallid)) break;
+
 				WALL wal = wall[wallid];
-				if (wal == null) {
-					wallid++;
-					j--;
-					continue;
-				}
 				i = wal.nextsector;
 				if (i >= 0) {
 					getzsofslope(i, x, y, zofslope);
@@ -3212,7 +3204,7 @@ public abstract class Engine {
 		short cstat;
 		int clipyou;
 
-		if (sectnum < 0 || sectnum >= MAXSECTORS) {
+		if (!isValidSector(sectnum)) {
 			zr_ceilz = 0x80000000;
 			zr_ceilhit = -1;
 			zr_florz = 0x7fffffff;
@@ -3256,9 +3248,10 @@ public abstract class Engine {
 				continue;
 			}
 			for (j = startwall; j < endwall; j++) {
-				wal = wall[j];
-				if (wal == null || isCorruptWall(wal))
+				if (isCorruptWall(j))
 					continue;
+				
+				wal = wall[j];
 				k = wal.nextsector;
 				if (k >= 0) {
 					wal2 = wall[wal.point2];
@@ -3601,36 +3594,43 @@ public abstract class Engine {
 	// flags:
 	// 2: use gltexinvalidateall()
 
-	public void setbrightness(int dabrightness, byte[] dapal, int flags) { // jfBuild
+	public void setbrightness(int dabrightness, byte[] dapal, int flags) {
 		GLRenderer gl = glrender();
 		curbrightness = BClipRange(dabrightness, 0, 15);
 
 		if ((gl == null || gl.getType().getFrameType() != FrameType.GL) && curbrightness != 0) {
 			for (int i = 0; i < dapal.length; i++)
 				temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
-			changepalette(temppal);
 		} else {
-			curpalette.update(dapal, true);
-			changepalette(curpalette.getBytes());
+			System.arraycopy(dapal, 0, temppal, 0, dapal.length);
+			for(int i = 0; i < dapal.length; i++) 
+				temppal[i] <<= 2;
 		}
 
-		if ((flags & 2) != 0) {
-			if (gl != null)
-				gl.gltexinvalidateall(flags);
+		if(changepalette(temppal)) {
+			if ((flags & 2) != 0) {
+				if (gl != null)
+					gl.gltexinvalidateall(flags);
+			}
+	
+			palfadergb.r = palfadergb.g = palfadergb.b = 0;
+			palfadergb.a = 0;
 		}
-
-		palfadergb.r = palfadergb.g = palfadergb.b = 0;
-		palfadergb.a = 0;
 	}
 
-	public void changepalette(final byte[] palette) {
-		curpalette.update(palette, false);
+	public boolean changepalette(final byte[] palette) {
+		if(CRC32.getChecksum(palette) == curpalette.getCrc32())
+			return false;
+		
+		curpalette.update(palette);
 		BuildGdx.app.postRunnable(new Runnable() {
 			@Override
 			public void run() {
 				render.changepalette(palette);
 			}
 		});
+		
+		return true;
 	}
 
 	protected byte[] temppal = new byte[768];

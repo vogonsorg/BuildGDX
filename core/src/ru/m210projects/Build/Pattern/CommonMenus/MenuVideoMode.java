@@ -143,7 +143,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 		
 		mRenSettingsMenu = getRenSettingsMenu(app, posx, posy, width, itemHeight, style);
 		
-		mResolution = new MenuConteiner("Resolution: ", style, posx,
+		mResolution = new MenuConteiner("Resolution", style, posx,
 				posy += itemHeight, width, strvmodes, 0, new MenuProc() {
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuConteiner item = (MenuConteiner) pItem;
@@ -239,7 +239,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 			RenderType.Software.getName(),
 			RenderType.Polymost.getName()
 		};
-		mRenderer = new MenuConteiner("Renderer: ", style, posx, posy += itemHeight, width, renderers, 0, renderCallback) {
+		mRenderer = new MenuConteiner("Renderer", style, posx, posy += itemHeight, width, renderers, 0, renderCallback) {
 			@Override
 			public void open() {
 				choosedRender = currentRender = app.pEngine.getrender().getType();
@@ -250,7 +250,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 			}
 		};
 		
-		mFullscreen = new MenuSwitch("Fullscreen:", style, posx,
+		mFullscreen = new MenuSwitch("Fullscreen", style, posx,
 				posy += itemHeight, width, cfg.fullscreen == 1, new MenuProc() {
 					public void run(MenuHandler handler, MenuItem pItem) {
 						MenuSwitch sw = (MenuSwitch) pItem;

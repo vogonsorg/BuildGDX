@@ -1,5 +1,5 @@
 // This file is part of BuildGDX.
-// Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
+// Copyright (C) 2017-2020  Alexander Makarov-[M210] (m210-2007@mail.ru)
 //
 // BuildGDX is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Audio;
+package ru.m210projects.Build;
 
-public interface SourceCallback<T> {
-	public void run(T ch);
+public class StringUtils {
+
+	public static String toUnicode(String t)
+	{
+		return t.replaceAll("[^\\p{L}\\p{Nd}\\W_]+|\0", ""); //return t.replaceAll("[^a-zA-Z0-9_. /-]", "");
+	}
 }

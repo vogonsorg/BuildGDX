@@ -31,6 +31,8 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage.MessageType;
 import ru.m210projects.Build.Audio.BuildAudio.Driver;
 import ru.m210projects.Build.FileHandle.Compat.Path;
+import ru.m210projects.Build.FileHandle.Group;
+import ru.m210projects.Build.FileHandle.GroupResource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
@@ -84,6 +86,21 @@ public class InitScreen extends ScreenAdapter {
 					@Override
 					public void execute() {
 						Console.Println("bufferjitter: " + game.pNet.bufferJitter);
+					}
+		}));
+		
+		Console.RegisterCvar(new OSDCOMMAND("deb_filelist",
+				"deb_filelist", new OSDCVARFUNC() {
+					@Override
+					public void execute() {
+						for(Group g : BuildGdx.cache.getGroupList())
+						{
+							Console.Println("group: " + g.name);
+							for(GroupResource res : g.getList())
+							{
+								Console.Println("\t   file: " + res.getFullName());
+							}
+						}
 					}
 		}));
 		
@@ -168,11 +185,11 @@ public class InitScreen extends ScreenAdapter {
 					if(!cfg.isInited) 
 						cfg.isInited = cfg.InitConfig(!cfg.isExist());
 					
-					game.pInput = factory.input(BuildGdx.controllers.init());
-					game.pMenu = factory.menus();
 					game.pNet = factory.net();
+					game.pInput = factory.input(BuildGdx.controllers.init());
 					game.pSlider = factory.slider();
-		
+					game.pMenu = factory.menus();
+
 					uninitmultiplayer();
 					
 					cfg.snddrv = BuildGdx.audio.checkNum(Driver.Sound, cfg.snddrv);
@@ -245,7 +262,9 @@ public class InitScreen extends ScreenAdapter {
 			engine.clearview(0);
 			
 			engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
-	
+			
+			factory.drawInitScreen();
+			
 			if(frames++ > 3)
 			{
 				if(!thread.isAlive()) { 

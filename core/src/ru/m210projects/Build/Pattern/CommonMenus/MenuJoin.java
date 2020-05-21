@@ -44,7 +44,7 @@ public abstract class MenuJoin extends BuildMenu {
 	{
 		addItem(getTitle(app, "Join a game"), false);
 
-		mPortnum = new MenuTextField("Network socket number:", "" + app.pCfg.mPort, style, posx, posy += menuHeight, width,
+		mPortnum = new MenuTextField("Network socket number", "" + app.pCfg.mPort, style, posx, posy += menuHeight, width,
 				NUMBERS, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -59,7 +59,7 @@ public abstract class MenuJoin extends BuildMenu {
 					}
 				});
 
-		mPlayer = new MenuTextField("Player name:", app.pCfg.pName, style, posx, posy += menuHeight, width, NUMBERS | LETTERS,
+		mPlayer = new MenuTextField("Player name", app.pCfg.pName, style, posx, posy += menuHeight, width, NUMBERS | LETTERS,
 				new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {
@@ -75,7 +75,7 @@ public abstract class MenuJoin extends BuildMenu {
 			}
 		};
 
-		mIPAddress = new MenuTextField("IP Address:", app.pCfg.mAddress, style, posx, posy += menuHeight, width,
+		mIPAddress = new MenuTextField("IP Address", app.pCfg.mAddress, style, posx, posy += menuHeight, width,
 				NUMBERS | LETTERS | POINT, new MenuProc() {
 					@Override
 					public void run(MenuHandler handler, MenuItem pItem) {

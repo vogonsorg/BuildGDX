@@ -51,6 +51,7 @@ import ru.m210projects.Build.Audio.Music;
 import ru.m210projects.Build.Audio.Sound;
 import ru.m210projects.Build.Audio.SoundData;
 import ru.m210projects.Build.Audio.Source;
+import ru.m210projects.Build.Audio.SourceCallback;
 import ru.m210projects.Build.Loader.WAVLoader;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 
@@ -420,6 +421,11 @@ public class ALSoundDrv implements Sound {
 		public void freeSource(Source source)
 		{
 			if(remove(source)) {
+				if(source.callback != null) {
+					SourceCallback<Object> callback = source.callback;
+					source.callback = null;
+					callback.run(source.channel);
+				}
 				source.free = true;
 				source.priority = 0;
 				source.flags = 0;
@@ -427,10 +433,6 @@ public class ALSoundDrv implements Sound {
 				source.format = 0;
 				source.rate = 0;
 				source.data = null;
-				if(source.callback != null) {
-					source.callback.run(source.channel);
-					source.callback = null;
-				}
 
 				add(source);
 			}
@@ -454,15 +456,16 @@ public class ALSoundDrv implements Sound {
 //		    }
 //		    System.out.println();
 
-			if(element().priority < priority || !element().isPlaying())
+			if(size() > 0 && element().priority < priority || !element().isPlaying())
 			{
 				Source source = remove();
 				int sourceId = source.sourceId;
 				source.priority = priority;
 				source.free = false;
 				if(source.callback != null) {
-					source.callback.run(source.channel);
+					SourceCallback<Object> callback = source.callback;
 					source.callback = null;
+					callback.run(source.channel);
 				}
 				
 				al.alSourceStop(sourceId);

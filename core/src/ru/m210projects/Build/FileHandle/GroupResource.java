@@ -20,6 +20,8 @@ import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 import java.nio.ByteBuffer;
 
+import ru.m210projects.Build.StringUtils;
+
 public abstract class GroupResource implements Resource {
 
 	public static enum ResourceType { Data, GroupFile };
@@ -35,8 +37,7 @@ public abstract class GroupResource implements Resource {
 	
 	protected void handleName(String fullname)
 	{
-		this.filenamext = toLowerCase(fullname).replaceAll("[^a-zA-Z0-9_. -]", "");
-
+		this.filenamext = toLowerCase(StringUtils.toUnicode(fullname)); //replaceAll("[^a-zA-Z0-9_. -]", "");
 		int point = filenamext.lastIndexOf('.');
 		if(point != -1) {
 			this.fileformat = filenamext.substring(point + 1);

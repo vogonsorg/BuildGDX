@@ -33,7 +33,12 @@ public abstract class BuildFactory {
 	public BuildFactory(String... resources) {
 		this.resources = resources;
 	}
+	
+	public void drawInitScreen() {
+		//TODO: get rid of getInitTile() in all ports!!!
+	}
 
+	@Deprecated
 	public abstract int getInitTile();
 	
 	public abstract BuildEngine engine() throws Exception;
