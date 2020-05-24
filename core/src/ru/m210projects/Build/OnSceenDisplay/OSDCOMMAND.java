@@ -44,10 +44,12 @@ public class OSDCOMMAND {
     	setRange(min, max);
 	}
     
-    public void setRange(int min, int max)
+    public OSDCOMMAND setRange(int min, int max)
     {
     	this.min = min;
     	this.max = max;
+    	
+    	return this;
     }
     
     public boolean SetValue(float value)

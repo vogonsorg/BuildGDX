@@ -28,6 +28,10 @@ public abstract class BuildNet {
 		public NetInput Copy(NetInput src);
 		
 	}
+	
+	public interface DisconnectCallback {
+		public void invoke(int nDelete);
+	}
 
 	public static final byte 	kPacketMasterFrame	= 0;
 	public static final byte	kPacketSlaveFrame	= 1;
@@ -197,7 +201,7 @@ public abstract class BuildNet {
 		return ptr;
 	}
 	
-	public int GetDisconnectPacket(byte[] p, int ptr, int len, int nPlayer, Runnable deletePlayerSprite)
+	public int GetDisconnectPacket(byte[] p, int ptr, int len, int nPlayer, DisconnectCallback deletePlayerSprite)
 	{
 		retransmit(nPlayer, packbuf, len);
 		
@@ -208,7 +212,7 @@ public abstract class BuildNet {
 		WaitForAllPlayers(1000);
 
 		if(deletePlayerSprite != null && game.nNetMode != NetMode.Single)
-			deletePlayerSprite.run();
+			deletePlayerSprite.invoke(nPlayer);
 		
 		if ( nPlayer == connecthead ) {
 			connecthead = connectpoint2[connecthead];
