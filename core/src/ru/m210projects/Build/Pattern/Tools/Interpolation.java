@@ -17,6 +17,7 @@
 package ru.m210projects.Build.Pattern.Tools;
 
 import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Pragmas.mulscale;
 
 import java.util.Arrays;
 
@@ -26,7 +27,7 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
 
 public class Interpolation {
-	
+
 	protected boolean requestUpdating;
 
 	public enum InterpolationType {
@@ -106,12 +107,11 @@ public class Interpolation {
 			}
 		}
 	}
-	
-	public boolean clearinterpolations()
-	{
-		if(!requestUpdating) 
+
+	public boolean clearinterpolations() {
+		if (!requestUpdating)
 			return false;
-		
+
 		InterpolationCount = 0;
 		Arrays.fill(gWallLoc, 0);
 		Arrays.fill(gFloorHeinumLoc, 0);
@@ -120,7 +120,7 @@ public class Interpolation {
 		Arrays.fill(gCeilLoc, 0);
 		Arrays.fill(gSpriteLoc, 0);
 		requestUpdating = false;
-		
+
 		return true;
 	}
 
@@ -128,34 +128,72 @@ public class Interpolation {
 		requestUpdating = true;
 	}
 
+	public void dospriteinterp(SPRITE tsp, int smoothratio) {
+		ILoc oldLoc = getsprinterpolate(tsp.owner);
+		if (oldLoc != null) {
+			int x = oldLoc.x;
+			int y = oldLoc.y;
+			int z = oldLoc.z;
+			short nAngle = oldLoc.ang;
+
+			// interpolate sprite position
+			x += mulscale(tsp.x - oldLoc.x, smoothratio, 16);
+			y += mulscale(tsp.y - oldLoc.y, smoothratio, 16);
+			z += mulscale(tsp.z - oldLoc.z, smoothratio, 16);
+			nAngle += mulscale(((tsp.ang - oldLoc.ang + 1024) & 0x7FF) - 1024, smoothratio, 16);
+
+			tsp.x = x;
+			tsp.y = y;
+			tsp.z = z;
+			tsp.ang = nAngle;
+		}
+	}
+
+	public int getValue(IData obj) {
+		switch (obj.type) {
+		case WallX:
+			return ((WALL) obj.ptr).x;
+		case WallY:
+			return ((WALL) obj.ptr).y;
+		case FloorZ:
+			return ((SECTOR) obj.ptr).floorz;
+		case CeilZ:
+			return ((SECTOR) obj.ptr).ceilingz;
+		case FloorH:
+			return ((SECTOR) obj.ptr).floorheinum;
+		case CeilH:
+			return ((SECTOR) obj.ptr).ceilingheinum;
+		}
+
+		return 0;
+	}
+
 	public void dointerpolations(float smoothratio) {
 		for (int i = 0; i < InterpolationCount; i++) {
 			IData gInt = gInterpolationData[i];
 			Object obj = gInt.ptr;
+
+			int value = gInt.bakpos = getValue(gInt);
+			value = (int) (gInt.oldpos + ((value - gInt.oldpos) * smoothratio / 65536.0f));
+
 			switch (gInt.type) {
 			case WallX:
-				gInt.bakpos = ((WALL) obj).x;
-				((WALL) obj).x = (int) (gInt.oldpos + ((((WALL) obj).x - gInt.oldpos) * smoothratio / 65536.0f));
+				((WALL) obj).x = value;
 				break;
 			case WallY:
-				gInt.bakpos = ((WALL) obj).y;
-				((WALL) obj).y = (int) (gInt.oldpos + ((((WALL) obj).y - gInt.oldpos) * smoothratio / 65536.0f));
+				((WALL) obj).y = value;
 				break;
 			case FloorZ:
-				gInt.bakpos = ((SECTOR) obj).floorz;
-				((SECTOR) obj).floorz = (int) (gInt.oldpos + ((((SECTOR) obj).floorz - gInt.oldpos) * smoothratio / 65536.0f));
+				((SECTOR) obj).floorz = value;
 				break;
 			case CeilZ:
-				gInt.bakpos = ((SECTOR) obj).ceilingz;
-				((SECTOR) obj).ceilingz = (int) (gInt.oldpos + ((((SECTOR) obj).ceilingz - gInt.oldpos) * smoothratio / 65536.0f));
+				((SECTOR) obj).ceilingz = value;
 				break;
 			case FloorH:
-				gInt.bakpos = ((SECTOR) obj).floorheinum;
-				((SECTOR) obj).floorheinum = (short) (gInt.oldpos + ((((SECTOR) obj).floorheinum - gInt.oldpos) * smoothratio / 65536.0f));
+				((SECTOR) obj).floorheinum = (short) value;
 				break;
 			case CeilH:
-				gInt.bakpos = ((SECTOR) obj).ceilingheinum;
-				((SECTOR) obj).ceilingheinum = (short) (gInt.oldpos + ((((SECTOR) obj).ceilingheinum - gInt.oldpos) * smoothratio / 65536.0f));
+				((SECTOR) obj).ceilingheinum = (short) value;
 				break;
 			}
 		}
@@ -198,17 +236,16 @@ public class Interpolation {
 			gSpriteLoc[nSprite >> 3] |= pow2char[nSprite & 7];
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	public void clearspriteinterpolate(int nSprite) {
 		gSpriteLoc[nSprite >> 3] &= ~pow2char[nSprite & 7];
 	}
-	
-	public ILoc getsprinterpolate(int nSprite)
-	{
-		if((gSpriteLoc[nSprite >> 3] & pow2char[nSprite & 7]) != 0)
+
+	public ILoc getsprinterpolate(int nSprite) {
+		if ((gSpriteLoc[nSprite >> 3] & pow2char[nSprite & 7]) != 0)
 			return gOldSpriteLoc[nSprite];
 		return null;
 	}
@@ -242,7 +279,7 @@ public class Interpolation {
 			gFloorHeinumLoc[nSector >> 3] &= ~pow2char[nSector & 7];
 		}
 	}
-	
+
 	public void setcheinuminterpolate(int nSector, SECTOR pSector) {
 		if ((gCeilHeinumLoc[nSector >> 3] & pow2char[nSector & 7]) == 0) {
 			setinterpolation(pSector, InterpolationType.CeilH);
@@ -260,7 +297,7 @@ public class Interpolation {
 	public boolean setfloorinterpolate(int nSector, SECTOR pSector) {
 		if ((gFloorLoc[nSector >> 3] & pow2char[nSector & 7]) == 0) {
 			setinterpolation(pSector, InterpolationType.FloorZ);
-			gFloorLoc[nSector >> 3] |=pow2char[nSector & 7];
+			gFloorLoc[nSector >> 3] |= pow2char[nSector & 7];
 			return true;
 		}
 		return false;
