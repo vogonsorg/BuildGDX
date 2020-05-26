@@ -217,9 +217,6 @@ public abstract class Software extends Renderer {
 		a = new Ac(this);
 
 		orpho = new SoftwareOrpho(this);
-		
-		this.params.add(0, new SliderItem<Integer>("Gamma", BuildSettings.paletteGamma, 0, 15, 1, null));
-		this.params.add(1, new ParamItem<Boolean>(ItemType.Separator));
 	}
 
 	@Override

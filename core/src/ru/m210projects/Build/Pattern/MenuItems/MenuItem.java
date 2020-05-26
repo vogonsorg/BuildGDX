@@ -25,6 +25,11 @@ import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 
 public abstract class MenuItem {
+	
+	public FocusListener listener;
+	protected static interface FocusListener {
+		public boolean isFocused();
+	}
 
 	public BuildMenu m_pMenu;
 	public char[] text;          
@@ -45,6 +50,13 @@ public abstract class MenuItem {
 				this.text = (char[]) text;
 		}
 		this.font = textStyle;
+		
+		listener = new FocusListener() {
+			@Override
+			public boolean isFocused() {
+				return m_pMenu.mGetFocusedItem(MenuItem.this);
+			}	
+		};
 	}
 	
 	public void mCheckEnableItem(boolean nEnable) {
@@ -58,9 +70,8 @@ public abstract class MenuItem {
 		return (flags & 7) == 7;
 	}
 	
-	public boolean isFocused()
-	{
-		return m_pMenu.mGetFocusedItem(this);
+	public boolean isFocused() {
+		return listener.isFocused();
 	}
 	
 	public void dbDrawDimensions(Engine draw, int col)
