@@ -441,7 +441,8 @@ public abstract class MenuFileBrowser extends MenuItem {
 					l_nFocus[currColumn] = list[currColumn].size() - 1;
 					if(list[currColumn].size() >= nListItems)
 						l_nMin[currColumn] = list[currColumn].size() - nListItems;
-					else l_nMin[currColumn] = list[currColumn].size() - 1;
+					else if (l_nFocus[currColumn] >= l_nMin[currColumn] + nListItems)
+						l_nMin[currColumn] = list[currColumn].size() - 1;
 				}
 				return false;
 			case HOME:
@@ -452,7 +453,8 @@ public abstract class MenuFileBrowser extends MenuItem {
 				l_nFocus[currColumn] = list[currColumn].size() - 1;
 				if(list[currColumn].size() >= nListItems)
 					l_nMin[currColumn] = list[currColumn].size() - nListItems;
-				else l_nMin[currColumn] = list[currColumn].size() - 1;
+				else if (l_nFocus[currColumn] >= l_nMin[currColumn] + nListItems)
+					l_nMin[currColumn] = list[currColumn].size() - 1;
 				return false;
 			default:
 				return false;
