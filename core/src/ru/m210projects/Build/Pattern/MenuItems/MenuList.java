@@ -133,6 +133,7 @@ public class MenuList extends MenuItem {
 			ListEnd(handler, len);
 			return false;
 		default:
+			ListDefault(handler, opt);
 			return false;
 		}
 	}
@@ -242,6 +243,9 @@ public class MenuList extends MenuItem {
 		// l_nFocus = l_nMin = 0;
 	}
 
+	protected void ListDefault(MenuHandler handler, MenuOpt opt) {
+	}
+	
 	protected void ListCallback(MenuHandler handler, MenuOpt opt) {
 		if (callback != null)
 			callback.run(handler, this);

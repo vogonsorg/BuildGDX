@@ -138,6 +138,11 @@ public abstract class BuildMenuList extends BuildMenu {
 			if ((pItem.flags & 4) != 0)
 				pItem.callback(handler, opt);
 		}
+		
+		@Override
+		protected void ListDefault(MenuHandler handler, MenuOpt opt) {
+			ListCallback(handler, opt);
+		}
 
 		@Override
 		public boolean mouseAction(int mx, int my) {
@@ -229,6 +234,15 @@ public abstract class BuildMenuList extends BuildMenu {
 
 	public void clear() {
 		list.clear();
+	}
+	
+	@Override
+	public boolean mGetFocusedItem(MenuItem m_pItem) {
+		if(!super.mGetFocusedItem(m_pItem)) {
+			if ( list.l_nFocus >= 0 && list.l_nFocus < list.m_pItems.size()) 
+			    return m_pItem == list.m_pItems.get(list.l_nFocus);
+		}
+		return false;
 	}
 
 	@Override
