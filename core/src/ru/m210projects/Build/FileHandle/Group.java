@@ -63,6 +63,16 @@ public abstract class Group {
 		else flags &= ~DYNAMIC;
 	}
 	
+	public boolean isRemovable()
+	{
+		return (flags & REMOVABLE) != 0;
+	}
+	
+	public boolean isDynamic()
+	{
+		return (flags & DYNAMIC) != 0;
+	}
+	
 	public boolean contains(String filename) {
 		if (filename != null) {
 			Integer out = lookup.get(toLowerCase(filename));

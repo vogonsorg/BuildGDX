@@ -36,7 +36,7 @@ public class Scriptfile {
 			textptr++;
 	}
 
-	public String getstring() {
+	protected String getstring() {
 		int out = gettoken();
 		if (out == -1 || out == -2) {
 			// initprintf("Error on line %s:%d: unexpected
@@ -49,7 +49,7 @@ public class Scriptfile {
 		return toLowerCase(txt);
 	}
 
-	public int gettoken() {
+	protected int gettoken() {
 		int start;
 
 		skipoverws();
@@ -61,7 +61,7 @@ public class Scriptfile {
 		return start;
 	}
 
-	public Double getdouble() {
+	protected Double getdouble() {
 		int t = gettoken();
 		if (t == -2)
 			return null;
@@ -73,7 +73,7 @@ public class Scriptfile {
 		}
 	}
 
-	public Integer getsymbol() {
+	protected Integer getsymbol() {
 		int t = gettoken();
 		if (t == -2)
 			return null;
@@ -88,7 +88,7 @@ public class Scriptfile {
 		}
 	}
 
-	public int getbraces() {
+	protected int getbraces() {
 		int bracecnt;
 		int bracestart;
 
@@ -124,14 +124,14 @@ public class Scriptfile {
 		return braceend;
 	}
 
-	public boolean eof() {
+	protected boolean eof() {
 		skipoverws();
 		if (textptr >= eof)
 			return true;
 		return false;
 	}
 
-	public int getlinum(int ptr) {
+	protected int getlinum(int ptr) {
 		int i, stp;
 
 		int ind = ptr;
