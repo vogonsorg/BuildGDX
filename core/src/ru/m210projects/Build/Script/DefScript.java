@@ -397,8 +397,10 @@ public class DefScript implements Disposable {
 	private final Map<String, Token> basetokens = new HashMap<String, Token>() {
 		private static final long serialVersionUID = 1L;
 		{
-			put("#include", put("include", new IncludeToken()));
-
+			Token tok = new IncludeToken();
+			put("#include", tok);
+			put("include", tok);
+			
 			// deprecated style
 			put("defineskybox", new DefineSkyboxToken());
 			put("definetint", new DefineTint());
@@ -407,7 +409,10 @@ public class DefScript implements Disposable {
 			put("model", new ModelToken());
 			put("voxel", new VoxelToken());
 			put("skybox", new SkyboxToken());
-			put("tile", put("texture", new TextureToken()));
+			
+			tok = new TextureToken();
+			put("tile", tok);
+			put("texture", tok);
 
 			// other stuff
 			put("tilefromtexture", new TileFromTextureToken());
