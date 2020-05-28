@@ -36,7 +36,7 @@ public class Scriptfile {
 			textptr++;
 	}
 
-	protected String getstring() {
+	public String getstring() {
 		int out = gettoken();
 		if (out == -1 || out == -2) {
 			// initprintf("Error on line %s:%d: unexpected
@@ -49,7 +49,7 @@ public class Scriptfile {
 		return toLowerCase(txt);
 	}
 
-	protected int gettoken() {
+	public int gettoken() {
 		int start;
 
 		skipoverws();
@@ -61,7 +61,7 @@ public class Scriptfile {
 		return start;
 	}
 
-	protected Double getdouble() {
+	public Double getdouble() {
 		int t = gettoken();
 		if (t == -2)
 			return null;
@@ -73,7 +73,7 @@ public class Scriptfile {
 		}
 	}
 
-	protected Integer getsymbol() {
+	public Integer getsymbol() {
 		int t = gettoken();
 		if (t == -2)
 			return null;
@@ -88,7 +88,7 @@ public class Scriptfile {
 		}
 	}
 
-	protected int getbraces() {
+	public int getbraces() {
 		int bracecnt;
 		int bracestart;
 
@@ -124,14 +124,14 @@ public class Scriptfile {
 		return braceend;
 	}
 
-	protected boolean eof() {
+	public boolean eof() {
 		skipoverws();
 		if (textptr >= eof)
 			return true;
 		return false;
 	}
 
-	protected int getlinum(int ptr) {
+	public int getlinum(int ptr) {
 		int i, stp;
 
 		int ind = ptr;
@@ -238,8 +238,6 @@ public class Scriptfile {
 		textptr = 0;
 		eof = nflen - 1;
 	}
-	
-	public Scriptfile() { } //temp constructor
 
 	public Scriptfile(String filename, byte[] data) {
 		int flen = data.length;

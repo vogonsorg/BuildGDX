@@ -189,6 +189,7 @@ public class InitScreen extends ScreenAdapter {
 					game.pInput = factory.input(BuildGdx.controllers.init());
 					game.pSlider = factory.slider();
 					game.pMenu = factory.menus();
+					game.baseDef = factory.getBaseDef(engine);
 
 					uninitmultiplayer();
 					

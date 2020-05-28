@@ -71,7 +71,7 @@ public abstract class BuildGame extends Game {
 	public boolean gExit = false;
 	public boolean gPaused = false;
 	
-	public final DefScript baseDef;
+	public DefScript baseDef;
 	public DefScript currentDef;
 	
 	private Screen gCurrScreen;
@@ -88,7 +88,6 @@ public abstract class BuildGame extends Game {
 		this.version = sversion.toCharArray();
 		this.pCfg = cfg;
 		this.date = new Date("MMM dd, yyyy HH:mm:ss");
-		this.baseDef = new DefScript(false);
 	}
 
 	@Override
