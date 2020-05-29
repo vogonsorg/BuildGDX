@@ -51,6 +51,15 @@ public class CueScript extends Scriptfile {
 	private int nTracks;
 	private final Map<Integer, String> pTrackList;
 	
+	public CueScript(String filename, byte[] data)
+	{
+		super(filename, data);
+		
+		nTracks = 0;
+		pTrackList = new HashMap<Integer, String>();
+		process();
+	}
+	
 	public CueScript(FileEntry file)
 	{
 		super(file.getName(), BuildGdx.compat.getBytes(file));
