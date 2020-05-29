@@ -123,6 +123,12 @@ public class Scriptfile {
 		textptr = bracestart;
 		return braceend;
 	}
+	
+	public void skipbrace(int braceend)
+	{
+		textptr = braceend + 1;
+		gettoken(); //go to the next token
+	}
 
 	public boolean eof() {
 		skipoverws();

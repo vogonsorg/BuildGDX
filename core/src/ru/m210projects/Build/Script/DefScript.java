@@ -290,6 +290,15 @@ public class DefScript implements Disposable {
 		return false;
 	}
 
+	private int getPtr(Scriptfile script, int line) {
+		if (line <= 2)
+			return script.lineoffs[0];
+
+		if (line <= script.linenum)
+			return script.lineoffs[line - 2];
+		return script.eof;
+	}
+
 	@Override
 	public void dispose() {
 		if (!disposable)
@@ -400,16 +409,16 @@ public class DefScript implements Disposable {
 			Token tok = new IncludeToken();
 			put("#include", tok);
 			put("include", tok);
-			
+
 			// deprecated style
 			put("defineskybox", new DefineSkyboxToken());
 			put("definetint", new DefineTint());
-			
+
 			// new style
 			put("model", new ModelToken());
 			put("voxel", new VoxelToken());
 			put("skybox", new SkyboxToken());
-			
+
 			tok = new TextureToken();
 			put("tile", tok);
 			put("texture", tok);
@@ -541,9 +550,11 @@ public class DefScript implements Disposable {
 
 			while (script.textptr < ttextureend) {
 				Object tk = def.gettoken(script, tilefromtexturetokens);
-				if(tk instanceof BaseToken) {
-					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+				if (tk instanceof BaseToken) {
+					int line = script.getlinum(script.ltextptr);
+					Console.Println(script.filename + " has error on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
 					return (BaseToken) tk;
 				}
 				switch ((TileTextureTokens) tk) {
@@ -594,16 +605,17 @@ public class DefScript implements Disposable {
 					break;
 				}
 			}
+			script.skipbrace(ttextureend); //close bracke
 			
-			if(addTile(script, fn, tile, xoffset, yoffset, tilecrc, talphacut, istexture, ttexturetokptr) != null)
+			if (addTile(script, fn, tile, xoffset, yoffset, tilecrc, talphacut, istexture, ttexturetokptr) != null)
 				return BaseToken.Ok;
 			return BaseToken.Error;
 		}
-		
-		protected DefTile addTile(Scriptfile script, String fn, Integer tile, Byte xoffset, Byte yoffset, long tilecrc, int talphacut, boolean istexture, int ttexturetokptr)
-		{
+
+		protected DefTile addTile(Scriptfile script, String fn, Integer tile, Byte xoffset, Byte yoffset, long tilecrc,
+				int talphacut, boolean istexture, int ttexturetokptr) {
 			DefScript def = DefScript.this;
-			
+
 			if (tile < 0 || tile >= MAXTILES) {
 				Console.Println("Error: missing or invalid 'tile number' for texture definition near line "
 						+ script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
@@ -626,9 +638,9 @@ public class DefScript implements Disposable {
 					Console.Println("Error: missing 'file name' for tilefromtexture definition near line "
 							+ script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
 
-				if(def.addDefTile(deftile, tile))
+				if (def.addDefTile(deftile, tile))
 					return deftile;
-				
+
 				return null;
 			}
 
@@ -648,14 +660,14 @@ public class DefScript implements Disposable {
 						+ script.filename + ":" + script.getlinum(ttexturetokptr), OSDTEXT_RED);
 				return null;
 			}
-			
+
 			return texstatus;
 		}
 
-		protected DefTile ImportTileFromTexture(String fn, int tile, long crc32, int alphacut,
-				boolean istexture, boolean internal) {
+		protected DefTile ImportTileFromTexture(String fn, int tile, long crc32, int alphacut, boolean istexture,
+				boolean internal) {
 			DefScript def = DefScript.this;
-			
+
 			byte[] data = BuildGdx.cache.getBytes(fn, 0);
 			if (data == null) {
 				Console.Println("ImportTileFromTexture error: file " + fn + " not found!", Console.OSDTEXT_RED);
@@ -822,9 +834,11 @@ public class DefScript implements Disposable {
 
 			while (script.textptr < modelend) {
 				tk = gettoken(script, modeltokens);
-				if(tk instanceof BaseToken) {
-					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+				if (tk instanceof BaseToken) {
+					int line = script.getlinum(script.ltextptr);
+					Console.Println(script.filename + " has error on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
 					return (BaseToken) tk;
 				}
 
@@ -865,12 +879,14 @@ public class DefScript implements Disposable {
 
 					while (script.textptr < frameend) {
 						tk = gettoken(script, modelframetokens);
-						if(tk instanceof BaseToken) {
-							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+						if (tk instanceof BaseToken) {
+							int line = script.getlinum(script.ltextptr);
+							Console.Println(script.filename + " has error on line: "
+											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+									OSDTEXT_RED);
 							return (BaseToken) tk;
 						}
-						
+
 						switch ((ModelTokens) tk) {
 						default:
 							break;
@@ -897,7 +913,8 @@ public class DefScript implements Disposable {
 //							break;
 						}
 					}
-
+					script.skipbrace(frameend); //close bracke
+				
 					if (check_tile_range("model: frame", ftilenume, ltilenume, script, frametokptr)) {
 						model_ok = 0;
 						break;
@@ -940,12 +957,14 @@ public class DefScript implements Disposable {
 						break;
 					while (script.textptr < animend) {
 						tk = gettoken(script, modelanimtokens);
-						if(tk instanceof BaseToken) {
-							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+						if (tk instanceof BaseToken) {
+							int line = script.getlinum(script.ltextptr);
+							Console.Println(script.filename + " has error on line: "
+											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+									OSDTEXT_RED);
 							return (BaseToken) tk;
 						}
-						
+
 						switch ((ModelTokens) tk) {
 						default:
 							break;
@@ -965,7 +984,8 @@ public class DefScript implements Disposable {
 							break;
 						}
 					}
-
+					script.skipbrace(animend); //close bracke
+					
 					if (startframe == null) {
 						Console.Println("Error: missing 'start frame' for anim definition near line " + script.filename
 								+ ":" + script.getlinum(animtokptr), OSDTEXT_RED);
@@ -1011,12 +1031,14 @@ public class DefScript implements Disposable {
 
 					while (script.textptr < skinend) {
 						tk = gettoken(script, modelskintokens);
-						if(tk instanceof BaseToken) {
-							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+						if (tk instanceof BaseToken) {
+							int line = script.getlinum(script.ltextptr);
+							Console.Println(script.filename + " has error on line: "
+											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+									OSDTEXT_RED);
 							return (BaseToken) tk;
 						}
-						
+
 						switch ((ModelTokens) tk) {
 						default:
 							break;
@@ -1044,7 +1066,8 @@ public class DefScript implements Disposable {
 							break; // getnumber
 						}
 					}
-
+					script.skipbrace(skinend); //close bracke
+					
 					if (skinfn == null) {
 						Console.Println("Error: missing 'skin filename' for skin definition near line "
 								+ script.filename + ":" + script.getlinum(skintokptr), OSDTEXT_RED);
@@ -1106,12 +1129,14 @@ public class DefScript implements Disposable {
 
 					while (script.textptr < frameend) {
 						tk = gettoken(script, modelhudtokens);
-						if(tk instanceof BaseToken) {
-							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+						if (tk instanceof BaseToken) {
+							int line = script.getlinum(script.ltextptr);
+							Console.Println(script.filename + " has error on line: "
+											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+									OSDTEXT_RED);
 							return (BaseToken) tk;
 						}
-						
+
 						switch ((ModelTokens) tk) {
 						default:
 							break;
@@ -1162,7 +1187,9 @@ public class DefScript implements Disposable {
 							break;
 						}
 					}
-
+					
+					script.skipbrace(frameend); //close bracke
+					
 					if (check_tile_range("hud", ftilenume, ltilenume, script, hudtokptr)) {
 						model_ok = 0;
 						break;
@@ -1182,7 +1209,8 @@ public class DefScript implements Disposable {
 					break;
 				}
 			}
-
+			script.skipbrace(modelend); //close bracke
+			
 			if (model_ok == 0) {
 				if (m != null) {
 					Console.Println("Removing model " + modelfn + " due to errors.", OSDTEXT_YELLOW);
@@ -1247,12 +1275,14 @@ public class DefScript implements Disposable {
 
 			while (script.textptr < textureend) {
 				tk = gettoken(script, texturetokens);
-				if(tk instanceof BaseToken) {
-					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+				if (tk instanceof BaseToken) {
+					int line = script.getlinum(script.ltextptr);
+					Console.Println(script.filename + " has error on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
 					return (BaseToken) tk;
 				}
-				
+
 				TextureTokens token = (TextureTokens) tk;
 				switch (token) {
 				default:
@@ -1274,12 +1304,14 @@ public class DefScript implements Disposable {
 						break;
 					while (script.textptr < palend) {
 						tk = gettoken(script, texturetokens);
-						if(tk instanceof BaseToken) {
-							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+						if (tk instanceof BaseToken) {
+							int line = script.getlinum(script.ltextptr);
+							Console.Println(script.filename + " has error on line: "
+											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+									OSDTEXT_RED);
 							return (BaseToken) tk;
 						}
-						
+
 						switch ((TextureTokens) tk) {
 						default:
 							break;
@@ -1316,6 +1348,7 @@ public class DefScript implements Disposable {
 							break;
 						}
 					}
+					script.skipbrace(palend); //close bracke
 
 					switch (token) {
 					default:
@@ -1365,6 +1398,7 @@ public class DefScript implements Disposable {
 					break;
 				}
 			}
+			script.skipbrace(textureend); //close bracke
 
 			if (ttile >= MAXTILES) {
 				Console.Println("Error: missing or invalid 'tile number' for texture definition near line "
@@ -1427,12 +1461,14 @@ public class DefScript implements Disposable {
 
 			while (script.textptr < vmodelend) {
 				Object tk = gettoken(script, voxeltokens);
-				if(tk instanceof BaseToken) {
-					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+				if (tk instanceof BaseToken) {
+					int line = script.getlinum(script.ltextptr);
+					Console.Println(script.filename + " has error on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
 					return (BaseToken) tk;
 				}
-				
+
 				switch ((VoxelTokens) tk) {
 				case TILE:
 					tilex = script.getsymbol();
@@ -1466,6 +1502,8 @@ public class DefScript implements Disposable {
 					break;
 				}
 			}
+			script.skipbrace(vmodelend); //close bracke
+			
 			vox.getModel().setMisc((float) vscale, 0, 0, 0, vrotate ? MD_ROTATE : 0);
 			return BaseToken.Ok;
 		}
@@ -1518,12 +1556,14 @@ public class DefScript implements Disposable {
 			while (script.textptr < sskyend) {
 				try {
 					Object tk = gettoken(script, skyboxtokens);
-					if(tk instanceof BaseToken) {
-						Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-								+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+					if (tk instanceof BaseToken) {
+						int line = script.getlinum(script.ltextptr);
+						Console.Println(script.filename + " has error on line: "
+										+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+								OSDTEXT_RED);
 						return (BaseToken) tk;
 					}
-					
+
 					switch ((SkyboxTokens) tk) {
 					case TILE:
 						if ((ivalue = script.getsymbol()) != null)
@@ -1557,6 +1597,7 @@ public class DefScript implements Disposable {
 				} catch (Exception e) {
 				}
 			}
+			script.skipbrace(sskyend); //close bracke
 			if (addSkybox(script, stile, spal, sfn))
 				return BaseToken.Ok;
 			return BaseToken.Error;
@@ -1661,12 +1702,14 @@ public class DefScript implements Disposable {
 				return BaseToken.Error;
 			while (script.textptr < dummy) {
 				Object tk = gettoken(script, sound_musictokens);
-				if(tk instanceof BaseToken) {
-					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
-							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+				if (tk instanceof BaseToken) {
+					int line = script.getlinum(script.ltextptr);
+					Console.Println(script.filename + " has error on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
 					return (BaseToken) tk;
 				}
-				
+
 				switch ((AudioTokens) tk) {
 				default:
 					break;
@@ -1680,7 +1723,8 @@ public class DefScript implements Disposable {
 					break;
 				}
 			}
-
+			script.skipbrace(dummy); //close bracke
+			
 			audInfo.addDigitalInfo(t_id, t_file);
 
 			return BaseToken.Ok;
