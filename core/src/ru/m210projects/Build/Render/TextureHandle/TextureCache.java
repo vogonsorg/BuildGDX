@@ -310,7 +310,8 @@ public class TextureCache {
 	    // load a replacement
 		Pthtyp pth = get(dapicnum, dapalnum, clamping, skybox);
 		
-		if(pth != null && pth.hicr == null) {
+		if(pth != null && pth.hicr == null && si.skybox == null) { //GDX 29.05.2020 skybox check added
+			System.err.println("Disposing the old 8-bit texture: " + dapicnum);
 			dispose(dapicnum); //old 8-bit texture
 			pth = null;
 		}

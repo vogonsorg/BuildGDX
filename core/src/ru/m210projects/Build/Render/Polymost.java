@@ -744,7 +744,7 @@ public abstract class Polymost extends GLRenderer {
 
 		if (skyclamphack != 0)
 			method |= 4;
-
+	
 		pth = textureCache.cache(globalpicnum, globalpal, drawingskybox, textureCache.clampingMode(method), textureCache.alphaMode(method));
 		if(pth == null) //hires texture not found
 			return;
