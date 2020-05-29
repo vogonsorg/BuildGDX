@@ -180,4 +180,16 @@ public abstract class Group {
 		return true;
 	}
 	
+	public String toString()
+	{
+		String txt = "Group name: " + name + "\r\n";
+		txt += "Num files: " + numfiles + "\r\n";
+		txt += "File list: \r\n";
+
+		for(GroupResource res : filelist)
+			txt += res.toString();
+		
+		return txt;
+	}
+	
 }
