@@ -552,10 +552,10 @@ public class DefScript implements Disposable {
 				Object tk = def.gettoken(script, tilefromtexturetokens);
 				if (tk instanceof BaseToken) {
 					int line = script.getlinum(script.ltextptr);
-					Console.Println(script.filename + " has error on line: "
-									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-							OSDTEXT_RED);
-					return (BaseToken) tk;
+					Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+							+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+					OSDTEXT_RED);
+					continue;
 				}
 				switch ((TileTextureTokens) tk) {
 				default:
@@ -836,10 +836,10 @@ public class DefScript implements Disposable {
 				tk = gettoken(script, modeltokens);
 				if (tk instanceof BaseToken) {
 					int line = script.getlinum(script.ltextptr);
-					Console.Println(script.filename + " has error on line: "
-									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-							OSDTEXT_RED);
-					return (BaseToken) tk;
+					Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+							+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+					OSDTEXT_RED);
+					continue;
 				}
 
 				token = (ModelTokens) tk;
@@ -881,10 +881,10 @@ public class DefScript implements Disposable {
 						tk = gettoken(script, modelframetokens);
 						if (tk instanceof BaseToken) {
 							int line = script.getlinum(script.ltextptr);
-							Console.Println(script.filename + " has error on line: "
-											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-									OSDTEXT_RED);
-							return (BaseToken) tk;
+							Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
+							continue;
 						}
 
 						switch ((ModelTokens) tk) {
@@ -959,10 +959,10 @@ public class DefScript implements Disposable {
 						tk = gettoken(script, modelanimtokens);
 						if (tk instanceof BaseToken) {
 							int line = script.getlinum(script.ltextptr);
-							Console.Println(script.filename + " has error on line: "
-											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-									OSDTEXT_RED);
-							return (BaseToken) tk;
+							Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
+							continue;
 						}
 
 						switch ((ModelTokens) tk) {
@@ -1033,10 +1033,10 @@ public class DefScript implements Disposable {
 						tk = gettoken(script, modelskintokens);
 						if (tk instanceof BaseToken) {
 							int line = script.getlinum(script.ltextptr);
-							Console.Println(script.filename + " has error on line: "
-											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-									OSDTEXT_RED);
-							return (BaseToken) tk;
+							Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
+							continue;
 						}
 
 						switch ((ModelTokens) tk) {
@@ -1131,10 +1131,10 @@ public class DefScript implements Disposable {
 						tk = gettoken(script, modelhudtokens);
 						if (tk instanceof BaseToken) {
 							int line = script.getlinum(script.ltextptr);
-							Console.Println(script.filename + " has error on line: "
-											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-									OSDTEXT_RED);
-							return (BaseToken) tk;
+							Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
+							continue;
 						}
 
 						switch ((ModelTokens) tk) {
@@ -1277,10 +1277,10 @@ public class DefScript implements Disposable {
 				tk = gettoken(script, texturetokens);
 				if (tk instanceof BaseToken) {
 					int line = script.getlinum(script.ltextptr);
-					Console.Println(script.filename + " has error on line: "
-									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-							OSDTEXT_RED);
-					return (BaseToken) tk;
+					Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+							+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+					OSDTEXT_RED);
+					continue;
 				}
 
 				TextureTokens token = (TextureTokens) tk;
@@ -1306,10 +1306,10 @@ public class DefScript implements Disposable {
 						tk = gettoken(script, texturetokens);
 						if (tk instanceof BaseToken) {
 							int line = script.getlinum(script.ltextptr);
-							Console.Println(script.filename + " has error on line: "
-											+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-									OSDTEXT_RED);
-							return (BaseToken) tk;
+							Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+							OSDTEXT_RED);
+							continue;
 						}
 
 						switch ((TextureTokens) tk) {
@@ -1463,10 +1463,10 @@ public class DefScript implements Disposable {
 				Object tk = gettoken(script, voxeltokens);
 				if (tk instanceof BaseToken) {
 					int line = script.getlinum(script.ltextptr);
-					Console.Println(script.filename + " has error on line: "
-									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-							OSDTEXT_RED);
-					return (BaseToken) tk;
+					Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+							+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+					OSDTEXT_RED);
+					continue;
 				}
 
 				switch ((VoxelTokens) tk) {
@@ -1541,6 +1541,9 @@ public class DefScript implements Disposable {
 				put("bottom", SkyboxTokens.BOTTOM);
 				put("floor", SkyboxTokens.BOTTOM);
 				put("down", SkyboxTokens.BOTTOM);
+				
+//				put("nocompress", TextureTokens.NOCOMPRESS);
+//				put("nodownsize", TextureTokens.NODOWNSIZE);
 			}
 		};
 
@@ -1558,10 +1561,10 @@ public class DefScript implements Disposable {
 					Object tk = gettoken(script, skyboxtokens);
 					if (tk instanceof BaseToken) {
 						int line = script.getlinum(script.ltextptr);
-						Console.Println(script.filename + " has error on line: "
-										+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-								OSDTEXT_RED);
-						return (BaseToken) tk;
+						Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+								+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+						OSDTEXT_RED);
+						continue;
 					}
 
 					switch ((SkyboxTokens) tk) {
@@ -1704,10 +1707,10 @@ public class DefScript implements Disposable {
 				Object tk = gettoken(script, sound_musictokens);
 				if (tk instanceof BaseToken) {
 					int line = script.getlinum(script.ltextptr);
-					Console.Println(script.filename + " has error on line: "
-									+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
-							OSDTEXT_RED);
-					return (BaseToken) tk;
+					Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+							+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+					OSDTEXT_RED);
+					continue;
 				}
 
 				switch ((AudioTokens) tk) {
