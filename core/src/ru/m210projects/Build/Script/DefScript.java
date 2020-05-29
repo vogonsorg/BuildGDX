@@ -540,7 +540,13 @@ public class DefScript implements Disposable {
 				return BaseToken.Error;
 
 			while (script.textptr < ttextureend) {
-				switch ((TileTextureTokens) def.gettoken(script, tilefromtexturetokens)) {
+				Object tk = def.gettoken(script, tilefromtexturetokens);
+				if(tk instanceof BaseToken) {
+					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+					return (BaseToken) tk;
+				}
+				switch ((TileTextureTokens) tk) {
 				default:
 					break;
 				case FILE:
@@ -765,6 +771,7 @@ public class DefScript implements Disposable {
 		@Override
 		public BaseToken parse(Scriptfile script) {
 			ModelTokens token;
+			Object tk;
 			Resource res;
 			Integer ivalue;
 			Double dvalue;
@@ -814,7 +821,14 @@ public class DefScript implements Disposable {
 			}
 
 			while (script.textptr < modelend) {
-				token = (ModelTokens) gettoken(script, modeltokens);
+				tk = gettoken(script, modeltokens);
+				if(tk instanceof BaseToken) {
+					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+					return (BaseToken) tk;
+				}
+
+				token = (ModelTokens) tk;
 				switch (token) {
 				default:
 					break;
@@ -850,7 +864,14 @@ public class DefScript implements Disposable {
 						break;
 
 					while (script.textptr < frameend) {
-						switch ((ModelTokens) gettoken(script, modelframetokens)) {
+						tk = gettoken(script, modelframetokens);
+						if(tk instanceof BaseToken) {
+							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+							return (BaseToken) tk;
+						}
+						
+						switch ((ModelTokens) tk) {
 						default:
 							break;
 						case FRAME:
@@ -918,7 +939,14 @@ public class DefScript implements Disposable {
 					if ((animend = script.getbraces()) == -1)
 						break;
 					while (script.textptr < animend) {
-						switch ((ModelTokens) gettoken(script, modelanimtokens)) {
+						tk = gettoken(script, modelanimtokens);
+						if(tk instanceof BaseToken) {
+							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+							return (BaseToken) tk;
+						}
+						
+						switch ((ModelTokens) tk) {
 						default:
 							break;
 						case FRAME0:
@@ -982,7 +1010,14 @@ public class DefScript implements Disposable {
 						break;
 
 					while (script.textptr < skinend) {
-						switch ((ModelTokens) gettoken(script, modelskintokens)) {
+						tk = gettoken(script, modelskintokens);
+						if(tk instanceof BaseToken) {
+							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+							return (BaseToken) tk;
+						}
+						
+						switch ((ModelTokens) tk) {
 						default:
 							break;
 						case PAL:
@@ -1070,7 +1105,14 @@ public class DefScript implements Disposable {
 						break;
 
 					while (script.textptr < frameend) {
-						switch ((ModelTokens) gettoken(script, modelhudtokens)) {
+						tk = gettoken(script, modelhudtokens);
+						if(tk instanceof BaseToken) {
+							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+							return (BaseToken) tk;
+						}
+						
+						switch ((ModelTokens) tk) {
 						default:
 							break;
 						case TILE:
@@ -1196,6 +1238,7 @@ public class DefScript implements Disposable {
 			int textureend;
 			Double dvalue;
 			Integer ttile = -1;
+			Object tk;
 
 			if ((ttile = script.getsymbol()) == null)
 				return BaseToken.Error;
@@ -1203,7 +1246,14 @@ public class DefScript implements Disposable {
 				return BaseToken.Error;
 
 			while (script.textptr < textureend) {
-				TextureTokens token = (TextureTokens) gettoken(script, texturetokens);
+				tk = gettoken(script, texturetokens);
+				if(tk instanceof BaseToken) {
+					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+					return (BaseToken) tk;
+				}
+				
+				TextureTokens token = (TextureTokens) tk;
 				switch (token) {
 				default:
 					break;
@@ -1223,7 +1273,14 @@ public class DefScript implements Disposable {
 					if ((palend = script.getbraces()) == -1)
 						break;
 					while (script.textptr < palend) {
-						switch ((TextureTokens) gettoken(script, texturetokens)) {
+						tk = gettoken(script, texturetokens);
+						if(tk instanceof BaseToken) {
+							Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+									+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+							return (BaseToken) tk;
+						}
+						
+						switch ((TextureTokens) tk) {
 						default:
 							break;
 						case FILE:
@@ -1369,7 +1426,14 @@ public class DefScript implements Disposable {
 			}
 
 			while (script.textptr < vmodelend) {
-				switch ((VoxelTokens) gettoken(script, voxeltokens)) {
+				Object tk = gettoken(script, voxeltokens);
+				if(tk instanceof BaseToken) {
+					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+					return (BaseToken) tk;
+				}
+				
+				switch ((VoxelTokens) tk) {
 				case TILE:
 					tilex = script.getsymbol();
 					if (check_tile("voxel", tilex, script, script.ltextptr))
@@ -1453,7 +1517,14 @@ public class DefScript implements Disposable {
 
 			while (script.textptr < sskyend) {
 				try {
-					switch ((SkyboxTokens) gettoken(script, skyboxtokens)) {
+					Object tk = gettoken(script, skyboxtokens);
+					if(tk instanceof BaseToken) {
+						Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+								+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+						return (BaseToken) tk;
+					}
+					
+					switch ((SkyboxTokens) tk) {
 					case TILE:
 						if ((ivalue = script.getsymbol()) != null)
 							stile = ivalue;
@@ -1589,7 +1660,14 @@ public class DefScript implements Disposable {
 			if ((dummy = script.getbraces()) == -1)
 				return BaseToken.Error;
 			while (script.textptr < dummy) {
-				switch ((AudioTokens) gettoken(script, sound_musictokens)) {
+				Object tk = gettoken(script, sound_musictokens);
+				if(tk instanceof BaseToken) {
+					Console.Println("Def error: the script " + script.filename + " has an error on line " + script.filename + ":"
+							+ script.getlinum(script.ltextptr), OSDTEXT_RED);
+					return (BaseToken) tk;
+				}
+				
+				switch ((AudioTokens) tk) {
 				default:
 					break;
 				case ID:
