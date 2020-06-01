@@ -310,8 +310,8 @@ public class TextureCache {
 	    // load a replacement
 		Pthtyp pth = get(dapicnum, dapalnum, clamping, skybox);
 		
-		if(pth != null && pth.hicr == null && si.skybox == null) { //GDX 29.05.2020 skybox check added
-			System.err.println("Disposing the old 8-bit texture: " + dapicnum);
+		if(pth != null && pth.hicr == null && si.skybox == null) { //GDX 29.05.2020 skybox check added 
+			//(if you're switching between 8bit and hrp textures, old loaded texture should be disposed. Addon HRP support)
 			dispose(dapicnum); //old 8-bit texture
 			pth = null;
 		}

@@ -27,12 +27,12 @@ public class Scriptfile {
 	public int[] lineoffs;
 
 	protected void skipovertoken() {
-		while ((textptr < eof) && (textbuf.charAt(textptr)) != 0)
+		while ((textptr < eof) && textptr < textbuf.length() && (textbuf.charAt(textptr)) != 0)
 			textptr++;
 	}
 
 	protected void skipoverws() {
-		if ((textptr < eof) && (textbuf.charAt(textptr)) == 0)
+		if ((textptr < eof) && textptr < textbuf.length() && (textbuf.charAt(textptr)) == 0)
 			textptr++;
 	}
 
