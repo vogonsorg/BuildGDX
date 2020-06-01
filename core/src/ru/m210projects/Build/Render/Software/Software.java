@@ -211,7 +211,7 @@ public abstract class Software extends Renderer {
 	protected SoftwareOrpho orpho;
 
 	public Software(Engine engine) {
-		if(BuildGdx.graphics.getFrameType() != FrameType.Canvas)
+		if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
 			BuildGdx.app.setFrame(FrameType.Canvas);
 		this.engine = engine;
 		a = new Ac(this);
@@ -258,10 +258,10 @@ public abstract class Software extends Renderer {
 
 		for (int i = 1; i < 1024; i++)
 			lowrecip[i] = ((1 << 24) - 1) / i;
-		
+
 		isInited = true;
 	}
-	
+
 	@Override
 	public boolean isInited() {
 		return isInited;
@@ -285,16 +285,21 @@ public abstract class Software extends Renderer {
 	}
 
 	public void setviewtotile(int tilenume, short xsiz, short ysiz) {
-		//DRAWROOMS TO TILE BACKUP&SET CODE
-	    tilesizx[tilenume] = xsiz; tilesizy[tilenume] = ysiz;
-	    bakxsiz[setviewcnt] = xsiz; bakysiz[setviewcnt] = ysiz;
-	    bakframeplace[setviewcnt] = frameplace; frameplace = waloff[tilenume];
-	    bakwindowx1[setviewcnt] = windowx1; bakwindowy1[setviewcnt] = windowy1;
-	    bakwindowx2[setviewcnt] = windowx2; bakwindowy2[setviewcnt] = windowy2;
+		// DRAWROOMS TO TILE BACKUP&SET CODE
+		tilesizx[tilenume] = xsiz;
+		tilesizy[tilenume] = ysiz;
+		bakxsiz[setviewcnt] = xsiz;
+		bakysiz[setviewcnt] = ysiz;
+		bakframeplace[setviewcnt] = frameplace;
+		frameplace = waloff[tilenume];
+		bakwindowx1[setviewcnt] = windowx1;
+		bakwindowy1[setviewcnt] = windowy1;
+		bakwindowx2[setviewcnt] = windowx2;
+		bakwindowy2[setviewcnt] = windowy2;
 
-	    setviewcnt++;
-	    engine.setview(0,0,ysiz-1,xsiz-1);
-	    engine.setaspect(65536,65536);
+		setviewcnt++;
+		engine.setview(0, 0, ysiz - 1, xsiz - 1);
+		engine.setaspect(65536, 65536);
 
 		int j = 0;
 		for (int i = 0; i <= xsiz; i++) {
@@ -312,7 +317,7 @@ public abstract class Software extends Renderer {
 			k = bakxsiz[0];
 		else
 			k = Math.max(bakxsiz[setviewcnt - 1], bakxsiz[setviewcnt]);
-		
+
 		int j = 0;
 		for (int i = 0; i <= k; i++) {
 			ylookup[i] = j;
@@ -333,8 +338,9 @@ public abstract class Software extends Renderer {
 		for (i = spritesortcnt - 1; i >= 0; i--)
 			tspriteptr[i] = tsprite[i];
 		for (i = spritesortcnt - 1; i >= 0; i--) {
-			if(tspriteptr[i].picnum < 0 || tspriteptr[i].picnum > MAXTILES) continue;
-			
+			if (tspriteptr[i].picnum < 0 || tspriteptr[i].picnum > MAXTILES)
+				continue;
+
 			xs = tspriteptr[i].x - globalposx;
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
@@ -387,8 +393,9 @@ public abstract class Software extends Renderer {
 				for (k = i; k < j; k++) {
 					spritesz[k] = tspriteptr[k].z;
 					if ((tspriteptr[k].cstat & 48) != 32) {
-						if(tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES) continue;
-						
+						if (tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES)
+							continue;
+
 						yoff = (int) ((byte) ((picanm[tspriteptr[k].picnum] >> 16) & 255)) + (tspriteptr[k].yoffset);
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
 						yspan = (tilesizy[tspriteptr[k].picnum] * tspriteptr[k].yrepeat << 2);
@@ -1004,10 +1011,10 @@ public abstract class Software extends Renderer {
 		Voxel vtilenum = null;
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
-		
+
 		if (tspr.owner < 0 || tspr.picnum < 0 || tspr.picnum >= MAXTILES || tspr.sectnum < 0)
 			return;
-		
+
 		if ((picanm[tilenum] & 192) != 0)
 			tilenum += engine.animateoffs(tilenum, spritenum + 32768);
 		if ((tilesizx[tilenum] <= 0) || (tilesizy[tilenum] <= 0) || (spritenum < 0))
@@ -1020,7 +1027,7 @@ public abstract class Software extends Renderer {
 		if (BuildSettings.useVoxels.get()) {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(tilenum) : null;
 			if (entry != null && entry.voxel != null) {
-				if((sprite[tspr.owner].cstat & 48) != 32) {
+				if ((sprite[tspr.owner].cstat & 48) != 32) {
 					vtilenum = entry.voxel;
 					if (vtilenum.getModel() != null)
 						mflags = vtilenum.getModel().flags;
@@ -1706,7 +1713,8 @@ public abstract class Software extends Renderer {
 			int rpoint = -1;
 			long rmax = 0x80000000;
 			for (z = 0; z < npoints; z++) {
-				if(rzi[z] == 0) continue;
+				if (rzi[z] == 0)
+					continue;
 				xsi[z] = scale(rxi[z], xdimen << 15, rzi[z]) + (xdimen << 15);
 				ysi[z] = scale(ryi[z], xdimen << 15, rzi[z]) + ((int) globalhoriz << 16);
 				if (xsi[z] < 0)
@@ -1917,11 +1925,12 @@ public abstract class Software extends Renderer {
 			else
 				nyrepeat = tspr.yrepeat * vtilenum.scale;
 
-			//tspr.z -= mulscale(yoff, nyrepeat, 14);
+			// tspr.z -= mulscale(yoff, nyrepeat, 14);
 			if ((cstat & 128) == 0)
-				//tspr.z -= mulscale(tilesizy[tspr.picnum], nyrepeat, 15); // GDX this more correct, but disabled for compatible with eduke
+				// tspr.z -= mulscale(tilesizy[tspr.picnum], nyrepeat, 15); // GDX this more
+				// correct, but disabled for compatible with eduke
 				tspr.z -= mulscale(vtilenum.zpiv[0], nyrepeat, 22);
-			
+
 			if ((cstat & 8) != 0 && (cstat & 16) != 0)
 				tspr.z -= mulscale((tilesizy[tspr.picnum] / 2) - vtilenum.zpiv[0], nyrepeat, 22);
 
@@ -2189,11 +2198,11 @@ public abstract class Software extends Renderer {
 			short oand = (short) (pow2char[((xs < backx) ? 1 : 0) + 0] + pow2char[((ys < backy) ? 1 : 0) + 2]);
 			short oand16 = (short) (oand + 16);
 			short oand32 = (short) (oand + 32);
-			
+
 			if (yflip) {
-	            oand16 = (short) (oand + 32);
-	            oand32 =  (short) (oand + 16);
-	        }
+				oand16 = (short) (oand + 32);
+				oand32 = (short) (oand + 16);
+			}
 
 			if (yi > 0) {
 				dagxinc = gxinc;
@@ -2226,8 +2235,8 @@ public abstract class Software extends Renderer {
 
 					if (voxptr == voxend)
 						continue;
-					
-					if((ny + y1) < 0 || (ny + y2) < 0)
+
+					if ((ny + y1) < 0 || (ny + y2) < 0)
 						continue;
 
 					lx = mulscale(nx >> 3, distrecip[(ny + y1) >> 14], 32) + halfxdimen;
@@ -2284,10 +2293,10 @@ public abstract class Software extends Renderer {
 								z1 = daumost[lx];
 							} else
 								yplc = 0;
-							
-							if(yflip) {
-								 yinc = -yinc;
-								 yplc = (zleng<<16) - yplc + yinc;
+
+							if (yflip) {
+								yinc = -yinc;
+								yplc = (zleng << 16) - yplc + yinc;
 							}
 						}
 						if (z2 > dadmost[lx])
@@ -3232,7 +3241,8 @@ public abstract class Software extends Renderer {
 				globalx3 = (int) (globalx2 >> 10);
 				globaly3 = (int) (globaly2 >> 10);
 				a.asm3 = mulscale(y2, globalzd, 16) + (globalzx >> 6);
-				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3, globaly3, slopalookup);
+				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3,
+						globaly3, slopalookup);
 
 //				if ((x & 15) == 0)
 //					engine.faketimerhandler();
@@ -3459,7 +3469,8 @@ public abstract class Software extends Renderer {
 
 	@Override
 	public void nextpage() {
-		System.arraycopy(frameplace, 0, BuildGdx.graphics.extra(Option.SWGetFrame), 0, frameplace.length); //Math.min(frameplace.length, dst.length)
+		System.arraycopy(frameplace, 0, BuildGdx.graphics.extra(Option.SWGetFrame), 0, frameplace.length); // Math.min(frameplace.length,
+																											// dst.length)
 		engine.faketimerhandler();
 	}
 
@@ -3474,7 +3485,8 @@ public abstract class Software extends Renderer {
 																										// who provided
 																										// this too?
 		int len = num + offset;
-		if(offset < 0 || len == 0) return;
+		if (offset < 0 || len == 0)
+			return;
 		for (int i = offset; i < len; i++) {
 			bufptr[i] = (short) (val >> 16);
 			val += add;
@@ -3485,8 +3497,9 @@ public abstract class Software extends Renderer {
 																								// could have provided
 																								// this...
 		int len = num + offset;
-		if(offset < 0 || len == 0) return;
-		
+		if (offset < 0 || len == 0)
+			return;
+
 		for (int i = offset; i < len; i++) {
 			bufptr[i] = (int) (val >> 16);
 			val += add;
@@ -3514,7 +3527,8 @@ public abstract class Software extends Renderer {
 
 	@Override
 	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
-		if(ysiz < 0) ysiz *= -1;
+		if (ysiz < 0)
+			ysiz *= -1;
 		if (format == PixelFormat.Pal8) {
 			if (indexbuffer != null)
 				indexbuffer.clear();
@@ -3562,18 +3576,19 @@ public abstract class Software extends Renderer {
 					lookups[horizlookup2 + i] = (int) divscale(klabs(lookups[horizlookup + i]), j, 14);
 				}
 		}
-		
+
 		if ((xdimen != oxdimen) || (viewingrange != oviewingrange)) {
 			oxdimen = xdimen;
 			oviewingrange = viewingrange;
 			int xinc = mulscale(viewingrange * 320, xdimenrecip, 32);
 			int x = (640 << 16) - mulscale(xinc, xdimen, 1);
-		
+
 			for (i = 0; i < xdimen; i++) {
 				j = x & 65535;
 				k = x >> 16;
 				x += xinc;
-				if(k < 0 || k >= radarang.length - 1) break;
+				if (k < 0 || k >= radarang.length - 1)
+					break;
 
 				if (j != 0)
 					j = mulscale(radarang[k + 1] - radarang[k], j, 16);
@@ -3764,7 +3779,7 @@ public abstract class Software extends Renderer {
 			}
 		} while (sectorbordercnt > 0);
 	}
-	
+
 	public static long toUnsignedLong(int x) {
 		return ((long) x) & 0xffffffffL;
 	}
@@ -3869,6 +3884,9 @@ public abstract class Software extends Renderer {
 		iy1 = yb1[w];
 		ix2 = xb2[w];
 		iy2 = yb2[w];
+
+		if (ix1 < 0 || iy1 < 0 || ix2 < 0 || iy2 < 0)
+			return bad;
 
 		if ((bad & 3) == 3) {
 			for (i = ix1; i <= ix2; i++)
@@ -4157,7 +4175,7 @@ public abstract class Software extends Renderer {
 	public RenderType getType() {
 		return RenderType.Software;
 	}
-	
+
 	@Override
 	public PixelFormat getTexFormat() {
 		return PixelFormat.Pal8;

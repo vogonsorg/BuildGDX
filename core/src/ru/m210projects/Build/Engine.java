@@ -604,7 +604,7 @@ public abstract class Engine {
 		paletteloaded = 1;
 	}
 	
-	protected Byte palcache[] = new Byte[0xFFFF];
+	protected Byte palcache[] = new Byte[0x40000]; //buffer 256kb
 
 	public byte getclosestcol(byte[] palette, int r, int g, int b) { // jfBuild
 		int i, k, dist;
@@ -614,7 +614,7 @@ public abstract class Engine {
 		int j = (r >> 3) * FASTPALGRIDSIZ * FASTPALGRIDSIZ + (g >> 3) * FASTPALGRIDSIZ + (b >> 3)
 				+ FASTPALGRIDSIZ * FASTPALGRIDSIZ + FASTPALGRIDSIZ + 1;
 		
-		short rgb = (short) ((r << 12) | (g << 6) | b);
+		int rgb = ((r << 12) | (g << 6) | b);
 
 		int mindist = min(rdist[(coldist[r & 7] & 0xFF) + 64 + 8], gdist[(coldist[g & 7] & 0xFF) + 64 + 8]);
 		mindist = min(mindist, bdist[(coldist[b & 7] & 0xFF) + 64 + 8]);
