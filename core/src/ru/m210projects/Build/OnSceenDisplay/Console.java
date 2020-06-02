@@ -374,8 +374,10 @@ public class Console {
 	public static void LogPrint(String str)
 	{
 		if (logfile != null) {
-			logfile.writeBytes(str.getBytes(), str.getBytes().length);
-			logfile.writeBytes("\r\n".getBytes(), 2);
+			synchronized (Engine.lock) {
+				logfile.writeBytes(str.getBytes(), str.getBytes().length);
+				logfile.writeBytes("\r\n".getBytes(), 2);
+			}
 	    }
 	    StreamPrint(str);
 	}

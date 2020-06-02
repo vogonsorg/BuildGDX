@@ -178,7 +178,7 @@ public class ALSoundDrv implements Sound {
 	}
 	
 	@Override
-	public synchronized boolean isInited() {
+	public boolean isInited() {
 		return !noDevice;
 	}
 	

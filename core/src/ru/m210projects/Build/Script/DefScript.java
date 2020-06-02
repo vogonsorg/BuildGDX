@@ -230,7 +230,9 @@ public class DefScript implements Disposable {
 				if (basetoken == BaseToken.EOF)
 					return;
 
-				basetoken.parse(script);
+				synchronized (Engine.lock) {
+					basetoken.parse(script);
+				}
 			}
 		}
 	}

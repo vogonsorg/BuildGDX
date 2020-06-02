@@ -199,6 +199,8 @@ public abstract class Engine {
 	public int fpscol = 31;
 
 	public Renderer render;
+	
+	public static Object lock = new Object();
 	private static KeyInput input;
 
 	public static TileFont pTextfont, pSmallTextfont;

@@ -256,9 +256,9 @@ public class InitScreen extends ScreenAdapter {
 
 	@Override
 	public void render(float delta) {
-		synchronized (Console.logfile) {
+		synchronized (Engine.lock) {
 			engine.clearview(0);
-
+		
 			engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
 
 			factory.drawInitScreen();
