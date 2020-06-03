@@ -245,7 +245,7 @@ public class InitScreen extends ScreenAdapter {
 	public void dispose() {
 		if (disposing)
 			return;
-		try {
+		try { //perhaps the dead code
 			if (thread != null) {
 				disposing = true;
 				thread.join();

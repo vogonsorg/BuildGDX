@@ -27,6 +27,8 @@ public abstract class MovieScreen extends SkippableAdapter {
 
 		void close();
 
+		void playAudio();
+
 	}
 
 	protected final int TILE_MOVIE;
@@ -68,6 +70,8 @@ public abstract class MovieScreen extends SkippableAdapter {
 		engine.sampletimer();
 		LastMS = engine.getticks();
 		gCutsClock = totalclock = 0;
+		
+		mvfil.playAudio();
 	}
 
 	@Override

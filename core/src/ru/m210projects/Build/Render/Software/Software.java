@@ -2608,9 +2608,9 @@ public abstract class Software extends Renderer {
 		engine.setgotpic(globalpicnum);
 		if ((tsizx <= 0) || (tsizy <= 0))
 			return;
-		if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen))
+		if (x1 >= uwal.length || x2 >= uwal.length || (uwal[x1] > ydimen) && (uwal[x2] > ydimen))
 			return;
-		if ((dwal[x1] < 0) && (dwal[x2] < 0))
+		if (x1 >= dwal.length || x2 >= dwal.length || (dwal[x1] < 0) && (dwal[x2] < 0))
 			return;
 
 		if (waloff[globalpicnum] == null)

@@ -128,7 +128,7 @@ public class MidiMusicModule implements Music {
             Console.Println(getName() + " initialized", OSDTEXT_GOLD);
 		    inited = true;
 		    return true;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 			name = "initialization failed";
 			return false;

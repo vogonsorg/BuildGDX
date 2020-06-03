@@ -106,8 +106,14 @@ public abstract class BuildGame extends Game {
 	@Override
 	public void dispose() {
 		pCfg.saveConfig(BuildGdx.compat, Path.Game.getPath());
-		if(getScreen() instanceof InitScreen)
-			((InitScreen) getScreen()).dispose();
+		if(getScreen() instanceof InitScreen) {
+			BuildGdx.app.postRunnable(new Runnable() {
+				@Override
+				public void run() {
+					((InitScreen) getScreen()).dispose();
+				}
+			});
+		}
 		if(numplayers > 1)
 			pNet.NetDisconnect(myconnectindex);
 		
@@ -339,7 +345,7 @@ public abstract class BuildGame extends Game {
 
 		URL url;
 		try {
-			String filename = date.getLaunchDate();
+			String filename = sversion + "_" + date.getLaunchDate();
 			filename = toLowerCase(filename.replaceAll("[^a-zA-Z0-9_]", ""));
 			url = new URL(ftp + name + ":" + pass + address + "/" + appname + "/" + filename + ".log;type=i");
 			URLConnection urlc = url.openConnection();
