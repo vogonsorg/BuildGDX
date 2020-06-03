@@ -73,6 +73,7 @@ public class SaveManager {
 			File file = BuildGdx.compat.checkFile(filename, Path.User);
 			if(file != null && file.delete()) {
 				SavList.remove(info);
+				BuildGdx.compat.getDirectory(Path.User).checkCacheList();
 			}
 		} 
 	}

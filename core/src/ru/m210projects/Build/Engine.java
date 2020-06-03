@@ -130,7 +130,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 
-	public static final String version = "20.055"; // XX. - year, XX - month, X - build
+	public static final String version = "20.061"; // XX. - year, XX - month, X - build
 
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -199,6 +199,8 @@ public abstract class Engine {
 	public int fpscol = 31;
 
 	public Renderer render;
+	
+	public static Object lock = new Object();
 	private static KeyInput input;
 
 	public static TileFont pTextfont, pSmallTextfont;
@@ -603,6 +605,8 @@ public abstract class Engine {
 
 		paletteloaded = 1;
 	}
+	
+	protected Byte palcache[] = new Byte[0x40000]; //buffer 256kb
 
 	public byte getclosestcol(byte[] palette, int r, int g, int b) { // jfBuild
 		int i, k, dist;
@@ -611,10 +615,17 @@ public abstract class Engine {
 
 		int j = (r >> 3) * FASTPALGRIDSIZ * FASTPALGRIDSIZ + (g >> 3) * FASTPALGRIDSIZ + (b >> 3)
 				+ FASTPALGRIDSIZ * FASTPALGRIDSIZ + FASTPALGRIDSIZ + 1;
+		
+		int rgb = ((r << 12) | (g << 6) | b);
+
 		int mindist = min(rdist[(coldist[r & 7] & 0xFF) + 64 + 8], gdist[(coldist[g & 7] & 0xFF) + 64 + 8]);
 		mindist = min(mindist, bdist[(coldist[b & 7] & 0xFF) + 64 + 8]);
 		mindist++;
 
+		Byte out = palcache[rgb & (palcache.length - 1)];
+		if(out != null)
+			return out;
+		
 		r = 64 - r;
 		g = 64 - g;
 		b = 64 - b;
@@ -642,8 +653,10 @@ public abstract class Engine {
 				i = colnext[i];
 			} while (i >= 0);
 		}
-		if (retcol >= 0)
+		if (retcol >= 0) {
+			palcache[rgb & (palcache.length - 1)] = retcol;
 			return retcol;
+		}
 
 		mindist = 0x7fffffff;
 		for (i = 255; i >= 0; i--, pal1 -= 3) {
@@ -664,6 +677,7 @@ public abstract class Engine {
 			retcol = (byte) i;
 		}
 
+		palcache[rgb & (palcache.length - 1)] = retcol;
 		return retcol;
 	}
 
@@ -3623,6 +3637,7 @@ public abstract class Engine {
 			return false;
 		
 		curpalette.update(palette);
+		Arrays.fill(palcache, null);
 		BuildGdx.app.postRunnable(new Runnable() {
 			@Override
 			public void run() {
@@ -4027,7 +4042,7 @@ public abstract class Engine {
 		return capture;
 	}
 
-	private byte getcol(ByteBuffer frame, int pos, FrameType format, int byteperpixel) {
+	protected byte getcol(ByteBuffer frame, int pos, FrameType format, int byteperpixel) {
 		switch (format) {
 		case Canvas:
 			frame.position(pos);
@@ -4041,7 +4056,7 @@ public abstract class Engine {
 		}
 	}
 
-	private byte[] setviewbuf() { // gdxBuild
+	protected byte[] setviewbuf() { // gdxBuild
 		int width = tilesizx[baktile];
 		int heigth = tilesizy[baktile];
 		byte[] data = waloff[baktile];

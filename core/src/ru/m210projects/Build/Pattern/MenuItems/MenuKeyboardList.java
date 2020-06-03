@@ -121,31 +121,16 @@ public abstract class MenuKeyboardList extends MenuList
 			switch(opt)
 			{
 			case MWUP:
-				if(l_nMin > 0)
-					l_nMin--;
+				ListMouseWheelUp(handler);
 				return false;
 			case MWDW:
-				if(l_nMin < len - nListItems)
-					l_nMin++;
+				ListMouseWheelDown(handler, len);
 				return false;
 			case UP:
-				l_nFocus--;
-				if(l_nFocus >= 0 && l_nFocus < l_nMin)
-					l_nMin--;
-				if(l_nFocus < 0) {
-					l_nFocus = len - 1;
-					l_nMin = len - nListItems;
-				}
-				
+				ListUp(handler, len);
 				return false;
 			case DW:
-				l_nFocus++;
-				if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
-					l_nMin++;
-				if(l_nFocus >= len) {
-					l_nFocus = 0;
-					l_nMin = 0;
-				}
+				ListDown(handler, len);
 				return false;
 			case ENTER:
 			case LMB:
@@ -185,34 +170,16 @@ public abstract class MenuKeyboardList extends MenuList
 				}
 				return false;
 			case PGUP:
-				l_nFocus -= (nListItems - 1);
-				if(l_nFocus >= 0 && l_nFocus < l_nMin)
-					if(l_nMin > 0) l_nMin -= (nListItems - 1);
-				if(l_nFocus < 0 || l_nMin < 0) {
-					l_nFocus = 0;
-					l_nMin = 0;
-				}
+				ListPGUp(handler);
 				return false;
 			case PGDW:
-				l_nFocus += (nListItems - 1);
-				if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
-					l_nMin += (nListItems - 1);
-				if(l_nFocus >= len || l_nMin > len - nListItems) {
-					l_nFocus = len - 1;
-					if(len >= nListItems)
-						l_nMin = len - nListItems;
-					else l_nMin = len - 1;
-				}
+				ListPGDown(handler, len);
 				return false;
 			case HOME:
-				l_nFocus = 0;
-				l_nMin = 0;
+				ListHome(handler);
 				return false;
 			case END:
-				l_nFocus = len - 1;
-				if(len >= nListItems)
-					l_nMin = len - nListItems;
-				else l_nMin = len - 1;
+				ListEnd(handler, len);
 				return false;
 			default:
 				return m_pMenu.mNavigation(opt);

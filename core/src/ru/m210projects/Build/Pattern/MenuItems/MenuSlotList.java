@@ -244,47 +244,29 @@ public abstract class MenuSlotList extends MenuList
 						deleteQuestion = true;
 					return false;
 				case MWUP:
-					if(l_nMin > 0)
-						l_nMin--;
+					ListMouseWheelUp(handler);
 					return false;
 				case MWDW:
 					if(text != null)
-						if(l_nMin < len - nListItems)
-							l_nMin++;
+						ListMouseWheelDown(handler, len);
 					return false;
 				case UP:
-					l_nFocus--;
-					if(l_nFocus >= 0 && l_nFocus < l_nMin)
-						if(l_nMin > 0) l_nMin--;
-					if(l_nFocus < 0) {
-						l_nFocus = len - 1;
-						l_nMin = len - nListItems;
-						if(l_nFocus < 0 || l_nMin < 0) {
-							l_nFocus = 0;
-							l_nMin = 0;
-						}
-					}
+					ListUp(handler, len);
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
 					return false;
 				case DW:
-					l_nFocus++;
-					if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
-						l_nMin++;
-					if(l_nFocus >= len) {
-						l_nFocus = 0;
-						l_nMin = 0;
-					}
+					ListDown(handler, len);
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
 					return false;
 				case LEFT:
-					m_pMenu.mNavUp();
+					ListLeft(handler);
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
 					return false;
 				case RIGHT:
-					m_pMenu.mNavDown();
+					ListRight(handler);
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
 					return false;
@@ -306,50 +288,25 @@ public abstract class MenuSlotList extends MenuList
 					return false;
 				case ESC:
 				case RMB:
+					ListEscape(handler, opt);
 					return true;
 				case PGUP:
-					l_nFocus -= (nListItems - 1);
-					if(l_nFocus >= 0 && l_nFocus < l_nMin)
-						if(l_nMin > 0) l_nMin -= (nListItems - 1);
-					if(l_nFocus < 0 || l_nMin < 0) {
-						l_nFocus = 0;
-						l_nMin = 0;
-					}
+					ListPGUp(handler);
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
 					return false;
 				case PGDW:
-					l_nFocus += (nListItems - 1);
-					if(l_nFocus >= l_nMin + nListItems && l_nFocus < len)
-						l_nMin += (nListItems - 1);
-					if(l_nFocus >= len || l_nMin > len - nListItems) {
-						l_nFocus = len - 1;
-						if(len >= nListItems)
-							l_nMin = len - nListItems;
-						else l_nMin = len - 1;
-						if(l_nFocus < 0 || l_nMin < 0) {
-							l_nFocus = 0;
-							l_nMin = 0;
-						}
-					}
+					ListPGDown(handler, len);
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
 					return false;
 				case HOME:
-					l_nFocus = 0;
-					l_nMin = 0;
+					ListHome(handler);
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
 					return false;
 				case END:
-					l_nFocus = len - 1;
-					if(len >= nListItems)
-						l_nMin = len - nListItems;
-					else l_nMin = len - 1;
-					if(l_nFocus < 0 || l_nMin < 0) {
-						l_nFocus = 0;
-						l_nMin = 0;
-					}
+					ListEnd(handler, len);
 					if(updateCallback != null)
 						updateCallback.run(handler, this);
 					return false;

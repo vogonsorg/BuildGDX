@@ -16,7 +16,6 @@
 
 package ru.m210projects.Build.Script;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,24 +62,14 @@ public class Maphack extends Scriptfile {
 		}
     };
 
-	public Maphack(String filename)
-	{
+	public Maphack(String filename) {
+		super(filename, BuildGdx.cache.getBytes(filename, 0));
+		
 		spriteext = new Spriteext[MAXSPRITES];
 		for (int i = 0; i < MAXSPRITES; i++)
 			spriteext[i] = new Spriteext();
-		
-		byte[] data = BuildGdx.cache.getBytes(filename, 0);
-		if(data == null) return;
 
-		int flen = data.length;
-		byte[] tx = Arrays.copyOf(data, flen + 2);
-		tx[flen] = tx[flen + 1] = 0;
-
-		preparse(tx, flen);
-		this.filename = filename;
-		
 		Integer value;
-		
 		while (true)
         {
 			switch(gettoken(basetokens))

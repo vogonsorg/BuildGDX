@@ -101,7 +101,7 @@ public class BuildMenu {
 		return false;
 	}
 	
-	public boolean mCheckItemsFlags(int nItem) {
+	protected boolean mCheckItemsFlags(int nItem) {
 		if ( nItem < 0 || nItem >= nMaxGameMenuItems || m_pItems[nItem] == null ) 
 			return false;
 			

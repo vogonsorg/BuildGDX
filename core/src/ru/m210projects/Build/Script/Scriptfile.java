@@ -27,12 +27,12 @@ public class Scriptfile {
 	public int[] lineoffs;
 
 	protected void skipovertoken() {
-		while ((textptr < eof) && (textbuf.charAt(textptr)) != 0)
+		while ((textptr < eof) && textptr < textbuf.length() && (textbuf.charAt(textptr)) != 0)
 			textptr++;
 	}
 
 	protected void skipoverws() {
-		if ((textptr < eof) && (textbuf.charAt(textptr)) == 0)
+		if ((textptr < eof) && textptr < textbuf.length() && (textbuf.charAt(textptr)) == 0)
 			textptr++;
 	}
 
@@ -122,6 +122,12 @@ public class Scriptfile {
 		int braceend = textptr - 1;
 		textptr = bracestart;
 		return braceend;
+	}
+	
+	public void skipbrace(int braceend)
+	{
+		textptr = braceend + 1;
+		gettoken(); //go to the next token
 	}
 
 	public boolean eof() {
@@ -238,8 +244,6 @@ public class Scriptfile {
 		textptr = 0;
 		eof = nflen - 1;
 	}
-	
-	public Scriptfile() { } //temp constructor
 
 	public Scriptfile(String filename, byte[] data) {
 		int flen = data.length;

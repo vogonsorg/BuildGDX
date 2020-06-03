@@ -173,6 +173,7 @@ public class MenuSlider extends MenuItem {
 				if(callback != null) 
 					callback.run(handler, this);
 			} 
+			break;
 		default:
 			return m_pMenu.mNavigation(opt);
 		}
@@ -184,25 +185,24 @@ public class MenuSlider extends MenuItem {
 	public boolean mouseAction(int mx, int my) {
 		touchX = mx;
 		isTouched = false;
-		if(!BuildGdx.input.isTouched() && touchedObj != this)
+		if(!BuildGdx.input.isTouched() /*&& touchedObj != this*/)
 			touchedObj = null;
 		
-		if(text != null)
-		{
+		if(text != null) {
 			if(mx > x && mx < x + font.getWidth(text))
-			{
 				if(my > y && my < y + font.getHeight()) 
 					return true;
-			}
 		}
 
-		int cx = x + width - slider.getSliderRange();
-		if(mx > cx && mx < cx + slider.getSliderRange())
-			if(my > y && my < y + font.getHeight()) {
-				isTouched = true;
-				if(BuildGdx.input.isTouched())
-					touchedObj = this;
-			}
+		if(touchedObj == null) {
+			int cx = x + width - slider.getSliderRange();
+			if(mx > cx && mx < cx + slider.getSliderRange())
+				if(my > y && my < y + font.getHeight()) {
+					isTouched = true;
+					if(BuildGdx.input.isTouched())
+						touchedObj = this;
+				}
+		}
 		
 		return isTouched;
 	}

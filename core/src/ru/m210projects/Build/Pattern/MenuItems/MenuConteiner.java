@@ -66,10 +66,32 @@ public class MenuConteiner extends MenuItem
 		int shade = handler.getShade(this);
 		font.drawText(px, py, text, shade, pal, TextAlign.Left, 2, fontShadow);
 		
-		if(key != null) 
-			listFont.drawText(x + width - 1 - listFont.getWidth(key), py + (font.getHeight() - listFont.getHeight()) / 2, key, shade, handler.getPal(listFont, this), TextAlign.Left, 2, listShadow);
-		
+		if(key != null) {
+			int bound = 10;
+			int w1 = font.getWidth(text);
+			int w2 = listFont.getWidth(key);
+
+			if(w2 + bound >= width - w1) {
+				int tx = px + w1 + bound;
+				int ty = py + (font.getHeight() - listFont.getHeight()) / 2;
+				brDrawText(listFont, key, tx + bound, ty, shade, handler.getPal(listFont, this), 0, px + width - 1);
+			} else listFont.drawText(x + width - 1 - listFont.getWidth(key), py + (font.getHeight() - listFont.getHeight()) / 2, key, shade, handler.getPal(listFont, this), TextAlign.Left, 2, listShadow);
+		}
 		handler.mPostDraw(this);
+	}
+	
+	protected void brDrawText( BuildFont font, char[] text, int x, int y, int shade, int pal, int x1, int x2 )
+	{
+		int tptr = 0;
+
+	    while(tptr < text.length && text[tptr] != 0)
+	    {
+        	if(x > x1 && x <= x2) 
+        		x += font.drawChar(x, y, text[tptr], shade, pal, 2, listShadow);
+        	else x += font.getWidth(text[tptr]);
+        	
+	        tptr++;
+	    }
 	}
 
 	@Override
@@ -117,13 +139,14 @@ public class MenuConteiner extends MenuItem
 		}
 		
 		if(list == null) return false;
+		
 		char[] key = null;
 		if(num != -1 && num < list.length) {
 			key = list[num];
 			int fontx =  listFont.getWidth(key);
 			int px = x + width - 1 - fontx;
 			if(mx > px && mx < px + fontx)
-				if(my > y && my < y + font.getHeight())
+				if(my > y && my < y + font.getHeight()) 
 					return true;
 		}
 		

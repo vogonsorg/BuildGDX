@@ -51,6 +51,15 @@ public class CueScript extends Scriptfile {
 	private int nTracks;
 	private final Map<Integer, String> pTrackList;
 	
+	public CueScript(String filename, byte[] data)
+	{
+		super(filename, data);
+		
+		nTracks = 0;
+		pTrackList = new HashMap<Integer, String>();
+		process();
+	}
+	
 	public CueScript(FileEntry file)
 	{
 		super(file.getName(), BuildGdx.compat.getBytes(file));
@@ -88,8 +97,11 @@ public class CueScript extends Scriptfile {
 	private void process()
 	{
 		while (!eof()) {
-			int tokn = gettoken(basetokens);
 			int line = getlinum(textptr);
+			if(textptr < lineoffs[0])
+				line--; //it's NOT line2
+			
+			int tokn = gettoken(basetokens);
 			switch (tokn) {
 			case T_ERROR:
 				Console.Println("Error on line " + filename + ":" + line + ", skipping...", OSDTEXT_RED);

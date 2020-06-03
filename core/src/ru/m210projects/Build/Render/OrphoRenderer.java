@@ -34,6 +34,7 @@ import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Engine.yxaspect;
 import static ru.m210projects.Build.Gameutils.BClipRange;
+import static ru.m210projects.Build.Gameutils.isValidSector;
 import static ru.m210projects.Build.Net.Mmulti.connecthead;
 import static ru.m210projects.Build.Net.Mmulti.connectpoint2;
 import static ru.m210projects.Build.Pragmas.dmulscale;
@@ -223,6 +224,10 @@ public abstract class OrphoRenderer {
 				continue;
 
 			SPRITE pPlayer = sprite[plrsprites[i]];
+			
+			if(!isValidSector(pPlayer.sectnum))
+				continue;
+			
 			ox = pPlayer.x - cposx;
 			oy = pPlayer.y - cposy;
 

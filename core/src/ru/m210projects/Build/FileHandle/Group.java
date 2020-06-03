@@ -63,6 +63,16 @@ public abstract class Group {
 		else flags &= ~DYNAMIC;
 	}
 	
+	public boolean isRemovable()
+	{
+		return (flags & REMOVABLE) != 0;
+	}
+	
+	public boolean isDynamic()
+	{
+		return (flags & DYNAMIC) != 0;
+	}
+	
 	public boolean contains(String filename) {
 		if (filename != null) {
 			Integer out = lookup.get(toLowerCase(filename));
@@ -168,6 +178,18 @@ public abstract class Group {
 		numfiles++;
 		
 		return true;
+	}
+	
+	public String toString()
+	{
+		String txt = "Group name: " + name + "\r\n";
+		txt += "Num files: " + numfiles + "\r\n";
+		txt += "File list: \r\n";
+
+		for(GroupResource res : filelist)
+			txt += res.toString();
+		
+		return txt;
 	}
 	
 }

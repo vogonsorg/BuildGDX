@@ -128,7 +128,7 @@ public class ALMusicDrv implements Music {
 	}
 
 	@Override
-	public synchronized boolean isInited() {
+	public boolean isInited() {
 		return drv.isInited() && inited;
 	}
 

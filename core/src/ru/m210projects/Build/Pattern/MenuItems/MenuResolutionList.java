@@ -108,38 +108,23 @@ public class MenuResolutionList extends MenuList {
 		switch(opt)
 		{
 			case MWUP:
-				if(l_nMin > 0)
-					l_nMin--;
+				ListMouseWheelUp(handler);
 				return false;
 			case MWDW:
 				if(text != null)
-					if(l_nMin < text.size() - nListItems)
-						l_nMin++;
+					ListMouseWheelDown(handler, text.size());
 				return false;
 			case UP:
-				l_nFocus--;
-				if(l_nFocus >= 0 && l_nFocus < l_nMin)
-					if(l_nMin > 0) l_nMin--;
-				if(l_nFocus < 0) {
-					l_nFocus = text.size() - 1;
-					l_nMin = text.size() - nListItems;
-					if(l_nMin < 0) l_nMin = 0;
-				}
+				ListUp(handler, text.size());
 				return false;
 			case DW:
-				l_nFocus++;
-				if(l_nFocus >= l_nMin + nListItems && l_nFocus < text.size())
-					l_nMin++;
-				if(l_nFocus >= text.size()) {
-					l_nFocus = 0;
-					l_nMin = 0;
-				}
+				ListDown(handler, text.size());
 				return false;
 			case LEFT:
-				m_pMenu.mNavUp();
+				ListLeft(handler);
 				return false;
 			case RIGHT:
-				m_pMenu.mNavDown();
+				ListRight(handler);
 				return false;
 			case ENTER:
 			case LMB:
@@ -154,37 +139,19 @@ public class MenuResolutionList extends MenuList {
 				return false;
 			case ESC:
 			case RMB:
-				//l_nFocus = l_nMin = 0;
+				ListEscape(handler, opt);
 				return true;
 			case PGUP:
-				l_nFocus -= (nListItems - 1);
-				if(l_nFocus >= 0 && l_nFocus < l_nMin)
-					if(l_nMin > 0) l_nMin -= (nListItems - 1);
-				if(l_nFocus < 0 || l_nMin < 0) {
-					l_nFocus = 0;
-					l_nMin = 0;
-				}
+				ListPGUp(handler);
 				return false;
 			case PGDW:
-				l_nFocus += (nListItems - 1);
-				if(l_nFocus >= l_nMin + nListItems && l_nFocus < text.size())
-					l_nMin += (nListItems - 1);
-				if(l_nFocus >= text.size() || l_nMin > text.size() - nListItems) {
-					l_nFocus = text.size() - 1;
-					if(text.size() >= nListItems)
-						l_nMin = text.size() - nListItems;
-					else l_nMin = text.size() - 1;
-				}
+				ListPGDown(handler, text.size());
 				return false;
 			case HOME:
-				l_nFocus = 0;
-				l_nMin = 0;
+				ListHome(handler);
 				return false;
 			case END:
-				l_nFocus = text.size() - 1;
-				if(text.size() >= nListItems)
-					l_nMin = text.size() - nListItems;
-				else l_nMin = text.size() - 1;
+				ListEnd(handler, text.size());
 				return false;
 			default: 
 				return false;

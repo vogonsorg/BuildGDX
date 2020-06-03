@@ -168,9 +168,12 @@ public class ALSoundDrv implements Sound {
 
 		int error = al.alGetError();
 		if(error != AL_NO_ERROR) 
-			Console.Println("OpenAL Init Error " + error, OSDTEXT_RED);
+			Console.Println("OpenAL init error " + error, OSDTEXT_RED);
 		
 		getDigitalMusic().init();
+		
+		if(error != AL_NO_ERROR) 
+			Console.Println("OpenAL digital music init error " + error, OSDTEXT_RED);
 		
 		loopedSource.clear();
 
@@ -178,7 +181,7 @@ public class ALSoundDrv implements Sound {
 	}
 	
 	@Override
-	public synchronized boolean isInited() {
+	public boolean isInited() {
 		return !noDevice;
 	}
 	

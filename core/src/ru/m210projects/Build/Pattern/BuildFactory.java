@@ -20,6 +20,7 @@ import ru.m210projects.Build.Input.BuildControllers;
 import ru.m210projects.Build.OnSceenDisplay.OSDFunc;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Renderer.RenderType;
+import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Pattern.MenuItems.SliderDrawable;
 
@@ -40,6 +41,8 @@ public abstract class BuildFactory {
 
 	@Deprecated
 	public abstract int getInitTile();
+	
+	public abstract DefScript getBaseDef(BuildEngine engine);
 	
 	public abstract BuildEngine engine() throws Exception;
 	
