@@ -211,7 +211,6 @@ public class InitScreen extends ScreenAdapter {
 					gameInitialized = game.init();
 
 					ConsoleInit();
-
 				} catch (OutOfMemoryError me) {
 					System.gc();
 
@@ -229,12 +228,15 @@ public class InitScreen extends ScreenAdapter {
 					BuildGdx.message.show("File not found!", message, MessageType.Info);
 					System.exit(1);
 				} catch (Throwable e) {
-					game.ThrowError("InitScreen error", e);
-					System.exit(1);
+					if(!disposing) {
+						game.ThrowError("InitScreen error", e);
+						System.exit(1);
+					}
 				}
 			}
 		});
 		thread.setName("InitEngine thread");
+		thread.setDaemon(true); //to make the thread as background process and kill it if the app was closed
 	}
 
 	public void start() {
@@ -243,38 +245,33 @@ public class InitScreen extends ScreenAdapter {
 	}
 
 	public void dispose() {
-		if (disposing)
-			return;
-		try { //perhaps the dead code
-			if (thread != null) {
-				disposing = true;
-				thread.join();
-			}
-		} catch (Exception e) {
+		synchronized (Engine.lock) {
+			disposing = true;
 		}
 	}
 
 	@Override
 	public void render(float delta) {
 		synchronized (Engine.lock) {
-			engine.clearview(0);
-		
-			engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
-
-			factory.drawInitScreen();
-
-			if (frames++ > 3) {
-				if (!thread.isAlive()) {
-					if (gameInitialized)
-						game.show();
-					else {
-						game.GameMessage("InitScreen unknown error!");
-						BuildGdx.app.exit();
+			if(!disposing) { //don't draw anything after disposed
+				engine.clearview(0);
+			
+				engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
+	
+				factory.drawInitScreen();
+	
+				if (frames++ > 3) {
+					if (!thread.isAlive()) {
+						if (gameInitialized)
+							game.show();
+						else {
+							game.GameMessage("InitScreen unknown error!");
+							BuildGdx.app.exit();
+						}
 					}
 				}
+				engine.nextpage();
 			}
-
-			engine.nextpage();
 		}
 	}
 }
