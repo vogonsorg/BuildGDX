@@ -25,11 +25,9 @@ import ru.m210projects.Build.Audio.MusicSource;
 
 public class MidiMusicSource extends MusicSource {
 
-	private boolean looping;
 	private final MidiSequencer sequencer;
 	protected Sequence data;
-	private long position;
-	
+
 	public MidiMusicSource(MidiSequencer sequencer, byte[] buf) throws Exception
 	{
 		if(sequencer == null || !sequencer.isOpen())
@@ -42,39 +40,33 @@ public class MidiMusicSource extends MusicSource {
 	private void setLooping(boolean looping)
 	{
 		sequencer.setLooping(looping);
-        this.looping = looping;
 	}
 
 	@Override
 	public void play(boolean looping) {
 		setLooping(looping);
-		position = 0;
 		sequencer.play(this, 0);
 	}
 	
 	public void play(long start, long end)
 	{
 		setLooping(true);
-		position = start;
 		sequencer.play(this, start, start, end);
 	}
 
 	@Override
 	public void stop() {
-		position = 0;
     	sequencer.stop();
 	}
 
 	@Override
 	public void pause() {
-		position = sequencer.getPosition();
-		sequencer.stop();
+		stop();
 	}
 	
 	@Override
 	public void resume() {
-		setLooping(looping);
-		sequencer.play(this, position);
+		sequencer.resume();
 	}
 	
 	@Override
@@ -85,7 +77,7 @@ public class MidiMusicSource extends MusicSource {
 	
 	@Override
 	public boolean isLooping() {
-		return looping;
+		return sequencer.isLooping();
 	}
 
 	@Override

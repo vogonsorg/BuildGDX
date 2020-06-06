@@ -124,8 +124,20 @@ public class HMIMIDIP
 					case PITCH_BEND:
 						if (sbyte != runningStatus)
 							mid.put((byte)sbyte);
-						mid.put(hmp.get());
-						mid.put(hmp.get());
+						
+						byte d1 = hmp.get();
+						byte d2 = hmp.get();
+						
+						if(d1 == 110 && d2 == -1) { //HMP Loop Start
+							d1 = 116; d2 = 0; //XMI Loop Start
+						}
+
+						if(d1 == 111 /*&& d2 == -128*/) { //HMP Loop End
+							d1 = 117; d2 = 127; //XMI Loop End
+						}
+						
+						mid.put(d1);
+						mid.put(d2);
 						break;
 					case PROGRAM_CHANGE:
 					case CHANNEL_PRESSURE:

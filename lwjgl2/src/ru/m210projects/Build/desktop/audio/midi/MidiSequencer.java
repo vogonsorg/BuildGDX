@@ -16,25 +16,49 @@
 
 package ru.m210projects.Build.desktop.audio.midi;
 
+import javax.sound.midi.ControllerEventListener;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequencer;
+import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
 
 public class MidiSequencer {
 	
-	private final Sequencer sequencer;
+	protected final Sequencer sequencer;
 	private Transmitter transmitter;
 	private MidiReceiver receiver;
 	private MidiMusicSource currentSource;
-	
+
 	public MidiSequencer() throws MidiUnavailableException
 	{
 		this.sequencer = MidiSystem.getSequencer(false);
 		sequencer.open();
+		
+		sequencer.addControllerEventListener(new ControllerEventListener() {
+			@Override
+			public void controlChange(ShortMessage message) {
+				if(isLooping()) {
+					if((message.getData1() == 116 || message.getData1() == 118) && message.getData2() == 0) {
+						if(message.getChannel() == 0 && sequencer.getLoopStartPoint() == 0) {
+							sequencer.setLoopStartPoint(sequencer.getTickPosition());
+							System.err.println("Loop start " + sequencer.getTickPosition());
+						} else {
+							System.err.println("Loop start ah loopstart: " + sequencer.getLoopStartPoint() + " channel: " + message.getChannel());
+						}
+					}
+					if((message.getData1() == 117 || message.getData1() == 119) && message.getData2() == 127/*&& loop_pos != 0*/) {
+						if(message.getChannel() == 0) {
+						sequencer.setTickPosition(sequencer.getLoopStartPoint());
+						System.err.println("Loop end " + sequencer.getTickPosition());
+						} else 	System.err.println("Loop end ah");
+					}
+				}
+			}
+		}, null);
 	}
-	
+
 	public void setReceiver(MidiReceiver receiver) throws MidiUnavailableException
 	{
 		if(transmitter != null)
@@ -54,6 +78,7 @@ public class MidiSequencer {
 	public void play(MidiMusicSource source, long position)
 	{
 		checkSource(source);
+		sequencer.setLoopStartPoint(0);
 		sequencer.setMicrosecondPosition(position);
 		sequencer.start();
 	}
@@ -73,17 +98,27 @@ public class MidiSequencer {
 			sequencer.stop();
 	}
 	
+	public void resume() {
+		if(isOpen())
+			sequencer.start();
+	}
+	
 	public long getPosition()
 	{
 		return sequencer.getMicrosecondPosition();
 	}
-	
+
 	public void setLooping(boolean looping)
 	{
 		if (looping)
         	sequencer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
         else
         	sequencer.setLoopCount(0);
+	}
+	
+	public boolean isLooping()
+	{
+		return sequencer.getLoopCount() != 0;
 	}
 
 	public boolean isPlaying(MidiMusicSource source)
