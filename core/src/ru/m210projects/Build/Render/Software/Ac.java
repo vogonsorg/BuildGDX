@@ -78,12 +78,20 @@ public class Ac implements A {
 			gbyinc = asm2;
 		}
 
+		byte[] remap = palookup[ghlinepal];
+		int shiftx = 32 - glogx;
+		int shifty = 32 - glogy;
+		
+		int xinc = gbxinc; //it affects on fps
+		int yinc = gbyinc;
+
 		try {
 			for (; cnt >= 0; cnt--) {
-				int index = ((bx >>> (32 - glogx)) << glogy) + (by >>> (32 - glogy));
-				frameplace[p] = palookup[ghlinepal][(gbuf[index] & 0xFF) + paloffs];
-				bx -= gbxinc;
-				by -= gbyinc;
+				int index = ((bx >>> shiftx) << glogy) + (by >>> shifty);
+				
+				drawpixel(p, remap[(gbuf[index] & 0xFF) + paloffs]);
+				bx -= xinc;
+				by -= yinc;
 				p--;
 			}
 		} catch (Throwable e) {
@@ -103,18 +111,24 @@ public class Ac implements A {
 	@Override
 	public void slopevlin(int p, int pal, int slopaloffs, int cnt, int bx, int by, int x3, int y3, int[] slopalookup,
 			int bz) {
+		
+		int u, v, i, index;
+		byte[] remap = palookup[pal];
+		int shiftx = 32 - glogx;
+		int shifty = 32 - glogy;
+		int inc = gpinc; //it affects on fps
+		
 		try {
-			int u, v, i, index;
 			for (; cnt > 0; cnt--) {
 				i = krecipasm(bz >> 6);
 				bz += bzinc;
 				u = bx + x3 * i;
 				v = by + y3 * i;
 
-				index = ((u >>> (32 - glogx)) << glogy) + (v >>> (32 - glogy));
-				frameplace[p] = palookup[pal][(gbuf[index] & 0xFF) + slopalookup[slopaloffs]];
+				index = ((u >>> shiftx) << glogy) + (v >>> shifty);
+				drawpixel(p, remap[(gbuf[index] & 0xFF) + slopalookup[slopaloffs]]);
 				slopaloffs--;
-				p += gpinc;
+				p += inc;
 			}
 		} catch (Throwable e) {
 		}
@@ -133,11 +147,14 @@ public class Ac implements A {
 
 	@Override
 	public void vlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
+		byte[] remap = palookup[pal];
+		int pl = bpl; //it affects on fps
 		try {
 			for (; cnt >= 0; cnt--) {
 				int index = bufoffs + (vplc >>> glogy);
-				frameplace[p] = palookup[pal][(bufplc[index] & 0xFF) + shade];
-				p += bpl;
+				int ch = (bufplc[index] & 0xFF) + shade;
+				drawpixel(p, remap[ch]);
+				p += pl;
 				vplc += vinc;
 			}
 		} catch (Throwable e) {
@@ -151,13 +168,16 @@ public class Ac implements A {
 
 	@Override
 	public void mvlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
+		byte[] remap = palookup[pal];
+		int pl = bpl; //it affects on fps
+		
 		try {
 			for (; cnt >= 0; cnt--) {
 				int index = bufoffs + (vplc >>> glogy);
 				int ch = bufplc[index] & 0xFF;
 				if (ch != 255)
-					frameplace[p] = palookup[pal][ch + shade];
-				p += bpl;
+					drawpixel(p, remap[ch + shade]);
+				p += pl;
 				vplc += vinc;
 			}
 		} catch (Throwable e) {
@@ -171,17 +191,19 @@ public class Ac implements A {
 
 	@Override
 	public void tvlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
-		int dacol;
+		byte[] remap = palookup[pal];
+		int pl = bpl; //it affects on fps
+		
 		try {
 			if (transmode != 0) {
 				for (; cnt >= 0; cnt--) {
 					int index = bufoffs + (vplc >>> glogy);
 					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[pal][ch + shade] & 0xFF;
-						frameplace[p] = gtrans[(frameplace[p] & 0xFF) + (dacol << 8)];
+						int dacol = remap[ch + shade] & 0xFF;
+						drawpixel(p, gtrans[(frameplace[p] & 0xFF) + (dacol << 8)]);
 					}
-					p += bpl;
+					p += pl;
 					vplc += vinc;
 				}
 			} else {
@@ -189,10 +211,10 @@ public class Ac implements A {
 					int index = bufoffs + (vplc >>> glogy);
 					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[pal][ch + shade] & 0xFF;
-						frameplace[p] = gtrans[((frameplace[p] & 0xFF) << 8) + dacol];
+						int dacol = remap[ch + shade] & 0xFF;
+						drawpixel(p, gtrans[((frameplace[p] & 0xFF) << 8) + dacol]);
 					}
-					p += bpl;
+					p += pl;
 					vplc += vinc;
 				}
 			}
@@ -222,15 +244,23 @@ public class Ac implements A {
 
 	@Override
 	public void mhline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p) {
+		byte[] remap = palookup[hlinepal];
+		int shiftx = 32 - glogx;
+		int shifty = 32 - glogy;
+		
+		int xinc = asm1; //it affects on fps
+		int yinc = asm2;
+		int shade = hlineshade;
+		
 		try {
 			for (cntup16 >>= 16; cntup16 > 0; cntup16--) {
-				int index = ((bx >>> (32 - glogx)) << glogy) + (by >>> (32 - glogy));
+				int index = ((bx >>> shiftx) << glogy) + (by >>> shifty);
 				int ch = bufplc[index] & 0xFF;
 				if (ch != 255)
-					frameplace[p] = palookup[hlinepal][ch + hlineshade];
+					drawpixel(p, remap[ch + shade]);
 
-				bx += asm1;
-				by += asm2;
+				bx += xinc;
+				by += yinc;
 				p++;
 			}
 		} catch (Throwable e) {
@@ -246,29 +276,37 @@ public class Ac implements A {
 	@Override
 	public void thline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p) {
 		int dacol;
+		byte[] remap = palookup[hlinepal];
+		int shiftx = 32 - glogx;
+		int shifty = 32 - glogy;
+		
+		int xinc = asm1; //it affects on fps
+		int yinc = asm2;
+		int shade = hlineshade;
+		
 		try {
 			if (transmode != 0) {
 				for (cntup16 >>= 16; cntup16 > 0; cntup16--) {
-					int index = ((bx >>> (32 - glogx)) << glogy) + (by >>> (32 - glogy));
+					int index = ((bx >>> shiftx) << glogy) + (by >>> shifty);
 					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[hlinepal][ch + hlineshade] & 0xFF;
-						frameplace[p] = gtrans[(frameplace[p] & 0xFF) + (dacol << 8)];
+						dacol = remap[ch + shade] & 0xFF;
+						drawpixel(p, gtrans[(frameplace[p] & 0xFF) + (dacol << 8)]);
 					}
-					bx += asm1;
-					by += asm2;
+					bx += xinc;
+					by += yinc;
 					p++;
 				}
 			} else {
 				for (cntup16 >>= 16; cntup16 > 0; cntup16--) {
-					int index = ((bx >>> (32 - glogx)) << glogy) + (by >>> (32 - glogy));
+					int index = ((bx >>> shiftx) << glogy) + (by >>> shifty);
 					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[hlinepal][ch + hlineshade] & 0xFF;
-						frameplace[p] = gtrans[+((frameplace[p] & 0xFF) << 8) + dacol];
+						dacol = remap[ch + shade] & 0xFF;
+						drawpixel(p, gtrans[((frameplace[p] & 0xFF) << 8) + dacol]);
 					}
-					bx += asm1;
-					by += asm2;
+					bx += xinc;
+					by += yinc;
 					p++;
 				}
 			}
@@ -288,14 +326,20 @@ public class Ac implements A {
 
 	@Override
 	public void spritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p) {
+		byte[] remap = palookup[gpal];
+		int xinc = gbxinc; //it affects on fps
+		int yinc = gbyinc;
+		int pl = bpl;
+		int shade = gshade;
+		
 		try {
 			for (; cnt > 1; cnt--) {
 				int index = bufoffs + (bx >> 16) * glogy + (by >> 16);
-				frameplace[p] = palookup[gpal][(bufplc[index] & 0xFF) + gshade];
+				drawpixel(p, remap[(bufplc[index] & 0xFF) + shade]);
 
-				bx += gbxinc;
-				by += gbyinc;
-				p += bpl;
+				bx += xinc;
+				by += yinc;
+				p += pl;
 			}
 		} catch (Throwable e) {
 		}
@@ -313,17 +357,23 @@ public class Ac implements A {
 
 	@Override
 	public void mspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p) {
+		byte[] remap = palookup[gpal];
+		int xinc = gbxinc; //it affects on fps
+		int yinc = gbyinc;
+		int pl = bpl;
+		int shade = gshade;
+		
 		try {
 			for (; cnt > 1; cnt--) {
 				int index = bufoffs + (bx >> 16) * glogy + (by >> 16);
 
 				int ch = bufplc[index] & 0xFF;
 				if (ch != 255)
-					frameplace[p] = palookup[gpal][ch + gshade];
+					drawpixel(p, remap[ch + shade]);
 
-				bx += gbxinc;
-				by += gbyinc;
-				p += bpl;
+				bx += xinc;
+				by += yinc;
+				p += pl;
 			}
 		} catch (Throwable e) {
 		}
@@ -340,32 +390,36 @@ public class Ac implements A {
 
 	@Override
 	public void tspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p) {
-
 		int dacol;
+		byte[] remap = palookup[gpal];
+		int xinc = gbxinc; //it affects on fps
+		int yinc = gbyinc;
+		int pl = bpl;
+		int shade = gshade;
 		try {
 			if (transmode != 0) {
 				for (; cnt > 1; cnt--) {
 					int index = bufoffs + (bx >> 16) * glogy + (by >> 16);
 					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[gpal][ch + gshade] & 0xFF;
-						frameplace[p] = gtrans[(frameplace[p] & 0xFF) + (dacol << 8)];
+						dacol = remap[ch + shade] & 0xFF;
+						drawpixel(p, gtrans[(frameplace[p] & 0xFF) + (dacol << 8)]);
 					}
-					bx += gbxinc;
-					by += gbyinc;
-					p += bpl;
+					bx += xinc;
+					by += yinc;
+					p += pl;
 				}
 			} else {
 				for (; cnt > 1; cnt--) {
 					int index = bufoffs + (bx >> 16) * glogy + (by >> 16);
 					int ch = bufplc[index] & 0xFF;
 					if (ch != 255) {
-						dacol = palookup[gpal][ch + gshade] & 0xFF;
-						frameplace[p] = gtrans[((frameplace[p] & 0xFF) << 8) + dacol];
+						dacol = remap[ch + shade] & 0xFF;
+						drawpixel(p, gtrans[((frameplace[p] & 0xFF) << 8) + dacol]);
 					}
-					bx += gbxinc;
-					by += gbyinc;
-					p += bpl;
+					bx += xinc;
+					by += yinc;
+					p += pl;
 				}
 			}
 		} catch (Throwable e) {
@@ -384,12 +438,16 @@ public class Ac implements A {
 	public void drawslab(int dx, int v, int dy, int vi, byte[] data, int vptr, int p) {
 		int x;
 		int dacol;
+		byte[] remap = palookup[gpal];
+		int pl = bpl;
+		int shade = gshade;
+		
 		switch (transmode) {
 		case 0:
 			while (dy > 0) {
 				for (x = 0; x < dx; x++)
-					frameplace[p + x] = palookup[gpal][(data[(v >>> 16) + vptr] & 0xFF) + gshade];
-				p += bpl;
+					drawpixel(p + x, remap[(data[(v >>> 16) + vptr] & 0xFF) + shade]);
+				p += pl;
 				v += vi;
 				dy--;
 			}
@@ -397,10 +455,10 @@ public class Ac implements A {
 		case 1:
 			while (dy > 0) {
 				for (x = 0; x < dx; x++) {
-					dacol = palookup[gpal][(data[(v >>> 16) + vptr] & 0xFF) + gshade] & 0xFF;
-					frameplace[p + x] = gtrans[(frameplace[p + x] & 0xFF) + (dacol << 8)];
+					dacol = remap[(data[(v >>> 16) + vptr] & 0xFF) + shade] & 0xFF;
+					drawpixel(p + x, gtrans[(frameplace[p + x] & 0xFF) + (dacol << 8)]);
 				}
-				p += bpl;
+				p += pl;
 				v += vi;
 				dy--;
 			}
@@ -408,10 +466,10 @@ public class Ac implements A {
 		case 2:
 			while (dy > 0) {
 				for (x = 0; x < dx; x++) {
-					dacol = palookup[gpal][(data[(v >>> 16) + vptr] & 0xFF) + gshade] & 0xFF;
-					frameplace[p + x] = gtrans[((frameplace[p + x] & 0xFF) << 8) + dacol];
+					dacol = remap[(data[(v >>> 16) + vptr] & 0xFF) + shade] & 0xFF;
+					drawpixel(p + x, gtrans[((frameplace[p + x] & 0xFF) << 8) + dacol]);
 				}
-				p += bpl;
+				p += pl;
 				v += vi;
 				dy--;
 			}
