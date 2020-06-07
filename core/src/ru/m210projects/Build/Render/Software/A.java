@@ -1,6 +1,8 @@
 package ru.m210projects.Build.Render.Software;
 
 public interface A {
+	
+	public void setframeplace(byte[] newframeplace);
 
 	// Global variable functions
 	public void setvlinebpl(int dabpl);

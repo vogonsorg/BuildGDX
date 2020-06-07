@@ -255,7 +255,9 @@ public abstract class Software extends Renderer {
 		for (int i = 1; i < 1024; i++)
 			lowrecip[i] = ((1 << 24) - 1) / i;
 		
-		a = new Ac(frameplace, palookup, reciptable);
+		a = new Ac(palookup, reciptable);
+		
+		a.setframeplace(frameplace);
 		a.setvlinebpl(bytesperline);
 
 		a.fixtransluscence(transluc);
@@ -299,6 +301,7 @@ public abstract class Software extends Renderer {
 		bakysiz[setviewcnt] = ysiz;
 		bakframeplace[setviewcnt] = frameplace;
 		frameplace = waloff[tilenume];
+		a.setframeplace(frameplace);
 		bakwindowx1[setviewcnt] = windowx1;
 		bakwindowy1[setviewcnt] = windowy1;
 		bakwindowx2[setviewcnt] = windowx2;
@@ -318,6 +321,7 @@ public abstract class Software extends Renderer {
 
 	public void setviewback() {
 		frameplace = bakframeplace[setviewcnt];
+		a.setframeplace(frameplace);
 
 		int k;
 		if (setviewcnt == 0)

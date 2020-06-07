@@ -25,8 +25,7 @@ public class Ac implements A {
 	private int asm1, asm2;
 	private int hlinepal, hlineshade;
 
-	public Ac(byte[] frameplace, byte[][] palookup, int[] reciptable) {
-		this.frameplace = frameplace;
+	public Ac(byte[][] palookup, int[] reciptable) {
 		this.palookup = palookup;
 		this.reciptable = reciptable;
 	}
@@ -480,5 +479,10 @@ public class Ac implements A {
 	@Override
 	public void drawpixel(int ptr, byte col) {
 		frameplace[ptr] = col;
+	}
+
+	@Override
+	public void setframeplace(byte[] newframeplace) {
+		this.frameplace = newframeplace;
 	}
 }
