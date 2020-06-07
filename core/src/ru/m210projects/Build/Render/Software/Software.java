@@ -131,7 +131,7 @@ public abstract class Software extends Renderer {
 
 	public int[] lookups;
 
-	public byte[] frameplace;
+	protected byte[] frameplace;
 	public byte[][] bakframeplace = new byte[4][];
 	public short[] bakxsiz = new short[4], bakysiz = new short[4];
 

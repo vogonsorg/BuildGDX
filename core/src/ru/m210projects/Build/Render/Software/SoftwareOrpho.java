@@ -120,9 +120,9 @@ public class SoftwareOrpho extends OrphoRenderer {
 			for (int y = charysiz; y >= 0; y--) {
 				for (int x = (int) (scale * (charxsiz - 1)); x >= 0; x--) {
 					if ((fontptr[Math.round(y / scale) + (text[i] << 3)] & pow2char[7 - fontsize - Math.round(x / scale)]) != 0) {
-						parent.frameplace[ptr + x] = (byte) col;
+						parent.a.drawpixel(ptr + x, (byte) col);
 					} else if (backcol >= 0) {
-						parent.frameplace[ptr + x] = (byte) backcol;
+						parent.a.drawpixel(ptr + x, (byte) backcol);
 					}
 				}
 				ptr -= parent.bytesperline;
