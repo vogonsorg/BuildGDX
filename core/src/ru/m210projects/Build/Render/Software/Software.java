@@ -256,7 +256,7 @@ public abstract class Software extends Renderer {
 			lowrecip[i] = ((1 << 24) - 1) / i;
 		
 		a = new Ac(palookup, reciptable);
-		
+
 		a.setframeplace(frameplace);
 		a.setvlinebpl(bytesperline);
 
