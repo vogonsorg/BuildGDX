@@ -110,7 +110,7 @@ public abstract class Software extends Renderer {
 
 	public final int BITSOFPRECISION = 3;
 
-	protected Ac a;
+	protected A a;
 	protected Engine engine;
 	protected DefScript defs;
 
@@ -214,7 +214,6 @@ public abstract class Software extends Renderer {
 		if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
 			BuildGdx.app.setFrame(FrameType.Canvas);
 		this.engine = engine;
-		a = new Ac(this);
 
 		orpho = new SoftwareOrpho(this);
 	}
@@ -223,6 +222,7 @@ public abstract class Software extends Renderer {
 	public void init() {
 		if (xdim == 0 && ydim == 0)
 			return;
+		
 		frameplace = new byte[xdim * ydim];
 		bytesperline = xdim;
 
@@ -236,12 +236,8 @@ public abstract class Software extends Renderer {
 
 		// Force drawrooms to call dosetaspect & recalculate stuff
 		oxyaspect = oxdimen = oviewingrange = -1;
-
-		a.setvlinebpl(bytesperline);
-
-		a.fixtransluscence(transluc);
+		
 		globalpalwritten = 0;
-		a.setpalookupaddress(globalpalwritten);
 
 		changepalette(curpalette.getBytes());
 
@@ -258,8 +254,19 @@ public abstract class Software extends Renderer {
 
 		for (int i = 1; i < 1024; i++)
 			lowrecip[i] = ((1 << 24) - 1) / i;
+		
+		a = new Ac(frameplace, palookup, reciptable);
+		a.setvlinebpl(bytesperline);
+
+		a.fixtransluscence(transluc);
+		a.setpalookupaddress(globalpalwritten);
 
 		isInited = true;
+	}
+	
+	protected A getA()
+	{
+		return a;
 	}
 
 	@Override
@@ -3046,12 +3053,10 @@ public abstract class Software extends Renderer {
 		v = mulscale(globalzd, lookups[horizlookup + y - (int) globalhoriz + horizycent], 20);
 		bx = mulscale(globalx2 * x1 + globalx1, v, 14) + globalxpanning;
 		by = mulscale(globaly2 * x1 + globaly1, v, 14) + globalypanning;
-		a.asm1 = mulscale(globalx2, v, 14);
-		a.asm2 = mulscale(globaly2, v, 14);
-
-		a.hlinepal = globalpal;
-		a.hlineshade = engine.getpalookup(mulscale(klabs(v), globvis, 28), globalshade) << 8;
-
+		
+		a.sethlineincs(mulscale(globalx2, v, 14), mulscale(globaly2, v, 14));
+		a.setuphline(globalpal, engine.getpalookup(mulscale(klabs(v), globvis, 28), globalshade) << 8);
+	
 		if ((globalorientation & 2) == 0)
 			a.mhline(globalbufplc, bx, (x2 - x1) << 16, 0, by, ylookup[y] + x1 + frameoffset);
 		else {
@@ -3184,8 +3189,6 @@ public abstract class Software extends Renderer {
 			globaly1 += ((sec.floorypanning) << 24);
 		}
 
-		a.asm1 = -(globalzd >> (16 - BITSOFPRECISION));
-
 		globvis = globalvisibility;
 		if (sec.visibility != 0)
 			globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
@@ -3194,7 +3197,7 @@ public abstract class Software extends Renderer {
 
 		j = globalpal;
 		a.setupslopevlin((picsiz[globalpicnum] & 15) + (((picsiz[globalpicnum] >> 4)) << 8), waloff[globalpicnum],
-				-ylookup[1]);
+				-ylookup[1], -(globalzd >> (16 - BITSOFPRECISION)));
 
 		l = (globalzd >> 16);
 
@@ -3240,9 +3243,8 @@ public abstract class Software extends Renderer {
 
 				globalx3 = (int) (globalx2 >> 10);
 				globaly3 = (int) (globaly2 >> 10);
-				a.asm3 = mulscale(y2, globalzd, 16) + (globalzx >> 6);
 				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3,
-						globaly3, slopalookup);
+						globaly3, slopalookup, mulscale(y2, globalzd, 16) + (globalzx >> 6));
 
 //				if ((x & 15) == 0)
 //					engine.faketimerhandler();
@@ -4137,8 +4139,7 @@ public abstract class Software extends Renderer {
 			return;
 
 		int r = lookups[horizlookup2 + yp - (int) globalhoriz + horizycent];
-		a.asm1 = (globalx1 * r);
-		a.asm2 = (globaly2 * r);
+		a.sethlineincs(globalx1 * r, globaly2 * r);
 
 		int shade = engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8;
 
@@ -4150,20 +4151,22 @@ public abstract class Software extends Renderer {
 		int xl = lastx[yp];
 		if (xl > xr)
 			return;
+		
 		int r = lookups[horizlookup2 + yp - (int) globalhoriz + horizycent];
-		a.asm1 = (globalx1 * r);
-		a.asm2 = (globaly2 * r);
-
-		a.hlinepal = globalpalwritten;
-		a.hlineshade = engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8;
-
+		int xinc = globalx1 * r;
+		int yinc = globaly2 * r;
+		
+		a.sethlineincs(globalx1 * r, globaly2 * r);
+		
+		a.setuphline(globalpalwritten, engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8);
+		
 		if ((globalorientation & 256) == 0) {
-			a.mhline(globalbufplc, globaly1 * r + globalxpanning - a.asm1 * (xr - xl), (xr - xl) << 16, 0,
-					globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl + frameoffset);
+			a.mhline(globalbufplc, globaly1 * r + globalxpanning - xinc * (xr - xl), (xr - xl) << 16, 0,
+					globalx2 * r + globalypanning - yinc * (xr - xl), ylookup[yp] + xl + frameoffset);
 			return;
 		}
-		a.thline(globalbufplc, globaly1 * r + globalxpanning - a.asm1 * (xr - xl), (xr - xl) << 16, 0,
-				globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl + frameoffset);
+		a.thline(globalbufplc, globaly1 * r + globalxpanning - xinc * (xr - xl), (xr - xl) << 16, 0,
+				globalx2 * r + globalypanning - yinc * (xr - xl), ylookup[yp] + xl + frameoffset);
 	}
 
 	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c) {
