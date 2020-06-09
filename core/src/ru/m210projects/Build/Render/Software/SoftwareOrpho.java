@@ -333,7 +333,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 				if (sec.floorpal != parent.globalpalwritten)
 				{
 					parent.globalpalwritten = sec.floorpal;
-					parent.getA().setpalookupaddress(parent.globalpalwritten);
+					parent.getA().setpalookupaddress(palookup[parent.globalpalwritten]);
 				}
 
 				globalpicnum = sec.floorpicnum;
@@ -551,7 +551,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 					if (sec.visibility != 0) parent.globvis = mulscale(parent.globvis,(sec.visibility+16)&0xFF,4);
 					globalpolytype = ((spr.cstat&2)>>1)+1;
 					
-					parent.getA().setuphline(spr.pal, globalshade<<8);
+					parent.getA().setuphline(palookup[spr.pal], globalshade<<8);
 					
 					// relative alignment stuff
 					ox = x2 - x1;
@@ -1295,11 +1295,11 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		if ((dastat & 1) == 0) {
 			if ((dastat & 64) != 0)
-				parent.getA().setupspritevline(dapalnum, palookupshade, xv, yv, ysiz);
+				parent.getA().setupspritevline(palookup[dapalnum], palookupshade, xv, yv, ysiz);
 			else
-				parent.getA().msetupspritevline(dapalnum, palookupshade, xv, yv, ysiz);
+				parent.getA().msetupspritevline(palookup[dapalnum], palookupshade, xv, yv, ysiz);
 		} else {
-			parent.getA().tsetupspritevline(dapalnum, palookupshade, xv, yv, ysiz);
+			parent.getA().tsetupspritevline(palookup[dapalnum], palookupshade, xv, yv, ysiz);
 			if ((dastat & 32) != 0)
 				parent.getA().settransreverse();
 			else

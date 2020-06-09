@@ -11,23 +11,25 @@
 
 package ru.m210projects.Build.Render.Software;
 
+import ru.m210projects.Build.Gameutils;
+
 public class Ac implements A {
 
 	private int transmode = 0;
 	private int gbxinc, gbyinc, glogx, glogy;
-	private int gpal, gshade;
-	private int bpl, gpinc, ghlinepal;
-	private byte[] gtrans, gbuf, frameplace;
-	private byte[][] palookup;
+	private int gshade;
+	private int bpl, gpinc;
+	private byte[] gtrans, gbuf, frameplace, gpal, ghlinepal, hlinepal;
 	private int[] reciptable;
 
 	private int bzinc;
 	private int asm1, asm2;
-	private int hlinepal, hlineshade;
+	private int hlineshade;
 
-	public Ac(byte[][] palookup, int[] reciptable) {
-		this.palookup = palookup;
+	public Ac(int xdim, int ydim, int[] reciptable) {
 		this.reciptable = reciptable;
+		
+		this.frameplace = new byte[xdim * ydim];
 	}
 
 	// Global variable functions
@@ -60,7 +62,7 @@ public class Ac implements A {
 	}
 
 	@Override
-	public void setpalookupaddress(int paladdr) {
+	public void setpalookupaddress(byte[] paladdr) {
 		ghlinepal = paladdr;
 	}
 
@@ -77,7 +79,7 @@ public class Ac implements A {
 			gbyinc = asm2;
 		}
 
-		byte[] remap = palookup[ghlinepal];
+		byte[] remap = ghlinepal;
 		int shiftx = 32 - glogx;
 		int shifty = 32 - glogy;
 		
@@ -108,11 +110,11 @@ public class Ac implements A {
 	}
 
 	@Override
-	public void slopevlin(int p, int pal, int slopaloffs, int cnt, int bx, int by, int x3, int y3, int[] slopalookup,
+	public void slopevlin(int p, byte[] pal, int slopaloffs, int cnt, int bx, int by, int x3, int y3, int[] slopalookup,
 			int bz) {
 		
 		int u, v, i, index;
-		byte[] remap = palookup[pal];
+		byte[] remap = pal;
 		int shiftx = 32 - glogx;
 		int shifty = 32 - glogy;
 		int inc = gpinc; //it affects on fps
@@ -145,8 +147,8 @@ public class Ac implements A {
 	}
 
 	@Override
-	public void vlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
-		byte[] remap = palookup[pal];
+	public void vlineasm1(int vinc, byte[] pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
+		byte[] remap = pal;
 		int pl = bpl; //it affects on fps
 		try {
 			for (; cnt >= 0; cnt--) {
@@ -166,8 +168,8 @@ public class Ac implements A {
 	}
 
 	@Override
-	public void mvlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
-		byte[] remap = palookup[pal];
+	public void mvlineasm1(int vinc, byte[] pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
+		byte[] remap = pal;
 		int pl = bpl; //it affects on fps
 		
 		try {
@@ -189,8 +191,8 @@ public class Ac implements A {
 	}
 
 	@Override
-	public void tvlineasm1(int vinc, int pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
-		byte[] remap = palookup[pal];
+	public void tvlineasm1(int vinc, byte[] pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
+		byte[] remap = pal;
 		int pl = bpl; //it affects on fps
 		
 		try {
@@ -230,7 +232,7 @@ public class Ac implements A {
 	}
 
 	@Override
-	public void setuphline(int pal, int shade) {
+	public void setuphline(byte[] pal, int shade) {
 		hlinepal = pal;
 		hlineshade = shade;
 	}
@@ -243,7 +245,7 @@ public class Ac implements A {
 
 	@Override
 	public void mhline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p) {
-		byte[] remap = palookup[hlinepal];
+		byte[] remap = hlinepal;
 		int shiftx = 32 - glogx;
 		int shifty = 32 - glogy;
 		
@@ -275,7 +277,7 @@ public class Ac implements A {
 	@Override
 	public void thline(byte[] bufplc, int bx, int cntup16, int junk, int by, int p) {
 		int dacol;
-		byte[] remap = palookup[hlinepal];
+		byte[] remap = hlinepal;
 		int shiftx = 32 - glogx;
 		int shifty = 32 - glogy;
 		
@@ -315,7 +317,7 @@ public class Ac implements A {
 
 	// Rotatesprite vertical line functions
 	@Override
-	public void setupspritevline(int pal, int shade, int bxinc, int byinc, int ysiz) {
+	public void setupspritevline(byte[] pal, int shade, int bxinc, int byinc, int ysiz) {
 		gpal = pal;
 		gshade = shade;
 		gbxinc = bxinc;
@@ -325,7 +327,7 @@ public class Ac implements A {
 
 	@Override
 	public void spritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p) {
-		byte[] remap = palookup[gpal];
+		byte[] remap = gpal;
 		int xinc = gbxinc; //it affects on fps
 		int yinc = gbyinc;
 		int pl = bpl;
@@ -346,7 +348,7 @@ public class Ac implements A {
 
 	// Rotatesprite vertical line functions
 	@Override
-	public void msetupspritevline(int pal, int shade, int bxinc, int byinc, int ysiz) {
+	public void msetupspritevline(byte[] pal, int shade, int bxinc, int byinc, int ysiz) {
 		gpal = pal;
 		gshade = shade;
 		gbxinc = bxinc;
@@ -356,12 +358,12 @@ public class Ac implements A {
 
 	@Override
 	public void mspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p) {
-		byte[] remap = palookup[gpal];
+		byte[] remap = gpal;
 		int xinc = gbxinc; //it affects on fps
 		int yinc = gbyinc;
 		int pl = bpl;
 		int shade = gshade;
-		
+
 		try {
 			for (; cnt > 1; cnt--) {
 				int index = bufoffs + (bx >> 16) * glogy + (by >> 16);
@@ -376,10 +378,11 @@ public class Ac implements A {
 			}
 		} catch (Throwable e) {
 		}
+		
 	}
 
 	@Override
-	public void tsetupspritevline(int pal, int shade, int bxinc, int byinc, int ysiz) {
+	public void tsetupspritevline(byte[] pal, int shade, int bxinc, int byinc, int ysiz) {
 		gpal = pal;
 		gshade = shade;
 		gbxinc = bxinc;
@@ -390,7 +393,7 @@ public class Ac implements A {
 	@Override
 	public void tspritevline(int bx, int by, int cnt, byte[] bufplc, int bufoffs, int p) {
 		int dacol;
-		byte[] remap = palookup[gpal];
+		byte[] remap = gpal;
 		int xinc = gbxinc; //it affects on fps
 		int yinc = gbyinc;
 		int pl = bpl;
@@ -426,7 +429,7 @@ public class Ac implements A {
 	}
 
 	@Override
-	public void setupdrawslab(int dabpl, int pal, int shade, int trans) {
+	public void setupdrawslab(int dabpl, byte[] pal, int shade, int trans) {
 		bpl = dabpl;
 		gpal = pal;
 		gshade = shade;
@@ -437,7 +440,7 @@ public class Ac implements A {
 	public void drawslab(int dx, int v, int dy, int vi, byte[] data, int vptr, int p) {
 		int x;
 		int dacol;
-		byte[] remap = palookup[gpal];
+		byte[] remap = gpal;
 		int pl = bpl;
 		int shade = gshade;
 		
@@ -484,5 +487,15 @@ public class Ac implements A {
 	@Override
 	public void setframeplace(byte[] newframeplace) {
 		this.frameplace = newframeplace;
+	}
+
+	@Override
+	public byte[] getframeplace() {
+		return frameplace;
+	}
+
+	@Override
+	public void clearframe(byte dacol) {
+		Gameutils.fill(frameplace, dacol);
 	}
 }

@@ -7,13 +7,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+JNIEXPORT jbyteArray JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnigetframeplace
+  (JNIEnv *, jobject);
+
+JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jniclearframe
+  (JNIEnv *, jobject, jbyte);
+  
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
  * Method:    jniinit
  * Signature: ([[B[I)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jniinit
-  (JNIEnv *, jobject, jobjectArray, jintArray);
+  (JNIEnv *, jobject, jint, jint, jintArray);
   
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -77,7 +84,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisethli
  * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisetpalookupaddress
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jbyteArray);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -109,7 +116,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisetups
  * Signature: (IIIIIIII[II)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnislopevlin
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint, jint, jint, jint, jintArray, jint);
+  (JNIEnv *, jobject, jint, jbyteArray, jint, jint, jint, jint, jint, jint, jintArray, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -125,7 +132,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisetupv
  * Signature: (IIIII[BII)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnivlineasm1
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint, jbyteArray, jint, jint);
+  (JNIEnv *, jobject, jint, jbyteArray, jint, jint, jint, jbyteArray, jint, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -141,7 +148,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisetupm
  * Signature: (IIIII[BII)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnimvlineasm1
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint, jbyteArray, jint, jint);
+  (JNIEnv *, jobject, jint, jbyteArray, jint, jint, jint, jbyteArray, jint, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -157,7 +164,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisetupt
  * Signature: (IIIII[BII)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnitvlineasm1
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint, jbyteArray, jint, jint);
+  (JNIEnv *, jobject, jint, jbyteArray, jint, jint, jint, jbyteArray, jint, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -173,7 +180,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisethli
  * Signature: (II)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisetuphline
-  (JNIEnv *, jobject, jint, jint);
+  (JNIEnv *, jobject, jbyteArray, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -213,7 +220,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnithline
  * Signature: (IIIII)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisetupspritevline
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jbyteArray, jint, jint, jint, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -229,7 +236,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisprite
  * Signature: (IIIII)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnimsetupspritevline
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jbyteArray, jint, jint, jint, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -245,7 +252,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnimsprit
  * Signature: (IIIII)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnitsetupspritevline
-  (JNIEnv *, jobject, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jbyteArray, jint, jint, jint, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
@@ -261,7 +268,7 @@ JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnitsprit
  * Signature: (IIII)V
  */
 JNIEXPORT void JNICALL Java_ru_m210projects_Build_Render_Software_JniA_jnisetupdrawslab
-  (JNIEnv *, jobject, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jint, jbyteArray, jint, jint);
 
 /*
  * Class:     ru_m210projects_Build_Render_Software_JniA
