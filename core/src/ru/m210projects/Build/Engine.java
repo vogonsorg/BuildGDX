@@ -3608,8 +3608,8 @@ public abstract class Engine {
 	// flags:
 	// 2: use gltexinvalidateall()
 
-	public void setbrightness(int dabrightness, byte[] dapal, int flags) {
-		GLRenderer gl = glrender();
+	public void setbrightness(int dabrightness, byte[] dapal, final int flags) {
+		final GLRenderer gl = glrender();
 		curbrightness = BClipRange(dabrightness, 0, 15);
 
 		if ((gl == null || gl.getType().getFrameType() != FrameType.GL) && curbrightness != 0) {
@@ -3623,7 +3623,7 @@ public abstract class Engine {
 
 		if(changepalette(temppal)) {
 			if ((flags & 2) != 0) {
-				if (gl != null)
+				if (gl != null) 
 					gl.gltexinvalidateall(flags);
 			}
 	
@@ -3638,12 +3638,7 @@ public abstract class Engine {
 		
 		curpalette.update(palette);
 		Arrays.fill(palcache, null);
-		BuildGdx.app.postRunnable(new Runnable() {
-			@Override
-			public void run() {
-				render.changepalette(palette);
-			}
-		});
+		render.changepalette(palette); //for shader
 		
 		return true;
 	}

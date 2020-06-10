@@ -4531,8 +4531,10 @@ public abstract class Polymost extends GLRenderer {
 
 	@Override
 	public void gltexinvalidateall(int flags) {
-		if ((flags & 1) == 1)
+		if ((flags & 1) == 1) {
 			textureCache.uninit();
+			Console.Println("TextureCache uninited!", Console.OSDTEXT_RED);
+		}
 		if ((flags & 2) == 0)
 			gltexinvalidateall();
 		else if ((flags & 8) == 0)

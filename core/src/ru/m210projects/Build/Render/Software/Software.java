@@ -3952,13 +3952,13 @@ public abstract class Software extends Renderer {
 
 		qinterpolatedown16short(mostbuf, ix1, ix2 - ix1 + 1, y + ((int) globalhoriz << 16), yinc);
 
-		if (mostbuf[ix1] < 0)
+		if (ix1 < 0 || mostbuf[ix1] < 0)
 			mostbuf[ix1] = 0;
-		if (mostbuf[ix1] > ydimen)
+		if (ix1 >= mostbuf.length || mostbuf[ix1] > ydimen)
 			mostbuf[ix1] = (short) ydimen;
-		if (mostbuf[ix2] < 0)
+		if (ix2 < 0 || mostbuf[ix2] < 0)
 			mostbuf[ix2] = 0;
-		if (mostbuf[ix2] > ydimen)
+		if (ix2 >= mostbuf.length || mostbuf[ix2] > ydimen)
 			mostbuf[ix2] = (short) ydimen;
 
 		return (bad);
