@@ -1,8 +1,6 @@
 package ru.m210projects.Build.Settings;
 
-import static com.badlogic.gdx.graphics.GL20.GL_LINEAR;
-import static com.badlogic.gdx.graphics.GL20.GL_LINEAR_MIPMAP_LINEAR;
-import static com.badlogic.gdx.graphics.GL20.GL_NEAREST;
+import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Engine.pow2long;
 import static ru.m210projects.Build.OnSceenDisplay.Console.osd_argv;
 

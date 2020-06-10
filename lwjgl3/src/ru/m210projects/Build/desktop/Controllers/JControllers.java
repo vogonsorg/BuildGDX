@@ -22,9 +22,9 @@ import static com.badlogic.gdx.utils.SharedLibraryLoader.isMac;
 import static com.badlogic.gdx.utils.SharedLibraryLoader.isWindows;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.SharedLibraryLoader;
 
 import net.java.games.input.Controller;
@@ -38,7 +38,7 @@ public class JControllers extends BuildControllers {
 	private boolean load;
 
 	@Override
-	protected void getControllers(Array<BuildController> gamepads) {
+	protected void getControllers(List<BuildController> gamepads) {
 		load();
 
 		Controller[] inputs = ControllerEnvironment.getDefaultEnvironment().getControllers();
@@ -50,7 +50,7 @@ public class JControllers extends BuildControllers {
 				gamepads.add(new JController(inputs[i]));
 		}
 
-		if (gamepads.size == 0) {
+		if (gamepads.size() == 0) {
 			final Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 			for (final Thread thread : threadSet) {
 				final String name = thread.getClass().getName();

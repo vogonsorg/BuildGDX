@@ -253,17 +253,6 @@ public class BuildApplication implements Application {
 	//Gdx Application unused
 
 	@Override
-	public Net getNet() {
-		return null;
-	}
-	
-
-	@Override
-	public Audio getAudio() {
-		return null;
-	}
-
-	@Override
 	public void log(String tag, String message) {}
 
 	@Override
@@ -290,21 +279,44 @@ public class BuildApplication implements Application {
 	}
 
 	@Override
-	public void setApplicationLogger(ApplicationLogger applicationLogger) {}
+	public Audio getAudio() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Net getNet() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setApplicationLogger(ApplicationLogger applicationLogger) {
+		// TODO Auto-generated method stub
+		
+	}
 
 	@Override
 	public ApplicationLogger getApplicationLogger() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Preferences getPreferences(String name) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void addLifecycleListener(LifecycleListener listener) {}
+	public void addLifecycleListener(LifecycleListener listener) {
+		// TODO Auto-generated method stub
+		
+	}
 
 	@Override
-	public void removeLifecycleListener(LifecycleListener listener) {}
+	public void removeLifecycleListener(LifecycleListener listener) {
+		// TODO Auto-generated method stub
+		
+	}
 }

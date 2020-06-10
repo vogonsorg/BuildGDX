@@ -39,7 +39,6 @@ import java.util.Map;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Filter;
 import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.utils.Disposable;
 
 import ru.m210projects.Build.CRC32;
 import ru.m210projects.Build.Engine;
@@ -57,7 +56,7 @@ import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildEngine;
 
-public class DefScript implements Disposable {
+public class DefScript {
 
 	protected boolean disposable;
 	public final TextureHDInfo texInfo;
@@ -301,7 +300,6 @@ public class DefScript implements Disposable {
 		return script.eof;
 	}
 
-	@Override
 	public void dispose() {
 		if (!disposable)
 			return;

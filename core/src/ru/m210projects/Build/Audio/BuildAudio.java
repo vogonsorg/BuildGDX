@@ -20,9 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.badlogic.gdx.utils.Disposable;
-
-public class BuildAudio implements Disposable {
+public class BuildAudio {
 	
 	public enum MusicType { Midi, Digital }
 	public enum Driver { Music, Sound }
@@ -196,7 +194,6 @@ public class BuildAudio implements Disposable {
 		}
 	}
 	
-	@Override
 	public void dispose() {
 		for(Sound drv : fxdrivers)
 			drv.dispose();

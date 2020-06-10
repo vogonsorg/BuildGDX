@@ -23,9 +23,9 @@ import static ru.m210projects.Build.Engine.pow2char;
 import static ru.m210projects.Build.Engine.smalltextfont;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
@@ -62,7 +62,7 @@ public class SmallTextFont extends TileFont {
 		atlas.sizy = 128;
 
 		tbuf = new byte[sizx * sizy];
-		ByteBuffer fbuf = BufferUtils.newByteBuffer(sizx * sizy);
+		ByteBuffer fbuf = ByteBuffer.allocateDirect(sizx * sizy).order(ByteOrder.LITTLE_ENDIAN);
 
 		for (h = 0; h < 256; h++) {
 			tptr = (h % 16) * 8 + (h / 16) * sizx * 8;

@@ -90,7 +90,7 @@ public class Ac implements A {
 			for (; cnt >= 0; cnt--) {
 				int index = ((bx >>> shiftx) << glogy) + (by >>> shifty);
 				
-				drawpixel(p, remap[(gbuf[index] & 0xFF) + paloffs]);
+				drawpixel(p, remap[(gbuf[index] & 0xFF) + paloffs]); //XXX
 				bx -= xinc;
 				by -= yinc;
 				p--;
@@ -136,7 +136,7 @@ public class Ac implements A {
 	}
 
 	private int krecipasm(int i) { // Copied from software renderer
-		i = Float.floatToIntBits(i);
+		i = Float.floatToRawIntBits(i);
 		return (reciptable[(i >> 12) & 2047] >> (((i - 0x3f800000) >> 23) & 31)) ^ (i >> 31);
 	}
 
@@ -150,9 +150,13 @@ public class Ac implements A {
 	public void vlineasm1(int vinc, byte[] pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
 		byte[] remap = pal;
 		int pl = bpl; //it affects on fps
+
 		try {
 			for (; cnt >= 0; cnt--) {
 				int index = bufoffs + (vplc >>> glogy);
+				if(index >= bufplc.length)
+					return;
+
 				int ch = (bufplc[index] & 0xFF) + shade;
 				drawpixel(p, remap[ch]);
 				p += pl;
@@ -182,6 +186,7 @@ public class Ac implements A {
 				vplc += vinc;
 			}
 		} catch (Throwable e) {
+			e.printStackTrace();
 		}
 	}
 

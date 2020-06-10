@@ -89,8 +89,6 @@ import static ru.m210projects.Build.Loader.Voxels.Voxel.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import com.badlogic.gdx.utils.BufferUtils;
-
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics.Option;
@@ -488,7 +486,7 @@ public abstract class Software extends Renderer {
 	}
 
 	@Override
-	public void drawrooms() { // XXX
+	public void drawrooms() {
 		globaluclip = (0 - (int) globalhoriz) * xdimscale;
 		globaldclip = (ydimen - (int) globalhoriz) * xdimscale;
 
@@ -887,6 +885,7 @@ public abstract class Software extends Renderer {
 							gotswall = 1;
 							prepwall(z, wal);
 						}
+
 						wallscan(x1, x2, uwall, dplc, swall, lwall);
 
 						if ((fz[2] <= fz[0]) && (fz[3] <= fz[1])) {
@@ -2654,7 +2653,7 @@ public abstract class Software extends Renderer {
 
 			int vince = swal[x] * globalyscale;
 			int vplce = globalzd + vince * (y1ve - (int) globalhoriz + 1);
-
+			
 			a.vlineasm1(vince, palookup[fpalookup], shade, y2ve - y1ve - 1, vplce, waloff[globalpicnum], bufplce,
 					x + frameoffset + ylookup[y1ve]);
 		}
@@ -3536,7 +3535,7 @@ public abstract class Software extends Renderer {
 			if (indexbuffer != null)
 				indexbuffer.clear();
 			if (indexbuffer == null || indexbuffer.capacity() < xsiz * ysiz)
-				indexbuffer = BufferUtils.newByteBuffer(xsiz * ysiz);
+				indexbuffer = ByteBuffer.allocateDirect(xsiz * ysiz);
 
 			indexbuffer.put(frameplace);
 			indexbuffer.rewind();
@@ -3545,7 +3544,7 @@ public abstract class Software extends Renderer {
 			if (rgbbuffer != null)
 				rgbbuffer.clear();
 			if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * 3)
-				rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * 3);
+				rgbbuffer = ByteBuffer.allocateDirect(xsiz * ysiz * 3);
 
 			for (int i = 0; i < xsiz * ysiz; i++) {
 				int dacol = frameplace[i] & 0xFF;

@@ -21,8 +21,6 @@ import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 
-import com.badlogic.gdx.utils.Disposable;
-
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
@@ -30,7 +28,7 @@ import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Tile2model;
 
-public class ModelInfo implements Disposable {
+public class ModelInfo {
 	
     public class AnimationInfo
 	{
@@ -226,7 +224,6 @@ public class ModelInfo implements Disposable {
 	    return 0;
 	}
 
-	@Override
 	public void dispose() {
 		for (int i=MAXTILES-1; i>=0; i--) {
 			if(cache[i] == null) continue;

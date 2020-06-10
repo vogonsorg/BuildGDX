@@ -16,7 +16,7 @@
 
 package ru.m210projects.Build.Render.Types;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+import static ru.m210projects.Build.Render.Types.GL10.*;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 
