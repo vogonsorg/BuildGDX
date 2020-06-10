@@ -179,6 +179,9 @@ public class Ac implements A {
 		try {
 			for (; cnt >= 0; cnt--) {
 				int index = bufoffs + (vplc >>> glogy);
+				if(index >= bufplc.length)
+					return;
+				
 				int ch = bufplc[index] & 0xFF;
 				if (ch != 255)
 					drawpixel(p, remap[ch + shade]);
@@ -186,7 +189,6 @@ public class Ac implements A {
 				vplc += vinc;
 			}
 		} catch (Throwable e) {
-			e.printStackTrace();
 		}
 	}
 

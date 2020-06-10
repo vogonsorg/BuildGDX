@@ -41,18 +41,12 @@ public class MidiSequencer {
 			public void controlChange(ShortMessage message) {
 				if(isLooping()) {
 					if((message.getData1() == 116 || message.getData1() == 118) && message.getData2() == 0) {
-						if(message.getChannel() == 0 && sequencer.getLoopStartPoint() == 0) {
+						if(message.getChannel() == 0 && sequencer.getLoopStartPoint() == 0) 
 							sequencer.setLoopStartPoint(sequencer.getTickPosition());
-							System.err.println("Loop start " + sequencer.getTickPosition());
-						} else {
-							System.err.println("Loop start ah loopstart: " + sequencer.getLoopStartPoint() + " channel: " + message.getChannel());
-						}
 					}
 					if((message.getData1() == 117 || message.getData1() == 119) && message.getData2() == 127/*&& loop_pos != 0*/) {
-						if(message.getChannel() == 0) {
+						if(message.getChannel() == 0) 
 						sequencer.setTickPosition(sequencer.getLoopStartPoint());
-						System.err.println("Loop end " + sequencer.getTickPosition());
-						} else 	System.err.println("Loop end ah");
 					}
 				}
 			}
