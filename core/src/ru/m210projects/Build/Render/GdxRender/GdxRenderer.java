@@ -30,6 +30,7 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
@@ -167,11 +168,24 @@ public class GdxRenderer extends GLRenderer {
 	}
 
 	@Override
-	public void gltexinvalidateall(int flags) {
-		if ((flags & 1) == 1)
-			textureCache.uninit();
-		if ((flags & 2) == 0)
-			gltexinvalidateall();
+	public void gltexinvalidateall(GLInvalidateFlag... flags) {
+		for(int i = 0; i < flags.length; i++) {
+			switch(flags[i])
+			{
+			case Uninit:
+				textureCache.uninit();
+				Console.Println("TextureCache uninited!", Console.OSDTEXT_RED);
+				break;
+			case SkinsOnly:
+				break;
+			case TexturesOnly:
+			case IndexedTexturesOnly:
+				break;
+			case All:
+				gltexinvalidateall();
+				break;
+			}
+		}
 	}
 	
 	public void gltexinvalidateall() {

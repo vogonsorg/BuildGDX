@@ -12,6 +12,7 @@ import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Types.BuildVariable;
 import ru.m210projects.Build.Types.BuildVariable.RespondType;
@@ -127,7 +128,7 @@ public class GLSettings extends BuildSettings {
 					@Override
 					public void run() {
 						GLRenderer gl = engine.glrender();
-						if(gl != null) gl.gltexinvalidateall(1);
+						if(gl != null) gl.gltexinvalidateall(GLInvalidateFlag.All, GLInvalidateFlag.Uninit);
 					}
 				});
 			}

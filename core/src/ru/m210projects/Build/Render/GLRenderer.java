@@ -24,6 +24,14 @@ import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 
 public abstract class GLRenderer extends Renderer {
+	
+	public enum GLInvalidateFlag {
+		Uninit,
+		SkinsOnly,
+		TexturesOnly,
+		IndexedTexturesOnly,
+		All
+	}
 
 	protected final TextureCache textureCache;
 
@@ -47,7 +55,7 @@ public abstract class GLRenderer extends Renderer {
 
 	public abstract void gltexapplyprops();
 
-	public abstract void gltexinvalidateall(int flags);
+	public abstract void gltexinvalidateall(GLInvalidateFlag... flags);
 
 	public abstract void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
 

@@ -2,6 +2,7 @@ package ru.m210projects.Build.Settings;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Types.BuildVariable;
 
 public class BuildSettings {
@@ -31,7 +32,7 @@ public class BuildSettings {
 			@Override
 			public void execute(Integer value) { 
 				cfg.paletteGamma = value;
-				engine.setbrightness(cfg.paletteGamma, Engine.palette, 0);
+				engine.setbrightness(cfg.paletteGamma, Engine.palette, GLInvalidateFlag.All);
 			}
 		};
 		

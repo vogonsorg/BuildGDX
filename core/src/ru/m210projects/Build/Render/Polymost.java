@@ -368,7 +368,7 @@ public abstract class Polymost extends GLRenderer {
 	public void setDefs(DefScript defs) {
 		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
 		if(this.defs != null)
-			gltexinvalidateall(1);
+			gltexinvalidateall(GLInvalidateFlag.Uninit, GLInvalidateFlag.All);
 		this.defs = defs;
 	}
 
@@ -4530,15 +4530,26 @@ public abstract class Polymost extends GLRenderer {
 	}
 
 	@Override
-	public void gltexinvalidateall(int flags) {
-		if ((flags & 1) == 1) {
-			textureCache.uninit();
-			Console.Println("TextureCache uninited!", Console.OSDTEXT_RED);
+	public void gltexinvalidateall(GLInvalidateFlag... flags) {
+		for(int i = 0; i < flags.length; i++) {
+			switch(flags[i])
+			{
+			case Uninit:
+				textureCache.uninit();
+				Console.Println("TextureCache uninited!", Console.OSDTEXT_RED);
+				break;
+			case SkinsOnly:
+				clearskins(true);
+				break;
+			case TexturesOnly:
+			case IndexedTexturesOnly:
+				gltexinvalidate8();
+				break;
+			case All:
+				gltexinvalidateall();
+				break;
+			}
 		}
-		if ((flags & 2) == 0)
-			gltexinvalidateall();
-		else if ((flags & 8) == 0)
-			gltexinvalidate8();
 	}
 
 	@Override

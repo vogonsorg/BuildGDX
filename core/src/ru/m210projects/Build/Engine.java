@@ -34,6 +34,7 @@ import ru.m210projects.Build.Input.KeyInput;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.OnSceenDisplay.DEFOSDFUNC;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Renderer.PixelFormat;
 import ru.m210projects.Build.Render.Renderer.RenderType;
@@ -1415,7 +1416,7 @@ public abstract class Engine {
 		ydim = daydim;
 
 		setview(0, 0, xdim - 1, ydim - 1);
-		setbrightness(curbrightness, palette, 0);
+		setbrightness(curbrightness, palette, GLInvalidateFlag.All);
 
 		Console.ResizeDisplay(daxdim, daydim);
 
@@ -3605,10 +3606,7 @@ public abstract class Engine {
 		}
 	}
 
-	// flags:
-	// 2: use gltexinvalidateall()
-
-	public void setbrightness(int dabrightness, byte[] dapal, final int flags) {
+	public void setbrightness(int dabrightness, byte[] dapal, GLInvalidateFlag flags) {
 		final GLRenderer gl = glrender();
 		curbrightness = BClipRange(dabrightness, 0, 15);
 
@@ -3622,11 +3620,9 @@ public abstract class Engine {
 		}
 
 		if(changepalette(temppal)) {
-			if ((flags & 2) != 0) {
-				if (gl != null) 
-					gl.gltexinvalidateall(flags);
-			}
-	
+			if (gl != null) 
+				gl.gltexinvalidateall(flags);
+
 			palfadergb.r = palfadergb.g = palfadergb.b = 0;
 			palfadergb.a = 0;
 		}
