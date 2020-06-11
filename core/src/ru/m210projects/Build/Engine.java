@@ -18,6 +18,7 @@ import static ru.m210projects.Build.Strhandler.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -44,7 +45,9 @@ import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
+import ru.m210projects.Build.Types.BuildPos;
 import ru.m210projects.Build.Types.Hitscan;
+import ru.m210projects.Build.Types.InvalidVersionException;
 import ru.m210projects.Build.Types.Neartag;
 import ru.m210projects.Build.Types.Palette;
 import ru.m210projects.Build.Types.SECTOR;
@@ -131,7 +134,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 
-	public static final String version = "20.061"; // XX. - year, XX - month, X - build
+	public static final String version = "20.062"; // XX. - year, XX - month, X - build
 
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -1179,45 +1182,43 @@ public abstract class Engine {
 		render.drawoverheadmap(cposx, cposy, czoom, cang);
 	}
 
-	public int loadboard(String filename, int[] daposx, int[] daposy, int[] daposz, // jfBuild + gdxBuild
-			short[] daang, short[] dacursectnum) {
-		int i = 0;
-
+	public BuildPos loadboard(String filename) throws InvalidVersionException, FileNotFoundException, RuntimeException {
 		Resource fil;
-		if ((fil = BuildGdx.cache.open(filename, i)) == null) {
+		if ((fil = BuildGdx.cache.open(filename, 0)) == null) {
 			mapversion = 7;
-			return (-1);
+			throw new FileNotFoundException("Map " + filename + " not found!");
 		}
 
 		mapversion = fil.readInt();
 		switch (mapversion) {
 		case 6:
-			return loadoldboard(fil, daposx, daposy, daposz, daang, dacursectnum);
+			return loadoldboard(fil);
 		case 7:
 			break;
 		case 8:
 			if(MAXSECTORS == MAXSECTORSV8)
 				break;
 		default:
-			Console.Println("Invalid map version!");
 			fil.close();
-			return (-2);
+			throw new InvalidVersionException(filename + ": invalid map version( v" + mapversion + " )!");
 		}
 
+		BuildPos pos = new BuildPos();
+		
 		initspritelists();
 
 		Arrays.fill(show2dsector, (byte) 0);
 		Arrays.fill(show2dsprite, (byte) 0);
 		Arrays.fill(show2dwall, (byte) 0);
 
-		daposx[0] = fil.readInt();
-		daposy[0] = fil.readInt();
-		daposz[0] = fil.readInt();
-		daang[0] = fil.readShort();
-		dacursectnum[0] = fil.readShort();
+		pos.x = fil.readInt();
+		pos.y = fil.readInt();
+		pos.z = fil.readInt();
+		pos.ang = fil.readShort();
+		pos.sectnum = fil.readShort();
 
 		numsectors = fil.readShort();
-		for (i = 0; i < numsectors; i++)
+		for (int i = 0; i < numsectors; i++)
 			sector[i] = new SECTOR(fil);
 
 		numwalls = fil.readShort();
@@ -1228,151 +1229,136 @@ public abstract class Engine {
 		for (int s = 0; s < numsprites; s++)
 			sprite[s].buildSprite(fil);
 
-		for (i = 0; i < numsprites; i++)
+		for (int i = 0; i < numsprites; i++)
 			insertsprite(sprite[i].sectnum, sprite[i].statnum);
 
 		// Must be after loading sectors, etc!
-		dacursectnum[0] = updatesector(daposx[0], daposy[0], (short) dacursectnum[0]);
+		pos.sectnum = updatesector(pos.x, pos.y, pos.sectnum);
 
 		fil.close();
+		
+		if(inside(pos.x, pos.y, pos.sectnum) == -1) 
+			throw new RuntimeException("Player should be in a sector!");
 
-		return (0);
+		return pos;
 	}
 
-	public int loadoldboard(Resource fil, int[] daposx, int[] daposy, int[] daposz, // gdxBuild
-			short[] daang, short[] dacursectnum) {
-
+	public BuildPos loadoldboard(Resource fil) throws RuntimeException {
+		BuildPos pos = new BuildPos();
+		
 		initspritelists();
 
 		Arrays.fill(show2dsector, (byte) 0);
 		Arrays.fill(show2dsprite, (byte) 0);
 		Arrays.fill(show2dwall, (byte) 0);
 
-		daposx[0] = fil.readInt();
-		daposy[0] = fil.readInt();
-		daposz[0] = fil.readInt();
-		daang[0] = fil.readShort();
-		dacursectnum[0] = fil.readShort();
-
-		int sizeof = 37;
+		pos.x = fil.readInt();
+		pos.y = fil.readInt();
+		pos.z = fil.readInt();
+		pos.ang = fil.readShort();
+		pos.sectnum = fil.readShort();
+		
 		numsectors = fil.readShort();
-		byte[] sectors = new byte[sizeof * numsectors];
-		fil.read(sectors);
-		ByteBuffer bb = ByteBuffer.wrap(sectors);
-		bb.order(ByteOrder.LITTLE_ENDIAN);
-
-		for (int sectorid = 0; sectorid < numsectors; sectorid++) {
+		for (int i = 0; i < numsectors; i++) {
 			SECTOR sec = new SECTOR();
 
-			sec.wallptr = bb.getShort(0 + sizeof * sectorid);
-			sec.wallnum = bb.getShort(2 + sizeof * sectorid);
-			sec.ceilingpicnum = bb.getShort(4 + sizeof * sectorid);
-			sec.floorpicnum = bb.getShort(6 + sizeof * sectorid);
-			int ceilingheinum = bb.getShort(8 + sizeof * sectorid);
+			sec.wallptr = fil.readShort();
+			sec.wallnum = fil.readShort();
+			sec.ceilingpicnum = fil.readShort();
+			sec.floorpicnum = fil.readShort();
+			int ceilingheinum = fil.readShort();
 			sec.ceilingheinum = (short) max(min(ceilingheinum << 5, 32767), -32768);
-			int floorheinum = bb.getShort(10 + sizeof * sectorid);
+			int floorheinum = fil.readShort();
 			sec.floorheinum = (short) max(min(floorheinum << 5, 32767), -32768);
-			sec.ceilingz = bb.getInt(12 + sizeof * sectorid);
-			sec.floorz = bb.getInt(16 + sizeof * sectorid);
-			sec.ceilingshade = bb.get(20 + sizeof * sectorid);
-			sec.floorshade = bb.get(21 + sizeof * sectorid);
-			sec.ceilingxpanning = (short) (bb.get(22 + sizeof * sectorid) & 0xFF);
-			sec.floorxpanning = (short) (bb.get(23 + sizeof * sectorid) & 0xFF);
-			sec.ceilingypanning = (short) (bb.get(24 + sizeof * sectorid) & 0xFF);
-			sec.floorypanning = (short) (bb.get(25 + sizeof * sectorid) & 0xFF);
-			sec.ceilingstat = bb.get(26 + sizeof * sectorid);
+			sec.ceilingz = fil.readInt();
+			sec.floorz = fil.readInt();
+			sec.ceilingshade = fil.readByte();
+			sec.floorshade = fil.readByte();
+			sec.ceilingxpanning = (short) (fil.readByte() & 0xFF);
+			sec.floorxpanning = (short) (fil.readByte() & 0xFF);
+			sec.ceilingypanning = (short) (fil.readByte() & 0xFF);
+			sec.floorypanning = (short) (fil.readByte() & 0xFF);
+			sec.ceilingstat = fil.readByte();
 			if ((sec.ceilingstat & 2) == 0)
 				sec.ceilingheinum = 0;
-			sec.floorstat = bb.get(27 + sizeof * sectorid);
+			sec.floorstat = fil.readByte();
 			if ((sec.floorstat & 2) == 0)
 				sec.floorheinum = 0;
-			sec.ceilingpal = bb.get(28 + sizeof * sectorid);
-			sec.floorpal = bb.get(29 + sizeof * sectorid);
-			sec.visibility = bb.get(30 + sizeof * sectorid);
-			sec.lotag = bb.getShort(31 + sizeof * sectorid);
-			sec.hitag = bb.getShort(33 + sizeof * sectorid);
-			sec.extra = bb.getShort(35 + sizeof * sectorid);
+			sec.ceilingpal = fil.readByte();
+			sec.floorpal = fil.readByte();
+			sec.visibility = fil.readByte();
+			sec.lotag = fil.readShort();
+			sec.hitag = fil.readShort();
+			sec.extra = fil.readShort();
 
-			sector[sectorid] = sec;
+			sector[i] = sec;
 		}
 
-		sizeof = WALL.sizeof;
 		numwalls = fil.readShort();
-		byte[] walls = new byte[sizeof * numwalls];
-		fil.read(walls);
-		bb = ByteBuffer.wrap(walls);
-		bb.order(ByteOrder.LITTLE_ENDIAN);
-
-		for (int wallid = 0; wallid < numwalls; wallid++) {
+		for (int w = 0; w < numwalls; w++) {
 			WALL wal = new WALL();
 
-			wal.x = bb.getInt(0 + sizeof * wallid);
-			wal.y = bb.getInt(4 + sizeof * wallid);
-			wal.point2 = bb.getShort(8 + sizeof * wallid);
-			wal.nextsector = bb.getShort(10 + sizeof * wallid);
-			wal.nextwall = bb.getShort(12 + sizeof * wallid);
-			wal.picnum = bb.getShort(14 + sizeof * wallid);
-			wal.overpicnum = bb.getShort(16 + sizeof * wallid);
-			wal.shade = bb.get(18 + sizeof * wallid);
-			wal.pal = (short) (bb.get(19 + sizeof * wallid) & 0xFF);
-			wal.cstat = bb.getShort(20 + sizeof * wallid);
-			wal.xrepeat = (short) (bb.get(22 + sizeof * wallid) & 0xFF);
-			wal.yrepeat = (short) (bb.get(23 + sizeof * wallid) & 0xFF);
-			wal.xpanning = (short) (bb.get(24 + sizeof * wallid) & 0xFF);
-			wal.ypanning = (short) (bb.get(25 + sizeof * wallid) & 0xFF);
-			wal.lotag = bb.getShort(26 + sizeof * wallid);
-			wal.hitag = bb.getShort(28 + sizeof * wallid);
-			wal.extra = bb.getShort(30 + sizeof * wallid);
+			wal.x = fil.readInt();
+			wal.y = fil.readInt();
+			wal.point2 = fil.readShort();
+			wal.nextsector = fil.readShort();
+			wal.nextwall = fil.readShort();
+			wal.picnum = fil.readShort();
+			wal.overpicnum = fil.readShort();
+			wal.shade = fil.readByte();
+			wal.pal = (short) (fil.readByte() & 0xFF);
+			wal.cstat = fil.readShort();
+			wal.xrepeat = (short) (fil.readByte() & 0xFF);
+			wal.yrepeat = (short) (fil.readByte() & 0xFF);
+			wal.xpanning = (short) (fil.readByte() & 0xFF);
+			wal.ypanning = (short) (fil.readByte() & 0xFF);
+			wal.lotag = fil.readShort();
+			wal.hitag = fil.readShort();
+			wal.extra = fil.readShort();
 
-			wall[wallid] = wal;
+			wall[w] = wal;
 		}
 
-		sizeof = 43;
 		numsprites = fil.readShort();
-		byte[] sprites = new byte[sizeof * numsprites];
-		fil.read(sprites);
+		for (int s = 0; s < numsprites; s++) {
+			SPRITE spr = sprite[s];
 
-		bb = ByteBuffer.wrap(sprites);
-		bb.order(ByteOrder.LITTLE_ENDIAN);
-
-		for (int spriteid = 0; spriteid < numsprites; spriteid++) {
-//		for(int spriteid = numsprites - 1; spriteid >= 0; spriteid--) {
-			SPRITE spr = sprite[spriteid];
-
-			spr.x = bb.getInt();
-			spr.y = bb.getInt();
-			spr.z = bb.getInt();
-			spr.cstat = bb.getShort();
-			spr.shade = bb.get();
-			spr.pal = bb.get();
-			spr.clipdist = bb.get();
-			spr.xrepeat = (short) (bb.get() & 0xFF);
-			spr.yrepeat = (short) (bb.get() & 0xFF);
-			spr.xoffset = (short) (bb.get() & 0xFF);
-			spr.yoffset = (short) (bb.get() & 0xFF);
-			spr.picnum = bb.getShort();
-			spr.ang = bb.getShort();
-			spr.xvel = bb.getShort();
-			spr.yvel = bb.getShort();
-			spr.zvel = bb.getShort();
-			spr.owner = bb.getShort();
-			spr.sectnum = bb.getShort();
-			spr.statnum = bb.getShort();
-			spr.lotag = bb.getShort();
-			spr.hitag = bb.getShort();
-			spr.extra = bb.getShort();
+			spr.x = fil.readInt();
+			spr.y = fil.readInt();
+			spr.z = fil.readInt();
+			spr.cstat = fil.readShort();
+			spr.shade = fil.readByte();
+			spr.pal = fil.readByte();
+			spr.clipdist = fil.readByte();
+			spr.xrepeat = (short) (fil.readByte() & 0xFF);
+			spr.yrepeat = (short) (fil.readByte() & 0xFF);
+			spr.xoffset = (short) (fil.readByte() & 0xFF);
+			spr.yoffset = (short) (fil.readByte() & 0xFF);
+			spr.picnum = fil.readShort();
+			spr.ang = fil.readShort();
+			spr.xvel = fil.readShort();
+			spr.yvel = fil.readShort();
+			spr.zvel = fil.readShort();
+			spr.owner = fil.readShort();
+			spr.sectnum = fil.readShort();
+			spr.statnum = fil.readShort();
+			spr.lotag = fil.readShort();
+			spr.hitag = fil.readShort();
+			spr.extra = fil.readShort();
 		}
 
-		for (int i = 0; i < numsprites; i++) {
+		for (int i = 0; i < numsprites; i++)
 			insertsprite(sprite[i].sectnum, sprite[i].statnum);
-		}
 
 		// Must be after loading sectors, etc!
-		dacursectnum[0] = updatesector(daposx[0], daposy[0], (short) dacursectnum[0]);
+		pos.sectnum = updatesector(pos.x, pos.y, pos.sectnum);
 
 		fil.close();
+		
+		if(inside(pos.x, pos.y, pos.sectnum) == -1) 
+			throw new RuntimeException("Player should be in a sector!");
 
-		return 0;
+		return pos;
 	}
 
 	public void saveboard(FileResource fil, int daposx, int daposy, int daposz, int daang, int dacursectnum) {
