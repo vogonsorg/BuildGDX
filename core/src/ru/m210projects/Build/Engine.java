@@ -196,8 +196,6 @@ public abstract class Engine {
 		}
 	}
 
-	private boolean releasedEngine;
-	public boolean compatibleMode;
 	public static boolean UseBloodPal = false;
 	public String tilesPath = "tilesXXX.art";
 	public int fpscol = 31;
@@ -460,7 +458,7 @@ public abstract class Engine {
 		}
 	}
 
-	public void loadtables() throws Exception { // jfBuild + gdxBuild
+	public void loadtables() throws Exception { // jfBuild
 		if (tablesloaded == 0) {
 			initksqrt();
 
@@ -476,21 +474,12 @@ public abstract class Engine {
 				res.read(buf);
 				ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(sintable);
 
-				if (releasedEngine) {
-					buf = new byte[640 * 2];
-					res.read(buf);
-					ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(radarang, 0, 640);
-					for (int i = 0; i < 640; i++)
-						radarang[1279 - i] = (short) -radarang[i];
-				} else {
-					res.seek(4096, Whence.Current); // tantable
-
-					buf = new byte[640];
-					res.read(buf);
-					ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(radarang, 0, 320);
-					radarang[320] = 0x4000;
-				}
-
+				buf = new byte[640 * 2];
+				res.read(buf);
+				ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(radarang, 0, 640);
+				for (int i = 0; i < 640; i++)
+					radarang[1279 - i] = (short) -radarang[i];
+				
 				res.read(textfont, 0, 1024);
 				res.read(smalltextfont, 0, 1024);
 
@@ -549,7 +538,7 @@ public abstract class Engine {
 		colscan[26] = i;
 	}
 
-	public void loadpalette() throws Exception // jfBuild + gdxBuild
+	public void loadpalette() throws Exception // jfBuild
 	{
 		Resource fil;
 		if (paletteloaded != 0)
@@ -565,19 +554,8 @@ public abstract class Engine {
 
 		fil.read(palette);
 
-		boolean hastransluc = false;
-		if (releasedEngine) {
-			numshades = fil.readShort();
-		} else {
-			int file_len = fil.size();
-			numshades = (short) ((file_len - 768) >> 7);
-			if ((((file_len - 768) >> 7) & 1) <= 0)
-				numshades >>= 1;
-			else {
-				numshades = (short) ((numshades - 255) >> 1);
-				hastransluc = true;
-			}
-		}
+		numshades = fil.readShort();
+		
 		if (palookup[0] == null)
 			palookup[0] = new byte[numshades << 8];
 		if (transluc == null)
@@ -587,21 +565,8 @@ public abstract class Engine {
 		Console.Println("Loading gamma correcion tables");
 		fil.read(palookup[globalpal], 0, numshades << 8);
 		Console.Println("Loading translucency table");
-		if (releasedEngine)
-			fil.read(transluc);
-		else {
-			if (hastransluc) {
-				byte[] tmp = new byte[256];
-				for (int i = 0; i < 255; i++) {
-					fil.read(tmp, 0, 255 - i);
-					System.arraycopy(tmp, 0, transluc, (i << 8) + i + 1, 255 - i);
-					for (int j = i + 1; j < 256; j++)
-						transluc[(j << 8) + i] = transluc[(i << 8) + j];
-				}
-				for (int i = 0; i < 256; i++)
-					transluc[(i << 8) + i] = (byte) i;
-			}
-		}
+		
+		fil.read(transluc);
 
 		fil.close();
 
@@ -1046,9 +1011,7 @@ public abstract class Engine {
 			spriteext[i] = new Spriteext();
 	}
 
-	public Engine(boolean releasedEngine) throws Exception { // gdxBuild
-		this.releasedEngine = releasedEngine;
-
+	public Engine() throws Exception { // gdxBuild
 		InitArrays();
 
 		loadtables();
@@ -1752,60 +1715,38 @@ public abstract class Engine {
 		return (cnt >>> 31);
 	}
 
-	public short getangle(int xvect, int yvect) { // jfBuild + gdxBuild
-		if (releasedEngine) {
-			if ((xvect | yvect) == 0)
-				return (0);
-			if (xvect == 0)
-				return (short) (512 + ((yvect < 0 ? 1 : 0) << 10));
-			if (yvect == 0)
-				return (short) ((xvect < 0 ? 1 : 0) << 10);
-			if (xvect == yvect)
-				return (short) (256 + ((xvect < 0 ? 1 : 0) << 10));
-			if (xvect == -yvect)
-				return (short) (768 + ((xvect > 0 ? 1 : 0) << 10));
+	public short getangle(int xvect, int yvect) { // jfBuild
+		if ((xvect | yvect) == 0)
+			return (0);
+		if (xvect == 0)
+			return (short) (512 + ((yvect < 0 ? 1 : 0) << 10));
+		if (yvect == 0)
+			return (short) ((xvect < 0 ? 1 : 0) << 10);
+		if (xvect == yvect)
+			return (short) (256 + ((xvect < 0 ? 1 : 0) << 10));
+		if (xvect == -yvect)
+			return (short) (768 + ((xvect > 0 ? 1 : 0) << 10));
 
-			if (klabs(xvect) > klabs(yvect)) {
-				return (short) (((radarang[640 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047);
-			}
-			return (short) (((radarang[640 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10))
-					& 2047);
-		} else {
-			if ((xvect | yvect) == 0)
-				return (0);
-			if (xvect == 0)
-				return (short) (512 + ((yvect < 0 ? 1 : 0) << 10));
-			if (yvect == 0)
-				return (short) ((xvect < 0 ? 1 : 0) << 10);
-			if (xvect == yvect)
-				return (short) (256 + ((xvect < 0 ? 1 : 0) << 10));
-			if (xvect == -yvect)
-				return (short) (768 + ((xvect > 0 ? 1 : 0) << 10));
-
-			if (klabs(xvect) > klabs(yvect)) {
-				return (short) (((radarang[160 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047);
-			}
-			return (short) (((radarang[160 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10))
-					& 2047);
+		if (klabs(xvect) > klabs(yvect)) {
+			return (short) (((radarang[640 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047);
 		}
+		return (short) (((radarang[640 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10))
+				& 2047);
 	}
 
-	public int ksqrt(int a) { // jfBuild + gdxBuild
-		if (compatibleMode) {
-			long out = a & 0xFFFFFFFFL;
-			int value;
-			if ((out & 0xFF000000) != 0)
-				value = shlookup[(int) ((out >> 24) + 4096)] & 0xFFFF;
-			else
-				value = shlookup[(int) (out >> 12)] & 0xFFFF;
+	public int ksqrt(int a) { // jfBuild
+		long out = a & 0xFFFFFFFFL;
+		int value;
+		if ((out & 0xFF000000) != 0)
+			value = shlookup[(int) ((out >> 24) + 4096)] & 0xFFFF;
+		else
+			value = shlookup[(int) (out >> 12)] & 0xFFFF;
 
-			out >>= value & 0xff;
-			out = (out & 0xffff0000) | (sqrtable[(int) out] & 0xFFFF);
-			out >>= ((value & 0xff00) >> 8);
+		out >>= value & 0xff;
+		out = (out & 0xffff0000) | (sqrtable[(int) out] & 0xFFFF);
+		out >>= ((value & 0xff00) >> 8);
 
-			return (int) out;
-		} else
-			return (int) sqrt(a & 0xFFFFFFFFL);
+		return (int) out;
 	}
 
 	protected static int SETSPRITEZ = 0;

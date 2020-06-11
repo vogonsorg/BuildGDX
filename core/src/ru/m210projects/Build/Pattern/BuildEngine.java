@@ -20,8 +20,8 @@ public abstract class BuildEngine extends Engine {
 	
 	private BuildGame game;
 
-	public BuildEngine(BuildGame game, int ticks, boolean releasedEngine) throws Exception {
-		super(releasedEngine);
+	public BuildEngine(BuildGame game, int ticks) throws Exception {
+		super();
 		this.game = game;
 		this.ticks = ticks;
 	}
