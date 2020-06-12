@@ -1933,7 +1933,7 @@ public abstract class Software extends Renderer {
 			if ((cstat & 128) == 0)
 				// tspr.z -= mulscale(tilesizy[tspr.picnum], nyrepeat, 15); // GDX this more
 				// correct, but disabled for compatible with eduke
-				tspr.z -= mulscale(vtilenum.zsiz[0], nyrepeat, 22);
+				tspr.z -= mulscale(vtilenum.zpiv[0], nyrepeat, 22);
 
 			if ((cstat & 8) != 0 && (cstat & 16) != 0)
 				tspr.z += mulscale((tilesizy[tspr.picnum] / 2) - vtilenum.zpiv[0], nyrepeat, 36);
