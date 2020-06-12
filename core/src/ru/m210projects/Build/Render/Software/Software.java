@@ -333,13 +333,32 @@ public abstract class Software extends Renderer {
 		isInited = false;
 	}
 
+	public void swapsprite(int k, int l, boolean z)
+	{
+		SPRITE stmp = tspriteptr[k];
+		tspriteptr[k] = tspriteptr[l];
+		tspriteptr[l] = stmp;
+
+		int tmp = spritesx[k];
+		spritesx[k] = spritesx[l];
+		spritesx[l] = tmp;
+		tmp = spritesy[k];
+		spritesy[k] = spritesy[l];
+		spritesy[l] = tmp;
+
+		if(z) {
+			tmp = spritesz[k];
+			spritesz[k] = spritesz[l];
+			spritesz[l] = tmp;
+		}
+	}
+	
 	@Override
 	public void drawmasks() {
 		int i, j, k, l, gap, xs, ys, xp, yp, yoff, yspan;
 
-		for (i = spritesortcnt - 1; i >= 0; i--)
-			tspriteptr[i] = tsprite[i];
 		for (i = spritesortcnt - 1; i >= 0; i--) {
+			tspriteptr[i] = tsprite[i];
 			if (tspriteptr[i].picnum < 0 || tspriteptr[i].picnum > MAXTILES)
 				continue;
 
@@ -369,22 +388,12 @@ public abstract class Software extends Renderer {
 				for (l = i; l >= 0; l -= gap) {
 					if (spritesy[l] <= spritesy[l + gap])
 						break;
-					SPRITE stmp = tspriteptr[l];
-					tspriteptr[l] = tspriteptr[l + gap];
-					tspriteptr[l + gap] = stmp;
-
-					int tmp = spritesx[l];
-					spritesx[l] = spritesx[l + gap];
-					spritesx[l + gap] = tmp;
-
-					tmp = spritesy[l];
-					spritesy[l] = spritesy[l + gap];
-					spritesy[l + gap] = tmp;
+					swapsprite(l, l+gap, false);
 				}
 
 		if (spritesortcnt > 0)
 			spritesy[spritesortcnt] = (spritesy[spritesortcnt - 1] ^ 1);
-
+		
 		ys = spritesy[0];
 		i = 0;
 		for (j = 1; j <= spritesortcnt; j++) {
@@ -409,41 +418,16 @@ public abstract class Software extends Renderer {
 				}
 				for (k = i + 1; k < j; k++)
 					for (l = i; l < k; l++)
-						if (klabs(spritesz[k] - globalposz) < klabs(spritesz[l] - globalposz)) {
-							SPRITE stmp = tspriteptr[k];
-							tspriteptr[k] = tspriteptr[l];
-							tspriteptr[l] = stmp;
-
-							int tmp = spritesx[k];
-							spritesx[k] = spritesx[l];
-							spritesx[l] = tmp;
-
-							tmp = spritesy[k];
-							spritesy[k] = spritesy[l];
-							spritesy[l] = tmp;
-
-							tmp = spritesz[k];
-							spritesz[k] = spritesz[l];
-							spritesz[l] = tmp;
-						}
+						if (klabs(spritesz[k] - globalposz) < klabs(spritesz[l] - globalposz)) 
+							swapsprite(k, l, true);
 				for (k = i + 1; k < j; k++)
 					for (l = i; l < k; l++)
-						if (tspriteptr[k].statnum < tspriteptr[l].statnum) {
-							SPRITE stmp = tspriteptr[k];
-							tspriteptr[k] = tspriteptr[l];
-							tspriteptr[l] = stmp;
-							int tmp = spritesx[k];
-							spritesx[k] = spritesx[l];
-							spritesx[l] = tmp;
-
-							tmp = spritesy[k];
-							spritesy[k] = spritesy[l];
-							spritesy[l] = tmp;
-						}
+						if (tspriteptr[k].statnum < tspriteptr[l].statnum) 
+							swapsprite(k, l, false);
 			}
 			i = j;
 		}
-
+		
 		while ((spritesortcnt > 0) && (maskwallcnt > 0)) // While BOTH > 0
 		{
 			j = maskwall[maskwallcnt - 1];
@@ -457,18 +441,19 @@ public abstract class Software extends Renderer {
 					if ((xb1[j] <= (spritesx[i] >> 8)) && ((spritesx[i] >> 8) <= xb2[j]))
 						if (!spritewallfront(tspriteptr[i], thewall[j])) {
 							drawsprite(i);
-							tspriteptr[i].owner = -1;
+							tspriteptr[i] = null;
 							k = i;
 							gap++;
 						}
 				if (k >= 0) // remove holes in sprite list
 				{
 					for (i = k; i < spritesortcnt; i++)
-						if (tspriteptr[i].owner >= 0) {
+						if (tspriteptr[i] != null && tspriteptr[i].owner >= 0) {
 							if (i > k) {
 								tspriteptr[k] = tspriteptr[i];
 								spritesx[k] = spritesx[i];
 								spritesy[k] = spritesy[i];
+								tspriteptr[i] = null;
 							}
 							k++;
 						}
@@ -479,8 +464,13 @@ public abstract class Software extends Renderer {
 				drawmaskwall(--maskwallcnt);
 			}
 		}
-		while (spritesortcnt > 0)
-			drawsprite(--spritesortcnt);
+	
+		while (spritesortcnt != 0) {
+			spritesortcnt--;
+			if (tspriteptr[spritesortcnt] != null) {
+				drawsprite(spritesortcnt);
+			}
+		}
 		while (maskwallcnt > 0)
 			drawmaskwall(--maskwallcnt);
 	}

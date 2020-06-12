@@ -3600,7 +3600,9 @@ public abstract class Polymost extends GLRenderer {
 
 		for (i = spritesortcnt - 1; i >= 0; i--) {
 			tspriteptr[i] = tsprite[i];
-			if(tspriteptr[i].picnum < 0 || tspriteptr[i].picnum > MAXTILES) continue;
+			if(tspriteptr[i].picnum < 0 || tspriteptr[i].picnum > MAXTILES) 
+				continue;
+			
 			xs = tspriteptr[i].x - globalposx;
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
@@ -3622,11 +3624,11 @@ public abstract class Polymost extends GLRenderer {
 			} else if ((tspriteptr[i].cstat & 48) == 0) {
 				if (!modelp) {
 					spritesortcnt--; // Delete face sprite if on wrong side!
-					if (i == spritesortcnt)
-						continue;
-					tspriteptr[i] = tspriteptr[spritesortcnt];
-					spritesx[i] = spritesx[spritesortcnt];
-					spritesy[i] = spritesy[spritesortcnt];
+					if (i != spritesortcnt) {
+						tspriteptr[i] = tspriteptr[spritesortcnt];
+						spritesx[i] = spritesx[spritesortcnt];
+						spritesy[i] = spritesy[spritesortcnt];
+					}
 					continue;
 				}
 			}
@@ -3636,8 +3638,7 @@ public abstract class Polymost extends GLRenderer {
 		gap = 1;
 		while (gap < spritesortcnt)
 			gap = (gap << 1) + 1;
-		for (gap >>= 1; gap > 0; gap >>= 1)
-			// Sort sprite list
+		for (gap >>= 1; gap > 0; gap >>= 1) // Sort sprite list
 			for (i = 0; i < spritesortcnt - gap; i++)
 				for (l = i; l >= 0; l -= gap) {
 					if (spritesy[l] <= spritesy[l + gap])
@@ -3656,7 +3657,9 @@ public abstract class Polymost extends GLRenderer {
 			if (j > i + 1) {
 				for (k = i; k < j; k++) {
 					spritesz[k] = tspriteptr[k].z;
-					if(tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES) continue;
+					if(tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES) 
+						continue;
+					
 					if ((tspriteptr[k].cstat & 48) != 32) {
 						yoff = ((picanm[tspriteptr[k].picnum] >> 16) & 255) + tspriteptr[k].yoffset;
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
