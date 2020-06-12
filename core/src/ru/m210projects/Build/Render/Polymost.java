@@ -4389,7 +4389,7 @@ public abstract class Polymost extends GLRenderer {
 
 		float x0 = (float) tspr.x;
 		float k0 = (float) tspr.z;
-		
+
 		if ((globalorientation & 128) == 0) 
 			//k0 -= (tilesizy[tspr.picnum] * tspr.yrepeat) << 1; GDX this more correct, but disabled for compatible with eduke
 			k0 -= ((m.zsiz * tspr.yrepeat) << 1);
