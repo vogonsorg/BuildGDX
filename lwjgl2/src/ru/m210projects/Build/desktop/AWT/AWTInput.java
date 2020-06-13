@@ -634,18 +634,17 @@ public class AWTInput implements BuildInput, KeyListener {
 		}
 		return Input.Keys.UNKNOWN;
 	}
-
+	
 	@Override
 	public void setInputProcessor (InputProcessor processor) {
-		synchronized (this) {
-			this.processor = processor;
-		}
+		this.processor = processor;
 	}
 
 	@Override
 	public InputProcessor getInputProcessor () {
 		return this.processor;
 	}
+
 
 	@Override
 	public void vibrate (int milliseconds) {

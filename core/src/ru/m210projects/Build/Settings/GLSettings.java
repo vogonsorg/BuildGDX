@@ -1,8 +1,6 @@
 package ru.m210projects.Build.Settings;
 
-import static com.badlogic.gdx.graphics.GL20.GL_LINEAR;
-import static com.badlogic.gdx.graphics.GL20.GL_LINEAR_MIPMAP_LINEAR;
-import static com.badlogic.gdx.graphics.GL20.GL_NEAREST;
+import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Engine.pow2long;
 import static ru.m210projects.Build.OnSceenDisplay.Console.osd_argv;
 
@@ -14,6 +12,7 @@ import ru.m210projects.Build.OnSceenDisplay.OSDCOMMAND;
 import ru.m210projects.Build.OnSceenDisplay.OSDCVARFUNC;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Types.BuildVariable;
 import ru.m210projects.Build.Types.BuildVariable.RespondType;
@@ -129,7 +128,7 @@ public class GLSettings extends BuildSettings {
 					@Override
 					public void run() {
 						GLRenderer gl = engine.glrender();
-						if(gl != null) gl.gltexinvalidateall(1);
+						if(gl != null) gl.gltexinvalidateall(GLInvalidateFlag.All, GLInvalidateFlag.Uninit);
 					}
 				});
 			}

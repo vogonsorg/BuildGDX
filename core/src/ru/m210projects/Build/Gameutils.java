@@ -181,16 +181,25 @@ public class Gameutils {
 //			input.read(buffer);
 //		} catch (IOException e) {}
 
-		FileHandle fil = BuildGdx.files.internal(resname);
-		
-		byte[] data;
-		if (fil != null && fil.exists() && (data = fil.readBytes()) != null) {
-			DataResource res = new DataResource(null, fil.name(), -1, data);
-			Group group = BuildGdx.cache.add(res, fil.name());
+		byte[] data = null;
+		String filename = "";
+		try { //try to avoid GDX's bug that can't read the file
+			FileHandle fil = BuildGdx.files.internal(resname);
+			if (fil != null && fil.exists()) {
+				filename = fil.name();
+				data = fil.readBytes();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if(data != null) {
+			DataResource res = new DataResource(null, filename, -1, data);
+			Group group = BuildGdx.cache.add(res, filename);
 
 			GroupResource def = group.open(appdef);
 			if (def != null) {
-				baseDef.loadScript(fil.name(), def.getBytes());
+				baseDef.loadScript(filename, def.getBytes());
 				def.close();
 			}
 		}

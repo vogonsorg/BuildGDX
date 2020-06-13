@@ -7,6 +7,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.ScreenAdapters.SkippableAdapter;
+import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Settings.BuildSettings;
 
 public abstract class MovieScreen extends SkippableAdapter {
@@ -76,7 +77,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 
 	@Override
 	public void hide() {
-		engine.setbrightness(BuildSettings.paletteGamma.get(), palette, 2);
+		engine.setbrightness(BuildSettings.paletteGamma.get(), palette, GLInvalidateFlag.All);
 	}
 
 	public MovieScreen setCallback(Runnable callback) {

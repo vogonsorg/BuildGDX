@@ -18,8 +18,10 @@ package ru.m210projects.Build.Input;
 
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
 
 import ru.m210projects.Build.Architecture.BuildController;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -30,21 +32,21 @@ public abstract class BuildControllers {
 	public final static int MAXPOV = 4;
 	public final static int MAXAXIS = 12;
 
-	private Array<BuildController> gamepads;
+	private List<BuildController> gamepads;
 	private float deadZone = 0.01f;
 	
 	private boolean TestGamepad = false;
 
 	public BuildControllers init() {
-		gamepads = new Array<BuildController>();
+		gamepads = new ArrayList<BuildController>();
 		getControllers(gamepads);
 		if(TestGamepad)
 			gamepads.add(new TestController());
 		
-		if(gamepads.size == 0)
+		if(gamepads.size() == 0)
 			Console.Println("No gamepads found.", OSDTEXT_YELLOW);
 		else {
-			for(int i = 0; i < gamepads.size; i++)
+			for(int i = 0; i < gamepads.size(); i++)
 			{
 				BuildController c = gamepads.get(i);
 				Console.Println("Found controller: \"" + c.getName() + "\" [buttons: " + c.getButtonCount() + " axises: " + c.getAxisCount() + " povs: " + c.getPovCount() + "]", OSDTEXT_YELLOW);
@@ -53,16 +55,16 @@ public abstract class BuildControllers {
 		return this;
 	}
 	
-	protected abstract void getControllers(Array<BuildController> gamepads);
+	protected abstract void getControllers(List<BuildController> gamepads);
 	
 	public int getControllers()
 	{
-		return gamepads.size;
+		return gamepads.size();
 	}
 
 	public boolean isValidDevice(int deviceIndex)
 	{
-		return gamepads.size > 0 && deviceIndex >= 0 && deviceIndex < gamepads.size;
+		return gamepads.size() > 0 && deviceIndex >= 0 && deviceIndex < gamepads.size();
 	}
 
 	public String getControllerName(int num)
@@ -77,7 +79,7 @@ public abstract class BuildControllers {
 	
 	public boolean buttonPressed()
 	{
-		for(int i = 0; i < gamepads.size; i++) {
+		for(int i = 0; i < gamepads.size(); i++) {
 			if(gamepads.get(i).buttonPressed())
 				return true;
 		}
@@ -94,13 +96,13 @@ public abstract class BuildControllers {
 
 	public void handler()
 	{
-		for(int i = 0; i < gamepads.size; i++)
+		for(int i = 0; i < gamepads.size(); i++)
 			gamepads.get(i).update();
 	}
 	
 	public void resetButtonStatus()
 	{
-		for(int i = 0; i < gamepads.size; i++) {
+		for(int i = 0; i < gamepads.size(); i++) {
 			gamepads.get(i).resetButtonStatus();	
 		}
 	}

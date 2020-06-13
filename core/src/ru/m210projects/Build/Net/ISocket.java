@@ -16,9 +16,7 @@
 
 package ru.m210projects.Build.Net;
 
-import com.badlogic.gdx.utils.Disposable;
-
-public interface ISocket extends Disposable {
+public interface ISocket {
 	public Object recvfrom (byte[] dabuf, int bufsiz);
 	public void sendto (Object sockaddr, byte[] dabuf, int bufsiz);
 	public void dispose();	

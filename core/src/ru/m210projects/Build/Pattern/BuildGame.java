@@ -107,12 +107,7 @@ public abstract class BuildGame extends Game {
 	public void dispose() {
 		pCfg.saveConfig(BuildGdx.compat, Path.Game.getPath());
 		if(getScreen() instanceof InitScreen) {
-			BuildGdx.app.postRunnable(new Runnable() {
-				@Override
-				public void run() {
-					((InitScreen) getScreen()).dispose();
-				}
-			});
+			((InitScreen) getScreen()).dispose();
 		}
 		if(numplayers > 1)
 			pNet.NetDisconnect(myconnectindex);

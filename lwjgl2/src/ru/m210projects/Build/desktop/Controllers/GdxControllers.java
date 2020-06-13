@@ -16,6 +16,8 @@
 
 package ru.m210projects.Build.desktop.Controllers;
 
+import java.util.List;
+
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.utils.Array;
@@ -28,7 +30,7 @@ import ru.m210projects.Build.Input.BuildControllers;
 public class GdxControllers extends BuildControllers {
 
 	@Override
-	protected void getControllers(Array<BuildController> gamepads) {
+	protected void getControllers(List<BuildController> gamepads) {
 		Array<Controller> controllers = null;
 
 		if(BuildGdx.graphics.getFrameType() != FrameType.Canvas) {

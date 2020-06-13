@@ -89,10 +89,7 @@ import static ru.m210projects.Build.Loader.Voxels.Voxel.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import com.badlogic.gdx.utils.BufferUtils;
-
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
@@ -110,7 +107,7 @@ public abstract class Software extends Renderer {
 
 	public final int BITSOFPRECISION = 3;
 
-	protected Ac a;
+	protected A a;
 	protected Engine engine;
 	protected DefScript defs;
 
@@ -131,7 +128,6 @@ public abstract class Software extends Renderer {
 
 	public int[] lookups;
 
-	public byte[] frameplace;
 	public byte[][] bakframeplace = new byte[4][];
 	public short[] bakxsiz = new short[4], bakysiz = new short[4];
 
@@ -214,7 +210,6 @@ public abstract class Software extends Renderer {
 		if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
 			BuildGdx.app.setFrame(FrameType.Canvas);
 		this.engine = engine;
-		a = new Ac(this);
 
 		orpho = new SoftwareOrpho(this);
 	}
@@ -223,7 +218,7 @@ public abstract class Software extends Renderer {
 	public void init() {
 		if (xdim == 0 && ydim == 0)
 			return;
-		frameplace = new byte[xdim * ydim];
+
 		bytesperline = xdim;
 
 		int j = ydim * 4 * 4;
@@ -236,12 +231,8 @@ public abstract class Software extends Renderer {
 
 		// Force drawrooms to call dosetaspect & recalculate stuff
 		oxyaspect = oxdimen = oviewingrange = -1;
-
-		a.setvlinebpl(bytesperline);
-
-		a.fixtransluscence(transluc);
+		
 		globalpalwritten = 0;
-		a.setpalookupaddress(globalpalwritten);
 
 		changepalette(curpalette.getBytes());
 
@@ -258,8 +249,19 @@ public abstract class Software extends Renderer {
 
 		for (int i = 1; i < 1024; i++)
 			lowrecip[i] = ((1 << 24) - 1) / i;
+		
+		a = new Ac(xdim, ydim, reciptable);
+		a.setvlinebpl(bytesperline);
+
+		a.fixtransluscence(transluc);
+		a.setpalookupaddress(palookup[globalpalwritten]);
 
 		isInited = true;
+	}
+	
+	protected A getA()
+	{
+		return a;
 	}
 
 	@Override
@@ -290,8 +292,8 @@ public abstract class Software extends Renderer {
 		tilesizy[tilenume] = ysiz;
 		bakxsiz[setviewcnt] = xsiz;
 		bakysiz[setviewcnt] = ysiz;
-		bakframeplace[setviewcnt] = frameplace;
-		frameplace = waloff[tilenume];
+		bakframeplace[setviewcnt] = a.getframeplace();
+		a.setframeplace(waloff[tilenume]);
 		bakwindowx1[setviewcnt] = windowx1;
 		bakwindowy1[setviewcnt] = windowy1;
 		bakwindowx2[setviewcnt] = windowx2;
@@ -310,7 +312,7 @@ public abstract class Software extends Renderer {
 	}
 
 	public void setviewback() {
-		frameplace = bakframeplace[setviewcnt];
+		a.setframeplace(bakframeplace[setviewcnt]);
 
 		int k;
 		if (setviewcnt == 0)
@@ -331,13 +333,32 @@ public abstract class Software extends Renderer {
 		isInited = false;
 	}
 
+	public void swapsprite(int k, int l, boolean z)
+	{
+		SPRITE stmp = tspriteptr[k];
+		tspriteptr[k] = tspriteptr[l];
+		tspriteptr[l] = stmp;
+
+		int tmp = spritesx[k];
+		spritesx[k] = spritesx[l];
+		spritesx[l] = tmp;
+		tmp = spritesy[k];
+		spritesy[k] = spritesy[l];
+		spritesy[l] = tmp;
+
+		if(z) {
+			tmp = spritesz[k];
+			spritesz[k] = spritesz[l];
+			spritesz[l] = tmp;
+		}
+	}
+	
 	@Override
 	public void drawmasks() {
 		int i, j, k, l, gap, xs, ys, xp, yp, yoff, yspan;
 
-		for (i = spritesortcnt - 1; i >= 0; i--)
-			tspriteptr[i] = tsprite[i];
 		for (i = spritesortcnt - 1; i >= 0; i--) {
+			tspriteptr[i] = tsprite[i];
 			if (tspriteptr[i].picnum < 0 || tspriteptr[i].picnum > MAXTILES)
 				continue;
 
@@ -367,22 +388,12 @@ public abstract class Software extends Renderer {
 				for (l = i; l >= 0; l -= gap) {
 					if (spritesy[l] <= spritesy[l + gap])
 						break;
-					SPRITE stmp = tspriteptr[l];
-					tspriteptr[l] = tspriteptr[l + gap];
-					tspriteptr[l + gap] = stmp;
-
-					int tmp = spritesx[l];
-					spritesx[l] = spritesx[l + gap];
-					spritesx[l + gap] = tmp;
-
-					tmp = spritesy[l];
-					spritesy[l] = spritesy[l + gap];
-					spritesy[l + gap] = tmp;
+					swapsprite(l, l+gap, false);
 				}
 
 		if (spritesortcnt > 0)
 			spritesy[spritesortcnt] = (spritesy[spritesortcnt - 1] ^ 1);
-
+		
 		ys = spritesy[0];
 		i = 0;
 		for (j = 1; j <= spritesortcnt; j++) {
@@ -407,41 +418,16 @@ public abstract class Software extends Renderer {
 				}
 				for (k = i + 1; k < j; k++)
 					for (l = i; l < k; l++)
-						if (klabs(spritesz[k] - globalposz) < klabs(spritesz[l] - globalposz)) {
-							SPRITE stmp = tspriteptr[k];
-							tspriteptr[k] = tspriteptr[l];
-							tspriteptr[l] = stmp;
-
-							int tmp = spritesx[k];
-							spritesx[k] = spritesx[l];
-							spritesx[l] = tmp;
-
-							tmp = spritesy[k];
-							spritesy[k] = spritesy[l];
-							spritesy[l] = tmp;
-
-							tmp = spritesz[k];
-							spritesz[k] = spritesz[l];
-							spritesz[l] = tmp;
-						}
+						if (klabs(spritesz[k] - globalposz) < klabs(spritesz[l] - globalposz)) 
+							swapsprite(k, l, true);
 				for (k = i + 1; k < j; k++)
 					for (l = i; l < k; l++)
-						if (tspriteptr[k].statnum < tspriteptr[l].statnum) {
-							SPRITE stmp = tspriteptr[k];
-							tspriteptr[k] = tspriteptr[l];
-							tspriteptr[l] = stmp;
-							int tmp = spritesx[k];
-							spritesx[k] = spritesx[l];
-							spritesx[l] = tmp;
-
-							tmp = spritesy[k];
-							spritesy[k] = spritesy[l];
-							spritesy[l] = tmp;
-						}
+						if (tspriteptr[k].statnum < tspriteptr[l].statnum) 
+							swapsprite(k, l, false);
 			}
 			i = j;
 		}
-
+		
 		while ((spritesortcnt > 0) && (maskwallcnt > 0)) // While BOTH > 0
 		{
 			j = maskwall[maskwallcnt - 1];
@@ -455,18 +441,19 @@ public abstract class Software extends Renderer {
 					if ((xb1[j] <= (spritesx[i] >> 8)) && ((spritesx[i] >> 8) <= xb2[j]))
 						if (!spritewallfront(tspriteptr[i], thewall[j])) {
 							drawsprite(i);
-							tspriteptr[i].owner = -1;
+							tspriteptr[i] = null;
 							k = i;
 							gap++;
 						}
 				if (k >= 0) // remove holes in sprite list
 				{
 					for (i = k; i < spritesortcnt; i++)
-						if (tspriteptr[i].owner >= 0) {
+						if (tspriteptr[i] != null && tspriteptr[i].owner >= 0) {
 							if (i > k) {
 								tspriteptr[k] = tspriteptr[i];
 								spritesx[k] = spritesx[i];
 								spritesy[k] = spritesy[i];
+								tspriteptr[i] = null;
 							}
 							k++;
 						}
@@ -477,14 +464,19 @@ public abstract class Software extends Renderer {
 				drawmaskwall(--maskwallcnt);
 			}
 		}
-		while (spritesortcnt > 0)
-			drawsprite(--spritesortcnt);
+	
+		while (spritesortcnt != 0) {
+			spritesortcnt--;
+			if (tspriteptr[spritesortcnt] != null) {
+				drawsprite(spritesortcnt);
+			}
+		}
 		while (maskwallcnt > 0)
 			drawmaskwall(--maskwallcnt);
 	}
 
 	@Override
-	public void drawrooms() { // XXX
+	public void drawrooms() {
 		globaluclip = (0 - (int) globalhoriz) * xdimscale;
 		globaldclip = (ydimen - (int) globalhoriz) * xdimscale;
 
@@ -638,6 +630,7 @@ public abstract class Software extends Renderer {
 		int p = ylookup[windowy1 + mirrorsy1] + windowx1 + mirrorsx1;
 		int i = windowx2 - windowx1 - mirrorsx2 - mirrorsx1;
 		mirrorsx2 -= mirrorsx1;
+		byte[] frameplace = a.getframeplace();
 		for (int dy = mirrorsy2 - mirrorsy1; dy >= 0; dy--) {
 			if (mirrorsx2 + 1 + p + 1 >= frameplace.length)
 				return;
@@ -882,6 +875,7 @@ public abstract class Software extends Renderer {
 							gotswall = 1;
 							prepwall(z, wal);
 						}
+
 						wallscan(x1, x2, uwall, dplc, swall, lwall);
 
 						if ((fz[2] <= fz[0]) && (fz[3] <= fz[1])) {
@@ -1932,7 +1926,7 @@ public abstract class Software extends Renderer {
 				tspr.z -= mulscale(vtilenum.zpiv[0], nyrepeat, 22);
 
 			if ((cstat & 8) != 0 && (cstat & 16) != 0)
-				tspr.z -= mulscale((tilesizy[tspr.picnum] / 2) - vtilenum.zpiv[0], nyrepeat, 22);
+				tspr.z += mulscale((tilesizy[tspr.picnum] / 2) - vtilenum.zpiv[0], nyrepeat, 36);
 
 			globvis = globalvisibility;
 			globalorientation = cstat;
@@ -1986,7 +1980,7 @@ public abstract class Software extends Renderer {
 			else
 				trans = 1;
 		}
-		a.setupdrawslab(ylookup[1], dapal, j, trans);
+		a.setupdrawslab(ylookup[1], palookup[dapal], j, trans);
 
 		if (!novoxmips) {
 			j = 1310720;
@@ -2456,7 +2450,7 @@ public abstract class Software extends Renderer {
 
 		int p = ylookup[y1v] + x + frameoffset;
 
-		a.tvlineasm1(vinc, globalpal, (engine.getpalookup(mulscale(swall[x], globvis, 16), globalshade) << 8),
+		a.tvlineasm1(vinc, palookup[globalpal], (engine.getpalookup(mulscale(swall[x], globvis, 16), globalshade) << 8),
 				y2v - y1v, vplc, bufplc, bufoffs, p);
 	}
 
@@ -2589,7 +2583,7 @@ public abstract class Software extends Renderer {
 			vince = swal[x] * globalyscale;
 			vplce = globalzd + vince * (y1ve - (int) globalhoriz + 1);
 			cnt = y2ve - y1ve - 1;
-			a.mvlineasm1(vince, globalpal, shade, cnt, vplce, waloff[globalpicnum], bufplce,
+			a.mvlineasm1(vince, palookup[globalpal], shade, cnt, vplce, waloff[globalpicnum], bufplce,
 					x + frameoffset + ylookup[y1ve]);
 		}
 
@@ -2649,8 +2643,8 @@ public abstract class Software extends Renderer {
 
 			int vince = swal[x] * globalyscale;
 			int vplce = globalzd + vince * (y1ve - (int) globalhoriz + 1);
-
-			a.vlineasm1(vince, fpalookup, shade, y2ve - y1ve - 1, vplce, waloff[globalpicnum], bufplce,
+			
+			a.vlineasm1(vince, palookup[fpalookup], shade, y2ve - y1ve - 1, vplce, waloff[globalpicnum], bufplce,
 					x + frameoffset + ylookup[y1ve]);
 		}
 
@@ -2664,7 +2658,7 @@ public abstract class Software extends Renderer {
 		sec = sector[sectnum];
 		if (sec.floorpal != globalpalwritten) {
 			globalpalwritten = sec.floorpal;
-			a.setpalookupaddress(globalpalwritten);
+			a.setpalookupaddress(palookup[globalpalwritten]);
 		}
 
 		globalzd = globalposz - sec.floorz;
@@ -3046,12 +3040,10 @@ public abstract class Software extends Renderer {
 		v = mulscale(globalzd, lookups[horizlookup + y - (int) globalhoriz + horizycent], 20);
 		bx = mulscale(globalx2 * x1 + globalx1, v, 14) + globalxpanning;
 		by = mulscale(globaly2 * x1 + globaly1, v, 14) + globalypanning;
-		a.asm1 = mulscale(globalx2, v, 14);
-		a.asm2 = mulscale(globaly2, v, 14);
-
-		a.hlinepal = globalpal;
-		a.hlineshade = engine.getpalookup(mulscale(klabs(v), globvis, 28), globalshade) << 8;
-
+		
+		a.sethlineincs(mulscale(globalx2, v, 14), mulscale(globaly2, v, 14));
+		a.setuphline(palookup[globalpal], engine.getpalookup(mulscale(klabs(v), globvis, 28), globalshade) << 8);
+	
 		if ((globalorientation & 2) == 0)
 			a.mhline(globalbufplc, bx, (x2 - x1) << 16, 0, by, ylookup[y] + x1 + frameoffset);
 		else {
@@ -3184,8 +3176,6 @@ public abstract class Software extends Renderer {
 			globaly1 += ((sec.floorypanning) << 24);
 		}
 
-		a.asm1 = -(globalzd >> (16 - BITSOFPRECISION));
-
 		globvis = globalvisibility;
 		if (sec.visibility != 0)
 			globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
@@ -3194,7 +3184,7 @@ public abstract class Software extends Renderer {
 
 		j = globalpal;
 		a.setupslopevlin((picsiz[globalpicnum] & 15) + (((picsiz[globalpicnum] >> 4)) << 8), waloff[globalpicnum],
-				-ylookup[1]);
+				-ylookup[1], -(globalzd >> (16 - BITSOFPRECISION)));
 
 		l = (globalzd >> 16);
 
@@ -3240,9 +3230,8 @@ public abstract class Software extends Renderer {
 
 				globalx3 = (int) (globalx2 >> 10);
 				globaly3 = (int) (globaly2 >> 10);
-				a.asm3 = mulscale(y2, globalzd, 16) + (globalzx >> 6);
-				a.slopevlin(ylookup[y2] + x + frameoffset, j, nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3,
-						globaly3, slopalookup);
+				a.slopevlin(ylookup[y2] + x + frameoffset, palookup[j], nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3,
+						globaly3, slopalookup, mulscale(y2, globalzd, 16) + (globalzx >> 6));
 
 //				if ((x & 15) == 0)
 //					engine.faketimerhandler();
@@ -3261,7 +3250,7 @@ public abstract class Software extends Renderer {
 		sec = sector[sectnum];
 		if (sec.ceilingpal != globalpalwritten) {
 			globalpalwritten = sec.ceilingpal;
-			a.setpalookupaddress(globalpalwritten);
+			a.setpalookupaddress(palookup[globalpalwritten]);
 		}
 
 		globalzd = sec.ceilingz - globalposz;
@@ -3464,11 +3453,12 @@ public abstract class Software extends Renderer {
 
 	@Override
 	public void clearview(int dacol) {
-		Gameutils.fill(frameplace, dacol);
+		a.clearframe((byte) dacol); 
 	}
 
 	@Override
 	public void nextpage() {
+		byte[] frameplace = a.getframeplace();
 		System.arraycopy(frameplace, 0, BuildGdx.graphics.extra(Option.SWGetFrame), 0, frameplace.length); // Math.min(frameplace.length,
 																											// dst.length)
 		engine.faketimerhandler();
@@ -3529,11 +3519,13 @@ public abstract class Software extends Renderer {
 	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
 		if (ysiz < 0)
 			ysiz *= -1;
+		
+		byte[] frameplace = a.getframeplace();
 		if (format == PixelFormat.Pal8) {
 			if (indexbuffer != null)
 				indexbuffer.clear();
 			if (indexbuffer == null || indexbuffer.capacity() < xsiz * ysiz)
-				indexbuffer = BufferUtils.newByteBuffer(xsiz * ysiz);
+				indexbuffer = ByteBuffer.allocateDirect(xsiz * ysiz);
 
 			indexbuffer.put(frameplace);
 			indexbuffer.rewind();
@@ -3542,7 +3534,7 @@ public abstract class Software extends Renderer {
 			if (rgbbuffer != null)
 				rgbbuffer.clear();
 			if (rgbbuffer == null || rgbbuffer.capacity() < xsiz * ysiz * 3)
-				rgbbuffer = BufferUtils.newByteBuffer(xsiz * ysiz * 3);
+				rgbbuffer = ByteBuffer.allocateDirect(xsiz * ysiz * 3);
 
 			for (int i = 0; i < xsiz * ysiz; i++) {
 				int dacol = frameplace[i] & 0xFF;
@@ -3950,13 +3942,13 @@ public abstract class Software extends Renderer {
 
 		qinterpolatedown16short(mostbuf, ix1, ix2 - ix1 + 1, y + ((int) globalhoriz << 16), yinc);
 
-		if (mostbuf[ix1] < 0)
+		if (ix1 < 0 || mostbuf[ix1] < 0)
 			mostbuf[ix1] = 0;
-		if (mostbuf[ix1] > ydimen)
+		if (ix1 >= mostbuf.length || mostbuf[ix1] > ydimen)
 			mostbuf[ix1] = (short) ydimen;
-		if (mostbuf[ix2] < 0)
+		if (ix2 < 0 || mostbuf[ix2] < 0)
 			mostbuf[ix2] = 0;
-		if (mostbuf[ix2] > ydimen)
+		if (ix2 >= mostbuf.length || mostbuf[ix2] > ydimen)
 			mostbuf[ix2] = (short) ydimen;
 
 		return (bad);
@@ -4137,8 +4129,7 @@ public abstract class Software extends Renderer {
 			return;
 
 		int r = lookups[horizlookup2 + yp - (int) globalhoriz + horizycent];
-		a.asm1 = (globalx1 * r);
-		a.asm2 = (globaly2 * r);
+		a.sethlineincs(globalx1 * r, globaly2 * r);
 
 		int shade = engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8;
 
@@ -4150,20 +4141,22 @@ public abstract class Software extends Renderer {
 		int xl = lastx[yp];
 		if (xl > xr)
 			return;
+		
 		int r = lookups[horizlookup2 + yp - (int) globalhoriz + horizycent];
-		a.asm1 = (globalx1 * r);
-		a.asm2 = (globaly2 * r);
-
-		a.hlinepal = globalpalwritten;
-		a.hlineshade = engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8;
-
+		int xinc = globalx1 * r;
+		int yinc = globaly2 * r;
+		
+		a.sethlineincs(globalx1 * r, globaly2 * r);
+		
+		a.setuphline(palookup[globalpalwritten], engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8);
+		
 		if ((globalorientation & 256) == 0) {
-			a.mhline(globalbufplc, globaly1 * r + globalxpanning - a.asm1 * (xr - xl), (xr - xl) << 16, 0,
-					globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl + frameoffset);
+			a.mhline(globalbufplc, globaly1 * r + globalxpanning - xinc * (xr - xl), (xr - xl) << 16, 0,
+					globalx2 * r + globalypanning - yinc * (xr - xl), ylookup[yp] + xl + frameoffset);
 			return;
 		}
-		a.thline(globalbufplc, globaly1 * r + globalxpanning - a.asm1 * (xr - xl), (xr - xl) << 16, 0,
-				globalx2 * r + globalypanning - a.asm2 * (xr - xl), ylookup[yp] + xl + frameoffset);
+		a.thline(globalbufplc, globaly1 * r + globalxpanning - xinc * (xr - xl), (xr - xl) << 16, 0,
+				globalx2 * r + globalypanning - yinc * (xr - xl), ylookup[yp] + xl + frameoffset);
 	}
 
 	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c) {
