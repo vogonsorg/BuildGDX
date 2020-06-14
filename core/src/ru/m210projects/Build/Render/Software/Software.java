@@ -1006,7 +1006,7 @@ public abstract class Software extends Renderer {
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
 
-		if (tspr.owner < 0 || tspr.picnum < 0 || tspr.picnum >= MAXTILES || tspr.sectnum < 0)
+		if (tspr == null || tspr.owner < 0 || tspr.picnum < 0 || tspr.picnum >= MAXTILES || tspr.sectnum < 0)
 			return;
 
 		if ((picanm[tilenum] & 192) != 0)
