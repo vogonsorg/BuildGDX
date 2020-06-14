@@ -291,7 +291,7 @@ public class DefScript {
 		return false;
 	}
 
-	private int getPtr(Scriptfile script, int line) {
+	protected int getPtr(Scriptfile script, int line) {
 		if (line <= 2)
 			return script.lineoffs[0];
 
