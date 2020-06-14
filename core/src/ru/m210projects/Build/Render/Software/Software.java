@@ -3777,6 +3777,9 @@ public abstract class Software extends Renderer {
 	}
 
 	private boolean spritewallfront(SPRITE s, int w) {
+		if(s == null)
+			return false;
+		
 		WALL wal = wall[w];
 		int x1 = wal.x;
 		int y1 = wal.y;
