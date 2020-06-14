@@ -99,7 +99,6 @@ public class BuildApplication implements Application {
 					}
 				}
 			};
-			mainLoopThread.setPriority(Thread.MAX_PRIORITY);
 			mainLoopThread.start();
 		}
 	}
