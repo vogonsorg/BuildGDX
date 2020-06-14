@@ -1001,13 +1001,14 @@ public abstract class Software extends Renderer {
 
 		int xb = spritesx[snum];
 		int yp = spritesy[snum];
+
+		if (tspr == null || tspr.owner < 0 || tspr.picnum < 0 || tspr.picnum >= MAXTILES || tspr.sectnum < 0)
+			return;
+		
 		int tilenum = tspr.picnum;
 		Voxel vtilenum = null;
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
-
-		if (tspr.owner < 0 || tspr.picnum < 0 || tspr.picnum >= MAXTILES || tspr.sectnum < 0)
-			return;
 
 		if ((picanm[tilenum] & 192) != 0)
 			tilenum += engine.animateoffs(tilenum, spritenum + 32768);
@@ -3777,6 +3778,9 @@ public abstract class Software extends Renderer {
 	}
 
 	private boolean spritewallfront(SPRITE s, int w) {
+		if(s == null)
+			return false;
+		
 		WALL wal = wall[w];
 		int x1 = wal.x;
 		int y1 = wal.y;
