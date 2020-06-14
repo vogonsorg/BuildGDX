@@ -46,7 +46,7 @@ public class JCanvas extends Canvas {
 	public byte[] getFrame() { return raster; }
 	
 	public void changepalette(byte[] palette) {
-		paletteModel = new IndexColorModel(1, 256, palette, 0, false);
+		paletteModel = new IndexColorModel(8, 256, palette, 0, false);
 		if(display == null) {
 			display = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, paletteModel);
 			raster = ((DataBufferByte)display.getRaster().getDataBuffer()).getData();

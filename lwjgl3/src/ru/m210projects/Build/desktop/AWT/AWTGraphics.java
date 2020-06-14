@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Cursor;
@@ -71,21 +72,6 @@ public class AWTGraphics extends BuildGraphics {
 	protected void init() throws Exception {
 		display = new JDisplay(config.width, config.height, config.borderless);
 
-		if(config.fullscreen) {
-			DisplayMode bestMode = null;
-			for(DisplayMode mode: getDisplayModes()) {
-				if(mode.width == config.width && mode.height == config.height) {
-					if(bestMode == null || bestMode.refreshRate < mode.refreshRate) {
-						bestMode = mode;
-					}
-				}
-			}
-			if(bestMode == null) {
-				bestMode = this.getDesktopDisplayMode();
-			}
-			setFullscreenMode(bestMode);
-		}
-
 		try {
 			Array<String> iconPaths = config.getIconPaths();
 			if (iconPaths.size > 0) {
@@ -104,10 +90,30 @@ public class AWTGraphics extends BuildGraphics {
 		display.setTitle(config.title);
 		display.setResizable(config.resizable);
 		display.setLocation(config.x, config.y);
-
-		display.m_frame.setVisible(true);
-		display.getCanvas().setFocusable(true);
-		display.getCanvas().requestFocus();
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if(config.fullscreen) {
+					DisplayMode bestMode = null;
+					for(DisplayMode mode: getDisplayModes()) {
+						if(mode.width == config.width && mode.height == config.height) {
+							if(bestMode == null || bestMode.refreshRate < mode.refreshRate) {
+								bestMode = mode;
+							}
+						}
+					}
+					if(bestMode == null) {
+						bestMode = AWTGraphics.this.getDesktopDisplayMode();
+					}
+					setFullscreenMode(bestMode);
+				}
+				
+				display.m_frame.setVisible(true);
+				display.getCanvas().setFocusable(true);
+				display.getCanvas().requestFocus();
+			}
+		});
 	}
 
 	@Override
