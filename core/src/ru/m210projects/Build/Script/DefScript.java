@@ -428,7 +428,9 @@ public class DefScript {
 			put("animtilerange", new AnimRangeToken());
 
 			// gdx
-			put("sound", put("music", new AudioToken()));
+			tok = new AudioToken();
+			put("sound", tok);
+			put("music", tok);
 			put("includeif", new AddonToken());
 		}
 	};
