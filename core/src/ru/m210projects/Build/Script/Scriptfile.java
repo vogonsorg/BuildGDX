@@ -232,10 +232,10 @@ public class Scriptfile {
 				data[nflen++] = '\"';
 				continue;
 			}
-//			if (data[i] == '\"') {
-//				inquote ^= 1;
-//				continue;
-//			}
+			if (data[i] == '\"') {
+				inquote ^= 1;
+				//continue;
+			}
 			data[nflen++] = data[i];
 		}
 		data[nflen++] = 0;
@@ -244,7 +244,7 @@ public class Scriptfile {
 
 		flen = nflen;
 
-		textbuf = new String(data);
+		textbuf = new String(data, 0, flen);
 		textptr = 0;
 		eof = nflen - 1;
 	}
