@@ -1861,6 +1861,13 @@ public abstract class Software extends Renderer {
 
 		case 3: // Voxel sprite
 			long nyrepeat;
+			
+			xoff = tspr.xoffset;
+			yoff = tspr.yoffset;
+			if ((cstat & 4) > 0)
+				xoff = -xoff;
+			if ((cstat & 8) > 0)
+				yoff = -yoff;
 
 			lx = 0;
 			rx = xdim - 1;
@@ -1915,12 +1922,19 @@ public abstract class Software extends Renderer {
 			if (vtilenum == null)
 				break;
 
+			int ang = (engine.getangle(tspr.x - globalposx, tspr.y - globalposy) + 1024) & 2047;
 			if (vtilenum.scale == 65536)
 				nyrepeat = ((tspr.yrepeat) << 16);
 			else
 				nyrepeat = tspr.yrepeat * vtilenum.scale;
 
-			// tspr.z -= mulscale(yoff, nyrepeat, 14);
+			xv = (int) ((tspr.xrepeat * sintable[(ang + 2560 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
+			yv = (int) ((tspr.xrepeat * sintable[(ang + 2048 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
+
+			tspr.x -= mulscale(xoff, xv, 16);
+			tspr.y -= mulscale(xoff, yv, 16);
+			tspr.z -= mulscale(yoff, nyrepeat, 14);
+			
 			if ((cstat & 128) == 0)
 				// tspr.z -= mulscale(tilesizy[tspr.picnum], nyrepeat, 15); // GDX this more
 				// correct, but disabled for compatible with eduke

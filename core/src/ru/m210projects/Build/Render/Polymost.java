@@ -4390,8 +4390,16 @@ public abstract class Polymost extends GLRenderer {
 		dvoxm0.z *= f;
 		modela0.z *= f;
 
-		float x0 = (float) tspr.x;
-		float k0 = (float) tspr.z;
+		float x0 = tspr.x;
+		float k0 = tspr.z;
+		float xoff = tspr.xoffset;
+		float yoff = tspr.yoffset;
+		
+		if (xflip = (globalorientation & 4) != 0)
+			xoff = -xoff;
+		
+		if (yflip = (globalorientation & 8) != 0)
+			yoff = -yoff;
 
 		if ((globalorientation & 128) == 0) 
 			//k0 -= (tilesizy[tspr.picnum] * tspr.yrepeat) << 1; GDX this more correct, but disabled for compatible with eduke
@@ -4402,6 +4410,9 @@ public abstract class Polymost extends GLRenderer {
 
 		f = (65536.0f * 512.0f) / ((float) (xdimen * viewingrange));
 		g = 32.0f / (float) (xdimen * gxyaspect);
+
+		x0 += xoff * (tspr.xrepeat >> 2);
+		k0 -= yoff * (tspr.yrepeat << 2);
 		
 		dvoxm0.y *= f;
 		if ((sprite[tspr.owner].cstat & 48) == 32)
