@@ -45,6 +45,7 @@ public class Scriptfile {
 		}
 
 		String txt = textbuf.substring(out, textptr);
+		txt = txt.replaceAll("\"", "");
 		txt = txt.replace("/", File.separator);
 		return toLowerCase(txt);
 	}
@@ -91,6 +92,7 @@ public class Scriptfile {
 	public int getbraces() {
 		int bracecnt;
 		int bracestart;
+		int inquote = 0;
 
 		skipoverws();
 		if (textptr >= eof) {
@@ -109,10 +111,12 @@ public class Scriptfile {
 		while (true) {
 			if (textptr >= eof)
 				return (0);
-
-			if (textbuf.charAt(textptr) == '{')
+			
+			if (textbuf.charAt(textptr) == '\"') 
+				inquote ^= 1;
+			if (inquote == 0 && textbuf.charAt(textptr) == '{')
 				bracecnt++;
-			if (textbuf.charAt(textptr) == '}') {
+			if (inquote == 0 && textbuf.charAt(textptr) == '}') {
 				bracecnt--;
 				if (bracecnt == 0)
 					break;
@@ -228,10 +232,10 @@ public class Scriptfile {
 				data[nflen++] = '\"';
 				continue;
 			}
-			if (data[i] == '\"') {
-				inquote ^= 1;
-				continue;
-			}
+//			if (data[i] == '\"') {
+//				inquote ^= 1;
+//				continue;
+//			}
 			data[nflen++] = data[i];
 		}
 		data[nflen++] = 0;
