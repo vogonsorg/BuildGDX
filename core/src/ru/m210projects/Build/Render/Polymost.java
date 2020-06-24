@@ -341,7 +341,7 @@ public abstract class Polymost extends GLRenderer {
 	protected Polymost2D polymost2d;
 	protected boolean isInited = false;
 	
-	private boolean showlines = false;
+//	private boolean showlines = false;
 
 	public Polymost(Engine engine) {
 		this.gl = BuildGdx.graphics.getGL10();
@@ -643,7 +643,7 @@ public abstract class Polymost extends GLRenderer {
 	
 	private final Polygon drawpoly[] = new Polygon[16];
 	private final Color polyColor = new Color();
-	
+
 	protected void drawpoly(Surface[] dm, int n, int method) {
 		double ngdx = 0.0, ngdy = 0.0, ngdo = 0.0, ngux = 0.0, nguy = 0.0, nguo = 0.0;
 		double ngvx = 0.0, ngvy = 0.0, ngvo = 0.0, dp, up, vp, du0 = 0.0, du1 = 0.0, dui, duj;
@@ -757,6 +757,7 @@ public abstract class Polymost extends GLRenderer {
 		bindTexture(pth.glpic);
 		
 		GLSurface surf = null;
+		 
 		if(surfaceType == 1) { 
 			surf = surfaces.build();
 			surf.pth = pth;	
@@ -900,8 +901,7 @@ public abstract class Polymost extends GLRenderer {
 //		textureCache.shaderTransparent(polyColor.a);
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
-		// Hack for walls&masked walls which use textures that are not a power
-		// of 2
+		// Hack for walls&masked walls which use textures that are not a power of 2
 		if ((pow2xsplit != 0) && (tsizx != xx)) {
 			if (!dorot)
             {
@@ -946,14 +946,17 @@ public abstract class Polymost extends GLRenderer {
 			for (i = 0; i < n; i++) {
 				ox = drawpoly[i].px;
 				oy = drawpoly[i].py;
-				
 				f = (ox * ngux + oy * nguy + nguo)
 						/ (ox * ngdx + oy * ngdy + ngdo);
+
+				if(abs(f) > 2000) //XXX
+					f = 2000;
+
 				if (i == 0) {
 					du0 = du1 = f;
 					continue;
 				}
-				if (f < du0)
+				if (f < du0) 
 					du0 = f;
 				else if (f > du1)
 					du1 = f;
@@ -963,7 +966,7 @@ public abstract class Polymost extends GLRenderer {
 				f = 1.0 / tsizx;
 				ix0 = floor(du0 * f);
 				ix1 = floor(du1 * f);
-	
+		
 				for (; ix0 <= ix1; ix0++) {
 					du0 = (ix0) * tsizx;
 					du1 = (ix0 + 1) * tsizx;
@@ -1070,22 +1073,22 @@ public abstract class Polymost extends GLRenderer {
 				surf.buffer.flip();
 			}
 
-			if(showlines) {
-				gl.glDisable(GL_TEXTURE_2D);
-				int[] p = new int[2];
-				gl.glColor4f(1, 1, 1, 1);
-				gl.glBegin(GL_LINES); 
-				for (i = 1; i <= n; i++) { 
-					p[0] = i-1; p[1] = i;
-					if(i == n) { p[0] = i - 1; p[1] = 0; }
-					for(int l = 0; l < 2; l++) {
-						r = 1.0 / drawpoly[p[l]].dd; 
-						gl.glVertex3d((drawpoly[p[l]].px - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly[p[l]].py) * r * grhalfxdown10, r* (1.0 / 1024.0));
-					}
-				} 
-				gl.glEnd(); 
-				gl.glEnable(GL_TEXTURE_2D);
-			}
+//			if(showlines) {
+//				gl.glDisable(GL_TEXTURE_2D);
+//				int[] p = new int[2];
+//				gl.glColor4f(1, 1, 1, 1);
+//				gl.glBegin(GL_LINES); 
+//				for (i = 1; i <= n; i++) { 
+//					p[0] = i-1; p[1] = i;
+//					if(i == n) { p[0] = i - 1; p[1] = 0; }
+//					for(int l = 0; l < 2; l++) {
+//						r = 1.0 / drawpoly[p[l]].dd; 
+//						gl.glVertex3d((drawpoly[p[l]].px - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly[p[l]].py) * r * grhalfxdown10, r* (1.0 / 1024.0));
+//					}
+//				} 
+//				gl.glEnd(); 
+//				gl.glEnable(GL_TEXTURE_2D);
+//			}
 		}
 
 		if(GLInfo.multisample != 0) {
@@ -2516,7 +2519,7 @@ public abstract class Polymost extends GLRenderer {
 					i = 0;
 				}
 			}
-			
+
 			drawalls(closest);
 
 			numbunches--;
@@ -4362,7 +4365,7 @@ public abstract class Polymost extends GLRenderer {
 
 		if (m == null)
 			return 0;
-		
+
 		if ((sprite[tspr.owner].cstat & 48) == 32)
 			return 0;
 	
@@ -4390,8 +4393,14 @@ public abstract class Polymost extends GLRenderer {
 		dvoxm0.z *= f;
 		modela0.z *= f;
 
-		float x0 = (float) tspr.x;
-		float k0 = (float) tspr.z;
+		float x0 = tspr.x;
+		float k0 = tspr.z;
+		float xoff = tspr.xoffset;
+		float yoff = tspr.yoffset;
+		
+		xflip = (globalorientation & 4) != 0;
+		if (yflip = (globalorientation & 8) != 0)
+			yoff = -yoff;
 
 		if ((globalorientation & 128) == 0) 
 			//k0 -= (tilesizy[tspr.picnum] * tspr.yrepeat) << 1; GDX this more correct, but disabled for compatible with eduke
@@ -4402,6 +4411,9 @@ public abstract class Polymost extends GLRenderer {
 
 		f = (65536.0f * 512.0f) / ((float) (xdimen * viewingrange));
 		g = 32.0f / (float) (xdimen * gxyaspect);
+
+		//x0 += xoff * (tspr.xrepeat >> 2);
+		//k0 -= yoff * (tspr.yrepeat << 2);
 		
 		dvoxm0.y *= f;
 		if ((sprite[tspr.owner].cstat & 48) == 32)
@@ -4445,7 +4457,6 @@ public abstract class Polymost extends GLRenderer {
 		
 		
 		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
-		
 		boolean newmatrix = false;
 		
 		// ------------ Matrix
@@ -4459,18 +4470,19 @@ public abstract class Polymost extends GLRenderer {
 			gl.glLoadMatrixf(matrix);
 		}
 		
+		gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
+		gl.glTranslatef(-xoff, yoff, 0);
+		
 		if((m.flags & MD_ROTATE)!= 0)
 			gl.glRotatef(totalclock % 360, 0, 1, 0);
 
 		// transform to Build coords
 		if ((tspr.cstat & 48) == 32) {
-			gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
 			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
 			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
 			gl.glRotatef(90, -1.0f, 0.0f, 0.0f);
 			gl.glTranslatef(0, -m.ypiv, -m.zpiv);
 		} else {
-			gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
 			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
 			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
 		}

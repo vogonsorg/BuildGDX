@@ -1861,6 +1861,11 @@ public abstract class Software extends Renderer {
 
 		case 3: // Voxel sprite
 			long nyrepeat;
+			
+			xoff = tspr.xoffset;
+			yoff = tspr.yoffset;
+			if ((cstat & 8) > 0)
+				yoff = -yoff;
 
 			lx = 0;
 			rx = xdim - 1;
@@ -1919,8 +1924,13 @@ public abstract class Software extends Renderer {
 				nyrepeat = ((tspr.yrepeat) << 16);
 			else
 				nyrepeat = tspr.yrepeat * vtilenum.scale;
-
-			// tspr.z -= mulscale(yoff, nyrepeat, 14);
+			xv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2560 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
+			yv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2048 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
+			
+			tspr.x -= mulscale(xoff, xv, 16) / 1.25f;
+			tspr.y -= mulscale(xoff, yv, 16) / 1.25f;
+			tspr.z -= mulscale(yoff, nyrepeat, 14);
+			
 			if ((cstat & 128) == 0)
 				// tspr.z -= mulscale(tilesizy[tspr.picnum], nyrepeat, 15); // GDX this more
 				// correct, but disabled for compatible with eduke
@@ -1943,7 +1953,7 @@ public abstract class Software extends Renderer {
 			if ((sprite[tspr.owner].cstat & 48) == 16 || (sprite[tspr.owner].cstat & 48) == 32)
 				f *= 1.25f;
 
-			drawvox(tspr.x, tspr.y, tspr.z, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, tspr.shade, tspr.pal,
+			voxdraw(tspr.x, tspr.y, tspr.z, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, tspr.shade, tspr.pal,
 					lwall, swall);
 			break;
 		}
@@ -1955,7 +1965,7 @@ public abstract class Software extends Renderer {
 
 	}
 
-	private void drawvox(int dasprx, int daspry, int dasprz, int dasprang, int daxscale, int dayscale, Voxel daindex,
+	private void voxdraw(int dasprx, int daspry, int dasprz, int dasprang, int daxscale, int dayscale, Voxel daindex,
 			int dashade, int dapal, int[] daumost, int[] dadmost) {
 		int i, j, k, x, y, syoff, ggxstart, ggystart, nxoff;
 		int cosang, sinang, sprcosang, sprsinang, backx, backy, gxinc, gyinc;

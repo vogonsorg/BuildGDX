@@ -3556,7 +3556,7 @@ public abstract class Engine {
 	}
 
 	public boolean changepalette(final byte[] palette) {
-		if(CRC32.getChecksum(palette) == curpalette.getCrc32())
+		if(render.getType() != RenderType.Software && CRC32.getChecksum(palette) == curpalette.getCrc32())
 			return false;
 		
 		curpalette.update(palette);
