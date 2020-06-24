@@ -4362,7 +4362,7 @@ public abstract class Polymost extends GLRenderer {
 
 		if (m == null)
 			return 0;
-		
+
 		if ((sprite[tspr.owner].cstat & 48) == 32)
 			return 0;
 	
@@ -4411,8 +4411,8 @@ public abstract class Polymost extends GLRenderer {
 		f = (65536.0f * 512.0f) / ((float) (xdimen * viewingrange));
 		g = 32.0f / (float) (xdimen * gxyaspect);
 
-		x0 += xoff * (tspr.xrepeat >> 2);
-		k0 -= yoff * (tspr.yrepeat << 2);
+		//x0 += xoff * (tspr.xrepeat >> 2);
+		//k0 -= yoff * (tspr.yrepeat << 2);
 		
 		dvoxm0.y *= f;
 		if ((sprite[tspr.owner].cstat & 48) == 32)
@@ -4456,7 +4456,6 @@ public abstract class Polymost extends GLRenderer {
 		
 		
 		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
-		
 		boolean newmatrix = false;
 		
 		// ------------ Matrix
@@ -4470,18 +4469,19 @@ public abstract class Polymost extends GLRenderer {
 			gl.glLoadMatrixf(matrix);
 		}
 		
+		gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
+		gl.glTranslatef(-xoff, yoff, 0);
+		
 		if((m.flags & MD_ROTATE)!= 0)
 			gl.glRotatef(totalclock % 360, 0, 1, 0);
 
 		// transform to Build coords
 		if ((tspr.cstat & 48) == 32) {
-			gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
 			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
 			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
 			gl.glRotatef(90, -1.0f, 0.0f, 0.0f);
 			gl.glTranslatef(0, -m.ypiv, -m.zpiv);
 		} else {
-			gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
 			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
 			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
 		}

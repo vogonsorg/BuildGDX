@@ -1922,17 +1922,15 @@ public abstract class Software extends Renderer {
 			if (vtilenum == null)
 				break;
 
-			int ang = (engine.getangle(tspr.x - globalposx, tspr.y - globalposy) + 1024) & 2047;
 			if (vtilenum.scale == 65536)
 				nyrepeat = ((tspr.yrepeat) << 16);
 			else
 				nyrepeat = tspr.yrepeat * vtilenum.scale;
-
-			xv = (int) ((tspr.xrepeat * sintable[(ang + 2560 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
-			yv = (int) ((tspr.xrepeat * sintable[(ang + 2048 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
-
-			tspr.x -= mulscale(xoff, xv, 16);
-			tspr.y -= mulscale(xoff, yv, 16);
+			xv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2560 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
+			yv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2048 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
+			
+			tspr.x -= mulscale(xoff, xv, 16) / 1.25f;
+			tspr.y -= mulscale(xoff, yv, 16) / 1.25f;
 			tspr.z -= mulscale(yoff, nyrepeat, 14);
 			
 			if ((cstat & 128) == 0)
@@ -1957,7 +1955,7 @@ public abstract class Software extends Renderer {
 			if ((sprite[tspr.owner].cstat & 48) == 16 || (sprite[tspr.owner].cstat & 48) == 32)
 				f *= 1.25f;
 
-			drawvox(tspr.x, tspr.y, tspr.z, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, tspr.shade, tspr.pal,
+			voxdraw(tspr.x, tspr.y, tspr.z, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, tspr.shade, tspr.pal,
 					lwall, swall);
 			break;
 		}
@@ -1969,7 +1967,7 @@ public abstract class Software extends Renderer {
 
 	}
 
-	private void drawvox(int dasprx, int daspry, int dasprz, int dasprang, int daxscale, int dayscale, Voxel daindex,
+	private void voxdraw(int dasprx, int daspry, int dasprz, int dasprang, int daxscale, int dayscale, Voxel daindex,
 			int dashade, int dapal, int[] daumost, int[] dadmost) {
 		int i, j, k, x, y, syoff, ggxstart, ggystart, nxoff;
 		int cosang, sinang, sprcosang, sprsinang, backx, backy, gxinc, gyinc;
