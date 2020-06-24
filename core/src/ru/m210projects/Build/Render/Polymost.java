@@ -341,7 +341,7 @@ public abstract class Polymost extends GLRenderer {
 	protected Polymost2D polymost2d;
 	protected boolean isInited = false;
 	
-	private boolean showlines = false;
+//	private boolean showlines = false;
 
 	public Polymost(Engine engine) {
 		this.gl = BuildGdx.graphics.getGL10();
