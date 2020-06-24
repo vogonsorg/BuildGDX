@@ -1864,8 +1864,6 @@ public abstract class Software extends Renderer {
 			
 			xoff = tspr.xoffset;
 			yoff = tspr.yoffset;
-			if ((cstat & 4) > 0)
-				xoff = -xoff;
 			if ((cstat & 8) > 0)
 				yoff = -yoff;
 

@@ -4395,9 +4395,7 @@ public abstract class Polymost extends GLRenderer {
 		float xoff = tspr.xoffset;
 		float yoff = tspr.yoffset;
 		
-		if (xflip = (globalorientation & 4) != 0)
-			xoff = -xoff;
-		
+		xflip = (globalorientation & 4) != 0;
 		if (yflip = (globalorientation & 8) != 0)
 			yoff = -yoff;
 
