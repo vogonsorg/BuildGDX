@@ -643,7 +643,7 @@ public abstract class Polymost extends GLRenderer {
 	
 	private final Polygon drawpoly[] = new Polygon[16];
 	private final Color polyColor = new Color();
-	
+
 	protected void drawpoly(Surface[] dm, int n, int method) {
 		double ngdx = 0.0, ngdy = 0.0, ngdo = 0.0, ngux = 0.0, nguy = 0.0, nguo = 0.0;
 		double ngvx = 0.0, ngvy = 0.0, ngvo = 0.0, dp, up, vp, du0 = 0.0, du1 = 0.0, dui, duj;
@@ -757,6 +757,7 @@ public abstract class Polymost extends GLRenderer {
 		bindTexture(pth.glpic);
 		
 		GLSurface surf = null;
+		 
 		if(surfaceType == 1) { 
 			surf = surfaces.build();
 			surf.pth = pth;	
@@ -900,8 +901,7 @@ public abstract class Polymost extends GLRenderer {
 //		textureCache.shaderTransparent(polyColor.a);
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
-		// Hack for walls&masked walls which use textures that are not a power
-		// of 2
+		// Hack for walls&masked walls which use textures that are not a power of 2
 		if ((pow2xsplit != 0) && (tsizx != xx)) {
 			if (!dorot)
             {
@@ -946,14 +946,17 @@ public abstract class Polymost extends GLRenderer {
 			for (i = 0; i < n; i++) {
 				ox = drawpoly[i].px;
 				oy = drawpoly[i].py;
-				
 				f = (ox * ngux + oy * nguy + nguo)
 						/ (ox * ngdx + oy * ngdy + ngdo);
+
+				if(abs(f) > 1500) 
+					f = 1500;
+
 				if (i == 0) {
 					du0 = du1 = f;
 					continue;
 				}
-				if (f < du0)
+				if (f < du0) 
 					du0 = f;
 				else if (f > du1)
 					du1 = f;
@@ -963,7 +966,7 @@ public abstract class Polymost extends GLRenderer {
 				f = 1.0 / tsizx;
 				ix0 = floor(du0 * f);
 				ix1 = floor(du1 * f);
-	
+		
 				for (; ix0 <= ix1; ix0++) {
 					du0 = (ix0) * tsizx;
 					du1 = (ix0 + 1) * tsizx;
@@ -1070,22 +1073,22 @@ public abstract class Polymost extends GLRenderer {
 				surf.buffer.flip();
 			}
 
-			if(showlines) {
-				gl.glDisable(GL_TEXTURE_2D);
-				int[] p = new int[2];
-				gl.glColor4f(1, 1, 1, 1);
-				gl.glBegin(GL_LINES); 
-				for (i = 1; i <= n; i++) { 
-					p[0] = i-1; p[1] = i;
-					if(i == n) { p[0] = i - 1; p[1] = 0; }
-					for(int l = 0; l < 2; l++) {
-						r = 1.0 / drawpoly[p[l]].dd; 
-						gl.glVertex3d((drawpoly[p[l]].px - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly[p[l]].py) * r * grhalfxdown10, r* (1.0 / 1024.0));
-					}
-				} 
-				gl.glEnd(); 
-				gl.glEnable(GL_TEXTURE_2D);
-			}
+//			if(showlines) {
+//				gl.glDisable(GL_TEXTURE_2D);
+//				int[] p = new int[2];
+//				gl.glColor4f(1, 1, 1, 1);
+//				gl.glBegin(GL_LINES); 
+//				for (i = 1; i <= n; i++) { 
+//					p[0] = i-1; p[1] = i;
+//					if(i == n) { p[0] = i - 1; p[1] = 0; }
+//					for(int l = 0; l < 2; l++) {
+//						r = 1.0 / drawpoly[p[l]].dd; 
+//						gl.glVertex3d((drawpoly[p[l]].px - ghalfx) * r * grhalfxdown10x, (ghoriz - drawpoly[p[l]].py) * r * grhalfxdown10, r* (1.0 / 1024.0));
+//					}
+//				} 
+//				gl.glEnd(); 
+//				gl.glEnable(GL_TEXTURE_2D);
+//			}
 		}
 
 		if(GLInfo.multisample != 0) {
@@ -2516,7 +2519,7 @@ public abstract class Polymost extends GLRenderer {
 					i = 0;
 				}
 			}
-			
+
 			drawalls(closest);
 
 			numbunches--;
