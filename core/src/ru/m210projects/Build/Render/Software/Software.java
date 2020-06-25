@@ -1863,26 +1863,17 @@ public abstract class Software extends Renderer {
 
 		case 3: // Voxel sprite
 			long nyrepeat;
-			siz = divscale(xdimenscale, yp, 19);
-			
+
 			xoff = tspr.xoffset;
 			yoff = tspr.yoffset;
 			if ((cstat & 8) > 0)
 				yoff = -yoff;
 
-			startum = 0;
-			if ((sec.ceilingstat & 3) == 0)
-				startum = (long) globalhoriz + mulscale(siz, sec.ceilingz - globalposz, 24) - 1;
-
-			startdm = 0x7fffffff;
-			if ((sec.floorstat & 3) == 0)
-				startdm = (long) globalhoriz + mulscale(siz, sec.floorz - globalposz, 24) + 1;
-
 			lx = 0;
 			rx = xdim - 1;
 			for (x = lx; x <= rx; x++) {
-				lwall[x] = (short) Math.max(startumost[x + windowx1] - windowy1, (short) startum);
-				swall[x] = (short) Math.min(startdmost[x + windowx1] - windowy1, (short) startdm);
+				lwall[x] = startumost[x + windowx1] - windowy1;
+				swall[x] = startdmost[x + windowx1] - windowy1;
 			}
 			for (i = smostwallcnt - 1; i >= 0; i--) {
 				j = smostwall[i];
@@ -1964,8 +1955,7 @@ public abstract class Software extends Renderer {
 			if ((sprite[tspr.owner].cstat & 48) == 16 || (sprite[tspr.owner].cstat & 48) == 32)
 				f *= 1.25f;
 
-			voxdraw(tspr.x, tspr.y, tspr.z, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, tspr.shade, tspr.pal,
-					lwall, swall);
+			voxdraw(tspr, i, (int) (tspr.xrepeat * f), tspr.yrepeat, vtilenum, lwall, swall);
 			break;
 		}
 		if (automapping == 1)
@@ -1976,16 +1966,22 @@ public abstract class Software extends Renderer {
 
 	}
 
-	private void voxdraw(int dasprx, int daspry, int dasprz, int dasprang, int daxscale, int dayscale, Voxel daindex,
-			int dashade, int dapal, int[] daumost, int[] dadmost) {
+	private void voxdraw(SPRITE daspr, int dasprang, int daxscale, int dayscale, Voxel daindex, int[] daumost, int[] dadmost) {
 		int i, j, k, x, y, syoff, ggxstart, ggystart, nxoff;
 		int cosang, sinang, sprcosang, sprsinang, backx, backy, gxinc, gyinc;
 		int daxsiz, daysiz, daxpivot, daypivot, dazpivot;
-		int daxscalerecip, dayscalerecip, cnt, gxstart, gystart, odayscale;
+		int daxscalerecip, dayscalerecip, cnt, gxstart, gystart;
 		int l1, l2, slabxoffs;
 		int lx, rx, nx, ny, x1 = 0, y1 = 0, z1, x2 = 0, y2 = 0, z2, yplc, yinc = 0;
 		int yoff, xs = 0, ys = 0, xe, ye, xi = 0, yi = 0, cbackx, cbacky, dagxinc, dagyinc;
 		int voxptr, voxend, zleng, mip;
+		
+		int dasprx = daspr.x;
+		int daspry = daspr.y;
+		int dasprz = daspr.z;
+		int dashade = daspr.shade;
+		int dapal = daspr.pal;
+		SECTOR sec = sector[daspr.sectnum];
 
 		cosang = sintable[(int) (globalang + 512) & 2047];
 		sinang = sintable[(int) globalang & 2047];
@@ -2035,7 +2031,7 @@ public abstract class Software extends Renderer {
 			dayscale = mulscale(dayscale << mip, davox.scale, 8);
 		}
 
-		odayscale = dayscale;
+		int odayscale = dayscale; //tspr.yrepeat
 		daxscale = mulscale(daxscale, xyaspect, 16);
 		daxscale = scale(daxscale, xdimenscale, xdimen << 8);
 		dayscale = scale(dayscale, mulscale(xdimenscale, viewingrangerecip, 16), xdimen << 8);
@@ -2083,6 +2079,7 @@ public abstract class Software extends Renderer {
 
 		if ((klabs(globalposz - dasprz) >> 10) >= klabs(odayscale))
 			return;
+		
 		syoff = divscale(globalposz - dasprz, odayscale, 21) + (dazpivot << 7);
 		yoff = ((klabs(gxinc) + klabs(gyinc)) >> 1);
 
@@ -2091,6 +2088,8 @@ public abstract class Software extends Renderer {
 		int xptr, dazsiz = davox.zsiz[mip];
 		short[] shortptr;
 
+		int dm = divscale(sec.floorz - globalposz, odayscale, 21);
+	    int um = divscale(sec.ceilingz - globalposz, odayscale, 21);
 		for (cnt = 0; cnt < 8; cnt++) {
 			switch (cnt) {
 			case 0:
@@ -2212,6 +2211,8 @@ public abstract class Software extends Renderer {
 				break;
 			}
 			short oand = (short) (pow2char[((xs < backx) ? 1 : 0) + 0] + pow2char[((ys < backy) ? 1 : 0) + 2]);
+			if(xflip) oand ^= 3;
+			
 			short oand16 = (short) (oand + 16);
 			short oand32 = (short) (oand + 32);
 
@@ -2267,6 +2268,15 @@ public abstract class Software extends Renderer {
 
 					l1 = distrecip[(ny - yoff) >> 14];
 					l2 = distrecip[(ny + yoff) >> 14];
+					
+					int umz = 0;
+					if ((sec.ceilingstat & 3) == 0)
+						umz = mulscale((um < 0) ? l1 : l2, um, 32) + (int) globalhoriz;
+		
+					int dmz = 0x7fffffff;
+					if ((sec.floorstat & 3) == 0)
+						dmz = mulscale((dm < 0) ? l2 : l1, dm, 32) + (int) globalhoriz;
+					
 					for (; voxptr < voxend; voxptr += zleng + 3) {
 						zleng = davox.data[mip][voxptr + 1] & 0xFF;
 
@@ -2292,21 +2302,25 @@ public abstract class Software extends Renderer {
 								continue;
 							z1 = mulscale(l2, j, 32) + (int) globalhoriz; // Above slab
 							z2 = mulscale(l1, j + (zleng << 15), 32) + (int) globalhoriz;
+							
 						}
+						
+						int umost = Math.max(daumost[lx], umz);
+						int dmost = Math.min(dadmost[lx], dmz);
 
 						if (zleng == 1) {
 							yplc = 0;
 							yinc = 0;
-							if (z1 < daumost[lx])
-								z1 = daumost[lx];
+							if (z1 < umost)
+								z1 = umost;
 						} else {
 							if (z2 - z1 >= 1024)
 								yinc = divscale(zleng, z2 - z1, 16);
 							else if (z2 > z1)
 								yinc = (lowrecip[z2 - z1] * zleng >> 8);
-							if (z1 < daumost[lx]) {
-								yplc = yinc * (daumost[lx] - z1);
-								z1 = daumost[lx];
+							if (z1 < umost) {
+								yplc = yinc * (umost - z1);
+								z1 = umost;
 							} else
 								yplc = 0;
 
@@ -2315,8 +2329,9 @@ public abstract class Software extends Renderer {
 								yplc = (zleng << 16) - yplc + yinc;
 							}
 						}
-						if (z2 > dadmost[lx])
-							z2 = dadmost[lx];
+						if (z2 > dmost)
+							z2 = dmost;
+						
 						z2 -= z1;
 						if (z2 <= 0)
 							continue;
