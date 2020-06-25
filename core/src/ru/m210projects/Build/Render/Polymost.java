@@ -949,7 +949,7 @@ public abstract class Polymost extends GLRenderer {
 				f = (ox * ngux + oy * nguy + nguo)
 						/ (ox * ngdx + oy * ngdy + ngdo);
 
-				if(abs(f) > 2000) //XXX
+				if(abs(f) > 2000)
 					f = 2000;
 
 				if (i == 0) {

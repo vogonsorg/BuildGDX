@@ -74,6 +74,7 @@ public class ImageUtils {
 						dptr += xoffs;
 					}
 				}
+				hasalpha = true;
 			}
 			else
 			{

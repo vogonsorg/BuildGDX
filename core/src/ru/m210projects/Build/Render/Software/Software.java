@@ -1048,20 +1048,22 @@ public abstract class Software extends Renderer {
 		int yoff = ((byte) ((picanm[tilenum] >> 16) & 255)) + (tspr.yoffset);
 
 		int xv, yv, x1, y1, x2, y2, dax, day, dax1, dax2, dalx2, darx2;
-		int i, j, k, x, y, z, zz, z1, z2, xp1, yp1, xp2, yp2;
+		int i, j, k, x, y, z, zz, z1, z2, xp1, yp1, xp2, yp2, xspan, yspan, xsiz, ysiz;
+		long siz;
+		
 		switch ((cstat >> 4) & 3) {
 		case 0: // Face sprite
 			if (yp <= (4 << 8))
 				return;
 
-			long siz = divscale(xdimenscale, yp, 19);
+			siz = divscale(xdimenscale, yp, 19);
 
 			xv = mulscale((tspr.xrepeat) << 16, xyaspect, 16);
 
-			short xspan = tilesizx[tilenum];
-			short yspan = tilesizy[tilenum];
-			int xsiz = mulscale(siz, xv * xspan, 30);
-			int ysiz = mulscale(siz, tspr.yrepeat * yspan, 14);
+			xspan = tilesizx[tilenum];
+			yspan = tilesizy[tilenum];
+			xsiz = mulscale(siz, xv * xspan, 30);
+			ysiz = mulscale(siz, tspr.yrepeat * yspan, 14);
 
 			if (((tilesizx[tilenum] >> 11) >= xsiz) || (yspan >= (ysiz >> 1)))
 				return; // Watch out for divscale overflow
@@ -1861,17 +1863,26 @@ public abstract class Software extends Renderer {
 
 		case 3: // Voxel sprite
 			long nyrepeat;
+			siz = divscale(xdimenscale, yp, 19);
 			
 			xoff = tspr.xoffset;
 			yoff = tspr.yoffset;
 			if ((cstat & 8) > 0)
 				yoff = -yoff;
 
+			startum = 0;
+			if ((sec.ceilingstat & 3) == 0)
+				startum = (long) globalhoriz + mulscale(siz, sec.ceilingz - globalposz, 24) - 1;
+
+			startdm = 0x7fffffff;
+			if ((sec.floorstat & 3) == 0)
+				startdm = (long) globalhoriz + mulscale(siz, sec.floorz - globalposz, 24) + 1;
+
 			lx = 0;
 			rx = xdim - 1;
 			for (x = lx; x <= rx; x++) {
-				lwall[x] = startumost[x + windowx1] - windowy1;
-				swall[x] = startdmost[x + windowx1] - windowy1;
+				lwall[x] = (short) Math.max(startumost[x + windowx1] - windowy1, (short) startum);
+				swall[x] = (short) Math.min(startdmost[x + windowx1] - windowy1, (short) startdm);
 			}
 			for (i = smostwallcnt - 1; i >= 0; i--) {
 				j = smostwall[i];
