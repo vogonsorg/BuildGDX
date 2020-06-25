@@ -5,6 +5,7 @@
  *
  * This file has been modified from Ken Silverman's original release
  * by Jonathon Fowler (jf@jonof.id.au)
+ * by the EDuke32 team (development@voidpoint.com)
  * by Alexander Makarov-[M210] (m210-2007@mail.ru)
  */
 
