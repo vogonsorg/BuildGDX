@@ -23,8 +23,6 @@ import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.show2dsector;
 import static ru.m210projects.Build.Engine.sintable;
 import static ru.m210projects.Build.Engine.sprite;
-import static ru.m210projects.Build.Engine.tilesizx;
-import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.wall;
 import static ru.m210projects.Build.Engine.wx1;
 import static ru.m210projects.Build.Engine.wx2;
@@ -41,37 +39,45 @@ import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 
+import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
 public abstract class OrphoRenderer {
-	
+
+	protected Engine engine;
+
+	public OrphoRenderer(Engine engine) {
+		this.engine = engine;
+	}
+
 	public abstract void init();
-	
+
 	public abstract void uninit();
-	
+
 	public abstract void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale);
-	
+
 	public abstract void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
-	
+
 	public abstract void drawline256(int x1, int y1, int x2, int y2, int col);
-	
+
 	public abstract void rotatesprite(int sx, int sy, int z, int a, int picnum,
 			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
 			int cy2);
-	
+
 	public abstract void nextpage();
-	
+
 	public abstract void drawmapview(int dax, int day, int zoome, int ang);
-	
+
 	// Overhead map settings
 
 	public boolean fullmap, showredwalls = true, showspr, showflspr, allplrs, scrollmode;
 	public int redwallcol = 31, whitewallcol = 31, sprcol, viewindex;
 	public int[] plrsprites;
-	
+
 	protected int getclipmask(int a, int b, int c, int d) { // Ken did this
 		int bA = a < 0 ? 1 : 0;
 		int bB = b < 0 ? 1 : 0;
@@ -189,9 +195,10 @@ public abstract class OrphoRenderer {
 					continue;
 				if (wal.nextwall >= 0)
 					continue;
-				if (tilesizx[wal.picnum] == 0)
+				Tile pic = engine.getTile(wal.picnum);
+				if (pic.getWidth() == 0)
 					continue;
-				if (tilesizy[wal.picnum] == 0)
+				if (pic.getHeight() == 0)
 					continue;
 
 				if (j == k) {
@@ -224,10 +231,10 @@ public abstract class OrphoRenderer {
 				continue;
 
 			SPRITE pPlayer = sprite[plrsprites[i]];
-			
+
 			if(!isValidSector(pPlayer.sectnum))
 				continue;
-			
+
 			ox = pPlayer.x - cposx;
 			oy = pPlayer.y - cposy;
 
@@ -253,5 +260,5 @@ public abstract class OrphoRenderer {
 			}
 		}
 	}
-	
+
 }

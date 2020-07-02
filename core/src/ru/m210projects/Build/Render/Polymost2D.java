@@ -28,7 +28,6 @@ import java.util.Arrays;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.BufferUtils;
 
-import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
@@ -39,15 +38,16 @@ import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
+import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont.FontType;
 
 public class Polymost2D extends OrphoRenderer {
 
 	private Polymost parent;
 	private GL10 gl;
-	private Engine engine;
 	private IntBuffer polymosttext;
 	private final TextureCache textureCache;
 
@@ -92,9 +92,9 @@ public class Polymost2D extends OrphoRenderer {
 	// Overhead map settings
 
 	public Polymost2D(Polymost parent) {
+		super(parent.engine);
 		this.parent = parent;
 		this.gl = parent.gl;
-		this.engine = parent.engine;
 		this.textureCache = parent.textureCache;
 
 		for (int i = 0; i < 4; i++)
@@ -116,7 +116,7 @@ public class Polymost2D extends OrphoRenderer {
 		int bakgxvect, bakgyvect, npoints;
 		int xvect, yvect, xvect2, yvect2, daslope;
 
-		int tilenum, xoff, yoff, k, l, cosang, sinang, xspan, yspan;
+		int xoff, yoff, k, l, cosang, sinang, xspan, yspan;
 		int xrepeat, yrepeat, x1, y1, x2, y2, x3, y3, x4, y4;
 
 		beforedrawrooms = 0;
@@ -128,8 +128,8 @@ public class Polymost2D extends OrphoRenderer {
 		cx2 = ((windowx2 + 1) << 12) - 1;
 		cy2 = ((windowy2 + 1) << 12) - 1;
 		zoome <<= 8;
-		bakgxvect = (int) divscale(sintable[(1536 - ang) & 2047], zoome, 28);
-		bakgyvect = (int) divscale(sintable[(2048 - ang) & 2047], zoome, 28);
+		bakgxvect = divscale(sintable[(1536 - ang) & 2047], zoome, 28);
+		bakgyvect = divscale(sintable[(2048 - ang) & 2047], zoome, 28);
 		xvect = mulscale(sintable[(2048 - ang) & 2047], zoome, 8);
 		yvect = mulscale(sintable[(1536 - ang) & 2047], zoome, 8);
 		xvect2 = mulscale(xvect, yxaspect, 16);
@@ -194,7 +194,7 @@ public class Polymost2D extends OrphoRenderer {
 						if ((show2dsprite[i >> 3] & pow2char[i & 7]) != 0) {
 							if (sortnum >= MAXSPRITESONSCREEN)
 								continue;
-		
+
 							if (tsprite[sortnum] == null)
 								tsprite[sortnum] = new SPRITE();
 							tsprite[sortnum].set(sprite[i]);
@@ -213,12 +213,14 @@ public class Polymost2D extends OrphoRenderer {
 				if (globalpicnum >= MAXTILES)
 					globalpicnum = 0;
 				engine.setgotpic(globalpicnum);
-				if ((tilesizx[globalpicnum] <= 0) || (tilesizy[globalpicnum] <= 0))
+				Tile pic = engine.getTile(globalpicnum);
+
+				if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
 					continue;
 
-				if ((picanm[globalpicnum] & 192) != 0)
-					globalpicnum += engine.animateoffs(globalpicnum, s); // FIXME
-				if (waloff[globalpicnum] == null)
+				if (pic.getType() != AnimType.None)
+					globalpicnum += engine.animateoffs(globalpicnum, s);
+				if (pic.data == null)
 					engine.loadtile(globalpicnum);
 
 				globalshade = max(min(sec.floorshade, numshades - 1), 0);
@@ -241,16 +243,16 @@ public class Polymost2D extends OrphoRenderer {
 					globaly1 = mulscale(dmulscale(ox, bakgyvect, -oy, bakgxvect, 10), i, 10);
 					ox = (bakx1 >> 4) - (xdim << 7);
 					oy = (baky1 >> 4) - (ydim << 7);
-					globalposx = dmulscale(-oy, (int) globalx1, -ox, (int) globaly1, 28);
-					globalposy = dmulscale(-ox, (int) globalx1, oy, (int) globaly1, 28);
+					globalposx = dmulscale(-oy, globalx1, -ox, globaly1, 28);
+					globalposy = dmulscale(-ox, globalx1, oy, globaly1, 28);
 					globalx2 = -globalx1;
 					globaly2 = -globaly1;
 
 					daslope = sector[s].floorheinum;
 					i = engine.ksqrt(daslope * daslope + 16777216);
 					globalposy = mulscale(globalposy, i, 12);
-					globalx2 = mulscale((int) globalx2, i, 12);
-					globaly2 = mulscale((int) globaly2, i, 12);
+					globalx2 = mulscale(globalx2, i, 12);
+					globaly2 = mulscale(globaly2, i, 12);
 				}
 				int globalxshift = (8 - (picsiz[globalpicnum] & 15));
 				int globalyshift = (8 - (picsiz[globalpicnum] >> 4));
@@ -263,10 +265,10 @@ public class Polymost2D extends OrphoRenderer {
 					i = globalposx;
 					globalposx = -globalposy;
 					globalposy = -i;
-					i = (int) globalx2;
+					i = globalx2;
 					globalx2 = globaly1;
 					globaly1 = i;
-					i = (int) globalx1;
+					i = globalx1;
 					globalx1 = -globaly2;
 					globaly2 = -i;
 				}
@@ -280,8 +282,8 @@ public class Polymost2D extends OrphoRenderer {
 					globaly2 = -globaly2;
 					globalposy = -globalposy;
 				}
-				asm1 = (int) (globaly1 << globalxshift);
-				asm2 = (int) (globalx2 << globalyshift);
+				asm1 = globaly1 << globalxshift;
+				asm2 = globalx2 << globalyshift;
 				globalx1 <<= globalxshift;
 				globaly2 <<= globalyshift;
 				globalposx = (globalposx << (20 + globalxshift)) + ((sec.floorxpanning) << 24);
@@ -312,9 +314,10 @@ public class Polymost2D extends OrphoRenderer {
 				if ((spr.cstat & 32768) == 0) {
 					npoints = 0;
 
-					tilenum = spr.picnum;
-					xoff = (byte) ((picanm[tilenum] >> 8) & 255) + spr.xoffset;
-					yoff = (byte) ((picanm[tilenum] >> 16) & 255) + spr.yoffset;
+					Tile pic = engine.getTile(spr.picnum);
+
+					xoff = pic.getOffsetX() + spr.xoffset;
+					yoff = pic.getOffsetY() + spr.yoffset;
 					if ((spr.cstat & 4) > 0)
 						xoff = -xoff;
 					if ((spr.cstat & 8) > 0)
@@ -323,9 +326,9 @@ public class Polymost2D extends OrphoRenderer {
 					k = spr.ang & 2047;
 					cosang = sintable[(k + 512) & 2047];
 					sinang = sintable[k];
-					xspan = tilesizx[tilenum];
+					xspan = pic.getWidth();
 					xrepeat = spr.xrepeat;
-					yspan = tilesizy[tilenum];
+					yspan = pic.getHeight();
 					yrepeat = spr.yrepeat;
 					ox = ((xspan >> 1) + xoff) * xrepeat;
 					oy = ((yspan >> 1) + yoff) * yrepeat;
@@ -390,11 +393,13 @@ public class Polymost2D extends OrphoRenderer {
 					if (globalpicnum >= MAXTILES)
 						globalpicnum = 0;
 					engine.setgotpic(globalpicnum);
-					if ((tilesizx[globalpicnum] <= 0) || (tilesizy[globalpicnum] <= 0))
+					Tile sprpic = engine.getTile(globalpicnum);
+
+					if ((sprpic.getWidth() <= 0) || (pic.getHeight() <= 0))
 						continue;
-					if ((picanm[globalpicnum] & 192) != 0)
+					if (sprpic.getType() != AnimType.None)
 						globalpicnum += engine.animateoffs(globalpicnum, s);
-					if (waloff[globalpicnum] == null)
+					if (sprpic.data == null)
 						engine.loadtile(globalpicnum);
 
 					// 'loading' the tile doesn't actually guarantee that it's there afterwards.
@@ -402,9 +407,9 @@ public class Polymost2D extends OrphoRenderer {
 					// 'storm icon' sprite (4894+1)
 
 					if ((sector[spr.sectnum].ceilingstat & 1) > 0)
-						globalshade = ((int) sector[spr.sectnum].ceilingshade);
+						globalshade = (sector[spr.sectnum].ceilingshade);
 					else
-						globalshade = ((int) sector[spr.sectnum].floorshade);
+						globalshade = (sector[spr.sectnum].floorshade);
 					globalshade = max(min(globalshade + spr.shade + 6, numshades - 1), 0);
 
 					// relative alignment stuff
@@ -444,10 +449,10 @@ public class Polymost2D extends OrphoRenderer {
 						globaly1 = -globaly1;
 						globalposx = -globalposx;
 					}
-					asm1 = (int) (globaly1 << 2);
+					asm1 = globaly1 << 2;
 					globalx1 <<= 2;
 					globalposx <<= (20 + 2);
-					asm2 = (int) (globalx2 << 2);
+					asm2 = globalx2 << 2;
 					globaly2 <<= 2;
 					globalposy <<= (20 + 2);
 
@@ -767,13 +772,13 @@ public class Polymost2D extends OrphoRenderer {
 	@Override
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
-		
+
 		if (font.type == FontType.Tilemap) {
 			if (palookup[col] == null)
 				col = 0;
 
 			int nTile = (Integer) font.ptr;
-			if (waloff[nTile] == null && engine.loadtile(nTile) == null)
+			if (engine.getTile(nTile).data == null && engine.loadtile(nTile) == null)
 				return;
 		}
 
@@ -804,14 +809,14 @@ public class Polymost2D extends OrphoRenderer {
 		else
 			gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col),
 					(int) (alpha * 255));
-		
+
 
 		int c = 0, line = 0;
 		int x, y, yoffs;
 
 		float txc = font.charsizx / (float) font.sizx, tx;
 		float tyc = font.charsizy / (float) font.sizy, ty;
-		
+
 		gl.glBegin(GL_TRIANGLE_STRIP);
 
 		int oxpos = xpos;
@@ -841,15 +846,15 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glVertex2i(x, ypos + yoffs);
 			gl.glTexCoord2f(tx + txc, ty + tyc);
 			gl.glVertex2i(x, y + yoffs);
-			
+
 			xpos += scale * font.charsizx;
 			c++;
 		}
-		
+
 		gl.glEnd();
 
 		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
-		
+
 		globalpal = opal;
 	}
 
@@ -952,10 +957,12 @@ public class Polymost2D extends OrphoRenderer {
 		if (z <= 16)
 			return;
 
-		if ((picanm[picnum] & 192) != 0)
+		Tile pic = engine.getTile(picnum);
+
+		if (pic.getType() != AnimType.None)
 			picnum += engine.animateoffs((short) picnum, (short) 0xc000);
 
-		if ((tilesizx[picnum] <= 0) || (tilesizy[picnum] <= 0))
+		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
 			return;
 
 		if ((dastat & 128) == 0 || beforedrawrooms != 0)
@@ -1014,13 +1021,15 @@ public class Polymost2D extends OrphoRenderer {
 
 		method |= 4; // Use OpenGL clamping - dorotatesprite never repeats
 
-		int xsiz = tilesizx[globalpicnum];
-		int ysiz = tilesizy[globalpicnum];
+		Tile pic = engine.getTile(globalpicnum);
+
+		int xsiz = pic.getWidth();
+		int ysiz = pic.getHeight();
 
 		int xoff = 0, yoff = 0;
 		if ((dastat & 16) == 0) {
-			xoff = (int) ((byte) ((picanm[globalpicnum] >> 8) & 255)) + (xsiz >> 1);
-			yoff = (int) ((byte) ((picanm[globalpicnum] >> 16) & 255)) + (ysiz >> 1);
+			xoff = pic.getOffsetX() + (xsiz >> 1);
+			yoff = pic.getOffsetY() + (ysiz >> 1);
 		}
 
 		if ((dastat & 4) != 0)
@@ -1050,7 +1059,7 @@ public class Polymost2D extends OrphoRenderer {
 			if ((dastat & 8) == 0) {
 				int twice_midcx = (cx1 + cx2) + 2;
 
-				
+
 				// screen x center to sx1, scaled to viewport
 				int scaledxofs = scale(normxofs, scale(xdimen, xdim, oxdim), 320);
 				int xbord = 0;
@@ -1130,13 +1139,14 @@ public class Polymost2D extends OrphoRenderer {
 			globalpal = 0;
 
 		engine.setgotpic(globalpicnum);
-		int tsizx = tilesizx[globalpicnum];
-		int tsizy = tilesizy[globalpicnum];
+		Tile pic = engine.getTile(globalpicnum);
 
-		if (waloff[globalpicnum] == null) {
-			//
+		int tsizx = pic.getWidth();
+		int tsizy = pic.getHeight();
+
+		if (pic.data == null) {
 			engine.loadtile(globalpicnum);
-			if (waloff[globalpicnum] == null) {
+			if (pic.data == null) {
 				tsizx = tsizy = 1;
 				method = 1;
 			}
@@ -1251,7 +1261,7 @@ public class Polymost2D extends OrphoRenderer {
 		if (hudsprite == null)
 			hudsprite = new SPRITE();
 		hudsprite.reset((byte) 0);
-		
+
 		Hudtyp hudInfo = null;
 		if (parent.defs == null || ((hudInfo = parent.defs.mdInfo.getHudInfo(picnum, dastat)) != null && (hudInfo.flags & 1) != 0))
 			return; // "HIDE" is specified in DEF
@@ -1262,10 +1272,10 @@ public class Polymost2D extends OrphoRenderer {
 		parent.gshang = 0.0f;
 		float d = z / (65536.0f * 16384.0f);
 		float ogctang = parent.gctang;
-		parent.gctang = (float) sintable[(a + 512) & 2047] * d;
+		parent.gctang = sintable[(a + 512) & 2047] * d;
 		float ogstang = parent.gstang;
-		parent.gstang = (float) sintable[a & 2047] * d;
-		ogshade = (int) globalshade;
+		parent.gstang = sintable[a & 2047] * d;
+		ogshade = globalshade;
 		globalshade = dashade;
 		ogpal = globalpal;
 		globalpal = dapalnum;
@@ -1284,18 +1294,20 @@ public class Polymost2D extends OrphoRenderer {
 			float fy = (sy) * (1.0f / 65536.0f);
 
 			if ((dastat & 16) != 0) {
-				xsiz = tilesizx[picnum];
-				ysiz = tilesizy[picnum];
-				xoff = (int) ((byte) ((picanm[picnum] >> 8) & 255)) + (xsiz >> 1);
-				yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
+				Tile pic = engine.getTile(picnum);
+
+				xsiz = pic.getWidth();
+				ysiz = pic.getHeight();
+				xoff = pic.getOffsetX() + (xsiz >> 1);
+				yoff = pic.getOffsetY() + (ysiz >> 1);
 
 				d = z / (65536.0f * 16384.0f);
 				float cosang, sinang;
-				float cosang2 = cosang = (float) sintable[(a + 512) & 2047] * d;
-				float sinang2 = sinang = (float) sintable[a & 2047] * d;
+				float cosang2 = cosang = sintable[(a + 512) & 2047] * d;
+				float sinang2 = sinang = sintable[a & 2047] * d;
 				if ((dastat & 2) != 0 || ((dastat & 8) == 0)) // Don't aspect unscaled perms
 				{
-					d = (float) xyaspect / 65536.0f;
+					d = xyaspect / 65536.0f;
 					cosang2 *= d;
 					sinang2 *= d;
 				}
@@ -1341,12 +1353,12 @@ public class Polymost2D extends OrphoRenderer {
 
 		if ((dastat & 10) == 2) {
 			float ratioratio = (float) xdim / ydim;
-			parent.matrix[0][0] = (float) ydimen * (ratioratio >= 1.6f ? 1.2f : 1);
+			parent.matrix[0][0] = ydimen * (ratioratio >= 1.6f ? 1.2f : 1);
 			parent.matrix[0][2] = 1.0f;
-			parent.matrix[1][1] = (float) xdimen;
+			parent.matrix[1][1] = xdimen;
 			parent.matrix[1][2] = 1.0f;
 			parent.matrix[2][2] = 1.0f;
-			parent.matrix[2][3] = (float) ydimen * (ratioratio >= 1.6f ? 1.2f : 1);
+			parent.matrix[2][3] = ydimen * (ratioratio >= 1.6f ? 1.2f : 1);
 			parent.matrix[3][2] = -1.0f;
 		} else {
 			parent.matrix[0][0] = parent.matrix[2][3] = 1.0f;

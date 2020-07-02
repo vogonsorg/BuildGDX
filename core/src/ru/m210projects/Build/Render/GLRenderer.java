@@ -35,12 +35,14 @@ public abstract class GLRenderer extends Renderer {
 	}
 
 	protected final TextureCache textureCache;
+	protected final Engine engine;
 
 	public GLRenderer(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
 			BuildGdx.app.setFrame(FrameType.GL);
 		GLInfo.init();
 		this.textureCache = new TextureCache(engine);
+		this.engine = engine;
 	}
 
 	@Override

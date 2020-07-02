@@ -397,30 +397,32 @@ public abstract class Engine {
 	public int animateoffs(int tilenum, int nInfo) { // jfBuild + gdxBuild
 		long clock, index = 0;
 
-		int speed = (getTile(tilenum).anm >> 24) & 15; // picanm[nTile].speed
-		if ((nInfo & 0xC000) == 0x8000) // sprite
-		{
+		int speed = getTile(tilenum).getSpeed();
+		if ((nInfo & 0xC000) == 0x8000) { // sprite
 			// hash sprite frame by info variable
 			shortbuf.putShort(0, (short) nInfo);
 			clock = (totalclocklock + CRC32.getChecksum(shortbuf.array())) >> speed;
 		} else
 			clock = totalclocklock >> speed;
 
-		int frames = getTile(tilenum).anm & 63;
+		int frames = getTile(tilenum).getFrames();
 
 		if (frames > 0) {
-			switch (getTile(tilenum).anm & 192) // picanm[nTile].type
+			switch (getTile(tilenum).getType())
 			{
-			case 64: // Oscil
+			case Oscil:
 				index = clock % (frames * 2);
 				if (index >= frames)
 					index = frames * 2 - index;
 				break;
-			case 128: // Forward
+			case Forward:
 				index = clock % (frames + 1);
 				break;
-			case 192: // Backward
+			case Backward:
 				index = -(clock % (frames + 1));
+				break;
+			default: //None
+				break;
 			}
 		}
 		return (int) index;
@@ -2113,7 +2115,7 @@ public abstract class Engine {
 					if ((cstat & 128) != 0)
 						z1 += (i >> 1);
 					if ((pic.anm & 0x00ff0000) != 0)
-						z1 -= (((byte) ((pic.anm >> 16) & 255)) * spr.yrepeat << 2);
+						z1 -= (pic.getOffsetY() * spr.yrepeat << 2);
 					if ((intz > z1) || (intz < z1 - i))
 						continue;
 					topu = vx * (y1 - ys) - vy * (x1 - xs);
@@ -2141,7 +2143,7 @@ public abstract class Engine {
 				case 16:
 					// These lines get the 2 points of the rotated sprite
 					// Given: (x1, y1) starts out as the center point
-					xoff = ((byte) ((pic.anm >> 8) & 255)) + (spr.xoffset);
+					xoff = pic.getOffsetX() + (spr.xoffset);
 					if ((cstat & 4) > 0)
 						xoff = -xoff;
 					k = spr.ang;
@@ -2175,7 +2177,7 @@ public abstract class Engine {
 					else
 						zofslope[CEIL] = spr.z;
 					if ((pic.anm & 0x00ff0000) != 0)
-						zofslope[CEIL] -= (((byte) ((pic.anm >> 16) & 255)) * spr.yrepeat << 2);
+						zofslope[CEIL] -= (pic.getOffsetY() * spr.yrepeat << 2);
 					if ((intz < zofslope[CEIL]) && (intz > zofslope[CEIL] - k)) {
 						hit.hitsect = dasector;
 						hit.hitwall = -1;
@@ -2201,8 +2203,8 @@ public abstract class Engine {
 					if (klabs(intx - xs) + klabs(inty - ys) > klabs((hit.hitx) - xs) + klabs((hit.hity) - ys))
 						continue;
 
-					xoff = pic.getXOffset() + spr.xoffset;
-					yoff = pic.getYOffset() + spr.yoffset;
+					xoff = pic.getOffsetX() + spr.xoffset;
+					yoff = pic.getOffsetY() + spr.yoffset;
 					if ((cstat & 4) > 0)
 						xoff = -xoff;
 					if ((cstat & 8) > 0)
@@ -2393,7 +2395,7 @@ public abstract class Engine {
 							if ((spr.cstat & 128) != 0)
 								z1 += (i << 1);
 							if ((pic.anm & 0x00ff0000) != 0)
-								z1 -= (pic.getYOffset() * spr.yrepeat << 2);
+								z1 -= (pic.getOffsetY() * spr.yrepeat << 2);
 							if ((intz <= z1) && (intz >= z1 - (i << 2))) {
 								topu = vx * (y1 - ys) - vy * (x1 - xs);
 								offx = scale(vx, topu, bot);
@@ -2679,7 +2681,7 @@ public abstract class Engine {
 						else
 							daz = spr.z;
 						if ((pic.anm & 0x00ff0000) != 0)
-							daz -= (pic.getYOffset() * spr.yrepeat << 2);
+							daz -= (pic.getOffsetY() * spr.yrepeat << 2);
 
 						if ((clipmove_z < (daz + ceildist)) && (clipmove_z > (daz - k - flordist))) {
 							bsz = (spr.clipdist << 2) + walldist;
@@ -2700,14 +2702,14 @@ public abstract class Engine {
 					else
 						daz = spr.z;
 					if ((pic.anm & 0x00ff0000) != 0)
-						daz -= (pic.getYOffset() * spr.yrepeat << 2);
+						daz -= (pic.getOffsetY() * spr.yrepeat << 2);
 					daz2 = daz - k;
 					daz += ceildist;
 					daz2 -= flordist;
 					if (((clipmove_z) < daz) && ((clipmove_z) > daz2)) {
 						// These lines get the 2 points of the rotated sprite
 						// Given: (x1, y1) starts out as the center point
-						xoff = pic.getXOffset() + spr.xoffset;
+						xoff = pic.getOffsetX() + spr.xoffset;
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						k = spr.ang;
@@ -2752,8 +2754,8 @@ public abstract class Engine {
 							if (((clipmove_z) > spr.z) == ((cstat & 8) == 0))
 								continue;
 
-						xoff = pic.getXOffset() + (spr.xoffset);
-						yoff = pic.getYOffset() + (spr.yoffset);
+						xoff = pic.getOffsetX() + (spr.xoffset);
+						yoff = pic.getOffsetY() + (spr.yoffset);
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						if ((cstat & 8) > 0)
@@ -3293,13 +3295,13 @@ public abstract class Engine {
 							if ((cstat & 128) != 0)
 								zofslope[CEIL] += k;
 							if ((pic.anm & 0x00ff0000) != 0)
-								zofslope[CEIL] -= (pic.getYOffset() * spr.yrepeat << 2);
+								zofslope[CEIL] -= (pic.getOffsetY() * spr.yrepeat << 2);
 							zofslope[FLOOR] = zofslope[CEIL] - (k << 1);
 							clipyou = 1;
 						}
 						break;
 					case 16:
-						xoff = pic.getXOffset() + (spr.xoffset);
+						xoff = pic.getOffsetX() + (spr.xoffset);
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						k = spr.ang;
@@ -3318,7 +3320,7 @@ public abstract class Engine {
 							if ((cstat & 128) != 0)
 								zofslope[CEIL] += k;
 							if ((pic.anm & 0x00ff0000) != 0)
-								zofslope[CEIL] -= (pic.getYOffset() * spr.yrepeat << 2);
+								zofslope[CEIL] -= (pic.getOffsetY() * spr.yrepeat << 2);
 							zofslope[FLOOR] = zofslope[CEIL] - (k << 1);
 							clipyou = 1;
 						}
@@ -3331,8 +3333,8 @@ public abstract class Engine {
 							if ((z > zofslope[CEIL]) == ((cstat & 8) == 0))
 								continue;
 
-						xoff = pic.getXOffset() + (spr.xoffset);
-						yoff = pic.getYOffset() + (spr.yoffset);
+						xoff = pic.getOffsetX() + (spr.xoffset);
+						yoff = pic.getOffsetY() + (spr.yoffset);
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						if ((cstat & 8) > 0)

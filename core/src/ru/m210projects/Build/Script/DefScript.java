@@ -577,7 +577,7 @@ public class DefScript {
 				case XOFFSET:
 					String xoffs = script.getstring();
 					if (xoffs.toUpperCase().equals("ART"))
-						xoffset = engine.getTile(tile).getXOffset();
+						xoffset = engine.getTile(tile).getOffsetX();
 					else {
 						try {
 							xoffset = Byte.parseByte(xoffs);
@@ -591,7 +591,7 @@ public class DefScript {
 				case YOFFSET:
 					String yoffs = script.getstring();
 					if (yoffs.toUpperCase().equals("ART"))
-						yoffset = engine.getTile(tile).getYOffset();
+						yoffset = engine.getTile(tile).getOffsetY();
 					else {
 						try {
 							yoffset = Byte.parseByte(yoffs);
