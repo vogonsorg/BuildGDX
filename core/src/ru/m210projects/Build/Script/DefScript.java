@@ -3,7 +3,7 @@
  * by Jonathon Fowler (jf@jonof.id.au)
  * Remixed substantially by Ken Silverman
  * See the included license file "BUILDLIC.TXT" for license info.
- * 
+ *
  * This file has been modified
  * by the EDuke32 team (development@voidpoint.com)
  * by Alexander Makarov-[M210] (m210-2007@mail.ru)
@@ -19,10 +19,6 @@ import static ru.m210projects.Build.Engine.NORMALPAL;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.SPECULARPAL;
 import static ru.m210projects.Build.Engine.palette;
-import static ru.m210projects.Build.Engine.picanm;
-import static ru.m210projects.Build.Engine.tilesizx;
-import static ru.m210projects.Build.Engine.tilesizy;
-import static ru.m210projects.Build.Engine.waloff;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
@@ -55,6 +51,7 @@ import ru.m210projects.Build.Loader.Voxels.KVXLoader;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildEngine;
+import ru.m210projects.Build.Types.Tile;
 
 public class DefScript {
 
@@ -311,7 +308,7 @@ public class DefScript {
 
 			texInfo.remove(i, 0);
 
-			waloff[i] = null;
+			engine.getTile(i).data = null;
 			tiles[i] = null;
 		}
 
@@ -344,8 +341,10 @@ public class DefScript {
 				continue;
 
 			DefTile tile = tiles[i];
+			Tile pic = engine.getTile(i);
+
 			if (tile.crc32 != 0) {
-				byte[] data = waloff[i];
+				byte[] data = pic.data;
 				if (data == null)
 					data = engine.loadtile(i);
 
@@ -370,20 +369,22 @@ public class DefScript {
 
 			engine.invalidatetile(i, -1, -1);
 
-			waloff[i] = new byte[tile.waloff.length];
-			System.arraycopy(tile.waloff, 0, waloff[i], 0, tile.waloff.length);
 
-			tilesizx[i] = tile.sizx;
-			tilesizy[i] = tile.sizy;
 
-			picanm[i] &= ~0x00FFFF00;
-			picanm[i] |= (tile.xoffset & 0xFF) << 8;
-			picanm[i] |= (tile.yoffset & 0xFF) << 16;
+			pic.data = new byte[tile.waloff.length];
+			System.arraycopy(tile.waloff, 0, pic.data, 0, tile.waloff.length);
+
+			pic.width = tile.sizx;
+			pic.heigth  = tile.sizy;
+
+			pic.anm &= ~0x00FFFF00;
+			pic.anm |= (tile.xoffset & 0xFF) << 8;
+			pic.anm |= (tile.yoffset & 0xFF) << 16;
 
 			engine.setpicsiz(i);
 
 			// replace hrp info
-			texInfo.addTexture(i, 0, tile.hrp, (float) (0xFF - (tile.alphacut & 0xFF)) * (1.0f / 255.0f), 1.0f, 1.0f,
+			texInfo.addTexture(i, 0, tile.hrp, (0xFF - (tile.alphacut & 0xFF)) * (1.0f / 255.0f), 1.0f, 1.0f,
 					1.0f, 1.0f, 0);
 		}
 	}
@@ -506,8 +507,10 @@ public class DefScript {
 				return BaseToken.Warning;
 			}
 
-			picanm[tile0] &= ~0x0F0000FF;
-			picanm[tile0] |= ((anm & 3) << 6) | ((speed & 15) << 24) | length & 0x3F;
+			Tile pic = engine.getTile(tile0);
+
+			pic.anm &= ~0x0F0000FF;
+			pic.anm |= ((anm & 3) << 6) | ((speed & 15) << 24) | length & 0x3F;
 
 			return BaseToken.Ok;
 		}
@@ -574,7 +577,7 @@ public class DefScript {
 				case XOFFSET:
 					String xoffs = script.getstring();
 					if (xoffs.toUpperCase().equals("ART"))
-						xoffset = (byte) ((picanm[tile] & 0x0000FF00) >> 8);
+						xoffset = engine.getTile(tile).getXOffset();
 					else {
 						try {
 							xoffset = Byte.parseByte(xoffs);
@@ -588,7 +591,7 @@ public class DefScript {
 				case YOFFSET:
 					String yoffs = script.getstring();
 					if (yoffs.toUpperCase().equals("ART"))
-						yoffset = (byte) ((picanm[tile] & 0x00FF0000) >> 16);
+						yoffset = engine.getTile(tile).getYOffset();
 					else {
 						try {
 							yoffset = Byte.parseByte(yoffs);
@@ -608,7 +611,7 @@ public class DefScript {
 				}
 			}
 			script.skipbrace(ttextureend); //close bracke
-			
+
 			if (addTile(script, fn, tile, xoffset, yoffset, tilecrc, talphacut, istexture, ttexturetokptr) != null)
 				return BaseToken.Ok;
 			return BaseToken.Error;
@@ -629,7 +632,7 @@ public class DefScript {
 				// data
 
 				String ext = FileUtils.getExtension(script.filename);
-				DefTile deftile = new DefTile(tilesizx[tile], tilesizy[tile], tilecrc,
+				DefTile deftile = new DefTile(engine.getTile(tile).width, engine.getTile(tile).heigth, tilecrc,
 						ext != null && ext.equals("dat"));
 				if (xoffset != null)
 					deftile.xoffset = xoffset;
@@ -916,7 +919,7 @@ public class DefScript {
 						}
 					}
 					script.skipbrace(frameend); //close bracke
-				
+
 					if (check_tile_range("model: frame", ftilenume, ltilenume, script, frametokptr)) {
 						model_ok = 0;
 						break;
@@ -987,7 +990,7 @@ public class DefScript {
 						}
 					}
 					script.skipbrace(animend); //close bracke
-					
+
 					if (startframe == null) {
 						Console.Println("Error: missing 'start frame' for anim definition near line " + script.filename
 								+ ":" + script.getlinum(animtokptr), OSDTEXT_RED);
@@ -1069,7 +1072,7 @@ public class DefScript {
 						}
 					}
 					script.skipbrace(skinend); //close bracke
-					
+
 					if (skinfn == null) {
 						Console.Println("Error: missing 'skin filename' for skin definition near line "
 								+ script.filename + ":" + script.getlinum(skintokptr), OSDTEXT_RED);
@@ -1189,9 +1192,9 @@ public class DefScript {
 							break;
 						}
 					}
-					
+
 					script.skipbrace(frameend); //close bracke
-					
+
 					if (check_tile_range("hud", ftilenume, ltilenume, script, hudtokptr)) {
 						model_ok = 0;
 						break;
@@ -1212,7 +1215,7 @@ public class DefScript {
 				}
 			}
 			script.skipbrace(modelend); //close bracke
-			
+
 			if (model_ok == 0) {
 				if (m != null) {
 					Console.Println("Removing model " + modelfn + " due to errors.", OSDTEXT_YELLOW);
@@ -1505,7 +1508,7 @@ public class DefScript {
 				}
 			}
 			script.skipbrace(vmodelend); //close bracke
-			
+
 			vox.getModel().setMisc((float) vscale, 0, 0, 0, vrotate ? MD_ROTATE : 0);
 			return BaseToken.Ok;
 		}
@@ -1543,7 +1546,7 @@ public class DefScript {
 				put("bottom", SkyboxTokens.BOTTOM);
 				put("floor", SkyboxTokens.BOTTOM);
 				put("down", SkyboxTokens.BOTTOM);
-				
+
 //				put("nocompress", TextureTokens.NOCOMPRESS);
 //				put("nodownsize", TextureTokens.NODOWNSIZE);
 			}
@@ -1729,7 +1732,7 @@ public class DefScript {
 				}
 			}
 			script.skipbrace(dummy); //close bracke
-			
+
 			audInfo.addDigitalInfo(t_id, t_file);
 
 			return BaseToken.Ok;

@@ -18,13 +18,14 @@ package ru.m210projects.Build.Render;
 
 import java.util.HashMap;
 
+import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 
 public abstract class GLRenderer extends Renderer {
-	
+
 	public enum GLInvalidateFlag {
 		Uninit,
 		SkinsOnly,
@@ -35,11 +36,11 @@ public abstract class GLRenderer extends Renderer {
 
 	protected final TextureCache textureCache;
 
-	public GLRenderer() {
+	public GLRenderer(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
 			BuildGdx.app.setFrame(FrameType.GL);
 		GLInfo.init();
-		this.textureCache = new TextureCache();
+		this.textureCache = new TextureCache(engine);
 	}
 
 	@Override

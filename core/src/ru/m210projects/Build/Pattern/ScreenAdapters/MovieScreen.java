@@ -9,6 +9,7 @@ import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.ScreenAdapters.SkippableAdapter;
 import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Settings.BuildSettings;
+import ru.m210projects.Build.Types.Tile;
 
 public abstract class MovieScreen extends SkippableAdapter {
 
@@ -71,7 +72,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 		engine.sampletimer();
 		LastMS = engine.getticks();
 		gCutsClock = totalclock = 0;
-		
+
 		mvfil.playAudio();
 	}
 
@@ -94,27 +95,28 @@ public abstract class MovieScreen extends SkippableAdapter {
 		if (mvfil == null)
 			return false;
 
-		tilesizx[TILE_MOVIE] = mvfil.getWidth();
-		tilesizy[TILE_MOVIE] = mvfil.getHeight();
-		waloff[TILE_MOVIE] = null;
+		Tile pic = engine.getTile(TILE_MOVIE);
+		pic.width = mvfil.getWidth();
+		pic.heigth = mvfil.getHeight();
+		pic.data = null;
 
-		float kt = tilesizy[TILE_MOVIE] / (float) tilesizx[TILE_MOVIE];
+		float kt = pic.heigth / (float) pic.width;
 		float kv = xdim / (float) ydim;
 
 		float scale = 1.0f;
 		if (kv >= kt) {
-			scale = (ydim / (float) tilesizx[TILE_MOVIE]);
+			scale = (ydim / (float) pic.width);
 			scale /= (ydim / (float) 200);
 		}
 		else {
-			scale = (xdim / (float) tilesizy[TILE_MOVIE]);
+			scale = (xdim / (float) pic.heigth);
 			scale /= ((4 * ydim) / (float) (3 * 320));
 		}
 		nScale = (int) (scale * 65536);
 
 //        if(3 * xdim / 4 <= ydim)
 //        	nScale = divscale(310, tilesizy[TILE_MOVIE], 16);
-//        else 
+//        else
 //        	nScale = divscale(190, tilesizx[TILE_MOVIE], 16);
 //        nPosX = 160;
 //        nPosY = 100;
@@ -126,7 +128,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 //        if(kv >= kt)
 //        	scale = (ydim / (float) tilesizx[TILE_MOVIE]);
 //        else scale = (xdim / (float) tilesizy[TILE_MOVIE]);
-//  
+//
 //        nScale = (int) (scale * 65536.0f);
 //        nPosX = (xdim / 2) - (int) (tilesizy[TILE_MOVIE] / 2.0f * scale);
 //        nPosY = (ydim / 2) - (int) (tilesizx[TILE_MOVIE] / 2.0f * scale);
@@ -184,6 +186,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 		if (mvfil != null) {
 			if (LastMS == -1)
 				LastMS = engine.getticks();
+			Tile pic = engine.getTile(TILE_MOVIE);
 
 			long ms = engine.getticks();
 			long dt = ms - LastMS;
@@ -191,7 +194,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 			float tick = mvfil.getRate();
 			if (mvtime >= tick) {
 				if (frame < mvfil.getFrames()) {
-					waloff[TILE_MOVIE] = DoDrawFrame(frame);
+					pic.data = DoDrawFrame(frame);
 					engine.invalidatetile(TILE_MOVIE, 0, -1); // JBF 20031228
 
 					frame++;
@@ -201,10 +204,10 @@ public abstract class MovieScreen extends SkippableAdapter {
 			}
 			LastMS = ms;
 
-			if (tilesizx[TILE_MOVIE] <= 0)
+			if (pic.width <= 0)
 				return false;
 
-			if (waloff[TILE_MOVIE] != null)
+			if (pic.data != null)
 				engine.rotatesprite(nPosX << 16, nPosY << 16, nScale, 512, TILE_MOVIE, 0, 0, nFlags, 0, 0, xdim - 1,
 						ydim - 1);
 			return true;
