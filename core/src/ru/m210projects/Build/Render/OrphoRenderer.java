@@ -48,7 +48,7 @@ import ru.m210projects.Build.Types.WALL;
 
 public abstract class OrphoRenderer {
 
-	protected Engine engine;
+	protected final Engine engine;
 
 	public OrphoRenderer(Engine engine) {
 		this.engine = engine;

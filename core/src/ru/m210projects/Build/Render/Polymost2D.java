@@ -218,8 +218,11 @@ public class Polymost2D extends OrphoRenderer {
 				if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
 					continue;
 
-				if (pic.getType() != AnimType.None)
+				if (pic.getType() != AnimType.None) {
 					globalpicnum += engine.animateoffs(globalpicnum, s);
+					pic = engine.getTile(globalpicnum);
+				}
+
 				if (pic.data == null)
 					engine.loadtile(globalpicnum);
 
@@ -314,6 +317,9 @@ public class Polymost2D extends OrphoRenderer {
 				if ((spr.cstat & 32768) == 0) {
 					npoints = 0;
 
+					if (spr.picnum >= MAXTILES)
+						spr.picnum = 0;
+
 					Tile pic = engine.getTile(spr.picnum);
 
 					xoff = pic.getOffsetX() + spr.xoffset;
@@ -390,15 +396,16 @@ public class Polymost2D extends OrphoRenderer {
 
 					globalpicnum = spr.picnum;
 					globalpal = spr.pal; // GL needs this, software doesn't
-					if (globalpicnum >= MAXTILES)
-						globalpicnum = 0;
 					engine.setgotpic(globalpicnum);
 					Tile sprpic = engine.getTile(globalpicnum);
 
 					if ((sprpic.getWidth() <= 0) || (pic.getHeight() <= 0))
 						continue;
-					if (sprpic.getType() != AnimType.None)
+					if (sprpic.getType() != AnimType.None) {
 						globalpicnum += engine.animateoffs(globalpicnum, s);
+						sprpic = engine.getTile(globalpicnum);
+					}
+
 					if (sprpic.data == null)
 						engine.loadtile(globalpicnum);
 
@@ -959,8 +966,10 @@ public class Polymost2D extends OrphoRenderer {
 
 		Tile pic = engine.getTile(picnum);
 
-		if (pic.getType() != AnimType.None)
-			picnum += engine.animateoffs((short) picnum, (short) 0xc000);
+		if (pic.getType() != AnimType.None) {
+			picnum += engine.animateoffs(picnum, 0xc000);
+			pic = engine.getTile(picnum);
+		}
 
 		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
 			return;

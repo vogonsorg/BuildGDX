@@ -20,12 +20,12 @@ public class Tile {
 		}
 	};
 
-	public int width, heigth;
+	public int width, height;
 	public int anm;
 	public byte[] data;
 
 	public int getSize() {
-		return width * heigth;
+		return width * height;
 	}
 
 	public Tile allocate(int xsiz, int ysiz) {
@@ -33,7 +33,7 @@ public class Tile {
 
 		data = new byte[dasiz];
 		width = xsiz;
-		heigth = ysiz;
+		height = ysiz;
 		anm = 0;
 
 		return this;
@@ -41,7 +41,7 @@ public class Tile {
 
 	public Tile clear() {
 		data = null;
-		width = heigth = 0;
+		width = height = 0;
 		anm = 0;
 
 		return this;
@@ -60,7 +60,19 @@ public class Tile {
 	}
 
 	public int getHeight() {
-		return heigth;
+		return height;
+	}
+
+	public Tile setWidth(int width) {
+		this.width = width;
+
+		return this;
+	}
+
+	public Tile setHeight(int height) {
+		this.height = height;
+
+		return this;
 	}
 
 	public int getFrames() {

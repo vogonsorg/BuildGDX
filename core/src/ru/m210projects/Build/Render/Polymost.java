@@ -1458,11 +1458,10 @@ public abstract class Polymost extends GLRenderer {
 			{ //DRAW FLOOR
 				rendering = Rendering.Floor.setIndex(sectnum);
 				globalpicnum = sec.floorpicnum;
-				Tile flpic = engine.getTile(globalpicnum);
 				globalshade = sec.floorshade;
 				globalpal = sec.floorpal;
 				globalorientation = sec.floorstat;
-				if (flpic.getType() != AnimType.None)
+				if (engine.getTile(globalpicnum).getType() != AnimType.None)
 					globalpicnum += engine.animateoffs(globalpicnum, sectnum);
 
 				global_cf_shade = sec.floorshade;
@@ -1484,11 +1483,10 @@ public abstract class Polymost extends GLRenderer {
 			{ //DRAW CEILING
 				rendering = Rendering.Ceiling.setIndex(sectnum);
 				globalpicnum = sec.ceilingpicnum;
-				Tile clpic = engine.getTile(globalpicnum);
 				globalshade = sec.ceilingshade;
 				globalpal = sec.ceilingpal & 0xFF;
 				globalorientation = sec.ceilingstat;
-				if (clpic.getType() != AnimType.None)
+				if (engine.getTile(globalpicnum).getType() != AnimType.None)
 					globalpicnum += engine.animateoffs(globalpicnum, sectnum);
 
 				global_cf_shade = sec.ceilingshade;
@@ -1534,10 +1532,9 @@ public abstract class Polymost extends GLRenderer {
 				if (((cy0 < ocy0) || (cy1 < ocy1))
 						&& (((sec.ceilingstat & sector[nextsectnum].ceilingstat) & 1)) == 0) {
 					globalpicnum = wal.picnum;
-					Tile wpic = engine.getTile(globalpicnum);
 					globalshade = wal.shade;
 					globalpal = wal.pal & 0xFF;
-					if (wpic.getType() != AnimType.None)
+					if (engine.getTile(globalpicnum).getType() != AnimType.None)
 						globalpicnum += engine.animateoffs(globalpicnum,
 								wallnum + 16384);
 
@@ -1588,10 +1585,9 @@ public abstract class Polymost extends GLRenderer {
 						guy += (drawalls_nwal.xpanning - wal.xpanning) * gdy;
 					}
 					globalpicnum = drawalls_nwal.picnum;
-					Tile wpic = engine.getTile(globalpicnum);
 					globalshade = drawalls_nwal.shade;
 					globalpal = drawalls_nwal.pal & 0xFF;
-					if (wpic.getType() != AnimType.None)
+					if (engine.getTile(globalpicnum).getType() != AnimType.None)
 						globalpicnum += engine.animateoffs(globalpicnum,
 								wallnum + 16384);
 
@@ -1646,10 +1642,9 @@ public abstract class Polymost extends GLRenderer {
 	                }
 
 					globalpicnum = (nextsectnum < 0) ? wal.picnum : wal.overpicnum;
-					Tile wpic = engine.getTile(globalpicnum);
 					globalshade = wal.shade;
 					globalpal = wal.pal & 0xFF;
-					if (wpic.getType() != AnimType.None)
+					if (engine.getTile(globalpicnum).getType() != AnimType.None)
 						globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 
 	                boolean nwcs4 = (wal.cstat & 4) == 0;
@@ -2575,9 +2570,8 @@ public abstract class Polymost extends GLRenderer {
 		globalpicnum = wal.overpicnum;
 		if (globalpicnum >= MAXTILES)
 			globalpicnum = 0;
-		Tile pic = engine.getTile(globalpicnum);
 
-		if (pic.getType() != AnimType.None)
+		if (engine.getTile(globalpicnum).getType() != AnimType.None)
 			globalpicnum += engine.animateoffs(globalpicnum, thewall[z] + 16384);
 		globalshade = wal.shade;
 		globalpal = wal.pal & 0xFF;
@@ -3052,7 +3046,7 @@ public abstract class Polymost extends GLRenderer {
 			}
 
 			pic.width = tsizx;
-			pic.heigth = tsizy;
+			pic.height = tsizy;
 
 			gl.glDepthRange(defznear, defzfar-(10f / (dist + 1)));
 
@@ -3216,7 +3210,7 @@ public abstract class Polymost extends GLRenderer {
 			dsprite[3].py = sf0;
 
 			pic.width = tsizx;
-			pic.heigth = tsizy;
+			pic.height = tsizy;
 
 			if(spritewall[tspr.owner] != -1 && (tspr.cstat & 2) != 0)
 				gl.glDepthMask(false);
@@ -3387,7 +3381,7 @@ public abstract class Polymost extends GLRenderer {
 			}
 
 			pic.width = tsizx;
-			pic.heigth = tsizy;
+			pic.height = tsizy;
 
 			if((tspr.cstat & 2) != 0)
 				gl.glDepthMask(false);
@@ -3414,7 +3408,7 @@ public abstract class Polymost extends GLRenderer {
 		}
 
 		pic.width = oldsizx;
-		pic.heigth = oldsizy;
+		pic.height = oldsizy;
 
 		if (automapping == 1)
 			show2dsprite[snum >> 3] |= pow2char[snum & 7];

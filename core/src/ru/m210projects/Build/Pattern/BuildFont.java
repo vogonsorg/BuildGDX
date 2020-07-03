@@ -28,7 +28,9 @@ public class BuildFont {
 
 	public byte[] atlas;
 
-	public enum TextAlign { Left, Center, Right };
+	public enum TextAlign {
+		Left, Center, Right
+	};
 
 	public static final int nSpace = -2;
 
@@ -68,17 +70,16 @@ public class BuildFont {
 		charInfo[ch].nWidth = (short) nWidth;
 	}
 
-	public int getTile(int ch)
-	{
-		if(!charBounds(ch))
+	public int getTile(int ch) {
+		if (!charBounds(ch))
 			return -1;
 
 		return charInfo[ch].nTile;
 	}
 
-	public int getWidth(char ch)
-	{
-		if(!charBounds(ch)) return 0;
+	public int getWidth(char ch) {
+		if (!charBounds(ch))
+			return 0;
 		return charInfo[ch].nWidth;
 	}
 
@@ -88,7 +89,7 @@ public class BuildFont {
 		if (text != null) {
 			int pos = 0;
 			while (pos < text.length && text[pos] != 0) {
-				if(!charBounds(text[pos])) {
+				if (!charBounds(text[pos])) {
 					pos++;
 					continue;
 				}
@@ -103,43 +104,47 @@ public class BuildFont {
 		return getWidth(toCharArray(text));
 	}
 
-	public int getHeight()
-	{
+	public int getHeight() {
 		return nHeight;
 	}
 
 	public int drawChar(int x, int y, char ch, int shade, int pal, int nBits, boolean shadow) {
-		if(!charBounds(ch) || charInfo[ch].nTile == -1) return 0;
+		if (!charBounds(ch) || charInfo[ch].nTile == -1)
+			return 0;
 
-		Tile pic = draw.getTile(charInfo[ch].nTile);
-		if(charInfo[ch].nTile != nSpace && pic.width != 0 && pic.heigth != 0) {
-			if(shadow)
-				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, nScale, 0, charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
-			draw.rotatesprite((x + charInfo[ch].xOffset) << 16, (y + charInfo[ch].yOffset) << 16, nScale, 0, charInfo[ch].nTile, shade, pal, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
+		Tile pic;
+		if (charInfo[ch].nTile != nSpace && (pic = draw.getTile(charInfo[ch].nTile)) != null && pic.width != 0
+				&& pic.height != 0) {
+			if (shadow)
+				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, nScale, 0,
+						charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
+			draw.rotatesprite((x + charInfo[ch].xOffset) << 16, (y + charInfo[ch].yOffset) << 16, nScale, 0,
+					charInfo[ch].nTile, shade, pal, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
 		}
 		return charInfo[ch].nWidth;
 	}
 
 	public int drawText(int x, int y, String text, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
-		if(text == null) return 0;
+		if (text == null)
+			return 0;
 
 		return drawText(x, y, toCharArray(text), shade, pal, textAlign, nBits, shadow);
 	}
 
 	public int drawText(int x, int y, char[] text, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
-		if(text == null) return 0;
+		if (text == null)
+			return 0;
 
-		if ( textAlign != TextAlign.Left )
-		{
+		if (textAlign != TextAlign.Left) {
 			int nWidth = getWidth(text);
-			if ( textAlign == TextAlign.Center )
+			if (textAlign == TextAlign.Center)
 				nWidth >>= 1;
 			x -= nWidth;
 		}
 
 		int alignx = 0;
-		for(int i = 0; i < text.length && text[i] != 0; i++) {
-			if(!charBounds(text[i]))
+		for (int i = 0; i < text.length && text[i] != 0; i++) {
+			if (!charBounds(text[i]))
 				continue;
 			alignx += drawChar(x + alignx, y, text[i], shade, pal, nBits, shadow);
 		}
@@ -148,67 +153,72 @@ public class BuildFont {
 
 	// Scale font
 
-	public int getWidth(char ch, int scale)
-	{
+	public int getWidth(char ch, int scale) {
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
-		return  scale(getWidth(ch), zoom, nScale);
+		return scale(getWidth(ch), zoom, nScale);
 	}
 
 	public int getWidth(char[] text, int scale) {
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
-		return  scale(getWidth(text), zoom, nScale);
+		return scale(getWidth(text), zoom, nScale);
 	}
 
 	public int getWidth(String text, int scale) {
 		return getWidth(toCharArray(text), scale);
 	}
 
-	public int getHeight(int scale)
-	{
+	public int getHeight(int scale) {
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
 		return scale(getHeight(), zoom, nScale);
 	}
 
 	public int drawChar(int x, int y, char ch, int scale, int shade, int pal, int nBits, boolean shadow) {
-		if(!charBounds(ch) || charInfo[ch].nTile == -1) return 0;
+		if (!charBounds(ch) || charInfo[ch].nTile == -1)
+			return 0;
 
-		Tile pic = draw.getTile(charInfo[ch].nTile);
+		Tile pic;
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
-		if(charInfo[ch].nTile != nSpace && pic.width != 0 && pic.heigth != 0) {
-			if(shadow)
-				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, zoom, 0, charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
-			draw.rotatesprite((x + charInfo[ch].xOffset) << 16, (y + charInfo[ch].yOffset) << 16, zoom, 0, charInfo[ch].nTile, shade, pal, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
+		if (charInfo[ch].nTile != nSpace && (pic = draw.getTile(charInfo[ch].nTile)) != null && pic.width != 0
+				&& pic.height != 0) {
+			if (shadow)
+				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, zoom, 0,
+						charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
+			draw.rotatesprite((x + charInfo[ch].xOffset) << 16, (y + charInfo[ch].yOffset) << 16, zoom, 0,
+					charInfo[ch].nTile, shade, pal, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
 		}
 		return scale(charInfo[ch].nWidth, zoom, nScale);
 	}
 
-	public int drawText(int x, int y, char[] text, int scale, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
-		if(text == null) return 0;
+	public int drawText(int x, int y, char[] text, int scale, int shade, int pal, TextAlign textAlign, int nBits,
+			boolean shadow) {
+		if (text == null)
+			return 0;
 
-		if ( textAlign != TextAlign.Left )
-		{
+		if (textAlign != TextAlign.Left) {
 			int nWidth = getWidth(text, scale);
-			if ( textAlign == TextAlign.Center )
+			if (textAlign == TextAlign.Center)
 				nWidth >>= 1;
 			x -= nWidth;
 		}
 
 		int alignx = 0;
-		for(int i = 0; i < text.length && text[i] != 0; i++) {
-			if(!charBounds(text[i])) continue;
+		for (int i = 0; i < text.length && text[i] != 0; i++) {
+			if (!charBounds(text[i]))
+				continue;
 			alignx += drawChar(x + alignx, y, text[i], scale, shade, pal, nBits, shadow);
 		}
 		return alignx;
 	}
 
-	public int drawText(int x, int y, String text, int scale, int shade, int pal, TextAlign textAlign, int nBits, boolean shadow) {
-		if(text == null) return 0;
+	public int drawText(int x, int y, String text, int scale, int shade, int pal, TextAlign textAlign, int nBits,
+			boolean shadow) {
+		if (text == null)
+			return 0;
 
 		return drawText(x, y, toCharArray(text), scale, shade, pal, textAlign, nBits, shadow);
 	}
 
-	public boolean charBounds(int ch)
-	{
+	public boolean charBounds(int ch) {
 		return ch >= 0 && ch < 256;
 	}
 }

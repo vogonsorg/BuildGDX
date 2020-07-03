@@ -12,16 +12,60 @@ package ru.m210projects.Build.Render.Software;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Pragmas.*;
+import static ru.m210projects.Build.Engine.MAXSPRITESONSCREEN;
+import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.MAXWALLS;
+import static ru.m210projects.Build.Engine.MAXYDIM;
+import static ru.m210projects.Build.Engine.beforedrawrooms;
+import static ru.m210projects.Build.Engine.globalpal;
+import static ru.m210projects.Build.Engine.globalposx;
+import static ru.m210projects.Build.Engine.globalposy;
+import static ru.m210projects.Build.Engine.globalshade;
+import static ru.m210projects.Build.Engine.gotsector;
+import static ru.m210projects.Build.Engine.headspritesect;
+import static ru.m210projects.Build.Engine.nextspritesect;
+import static ru.m210projects.Build.Engine.numsectors;
+import static ru.m210projects.Build.Engine.numshades;
+import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Engine.picsiz;
+import static ru.m210projects.Build.Engine.pow2char;
+import static ru.m210projects.Build.Engine.pow2long;
+import static ru.m210projects.Build.Engine.sector;
+import static ru.m210projects.Build.Engine.show2dsector;
+import static ru.m210projects.Build.Engine.sintable;
+import static ru.m210projects.Build.Engine.smalltextfont;
+import static ru.m210projects.Build.Engine.sprite;
+import static ru.m210projects.Build.Engine.textfont;
+import static ru.m210projects.Build.Engine.tsprite;
+import static ru.m210projects.Build.Engine.wall;
+import static ru.m210projects.Build.Engine.windowx1;
+import static ru.m210projects.Build.Engine.windowx2;
+import static ru.m210projects.Build.Engine.windowy1;
+import static ru.m210projects.Build.Engine.windowy2;
+import static ru.m210projects.Build.Engine.wx1;
+import static ru.m210projects.Build.Engine.wx2;
+import static ru.m210projects.Build.Engine.wy1;
+import static ru.m210projects.Build.Engine.wy2;
+import static ru.m210projects.Build.Engine.xdim;
+import static ru.m210projects.Build.Engine.xdimen;
+import static ru.m210projects.Build.Engine.xdimenscale;
+import static ru.m210projects.Build.Engine.xyaspect;
+import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Engine.yxaspect;
+import static ru.m210projects.Build.Pragmas.divscale;
+import static ru.m210projects.Build.Pragmas.dmulscale;
+import static ru.m210projects.Build.Pragmas.klabs;
+import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Pragmas.scale;
 
 import java.util.Arrays;
 
-import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.Tile;
+import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.TileFont.FontType;
 import ru.m210projects.Build.Types.WALL;
@@ -29,7 +73,7 @@ import ru.m210projects.Build.Types.WALL;
 public class SoftwareOrpho extends OrphoRenderer {
 
 	private Software parent;
-	private Engine engine;
+	protected int numpages;
 	private final int MAXPERMS;
 
 	protected final int MAXNODESPERLINE = 42; // Warning: This depends on MAXYSAVES & MAXYDIM!
@@ -55,8 +99,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 	public int[] nrx1 = new int[8], nry1 = new int[8], nrx2 = new int[8], nry2 = new int[8]; // JBF 20031206: Thanks Ken
 
 	public SoftwareOrpho(Software parent) {
+		super(parent.engine);
 		this.parent = parent;
-		this.engine = parent.engine;
 		this.MAXPERMS = parent.MAXPERMS;
 	}
 
@@ -68,15 +112,16 @@ public class SoftwareOrpho extends OrphoRenderer {
 				col = 0;
 
 			int nTile = (Integer) font.ptr;
-			if (waloff[nTile] == null && engine.loadtile(nTile) == null)
+			Tile pic = engine.getTile(nTile);
+			if (pic.data == null && engine.loadtile(nTile) == null)
 				return;
-			
+
 			int flags = 0;
 			if (bit == Transparent.Bit1)
 				flags = 1;
 			if (bit == Transparent.Bit2)
 				flags = 1 | 32;
-			
+
 			float tx, ty;
 			int mscale = (int) (scale * 65536);
 			int ctx, cty, textsize = mulscale(font.charsizx, mscale, 16);
@@ -86,8 +131,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 				tx = (text[i] % font.cols) / (float) font.cols;
 				ty = (text[i] / font.cols) / (float) font.rows;
 
-				ctx = mulscale((int) (tx * tilesizx[nTile]), mscale, 16);
-				cty = mulscale((int) (ty * tilesizy[nTile]), mscale, 16);
+				ctx = mulscale((int) (tx * pic.getWidth()), mscale, 16);
+				cty = mulscale((int) (ty * pic.getHeight()), mscale, 16);
 
 				engine.rotatesprite((xpos - ctx) << 16, (ypos - cty) << 16, mscale, 0, nTile, shade, col, 8 | 16 | flags, xpos, ypos,
 						xpos + textsize - 1, ypos + textsize - 1);
@@ -116,7 +161,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			int ptr = parent.bytesperline * (ypos + charysiz) + (stx - fontsize);
 			if (ptr < 0)
 				continue;
-			
+
 			for (int y = charysiz; y >= 0; y--) {
 				for (int x = (int) (scale * (charxsiz - 1)); x >= 0; x--) {
 					if ((fontptr[Math.round(y / scale) + (text[i] << 3)] & pow2char[7 - fontsize - Math.round(x / scale)]) != 0) {
@@ -198,7 +243,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 				y2 = i;
 			}
 
-			inc = (int) divscale(dy, dx, 12);
+			inc = divscale(dy, dx, 12);
 			plc = y1 + mulscale((2047 - x1) & 4095, inc, 12);
 			i = ((x1 + 2048) >> 12);
 			daend = ((x2 + 2048) >> 12);
@@ -219,7 +264,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 				y2 = i;
 			}
 
-			inc = (int) divscale(dx, dy, 12);
+			inc = divscale(dx, dy, 12);
 			plc = x1 + mulscale((2047 - y1) & 4095, inc, 12);
 			i = ((y1 + 2048) >> 12);
 			daend = ((y2 + 2048) >> 12);
@@ -246,7 +291,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 		int bakgxvect, bakgyvect, npoints;
 		int xvect, yvect, xvect2, yvect2, daslope;
 
-		int tilenum, xoff, yoff, k, l, cosang, sinang, xspan, yspan;
+		int xoff, yoff, k, l, cosang, sinang, xspan, yspan;
 		int xrepeat, yrepeat, x1, y1, x2, y2, x3, y3, x4, y4;
 
 		beforedrawrooms = 0;
@@ -258,8 +303,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 		cx2 = ((windowx2 + 1) << 12) - 1;
 		cy2 = ((windowy2 + 1) << 12) - 1;
 		zoome <<= 8;
-		bakgxvect = (int) divscale(sintable[(1536 - ang) & 2047], zoome, 28);
-		bakgyvect = (int) divscale(sintable[(2048 - ang) & 2047], zoome, 28);
+		bakgxvect = divscale(sintable[(1536 - ang) & 2047], zoome, 28);
+		bakgyvect = divscale(sintable[(2048 - ang) & 2047], zoome, 28);
 		xvect = mulscale(sintable[(2048 - ang) & 2047], zoome, 8);
 		yvect = mulscale(sintable[(1536 - ang) & 2047], zoome, 8);
 		xvect2 = mulscale(xvect, yxaspect, 16);
@@ -340,15 +385,20 @@ public class SoftwareOrpho extends OrphoRenderer {
 				if (globalpicnum >= MAXTILES)
 					globalpicnum = 0;
 				engine.setgotpic(globalpicnum);
-				if ((tilesizx[globalpicnum] <= 0) || (tilesizy[globalpicnum] <= 0))
+				Tile pic = engine.getTile(globalpicnum);
+
+				if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
 					continue;
 
-				if ((picanm[globalpicnum] & 192) != 0)
-					globalpicnum += engine.animateoffs(globalpicnum, s); // FIXME
-				if (waloff[globalpicnum] == null)
+				if (pic.getType() != AnimType.None) {
+					globalpicnum += engine.animateoffs(globalpicnum, s);
+					pic = engine.getTile(globalpicnum);
+				}
+
+				if (pic.data == null)
 					engine.loadtile(globalpicnum);
 
-				parent.globalbufplc = waloff[globalpicnum];
+				parent.globalbufplc = pic.data;
 				globalshade = max(min(sec.floorshade, numshades - 1), 0);
 
 				if ((globalorientation & 64) == 0) {
@@ -369,16 +419,16 @@ public class SoftwareOrpho extends OrphoRenderer {
 					globaly1 = mulscale(dmulscale(ox, bakgyvect, -oy, bakgxvect, 10), i, 10);
 					ox = (bakx1 >> 4) - (xdim << 7);
 					oy = (baky1 >> 4) - (ydim << 7);
-					globalposx = dmulscale(-oy, (int) globalx1, -ox, (int) globaly1, 28);
-					globalposy = dmulscale(-ox, (int) globalx1, oy, (int) globaly1, 28);
+					globalposx = dmulscale(-oy, globalx1, -ox, globaly1, 28);
+					globalposy = dmulscale(-ox, globalx1, oy, globaly1, 28);
 					globalx2 = -globalx1;
 					globaly2 = -globaly1;
 
 					daslope = sector[s].floorheinum;
 					i = engine.ksqrt(daslope * daslope + 16777216);
 					globalposy = mulscale(globalposy, i, 12);
-					globalx2 = mulscale((int) globalx2, i, 12);
-					globaly2 = mulscale((int) globaly2, i, 12);
+					globalx2 = mulscale(globalx2, i, 12);
+					globaly2 = mulscale(globaly2, i, 12);
 				}
 				int globalxshift = (8 - (picsiz[globalpicnum] & 15));
 				int globalyshift = (8 - (picsiz[globalpicnum] >> 4));
@@ -386,19 +436,19 @@ public class SoftwareOrpho extends OrphoRenderer {
 					globalxshift++;
 					globalyshift++;
 				}
-				
+
 				parent.globvis = parent.globalhisibility;
 				if (sec.visibility != 0) parent.globvis = mulscale(parent.globvis,(sec.visibility+16)&0xFF,4);
 				globalpolytype = 0;
-				
+
 				if ((globalorientation & 0x4) > 0) {
 					i = globalposx;
 					globalposx = -globalposy;
 					globalposy = -i;
-					i = (int) globalx2;
+					i = globalx2;
 					globalx2 = globaly1;
 					globaly1 = i;
-					i = (int) globalx1;
+					i = globalx1;
 					globalx1 = -globaly2;
 					globaly2 = -i;
 				}
@@ -412,8 +462,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 					globaly2 = -globaly2;
 					globalposy = -globalposy;
 				}
-				asm1 = (int) (globaly1 << globalxshift);
-				asm2 = (int) (globalx2 << globalyshift);
+				asm1 = globaly1 << globalxshift;
+				asm2 = globalx2 << globalyshift;
 				globalx1 <<= globalxshift;
 				globaly2 <<= globalyshift;
 				globalposx = (globalposx << (20 + globalxshift)) + ((sec.floorxpanning) << 24);
@@ -444,9 +494,13 @@ public class SoftwareOrpho extends OrphoRenderer {
 				if ((spr.cstat & 48) == 32) {
 					npoints = 0;
 
-					tilenum = spr.picnum;
-					xoff = (byte) ((picanm[tilenum] >> 8) & 255) + spr.xoffset;
-					yoff = (byte) ((picanm[tilenum] >> 16) & 255) + spr.yoffset;
+					if (spr.picnum >= MAXTILES)
+						spr.picnum = 0;
+
+					Tile pic = engine.getTile(spr.picnum);
+
+					xoff = pic.getOffsetX() + spr.xoffset;
+					yoff = pic.getOffsetY() + spr.yoffset;
 					if ((spr.cstat & 4) > 0)
 						xoff = -xoff;
 					if ((spr.cstat & 8) > 0)
@@ -455,9 +509,9 @@ public class SoftwareOrpho extends OrphoRenderer {
 					k = spr.ang & 2047;
 					cosang = sintable[(k + 512) & 2047];
 					sinang = sintable[k];
-					xspan = tilesizx[tilenum];
+					xspan = pic.getWidth();
 					xrepeat = spr.xrepeat;
-					yspan = tilesizy[tilenum];
+					yspan = pic.getHeight();
 					yrepeat = spr.yrepeat;
 					ox = ((xspan >> 1) + xoff) * xrepeat;
 					oy = ((yspan >> 1) + yoff) * yrepeat;
@@ -506,16 +560,16 @@ public class SoftwareOrpho extends OrphoRenderer {
 					rx1[2] = x;
 					ry1[2] = y;
 
-					x = (int) (rx1[0] + rx1[2] - rx1[1]);
-					y = (int) (ry1[0] + ry1[2] - ry1[1]);
+					x = rx1[0] + rx1[2] - rx1[1];
+					y = ry1[0] + ry1[2] - ry1[1];
 					i |= getclipmask(x - cx1, cx2 - x, y - cy1, cy2 - y);
 					rx1[3] = x;
 					ry1[3] = y;
 
 					if ((i & 0xf0) != 0xf0)
 						continue;
-					bakx1 = (int) rx1[0];
-					baky1 = mulscale((int) ry1[0] - (ydim << 11), xyaspect, 16) + (ydim << 11);
+					bakx1 = rx1[0];
+					baky1 = mulscale(ry1[0] - (ydim << 11), xyaspect, 16) + (ydim << 11);
 
 					if ((i & 0x0f) != 0) {
 						npoints = clippoly(npoints, i);
@@ -525,34 +579,37 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 					globalpicnum = spr.picnum;
 					globalpal = spr.pal; // GL needs this, software doesn't
-					if (globalpicnum >= MAXTILES)
-						globalpicnum = 0;
 					engine.setgotpic(globalpicnum);
-					if ((tilesizx[globalpicnum] <= 0) || (tilesizy[globalpicnum] <= 0))
+					Tile sprpic = engine.getTile(globalpicnum);
+
+					if ((sprpic.getWidth() <= 0) || (sprpic.getHeight() <= 0))
 						continue;
-					if ((picanm[globalpicnum] & 192) != 0)
+					if (sprpic.getType() != AnimType.None) {
 						globalpicnum += engine.animateoffs(globalpicnum, s);
-					if (waloff[globalpicnum] == null)
+						sprpic = engine.getTile(globalpicnum);
+					}
+
+					if (sprpic.data == null)
 						engine.loadtile(globalpicnum);
-					
-					parent.globalbufplc = waloff[globalpicnum];
+
+					parent.globalbufplc = sprpic.data;
 
 					// 'loading' the tile doesn't actually guarantee that it's there afterwards.
 					// This can really happen when drawing the second frame of a floor-aligned
 					// 'storm icon' sprite (4894+1)
 
 					if ((sector[spr.sectnum].ceilingstat & 1) > 0)
-						globalshade = ((int) sector[spr.sectnum].ceilingshade);
+						globalshade = (sector[spr.sectnum].ceilingshade);
 					else
-						globalshade = ((int) sector[spr.sectnum].floorshade);
+						globalshade = (sector[spr.sectnum].floorshade);
 					globalshade = max(min(globalshade + spr.shade + 6, numshades - 1), 0);
 
 					parent.globvis = parent.globalhisibility;
 					if (sec.visibility != 0) parent.globvis = mulscale(parent.globvis,(sec.visibility+16)&0xFF,4);
 					globalpolytype = ((spr.cstat&2)>>1)+1;
-					
+
 					parent.getA().setuphline(palookup[spr.pal], globalshade<<8);
-					
+
 					// relative alignment stuff
 					ox = x2 - x1;
 					oy = y2 - y1;
@@ -591,16 +648,16 @@ public class SoftwareOrpho extends OrphoRenderer {
 						if ((spr.cstat&512) != 0) parent.getA().settransreverse(); else parent.getA().settransnormal();
 						parent.getA().tsethlineshift(ox,oy);
 					}
-					
+
 					if ((spr.cstat & 0x4) > 0) {
 						globalx1 = -globalx1;
 						globaly1 = -globaly1;
 						globalposx = -globalposx;
 					}
-					asm1 = (int) (globaly1 << 2);
+					asm1 = globaly1 << 2;
 					globalx1 <<= 2;
 					globalposx <<= (20 + 2);
-					asm2 = (int) (globalx2 << 2);
+					asm2 = globalx2 << 2;
 					globaly2 <<= 2;
 					globalposy <<= (20 + 2);
 
@@ -869,7 +926,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 	private void fillpolygon(int npoints) {
 		int z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
 		int ox, oy, bx, by, p, day1, day2;
-		
+
 		parent.getA().sethlinesizes(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4,parent.globalbufplc);
 
 		miny = 0x7fffffff;
@@ -996,16 +1053,22 @@ public class SoftwareOrpho extends OrphoRenderer {
 			return;
 		if (z <= 16)
 			return;
-		if ((picanm[picnum] & 192) != 0)
-			picnum += engine.animateoffs((short) picnum, 0xc000);
-		if ((tilesizx[picnum] <= 0) || (tilesizy[picnum] <= 0))
+
+		Tile pic = engine.getTile(picnum);
+
+		if (pic.getType() != AnimType.None) {
+			picnum += engine.animateoffs(picnum, 0xc000);
+			pic = engine.getTile(picnum);
+		}
+
+		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
 			return;
 
 		// Experimental / development bits. ONLY FOR INTERNAL USE!
 		// bit RS_CENTERORIGIN: see dorotspr_handle_bit2
 		////////////////////
 
-		if (((dastat & 128) == 0) || (parent.numpages < 2) || (beforedrawrooms != 0)) {
+		if (((dastat & 128) == 0) || (numpages < 2) || (beforedrawrooms != 0)) {
 			dorotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2, parent.guniqhudid);
 		}
 
@@ -1015,7 +1078,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		if ((dastat & 128) == 0)
 			return;
-		if (parent.numpages >= 2) {
+
+		if (numpages >= 2) {
 			per = parent.permfifo[parent.permhead];
 			if (per == null)
 				per = new PermFifo();
@@ -1027,7 +1091,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			per.dashade = (short) dashade;
 			per.dapalnum = (short) dapalnum;
 			per.dastat = (short) dastat;
-			per.pagesleft = (short) (parent.numpages + ((beforedrawrooms & 1) << 7));
+			per.pagesleft = (short) (numpages + ((beforedrawrooms & 1) << 7));
 			per.cx1 = cx1;
 			per.cy1 = cy1;
 			per.cx2 = cx2;
@@ -1051,9 +1115,11 @@ public class SoftwareOrpho extends OrphoRenderer {
 						continue;
 					if (per2.a != per.a)
 						continue;
-					if (tilesizx[per2.picnum] > tilesizx[per.picnum])
+					Tile pic2 = engine.getTile(per2.picnum);
+
+					if (pic2.getWidth() > pic.getWidth())
 						continue;
-					if (tilesizy[per2.picnum] > tilesizy[per.picnum])
+					if (pic2.getHeight() > pic.getHeight())
 						continue;
 					if (per2.cx1 < per.cx1)
 						continue;
@@ -1088,9 +1154,11 @@ public class SoftwareOrpho extends OrphoRenderer {
 							continue;
 						if ((per2.sy >> 16) < (per.sy >> 16))
 							continue;
-						if ((per2.sx >> 16) + tilesizx[per2.picnum] > (per.sx >> 16) + tilesizx[per.picnum])
+						Tile pic2 = engine.getTile(per2.picnum);
+
+						if ((per2.sx >> 16) + pic2.getWidth() > (per.sx >> 16) + pic.getWidth())
 							continue;
-						if ((per2.sy >> 16) + tilesizy[per2.picnum] > (per.sy >> 16) + tilesizy[per.picnum])
+						if ((per2.sy >> 16) + pic2.getHeight() > (per.sy >> 16) + pic.getHeight())
 							continue;
 						per2.pagesleft = 0;
 					}
@@ -1116,13 +1184,15 @@ public class SoftwareOrpho extends OrphoRenderer {
 		if (cy2 > ydim - 1)
 			cy2 = ydim - 1;
 
-		int xsiz = tilesizx[picnum];
-		int ysiz = tilesizy[picnum];
+		Tile pic = engine.getTile(picnum);
+
+		int xsiz = pic.getWidth();
+		int ysiz = pic.getHeight();
 
 		int xoff = 0, yoff = 0;
 		if ((dastat & 16) == 0) {
-			xoff = (int) ((byte) ((picanm[picnum] >> 8) & 255)) + (xsiz >> 1);
-			yoff = (int) ((byte) ((picanm[picnum] >> 16) & 255)) + (ysiz >> 1);
+			xoff = pic.getOffsetX() + (xsiz >> 1);
+			yoff = pic.getHeight() + (ysiz >> 1);
 		}
 
 		if ((dastat & 4) != 0)
@@ -1130,7 +1200,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 		int cosang = sintable[(ang + 512) & 2047];
 		int sinang = sintable[ang & 2047];
-		
+
 		int ourxyaspect = xyaspect;
 		int ouryxaspect = yxaspect;
 		if ((dastat & 2) == 0) {
@@ -1139,7 +1209,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 				ouryxaspect = (12 << 16) / 10;
 				ourxyaspect = (10 << 16) / 12;
 			}
-		} 
+		}
 		else
 		{
 			// dastat&2: Auto window size scaling
@@ -1150,7 +1220,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			int normxofs = sx - (320 << 15), normyofs = sy - (200 << 15);
 			if ((dastat & 1024) == 0 && 4 * ydim <= 3 * xdim) {
 				xdim = (4 * ydim) / 3;
-				
+
 				ouryxaspect = (12 << 16) / 10;
 				ourxyaspect = (10 << 16) / 12;
 			}
@@ -1174,7 +1244,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			} else {
 				// If not clipping to startmosts, & auto-scaling on, as a
 				// hard-coded bonus, scale to full screen instead
-				
+
 				sx = (xdim << 15) + 32768 + scale(normxofs, xdim, 320);
 
 				if ((dastat & 512) != 0)
@@ -1195,7 +1265,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 		{
 			xv2 = mulscale(xv, ourxyaspect, 16);
 			yv2 = mulscale(yv, ourxyaspect, 16);
-		} else 
+		} else
 		{
 			xv2 = xv;
 			yv2 = yv;
@@ -1259,14 +1329,14 @@ public class SoftwareOrpho extends OrphoRenderer {
 			nextv = v;
 		}
 
-		if (waloff[picnum] == null)
+		if (pic.data == null)
 			engine.loadtile(picnum);
 		engine.setgotpic(picnum);
-		byte[] bufplc = waloff[picnum];
+		byte[] bufplc = pic.data;
 
 		int palookupshade = engine.getpalookup(0, dashade) << 8;
 
-		i = (int) divscale(1, z, 32);
+		i = divscale(1, z, 32);
 		xv = mulscale(sinang, i, 14);
 		yv = mulscale(cosang, i, 14);
 		if (((dastat & 2) != 0) || ((dastat & 8) == 0)) // Don't aspect unscaled perms
@@ -1306,9 +1376,9 @@ public class SoftwareOrpho extends OrphoRenderer {
 				parent.getA().settransnormal();
 		}
 
-		if(x1 < 0) 
+		if(x1 < 0)
 			return; //GDX 24.03.2020 crash fix
-		
+
 		for (x = x1; x < x2; x++) {
 			bx += xv2;
 			by += yv2;

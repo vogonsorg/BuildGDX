@@ -105,7 +105,7 @@ public class DEFOSDFUNC implements OSDFunc {
 		Tile pic = engine.getTile(BGTILE);
 
 		xsiz = pic.width;
-		ysiz = pic.heigth;
+		ysiz = pic.height;
 
 		if (xsiz <= 0 || ysiz <= 0)
 			return;
@@ -122,7 +122,7 @@ public class DEFOSDFUNC implements OSDFunc {
 		drawlogo(daydim);
 
 		if(BORDTILE != -1) {
-			xsiz = pic.heigth;
+			xsiz = pic.height;
 			if (xsiz > 0)
 			{
 				tx2 = xdim / xsiz;
@@ -142,7 +142,7 @@ public class DEFOSDFUNC implements OSDFunc {
 		// most of this is copied from my dummytile stuff in defs.c
 
 		Tile pic = engine.getTile(BGTILE);
-		if (pic.width == 0 || pic.heigth == 0)
+		if (pic.width == 0 || pic.height == 0)
 			engine.allocatepermanenttile(BGTILE, BGTILE_SIZEX, BGTILE_SIZEY);
 	}
 
@@ -167,7 +167,7 @@ public class DEFOSDFUNC implements OSDFunc {
 			Tile pic = engine.getTile(BGCTILE);
 
 			int xsiz = pic.width;
-			int ysiz = pic.heigth;
+			int ysiz = pic.height;
 
 			if (xsiz > 0 && ysiz > 0)
 			{
