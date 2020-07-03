@@ -33,6 +33,10 @@ public class Tile {
 		return this;
 	}
 
+	public boolean isLoaded() {
+		return data != null;
+	}
+
 	public byte getOffsetX() {
 		return (byte) ((anm >> 8) & 0xFF);
 	}
