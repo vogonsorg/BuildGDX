@@ -273,7 +273,7 @@ public abstract class Engine {
 	public static WALL[] wall;
 	public static SPRITE[] sprite;
 	public static SPRITE[] tsprite;
-	public Tile tiles[];
+	protected Tile tiles[];
 
 	public static short[] headspritesect, headspritestat;
 	public static short[] prevspritesect, prevspritestat;
@@ -954,8 +954,6 @@ public abstract class Engine {
 		zeropskyoff = new short[MAXPSKYTILES];
 
 		tiles = new Tile[MAXTILES];
-		for(int i = 0; i < MAXTILES; i++)
-			tiles[i] = new Tile();
 
 		show2dsector = new byte[(MAXSECTORS + 7) >> 3];
 		show2dwall = new byte[(MAXWALLS + 7) >> 3];
@@ -4213,6 +4211,8 @@ public abstract class Engine {
 	}
 
 	public Tile getTile(int tilenum) {
+		if(tiles[tilenum] == null)
+			tiles[tilenum] = new Tile();
 		return tiles[tilenum];
 	}
 

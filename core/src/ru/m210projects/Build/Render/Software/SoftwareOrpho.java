@@ -1192,7 +1192,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 		int xoff = 0, yoff = 0;
 		if ((dastat & 16) == 0) {
 			xoff = pic.getOffsetX() + (xsiz >> 1);
-			yoff = pic.getHeight() + (ysiz >> 1);
+			yoff = pic.getOffsetY() + (ysiz >> 1);
 		}
 
 		if ((dastat & 4) != 0)
