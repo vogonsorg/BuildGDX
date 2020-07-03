@@ -168,12 +168,12 @@ public abstract class MenuSlotList extends MenuList
 			Tile pic = draw.getTile(tile);
 
 			float kt = xdim / (float) ydim;
-			float kv = pic.width / (float) pic.height;
+			float kv = pic.getWidth() / (float) pic.getHeight();
 			float scale;
 			if (kv >= kt)
-				scale = (ydim + 1) / (float) pic.height;
+				scale = (ydim + 1) / (float) pic.getHeight();
 			else
-				scale = (xdim + 1) / (float) pic.width;
+				scale = (xdim + 1) / (float) pic.getWidth();
 
 			draw.rotatesprite(0, 0, (int) (scale * 65536), 0, tile, 127, 4, 8 | 16 | transparent, 0, 0, xdim - 1, ydim - 1);
 

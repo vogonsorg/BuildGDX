@@ -96,20 +96,20 @@ public abstract class MovieScreen extends SkippableAdapter {
 			return false;
 
 		Tile pic = engine.getTile(TILE_MOVIE);
-		pic.width = mvfil.getWidth();
-		pic.height = mvfil.getHeight();
+		pic.setWidth(mvfil.getWidth());
+		pic.setHeight(mvfil.getHeight());
 		pic.data = null;
 
-		float kt = pic.height / (float) pic.width;
+		float kt = pic.getHeight() / (float) pic.getWidth();
 		float kv = xdim / (float) ydim;
 
 		float scale = 1.0f;
 		if (kv >= kt) {
-			scale = (ydim / (float) pic.width);
+			scale = (ydim / (float) pic.getWidth());
 			scale /= (ydim / (float) 200);
 		}
 		else {
-			scale = (xdim / (float) pic.height);
+			scale = (xdim / (float) pic.getHeight());
 			scale /= ((4 * ydim) / (float) (3 * 320));
 		}
 		nScale = (int) (scale * 65536);
@@ -204,7 +204,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 			}
 			LastMS = ms;
 
-			if (pic.width <= 0)
+			if (pic.getWidth() <= 0)
 				return false;
 
 			if (pic.data != null)

@@ -3045,8 +3045,7 @@ public abstract class Polymost extends GLRenderer {
 					dsprite[2].py = dsprite[3].py = sy0;
 			}
 
-			pic.width = tsizx;
-			pic.height = tsizy;
+			pic.setWidth(tsizx).setHeight(tsizy);
 
 			gl.glDepthRange(defznear, defzfar-(10f / (dist + 1)));
 
@@ -3209,8 +3208,7 @@ public abstract class Polymost extends GLRenderer {
 			dsprite[3].px  = sx0;
 			dsprite[3].py = sf0;
 
-			pic.width = tsizx;
-			pic.height = tsizy;
+			pic.setWidth(tsizx).setHeight(tsizy);
 
 			if(spritewall[tspr.owner] != -1 && (tspr.cstat & 2) != 0)
 				gl.glDepthMask(false);
@@ -3380,8 +3378,7 @@ public abstract class Polymost extends GLRenderer {
 				trepeat = 1;
 			}
 
-			pic.width = tsizx;
-			pic.height = tsizy;
+			pic.setWidth(tsizx).setHeight(tsizy);
 
 			if((tspr.cstat & 2) != 0)
 				gl.glDepthMask(false);
@@ -3407,8 +3404,7 @@ public abstract class Polymost extends GLRenderer {
 			break;
 		}
 
-		pic.width = oldsizx;
-		pic.height = oldsizy;
+		pic.setWidth(oldsizx).setHeight(oldsizy);
 
 		if (automapping == 1)
 			show2dsprite[snum >> 3] |= pow2char[snum & 7];

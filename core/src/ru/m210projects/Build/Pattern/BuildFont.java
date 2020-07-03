@@ -113,8 +113,8 @@ public class BuildFont {
 			return 0;
 
 		Tile pic;
-		if (charInfo[ch].nTile != nSpace && (pic = draw.getTile(charInfo[ch].nTile)) != null && pic.width != 0
-				&& pic.height != 0) {
+		if (charInfo[ch].nTile != nSpace && (pic = draw.getTile(charInfo[ch].nTile)) != null && pic.getWidth() != 0
+				&& pic.getHeight() != 0) {
 			if (shadow)
 				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, nScale, 0,
 						charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);
@@ -178,8 +178,8 @@ public class BuildFont {
 
 		Tile pic;
 		int zoom = mulscale(0x10000, mulscale(scale, nScale, 16), 16);
-		if (charInfo[ch].nTile != nSpace && (pic = draw.getTile(charInfo[ch].nTile)) != null && pic.width != 0
-				&& pic.height != 0) {
+		if (charInfo[ch].nTile != nSpace && (pic = draw.getTile(charInfo[ch].nTile)) != null && pic.getWidth() != 0
+				&& pic.getHeight() != 0) {
 			if (shadow)
 				draw.rotatesprite((x + charInfo[ch].xOffset + 1) << 16, (y + charInfo[ch].yOffset + 1) << 16, zoom, 0,
 						charInfo[ch].nTile, 127, 0, nFlags | nBits, 0, 0, xdim - 1, ydim - 1);

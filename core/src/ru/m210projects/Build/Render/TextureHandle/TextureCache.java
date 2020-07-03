@@ -121,8 +121,8 @@ public class TextureCache {
 
 	private Pthtyp loadTileArt(int dapic, int dapal, boolean clamping, boolean alpha, Pthtyp pth, boolean doalloc) {
 		Tile pic = engine.getTile(dapic);
-		int tsizx = pic.width;
-		int tsizy = pic.height;
+		int tsizx = pic.getWidth();
+		int tsizy = pic.getHeight();
 		int xsiz = calcSize(tsizx);
 		int ysiz = calcSize(tsizy);
 
@@ -270,8 +270,8 @@ public class TextureCache {
 		else
 		{
 			Tile pic = engine.getTile(dapic);
-		 	pth.scalex = (tsizx) / ((float)pic.width);
-		    pth.scaley = (tsizy) / ((float)pic.height);
+		 	pth.scalex = (tsizx) / ((float)pic.getWidth());
+		    pth.scaley = (tsizy) / ((float)pic.getHeight());
 		}
 
 		return pth;

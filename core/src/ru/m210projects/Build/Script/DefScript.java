@@ -374,8 +374,8 @@ public class DefScript {
 			pic.data = new byte[tile.waloff.length];
 			System.arraycopy(tile.waloff, 0, pic.data, 0, tile.waloff.length);
 
-			pic.width = tile.sizx;
-			pic.height  = tile.sizy;
+			pic.setWidth(tile.sizx);
+			pic.setHeight(tile.sizy);
 
 			pic.anm &= ~0x00FFFF00;
 			pic.anm |= (tile.xoffset & 0xFF) << 8;
@@ -632,7 +632,7 @@ public class DefScript {
 				// data
 
 				String ext = FileUtils.getExtension(script.filename);
-				DefTile deftile = new DefTile(engine.getTile(tile).width, engine.getTile(tile).height, tilecrc,
+				DefTile deftile = new DefTile(engine.getTile(tile).getWidth(), engine.getTile(tile).getHeight(), tilecrc,
 						ext != null && ext.equals("dat"));
 				if (xoffset != null)
 					deftile.xoffset = xoffset;

@@ -1453,20 +1453,21 @@ public abstract class Engine {
 			int localtileend = fil.readInt();
 
 			for (int i = localtilestart; i <= localtileend; i++) {
-				getTile(i).width = fil.readShort();
+				getTile(i).setWidth(fil.readShort());
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				getTile(i).height = fil.readShort();
+				getTile(i).setHeight(fil.readShort());
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
 				getTile(i).anm = fil.readInt();
 			}
 
 			for (int i = localtilestart; i <= localtileend; i++) {
-				int dasiz = getTile(i).width * getTile(i).height;
+				int dasiz = getTile(i).getSize();
 				if(dasiz > 0) {
-					getTile(i).data = new byte[dasiz];
-					fil.read(getTile(i).data);
+					Tile pic = getTile(i);
+					pic.data = new byte[dasiz];
+					fil.read(pic.data);
 				}
 				setpicsiz(i);
 			}
@@ -1478,11 +1479,11 @@ public abstract class Engine {
 	{
 		Tile pic = getTile(tilenum);
 		int j = 15;
-		while ((j > 1) && (pow2long[j] > pic.width))
+		while ((j > 1) && (pow2long[j] > pic.getWidth()))
 			j--;
 		picsiz[tilenum] = j;
 		j = 15;
-		while ((j > 1) && (pow2long[j] > pic.height))
+		while ((j > 1) && (pow2long[j] > pic.getHeight()))
 			j--;
 		picsiz[tilenum] += (j << 4);
 	}
@@ -1513,10 +1514,10 @@ public abstract class Engine {
 				localtileend = fil.readInt();
 
 				for (i = localtilestart; i <= localtileend; i++) {
-					getTile(i).width = fil.readShort();
+					getTile(i).setWidth(fil.readShort());
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					getTile(i).height = fil.readShort();
+					getTile(i).setHeight(fil.readShort());
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
 					getTile(i).anm = fil.readInt();
@@ -1525,7 +1526,7 @@ public abstract class Engine {
 				for (i = localtilestart; i <= localtileend; i++) {
 					tilefilenum[i] = k;
 					tilefileoffs[i] = offscount;
-					dasiz = getTile(i).width * getTile(i).height;
+					dasiz = getTile(i).getSize();
 					offscount += dasiz;
 				}
 
@@ -2111,7 +2112,7 @@ public abstract class Engine {
 
 					intz = zs + scale(vz, topt, bot);
 
-					i = (pic.height * spr.yrepeat << 2);
+					i = (pic.getHeight() * spr.yrepeat << 2);
 					if ((cstat & 128) != 0)
 						z1 += (i >> 1);
 					if ((pic.anm & 0x00ff0000) != 0)
@@ -2123,7 +2124,7 @@ public abstract class Engine {
 					offx = scale(vx, topu, bot);
 					offy = scale(vy, topu, bot);
 					dist = offx * offx + offy * offy;
-					i = pic.width * spr.xrepeat;
+					i = pic.getWidth() * spr.xrepeat;
 					i *= i;
 					if (dist > (i >> 7))
 						continue;
@@ -2150,7 +2151,7 @@ public abstract class Engine {
 					l = spr.xrepeat;
 					dax = sintable[k & 2047] * l;
 					day = sintable[(k + 1536) & 2047] * l;
-					l = pic.width;
+					l = pic.getWidth();
 					k = (l >> 1) + xoff;
 					x1 -= mulscale(dax, k, 16);
 					x2 = x1 + mulscale(dax, l, 16);
@@ -2171,7 +2172,7 @@ public abstract class Engine {
 					if (klabs(intx - xs) + klabs(inty - ys) > klabs((hit.hitx) - xs) + klabs((hit.hity) - ys))
 						continue;
 
-					k = ((pic.height * spr.yrepeat) << 2);
+					k = ((pic.getHeight() * spr.yrepeat) << 2);
 					if ((cstat & 128) != 0)
 						zofslope[CEIL] = spr.z + (k >> 1);
 					else
@@ -2213,9 +2214,9 @@ public abstract class Engine {
 					ang = spr.ang;
 					cosang = sintable[(ang + 512) & 2047];
 					sinang = sintable[ang & 2047];
-					xspan = pic.width;
+					xspan = pic.getWidth();
 					xrepeat = spr.xrepeat;
-					yspan = pic.height;
+					yspan = pic.getHeight();
 					yrepeat = spr.yrepeat;
 
 					dax = ((xspan >> 1) + xoff) * xrepeat;
@@ -2391,7 +2392,7 @@ public abstract class Engine {
 						if (bot != 0) {
 							int intz = zs + scale(vz, topt, bot);
 							Tile pic = getTile(spr.picnum);
-							i = pic.height * spr.yrepeat;
+							i = pic.getHeight() * spr.yrepeat;
 							if ((spr.cstat & 128) != 0)
 								z1 += (i << 1);
 							if ((pic.anm & 0x00ff0000) != 0)
@@ -2401,7 +2402,7 @@ public abstract class Engine {
 								offx = scale(vx, topu, bot);
 								offy = scale(vy, topu, bot);
 								dist = offx * offx + offy * offy;
-								i = (pic.width * spr.xrepeat);
+								i = (pic.getWidth() * spr.xrepeat);
 								i *= i;
 								if (dist <= (i >> 7)) {
 									int intx = xs + scale(vx, topt, bot);
@@ -2675,7 +2676,7 @@ public abstract class Engine {
 				case 0:
 
 					if ((x1 >= xmin) && (x1 <= xmax) && (y1 >= ymin) && (y1 <= ymax)) {
-						k = ((pic.height * spr.yrepeat) << 2);
+						k = ((pic.getHeight() * spr.yrepeat) << 2);
 						if ((cstat & 128) != 0)
 							daz = spr.z + (k >> 1);
 						else
@@ -2696,7 +2697,7 @@ public abstract class Engine {
 					}
 					break;
 				case 16:
-					k = ((pic.height * spr.yrepeat) << 2);
+					k = ((pic.getHeight() * spr.yrepeat) << 2);
 					if ((cstat & 128) != 0)
 						daz = spr.z + (k >> 1);
 					else
@@ -2716,7 +2717,7 @@ public abstract class Engine {
 						l = spr.xrepeat;
 						dax = sintable[k & 2047] * l;
 						day = sintable[(k + 1536) & 2047] * l;
-						l = pic.width;
+						l = pic.getWidth();
 						k = (l >> 1) + xoff;
 						x1 -= mulscale(dax, k, 16);
 						x2 = x1 + mulscale(dax, l, 16);
@@ -2764,9 +2765,9 @@ public abstract class Engine {
 						k = spr.ang;
 						cosang = sintable[(k + 512) & 2047];
 						sinang = sintable[k & 2047];
-						xspan = pic.width;
+						xspan = pic.getWidth();
 						xrepeat = spr.xrepeat;
-						yspan = pic.height;
+						yspan = pic.getHeight();
 						yrepeat = spr.yrepeat;
 
 						dax = ((xspan >> 1) + xoff) * xrepeat;
@@ -3291,7 +3292,7 @@ public abstract class Engine {
 						k = walldist + (spr.clipdist << 2) + 1;
 						if ((klabs(x1 - x) <= k) && (klabs(y1 - y) <= k)) {
 							zofslope[CEIL] = spr.z;
-							k = ((pic.height * spr.yrepeat) << 1);
+							k = ((pic.getHeight() * spr.yrepeat) << 1);
 							if ((cstat & 128) != 0)
 								zofslope[CEIL] += k;
 							if ((pic.anm & 0x00ff0000) != 0)
@@ -3308,7 +3309,7 @@ public abstract class Engine {
 						l = spr.xrepeat;
 						dax = sintable[k & 2047] * l;
 						day = sintable[(k + 1536) & 2047] * l;
-						l = pic.width;
+						l = pic.getWidth();
 						k = (l >> 1) + xoff;
 						x1 -= mulscale(dax, k, 16);
 						x2 = x1 + mulscale(dax, l, 16);
@@ -3316,7 +3317,7 @@ public abstract class Engine {
 						y2 = y1 + mulscale(day, l, 16);
 						if (clipinsideboxline(x, y, x1, y1, x2, y2, walldist + 1) != 0) {
 							zofslope[CEIL] = spr.z;
-							k = ((pic.height * spr.yrepeat) << 1);
+							k = ((pic.getHeight() * spr.yrepeat) << 1);
 							if ((cstat & 128) != 0)
 								zofslope[CEIL] += k;
 							if ((pic.anm & 0x00ff0000) != 0)
@@ -3343,9 +3344,9 @@ public abstract class Engine {
 						ang = spr.ang;
 						cosang = sintable[(ang + 512) & 2047];
 						sinang = sintable[ang & 2047];
-						xspan = pic.width;
+						xspan = pic.getWidth();
 						xrepeat = spr.xrepeat;
-						yspan = pic.height;
+						yspan = pic.getHeight();
 						yrepeat = spr.yrepeat;
 
 						dax = ((xspan >> 1) + xoff) * xrepeat;
@@ -3592,13 +3593,13 @@ public abstract class Engine {
 	{
 		Tile pic = getTile(tilenume);
 		if (render.getType() == RenderType.Software) {
-			((Software) render).setviewtotile(tilenume, pic.width, pic.height);
+			((Software) render).setviewtotile(tilenume, pic.getWidth(), pic.getHeight());
 			return;
 		}
 
 		// DRAWROOMS TO TILE BACKUP&SET CODE
-		pic.width = xsiz;
-		pic.height = ysiz;
+		pic.setWidth(xsiz);
+		pic.setHeight(ysiz);
 		bakwindowx1[setviewcnt] = windowx1;
 		bakwindowy1[setviewcnt] = windowy1;
 		bakwindowx2[setviewcnt] = windowx2;
@@ -3635,8 +3636,8 @@ public abstract class Engine {
 
 	public void squarerotatetile(int tilenume) {
 		Tile pic = getTile(tilenume);
-		int xsiz = pic.width;
-		int ysiz = pic.height;
+		int xsiz = pic.getWidth();
+		int ysiz = pic.getHeight();
 
 		// supports square tiles only for rotation part
 		if (xsiz == ysiz) {
@@ -3977,8 +3978,8 @@ public abstract class Engine {
 	protected byte[] setviewbuf() { // gdxBuild
 		Tile pic = getTile(baktile);
 
-		int width = pic.width;
-		int heigth = pic.height;
+		int width = pic.getWidth();
+		int heigth = pic.getHeight();
 		byte[] data = pic.data;
 		if (data == null || data.length < width * heigth)
 			data = new byte[width * heigth];
@@ -4065,10 +4066,10 @@ public abstract class Engine {
 		Tile pic1 = getTile(tilenume1);
 		Tile pic2 = getTile(tilenume2);
 
-		int xsiz1 = pic1.width;
-		int ysiz1 = pic1.height;
-		int xsiz2 = pic2.width;
-		int ysiz2 = pic2.height;
+		int xsiz1 = pic1.getWidth();
+		int ysiz1 = pic1.getHeight();
+		int xsiz2 = pic2.getWidth();
+		int ysiz2 = pic2.getHeight();
 		if ((xsiz1 > 0) && (ysiz1 > 0) && (xsiz2 > 0) && (ysiz2 > 0)) {
 			if (pic1.data == null)
 				loadtile(tilenume1);

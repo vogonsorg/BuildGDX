@@ -2,25 +2,11 @@ package ru.m210projects.Build.Types;
 
 public class Tile {
 
-	public enum AnimType {
-		Oscil(64), Forward(128), Backward(192), None(0);
-
-		private byte bit;
-
-		AnimType(int bit) {
-			this.bit = (byte) bit;
-		}
-
-		public int getBit() {
-			return bit & 0xFF;
-		}
-
-		public boolean hasBit(int picanm) {
-			return ((picanm & 192) == (bit & 0xFF));
-		}
+	public static enum AnimType {
+		Oscil, Forward, Backward, None;
 	};
 
-	public int width, height;
+	private int width, height;
 	public int anm;
 	public byte[] data;
 
