@@ -193,7 +193,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 		if (pic.getType() != AnimType.None)
 			picnum += engine.animateoffs(picnum, 0xc000);
 
-		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+		if (!pic.hasSize())
 			return;
 
 		int method = 0;

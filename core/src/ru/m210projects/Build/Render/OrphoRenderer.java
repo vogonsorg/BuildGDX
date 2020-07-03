@@ -196,9 +196,7 @@ public abstract class OrphoRenderer {
 				if (wal.nextwall >= 0)
 					continue;
 				Tile pic = engine.getTile(wal.picnum);
-				if (pic.getWidth() == 0)
-					continue;
-				if (pic.getHeight() == 0)
+				if (!pic.hasSize())
 					continue;
 
 				if (j == k) {

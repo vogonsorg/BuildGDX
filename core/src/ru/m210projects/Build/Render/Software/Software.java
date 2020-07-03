@@ -1031,7 +1031,7 @@ public abstract class Software extends Renderer {
 			tilenum += engine.animateoffs(tilenum, spritenum + 32768);
 			pic = engine.getTile(tilenum);
 		}
-		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0) || (spritenum < 0))
+		if (!pic.hasSize() || (spritenum < 0))
 			return;
 
 		if ((tspr.xrepeat <= 0) || (tspr.yrepeat <= 0))
@@ -2472,7 +2472,7 @@ public abstract class Software extends Renderer {
 		engine.setgotpic(globalpicnum);
 		Tile pic = engine.getTile(globalpicnum);
 
-		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+		if (!pic.hasSize())
 			return;
 
 		if (pic.data == null)
@@ -2602,7 +2602,7 @@ public abstract class Software extends Renderer {
 		tsizx = pic.getWidth();
 		tsizy = pic.getHeight();
 		engine.setgotpic(globalpicnum);
-		if ((tsizx <= 0) || (tsizy <= 0))
+		if (!pic.hasSize())
 			return;
 		if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen))
 			return;
@@ -2667,7 +2667,7 @@ public abstract class Software extends Renderer {
 		int tsizx = pic.getWidth();
 		int tsizy = pic.getHeight();
 		engine.setgotpic(globalpicnum);
-		if ((tsizx <= 0) || (tsizy <= 0))
+		if (!pic.hasSize())
 			return;
 		if (x1 >= uwal.length || x2 >= uwal.length || (uwal[x1] > ydimen) && (uwal[x2] > ydimen))
 			return;
@@ -2737,7 +2737,7 @@ public abstract class Software extends Renderer {
 		engine.setgotpic(globalpicnum);
 		Tile pic = engine.getTile(globalpicnum);
 
-		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+		if (!pic.hasSize())
 			return;
 		if (pic.getType() != AnimType.None) {
 			globalpicnum += engine.animateoffs(globalpicnum, sectnum);
@@ -3162,7 +3162,7 @@ public abstract class Software extends Renderer {
 		}
 
 		engine.setgotpic(globalpicnum);
-		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+		if (!pic.hasSize())
 			return;
 		if (pic.data == null)
 			engine.loadtile(globalpicnum);
@@ -3342,7 +3342,7 @@ public abstract class Software extends Renderer {
 
 		Tile pic = engine.getTile(globalpicnum);
 		engine.setgotpic(globalpicnum);
-		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+		if (!pic.hasSize())
 			return;
 		if (pic.getType() != AnimType.None) {
 			globalpicnum += engine.animateoffs(globalpicnum, sectnum);

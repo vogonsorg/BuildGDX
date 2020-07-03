@@ -15,7 +15,7 @@ public class Tile {
 	}
 
 	public boolean hasSize() {
-		return (width | height) > 0;
+		return width > 0 && height > 0;
 	}
 
 	public Tile allocate(int xsiz, int ysiz) {

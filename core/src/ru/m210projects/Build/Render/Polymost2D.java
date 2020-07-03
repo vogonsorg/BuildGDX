@@ -215,7 +215,7 @@ public class Polymost2D extends OrphoRenderer {
 				engine.setgotpic(globalpicnum);
 				Tile pic = engine.getTile(globalpicnum);
 
-				if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+				if (!pic.hasSize())
 					continue;
 
 				if (pic.getType() != AnimType.None) {
@@ -399,7 +399,7 @@ public class Polymost2D extends OrphoRenderer {
 					engine.setgotpic(globalpicnum);
 					Tile sprpic = engine.getTile(globalpicnum);
 
-					if ((sprpic.getWidth() <= 0) || (pic.getHeight() <= 0))
+					if (!sprpic.hasSize())
 						continue;
 					if (sprpic.getType() != AnimType.None) {
 						globalpicnum += engine.animateoffs(globalpicnum, s);
@@ -971,7 +971,7 @@ public class Polymost2D extends OrphoRenderer {
 			pic = engine.getTile(picnum);
 		}
 
-		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+		if (!pic.hasSize())
 			return;
 
 		if ((dastat & 128) == 0 || beforedrawrooms != 0)

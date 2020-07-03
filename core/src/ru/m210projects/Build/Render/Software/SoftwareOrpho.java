@@ -387,7 +387,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 				engine.setgotpic(globalpicnum);
 				Tile pic = engine.getTile(globalpicnum);
 
-				if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+				if (!pic.hasSize())
 					continue;
 
 				if (pic.getType() != AnimType.None) {
@@ -582,7 +582,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 					engine.setgotpic(globalpicnum);
 					Tile sprpic = engine.getTile(globalpicnum);
 
-					if ((sprpic.getWidth() <= 0) || (sprpic.getHeight() <= 0))
+					if (!sprpic.hasSize())
 						continue;
 					if (sprpic.getType() != AnimType.None) {
 						globalpicnum += engine.animateoffs(globalpicnum, s);
@@ -1061,7 +1061,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			pic = engine.getTile(picnum);
 		}
 
-		if ((pic.getWidth() <= 0) || (pic.getHeight() <= 0))
+		if (!pic.hasSize())
 			return;
 
 		// Experimental / development bits. ONLY FOR INTERNAL USE!

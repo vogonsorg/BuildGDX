@@ -107,7 +107,7 @@ public class DEFOSDFUNC implements OSDFunc {
 		xsiz = pic.getWidth();
 		ysiz = pic.getHeight();
 
-		if (xsiz <= 0 || ysiz <= 0)
+		if (!pic.hasSize())
 			return;
 
 		tx2 = xdim / xsiz;
@@ -169,7 +169,7 @@ public class DEFOSDFUNC implements OSDFunc {
 			int xsiz = pic.getWidth();
 			int ysiz = pic.getHeight();
 
-			if (xsiz > 0 && ysiz > 0)
+			if (pic.hasSize())
 			{
 				engine.rotatesprite((xdim - xsiz) << 15,
 						(daydim - ysiz) << 16, 65536, 0, BGCTILE,
