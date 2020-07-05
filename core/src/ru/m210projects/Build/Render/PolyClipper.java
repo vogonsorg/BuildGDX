@@ -11,6 +11,10 @@
 package ru.m210projects.Build.Render;
 
 import static java.lang.Math.abs;
+import static ru.m210projects.Build.Engine.globalposx;
+import static ru.m210projects.Build.Engine.globalposy;
+
+import com.badlogic.gdx.math.Vector2;
 
 public class PolyClipper {
 
@@ -490,6 +494,203 @@ public class PolyClipper {
 		vsp[i].n = r;
 
 		return (r);
+	}
+
+	private Vector2 projPoint = new Vector2();
+	public float SCISDIST = 1.0f; // 1.0: Close plane clipping distance
+
+	public float t0, t1;
+	public float ryp0, ryp1;
+	public float x0, y0, x1, y1;
+	public float scrx0, scrx1;
+
+	private float opyr0, opyr1;
+	private float ot0, ot1;
+	private float oscrx0, oscrx1;
+	private float ox0, oy0, ox1, oy1;
+
+	private double[] tx = new double[8];
+	private double[] ty = new double[8];
+	private double[] tz = new double[8];
+
+	public boolean apply(Polymost par, boolean relative, float x1, float y1, float x2, float y2, boolean one_side) {
+		// Offset&Rotate 3D coordinates to screen 3D space
+		Vector2 p0 = projToScreen(par, x1, y1, relative);
+		float xp0 = p0.x, yp0 = p0.y, oxp0 = p0.x, oyp0 = p0.y;
+		Vector2 p1 = projToScreen(par, x2, y2, relative);
+		float xp1 = p1.x, yp1 = p1.y;
+
+		this.t0 = 0.0f;
+		this.t1 = 1.0f;
+
+		this.x0 = x1;
+		this.y0 = y1;
+		this.x1 = x2;
+		this.y1 = y2;
+
+		// Clip to close parallel-screen plane
+		if (yp0 < SCISDIST) {
+			if (yp1 < SCISDIST)
+				return false;
+
+			this.t0 = (SCISDIST - yp0) / (yp1 - yp0);
+			xp0 = (xp1 - xp0) * t0 + xp0;
+			yp0 = SCISDIST;
+			this.x0 = (x2 - x1) * t0 + x1;
+			this.y0 = (y2 - y1) * t0 + y1;
+		}
+
+		if (yp1 < SCISDIST) {
+			this.t1 = (SCISDIST - oyp0) / (yp1 - oyp0);
+			xp1 = (xp1 - oxp0) * t1 + oxp0;
+			yp1 = SCISDIST;
+			this.x1 = (x2 - x1) * t1 + x1;
+			this.y1 = (y2 - y1) * t1 + y1;
+		}
+
+		this.ryp0 = 1.f / yp0;
+		this.ryp1 = 1.f / yp1;
+
+		// Generate screen coordinates for front side of wall
+		scrx0 = par.ghalfx * xp0 * ryp0 + par.ghalfx;
+		scrx1 = par.ghalfx * xp1 * ryp1 + par.ghalfx;
+		if (one_side && scrx1 <= scrx0)
+			return false;
+
+		return true;
+	}
+
+	public boolean apply(Polymost par, float x1, float y1) {
+		// Offset&Rotate 3D coordinates to screen 3D space
+		Vector2 p0 = projToScreen(par, x1, y1, true);
+		float xp0 = p0.x, yp0 = p0.y;
+
+		this.t0 = 0.0f;
+		this.t1 = 1.0f;
+
+		this.x0 = x1;
+		this.y0 = y1;
+		this.x1 = 0;
+		this.y1 = 0;
+
+		// Clip to close parallel-screen plane
+		if (yp0 <= SCISDIST)
+			return false;
+
+		this.ryp0 = 1.f / yp0;
+
+		// Generate screen coordinates for front side of wall
+		scrx0 = par.ghalfx * xp0 * ryp0 + par.ghalfx;
+
+		return true;
+	}
+
+	public int apply(Polymost pol, int n, double[] px, double[] py, double[] pz, Surface[] screen) {
+		// Clip to SCISDIST plane
+		int n2 = 0;
+		for (int i = 0; i < n; i++) {
+			int j = i + 1;
+			if (j >= n)
+				j = 0;
+
+			if (pz[i] >= SCISDIST) {
+				tx[n2] = px[i];
+				ty[n2] = py[i];
+				tz[n2] = pz[i];
+				n2++;
+			}
+
+			if ((pz[i] >= SCISDIST) != (pz[j] >= SCISDIST)) {
+				double r = (SCISDIST - pz[i]) / (pz[j] - pz[i]);
+				tx[n2] = (px[j] - px[i]) * r + px[i];
+				ty[n2] = (py[j] - py[i]) * r + py[i];
+				tz[n2] = SCISDIST;
+				n2++;
+			}
+		}
+
+		if (n2 < 3)
+			return 0;
+
+		// Project rotated 3D points to screen
+		for (int i = 0; i < n2; i++) {
+			double r = pol.ghalfx / tz[i];
+			screen[i].px = tx[i] * r + pol.ghalfx;
+			screen[i].py = ty[i] * r + pol.ghoriz;
+		}
+
+		return n2;
+	}
+
+	public int apply(Polymost pol, int n, Surface[] p, double pz, Surface[] screen) {
+		// Clip to SCISDIST plane
+		int n2 = 0;
+		for (int i = 0; i < n; i++) {
+			int j = i + 1;
+			if (j >= n)
+				j = 0;
+
+			if (p[i].py >= SCISDIST) {
+				tx[n2] = p[i].px;
+				ty[n2] = p[i].py;
+				n2++;
+			}
+
+			if ((p[i].py >= SCISDIST) != (p[j].py >= SCISDIST)) {
+				double r = (SCISDIST - p[i].py) / (p[j].py - p[i].py);
+				tx[n2] = (p[j].px - p[i].px) * r + p[i].px;
+				ty[n2] = (p[j].py - p[i].py) * r + p[i].py;
+				n2++;
+			}
+		}
+
+		if (n2 < 3)
+			return 0;
+
+		// Project rotated 3D points to screen
+		for (int j = 0; j < n2; j++) {
+			double r = 1.0 / ty[j];
+			screen[j].px = pol.ghalfx * tx[j] * r + pol.ghalfx;
+			screen[j].py = pz * r + pol.ghoriz;
+		}
+
+		return n2;
+	}
+
+	public Vector2 projToScreen(Polymost par, float x, float y, boolean relative) {
+		if (relative) {
+			x -= globalposx;
+			y -= globalposy;
+		}
+		projPoint.set(y * par.gcosang - x * par.gsinang, x * par.gcosang2 + y * par.gsinang2);
+
+		return projPoint;
+	}
+
+	public void pop() {
+		ox0 = x0;
+		oy0 = y0;
+		ox1 = x1;
+		oy1 = y1;
+		opyr0 = ryp0;
+		opyr1 = ryp1;
+		ot0 = t0;
+		ot1 = t1;
+		oscrx0 = scrx0;
+		oscrx1 = scrx1;
+	}
+
+	public void push() {
+		x0 = ox0;
+		y0 = oy0;
+		x1 = ox1;
+		y1 = oy1;
+		ryp0 = opyr0;
+		ryp1 = opyr1;
+		t0 = ot0;
+		t1 = ot1;
+		scrx0 = oscrx0;
+		scrx1 = oscrx1;
 	}
 
 }

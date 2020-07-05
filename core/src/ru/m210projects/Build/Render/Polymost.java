@@ -209,7 +209,6 @@ public abstract class Polymost implements GLRenderer {
 
 	public Rendering rendering = Rendering.Nothing;
 	public GLFog globalfog = new GLFog();
-	public ClipParam param = new ClipParam();
 
 	public static long TexDebug = -1;
 	public static int r_parallaxskyclamping = 1; // OSD CVAR XXX
@@ -1280,18 +1279,18 @@ public abstract class Polymost implements GLRenderer {
 
 			fwalxrepeat = wal.xrepeat & 0xFF;
 
-			if (!param.apply(this, true, wal.x, wal.y, wal2.x, wal2.y, true))
+			if (!clipper.apply(this, true, wal.x, wal.y, wal2.x, wal2.y, true))
 				continue;
 
-			param.ryp0 *= gyxscale;
-			param.ryp1 *= gyxscale;
+			clipper.ryp0 *= gyxscale;
+			clipper.ryp1 *= gyxscale;
 
-			polymost_getzsofslope(sectnum, param.x0, param.y0);
-			cy0 = (dceilzsofslope - globalposz) * param.ryp0 + ghoriz;
-			fy0 = (dfloorzsofslope - globalposz) * param.ryp0 + ghoriz;
-			polymost_getzsofslope(sectnum, param.x1, param.y1);
-			cy1 = (dceilzsofslope - globalposz) * param.ryp1 + ghoriz;
-			fy1 = (dfloorzsofslope - globalposz) * param.ryp1 + ghoriz;
+			polymost_getzsofslope(sectnum, clipper.x0, clipper.y0);
+			cy0 = (dceilzsofslope - globalposz) * clipper.ryp0 + ghoriz;
+			fy0 = (dfloorzsofslope - globalposz) * clipper.ryp0 + ghoriz;
+			polymost_getzsofslope(sectnum, clipper.x1, clipper.y1);
+			cy1 = (dceilzsofslope - globalposz) * clipper.ryp1 + ghoriz;
+			fy1 = (dfloorzsofslope - globalposz) * clipper.ryp1 + ghoriz;
 
 			{ // DRAW FLOOR
 				rendering = Rendering.Floor.setIndex(sectnum);
@@ -1310,10 +1309,10 @@ public abstract class Polymost implements GLRenderer {
 				global_cf_heinum = sec.floorheinum;
 
 				if ((globalorientation & 1) == 0) {
-					nonparallaxed(param.x0, param.y0, param.x1, param.y1, param.ryp0, param.ryp1, param.scrx0,
-							param.scrx1, fy0, fy1, 1, sectnum, true);
+					nonparallaxed(clipper.x0, clipper.y0, clipper.x1, clipper.y1, clipper.ryp0, clipper.ryp1, clipper.scrx0,
+							clipper.scrx1, fy0, fy1, 1, sectnum, true);
 				} else if ((nextsectnum < 0) || ((sector[nextsectnum].floorstat & 1) == 0))
-					drawbackground(sectnum, param.scrx0, param.scrx1, fy0, fy1, true);
+					drawbackground(sectnum, clipper.scrx0, clipper.scrx1, fy0, fy1, true);
 
 			} // END DRAW FLOOR
 
@@ -1334,20 +1333,20 @@ public abstract class Polymost implements GLRenderer {
 				global_cf_heinum = sec.ceilingheinum;
 
 				if ((globalorientation & 1) == 0) {
-					nonparallaxed(param.x0, param.y0, param.x1, param.y1, param.ryp0, param.ryp1, param.scrx0,
-							param.scrx1, cy0, cy1, 0, sectnum, false);
+					nonparallaxed(clipper.x0, clipper.y0, clipper.x1, clipper.y1, clipper.ryp0, clipper.ryp1, clipper.scrx0,
+							clipper.scrx1, cy0, cy1, 0, sectnum, false);
 				} else if ((nextsectnum < 0) || ((sector[nextsectnum].ceilingstat & 1) == 0))
-					drawbackground(sectnum, param.scrx0, param.scrx1, cy0, cy1, false);
+					drawbackground(sectnum, clipper.scrx0, clipper.scrx1, cy0, cy1, false);
 
 			} // END DRAW CEILING
 
 			rendering = Rendering.Wall.setIndex(wallnum);
-			gdx = (param.ryp0 - param.ryp1) * gxyaspect / (param.scrx0 - param.scrx1);
+			gdx = (clipper.ryp0 - clipper.ryp1) * gxyaspect / (clipper.scrx0 - clipper.scrx1);
 			gdy = 0;
-			gdo = param.ryp0 * gxyaspect - gdx * param.scrx0;
-			gux = (param.t0 * param.ryp0 - param.t1 * param.ryp1) * gxyaspect * fwalxrepeat * 8.0
-					/ (param.scrx0 - param.scrx1);
-			guo = param.t0 * param.ryp0 * gxyaspect * fwalxrepeat * 8.0 - gux * param.scrx0;
+			gdo = clipper.ryp0 * gxyaspect - gdx * clipper.scrx0;
+			gux = (clipper.t0 * clipper.ryp0 - clipper.t1 * clipper.ryp1) * gxyaspect * fwalxrepeat * 8.0
+					/ (clipper.scrx0 - clipper.scrx1);
+			guo = clipper.t0 * clipper.ryp0 * gxyaspect * fwalxrepeat * 8.0 - gux * clipper.scrx0;
 			guo += wal.xpanning * gdo;
 			gux += wal.xpanning * gdx;
 			guy = 0;
@@ -1356,12 +1355,12 @@ public abstract class Polymost implements GLRenderer {
 			oguo = guo;
 
 			if (nextsectnum >= 0) {
-				polymost_getzsofslope(nextsectnum, param.x0, param.y0);
-				ocy0 = (dceilzsofslope - globalposz) * param.ryp0 + ghoriz;
-				ofy0 = (dfloorzsofslope - globalposz) * param.ryp0 + ghoriz;
-				polymost_getzsofslope(nextsectnum, param.x1, param.y1);
-				ocy1 = (dceilzsofslope - globalposz) * param.ryp1 + ghoriz;
-				ofy1 = (dfloorzsofslope - globalposz) * param.ryp1 + ghoriz;
+				polymost_getzsofslope(nextsectnum, clipper.x0, clipper.y0);
+				ocy0 = (dceilzsofslope - globalposz) * clipper.ryp0 + ghoriz;
+				ofy0 = (dfloorzsofslope - globalposz) * clipper.ryp0 + ghoriz;
+				polymost_getzsofslope(nextsectnum, clipper.x1, clipper.y1);
+				ocy1 = (dceilzsofslope - globalposz) * clipper.ryp1 + ghoriz;
+				ofy1 = (dfloorzsofslope - globalposz) * clipper.ryp1 + ghoriz;
 
 				if ((wal.cstat & 48) == 16)
 					maskwall[maskwallcnt++] = (short) z;
@@ -1380,7 +1379,7 @@ public abstract class Polymost implements GLRenderer {
 						i = sec.ceilingz;
 
 					// over
-					calc_ypanning(i, param.ryp0, param.ryp1, param.scrx0, param.scrx1, wal.ypanning, wal.yrepeat,
+					calc_ypanning(i, clipper.ryp0, clipper.ryp1, clipper.scrx0, clipper.scrx1, wal.ypanning, wal.yrepeat,
 							(wal.cstat & 4) != 0);
 
 					if ((wal.cstat & 8) != 0) // xflip
@@ -1402,7 +1401,7 @@ public abstract class Polymost implements GLRenderer {
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 					pow2xsplit = 1;
-					clipper.domost(param.scrx1, ocy1, param.scrx0, ocy0);
+					clipper.domost(clipper.scrx1, ocy1, clipper.scrx0, ocy0);
 					if ((wal.cstat & 8) != 0) {
 						gux = ogux;
 						guy = oguy;
@@ -1430,7 +1429,7 @@ public abstract class Polymost implements GLRenderer {
 						i = sec.ceilingz;
 
 					// under
-					calc_ypanning(i, param.ryp0, param.ryp1, param.scrx0, param.scrx1, drawalls_nwal.ypanning,
+					calc_ypanning(i, clipper.ryp0, clipper.ryp1, clipper.scrx0, clipper.scrx1, drawalls_nwal.ypanning,
 							wal.yrepeat, (drawalls_nwal.cstat & 4) == 0);
 
 					if ((wal.cstat & 8) != 0) // xflip
@@ -1452,7 +1451,7 @@ public abstract class Polymost implements GLRenderer {
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 					pow2xsplit = 1;
-					clipper.domost(param.scrx0, ofy0, param.scrx1, ofy1);
+					clipper.domost(clipper.scrx0, ofy0, clipper.scrx1, ofy1);
 					if ((wal.cstat & (2 + 8)) != 0) {
 						guo = oguo;
 						gux = ogux;
@@ -1486,7 +1485,7 @@ public abstract class Polymost implements GLRenderer {
 					}
 
 					// white
-					calc_ypanning(i, param.ryp0, param.ryp1, param.scrx0, param.scrx1, wal.ypanning, wal.yrepeat,
+					calc_ypanning(i, clipper.ryp0, clipper.ryp1, clipper.scrx0, clipper.scrx1, wal.ypanning, wal.yrepeat,
 							nwcs4 && !maskingOneWay);
 
 					if ((wal.cstat & 8) != 0) // xflip
@@ -1508,14 +1507,14 @@ public abstract class Polymost implements GLRenderer {
 						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 					pow2xsplit = 1;
-					clipper.domost(param.scrx0, cy0, param.scrx1, cy1);
+					clipper.domost(clipper.scrx0, cy0, clipper.scrx1, cy1);
 				} while (false);
 
 			}
 
 			if (nextsectnum >= 0)
 				if (((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)
-						&& (clipper.testvisiblemost(param.scrx0, param.scrx1) != 0))
+						&& (clipper.testvisiblemost(clipper.scrx0, clipper.scrx1) != 0))
 					scansector(nextsectnum);
 		}
 	}
@@ -1668,7 +1667,7 @@ public abstract class Polymost implements GLRenderer {
 					d = x1 * y2 - x2 * y1;
 					xp1 = (x2 - x1);
 					yp1 = (y2 - y1);
-					if (d * d <= (xp1 * xp1 + yp1 * yp1) * (param.SCISDIST * param.SCISDIST * 260.0)) {
+					if (d * d <= (xp1 * xp1 + yp1 * yp1) * (clipper.SCISDIST * clipper.SCISDIST * 260.0)) {
 						sectorborder[sectorbordercnt++] = nextsectnum;
 						gotsector[nextsectnum >> 3] |= pow2char[nextsectnum & 7];
 					}
@@ -1716,17 +1715,17 @@ public abstract class Polymost implements GLRenderer {
 	}
 
 	protected boolean inviewingrange(double xp1, double yp1, double xp2, double yp2) {
-		if ((yp1 >= param.SCISDIST) || (yp2 >= param.SCISDIST))
+		if ((yp1 >= clipper.SCISDIST) || (yp2 >= clipper.SCISDIST))
 			/* crossProduct */if (xp1 * yp2 < xp2 * yp1) // if wall is facing you...
 			{
-				if (yp1 >= param.SCISDIST) {
+				if (yp1 >= clipper.SCISDIST) {
 //			if ((xp1 > yp1) || (yp1 == 0)) //disabled, viewving range is 180degs
 //				return false;
 					dxb1[numscans] = xp1 * ghalfx / yp1 + ghalfx;
 				} else
 					dxb1[numscans] = -1e32;
 
-				if (yp2 >= param.SCISDIST) {
+				if (yp2 >= clipper.SCISDIST) {
 //			if ((xp2 < -yp2) || (yp2 == 0))
 //				return false;
 
@@ -1890,25 +1889,25 @@ public abstract class Polymost implements GLRenderer {
 		skyclamphack = 1;
 
 		for (int i = 0; i < 4; i++) {
-			if (!param.apply(this, false, skywalx[i & 3], skywaly[i & 3], skywalx[(i + 1) & 3], skywaly[(i + 1) & 3],
+			if (!clipper.apply(this, false, skywalx[i & 3], skywaly[i & 3], skywalx[(i + 1) & 3], skywaly[(i + 1) & 3],
 					true))
 				continue;
 
-			_x0 = param.scrx0;
-			_x1 = param.scrx1;
-			_t0 = param.t0;
-			_t1 = param.t1;
+			_x0 = clipper.scrx0;
+			_x1 = clipper.scrx1;
+			_t0 = clipper.t0;
+			_t1 = clipper.t1;
 
 			if ((_x0 >= x1) || (x0 >= _x1))
 				continue;
 
-			param.ryp0 *= gyxscale;
-			param.ryp1 *= gyxscale;
+			clipper.ryp0 *= gyxscale;
+			clipper.ryp1 *= gyxscale;
 
-			_cy0 = -8192.f * param.ryp0 + ghoriz;
-			_fy0 = 8192.f * param.ryp0 + ghoriz;
-			_cy1 = -8192.f * param.ryp1 + ghoriz;
-			_fy1 = 8192.f * param.ryp1 + ghoriz;
+			_cy0 = -8192.f * clipper.ryp0 + ghoriz;
+			_fy0 = 8192.f * clipper.ryp0 + ghoriz;
+			_cy1 = -8192.f * clipper.ryp1 + ghoriz;
+			_fy1 = 8192.f * clipper.ryp1 + ghoriz;
 
 			_ox0 = _x0;
 			_ox1 = _x1;
@@ -2001,15 +2000,15 @@ public abstract class Polymost implements GLRenderer {
 
 			drawingskybox = (short) (i + 1); // i+1th texture/index i of skybox
 
-			gdx = (param.ryp0 - param.ryp1) * gxyaspect * (1.0 / 512.0) / (_ox0 - _ox1);
+			gdx = (clipper.ryp0 - clipper.ryp1) * gxyaspect * (1.0 / 512.0) / (_ox0 - _ox1);
 			gdy = 0;
-			gdo = param.ryp0 * gxyaspect * (1.0 / 512.0) - gdx * _ox0;
-			gux = (_t0 * param.ryp0 - _t1 * param.ryp1) * gxyaspect * (64.0 / 512.0) / (_ox0 - _ox1);
-			guo = _t0 * param.ryp0 * gxyaspect * (64.0 / 512.0) - gux * _ox0;
+			gdo = clipper.ryp0 * gxyaspect * (1.0 / 512.0) - gdx * _ox0;
+			gux = (_t0 * clipper.ryp0 - _t1 * clipper.ryp1) * gxyaspect * (64.0 / 512.0) / (_ox0 - _ox1);
+			guo = _t0 * clipper.ryp0 * gxyaspect * (64.0 / 512.0) - gux * _ox0;
 			guy = 0;
-			_t0 = -8192.0 * param.ryp0 + ghoriz;
-			_t1 = -8192.0 * param.ryp1 + ghoriz;
-			t = ((gdx * _ox0 + gdo) * 8.f) / ((_ox1 - _ox0) * param.ryp0 * 2048.f);
+			_t0 = -8192.0 * clipper.ryp0 + ghoriz;
+			_t1 = -8192.0 * clipper.ryp1 + ghoriz;
+			t = ((gdx * _ox0 + gdo) * 8.f) / ((_ox1 - _ox0) * clipper.ryp0 * 2048.f);
 			gvx = (_t0 - _t1) * t;
 			gvy = (_ox1 - _ox0) * t;
 			gvo = -gvx * _ox0 - gvy * _t0;
@@ -2102,7 +2101,7 @@ public abstract class Polymost implements GLRenderer {
 
 		calc_and_apply_skyfog(shade, sec.visibility, pal);
 
-		param.pop();
+		clipper.pop();
 
 		if (!GLSettings.useHighTile.get() || defs == null
 				|| defs.texInfo.findTexture(globalpicnum, globalpal, 1) == null)
@@ -2113,7 +2112,7 @@ public abstract class Polymost implements GLRenderer {
 		skyclamphack = 0;
 		calc_and_apply_fog(shade, sec.visibility, pal);
 
-		param.push();
+		clipper.push();
 	}
 
 	private final double[] drawrooms_px = new double[6], drawrooms_py = new double[6], drawrooms_pz = new double[6];
@@ -2201,7 +2200,7 @@ public abstract class Polymost implements GLRenderer {
 			drawrooms_pz[i] = oz2 * gchang - oy2 * gshang;
 		}
 
-		n2 = param.clip(this, n, drawrooms_px, drawrooms_py, drawrooms_pz, view);
+		n2 = clipper.apply(this, n, drawrooms_px, drawrooms_py, drawrooms_pz, view);
 		if (n2 < 3)
 			return;
 
@@ -2312,40 +2311,40 @@ public abstract class Polymost implements GLRenderer {
 		globalpal = wal.pal & 0xFF;
 		globalorientation = wal.cstat;
 
-		if (!param.apply(this, true, wal.x, wal.y, wal2.x, wal2.y, true))
+		if (!clipper.apply(this, true, wal.x, wal.y, wal2.x, wal2.y, true))
 			return;
 
-		polymost_getzsofslope(sectnum, param.x0, param.y0);
+		polymost_getzsofslope(sectnum, clipper.x0, clipper.y0);
 		drawmaskwall_cz[0] = (int) dceilzsofslope;
 		drawmaskwall_fz[0] = (int) dfloorzsofslope;
-		polymost_getzsofslope(wal.nextsector, param.x0, param.y0);
+		polymost_getzsofslope(wal.nextsector, clipper.x0, clipper.y0);
 		drawmaskwall_cz[1] = (int) dceilzsofslope;
 		drawmaskwall_fz[1] = (int) dfloorzsofslope;
 
-		polymost_getzsofslope(sectnum, param.x1, param.y1);
+		polymost_getzsofslope(sectnum, clipper.x1, clipper.y1);
 		drawmaskwall_cz[2] = (int) dceilzsofslope;
 		drawmaskwall_fz[2] = (int) dfloorzsofslope;
-		polymost_getzsofslope(wal.nextsector, param.x1, param.y1);
+		polymost_getzsofslope(wal.nextsector, clipper.x1, clipper.y1);
 		drawmaskwall_cz[3] = (int) dceilzsofslope;
 		drawmaskwall_fz[3] = (int) dfloorzsofslope;
 
-		param.ryp0 *= gyxscale;
-		param.ryp1 *= gyxscale;
+		clipper.ryp0 *= gyxscale;
+		clipper.ryp1 *= gyxscale;
 
-		gdx = (param.ryp0 - param.ryp1) * gxyaspect / (param.scrx0 - param.scrx1);
+		gdx = (clipper.ryp0 - clipper.ryp1) * gxyaspect / (clipper.scrx0 - clipper.scrx1);
 		gdy = 0;
-		gdo = param.ryp0 * gxyaspect - gdx * param.scrx0;
+		gdo = clipper.ryp0 * gxyaspect - gdx * clipper.scrx0;
 
-		gux = (param.t0 * param.ryp0 - param.t1 * param.ryp1) * gxyaspect * ((wal.xrepeat & 0xFF) * 8.0)
-				/ (param.scrx0 - param.scrx1);
-		guo = param.t0 * param.ryp0 * gxyaspect * ((wal.xrepeat & 0xFF) * 8.0) - gux * param.scrx0;
+		gux = (clipper.t0 * clipper.ryp0 - clipper.t1 * clipper.ryp1) * gxyaspect * ((wal.xrepeat & 0xFF) * 8.0)
+				/ (clipper.scrx0 - clipper.scrx1);
+		guo = clipper.t0 * clipper.ryp0 * gxyaspect * ((wal.xrepeat & 0xFF) * 8.0) - gux * clipper.scrx0;
 		guo += wal.xpanning * gdo;
 		gux += wal.xpanning * gdx;
 		guy = 0;
 
 		// mask
 		calc_ypanning(((wal.cstat & 4) == 0) ? max(nsec.ceilingz, sec.ceilingz) : min(nsec.floorz, sec.floorz),
-				param.ryp0, param.ryp1, param.scrx0, param.scrx1, wal.ypanning, wal.yrepeat, false);
+				clipper.ryp0, clipper.ryp1, clipper.scrx0, clipper.scrx1, wal.ypanning, wal.yrepeat, false);
 
 		if ((wal.cstat & 8) != 0) // xflip
 		{
@@ -2374,15 +2373,15 @@ public abstract class Polymost implements GLRenderer {
 			shade = 0;
 		calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
-		drawmaskwall_csy[0] = (drawmaskwall_cz[0] - globalposz) * param.ryp0 + ghoriz;
-		drawmaskwall_csy[1] = (drawmaskwall_cz[1] - globalposz) * param.ryp0 + ghoriz;
-		drawmaskwall_csy[2] = (drawmaskwall_cz[2] - globalposz) * param.ryp1 + ghoriz;
-		drawmaskwall_csy[3] = (drawmaskwall_cz[3] - globalposz) * param.ryp1 + ghoriz;
+		drawmaskwall_csy[0] = (drawmaskwall_cz[0] - globalposz) * clipper.ryp0 + ghoriz;
+		drawmaskwall_csy[1] = (drawmaskwall_cz[1] - globalposz) * clipper.ryp0 + ghoriz;
+		drawmaskwall_csy[2] = (drawmaskwall_cz[2] - globalposz) * clipper.ryp1 + ghoriz;
+		drawmaskwall_csy[3] = (drawmaskwall_cz[3] - globalposz) * clipper.ryp1 + ghoriz;
 
-		drawmaskwall_fsy[0] = (drawmaskwall_fz[0] - globalposz) * param.ryp0 + ghoriz;
-		drawmaskwall_fsy[1] = (drawmaskwall_fz[1] - globalposz) * param.ryp0 + ghoriz;
-		drawmaskwall_fsy[2] = (drawmaskwall_fz[2] - globalposz) * param.ryp1 + ghoriz;
-		drawmaskwall_fsy[3] = (drawmaskwall_fz[3] - globalposz) * param.ryp1 + ghoriz;
+		drawmaskwall_fsy[0] = (drawmaskwall_fz[0] - globalposz) * clipper.ryp0 + ghoriz;
+		drawmaskwall_fsy[1] = (drawmaskwall_fz[1] - globalposz) * clipper.ryp0 + ghoriz;
+		drawmaskwall_fsy[2] = (drawmaskwall_fz[2] - globalposz) * clipper.ryp1 + ghoriz;
+		drawmaskwall_fsy[3] = (drawmaskwall_fz[3] - globalposz) * clipper.ryp1 + ghoriz;
 
 		// Clip 2 quadrilaterals
 		// /csy3
@@ -2398,28 +2397,28 @@ public abstract class Polymost implements GLRenderer {
 		// | /
 		// fsy1/
 
-		dmaskwall[0].px = param.scrx0;
+		dmaskwall[0].px = clipper.scrx0;
 		dmaskwall[0].py = drawmaskwall_csy[1];
-		dmaskwall[1].px = param.scrx1;
+		dmaskwall[1].px = clipper.scrx1;
 		dmaskwall[1].py = drawmaskwall_csy[3];
-		dmaskwall[2].px = param.scrx1;
+		dmaskwall[2].px = clipper.scrx1;
 		dmaskwall[2].py = drawmaskwall_fsy[3];
-		dmaskwall[3].px = param.scrx0;
+		dmaskwall[3].px = clipper.scrx0;
 		dmaskwall[3].py = drawmaskwall_fsy[1];
 		n = 4;
 
 //		// Clip to (x0,csy[0])-(x1,csy[2]) XXX
 //		int n2 = 0;
-//		float t0, t1 = (float) -((dmaskwall[0].px - param.scrx0) * (drawmaskwall_csy[2] - drawmaskwall_csy[0])
-//				- (dmaskwall[0].py - drawmaskwall_csy[0]) * (param.scrx1 - param.scrx0));
+//		float t0, t1 = (float) -((dmaskwall[0].px - clipper.scrx0) * (drawmaskwall_csy[2] - drawmaskwall_csy[0])
+//				- (dmaskwall[0].py - drawmaskwall_csy[0]) * (clipper.scrx1 - clipper.scrx0));
 //		for (int i = 0; i < n; i++) {
 //			int j = i + 1;
 //			if (j >= n)
 //				j = 0;
 //
 //			t0 = t1;
-//			t1 = (float) -((dmaskwall[j].px - param.scrx0) * (drawmaskwall_csy[2] - drawmaskwall_csy[0])
-//					- (dmaskwall[j].py - drawmaskwall_csy[0]) * (param.scrx1 - param.scrx0));
+//			t1 = (float) -((dmaskwall[j].px - clipper.scrx0) * (drawmaskwall_csy[2] - drawmaskwall_csy[0])
+//					- (dmaskwall[j].py - drawmaskwall_csy[0]) * (clipper.scrx1 - clipper.scrx0));
 //			if (t0 >= 1.0) {
 //				dmaskwall[n2].px2 = dmaskwall[i].px;
 //				dmaskwall[n2].py2 = dmaskwall[i].py;
@@ -2437,16 +2436,16 @@ public abstract class Polymost implements GLRenderer {
 //
 //		// Clip to (x1,fsy[2])-(x0,fsy[0])
 //		n = 0;
-//		t1 = (float) -((dmaskwall[0].px2 - param.scrx1) * (drawmaskwall_fsy[0] - drawmaskwall_fsy[2])
-//				- (dmaskwall[0].py2 - drawmaskwall_fsy[2]) * (param.scrx0 - param.scrx1));
+//		t1 = (float) -((dmaskwall[0].px2 - clipper.scrx1) * (drawmaskwall_fsy[0] - drawmaskwall_fsy[2])
+//				- (dmaskwall[0].py2 - drawmaskwall_fsy[2]) * (clipper.scrx0 - clipper.scrx1));
 //		for (int i = 0; i < n2; i++) {
 //			int j = i + 1;
 //			if (j >= n2)
 //				j = 0;
 //
 //			t0 = t1;
-//			t1 = (float) -((dmaskwall[j].px2 - param.scrx1) * (drawmaskwall_fsy[0] - drawmaskwall_fsy[2])
-//					- (dmaskwall[j].py2 - drawmaskwall_fsy[2]) * (param.scrx0 - param.scrx1));
+//			t1 = (float) -((dmaskwall[j].px2 - clipper.scrx1) * (drawmaskwall_fsy[0] - drawmaskwall_fsy[2])
+//					- (dmaskwall[j].py2 - drawmaskwall_fsy[2]) * (clipper.scrx0 - clipper.scrx1));
 //			if (t0 >= 1.0) {
 //				dmaskwall[n].px = dmaskwall[i].px2;
 //				dmaskwall[n].py = dmaskwall[i].py2;
@@ -2642,13 +2641,13 @@ public abstract class Polymost implements GLRenderer {
 			offsx = (sintable[(ang + 512) & 2047] >> 6) * foffs;
 			offsy = (sintable[(ang) & 2047] >> 6) * foffs;
 
-			if (!param.apply(this, tspr.x - offsx, tspr.y - offsy))
+			if (!clipper.apply(this, tspr.x - offsx, tspr.y - offsy))
 				return;
 
-			sx0 = param.scrx0;
-			sy0 = (tspr.z - globalposz) * gyxscale * param.ryp0 + ghoriz;
+			sx0 = clipper.scrx0;
+			sy0 = (tspr.z - globalposz) * gyxscale * clipper.ryp0 + ghoriz;
 
-			f = param.ryp0 * xdimen * (1.0f / 160.f);
+			f = clipper.ryp0 * xdimen * (1.0f / 160.f);
 			fx = (tspr.xrepeat) * f;
 			fy = (tspr.yrepeat) * f * (yxaspect * (1.0f / 65536.f));
 
@@ -2673,7 +2672,7 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			gdx = gdy = guy = gvx = 0;
-			gdo = param.ryp0 * gviewxrange;
+			gdo = clipper.ryp0 * gviewxrange;
 			if ((globalorientation & 4) == 0) {
 				gux = tsizx * gdo / (dsprite[1].px - dsprite[0].px + .002);
 				guo = -gux * (dsprite[0].px - .001);
@@ -2703,12 +2702,12 @@ public abstract class Polymost implements GLRenderer {
 
 			// Clip sprites to ceilings/floors when no parallaxing and not sloped XXX
 //			if ((sector[tspr.sectnum].ceilingstat & 3) == 0) {
-//				sy0 = ((sector[tspr.sectnum].ceilingz - globalposz)) * gyxscale * param.ryp0 + ghoriz;
+//				sy0 = ((sector[tspr.sectnum].ceilingz - globalposz)) * gyxscale * clipper.ryp0 + ghoriz;
 //				if (dsprite[0].py < sy0)
 //					dsprite[0].py = dsprite[1].py = sy0;
 //			}
 //			if ((sector[tspr.sectnum].floorstat & 3) == 0) {
-//				sy0 = ((sector[tspr.sectnum].floorz - globalposz)) * gyxscale * param.ryp0 + ghoriz;
+//				sy0 = ((sector[tspr.sectnum].floorz - globalposz)) * gyxscale * clipper.ryp0 + ghoriz;
 //				if (dsprite[2].py > sy0)
 //					dsprite[2].py = dsprite[3].py = sy0;
 //			}
@@ -2745,15 +2744,15 @@ public abstract class Polymost implements GLRenderer {
 			x0 = posx - xv * f;
 			y0 = posy - yv * f;
 
-			if (!param.apply(this, true, x0, y0, xv * tsizx + x0, yv * tsizx + y0, false))
+			if (!clipper.apply(this, true, x0, y0, xv * tsizx + x0, yv * tsizx + y0, false))
 				return;
 
 			f = ((float) tspr.yrepeat) * (float) tsizy * 4;
 
-			float ryp0 = param.ryp0;
-			float ryp1 = param.ryp1;
-			float scrx0 = param.scrx0;
-			float scrx1 = param.scrx1;
+			float ryp0 = clipper.ryp0;
+			float ryp1 = clipper.ryp1;
+			float scrx0 = clipper.scrx0;
+			float scrx1 = clipper.scrx1;
 
 			ryp0 *= gyxscale;
 			ryp1 *= gyxscale;
@@ -2775,19 +2774,19 @@ public abstract class Polymost implements GLRenderer {
 			gdo = ryp0 * gxyaspect - gdx * scrx0;
 
 			if ((globalorientation & 4) != 0) {
-				param.t0 = 1.f - param.t0;
-				param.t1 = 1.f - param.t1;
+				clipper.t0 = 1.f - clipper.t0;
+				clipper.t1 = 1.f - clipper.t1;
 			}
 
 			// sprite panning
 			if (spriteext[spritenum].xpanning != 0) {
-				param.t0 -= ((spriteext[spritenum].xpanning) / 255.f);
-				param.t1 -= ((spriteext[spritenum].xpanning) / 255.f);
+				clipper.t0 -= ((spriteext[spritenum].xpanning) / 255.f);
+				clipper.t1 -= ((spriteext[spritenum].xpanning) / 255.f);
 				srepeat = 1;
 			}
-			gux = (param.t0 * ryp0 - param.t1 * ryp1) * gxyaspect * tsizx / (scrx0 - scrx1);
+			gux = (clipper.t0 * ryp0 - clipper.t1 * ryp1) * gxyaspect * tsizx / (scrx0 - scrx1);
 			guy = 0;
-			guo = param.t0 * ryp0 * gxyaspect * tsizx - gux * scrx0;
+			guo = clipper.t0 * ryp0 * gxyaspect * tsizx - gux * scrx0;
 
 			f = (float) ((tsizy) * (gdx * scrx0 + gdo) / ((scrx0 - scrx1) * (sc0 - sf0)));
 			if ((globalorientation & 8) == 0) {
@@ -2938,7 +2937,7 @@ public abstract class Polymost implements GLRenderer {
 				dsprite[3].py = tmp;
 			}
 
-			npoints = param.clip(this, 4, dsprite, (tspr.z - globalposz) * gyxscale, dsprite);
+			npoints = clipper.apply(this, 4, dsprite, (tspr.z - globalposz) * gyxscale, dsprite);
 			if (npoints < 3)
 				return;
 
@@ -3752,204 +3751,4 @@ public abstract class Polymost implements GLRenderer {
 	@Override
 	public void completemirror() {
 		/* nothing */ }
-
-	public static class ClipParam {
-		private Vector2 projPoint = new Vector2();
-
-		public float SCISDIST = 1.0f; // 1.0: Close plane clipping distance
-
-		public float t0, t1;
-		public float ryp0, ryp1;
-		public float x0, y0, x1, y1;
-		public float scrx0, scrx1;
-
-		private float opyr0, opyr1;
-		private float ot0, ot1;
-		private float oscrx0, oscrx1;
-		private float ox0, oy0, ox1, oy1;
-
-		private double[] tx = new double[8];
-		private double[] ty = new double[8];
-		private double[] tz = new double[8];
-
-		public boolean apply(Polymost par, boolean relative, float x1, float y1, float x2, float y2, boolean one_side) {
-			// Offset&Rotate 3D coordinates to screen 3D space
-			Vector2 p0 = projToScreen(par, x1, y1, relative);
-			float xp0 = p0.x, yp0 = p0.y, oxp0 = p0.x, oyp0 = p0.y;
-			Vector2 p1 = projToScreen(par, x2, y2, relative);
-			float xp1 = p1.x, yp1 = p1.y;
-
-			this.t0 = 0.0f;
-			this.t1 = 1.0f;
-
-			this.x0 = x1;
-			this.y0 = y1;
-			this.x1 = x2;
-			this.y1 = y2;
-
-			// Clip to close parallel-screen plane
-			if (yp0 < SCISDIST) {
-				if (yp1 < SCISDIST)
-					return false;
-
-				this.t0 = (SCISDIST - yp0) / (yp1 - yp0);
-				xp0 = (xp1 - xp0) * t0 + xp0;
-				yp0 = SCISDIST;
-				this.x0 = (x2 - x1) * t0 + x1;
-				this.y0 = (y2 - y1) * t0 + y1;
-			}
-
-			if (yp1 < SCISDIST) {
-				this.t1 = (SCISDIST - oyp0) / (yp1 - oyp0);
-				xp1 = (xp1 - oxp0) * t1 + oxp0;
-				yp1 = SCISDIST;
-				this.x1 = (x2 - x1) * t1 + x1;
-				this.y1 = (y2 - y1) * t1 + y1;
-			}
-
-			this.ryp0 = 1.f / yp0;
-			this.ryp1 = 1.f / yp1;
-
-			// Generate screen coordinates for front side of wall
-			scrx0 = halfxdimen * xp0 * ryp0 + halfxdimen;
-			scrx1 = halfxdimen * xp1 * ryp1 + halfxdimen;
-			if (one_side && scrx1 <= scrx0)
-				return false;
-
-			return true;
-		}
-
-		public boolean apply(Polymost par, float x1, float y1) {
-			// Offset&Rotate 3D coordinates to screen 3D space
-			Vector2 p0 = projToScreen(par, x1, y1, true);
-			float xp0 = p0.x, yp0 = p0.y;
-
-			this.t0 = 0.0f;
-			this.t1 = 1.0f;
-
-			this.x0 = x1;
-			this.y0 = y1;
-			this.x1 = 0;
-			this.y1 = 0;
-
-			// Clip to close parallel-screen plane
-			if (yp0 <= SCISDIST)
-				return false;
-
-			this.ryp0 = 1.f / yp0;
-
-			// Generate screen coordinates for front side of wall
-			scrx0 = halfxdimen * xp0 * ryp0 + halfxdimen;
-
-			return true;
-		}
-
-		public int clip(Polymost pol, int n, double[] px, double[] py, double[] pz, Surface[] screen) {
-			// Clip to SCISDIST plane
-			int n2 = 0;
-			for (int i = 0; i < n; i++) {
-				int j = i + 1;
-				if (j >= n)
-					j = 0;
-
-				if (pz[i] >= SCISDIST) {
-					tx[n2] = px[i];
-					ty[n2] = py[i];
-					tz[n2] = pz[i];
-					n2++;
-				}
-
-				if ((pz[i] >= SCISDIST) != (pz[j] >= SCISDIST)) {
-					double r = (SCISDIST - pz[i]) / (pz[j] - pz[i]);
-					tx[n2] = (px[j] - px[i]) * r + px[i];
-					ty[n2] = (py[j] - py[i]) * r + py[i];
-					tz[n2] = SCISDIST;
-					n2++;
-				}
-			}
-
-			if (n2 < 3)
-				return 0;
-
-			// Project rotated 3D points to screen
-			for (int i = 0; i < n2; i++) {
-				double r = pol.ghalfx / tz[i];
-				screen[i].px = tx[i] * r + pol.ghalfx;
-				screen[i].py = ty[i] * r + pol.ghoriz;
-			}
-
-			return n2;
-		}
-
-		public int clip(Polymost pol, int n, Surface[] p, double pz, Surface[] screen) {
-			// Clip to SCISDIST plane
-			int n2 = 0;
-			for (int i = 0; i < n; i++) {
-				int j = i + 1;
-				if (j >= n)
-					j = 0;
-
-				if (p[i].py >= SCISDIST) {
-					tx[n2] = p[i].px;
-					ty[n2] = p[i].py;
-					n2++;
-				}
-
-				if ((p[i].py >= SCISDIST) != (p[j].py >= SCISDIST)) {
-					double r = (SCISDIST - p[i].py) / (p[j].py - p[i].py);
-					tx[n2] = (p[j].px - p[i].px) * r + p[i].px;
-					ty[n2] = (p[j].py - p[i].py) * r + p[i].py;
-					n2++;
-				}
-			}
-
-			if (n2 < 3)
-				return 0;
-
-			// Project rotated 3D points to screen
-			for (int j = 0; j < n2; j++) {
-				double r = 1.0 / ty[j];
-				screen[j].px = pol.ghalfx * tx[j] * r + pol.ghalfx;
-				screen[j].py = pz * r + pol.ghoriz;
-			}
-
-			return n2;
-		}
-
-		public Vector2 projToScreen(Polymost par, float x, float y, boolean relative) {
-			if (relative) {
-				x -= globalposx;
-				y -= globalposy;
-			}
-			projPoint.set(y * par.gcosang - x * par.gsinang, x * par.gcosang2 + y * par.gsinang2);
-
-			return projPoint;
-		}
-
-		public void pop() {
-			ox0 = x0;
-			oy0 = y0;
-			ox1 = x1;
-			oy1 = y1;
-			opyr0 = ryp0;
-			opyr1 = ryp1;
-			ot0 = t0;
-			ot1 = t1;
-			oscrx0 = scrx0;
-			oscrx1 = scrx1;
-		}
-
-		public void push() {
-			x0 = ox0;
-			y0 = oy0;
-			x1 = ox1;
-			y1 = oy1;
-			ryp0 = opyr0;
-			ryp1 = opyr1;
-			t0 = ot0;
-			t1 = ot1;
-			scrx0 = oscrx0;
-			scrx1 = oscrx1;
-		}
-	}
 }
