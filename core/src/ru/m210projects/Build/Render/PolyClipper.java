@@ -13,8 +13,13 @@ package ru.m210projects.Build.Render;
 import static java.lang.Math.abs;
 
 public class PolyClipper {
-	
-	class vsptyp {
+
+	private class Most extends Surface {
+		double spx;
+		int spt;
+	}
+
+	private class vsptyp {
 		double x, cy[] = new double[2], fy[] = new double[2];
 		int n, p, tag, ctag, ftag;
 
@@ -31,89 +36,91 @@ public class PolyClipper {
 			this.ftag = src.ftag;
 		}
 	};
-	
+
 	private int domostpolymethod = 0;
 	private final float DOMOST_OFFSET = 0.01f;
 	private int vcnt, gtag;
 	private final int VSPMAX = 4096; // <- careful!
 	private vsptyp[] vsp = new vsptyp[VSPMAX];
-	private final Surface[] domost = new Surface[4];
+	private final Most[] domost = new Most[4];
 	private final double[] domost_cy = new double[2], domost_cv = new double[2];
 	private Polymost r;
-	
-	public PolyClipper(Polymost render)
-	{
-		for(int i = 0; i < 4; i++)
-			domost[i] = new Surface();
+
+	public PolyClipper(Polymost render) {
+		for (int i = 0; i < 4; i++)
+			domost[i] = new Most();
 		for (int i = 0; i < VSPMAX; i++)
 			vsp[i] = new vsptyp();
 		this.r = render;
 	}
-	
-	public void setMethod(int method)
-	{
+
+	public void setMethod(int method) {
 		domostpolymethod = method;
 	}
-	
-	/* Init viewport boundary (must be 4 point convex loop): // (px[0],py[0]).----.(px[1],py[1]) // / \ // / \ //(px[3],py[3]).--------------.(px[2],py[2]) */
-	public void initmosts(double[] px, double[] py, int n) {
+
+	/*
+	 * Init viewport boundary (must be 4 point convex loop): //
+	 * (p[0].px,p[0].py).----.(p[1].px,p[1].py) // / \ // / \
+	 * //(p[3].px,p[3].py).--------------.(p[2].px,p[2].py)
+	 */
+	public void initmosts(Surface[] p, int n) {
 		int i, j, k, imin;
 
 		vcnt = 1; // 0 is dummy solid node
 		if (n < 3)
 			return;
-		imin = (px[1] < px[0]) ? 1 : 0;
+		imin = (p[1].px < p[0].px) ? 1 : 0;
 		for (i = n - 1; i >= 2; i--)
-			if (px[i] < px[imin])
+			if (p[i].px < p[imin].px)
 				imin = i;
 
-		vsp[vcnt].x = px[imin];
-		vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = py[imin];
+		vsp[vcnt].x = p[imin].px;
+		vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = p[imin].py;
 		vcnt++;
-		
+
 		i = imin + 1;
-		if (i >= n) i = 0;
+		if (i >= n)
+			i = 0;
 		j = imin - 1;
-		if (j < 0) j = n - 1;
-		
+		if (j < 0)
+			j = n - 1;
+
 		do {
-			if (px[i] < px[j]) {
-				if ((vcnt > 1) && (px[i] <= vsp[vcnt - 1].x))
+			if (p[i].px < p[j].px) {
+				if ((vcnt > 1) && (p[i].px <= vsp[vcnt - 1].x))
 					vcnt--;
-				vsp[vcnt].x = px[i];
-				vsp[vcnt].cy[0] = py[i];
+				vsp[vcnt].x = p[i].px;
+				vsp[vcnt].cy[0] = p[i].py;
 				k = j + 1;
 				if (k >= n)
 					k = 0;
-				vsp[vcnt].fy[0] = ((px[i] - px[k]) * (py[j] - py[k])
-						/ (px[j] - px[k]) + py[k]);
+				vsp[vcnt].fy[0] = ((p[i].px - p[k].px) * (p[j].py - p[k].py) / (p[j].px - p[k].px) + p[k].py);
 				vcnt++;
 				i++;
 				if (i >= n)
 					i = 0;
-			} else if (px[j] < px[i]) {
-				if ((vcnt > 1) && (px[j] <= vsp[vcnt - 1].x))
+			} else if (p[j].px < p[i].px) {
+				if ((vcnt > 1) && (p[j].px <= vsp[vcnt - 1].x))
 					vcnt--;
-				vsp[vcnt].x = px[j];
-				vsp[vcnt].fy[0] = py[j];
+				vsp[vcnt].x = p[j].px;
+				vsp[vcnt].fy[0] = p[j].py;
 				k = i - 1;
 				if (k < 0)
 					k = n - 1;
-				// (px[k],py[k])
-				// (px[j],?)
-				// (px[i],py[i])
-				vsp[vcnt].cy[0] = ((px[j] - px[k]) * (py[i] - py[k])
-						/ (px[i] - px[k]) + py[k]);
+				// (p[k].px,p[k].py)
+				// (p[j].px,?)
+				// (p[i].px,p[i].py)
+				vsp[vcnt].cy[0] = ((p[j].px - p[k].px) * (p[i].py - p[k].py) / (p[i].px - p[k].px) + p[k].py);
 				vcnt++;
 				j--;
 				if (j < 0)
 					j = n - 1;
 			} else {
-				if ((vcnt > 1) && (px[i] <= vsp[vcnt - 1].x))
+				if ((vcnt > 1) && (p[i].px <= vsp[vcnt - 1].x))
 					vcnt--;
-				vsp[vcnt].x = px[i];
-				vsp[vcnt].cy[0] = py[i];
-				vsp[vcnt].fy[0] = py[j];
+				vsp[vcnt].x = p[i].px;
+				vsp[vcnt].cy[0] = p[i].py;
+				vsp[vcnt].fy[0] = p[j].py;
 				vcnt++;
 				i++;
 				if (i >= n)
@@ -126,9 +133,9 @@ public class PolyClipper {
 			}
 		} while (i != j);
 
-		if (px[i] > vsp[vcnt - 1].x) {
-			vsp[vcnt].x = px[i];
-			vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = py[i];
+		if (p[i].px > vsp[vcnt - 1].x) {
+			vsp[vcnt].x = p[i].px;
+			vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = p[i].py;
 			vcnt++;
 		}
 
@@ -153,30 +160,30 @@ public class PolyClipper {
 		vsp[VSPMAX - 1].n = vcnt;
 		vsp[vcnt].p = VSPMAX - 1;
 	}
-	
+
 	public void domost(double x0, double y0, double x1, double y1) {
 		double d, f, n, t, slop, dx, dx0, dx1, nx, nx0, ny0, nx1, ny1;
 		int i, j, k, z, ni, vcnt = 0, scnt, newi;
 
 		boolean dir = (x0 < x1);
 
-		if (dir) //clip dmost (floor)
-	    {
-	        y0 -= DOMOST_OFFSET;
-	        y1 -= DOMOST_OFFSET;
-	    }
-		else //clip umost (ceiling)
+		if (dir) // clip dmost (floor)
 		{
-	        if (x0 == x1) return;
-	        f = x0;
+			y0 -= DOMOST_OFFSET;
+			y1 -= DOMOST_OFFSET;
+		} else // clip umost (ceiling)
+		{
+			if (x0 == x1)
+				return;
+			f = x0;
 			x0 = x1;
 			x1 = f;
 			f = y0;
 			y0 = y1;
 			y1 = f;
 
-	        y0 += DOMOST_OFFSET;
-	        y1 += DOMOST_OFFSET; //necessary?
+			y0 += DOMOST_OFFSET;
+			y1 += DOMOST_OFFSET; // necessary?
 		}
 
 		slop = (y1 - y0) / (x1 - x0);
@@ -196,9 +203,9 @@ public class PolyClipper {
 
 			// Test if left edge requires split (x0,y0) (nx0,cy(0)),<dx,cv(0)>
 			if ((x0 > nx0) && (x0 < nx1)) {
-				t = (x0 - nx0) * domost_cv[dir?1:0] - (y0 - domost_cy[dir?1:0]) * dx;
+				t = (x0 - nx0) * domost_cv[dir ? 1 : 0] - (y0 - domost_cy[dir ? 1 : 0]) * dx;
 				if (((!dir) && (t < 0)) || ((dir) && (t > 0))) {
-					domost[scnt].spx = (float) x0;
+					domost[scnt].spx = x0;
 					domost[scnt].spt = -1;
 					scnt++;
 				}
@@ -212,7 +219,7 @@ public class PolyClipper {
 					t = n / d;
 					nx = (x1 - x0) * t + x0;
 					if ((nx > nx0) && (nx < nx1)) {
-						domost[scnt].spx = (float) nx;
+						domost[scnt].spx = nx;
 						domost[scnt].spt = j;
 						scnt++;
 					}
@@ -223,7 +230,7 @@ public class PolyClipper {
 			if ((scnt >= 2) && (domost[scnt - 1].spx < domost[scnt - 2].spx)) {
 				f = domost[scnt - 1].spx;
 				domost[scnt - 1].spx = domost[scnt - 2].spx;
-				domost[scnt - 2].spx = (float) f;
+				domost[scnt - 2].spx = f;
 				j = domost[scnt - 1].spt;
 				domost[scnt - 1].spt = domost[scnt - 2].spt;
 				domost[scnt - 2].spt = j;
@@ -231,9 +238,9 @@ public class PolyClipper {
 
 			// Test if right edge requires split
 			if ((x1 > nx0) && (x1 < nx1)) {
-				t = (x1 - nx0) * domost_cv[dir?1:0] - (y1 - domost_cy[dir?1:0]) * dx;
+				t = (x1 - nx0) * domost_cv[dir ? 1 : 0] - (y1 - domost_cy[dir ? 1 : 0]) * dx;
 				if (((!dir) && (t < 0)) || ((dir) && (t > 0))) {
-					domost[scnt].spx = (float) x1;
+					domost[scnt].spx = x1;
 					domost[scnt].spt = -1;
 					scnt++;
 				}
@@ -278,22 +285,26 @@ public class PolyClipper {
 				// ny0 ? ny1 ?
 
 				k = 4;
-				if ((vsp[i].tag == 0) || (ny0 <= vsp[i].cy[0]+DOMOST_OFFSET)) k--;
-	            if ((vsp[i].tag == 1) || (ny0 >= vsp[i].fy[0]-DOMOST_OFFSET)) k++;
-	            if ((vsp[ni].tag == 0) || (ny1 <= vsp[i].cy[1]+DOMOST_OFFSET)) k -= 3;
-	            if ((vsp[ni].tag == 1) || (ny1 >= vsp[i].fy[1]-DOMOST_OFFSET)) k += 3;
+				if ((vsp[i].tag == 0) || (ny0 <= vsp[i].cy[0] + DOMOST_OFFSET))
+					k--;
+				if ((vsp[i].tag == 1) || (ny0 >= vsp[i].fy[0] - DOMOST_OFFSET))
+					k++;
+				if ((vsp[ni].tag == 0) || (ny1 <= vsp[i].cy[1] + DOMOST_OFFSET))
+					k -= 3;
+				if ((vsp[ni].tag == 1) || (ny1 >= vsp[i].fy[1] - DOMOST_OFFSET))
+					k += 3;
 
 				if (!dir) {
 					switch (k) {
 					case 1:
-					case 2: 
+					case 2:
 						domost[0].px = dx0;
 						domost[0].py = vsp[i].cy[0];
 						domost[1].px = dx1;
 						domost[1].py = vsp[i].cy[1];
 						domost[2].px = dx0;
 						domost[2].py = ny0;
-						if(domostpolymethod != -1) {
+						if (domostpolymethod != -1) {
 							vsp[i].cy[0] = ny0;
 							vsp[i].ctag = gtag;
 							r.drawpoly(domost, 3, domostpolymethod);
@@ -307,7 +318,7 @@ public class PolyClipper {
 						domost[1].py = vsp[i].cy[1];
 						domost[2].px = dx1;
 						domost[2].py = ny1;
-						if(domostpolymethod != -1) {
+						if (domostpolymethod != -1) {
 							r.drawpoly(domost, 3, domostpolymethod);
 							vsp[i].cy[1] = ny1;
 							vsp[i].ctag = gtag;
@@ -324,7 +335,7 @@ public class PolyClipper {
 						domost[2].py = ny1;
 						domost[3].px = dx0;
 						domost[3].py = ny0;
-						if(domostpolymethod != -1) {
+						if (domostpolymethod != -1) {
 							vsp[i].cy[0] = ny0;
 							vsp[i].cy[1] = ny1;
 							vsp[i].ctag = gtag;
@@ -340,7 +351,7 @@ public class PolyClipper {
 						domost[2].py = vsp[i].fy[1];
 						domost[3].px = dx0;
 						domost[3].py = vsp[i].fy[0];
-						if(domostpolymethod != -1) {
+						if (domostpolymethod != -1) {
 							vsp[i].ctag = vsp[i].ftag = -1;
 							r.drawpoly(domost, 4, domostpolymethod);
 						}
@@ -358,7 +369,7 @@ public class PolyClipper {
 						domost[1].py = vsp[i].fy[1];
 						domost[2].px = dx0;
 						domost[2].py = vsp[i].fy[0];
-						if(domostpolymethod != -1) {
+						if (domostpolymethod != -1) {
 							vsp[i].fy[0] = ny0;
 							vsp[i].ftag = gtag;
 							r.drawpoly(domost, 3, domostpolymethod);
@@ -372,7 +383,7 @@ public class PolyClipper {
 						domost[1].py = ny1;
 						domost[2].px = dx1;
 						domost[2].py = vsp[i].fy[1];
-						if(domostpolymethod != -1) {
+						if (domostpolymethod != -1) {
 							vsp[i].fy[1] = ny1;
 							vsp[i].ftag = gtag;
 							r.drawpoly(domost, 3, domostpolymethod);
@@ -389,7 +400,7 @@ public class PolyClipper {
 						domost[2].py = vsp[i].fy[1];
 						domost[3].px = dx0;
 						domost[3].py = vsp[i].fy[0];
-						if(domostpolymethod != -1) {
+						if (domostpolymethod != -1) {
 							vsp[i].fy[0] = ny0;
 							vsp[i].fy[1] = ny1;
 							vsp[i].ftag = gtag;
@@ -405,7 +416,7 @@ public class PolyClipper {
 						domost[2].py = vsp[i].fy[1];
 						domost[3].px = dx0;
 						domost[3].py = vsp[i].fy[0];
-						if(domostpolymethod != -1) {
+						if (domostpolymethod != -1) {
 							vsp[i].ctag = vsp[i].ftag = -1;
 							r.drawpoly(domost, 4, domostpolymethod);
 						}
@@ -426,8 +437,7 @@ public class PolyClipper {
 		i = vsp[0].n;
 		while (i != 0) {
 			ni = vsp[i].n;
-			if ((vsp[i].cy[0] >= vsp[i].fy[0])
-					&& (vsp[i].cy[1] >= vsp[i].fy[1])) {
+			if ((vsp[i].cy[0] >= vsp[i].fy[0]) && (vsp[i].cy[1] >= vsp[i].fy[1])) {
 				vsp[i].ctag = vsp[i].ftag = -1;
 			}
 			if ((vsp[i].ctag == vsp[ni].ctag) && (vsp[i].ftag == vsp[ni].ftag)) {
@@ -438,7 +448,7 @@ public class PolyClipper {
 				i = ni;
 		}
 	}
-	
+
 	public int testvisiblemost(double x0, double x1) {
 		int i, newi;
 		for (i = vsp[0].n; i != 0; i = newi) {
@@ -448,7 +458,7 @@ public class PolyClipper {
 		}
 		return (0);
 	}
-	
+
 	private void vsdel(int i) {
 		int pi, ni;
 		// Delete i
