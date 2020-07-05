@@ -1780,7 +1780,7 @@ public abstract class Polymost implements GLRenderer {
 		drawalls_dd[0] = xdimen * .0000001; // Adjust sky depth based on screen size!
 		t = pic.getWidth() << dapskybits; // (1 << (picsiz[globalpicnum] & 15)) << dapskybits;
 
-		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * viewingrange) / (65536.0 * 65536.0);
+		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * (double) viewingrange) / (65536.0 * 65536.0);
 		drawalls_vv[0] = drawalls_dd[0]
 				* ((pic.getHeight() >> 1)
 						+ ((floor && r_parallaxskypanning == 1) ? parallaxyoffs - pic.getHeight() : parallaxyoffs))
