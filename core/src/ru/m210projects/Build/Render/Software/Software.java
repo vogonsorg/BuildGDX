@@ -111,7 +111,7 @@ import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-public abstract class Software extends Renderer {
+public abstract class Software implements Renderer {
 
 	public final int BITSOFPRECISION = 3;
 
@@ -373,6 +373,7 @@ public abstract class Software extends Renderer {
 			xs = tspriteptr[i].x - globalposx;
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
+
 			if (yp > (4 << 8)) {
 				xp = dmulscale(ys, cosglobalang, -xs, singlobalang, 6);
 				spritesx[i] = scale(xp + yp, xdimen << 7, yp);
@@ -411,10 +412,10 @@ public abstract class Software extends Renderer {
 			if (j > i + 1) {
 				for (k = i; k < j; k++) {
 					spritesz[k] = tspriteptr[k].z;
-					if ((tspriteptr[k].cstat & 48) != 32) {
-						if (tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES)
-							continue;
+					if(tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES)
+						continue;
 
+					if ((tspriteptr[k].cstat & 48) != 32) {
 						Tile pic = engine.getTile(tspriteptr[k].picnum);
 						yoff = pic.getOffsetY() + (tspriteptr[k].yoffset);
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
@@ -3749,9 +3750,12 @@ public abstract class Software extends Renderer {
 				x2 = wal2.x - globalposx;
 				y2 = wal2.y - globalposy;
 
-				if ((nextsectnum >= 0) && ((wal.cstat & 32) == 0) && sectorbordercnt < sectorborder.length
+				if ((nextsectnum >= 0)
+						&& ((wal.cstat & 32) == 0)
+						&& sectorbordercnt < sectorborder.length
 						&& ((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)) {
 					templong = x1 * y2 - x2 * y1;
+
 					if ((toUnsignedLong(templong) + 262144) < 524288)
 						if (mulscale(templong, templong, 5) <= (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
 							sectorborder[sectorbordercnt++] = nextsectnum;
@@ -3770,7 +3774,7 @@ public abstract class Software extends Renderer {
 				do {
 					if ((yp1 >= 256) || (yp2 >= 256))
 						if (dmulscale(xp1, yp2, -xp2, yp1, 32) < 0) { // If wall's facing you
-							if (numscans >= MAXWALLSB)
+							if (numscans >= MAXWALLSB - 1)
 								break;
 
 							if (xp1 >= -yp1) {
@@ -3893,8 +3897,7 @@ public abstract class Software extends Renderer {
 			return (wallfront(b1f, i));
 		}
 
-		for (i = b1f; xb2[i] <= x1b2 && p2[i] != -1; i = p2[i])
-			;
+		for (i = b1f; xb2[i] <= x1b2 && p2[i] != -1; i = p2[i]);
 		return (wallfront(i, b2f));
 	}
 

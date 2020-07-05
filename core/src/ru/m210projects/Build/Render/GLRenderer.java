@@ -18,13 +18,9 @@ package ru.m210projects.Build.Render;
 
 import java.util.HashMap;
 
-import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
-import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 
-public abstract class GLRenderer extends Renderer {
+public interface GLRenderer extends Renderer {
 
 	public enum GLInvalidateFlag {
 		Uninit,
@@ -34,40 +30,24 @@ public abstract class GLRenderer extends Renderer {
 		All
 	}
 
-	protected final TextureCache textureCache;
-	protected final Engine engine;
+	public void palfade(HashMap<String, FadeEffect> fades);
 
-	public GLRenderer(Engine engine) {
-		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
-			BuildGdx.app.setFrame(FrameType.GL);
-		GLInfo.init();
-		this.textureCache = new TextureCache(engine);
-		this.engine = engine;
-	}
+	public void preload();
 
-	@Override
-	public PixelFormat getTexFormat() {
-		return textureCache.getFormat();
-	}
+	public void precache(int dapicnum, int dapalnum, int datype);
 
-	public abstract void palfade(HashMap<String, FadeEffect> fades);
+	public void gltexapplyprops();
 
-	public abstract void preload();
+	public void gltexinvalidateall(GLInvalidateFlag... flags);
 
-	public abstract void precache(int dapicnum, int dapalnum, int datype);
+	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
 
-	public abstract void gltexapplyprops();
+	public void setdrunk(float intensive);
 
-	public abstract void gltexinvalidateall(GLInvalidateFlag... flags);
+	public float getdrunk();
 
-	public abstract void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
+	public void addSpriteCorr(int snum);
 
-	public abstract void setdrunk(float intensive);
-
-	public abstract float getdrunk();
-
-	public abstract void addSpriteCorr(int snum);
-
-	public abstract void removeSpriteCorr(int snum);
+	public void removeSpriteCorr(int snum);
 
 }

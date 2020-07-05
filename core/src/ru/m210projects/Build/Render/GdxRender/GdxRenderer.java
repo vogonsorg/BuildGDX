@@ -40,15 +40,17 @@ import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.TileFont;
 
-public class GdxRenderer extends GLRenderer {
+public class GdxRenderer implements GLRenderer {
 
 	protected final TextureCache textureCache;
 	protected final GdxOrphoRen orphoRen;
 	protected BTexture textAtlas;
 	protected DefScript defs;
+	protected final Engine engine;
 
 	public GdxRenderer(Engine engine) {
-		super(engine);
+		this.engine = engine;
+
 		BuildGdx.app.setFrame(FrameType.GL);
 		this.textureCache = createTextureCache(engine);
 
@@ -266,5 +268,11 @@ public class GdxRenderer extends GLRenderer {
 	public boolean isInited() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public PixelFormat getTexFormat() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

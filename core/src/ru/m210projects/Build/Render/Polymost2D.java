@@ -87,7 +87,6 @@ public class Polymost2D extends OrphoRenderer {
 	private int globalorientation;
 
 	private final Polygon drawpoly[] = new Polygon[4];
-	private final Color polyColor = new Color();
 
 	// Overhead map settings
 
@@ -521,25 +520,25 @@ public class Polymost2D extends OrphoRenderer {
 		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, (short) 0, false, true);
 
 		bindTexture(pth.glpic);
-		float f = parent.getshadefactor(globalshade), a = 0.0f;
+		Color c = parent.getshadefactor(globalshade);
 
 		switch ((globalorientation >> 7) & 3) {
 		case 0:
 		case 1:
-			a = 1.0f;
+			c.a = 1.0f;
 			gl.glDisable(GL_BLEND);
 			break;
 		case 2:
-			a = TRANSLUSCENT1;
+			c.a = TRANSLUSCENT1;
 			gl.glEnable(GL_BLEND);
 			break;
 		case 3:
-			a = TRANSLUSCENT2;
+			c.a = TRANSLUSCENT2;
 			gl.glEnable(GL_BLEND);
 			break;
 		}
 
-		gl.glColor4f(f, f, f, a);
+		gl.glColor4f(c.r, c.g, c.b, c.a);
 
 		tessectrap(rx1, ry1, xb1, npoints); // vertices + textures
 	}
@@ -805,18 +804,17 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
 
-		float alpha = 1.0f, f = parent.getshadefactor(shade);
+		Color polyColor = parent.getshadefactor(shade);
 		if (bit == Transparent.Bit1)
-			alpha = TRANSLUSCENT1;
+			polyColor.a = TRANSLUSCENT1;
 		if (bit == Transparent.Bit2)
-			alpha = TRANSLUSCENT2;
+			polyColor.a = TRANSLUSCENT2;
 
 		if (font.type == FontType.Tilemap)
-			gl.glColor4f(f, f, f, alpha);
+			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 		else
 			gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col),
-					(int) (alpha * 255));
-
+					(int) (polyColor.a * 255));
 
 		int c = 0, line = 0;
 		int x, y, yoffs;
@@ -1204,7 +1202,7 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glEnable(GL_ALPHA_TEST);
 		}
 
-		polyColor.r = polyColor.g = polyColor.b = parent.getshadefactor(globalshade);
+		Color polyColor = parent.getshadefactor(globalshade);
 		switch (method & 3) {
 		default:
 		case 0:
@@ -1388,7 +1386,7 @@ public class Polymost2D extends OrphoRenderer {
 
 		gl.glDisable(GL_FOG);
 		parent.globalorientation = hudsprite.cstat;
-		parent.mddraw(hudsprite, 0, 0);
+		parent.mdrenderer.mddraw(hudsprite, 0, 0);
 
 		viewingrange = oldviewingrange;
 		parent.gxyaspect = ogxyaspect;
