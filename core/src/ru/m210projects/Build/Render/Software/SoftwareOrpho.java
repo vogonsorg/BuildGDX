@@ -499,8 +499,8 @@ public class SoftwareOrpho extends OrphoRenderer {
 
 					Tile pic = engine.getTile(spr.picnum);
 
-					xoff = pic.getOffsetX() + spr.xoffset;
-					yoff = pic.getOffsetY() + spr.yoffset;
+					xoff = (byte)(pic.getOffsetX() + spr.xoffset);
+					yoff = (byte)(pic.getOffsetY() + spr.yoffset);
 					if ((spr.cstat & 4) > 0)
 						xoff = -xoff;
 					if ((spr.cstat & 8) > 0)

@@ -2142,7 +2142,7 @@ public abstract class Engine {
 				case 16:
 					// These lines get the 2 points of the rotated sprite
 					// Given: (x1, y1) starts out as the center point
-					xoff = pic.getOffsetX() + (spr.xoffset);
+					xoff = (byte) (pic.getOffsetX() + (spr.xoffset));
 					if ((cstat & 4) > 0)
 						xoff = -xoff;
 					k = spr.ang;
@@ -2202,8 +2202,8 @@ public abstract class Engine {
 					if (klabs(intx - xs) + klabs(inty - ys) > klabs((hit.hitx) - xs) + klabs((hit.hity) - ys))
 						continue;
 
-					xoff = pic.getOffsetX() + spr.xoffset;
-					yoff = pic.getOffsetY() + spr.yoffset;
+					xoff = (byte) (pic.getOffsetX() + spr.xoffset);
+					yoff = (byte) (pic.getOffsetY() + spr.yoffset);
 					if ((cstat & 4) > 0)
 						xoff = -xoff;
 					if ((cstat & 8) > 0)
@@ -2708,7 +2708,7 @@ public abstract class Engine {
 					if (((clipmove_z) < daz) && ((clipmove_z) > daz2)) {
 						// These lines get the 2 points of the rotated sprite
 						// Given: (x1, y1) starts out as the center point
-						xoff = pic.getOffsetX() + spr.xoffset;
+						xoff = (byte) (pic.getOffsetX() + spr.xoffset);
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						k = spr.ang;
@@ -2753,8 +2753,8 @@ public abstract class Engine {
 							if (((clipmove_z) > spr.z) == ((cstat & 8) == 0))
 								continue;
 
-						xoff = pic.getOffsetX() + (spr.xoffset);
-						yoff = pic.getOffsetY() + (spr.yoffset);
+						xoff = (byte) (pic.getOffsetX() + (spr.xoffset));
+						yoff = (byte) (pic.getOffsetY() + (spr.yoffset));
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						if ((cstat & 8) > 0)
@@ -3300,7 +3300,7 @@ public abstract class Engine {
 						}
 						break;
 					case 16:
-						xoff = pic.getOffsetX() + (spr.xoffset);
+						xoff = (byte) (pic.getOffsetX() + (spr.xoffset));
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						k = spr.ang;
@@ -3332,8 +3332,8 @@ public abstract class Engine {
 							if ((z > zofslope[CEIL]) == ((cstat & 8) == 0))
 								continue;
 
-						xoff = pic.getOffsetX() + (spr.xoffset);
-						yoff = pic.getOffsetY() + (spr.yoffset);
+						xoff = (byte) (pic.getOffsetX() + (spr.xoffset));
+						yoff = (byte) (pic.getOffsetY() + (spr.yoffset));
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						if ((cstat & 8) > 0)

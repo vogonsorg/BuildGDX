@@ -3438,7 +3438,7 @@ public abstract class Polymost implements GLRenderer {
 
 					if ((tspriteptr[k].cstat & 48) != 32) {
 						Tile pic = engine.getTile(tspriteptr[k].picnum);
-						yoff = pic.getOffsetY() + tspriteptr[k].yoffset;
+						yoff = (byte) (pic.getOffsetY() + tspriteptr[k].yoffset);
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
 						yspan = (pic.getHeight() * tspriteptr[k].yrepeat << 2);
 						if ((tspriteptr[k].cstat & 128) == 0)

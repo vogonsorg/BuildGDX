@@ -417,7 +417,7 @@ public abstract class Software implements Renderer {
 
 					if ((tspriteptr[k].cstat & 48) != 32) {
 						Tile pic = engine.getTile(tspriteptr[k].picnum);
-						yoff = pic.getOffsetY() + (tspriteptr[k].yoffset);
+						yoff = (byte) (pic.getOffsetY() + (tspriteptr[k].yoffset));
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
 						yspan = (pic.getHeight() * tspriteptr[k].yrepeat << 2);
 						if ((tspriteptr[k].cstat & 128) == 0)
@@ -1064,8 +1064,8 @@ public abstract class Software implements Renderer {
 				a.settransnormal();
 		}
 
-		int xoff = pic.getOffsetX() + (tspr.xoffset);
-		int yoff = pic.getOffsetY() + (tspr.yoffset);
+		int xoff = (byte) (pic.getOffsetX() + (tspr.xoffset));
+		int yoff = (byte) (pic.getOffsetY() + (tspr.yoffset));
 
 		int xv, yv, x1, y1, x2, y2, dax, day, dax1, dax2, dalx2, darx2;
 		int i, j, k, x, y, z, zz, z1, z2, xp1, yp1, xp2, yp2, xspan, yspan, xsiz, ysiz;
