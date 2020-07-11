@@ -9,7 +9,7 @@
  * by Alexander Makarov-[M210] (m210-2007@mail.ru)
  */
 
-package ru.m210projects.Build.Render;
+package ru.m210projects.Build.Render.Polymost;
 
 import static com.badlogic.gdx.graphics.GL20.GL_BACK;
 import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
@@ -172,6 +172,10 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Loader.MD3.MD3Model;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.GLFog;
+import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;

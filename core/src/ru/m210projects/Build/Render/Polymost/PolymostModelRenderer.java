@@ -8,7 +8,7 @@
  * by the EDuke32 team (development@voidpoint.com)
  * by Alexander Makarov-[M210] (m210-2007@mail.ru)
  */
-package ru.m210projects.Build.Render;
+package ru.m210projects.Build.Render.Polymost;
 
 import static com.badlogic.gdx.graphics.GL20.GL_BACK;
 import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
@@ -49,8 +49,8 @@ import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.xdimen;
 import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
-import static ru.m210projects.Build.Render.Polymost.r_glowmapping;
-import static ru.m210projects.Build.Render.Polymost.r_vertexarrays;
+import static ru.m210projects.Build.Render.Polymost.Polymost.r_glowmapping;
+import static ru.m210projects.Build.Render.Polymost.Polymost.r_vertexarrays;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
