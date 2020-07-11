@@ -17,8 +17,6 @@
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
 import static ru.m210projects.Build.Engine.fullscreen;
-import static ru.m210projects.Build.Engine.xdim;
-import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 
 import java.io.File;
@@ -244,6 +242,7 @@ public class InitScreen extends ScreenAdapter {
 			thread.start();
 	}
 
+	@Override
 	public void dispose() {
 		synchronized (Engine.lock) {
 			disposing = true;
@@ -255,11 +254,11 @@ public class InitScreen extends ScreenAdapter {
 		synchronized (Engine.lock) {
 			if(!disposing) { //don't draw anything after disposed
 				engine.clearview(0);
-			
-				engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
-	
+
+//				engine.rotatesprite(0, 0, 65536, 0, factory.getInitTile(), -128, 0, 10 | 16, 0, 0, xdim - 1, ydim - 1);
+
 				factory.drawInitScreen();
-	
+
 				if (frames++ > 3) {
 					if (!thread.isAlive()) {
 						if (gameInitialized)
