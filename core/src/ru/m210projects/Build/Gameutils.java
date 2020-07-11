@@ -16,8 +16,21 @@
 
 package ru.m210projects.Build;
 
-import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Engine.MAXSECTORS;
+import static ru.m210projects.Build.Engine.MAXSPRITES;
+import static ru.m210projects.Build.Engine.MAXSTATUS;
+import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.MAXWALLS;
+import static ru.m210projects.Build.Engine.sector;
+import static ru.m210projects.Build.Engine.sprite;
+import static ru.m210projects.Build.Engine.wall;
+import static ru.m210projects.Build.Engine.xdim;
+import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Pragmas.scale;
+
+import java.io.DataInputStream;
+import java.io.InputStream;
+import java.net.URL;
 
 import com.badlogic.gdx.files.FileHandle;
 
@@ -170,20 +183,47 @@ public class Gameutils {
 		return wy;
 	}
 
-	public static void loadGdxDef(DefScript baseDef, String appdef, String resname) {
-		
-//	InputStream input = class.getResourceAsStream(File.separator + resname);
-//	byte[] data = null;
-//	if(input != null)
-//	{
-//		try {
-//			data = new byte[input.available()];
-//			input.read(buffer);
-//		} catch (IOException e) {}
+	public static byte[] getInternalResource(String name) {
+		URL url = Gameutils.class.getClassLoader().getResource(name);
+		if (url != null) {
+			InputStream input = null;
+			try {
+				input = url.openStream();
+			} catch (Exception e) {
+				try {
+					// It seems Java can't handle the path that has the "!/" symbols
+					String path = url.toString();
+					int index = path.lastIndexOf(".jar!/");
+					if (index != -1) {
+						String filpath = path.substring(0, index).replace("/", "\\");
+						String jarpath = path.substring(index);
 
+						url = new URL(filpath + jarpath);
+						input = url.openStream();
+					}
+				} catch (Exception e2) {
+				}
+			}
+
+			if (input != null) {
+				try {
+					DataInputStream dis = new DataInputStream(input);
+					byte[] data = new byte[input.available()];
+					dis.readFully(data);
+					dis.close();
+					return data;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return null;
+	}
+
+	public static void loadGdxDef(DefScript baseDef, String appdef, String resname) {
 		byte[] data = null;
-		String filename = "";
-		try { //try to avoid GDX's bug that can't read the file
+		String filename = resname;
+		try { // try to avoid GDX's bug that can't read the file
 			FileHandle fil = BuildGdx.files.internal(resname);
 			if (fil != null && fil.exists()) {
 				filename = fil.name();
@@ -191,11 +231,13 @@ public class Gameutils {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			data = getInternalResource(resname);
 		}
 
-		if(data != null) {
+		if (data != null) {
 			DataResource res = new DataResource(null, filename, -1, data);
 			Group group = BuildGdx.cache.add(res, filename);
+			if (group == null) return;
 
 			GroupResource def = group.open(appdef);
 			if (def != null) {

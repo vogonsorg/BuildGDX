@@ -1815,7 +1815,7 @@ public abstract class Polymost implements GLRenderer {
 		drawalls_dd[0] = xdimen * .0000001; // Adjust sky depth based on screen size!
 		t = pic.getWidth() << dapskybits; // (1 << (picsiz[globalpicnum] & 15)) << dapskybits;
 
-		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * viewingrange) / (65536.0 * 65536.0);
+		drawalls_vv[1] = drawalls_dd[0] * (xdimscale * (double) viewingrange) / (65536.0 * 65536.0);
 		drawalls_vv[0] = drawalls_dd[0]
 				* ((pic.getHeight() >> 1)
 						+ ((floor && r_parallaxskypanning == 1) ? parallaxyoffs - pic.getHeight() : parallaxyoffs))
@@ -1844,7 +1844,7 @@ public abstract class Polymost implements GLRenderer {
 			oy = ((pic.getHeight()) * drawalls_dd[0] - drawalls_vv[0]) / drawalls_vv[1];
 
 			if ((oy > y0) && (oy > y1)) {
-				clipper.domost(x0, oy, x1, oy);
+				clipper.domost((float) x0, (float) oy, (float) x1, (float) oy);
 			} else if ((oy > y0) != (oy > y1)) {
 				// fy0 fy1
 				// \ /
@@ -1853,33 +1853,33 @@ public abstract class Polymost implements GLRenderer {
 				// fy1 fy0
 				ox = (oy - y0) * (x1 - x0) / (y1 - y0) + x0;
 				if (oy > y0) {
-					clipper.domost(x0, oy, ox, oy);
-					clipper.domost(ox, oy, x1, y1);
+					clipper.domost((float) x0, (float) oy, (float) ox, (float) oy);
+					clipper.domost((float) ox, (float) oy, (float) x1, (float) y1);
 				} else {
-					clipper.domost(x0, y0, ox, oy);
-					clipper.domost(ox, oy, x1, oy);
+					clipper.domost((float) x0, (float) y0, (float) ox, (float) oy);
+					clipper.domost((float) ox, (float) oy, (float) x1, (float) oy);
 				}
 			} else
-				clipper.domost(x0, y0, x1, y1);
+				clipper.domost((float) x0, (float) y0, (float) x1, (float) y1);
 		} else {
 			oy = -drawalls_vv[0] / drawalls_vv[1];
 
 			if ((oy < y0) && (oy < y1)) {
-				clipper.domost(x1, oy, x0, oy);
+				clipper.domost((float) x1, (float) oy, (float) x0, (float) oy);
 			} else if ((oy < y0) != (oy < y1)) {
 				/*
 				 * cy1 cy0 // / \ //oy---------- oy--------- // / \ // cy0 cy1
 				 */
 				ox = (oy - y0) * (x1 - x0) / (y1 - y0) + x0;
 				if (oy < y0) {
-					clipper.domost(ox, oy, x0, oy);
-					clipper.domost(x1, y1, ox, oy);
+					clipper.domost((float) ox, (float) oy, (float) x0, (float) oy);
+					clipper.domost((float) x1, (float) y1, (float) ox, (float) oy);
 				} else {
-					clipper.domost(ox, oy, x0, y0);
-					clipper.domost(x1, oy, ox, oy);
+					clipper.domost((float) ox, (float) oy, (float) x0, (float) y0);
+					clipper.domost((float) x1, (float) oy, (float) ox, (float) oy);
 				}
 			} else
-				clipper.domost(x1, y1, x0, y0);
+				clipper.domost((float) x1, (float) y1, (float) x0, (float) y0);
 		}
 		skyclamphack = oskyclamphack;
 
@@ -1926,10 +1926,11 @@ public abstract class Polymost implements GLRenderer {
 
 			pow2xsplit = 0;
 			if (floor)
-				clipper.domost(ox, ((ox - x0) * r + y0), fx, ((fx - x0) * r + y0));
+				clipper.domost((float) ox, (float) ((ox - x0) * r + y0), (float) fx, (float) ((fx - x0) * r + y0));
 			else
-				clipper.domost(fx, ((fx - x0) * r + y0), ox, ((ox - x0) * r + y0));
+				clipper.domost((float) fx, (float) ((fx - x0) * r + y0), (float) ox, (float) ((ox - x0) * r + y0));
 		} while (i >= 0);
+
 	}
 
 	private final int[] skywalx = { -512, 512, 512, -512 }, skywaly = { -512, -512, 512, 512 };
@@ -2045,39 +2046,40 @@ public abstract class Polymost implements GLRenderer {
 				drawingskybox = 6; // floor/6th texture/index 4 of skybox
 
 				if ((_fy0 > ny0) && (_fy1 > ny1))
-					clipper.domost(_x0, _fy0, _x1, _fy1);
+					clipper.domost((float) _x0, (float) _fy0, (float) _x1, (float) _fy1);
 				else if ((_fy0 > ny0) != (_fy1 > ny1)) {
 					t = (_fy0 - ny0) / (ny1 - ny0 - _fy1 + _fy0);
 					ox = _x0 + (_x1 - _x0) * t;
 					oy = _fy0 + (_fy1 - _fy0) * t;
 					if (ny0 > _fy0) {
-						clipper.domost(_x0, ny0, ox, oy);
-						clipper.domost(ox, oy, _x1, _fy1);
+						clipper.domost((float) _x0, (float) ny0, (float) ox, (float) oy);
+						clipper.domost((float) ox, (float) oy, (float) _x1, (float) _fy1);
 					} else {
-						clipper.domost(_x0, _fy0, ox, oy);
-						clipper.domost(ox, oy, _x1, ny1);
+						clipper.domost((float) _x0, (float) _fy0, (float) ox, (float) oy);
+						clipper.domost((float) ox, (float) oy, (float) _x1, (float) ny1);
 					}
 				} else
-					clipper.domost(_x0, ny0, _x1, ny1);
+					clipper.domost((float) _x0, (float) ny0, (float) _x1, (float) ny1);
 			} else {
 
 				drawingskybox = 5; // ceiling/5th texture/index 4 of skybox
 
 				if ((_cy0 < ny0) && (_cy1 < ny1))
-					clipper.domost(_x1, _cy1, _x0, _cy0);
+					clipper.domost((float) _x1, (float) _cy1, (float) _x0, (float) _cy0);
 				else if ((_cy0 < ny0) != (_cy1 < ny1)) {
 					t = (_cy0 - ny0) / (ny1 - ny0 - _cy1 + _cy0);
 					ox = _x0 + (_x1 - _x0) * t;
 					oy = _cy0 + (_cy1 - _cy0) * t;
 					if (ny0 < _cy0) {
-						clipper.domost(ox, oy, _x0, ny0);
-						clipper.domost(_x1, _cy1, ox, oy);
+						clipper.domost((float) ox, (float) oy, (float) _x0, (float) ny0);
+						clipper.domost((float) _x1, (float) _cy1, (float) ox, (float) oy);
 					} else {
-						clipper.domost(ox, oy, _x0, _cy0);
-						clipper.domost(_x1, ny1, ox, oy);
+						clipper.domost((float) ox, (float) oy, (float) _x0, (float) _cy0);
+						clipper.domost((float) _x1, (float) ny1, (float) ox, (float) oy);
 					}
 				} else
-					clipper.domost(_x1, ny1, _x0, ny0);
+					clipper.domost((float) _x1, (float) ny1, (float) _x0, (float) ny0);
+
 			}
 
 			// wall of skybox
@@ -2099,36 +2101,36 @@ public abstract class Polymost implements GLRenderer {
 
 			if (floor) {
 				if ((_cy0 > ny0) && (_cy1 > ny1))
-					clipper.domost(_x0, _cy0, _x1, _cy1);
+					clipper.domost((float) _x0, (float) _cy0, (float) _x1, (float) _cy1);
 				else if ((_cy0 > ny0) != (_cy1 > ny1)) {
 					t = (_cy0 - ny0) / (ny1 - ny0 - _cy1 + _cy0);
 					ox = _x0 + (_x1 - _x0) * t;
 					oy = _cy0 + (_cy1 - _cy0) * t;
 					if (ny0 > _cy0) {
-						clipper.domost(_x0, ny0, ox, oy);
-						clipper.domost(ox, oy, _x1, _cy1);
+						clipper.domost((float) _x0, (float) ny0, (float) ox, (float) oy);
+						clipper.domost((float) ox, (float) oy, (float) _x1, (float) _cy1);
 					} else {
-						clipper.domost(_x0, _cy0, ox, oy);
-						clipper.domost(ox, oy, _x1, ny1);
+						clipper.domost((float) _x0, (float) _cy0, (float) ox, (float) oy);
+						clipper.domost((float) ox, (float) oy, (float) _x1, (float) ny1);
 					}
 				} else
-					clipper.domost(_x0, ny0, _x1, ny1);
+					clipper.domost((float) _x0, (float) ny0, (float) _x1, (float) ny1);
 			} else {
 				if ((_fy0 < ny0) && (_fy1 < ny1))
-					clipper.domost(_x1, _fy1, _x0, _fy0);
+					clipper.domost((float) _x1, (float) _fy1, (float) _x0, (float) _fy0);
 				else if ((_fy0 < ny0) != (_fy1 < ny1)) {
 					t = (_fy0 - ny0) / (ny1 - ny0 - _fy1 + _fy0);
 					ox = _x0 + (_x1 - _x0) * t;
 					oy = _fy0 + (_fy1 - _fy0) * t;
 					if (ny0 < _fy0) {
-						clipper.domost(ox, oy, _x0, ny0);
-						clipper.domost(_x1, _fy1, ox, oy);
+						clipper.domost((float) ox, (float) oy, (float) _x0, (float) ny0);
+						clipper.domost((float) _x1, (float) _fy1, (float) ox, (float) oy);
 					} else {
-						clipper.domost(ox, oy, _x0, _fy0);
-						clipper.domost(_x1, ny1, ox, oy);
+						clipper.domost((float) ox, (float) oy, (float) _x0, (float) _fy0);
+						clipper.domost((float) _x1, (float) ny1, (float) ox, (float) oy);
 					}
 				} else
-					clipper.domost(_x1, ny1, _x0, ny0);
+					clipper.domost((float) _x1, (float) ny1, (float) _x0, (float) ny0);
 			}
 		}
 
@@ -2159,12 +2161,12 @@ public abstract class Polymost implements GLRenderer {
 		gvo -= (drawalls_ft[3] + gvx) * ghalfx;
 
 		if (floor)
-			clipper.domost(x0, y0, x1, y1);
+			clipper.domost((float) x0, (float) y0, (float) x1, (float) y1);
 		else {
 			gvx = -gvx;
 			gvy = -gvy;
 			gvo = -gvo; // y-flip skybox floor
-			clipper.domost(x1, y1, x0, y0);
+			clipper.domost((float) x1, (float) y1, (float) x0, (float) y0);
 		}
 
 		skyclamphack = 0;
@@ -2365,7 +2367,7 @@ public abstract class Polymost implements GLRenderer {
 			{
 				if (ptempbuf[i] != 0)
 					continue;
-				j = polymost_bunchfront(i, closest); // ArrayIndexOutOfBoundsException: -1 FIXME
+				j = polymost_bunchfront(i, closest);
 				if (j < 0)
 					continue;
 				ptempbuf[i] = 1;

@@ -13,7 +13,7 @@ package ru.m210projects.Build.Render;
 import static java.lang.Math.abs;
 
 public class PolyClipper {
-	
+
 	class vsptyp {
 		double x, cy[] = new double[2], fy[] = new double[2];
 		int n, p, tag, ctag, ftag;
@@ -31,7 +31,7 @@ public class PolyClipper {
 			this.ftag = src.ftag;
 		}
 	};
-	
+
 	private int domostpolymethod = 0;
 	private final float DOMOST_OFFSET = 0.01f;
 	private int vcnt, gtag;
@@ -40,7 +40,7 @@ public class PolyClipper {
 	private final Surface[] domost = new Surface[4];
 	private final double[] domost_cy = new double[2], domost_cv = new double[2];
 	private Polymost r;
-	
+
 	public PolyClipper(Polymost render)
 	{
 		for(int i = 0; i < 4; i++)
@@ -49,12 +49,12 @@ public class PolyClipper {
 			vsp[i] = new vsptyp();
 		this.r = render;
 	}
-	
+
 	public void setMethod(int method)
 	{
 		domostpolymethod = method;
 	}
-	
+
 	/* Init viewport boundary (must be 4 point convex loop): // (px[0],py[0]).----.(px[1],py[1]) // / \ // / \ //(px[3],py[3]).--------------.(px[2],py[2]) */
 	public void initmosts(double[] px, double[] py, int n) {
 		int i, j, k, imin;
@@ -70,12 +70,12 @@ public class PolyClipper {
 		vsp[vcnt].x = px[imin];
 		vsp[vcnt].cy[0] = vsp[vcnt].fy[0] = py[imin];
 		vcnt++;
-		
+
 		i = imin + 1;
 		if (i >= n) i = 0;
 		j = imin - 1;
 		if (j < 0) j = n - 1;
-		
+
 		do {
 			if (px[i] < px[j]) {
 				if ((vcnt > 1) && (px[i] <= vsp[vcnt - 1].x))
@@ -153,7 +153,7 @@ public class PolyClipper {
 		vsp[VSPMAX - 1].n = vcnt;
 		vsp[vcnt].p = VSPMAX - 1;
 	}
-	
+
 	public void domost(double x0, double y0, double x1, double y1) {
 		double d, f, n, t, slop, dx, dx0, dx1, nx, nx0, ny0, nx1, ny1;
 		int i, j, k, z, ni, vcnt = 0, scnt, newi;
@@ -286,7 +286,7 @@ public class PolyClipper {
 				if (!dir) {
 					switch (k) {
 					case 1:
-					case 2: 
+					case 2:
 						domost[0].px = dx0;
 						domost[0].py = vsp[i].cy[0];
 						domost[1].px = dx1;
@@ -438,7 +438,7 @@ public class PolyClipper {
 				i = ni;
 		}
 	}
-	
+
 	public int testvisiblemost(double x0, double x1) {
 		int i, newi;
 		for (i = vsp[0].n; i != 0; i = newi) {
@@ -448,7 +448,7 @@ public class PolyClipper {
 		}
 		return (0);
 	}
-	
+
 	private void vsdel(int i) {
 		int pi, ni;
 		// Delete i

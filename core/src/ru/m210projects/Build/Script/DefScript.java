@@ -679,7 +679,14 @@ public class DefScript {
 				return null;
 			}
 
-			Pixmap pix = new Pixmap(data, 0, data.length);
+			Pixmap pix = null;
+			try {
+				pix = new Pixmap(data, 0, data.length);
+			} catch(Throwable e) { //if native code didn't load
+				Console.Println("ImportTileFromTexture error: " + e.getMessage(), Console.OSDTEXT_RED);
+				return null;
+			}
+
 			pix.setFilter(Filter.NearestNeighbour);
 
 			Format fmt = pix.getFormat();
