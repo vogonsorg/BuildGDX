@@ -16,16 +16,17 @@ import ru.m210projects.Build.Pattern.BuildFont.TextAlign;
 import ru.m210projects.Build.Pattern.MenuItems.MenuHandler.MenuOpt;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
 import ru.m210projects.Build.Pattern.Tools.SaveManager.SaveInfo;
+import ru.m210projects.Build.Types.Tile;
 
 public abstract class MenuSlotList extends MenuList
 {
 	public boolean deleteQuestion;
-	
+
 	public List<SaveInfo> text;
 	public MenuProc updateCallback;
 	public MenuProc confirmCallback;
 	public List<SaveInfo> displayed;
-	
+
 	protected final boolean saveList;
 	public int nListOffset;
 	public boolean typing;
@@ -37,28 +38,28 @@ public abstract class MenuSlotList extends MenuList
 	public BuildFont desriptionFont;
 	public int specPal, backgroundPal;
 	public int transparent = 1;
-	
+
 	//to draw own cursor in mPostDraw (MenuHandler)
 	public boolean owncursor = false;
-	
+
 	protected SaveManager saveManager;
 	protected Engine draw;
 	protected int nBackground;
 	protected int listPal;
-	
-	public MenuSlotList(Engine draw, SaveManager saveManager, BuildFont font, int x, int y, int yHelpText, int width, 
+
+	public MenuSlotList(Engine draw, SaveManager saveManager, BuildFont font, int x, int y, int yHelpText, int width,
 			int nListItems, MenuProc updateCallback, MenuProc confirmCallback, int listPal, int specPal, int nBackground, boolean saveList ) {
-		
+
 		super(null, font, x, y, width, 0, null, null, nListItems);
 		this.draw = draw;
 		this.saveManager = saveManager;
 		this.nBackground = nBackground;
-		
+
 		this.typing = false;
 		this.text = saveManager.getList();
 		this.nListItems = nListItems;
 		this.nListOffset = 0;
-	
+
 		this.updateCallback = updateCallback;
 		this.confirmCallback = confirmCallback;
 		this.saveList = saveList;
@@ -68,10 +69,10 @@ public abstract class MenuSlotList extends MenuList
 		this.helpPal = listPal;
 		this.specPal = specPal;
 		this.listPal = listPal;
-		
+
 		this.desriptionFont = font;
 	}
-	
+
 	public String FileName()
 	{
 		int ptr = l_nFocus;
@@ -80,7 +81,7 @@ public abstract class MenuSlotList extends MenuList
 			return "Empty slot";
 		return displayed.get(ptr).filename;
 	}
-	
+
 	public String SaveName()
 	{
 		int ptr = l_nFocus;
@@ -89,32 +90,32 @@ public abstract class MenuSlotList extends MenuList
 			return "Empty slot";
 		return displayed.get(ptr).name;
 	}
-	
+
 	@Override
 	public void draw(MenuHandler handler) {
 		this.len = displayed.size();
-		
+
 		draw.rotatesprite((x + width / 2 - 5) << 16, (y - 3) << 16, 65536, 0, nBackground, 128, backgroundPal, 10 | 16 | transparent, 0, 0, coordsConvertXScaled(x + width, ConvertType.Normal), coordsConvertYScaled(y + nListItems * mFontOffset() + 3));
-		
+
 		if(displayed.size() > 0) {
 			int py = y, pal;
 			if(saveList) len += 1;
 
-			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
+			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {
 				int ptr = i;
 				if(saveList) ptr -= 1;
-				
+
 				int shade = handler.getShade(i == l_nFocus && !deleteQuestion? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
 				char[] rtext;
 				if(i == 0 && saveList)
 					rtext = toCharArray("New savegame");
 				else rtext = toCharArray(displayed.get(ptr).name);
-				
-				if(ptr >= 0 && (displayed.get(ptr).filename.equals("autosave.sav") 
+
+				if(ptr >= 0 && (displayed.get(ptr).filename.equals("autosave.sav")
 						|| displayed.get(ptr).filename.startsWith("quicksav")))
 					pal = specPal;
 				else pal = listPal;
-				
+
 				if ( i == l_nFocus ) {
 					if(m_pMenu.mGetFocusedItem(this)) {
 						if(typing) {
@@ -129,17 +130,17 @@ public abstract class MenuSlotList extends MenuList
 						}
 					}
 				}
-				
+
 				font.drawText(x + width / 2 + nListOffset, py, rtext,shade, pal, TextAlign.Left, 2, fontShadow);
 
 				py += mFontOffset();
 			}
 		} else {
-			int py = y;	
+			int py = y;
 			int shade = handler.getShade(l_nFocus != -1 ? m_pMenu.m_pItems[m_pMenu.m_nFocus] : null);
 			char[] rtext;
-			
-			
+
+
 			if(saveList) {
 				rtext = toCharArray("New saved game");
 				if(typing) {
@@ -160,36 +161,38 @@ public abstract class MenuSlotList extends MenuList
 		pal = helpPal;
 		if(deleteQuestion)
 		{
-//			draw.setpalettefade(0, 0, 0, 48); 
+//			draw.setpalettefade(0, 0, 0, 48);
 //			draw.showfade();
-			
+
 			int tile = nBackground;
+			Tile pic = draw.getTile(tile);
+
 			float kt = xdim / (float) ydim;
-			float kv = tilesizx[tile] / (float) tilesizy[tile];
+			float kv = pic.getWidth() / (float) pic.getHeight();
 			float scale;
 			if (kv >= kt)
-				scale = (ydim + 1) / (float) tilesizy[tile];
+				scale = (ydim + 1) / (float) pic.getHeight();
 			else
-				scale = (xdim + 1) / (float) tilesizx[tile];
+				scale = (xdim + 1) / (float) pic.getWidth();
 
 			draw.rotatesprite(0, 0, (int) (scale * 65536), 0, tile, 127, 4, 8 | 16 | transparent, 0, 0, xdim - 1, ydim - 1);
 
 			int shade = handler.getShade(m_pMenu.m_pItems[m_pMenu.m_nFocus]);
-			
+
 			char[] ctext = toCharArray("Do you want to delete \"" + SaveName() + "\"");
 			questionFont.drawText(160 - questionFont.getWidth(ctext) / 2, 100, ctext, shade, pal, TextAlign.Left, 2, fontShadow);
 			ctext = toCharArray("[Y/N]");
 			questionFont.drawText(160 - questionFont.getWidth(ctext) / 2, 110, ctext, shade, pal, TextAlign.Left, 2, fontShadow);
 		} else {
 			char[] ctext = toCharArray("Press \"DELETE\" to remove the savegame file");
-			
+
 			desriptionFont.drawText(160 - desriptionFont.getWidth(ctext) / 2, yHelpText, ctext, 0, pal, TextAlign.Left, 2, fontShadow);
 		}
-		
+
 		handler.mPostDraw(this);
 	}
-	
-	
+
+
 
 	@Override
 	public boolean callback(MenuHandler handler, MenuOpt opt) {
@@ -211,21 +214,21 @@ public abstract class MenuSlotList extends MenuList
 			    deleteQuestion = false;
 			}
 			if(getInput().getKey(Keys.N) != 0 || opt == MenuOpt.ESC || opt == MenuOpt.RMB) {
-				
+
 				getInput().setKey(Keys.N, 0);
 				deleteQuestion = false;
 			}
-			
+
 			return false;
 		}
-		
-		int focus = l_nFocus; 
+
+		int focus = l_nFocus;
 		int len = displayed.size();
 		if(saveList) {
 			len += 1;
 			focus -= 1;
 		}
-		if(typing) 
+		if(typing)
 		{
 			if(opt != MenuOpt.ESC) {
 				if(getInput().putMessage(typingBuf.length, !owncursor, false, false) == 1 || opt == MenuOpt.ENTER)
@@ -233,7 +236,7 @@ public abstract class MenuSlotList extends MenuList
 					typed = new String(getInput().getMessageBuffer(), 0, getInput().getMessageLength());
 					typing = false;
 					if(confirmCallback != null)
-						confirmCallback.run(handler, this);	
+						confirmCallback.run(handler, this);
 				}
 			} else typing = false;
 		} else {
@@ -274,17 +277,17 @@ public abstract class MenuSlotList extends MenuList
 				case LMB:
 					if(l_nFocus != -1 && len > 0) {
 						if(saveList) {
-							if(l_nFocus == 0) getInput().initMessageInput(null); 
+							if(l_nFocus == 0) getInput().initMessageInput(null);
 							else getInput().initMessageInput(displayed.get(focus).name);
 				        	typing = true;
-							
+
 							return false;
 						}
 						if(confirmCallback != null)
-							confirmCallback.run(handler, this);	
+							confirmCallback.run(handler, this);
 						getInput().resetKeyStatus();
 					}
-					
+
 					return false;
 				case ESC:
 				case RMB:
@@ -316,45 +319,45 @@ public abstract class MenuSlotList extends MenuList
 		}
 		return false;
 	}
-	
+
 	@Override
 	public void open() {
 		l_nMin = l_nFocus = 0;
-		
+
 		Iterator<SaveInfo> i = text.iterator();
 		while (i.hasNext()) {
 			SaveInfo s = i.next();
 			if(!checkFile(s.filename))
 				i.remove();
-			
+
 //			File file = new File(Path.User.getPath() + s.filename);
 //			if(!file.exists())
 //				i.remove();
 		}
-		
+
 		updateList();
-		
+
 		if(updateCallback != null)
 			updateCallback.run(null, this);
 	}
-	
+
 	public abstract boolean checkFile(String filename);
-	
+
 	public void updateList()
 	{
 		displayed.clear();
 		displayed.addAll(text);
 		if(saveList) {
 			Iterator<SaveInfo> i = displayed.iterator();
-			while (i.hasNext()) { 
+			while (i.hasNext()) {
 				SaveInfo s = i.next();
-				if(s.filename.equals("autosave.sav") 
+				if(s.filename.equals("autosave.sav")
 						|| s.filename.startsWith("quicksav"))
 					i.remove();
 			}
 		}
 	}
-	
+
 	@Override
 	public void close() {
 		deleteQuestion = false;
@@ -370,10 +373,10 @@ public abstract class MenuSlotList extends MenuList
 			int px = x, py = y;
 			int len = displayed.size();
 			if(saveList) len += 1;
-			
+
 			int ol_nFocus = l_nFocus;
-			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {	
-			    
+			for(int i = l_nMin; i >= 0 && i < l_nMin + nListItems && i < len; i++) {
+
 				if(mx > px && mx < px + width - 14)
 					if(my > py && my < py + font.getHeight())
 					{
@@ -382,7 +385,7 @@ public abstract class MenuSlotList extends MenuList
 							updateCallback.run(null, this);
 						return true;
 					}
-			    
+
 				py += mFontOffset();
 			}
 		}

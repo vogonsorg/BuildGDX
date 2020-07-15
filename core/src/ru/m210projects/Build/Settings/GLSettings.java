@@ -29,13 +29,13 @@ public class GLSettings extends BuildSettings {
 	public static BuildVariable<Integer> textureAnisotropy;
 	public static BuildVariable<Boolean> useHighTile;
 	public static BuildVariable<Boolean> useModels;
-	
+
 	public static BuildVariable<Integer> gamma;
 	public static BuildVariable<Integer> brightness;
 	public static BuildVariable<Integer> contrast;
 
 	public static BuildVariable<Boolean> animSmoothing;
-	
+
 	public static void init(final Engine engine, final BuildConfig cfg)
 	{
 		textureFilter = new BuildVariable<GLFilter>(cfg.glfilter < glfiltermodes.length ? glfiltermodes[cfg.glfilter] : glfiltermodes[0], "Changes the texture filtering settings") {
@@ -56,18 +56,18 @@ public class GLSettings extends BuildSettings {
 						break;
 					}
 			}
-			
+
 			@Override
 			public GLFilter check(Object value) {
-				if(value instanceof GLFilter) 
+				if(value instanceof GLFilter)
 					return (GLFilter) value;
 				return null;
 			}
 		};
-		
+
 		textureAnisotropy = new BuildVariable<Integer>(1, "Changes the texture anisotropy settings") {
 			@Override
-			public void execute(final Integer value) { 
+			public void execute(final Integer value) {
 				BuildGdx.app.postRunnable(new Runnable() { //it must be started at GLthread
 					@Override
 					public void run() {
@@ -78,7 +78,7 @@ public class GLSettings extends BuildSettings {
 					}
 				});
 			}
-			
+
 			@Override
 			public Integer check(Object value) {
 				if(value instanceof Integer) {
@@ -91,7 +91,7 @@ public class GLSettings extends BuildSettings {
 				}
 				return null;
 			}
-			
+
 			int checkAnisotropy(int anisotropy) {
 				int anisotropysize = 0;
 				for (int s = anisotropy; s > 1; s >>= 1)
@@ -100,8 +100,8 @@ public class GLSettings extends BuildSettings {
 			}
 		};
 		textureAnisotropy.set(cfg.glanisotropy);
-		
-		OSDCOMMAND R_texture = new OSDCOMMAND( "r_texturemode", "r_texturemode: " + GLSettings.textureFilter.getDescription(), new OSDCVARFUNC() { 
+
+		OSDCOMMAND R_texture = new OSDCOMMAND( "r_texturemode", "r_texturemode: " + GLSettings.textureFilter.getDescription(), new OSDCVARFUNC() {
 			@Override
 			public void execute() {
 				if (Console.osd_argc != 2) {
@@ -120,7 +120,10 @@ public class GLSettings extends BuildSettings {
 			} });
 		R_texture.setRange(0, 2);
 		Console.RegisterCvar(R_texture);
-		
+
+		Console.RegisterCvar(new  OSDCOMMAND( "r_detailmapping", "r_detailmapping: use detail textures", 1,  0, 1));
+		Console.RegisterCvar(new  OSDCOMMAND( "r_glowmapping", "r_glowmapping: use glow textures", 1,  0, 1));
+
 		useHighTile = new BooleanVar(true, "Use true color textures from high resolution pack") {
 			@Override
 			public void execute(Boolean value) {
@@ -134,9 +137,9 @@ public class GLSettings extends BuildSettings {
 			}
 		};
 		useModels = new BooleanVar(true, "Use md2 / md3 models from high resolution pack");
-		
+
 		animSmoothing = new BooleanVar(true, "Use  model animation smoothing");
-		
+
 		gamma = new BuildVariable<Integer>((int) ((1 - cfg.fgamma) * 4096), "Global gamma") {
 			@Override
 			protected void execute(Integer value) {
@@ -153,7 +156,7 @@ public class GLSettings extends BuildSettings {
 				return null;
 			}
 		};
-		
+
 		brightness = new BuildVariable<Integer>((int) (cfg.fbrightness * 4096), "Global brightness") {
 			@Override
 			protected void execute(Integer value) {
@@ -170,7 +173,7 @@ public class GLSettings extends BuildSettings {
 				return null;
 			}
 		};
-		
+
 		contrast = new BuildVariable<Integer>((int) (cfg.fcontrast * 4096), "Global contrast") {
 			@Override
 			protected void execute(Integer value) {
@@ -188,5 +191,5 @@ public class GLSettings extends BuildSettings {
 			}
 		};
 	}
-	
+
 }

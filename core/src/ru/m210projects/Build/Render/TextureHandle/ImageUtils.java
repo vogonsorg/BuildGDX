@@ -1,7 +1,7 @@
 /*
  * ImageUtils for "POLYMOST" code written by Ken Silverman
  * Ken Silverman's official web site: http://www.advsys.net/ken
- * 
+ *
  * See the included license file "BUILDLIC.TXT" for license info.
  */
 
@@ -26,10 +26,10 @@ import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Settings.GLSettings;
 
 public class ImageUtils {
-	
+
 	private static final int TEX_MAX_SIZE = 1024;
 	private static TextureBuffer tmp_buffer;
-	
+
 	public static class PicInfo {
 		public final ByteBuffer pic;
 		public final boolean hasalpha;
@@ -46,7 +46,7 @@ public class ImageUtils {
 
 		if(data != null && (tsizx * tsizy > data.length || data.length == 0))
 			data = null;
-		
+
 		boolean hasalpha = false;
 		if (data == null) {
 			buffer.putInt(0, 0);
@@ -74,6 +74,7 @@ public class ImageUtils {
 						dptr += xoffs;
 					}
 				}
+				hasalpha = true;
 			}
 			else
 			{
@@ -90,42 +91,42 @@ public class ImageUtils {
 				}
 			}
 		}
-		if(type == PixelFormat.Rgb && data != null && hasalpha && !GLSettings.textureFilter.get().retro) 
+		if(type == PixelFormat.Rgb && data != null && hasalpha && !GLSettings.textureFilter.get().retro)
 			fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
 
 		return new PicInfo(buffer.getBuffer(), hasalpha);
-		
+
 	}
-	
+
 	private static int getColor(int dacol, int dapal, boolean alphaMode, PixelFormat type) {
 		dacol &= 0xFF;
 		if(type == PixelFormat.Pal8)
 			return dacol;
-		
+
 		if(type == PixelFormat.Pal8A)
 		{
-			if (alphaMode && dacol == 255) 
+			if (alphaMode && dacol == 255)
 				return dacol;
 
 			return dacol | 0xFF000000;
 		}
-		
-		if (alphaMode && dacol == 255) 
+
+		if (alphaMode && dacol == 255)
 			return curpalette.getRGBA(0, (byte) 0);
-		
+
 		if(dacol >= palookup[dapal].length)
 			return 0;
-		
+
 		if(UseBloodPal && dapal == 1) //Blood's pal 1
 		{
 			int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
 			dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
 		} else
 			dacol = palookup[dapal][dacol] & 0xFF;
-		
+
 		return curpalette.getRGBA(dacol, (byte) 0xFF);
 	}
-	
+
 	private static void fixtransparency(TextureBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
 		int dox = daxsiz2 - 1;
 		int doy = daysiz2 - 1;
@@ -139,7 +140,7 @@ public class ImageUtils {
 
 		daxsiz--;
 		daysiz--;
-	
+
 		// Set transparent pixels to average color of neighboring opaque pixels
 		// Doing this makes bilinear filtering look much better for masked
 		// textures (I.E. sprites)
@@ -149,7 +150,7 @@ public class ImageUtils {
 			for (x = dox; x >= 0; x--, wpptr--) {
 				wp = (wpptr << 2);
 				if(dapic.get(wp + 3) != 0) continue;
-			
+
 				r = g = b = j = 0;
 				index = wp - 4;
 				if ((x > 0) && (dapic.get(index + 3) != 0)) {
@@ -197,12 +198,12 @@ public class ImageUtils {
 				default:
 					continue;
 				}
-				
+
 				dapic.putInt(wp, rgb);
 			}
 		}
 	}
-	
+
 	public static TextureBuffer getTmpBuffer() {
 		if (tmp_buffer == null) {
 			int size = TEX_MAX_SIZE * TEX_MAX_SIZE * 4;

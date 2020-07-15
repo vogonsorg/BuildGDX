@@ -1,7 +1,7 @@
 /*
- * TextureUtils by Kirill Klimenko-KLIMaka 
+ * TextureUtils by Kirill Klimenko-KLIMaka
  * Based on parts of "Polymost" by Ken Silverman
- * 
+ *
  * Ken Silverman's official web site: http://www.advsys.net/ken
  * See the included license file "BUILDLIC.TXT" for license info.
  */
@@ -49,72 +49,72 @@ public class TextureUtils {
 		} else {
 			System.err.println("Uploading non-zero mipmap level textures is unimplemented");
 		}
-		
+
 		if(GLSettings.textureFilter.get().mipmaps) {
 			//Build 2D Mipmaps
-			if (supportsGenerateMipmaps) 
+			if (supportsGenerateMipmaps)
 				BuildGdx.gl.glGenerateMipmap(GL_TEXTURE_2D);
 			else generateMipMapCPU(doalloc, mipLevel, xsiz, ysiz, intexfmt, texfmt, pic);
 		}
 	}
-	
+
 	private static void generateMipMapCPU(boolean doalloc, int mipLevel, int xsiz, int ysiz, int intexfmt, int texfmt, ByteBuffer pic)
 	{
-		int x2 = xsiz, x3; 
+		int x2 = xsiz, x3;
 		int y2 = ysiz, y3;
 		int r, g, b, a, k, wpptr, rpptr, wp, rp, index, rgb;
 	    for (int j = 1, x, y; (x2 > 1) || (y2 > 1); j++)
 	    {
-	        x3 = Math.max(1, x2 >> 1); 
+	        x3 = Math.max(1, x2 >> 1);
 	        y3 = Math.max(1, y2 >> 1);		// this came from the GL_ARB_texture_non_power_of_two spec
 	        for (y = 0; y < y3; y++)
 	        {
-	            wpptr = y * x3; 
+	            wpptr = y * x3;
 	            rpptr = (y << 1) * x2;
 	            for (x = 0; x < x3; x++, wpptr++, rpptr += 2)
 	            {
 	            	wp = wpptr << 2;
 	            	rp = rpptr << 2;
 	            	r = g = b = a = k = 0;
-	            	
+
 	            	index = rp;
-	                if (pic.get(index + 3) != 0) 
-	                { 
+	                if (pic.get(index + 3) != 0)
+	                {
 	                	r += pic.get(index + 0) & 0xFF;
 						g += pic.get(index + 1) & 0xFF;
 						b += pic.get(index + 2) & 0xFF;
 						a += pic.get(index + 3) & 0xFF;
-	                	k++; 
+	                	k++;
 	                }
 	                index = rp + 4;
-	                if (((x << 1) + 1 < x2) && (pic.get(index + 3) != 0)) 
-	                { 
+	                if (((x << 1) + 1 < x2) && (pic.get(index + 3) != 0))
+	                {
 	                	r += pic.get(index + 0) & 0xFF;
 						g += pic.get(index + 1) & 0xFF;
 						b += pic.get(index + 2) & 0xFF;
 						a += pic.get(index + 3) & 0xFF;
-	                	k++; 
+	                	k++;
 	                }
 	                if ((y << 1) + 1 < y2)
 	                {
 	                	index = rp + (x2 << 2);
-	                    if (pic.get(index + 3) != 0) 
-	                    { 
+	                    if (pic.get(index + 3) != 0)
+	                    {
 	                    	r += pic.get(index + 0) & 0xFF;
 							g += pic.get(index + 1) & 0xFF;
 							b += pic.get(index + 2) & 0xFF;
 							a += pic.get(index + 3) & 0xFF;
-	                    	k++; 
+	                    	k++;
 	                    }
-	                    
+
 	                    index = rp + ((x2 + 1) << 2);
-	                    if (((x << 1) + 1 < x2) && pic.get(index + 3) != 0) 
-	                    { 
+	                    if (((x << 1) + 1 < x2) && pic.get(index + 3) != 0)
+	                    {
 	                    	r += pic.get(index + 0) & 0xFF;
 							g += pic.get(index + 1) & 0xFF;
 							b += pic.get(index + 2) & 0xFF;
 							a += pic.get(index + 3) & 0xFF;
-	                    	k++; 
+	                    	k++;
 	                    }
 	                }
 	                switch (k)
@@ -135,11 +135,11 @@ public class TextureUtils {
 						default:
 							continue;
 	                }
-	                
-	                pic.putInt(wp, rgb);	
+
+	                pic.putInt(wp, rgb);
 	            }
 	        }
-	        
+
 	        if (j >= mipLevel)
 	        {
 	        	if (doalloc) {

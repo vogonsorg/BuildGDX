@@ -16,22 +16,20 @@
 
 package ru.m210projects.Build.Types;
 
-import static ru.m210projects.Build.Engine.*;
-
 import java.util.HashSet;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
 import ru.m210projects.Build.Render.TextureHandle.TextureCache;
 
-public class TileFont {
-	
+public abstract class TileFont {
+
 	public static final HashSet<TileFont> managedFont = new HashSet<TileFont>();
-	
+
 	public enum FontType { Tilemap, Bitmap };
 
 	public Pthtyp atlas;
-	
+
 	public Object ptr;
 	public FontType type;
 	public int charsizx;
@@ -47,30 +45,22 @@ public class TileFont {
 		this.charsizy = charsizy;
 		this.cols = cols;
 		this.rows = rows;
-		
+
 		managedFont.add(this);
 	}
-	
-	public Pthtyp init(TextureCache textureCache, int col) {
-		int nTile = (Integer) ptr;
-		
-		Pthtyp pth = textureCache.cache(nTile, col, (short) 0, false, true);
-		this.sizx = tilesizx[nTile];
-		this.sizy = tilesizy[nTile];
 
-		return pth;
-	}
-	
+	public abstract Pthtyp init(TextureCache textureCache, int col);
+
 	public Pthtyp getGL(TextureCache textureCache, int col) {
 		return init(textureCache, col);
 	}
-	
+
 	public void dispose()
 	{
 		if(atlas != null && BuildGdx.gl != null)
 			atlas.glpic.dispose();
-		
+
 		managedFont.remove(this);
 	}
-	
+
 }

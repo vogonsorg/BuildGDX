@@ -37,17 +37,17 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 public class ZipGroup extends Group {
 
 	private static byte[] readbuf = new byte[1024];
-	
+
 	private ZipFile zfile;
-	
+
 	private class ZipResource extends GroupResource {
-		private class ZipInputStream extends BufferedInputStream { 
+		private class ZipInputStream extends BufferedInputStream {
 			private static final int DEFAULT_BUFFER_SIZE = 8192;
-			
+
 			public ZipInputStream(InputStream in) {
 				super(in, DEFAULT_BUFFER_SIZE);
 			}
-			
+
 			private void reinit() throws IOException
 			{
 				this.in = zfile.getInputStream(entry);
@@ -55,30 +55,30 @@ public class ZipGroup extends Group {
 				this.pos = 0;
 				this.count = 0;
 			}
-			
+
 			public int seek(long offset, Whence whence) {
 				synchronized(parent) {
 					try {
 						int opos;
 						switch (whence)
 				        {
-				        	case End: 
-				        		offset += size;	
-				        	case Set: 
+				        	case End:
+				        		offset += size;
+				        	case Set:
 				        		if(offset < 0) return -1;
-				        		
-				        		if(isClosed()) 
+
+				        		if(isClosed())
 									reinit();
-				        		
+
 				        		int pos = position();
 				        		if(pos < offset)
-				        			this.skip(offset - pos); 
+				        			this.skip(offset - pos);
 				        		else if(pos > offset) {
 				        			reinit();
-				        			this.skip(offset); 
+				        			this.skip(offset);
 				        		}
 				        		break;
-				        	case Current: 
+				        	case Current:
 				        		if(offset == 0) break;
 				        		opos = position();
 				        		if(opos < opos + offset) {
@@ -86,7 +86,7 @@ public class ZipGroup extends Group {
 				        		}
 				        		else {
 				        			reinit();
-				        			this.skip(opos + offset); 
+				        			this.skip(opos + offset);
 				        		}
 				        		break;
 				        }
@@ -95,37 +95,37 @@ public class ZipGroup extends Group {
 					return -1;
 				}
 			}
-			
+
 			private boolean isClosed()
 			{
 				if(in == null)
 					return true;
-				
+
 				try {
 					return this.available() == 0;
 				} catch (Exception e) { e.printStackTrace(); }
-				
+
 				return true;
 			}
-			
+
 			public int position()
-			{	
+			{
 				synchronized(parent) {
 					try {
 						return size - this.available();
 					} catch (Exception e) { e.printStackTrace(); }
-					
+
 					return -1;
 				}
 			}
-					
+
 			@Override
 			public int read(byte b[]) {
 				synchronized(parent) {
 					return read(b, 0, b.length);
 				}
 		    }
-			
+
 			@Override
 			public int read(byte b[], int off, int len)
 			{
@@ -137,7 +137,7 @@ public class ZipGroup extends Group {
 					return var;
 				}
 			}
-			
+
 			@Override
 			public long skip(long n) throws IOException {
 				synchronized(parent) {
@@ -147,37 +147,38 @@ public class ZipGroup extends Group {
 						n1 = super.skip(n - n1);
 						sum += n1;
 					}
-					
+
 					return sum;
 				}
 			}
 		}
-		
+
 		private ZipInputStream bis;
 		private final ZipEntry entry;
-		
+
 		public ZipResource(ZipEntry entry) throws IOException {
 			super(ZipGroup.this);
 			this.handleName(entry.getName());
-			
+
 			String fileid = entry.getComment();
 			if(fileid != null && !fileid.isEmpty()) {
-				fileid = fileid.replaceAll("[^0-9]", ""); 
-				this.fileid = Integer.parseInt(fileid);
+				fileid = fileid.replaceAll("[^0-9]", "");
+				if(!fileid.isEmpty())
+					this.fileid = Integer.parseInt(fileid);
 			}
-			
+
 			this.entry = entry;
 			this.size = (int) entry.getSize();
 
 			if(debug && size > 0) System.out.println("\t" + filenamext + ", size: " +  size);
 		}
-		
+
 		@Override
 		protected void handleName(String fullname) //zips can handle folders, so we must add separators to replacer
 		{
 			this.filenamext = toLowerCase(StringUtils.toUnicode(fullname));
 			if(filenamext.contains("/")) filenamext = filenamext.replace("/", File.separator);
-			
+
 			int point = filenamext.lastIndexOf('.');
 			if(point != -1) {
 				this.fileformat = filenamext.substring(point + 1);
@@ -187,7 +188,7 @@ public class ZipGroup extends Group {
 				this.filename = this.filenamext;
 			}
 		}
-		
+
 		public ZipResource open()
 		{
 			if(zfile == null)
@@ -195,18 +196,18 @@ public class ZipGroup extends Group {
 				Console.Println("Group is closed!", Console.OSDTEXT_RED);
 				return null;
 			}
-			
+
 			try {
 				if(bis == null)
 					this.bis = new ZipInputStream(zfile.getInputStream(entry));
 				else if(buffer == null) bis.reinit();
-				
+
 				this.seek(0, Whence.Set);
 				return this;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 			return null;
 		}
 
@@ -214,7 +215,7 @@ public class ZipGroup extends Group {
 		public void close() {
 			this.seek(0, Whence.Set);
 			this.flush();
-			try {				
+			try {
 				bis.close();
 			} catch (Exception e) { e.printStackTrace(); }
 		}
@@ -232,10 +233,10 @@ public class ZipGroup extends Group {
 			        }
 			        return position();
 				}
-				
+
 				if(zfile == null)
 					return -1;
-				
+
 				return bis.seek(offset, whence);
 			}
 		}
@@ -243,11 +244,11 @@ public class ZipGroup extends Group {
 		@Override
 		public int read(byte[] buf, int offset, int len) {
 			synchronized(parent) {
-				if(position() >= size) 
+				if(position() >= size)
 					return -1;
-				
+
 				len = Math.min(len, size - position());
-				
+
 				if(buffer != null)
 				{
 					buffer.get(buf, offset, len);
@@ -256,7 +257,7 @@ public class ZipGroup extends Group {
 
 				if(zfile == null)
 					return -1;
-				
+
 				len = bis.read(buf, offset, len);
 				if(len == -1)
 					return -1;
@@ -264,14 +265,14 @@ public class ZipGroup extends Group {
 				return len;
 			}
 		}
-		
+
 		@Override
 		public int read(byte[] buf) {
 			synchronized(parent) {
 				return read(buf, 0, buf.length);
 			}
 		}
-		
+
 		@Override
 		public int read(ByteBuffer bb, int offset, int len) {
 			synchronized(parent) {
@@ -296,17 +297,17 @@ public class ZipGroup extends Group {
 				int len = 1;
 				if(len > size - position())
 					return null;
-				
+
 				if(buffer != null)
 					return buffer.get();
-				
+
 				if(zfile == null || bis.read(readbuf, 0, len) != len)
 					return null;
-				
+
 				return readbuf[0];
 			}
 		}
-		
+
 		@Override
 		public Boolean readBoolean() {
 			Byte var = readByte();
@@ -314,54 +315,54 @@ public class ZipGroup extends Group {
 				return var == 1;
 			return null;
 		}
-		
+
 		@Override
 		public Short readShort() {
 			synchronized(parent) {
 				int len = 2;
 				if(len > remaining())
 					return null;
-				
+
 				if(buffer != null)
 					return buffer.getShort();
-				
+
 				if(zfile == null || bis.read(readbuf, 0, len) != len)
 					return null;
-				
+
 				return (short) ( ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF ) );
 			}
 		}
-		
+
 		@Override
 		public Integer readInt() {
 			synchronized(parent) {
 				int len = 4;
 				if(len > remaining())
 					return null;
-				
+
 				if(buffer != null)
 					return buffer.getInt();
-				
+
 				if(zfile == null || bis.read(readbuf, 0, len) != len)
 					return null;
-				
+
 				return ( (readbuf[3] & 0xFF) << 24 ) + ( (readbuf[2] & 0xFF) << 16 ) + ( (readbuf[1] & 0xFF) << 8 ) + ( readbuf[0] & 0xFF );
 			}
 		}
-		
+
 		@Override
 		public Long readLong() {
 			synchronized(parent) {
 				int len = 8;
 				if(len > remaining())
 					return null;
-				
+
 				if(buffer != null)
 					return buffer.getLong();
-				
+
 				if(zfile == null || bis.read(readbuf, 0, len) != len)
 					return null;
-				
+
 				return  (((long)readbuf[7] & 0xFF) << 56) +
 						 (((long)readbuf[6] & 0xFF) << 48) +
 						 (((long)readbuf[5] & 0xFF) << 40) +
@@ -372,7 +373,7 @@ public class ZipGroup extends Group {
 						 (((long)readbuf[0] & 0xFF)      );
 			}
 		}
-		
+
 		@Override
 		public Float readFloat() {
 			Integer i = readInt();
@@ -380,7 +381,7 @@ public class ZipGroup extends Group {
 				return Float.intBitsToFloat( i );
 			return null;
 		}
-		
+
 		@Override
 		public String readString(int len)
 		{
@@ -388,7 +389,7 @@ public class ZipGroup extends Group {
 				byte[] data = new byte[len];
 				if(read(data) != len)
 					return null;
-				
+
 				return new String(data);
 			}
 		}
@@ -401,17 +402,17 @@ public class ZipGroup extends Group {
 				return bis.position();
 			}
 		}
-		
+
 		@Override
 		public void toMemory() {
 			synchronized(parent) {
 				if(isClosed())
 					parent.open(this);
-				
+
 				if(buffer == null) {
 					byte[] tmp = getBytes();
 					if(tmp == null) return;
-					
+
 					buffer = ByteBuffer.allocateDirect(size);
 					buffer.order(ByteOrder.LITTLE_ENDIAN);
 					buffer.put(tmp);
@@ -426,7 +427,7 @@ public class ZipGroup extends Group {
 			synchronized(parent) {
 				if(isClosed())
 					parent.open(this);
-				
+
 				if(buffer != null)
 				{
 					byte[] data = new byte[buffer.capacity()];
@@ -434,7 +435,7 @@ public class ZipGroup extends Group {
 					buffer.get(data);
 					return data;
 				}
-				
+
 				int size = this.size();
 				if(size > 0 && zfile != null) {
 					int opos = position();
@@ -442,14 +443,14 @@ public class ZipGroup extends Group {
 						Console.Println("Error seeking to resource!");
 						return null;
 					}
-	
+
 					byte[] data = new byte[size];
 					if(bis.read(data) == -1) {
 						Console.Println("Error loading resource!");
 						return null;
 					}
 					bis.seek(opos, Whence.Set);
-	
+
 					return data;
 				}
 				return null;
@@ -460,7 +461,7 @@ public class ZipGroup extends Group {
 		public boolean isClosed() {
 			return bis == null && buffer == null;
 		}
-		
+
 		@Override
 		public int remaining() {
 			return size() - position();
@@ -469,7 +470,7 @@ public class ZipGroup extends Group {
 		@Override
 		public boolean hasRemaining() {
 			return position() < size();
-		}	
+		}
 	}
 
 	public ZipGroup(String path) throws IOException
@@ -491,23 +492,23 @@ public class ZipGroup extends Group {
 			type = PackageType.Zip;
 		}
 	}
-	
+
 	public void removeFolders()
 	{
 		List<GroupResource> list = getList();
 		filelist.clear();
 		lookup.clear();
-		
+
 		for(GroupResource res : list) {
 			int index = res.filenamext.lastIndexOf(File.separator);
 			if(index != -1)
 				res.filenamext = res.filenamext.substring(index + 1);
-			
+
 			int point = res.filenamext.lastIndexOf('.');
 			if(point != -1) {
 				res.filename = res.filenamext.substring(0, point);
 			} else res.filename = res.filenamext;
-			
+
 			this.add(res);
 		}
 	}
@@ -517,11 +518,11 @@ public class ZipGroup extends Group {
 		ZipResource zres = (ZipResource) res;
 		if(zres != null && zres.open() != null)
 			return true;
-		
+
 		return false;
 	}
-	
-	
+
+
 	@Override
 	public int position() {
 		return 0;

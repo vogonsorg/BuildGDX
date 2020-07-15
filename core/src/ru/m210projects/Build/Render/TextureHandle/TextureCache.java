@@ -1,7 +1,7 @@
 /*
- * TextureCache by Kirill Klimenko-KLIMaka 
+ * TextureCache by Kirill Klimenko-KLIMaka
  * Based on parts of "Polymost" by Ken Silverman
- * 
+ *
  * Ken Silverman's official web site: http://www.advsys.net/ken
  * See the included license file "BUILDLIC.TXT" for license info.
  */
@@ -17,9 +17,6 @@ import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Engine.tilesizx;
-import static ru.m210projects.Build.Engine.tilesizy;
-import static ru.m210projects.Build.Engine.waloff;
 import static ru.m210projects.Build.Render.TextureHandle.ImageUtils.*;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Render.Types.GL10.*;
@@ -39,6 +36,7 @@ import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Script.TextureHDInfo;
 import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Types.Tile;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.files.FileHandle;
@@ -52,21 +50,23 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 public class TextureCache {
 
 	private PixelFormat type = PixelFormat.Rgb;
-	
+
 	private final Pthtyp[] cache;
     private TextureHDInfo info;
-    
+
     private ShaderProgram shader;
 	private BTexture palette[];
+	private Engine engine;
 
-	public TextureCache() {
+	public TextureCache(Engine engine) {
+		this.engine = engine;
 		cache = new Pthtyp[MAXTILES];
 	    boolean useShader = false;
 	    if(useShader)
 	    	shader = createShader();
 	    changePalette(Engine.palette);
 	}
-	
+
 	public void setTextureInfo(TextureHDInfo info)
 	{
 		this.info = info;
@@ -92,7 +92,7 @@ public class TextureCache {
 	public PixelFormat getFormat() {
 		return type;
 	}
-	
+
 	public void invalidate(int dapicnum, int dapalnum, boolean clamped) {
 		invalidate(get(dapicnum, dapalnum, clamped, 0));
 	}
@@ -110,7 +110,7 @@ public class TextureCache {
 	private Pthtyp loadTileArtNoAlloc(int dapic, int dapal, boolean clamping, boolean alpha, Pthtyp pth) {
 		return loadTileArt(dapic, dapal, clamping, alpha, pth, false);
 	}
-	
+
 	private Pthtyp gloadHighTileAlloc(int dapic, int dapal, boolean clamping, boolean alpha, int facen, Hicreplctyp hicr, Pthtyp pth, int effect) {
 		return loadHighTile(dapic, dapal, clamping, alpha, facen, hicr, pth, effect, true);
 	}
@@ -120,19 +120,20 @@ public class TextureCache {
 	}
 
 	private Pthtyp loadTileArt(int dapic, int dapal, boolean clamping, boolean alpha, Pthtyp pth, boolean doalloc) {
-		int tsizx = tilesizx[dapic];
-		int tsizy = tilesizy[dapic];
+		Tile pic = engine.getTile(dapic);
+		int tsizx = pic.getWidth();
+		int tsizy = pic.getHeight();
 		int xsiz = calcSize(tsizx);
 		int ysiz = calcSize(tsizy);
 
 		if (palookup[dapal] == null)
 			dapal = 0;
 
-		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, waloff[dapic], dapal, clamping, alpha, type);
+		PicInfo picInfo = loadPic(xsiz, ysiz, tsizx, tsizy, pic.data, dapal, clamping, alpha, type);
 
 		//Realloc for user tiles
 		if (pth.glpic != null && (pth.glpic.getWidth() != xsiz || pth.glpic.getHeight() != ysiz)) {
-			pth.glpic.dispose(); 
+			pth.glpic.dispose();
 			doalloc = true;
 		}
 
@@ -161,11 +162,11 @@ public class TextureCache {
 		pth.hicr = null;
 		return pth;
 	}
-	
+
 	private Pthtyp loadHighTile(int dapic, int dapal, boolean clamping, boolean alpha, int facen, Hicreplctyp hicr, Pthtyp pth, int effect, boolean doalloc) {
-		
+
 		if (hicr == null) return null;
-		
+
 		String fn = null;
 		if (facen > 0)
 	    {
@@ -180,7 +181,7 @@ public class TextureCache {
 	        fn = hicr.filename;
 	    }
 
-		if (!BuildGdx.cache.contains(fn, 0)) 
+		if (!BuildGdx.cache.contains(fn, 0))
 	    {
 			Console.Print("hightile: " + fn + "(pic " + dapic + ") not found");
 	        if (facen > 0)
@@ -189,7 +190,7 @@ public class TextureCache {
 	            hicr.ignore = 1;
 	        return null;
 	    }
-	    
+
 	    //int cachefil = polymost_trytexcache(fn, picfillen+(dapalnum<<8), dameth, effect, &cachead, 0);
 	    //if (cachefil >= 0) { ... }
 
@@ -201,7 +202,7 @@ public class TextureCache {
 				Pixmap pix = new Pixmap(data, 0, data.length);
 				int psizx = calcSize(pix.getWidth());
 				int psizy = calcSize(pix.getHeight());
-				
+
 				pth.sizx = (short) pix.getWidth();
 				pth.sizy = (short) pix.getHeight();
 
@@ -210,7 +211,7 @@ public class TextureCache {
 				{
 					Pixmap npix = new Pixmap(psizx, psizy, pix.getFormat());
 					npix.setFilter(Filter.NearestNeighbour);
-					
+
 					if(!clamping) {
 						for(int i = 0; i < 2; i++)
 						{
@@ -228,19 +229,19 @@ public class TextureCache {
 //						pth.sizx = (short) psizx;
 //						pth.sizy = (short) psizy;
 					} else npix.drawPixmap(pix, 0, 0);
-					
+
 					pix.dispose();
 					pix = npix;
 				}
 
-				pth.glpic = new BTexture(pix, true); 
+				pth.glpic = new BTexture(pix, true);
 				pix.dispose();
-			} catch(Exception e) { 
+			} catch(Exception e) {
 				if (facen > 0)
 					hicr.skybox.ignore = 1;
 				else
-					hicr.ignore = 1; return null; 
-			} 
+					hicr.ignore = 1; return null;
+			}
 		}
 
 		int tsizx = pth.sizx;
@@ -260,16 +261,17 @@ public class TextureCache {
 		if(facen > 0)
 			pth.setSkyboxFace(true);
 		pth.hicr = hicr;
-		
+
 		if (facen > 0)
 		{
-		 	pth.scalex = ((float)tsizx) / 64.0f;
-		    pth.scaley = ((float)tsizy) / 64.0f;
+		 	pth.scalex = (tsizx) / 64.0f;
+		    pth.scaley = (tsizy) / 64.0f;
 		}
 		else
 		{
-		 	pth.scalex = ((float)tsizx) / ((float)tilesizx[dapic]);
-		    pth.scaley = ((float)tsizy) / ((float)tilesizy[dapic]);
+			Tile pic = engine.getTile(dapic);
+		 	pth.scalex = (tsizx) / ((float)pic.getWidth());
+		    pth.scaley = (tsizy) / ((float)pic.getHeight());
 		}
 
 		return pth;
@@ -285,12 +287,12 @@ public class TextureCache {
 			}
 		} else {
 			pth = gloadTileArtAlloc(dapicnum, dapalnum, clamping, alpha, new Pthtyp());
-			if (pth != null) 
+			if (pth != null)
 				add(pth);
 		}
 		return pth;
 	}
-	
+
 	public Pthtyp cache(int dapicnum, int dapalnum, short skybox, boolean clamping, boolean alpha)
 	{
 		Hicreplctyp si = (GLSettings.useHighTile.get() && info != null) ? info.findTexture(dapicnum,dapalnum,skybox) : null;
@@ -309,13 +311,13 @@ public class TextureCache {
 
 	    // load a replacement
 		Pthtyp pth = get(dapicnum, dapalnum, clamping, skybox);
-		
-		if(pth != null && pth.hicr == null && si.skybox == null) { //GDX 29.05.2020 skybox check added 
+
+		if(pth != null && pth.hicr == null && si.skybox == null) { //GDX 29.05.2020 skybox check added
 			//(if you're switching between 8bit and hrp textures, old loaded texture should be disposed. Addon HRP support)
 			dispose(dapicnum); //old 8-bit texture
 			pth = null;
 		}
-		
+
 		if (pth != null) {
 			if (pth.isInvalidated()) {
 				pth.setInvalidated(false);
@@ -330,7 +332,7 @@ public class TextureCache {
 			//
 			// { ... }  if (dapalnum >= (MAXPALOOKUPS - RESERVEDPALS))
 			//
-			
+
 			if(dapalnum != 0 && info.findTexture(dapicnum, 0, skybox) == si && (pth = get(dapicnum, 0, clamping, skybox)) != null)
 				return pth;
 
@@ -343,7 +345,7 @@ public class TextureCache {
 		}
 		return pth;
 	}
-	
+
 	public void updateSettings(GLFilter filter) {
 		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i=MAXTILES-1; i>=0; i--) {
@@ -363,7 +365,7 @@ public class TextureCache {
 			pth.setInvalidated(true);
 		}
 	}
-	
+
 	public boolean clampingMode(int dameth) {
 		return ((dameth & 4) >> 2) == 1;
 	}
@@ -371,24 +373,24 @@ public class TextureCache {
 	public boolean alphaMode(int dameth) {
 		return (dameth & 256) == 0;
 	}
-	
-	public boolean gltexmayhavealpha(int dapicnum, int dapalnum)
-	{
-		for (Pthtyp pth = cache[dapicnum]; pth != null; pth = pth.next)
-	    {
-			if ((pth.picnum == dapicnum) && (pth.palnum == dapalnum))
-		    	return pth.hasAlpha();
-	    }
-		
-		return(true);
-	}
+
+//	public boolean gltexmayhavealpha(int dapicnum, int dapalnum)
+//	{
+//		for (Pthtyp pth = cache[dapicnum]; pth != null; pth = pth.next)
+//	    {
+//			if ((pth.picnum == dapicnum) && (pth.palnum == dapalnum))
+//		    	return pth.hasAlpha();
+//	    }
+//
+//		return(true);
+//	}
 
 	public void uninit() {
 		for (int i=MAXTILES-1; i>=0; i--) {
 			dispose(i);
 		}
 	}
-	
+
 	public void dispose(int tilenum)
 	{
 		for (Pthtyp pth=cache[tilenum]; pth != null;) {
@@ -398,7 +400,7 @@ public class TextureCache {
 		}
 		cache[tilenum] = null;
 	}
-	
+
 	public void savetexture(ByteBuffer pixels, int tw, int th, int w, int h, int num) {
 		Pixmap pixmap = new Pixmap(w, h, Format.RGB888);
 
@@ -416,10 +418,10 @@ public class TextureCache {
 		System.out.println("texture" + num + ".png saved!");
 		pixmap.dispose();
 	}
-	
-	
+
+
 	//Shader feature
-	
+
 	private BTexture createPalette(byte[] paldata, int shade)
 	{
 		TextureBuffer buffer = getTmpBuffer();
@@ -427,57 +429,57 @@ public class TextureCache {
 		for(int p = 0; p < MAXPALOOKUPS; p++) {
 			int pal = p;
 			if(palookup[pal] == null) pal = 0;
-			
+
 			for(int i = 0; i < 256; i++)
 			{
 				int dacol = palookup[pal][i + (shade << 8)] & 0xFF;
 				buffer.putBytes(paldata, 3 * dacol, 3);
 //				buffer.putByte(paldata[3 * dacol]);
-//				buffer.putByte(paldata[3 * dacol + 1]); 
-//				buffer.putByte(paldata[3 * dacol + 2]); 
+//				buffer.putByte(paldata[3 * dacol + 1]);
+//				buffer.putByte(paldata[3 * dacol + 2]);
 			}
 		}
-		
+
 		BTexture palette = new BTexture(256, MAXPALOOKUPS);
 		palette.bind(1);
 		BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, palette.getWidth(), palette.getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, buffer.getBuffer());
 		setupBoundTexture(glfiltermodes[0], 0);
-		
+
 		return palette;
 	}
-	
+
 	public void changePalette(byte[] pal)
 	{
 		if(!isUseShader()) return;
-		
+
         for(int i = 0; i < numshades; i++) {
         	if(palette[i] != null)
         		palette[i].dispose();
         	palette[i] = createPalette(pal, i);
         }
 	}
-	
-	private ShaderProgram createShader() 
+
+	private ShaderProgram createShader()
 	{
-		String fragment = "uniform sampler2D u_texture;\r\n" + 
-				"uniform sampler2D u_colorTable;\r\n" + 
-				"uniform float u_pal;\r\n" + 
-				"uniform float u_alpha;\r\n" + 
-				"\r\n" + 
-				"void main()\r\n" + 
-				"{	\r\n" + 
-				"	float index = texture2D(u_texture, gl_TexCoord[0].xy).r;\r\n" + 
-				"	if(index == 1.0) discard;\r\n" + 
-				"	\r\n" + 
-				"	vec3 color = texture2D(u_colorTable, vec2(index, u_pal / 256.0)).rgb;	\r\n" + 
-				"	gl_FragColor = vec4(color, u_alpha);\r\n" + 
+		String fragment = "uniform sampler2D u_texture;\r\n" +
+				"uniform sampler2D u_colorTable;\r\n" +
+				"uniform float u_pal;\r\n" +
+				"uniform float u_alpha;\r\n" +
+				"\r\n" +
+				"void main()\r\n" +
+				"{	\r\n" +
+				"	float index = texture2D(u_texture, gl_TexCoord[0].xy).r;\r\n" +
+				"	if(index == 1.0) discard;\r\n" +
+				"	\r\n" +
+				"	vec3 color = texture2D(u_colorTable, vec2(index, u_pal / 256.0)).rgb;	\r\n" +
+				"	gl_FragColor = vec4(color, u_alpha);\r\n" +
 				"}";
-		
-		String vertex = "void main()\r\n" + 
-				"{\r\n" + 
-				"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; //ftransform();\r\n" + 
-				"	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;\r\n" + 
-				"	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\r\n" + 
+
+		String vertex = "void main()\r\n" +
+				"{\r\n" +
+				"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; //ftransform();\r\n" +
+				"	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;\r\n" +
+				"	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\r\n" +
 				"}";
 
 	    ShaderProgram shader = new ShaderProgram(vertex, fragment);
@@ -487,13 +489,13 @@ public class TextureCache {
         palette = new BTexture[numshades];
 
         BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-        
+
         return shader;
 	}
-	
+
 	public void bindShader()
 	{
-		if(shader != null) 
+		if(shader != null)
 			shader.begin();
 	}
 
@@ -504,22 +506,22 @@ public class TextureCache {
 			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 		}
 	}
-	
+
 	public void setShaderParams(int pal, int shade)
 	{
 		if(shader == null) return;
-		
+
 		palette[shade].bind(1);
 		shader.setUniformi("u_colorTable", 1);
 		shader.setUniformf("u_pal", pal);
 	}
-	
+
 	public void shaderTransparent(float alpha)
 	{
 		if(shader != null)
 			shader.setUniformf("u_alpha", alpha);
 	}
-	
+
 	public boolean isUseShader()
 	{
 		return shader != null;
