@@ -26,7 +26,6 @@ import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_REPEAT;
 import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAG_FILTER;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MIN_FILTER;
@@ -130,10 +129,8 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE_FILTER_HINT_NV;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
-import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -193,6 +190,7 @@ public abstract class Polymost implements GLRenderer {
 		}
 	}
 
+	protected final Color polyColor = new Color();
 	public Rendering rendering = Rendering.Nothing;
 	public GLFog globalfog = new GLFog();
 
@@ -632,7 +630,6 @@ public abstract class Polymost implements GLRenderer {
 			method |= 4;
 
 		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, Rendering.Skybox.getIndex(), method);
-
 		if (pth == null)
 			return;
 
@@ -693,32 +690,31 @@ public abstract class Polymost implements GLRenderer {
 			}
 		}
 
-//		Color polyColor = getshadefactor(globalshade, method); XXX
-//
-//		if (defs != null) {
-//			if (pth != null && pth.isHighTile()) {
-//				if (pth.getPal() != globalpal) {
-//					// apply tinting for replaced textures
-//
-//					Palette p = defs.texInfo.getTints(globalpal);
-//					polyColor.r *= p.r / 255.0f;
-//					polyColor.g *= p.g / 255.0f;
-//					polyColor.b *= p.b / 255.0f;
-//				}
-//
-//				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
-//				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-//					polyColor.r *= pdetail.r / 255.0f;
-//					polyColor.g *= pdetail.g / 255.0f;
-//					polyColor.b *= pdetail.b / 255.0f;
-//				}
-//			}
-//		}
-//
-//		if (HOM)
-//			polyColor.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-//
-//		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+		Color polyColor = getshadefactor(globalshade, method);
+		if (defs != null) {
+			if (pth != null && pth.isHighTile()) {
+				if (pth.getPal() != globalpal) {
+					// apply tinting for replaced textures
+
+					Palette p = defs.texInfo.getTints(globalpal);
+					polyColor.r *= p.r / 255.0f;
+					polyColor.g *= p.g / 255.0f;
+					polyColor.b *= p.b / 255.0f;
+				}
+
+				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
+				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
+					polyColor.r *= pdetail.r / 255.0f;
+					polyColor.g *= pdetail.g / 255.0f;
+					polyColor.b *= pdetail.b / 255.0f;
+				}
+			}
+		}
+
+		if (HOM)
+			polyColor.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+
+		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		// Hack for walls&masked walls which use textures that are not a power of 2
 		if ((pow2xsplit != 0) && (tsizx != xx)) {
@@ -3751,6 +3747,29 @@ public abstract class Polymost implements GLRenderer {
 			if ((sec.floorstat & 2) != 0)
 				dfloorzsofslope += sector[sectnum].floorheinum * j / i;
 		}
+	}
+
+	protected Color getshadefactor(int shade, int method) {
+		float fshade = min(max(shade * 1.04f, 0), numshades);
+		float f = (numshades - fshade) / numshades;
+
+		polyColor.r = polyColor.g = polyColor.b = f;
+
+		switch (method & 3) {
+		default:
+		case 0:
+		case 1:
+			polyColor.a = 1.0f;
+			break;
+		case 2:
+			polyColor.a = TRANSLUSCENT1;
+			break;
+		case 3:
+			polyColor.a = TRANSLUSCENT2;
+			break;
+		}
+
+		return polyColor;
 	}
 
 	@Override

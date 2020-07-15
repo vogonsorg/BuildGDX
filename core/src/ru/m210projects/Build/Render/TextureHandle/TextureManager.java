@@ -34,7 +34,6 @@ public class TextureManager {
 
 	protected final Engine engine;
 	private final GLTileArray cache;
-	protected final Color polyColor;
 	private TextureHDInfo info;
 	protected GLTile bindedTile;
 	protected IndexedTexShader shader;
@@ -43,7 +42,6 @@ public class TextureManager {
 	public TextureManager(Engine engine) {
 		this.engine = engine;
 		cache = new GLTileArray(MAXTILES);
-		polyColor = new Color();
 
 		try {
 			shader = new IndexedTexShader(this);
@@ -108,7 +106,7 @@ public class TextureManager {
 		return bind(tile);
 	}
 
-	protected GLTile bind(GLTile tile) {
+	public GLTile bind(GLTile tile) {
 		if (bindedTile == tile)
 			return tile;
 
@@ -179,10 +177,10 @@ public class TextureManager {
 				}
 			}
 
-			Color c = getshadefactor(shade, method);
-
-
-			BuildGdx.gl.glColor4f(c.r, c.g, c.b, c.a);
+//			Color c = getshadefactor(shade, method);
+//
+//
+//			BuildGdx.gl.glColor4f(c.r, c.g, c.b, c.a);
 		}
 
 		return tile;
@@ -192,28 +190,7 @@ public class TextureManager {
 		bind(dapicnum, dapalnum, 0, 0, clamped ? 4 : 0);
 	}
 
-	protected Color getshadefactor(int shade, int method) {
-		float fshade = min(max(shade * 1.04f, 0), numshades);
-		float f = (numshades - fshade) / numshades;
 
-		polyColor.r = polyColor.g = polyColor.b = f;
-
-		switch (method & 3) {
-		default:
-		case 0:
-		case 1:
-			polyColor.a = 1.0f;
-			break;
-		case 2:
-			polyColor.a = TRANSLUSCENT1;
-			break;
-		case 3:
-			polyColor.a = TRANSLUSCENT2;
-			break;
-		}
-
-		return polyColor;
-	}
 
 	public int getTextureUnits() {
 		return texunits;
