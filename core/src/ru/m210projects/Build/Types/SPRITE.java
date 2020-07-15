@@ -20,7 +20,7 @@ import ru.m210projects.Build.FileHandle.Resource;
 public class SPRITE {
 	public static final int sizeof = 44;
 	private static final ByteBuffer buffer = ByteBuffer.allocate(sizeof).order( ByteOrder.LITTLE_ENDIAN);
-	
+
 	public int x, y, z; //12
 	public short cstat = 0, picnum; //4
 	public byte shade; //1
@@ -61,11 +61,11 @@ public class SPRITE {
     	hitag = bb.readShort();
     	extra = bb.readShort();
 	}
-	
+
 	public byte[] getBytes()
 	{
 		buffer.clear();
-		
+
 		buffer.putInt(this.x);
     	buffer.putInt(this.y);
     	buffer.putInt(this.z);
@@ -89,10 +89,11 @@ public class SPRITE {
     	buffer.putShort(this.lotag);
     	buffer.putShort(this.hitag);
     	buffer.putShort(this.extra);
-		
+
 		return buffer.array();
 	}
-	
+
+	@Override
 	public String toString()
 	{
 		String out = "x " + x + " \r\n";
@@ -118,10 +119,10 @@ public class SPRITE {
 		out += "lotag " + lotag + " \r\n";
 		out += "hitag " + hitag + " \r\n";
 		out += "extra " + extra + " \r\n";
-    	
+
 		return out;
 	}
-	
+
 	public void reset()
 	{
 		reset((byte)0);
@@ -130,7 +131,7 @@ public class SPRITE {
 		this.owner = -1;
 		this.extra = -1;
 	}
-	
+
 	public void reset(byte var) {
 		this.x = var;
 		this.y = var;
@@ -139,7 +140,7 @@ public class SPRITE {
 		this.picnum = var;
 		this.shade = var;
 		this.pal = var;
-    	
+
 		this.clipdist = var;
 		this.detail = var;
 		this.xrepeat = var;
@@ -157,7 +158,7 @@ public class SPRITE {
 		this.hitag = var;
 		this.extra = var;
 	}
-	
+
 	public void set(SPRITE src) {
 		this.x = src.x;
 		this.y = src.y;
@@ -166,7 +167,7 @@ public class SPRITE {
 		this.picnum = src.picnum;
 		this.shade = src.shade;
 		this.pal = src.pal;
-    	
+
 		this.clipdist = src.clipdist;
 		this.detail = src.detail;
 		this.xrepeat = src.xrepeat;

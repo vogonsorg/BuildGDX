@@ -45,6 +45,7 @@ import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
+import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.BuildPos;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.InvalidVersionException;
@@ -72,22 +73,22 @@ public abstract class Engine {
 	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
 	 * Software renderer: Voxel is not clipped by ceiling geometry
 	 * в консоли может одновременно две одинаковых строки показать (console default font)
-	 * 
+	 *
 	 * osdrows в сохранения конфига
 	 * Туман зависит от разрешения экрана (Polymost)
 	 * History list for last used IP's (client could be better for multiplayer) or copy paste IP if possible.
-	 * brz фильтр 
+	 * brz фильтр
 	 * broadcast
 	 * Some sort of anti-aliasing option. The NVidia control panel's anti-aliasing works, but it introduces artifacting on voxels.
-	 * бинд в консоль 
+	 * бинд в консоль
 	 * плохой перенос строк в консоли если строк больше 2х
 	 * оптимизировать Bsprintf
 	 * сохранения в папку (почему то не находит файл)
 	 * render: некоторые горизонтальные модели не там где надо под определенным
 	 * углом пропадает спрайт 2д карта подглюкивает вылазиют полигоны за скайбокс
 	 * потолок
-	 * floor-alignment voxels for maphack 
-	 * 
+	 * floor-alignment voxels for maphack
+	 *
 	 * для шейдеров:
 	 * затенения уровня в далеке(туман)
 	 * прекэш вокселей - палитра
@@ -96,12 +97,12 @@ public abstract class Engine {
 	 * Отключить GL туман для шейдеров
 	 * Отключить фильтрацию текстур для шейдеров
 	 * Не работают текстуры в userepisode
-	 * 
+	 *
 	 * GameAdapter TODO:
 	 * SaveManager findSaves()
 	 * Launcher start parameters
-	 * 
-	 * 
+	 *
+	 *
 	 * Architecture:
 	 * 	Engine
 	 * 		messages
@@ -111,13 +112,13 @@ public abstract class Engine {
 	 * 		audiomanger (BAudio)
 	 * 			midimodule
 	 * 			openal
-	 * 		renderer				
+	 * 		renderer
 	 * 			polymost	->    texturecache
 	 * 			software
 	 * 		input
 	 * 			keyboard -> input()
 	 * 			gamepad	-> gpmanager
-	 * 		
+	 *
 	 * 		OnScreenDisplay
 	 * 			Console
 	 * 		loader
@@ -125,8 +126,8 @@ public abstract class Engine {
 	 * 			md3
 	 * 			vox
 	 * 			wav
-	 * 		
-	 * 
+	 *
+	 *
 	 *  Utils
 	 *  	string handler
 	 *  	def loader + common + scriptfile	-> texturecache / mdloader
@@ -201,7 +202,7 @@ public abstract class Engine {
 	public int fpscol = 31;
 
 	public Renderer render;
-	
+
 	public static Object lock = new Object();
 	private static KeyInput input;
 
@@ -263,9 +264,7 @@ public abstract class Engine {
 	public static int timerticspersec;
 	public static short[] sintable;
 	public static byte automapping;
-	public static short[] tilesizx, tilesizy;
-	public static int numtiles, picanm[];
-	public static byte waloff[][];
+	public static int numtiles;
 	public static byte[] show2dsector;
 	public static byte[] show2dwall;
 	public static byte[] show2dsprite;
@@ -274,6 +273,7 @@ public abstract class Engine {
 	public static WALL[] wall;
 	public static SPRITE[] sprite;
 	public static SPRITE[] tsprite;
+	protected Tile tiles[];
 
 	public static short[] headspritesect, headspritestat;
 	public static short[] prevspritesect, prevspritestat;
@@ -397,30 +397,32 @@ public abstract class Engine {
 	public int animateoffs(int tilenum, int nInfo) { // jfBuild + gdxBuild
 		long clock, index = 0;
 
-		int speed = (picanm[tilenum] >> 24) & 15; // picanm[nTile].speed
-		if ((nInfo & 0xC000) == 0x8000) // sprite
-		{
+		int speed = getTile(tilenum).getSpeed();
+		if ((nInfo & 0xC000) == 0x8000) { // sprite
 			// hash sprite frame by info variable
 			shortbuf.putShort(0, (short) nInfo);
 			clock = (totalclocklock + CRC32.getChecksum(shortbuf.array())) >> speed;
 		} else
 			clock = totalclocklock >> speed;
 
-		int frames = picanm[tilenum] & 63;
+		int frames = getTile(tilenum).getFrames();
 
 		if (frames > 0) {
-			switch (picanm[tilenum] & 192) // picanm[nTile].type
+			switch (getTile(tilenum).getType())
 			{
-			case 64: // Oscil
+			case Oscil:
 				index = clock % (frames * 2);
 				if (index >= frames)
 					index = frames * 2 - index;
 				break;
-			case 128: // Forward
+			case Forward:
 				index = clock % (frames + 1);
 				break;
-			case 192: // Backward
+			case Backward:
 				index = -(clock % (frames + 1));
+				break;
+			default: //None
+				break;
 			}
 		}
 		return (int) index;
@@ -479,7 +481,7 @@ public abstract class Engine {
 				ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(radarang, 0, 640);
 				for (int i = 0; i < 640; i++)
 					radarang[1279 - i] = (short) -radarang[i];
-				
+
 				res.read(textfont, 0, 1024);
 				res.read(smalltextfont, 0, 1024);
 
@@ -555,7 +557,7 @@ public abstract class Engine {
 		fil.read(palette);
 
 		numshades = fil.readShort();
-		
+
 		if (palookup[0] == null)
 			palookup[0] = new byte[numshades << 8];
 		if (transluc == null)
@@ -565,7 +567,7 @@ public abstract class Engine {
 		Console.Println("Loading gamma correcion tables");
 		fil.read(palookup[globalpal], 0, numshades << 8);
 		Console.Println("Loading translucency table");
-		
+
 		fil.read(transluc);
 
 		fil.close();
@@ -574,7 +576,7 @@ public abstract class Engine {
 
 		paletteloaded = 1;
 	}
-	
+
 	protected Byte palcache[] = new Byte[0x40000]; //buffer 256kb
 
 	public byte getclosestcol(byte[] palette, int r, int g, int b) { // jfBuild
@@ -584,7 +586,7 @@ public abstract class Engine {
 
 		int j = (r >> 3) * FASTPALGRIDSIZ * FASTPALGRIDSIZ + (g >> 3) * FASTPALGRIDSIZ + (b >> 3)
 				+ FASTPALGRIDSIZ * FASTPALGRIDSIZ + FASTPALGRIDSIZ + 1;
-		
+
 		int rgb = ((r << 12) | (g << 6) | b);
 
 		int mindist = min(rdist[(coldist[r & 7] & 0xFF) + 64 + 8], gdist[(coldist[g & 7] & 0xFF) + 64 + 8]);
@@ -594,7 +596,7 @@ public abstract class Engine {
 		Byte out = palcache[rgb & (palcache.length - 1)];
 		if(out != null)
 			return out;
-		
+
 		r = 64 - r;
 		g = 64 - g;
 		b = 64 - b;
@@ -951,9 +953,8 @@ public abstract class Engine {
 		pskyoff = new short[MAXPSKYTILES];
 		zeropskyoff = new short[MAXPSKYTILES];
 
-		tilesizx = new short[MAXTILES];
-		tilesizy = new short[MAXTILES];
-		picanm = new int[MAXTILES];
+		tiles = new Tile[MAXTILES];
+
 		show2dsector = new byte[(MAXSECTORS + 7) >> 3];
 		show2dwall = new byte[(MAXWALLS + 7) >> 3];
 		show2dsprite = new byte[(MAXSPRITES + 7) >> 3];
@@ -999,7 +1000,6 @@ public abstract class Engine {
 		bakwindowx2 = new int[4];
 		bakwindowy2 = new int[4];
 
-		waloff = new byte[MAXTILES][];
 		palfadergb = new FadeEffect(GL10.GL_ONE_MINUS_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA) {
 			@Override
 			public void update(int intensive) {
@@ -1040,7 +1040,7 @@ public abstract class Engine {
 	{
 		Iterator<TileFont> it;
 		while ((it = TileFont.managedFont.iterator()).hasNext()) {
-			TileFont font = (TileFont) it.next();
+			TileFont font = it.next();
 			font.dispose();
 		}
 
@@ -1048,7 +1048,7 @@ public abstract class Engine {
 			if (render != null && render.isInited())
 				render.uninit();
 		} catch (Exception e) {
-			
+
 		}
 
 		if (artfil != null)
@@ -1113,7 +1113,7 @@ public abstract class Engine {
 
 		globalang = BClampAngle(daang);
 		globalhoriz = ((dahoriz - 100) * xdimenscale / viewingrange) + (ydimen >> 1);
-		pitch = (float) (-getangle(160, (int) (dahoriz - 100))) / (2048.0f / 360.0f);
+		pitch = (-getangle(160, (int) (dahoriz - 100))) / (2048.0f / 360.0f);
 
 		globalvisibility = scale(visibility << 2, xdimen, 1680);
 
@@ -1167,7 +1167,7 @@ public abstract class Engine {
 		}
 
 		BuildPos pos = new BuildPos();
-		
+
 		initspritelists();
 
 		Arrays.fill(show2dsector, (byte) 0);
@@ -1199,8 +1199,8 @@ public abstract class Engine {
 		pos.sectnum = updatesector(pos.x, pos.y, pos.sectnum);
 
 		fil.close();
-		
-		if(inside(pos.x, pos.y, pos.sectnum) == -1) 
+
+		if(inside(pos.x, pos.y, pos.sectnum) == -1)
 			throw new RuntimeException("Player should be in a sector!");
 
 		return pos;
@@ -1208,7 +1208,7 @@ public abstract class Engine {
 
 	public BuildPos loadoldboard(Resource fil) throws RuntimeException {
 		BuildPos pos = new BuildPos();
-		
+
 		initspritelists();
 
 		Arrays.fill(show2dsector, (byte) 0);
@@ -1220,7 +1220,7 @@ public abstract class Engine {
 		pos.z = fil.readInt();
 		pos.ang = fil.readShort();
 		pos.sectnum = fil.readShort();
-		
+
 		numsectors = fil.readShort();
 		for (int i = 0; i < numsectors; i++) {
 			SECTOR sec = new SECTOR();
@@ -1317,8 +1317,8 @@ public abstract class Engine {
 		pos.sectnum = updatesector(pos.x, pos.y, pos.sectnum);
 
 		fil.close();
-		
-		if(inside(pos.x, pos.y, pos.sectnum) == -1) 
+
+		if(inside(pos.x, pos.y, pos.sectnum) == -1)
 			throw new RuntimeException("Player should be in a sector!");
 
 		return pos;
@@ -1451,20 +1451,21 @@ public abstract class Engine {
 			int localtileend = fil.readInt();
 
 			for (int i = localtilestart; i <= localtileend; i++) {
-				tilesizx[i] = fil.readShort();
+				getTile(i).setWidth(fil.readShort());
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				tilesizy[i] = fil.readShort();
+				getTile(i).setHeight(fil.readShort());
 			}
 			for (int i = localtilestart; i <= localtileend; i++) {
-				picanm[i] = fil.readInt();
+				getTile(i).anm = fil.readInt();
 			}
 
 			for (int i = localtilestart; i <= localtileend; i++) {
-				int dasiz = tilesizx[i] * tilesizy[i];
+				int dasiz = getTile(i).getSize();
 				if(dasiz > 0) {
-					waloff[i] = new byte[dasiz];
-					fil.read(waloff[i]);
+					Tile pic = getTile(i);
+					pic.data = new byte[dasiz];
+					fil.read(pic.data);
 				}
 				setpicsiz(i);
 			}
@@ -1474,12 +1475,13 @@ public abstract class Engine {
 
 	public void setpicsiz(int tilenum) // jfBuild
 	{
+		Tile pic = getTile(tilenum);
 		int j = 15;
-		while ((j > 1) && (pow2long[j] > tilesizx[tilenum]))
+		while ((j > 1) && (pow2long[j] > pic.getWidth()))
 			j--;
 		picsiz[tilenum] = j;
 		j = 15;
-		while ((j > 1) && (pow2long[j] > tilesizy[tilenum]))
+		while ((j > 1) && (pow2long[j] > pic.getHeight()))
 			j--;
 		picsiz[tilenum] += (j << 4);
 	}
@@ -1510,19 +1512,19 @@ public abstract class Engine {
 				localtileend = fil.readInt();
 
 				for (i = localtilestart; i <= localtileend; i++) {
-					tilesizx[i] = fil.readShort();
+					getTile(i).setWidth(fil.readShort());
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					tilesizy[i] = fil.readShort();
+					getTile(i).setHeight(fil.readShort());
 				}
 				for (i = localtilestart; i <= localtileend; i++) {
-					picanm[i] = fil.readInt();
+					getTile(i).anm = fil.readInt();
 				}
 				offscount = 4 + 4 + 4 + 4 + ((localtileend - localtilestart + 1) << 3);
 				for (i = localtilestart; i <= localtileend; i++) {
 					tilefilenum[i] = k;
 					tilefileoffs[i] = offscount;
-					dasiz = tilesizx[i] * tilesizy[i];
+					dasiz = getTile(i).getSize();
 					offscount += dasiz;
 				}
 
@@ -1546,7 +1548,9 @@ public abstract class Engine {
 	public synchronized byte[] loadtile(int tilenume) { // jfBuild
 		if (tilenume >= MAXTILES)
 			return null;
-		int dasiz = tilesizx[tilenume] * tilesizy[tilenume];
+
+		Tile pic = getTile(tilenume);
+		int dasiz = pic.getSize();
 
 		if (dasiz <= 0)
 			return null;
@@ -1556,7 +1560,7 @@ public abstract class Engine {
 		if (i != artfilnum) {
 			if (artfil != null)
 				artfil.close();
-			artfilnum = (int) i;
+			artfilnum = i;
 			artfilplc = 0;
 
 			artfilename[7] = (char) ((i % 10) + 48);
@@ -1571,45 +1575,39 @@ public abstract class Engine {
 		if (artfil == null)
 			return null;
 
-		if (waloff[tilenume] == null)
-			waloff[tilenume] = new byte[dasiz];
+		if (pic.data == null)
+			pic.data = new byte[dasiz];
 
 		if (artfilplc != tilefileoffs[tilenume]) {
 			artfil.seek(tilefileoffs[tilenume] - artfilplc, Whence.Current);
 			faketimerhandler();
 		}
 
-		if (artfil.read(waloff[tilenume]) == -1)
+		if (artfil.read(pic.data) == -1)
 			return null;
 
 		faketimerhandler();
-		artfilplc = (int) (tilefileoffs[tilenume] + dasiz);
+		artfilplc = tilefileoffs[tilenume] + dasiz;
 
-		return waloff[tilenume];
+		return pic.data;
 	}
 
 	public byte[] allocatepermanenttile(int tilenume, int xsiz, int ysiz) { // jfBuild
 		if ((xsiz <= 0) || (ysiz <= 0) || (tilenume >= MAXTILES))
 			return null;
 
-		int dasiz = xsiz * ysiz;
-
-		waloff[tilenume] = new byte[dasiz];
-
-		tilesizx[tilenume] = (short) xsiz;
-		tilesizy[tilenume] = (short) ysiz;
-		picanm[tilenume] = 0;
-
+		Tile pic = getTile(tilenume);
+		pic.allocate(xsiz, ysiz);
 		setpicsiz(tilenume);
 
-		return (waloff[tilenume]);
+		return (pic.data);
 	}
 
 	public int clipinsidebox(int x, int y, short wallnum, int walldist) { // jfBuild
 		int r = (walldist << 1);
 		if (isCorruptWall(wallnum))
 			return 0;
-		
+
 		WALL wal = wall[wallnum];
 		int x1 = wal.x + walldist - x;
 		int y1 = wal.y + walldist - y;
@@ -1694,7 +1692,7 @@ public abstract class Engine {
 		do {
 			if (isCorruptWall(wallid))
 				return -1;
-			
+
 			WALL wal = wall[wallid];
 			int y1 = wal.y - y;
 			int y2 = wall[wal.point2].y - y;
@@ -1842,17 +1840,17 @@ public abstract class Engine {
 			short dasectnum = clipsectorlist[dacnt];
 			if (!isValidSector(dasectnum))
 				continue;
-			
+
 			SECTOR sec = sector[dasectnum];
 			short startwall = sec.wallptr;
 			int endwall = startwall + sec.wallnum - 1;
 			if (startwall < 0 || endwall < 0)
 				continue;
-			
+
 			for (int w = startwall; w <= endwall; w++) {
 				if (isCorruptWall(w))
 					continue;
-				
+
 				WALL wal = wall[w];
 				WALL wal2 = wall[wal.point2];
 				int x31 = wal.x - x1;
@@ -1879,10 +1877,10 @@ public abstract class Engine {
 				int y = y1 + mulscale(y21, t, 24);
 				int z = z1 + mulscale(z21, t, 24);
 
-				getzsofslope((short) dasectnum, x, y, zofslope);
+				getzsofslope(dasectnum, x, y, zofslope);
 				if ((z <= zofslope[CEIL]) || (z >= zofslope[FLOOR]))
 					return false;
-				getzsofslope((short) nexts, x, y, zofslope);
+				getzsofslope(nexts, x, y, zofslope);
 				if ((z <= zofslope[CEIL]) || (z >= zofslope[FLOOR]))
 					return false;
 
@@ -1891,7 +1889,7 @@ public abstract class Engine {
 
 				if ((sectbitmap[nexts >> 3] & (1 << (nexts & 7))) == 0) {
 					sectbitmap[nexts >> 3] |= (1 << (nexts & 7));
-					clipsectorlist[danum++] = (short) nexts;
+					clipsectorlist[danum++] = nexts;
 				}
 			}
 		}
@@ -1908,7 +1906,7 @@ public abstract class Engine {
 		int zz, x1, y1 = 0, z1 = 0, x2, y2, x3, y3, x4, y4;
 		int intx, inty, intz, endwall;
 		int topt, topu, bot, dist, offx, offy, cstat;
-		int i, j, k, l, tilenum, xoff, yoff, dax, day;
+		int i, j, k, l, xoff, yoff, dax, day;
 		int ang, cosang, sinang, xspan, yspan, xrepeat, yrepeat;
 
 		short dasector, startwall;
@@ -1950,7 +1948,7 @@ public abstract class Engine {
 				i = ksqrt(dax * dax + day * day);
 				if (i == 0)
 					continue;
-				i = (int) divscale(sec.ceilingheinum, i, 15);
+				i = divscale(sec.ceilingheinum, i, 15);
 				dax *= i;
 				day *= i;
 
@@ -1958,7 +1956,7 @@ public abstract class Engine {
 				if (j != 0) {
 					i = ((sec.ceilingz - zs) << 8) + dmulscale(dax, ys - wal.y, -day, xs - wal.x, 15);
 					if (((i ^ j) >= 0) && ((klabs(i) >> 1) < klabs(j))) {
-						i = (int) divscale(i, j, 30);
+						i = divscale(i, j, 30);
 						x1 = xs + mulscale(vx, i, 30);
 						y1 = ys + mulscale(vy, i, 30);
 						z1 = zs + mulscale(vz, i, 30);
@@ -1968,7 +1966,7 @@ public abstract class Engine {
 				z1 = sec.ceilingz;
 				i = z1 - zs;
 				if ((klabs(i) >> 1) < -vz) {
-					i = (int) divscale(i, vz, 30);
+					i = divscale(i, vz, 30);
 					x1 = xs + mulscale(vx, i, 30);
 					y1 = ys + mulscale(vy, i, 30);
 				}
@@ -1993,7 +1991,7 @@ public abstract class Engine {
 				i = ksqrt(dax * dax + day * day);
 				if (i == 0)
 					continue;
-				i = (int) divscale(sec.floorheinum, i, 15);
+				i = divscale(sec.floorheinum, i, 15);
 				dax *= i;
 				day *= i;
 
@@ -2001,7 +1999,7 @@ public abstract class Engine {
 				if (j != 0) {
 					i = ((sec.floorz - zs) << 8) + dmulscale(dax, ys - wal.y, -day, xs - wal.x, 15);
 					if (((i ^ j) >= 0) && ((klabs(i) >> 1) < klabs(j))) {
-						i = (int) divscale(i, j, 30);
+						i = divscale(i, j, 30);
 						x1 = xs + mulscale(vx, i, 30);
 						y1 = ys + mulscale(vy, i, 30);
 						z1 = zs + mulscale(vz, i, 30);
@@ -2011,7 +2009,7 @@ public abstract class Engine {
 				z1 = sec.floorz;
 				i = z1 - zs;
 				if ((klabs(i) >> 1) < vz) {
-					i = (int) divscale(i, vz, 30);
+					i = divscale(i, vz, 30);
 					x1 = xs + mulscale(vx, i, 30);
 					y1 = ys + mulscale(vy, i, 30);
 				}
@@ -2038,7 +2036,7 @@ public abstract class Engine {
 			for (z = startwall; z < endwall; z++) {
 				if (isCorruptWall(z))
 					continue;
-				
+
 				WALL wal = wall[z];
 				WALL wal2 = wall[wal.point2];
 				x1 = wal.x;
@@ -2099,6 +2097,8 @@ public abstract class Engine {
 				x1 = spr.x;
 				y1 = spr.y;
 				z1 = spr.z;
+				Tile pic = getTile(spr.picnum);
+
 				switch (cstat & 48) {
 				case 0:
 					topt = vx * (x1 - xs) + vy * (y1 - ys);
@@ -2110,11 +2110,11 @@ public abstract class Engine {
 
 					intz = zs + scale(vz, topt, bot);
 
-					i = (tilesizy[spr.picnum] * spr.yrepeat << 2);
+					i = (pic.getHeight() * spr.yrepeat << 2);
 					if ((cstat & 128) != 0)
 						z1 += (i >> 1);
-					if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-						z1 -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255)) * spr.yrepeat << 2);
+					if ((pic.anm & 0x00ff0000) != 0)
+						z1 -= (pic.getOffsetY() * spr.yrepeat << 2);
 					if ((intz > z1) || (intz < z1 - i))
 						continue;
 					topu = vx * (y1 - ys) - vy * (x1 - xs);
@@ -2122,7 +2122,7 @@ public abstract class Engine {
 					offx = scale(vx, topu, bot);
 					offy = scale(vy, topu, bot);
 					dist = offx * offx + offy * offy;
-					i = tilesizx[spr.picnum] * spr.xrepeat;
+					i = pic.getWidth() * spr.xrepeat;
 					i *= i;
 					if (dist > (i >> 7))
 						continue;
@@ -2142,15 +2142,14 @@ public abstract class Engine {
 				case 16:
 					// These lines get the 2 points of the rotated sprite
 					// Given: (x1, y1) starts out as the center point
-					tilenum = spr.picnum;
-					xoff = (int) ((byte) ((picanm[tilenum] >> 8) & 255)) + (spr.xoffset);
+					xoff = (byte) (pic.getOffsetX() + (spr.xoffset));
 					if ((cstat & 4) > 0)
 						xoff = -xoff;
 					k = spr.ang;
 					l = spr.xrepeat;
 					dax = sintable[k & 2047] * l;
 					day = sintable[(k + 1536) & 2047] * l;
-					l = tilesizx[tilenum];
+					l = pic.getWidth();
 					k = (l >> 1) + xoff;
 					x1 -= mulscale(dax, k, 16);
 					x2 = x1 + mulscale(dax, l, 16);
@@ -2171,13 +2170,13 @@ public abstract class Engine {
 					if (klabs(intx - xs) + klabs(inty - ys) > klabs((hit.hitx) - xs) + klabs((hit.hity) - ys))
 						continue;
 
-					k = ((tilesizy[spr.picnum] * spr.yrepeat) << 2);
+					k = ((pic.getHeight() * spr.yrepeat) << 2);
 					if ((cstat & 128) != 0)
 						zofslope[CEIL] = spr.z + (k >> 1);
 					else
 						zofslope[CEIL] = spr.z;
-					if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-						zofslope[CEIL] -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255)) * spr.yrepeat << 2);
+					if ((pic.anm & 0x00ff0000) != 0)
+						zofslope[CEIL] -= (pic.getOffsetY() * spr.yrepeat << 2);
 					if ((intz < zofslope[CEIL]) && (intz > zofslope[CEIL] - k)) {
 						hit.hitsect = dasector;
 						hit.hitwall = -1;
@@ -2203,9 +2202,8 @@ public abstract class Engine {
 					if (klabs(intx - xs) + klabs(inty - ys) > klabs((hit.hitx) - xs) + klabs((hit.hity) - ys))
 						continue;
 
-					tilenum = spr.picnum;
-					xoff = (int) ((byte) ((picanm[tilenum] >> 8) & 255)) + (spr.xoffset);
-					yoff = (int) ((byte) ((picanm[tilenum] >> 16) & 255)) + (spr.yoffset);
+					xoff = (byte) (pic.getOffsetX() + spr.xoffset);
+					yoff = (byte) (pic.getOffsetY() + spr.yoffset);
 					if ((cstat & 4) > 0)
 						xoff = -xoff;
 					if ((cstat & 8) > 0)
@@ -2214,9 +2212,9 @@ public abstract class Engine {
 					ang = spr.ang;
 					cosang = sintable[(ang + 512) & 2047];
 					sinang = sintable[ang & 2047];
-					xspan = tilesizx[tilenum];
+					xspan = pic.getWidth();
 					xrepeat = spr.xrepeat;
-					yspan = tilesizy[tilenum];
+					yspan = pic.getHeight();
 					yrepeat = spr.yrepeat;
 
 					dax = ((xspan >> 1) + xoff) * xrepeat;
@@ -2391,17 +2389,18 @@ public abstract class Engine {
 						bot = vx * vx + vy * vy;
 						if (bot != 0) {
 							int intz = zs + scale(vz, topt, bot);
-							i = tilesizy[spr.picnum] * spr.yrepeat;
+							Tile pic = getTile(spr.picnum);
+							i = pic.getHeight() * spr.yrepeat;
 							if ((spr.cstat & 128) != 0)
 								z1 += (i << 1);
-							if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-								z1 -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255)) * spr.yrepeat << 2);
+							if ((pic.anm & 0x00ff0000) != 0)
+								z1 -= (pic.getOffsetY() * spr.yrepeat << 2);
 							if ((intz <= z1) && (intz >= z1 - (i << 2))) {
 								topu = vx * (y1 - ys) - vy * (x1 - xs);
 								offx = scale(vx, topu, bot);
 								offy = scale(vy, topu, bot);
 								dist = offx * offx + offy * offy;
-								i = (tilesizx[spr.picnum] * spr.xrepeat);
+								i = (pic.getWidth() * spr.xrepeat);
 								i *= i;
 								if (dist <= (i >> 7)) {
 									int intx = xs + scale(vx, topt, bot);
@@ -2450,7 +2449,7 @@ public abstract class Engine {
 				wall[tempshort].x = dax;
 				wall[tempshort].y = day;
 			} else {
-				tempshort = (short) pointhighlight; // search points CW if not searched all the way around
+				tempshort = pointhighlight; // search points CW if not searched all the way around
 				do {
 					if (wall[lastwall(tempshort)].nextwall >= 0) {
 						tempshort = wall[lastwall(tempshort)].nextwall;
@@ -2516,7 +2515,7 @@ public abstract class Engine {
 
 		int k, l, clipsectcnt, endwall, cstat, dasect;
 		int x1, y1, x2, y2, cx, cy, rad, xmin, ymin, xmax, ymax;
-		int bsz, xoff, yoff, xspan, yspan, cosang, sinang, tilenum;
+		int bsz, xoff, yoff, xspan, yspan, cosang, sinang;
 		int xrepeat, yrepeat, gx, gy, dx, dy, dasprclipmask, dawalclipmask;
 		int cnt, clipyou;
 
@@ -2548,14 +2547,14 @@ public abstract class Engine {
 		dawalclipmask = (cliptype & 65535); // CLIPMASK0 = 0x00010001
 		dasprclipmask = (cliptype >> 16); // CLIPMASK1 = 0x01000040
 
-		clipsectorlist[0] = (short) clipmove_sectnum;
+		clipsectorlist[0] = clipmove_sectnum;
 		clipsectcnt = 0;
 		clipsectnum = 1;
 		do {
 			dasect = clipsectorlist[clipsectcnt++];
 			if(!isValidSector(dasect))
 				continue;
-			
+
 			sec = sector[dasect];
 			startwall = sec.wallptr;
 			endwall = startwall + sec.wallnum;
@@ -2564,7 +2563,7 @@ public abstract class Engine {
 			for (j = startwall; j < endwall; j++) {
 				if (isCorruptWall(j))
 					continue;
-				
+
 				wal = wall[j];
 				wal2 = wall[wal.point2];
 				if ((wal.x < xmin) && (wal2.x < xmin))
@@ -2668,19 +2667,20 @@ public abstract class Engine {
 				if ((cstat & dasprclipmask) == 0)
 					continue;
 
+				Tile pic = getTile(spr.picnum);
 				x1 = spr.x;
 				y1 = spr.y;
 				switch (cstat & 48) {
 				case 0:
 
 					if ((x1 >= xmin) && (x1 <= xmax) && (y1 >= ymin) && (y1 <= ymax)) {
-						k = ((tilesizy[spr.picnum] * spr.yrepeat) << 2);
+						k = ((pic.getHeight() * spr.yrepeat) << 2);
 						if ((cstat & 128) != 0)
 							daz = spr.z + (k >> 1);
 						else
 							daz = spr.z;
-						if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-							daz -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255)) * spr.yrepeat << 2);
+						if ((pic.anm & 0x00ff0000) != 0)
+							daz -= (pic.getOffsetY() * spr.yrepeat << 2);
 
 						if ((clipmove_z < (daz + ceildist)) && (clipmove_z > (daz - k - flordist))) {
 							bsz = (spr.clipdist << 2) + walldist;
@@ -2695,28 +2695,27 @@ public abstract class Engine {
 					}
 					break;
 				case 16:
-					k = ((tilesizy[spr.picnum] * spr.yrepeat) << 2);
+					k = ((pic.getHeight() * spr.yrepeat) << 2);
 					if ((cstat & 128) != 0)
 						daz = spr.z + (k >> 1);
 					else
 						daz = spr.z;
-					if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-						daz -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255)) * spr.yrepeat << 2);
+					if ((pic.anm & 0x00ff0000) != 0)
+						daz -= (pic.getOffsetY() * spr.yrepeat << 2);
 					daz2 = daz - k;
 					daz += ceildist;
 					daz2 -= flordist;
 					if (((clipmove_z) < daz) && ((clipmove_z) > daz2)) {
 						// These lines get the 2 points of the rotated sprite
 						// Given: (x1, y1) starts out as the center point
-						tilenum = spr.picnum;
-						xoff = (byte) ((picanm[tilenum] >> 8) & 255) + spr.xoffset;
+						xoff = (byte) (pic.getOffsetX() + spr.xoffset);
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						k = spr.ang;
 						l = spr.xrepeat;
 						dax = sintable[k & 2047] * l;
 						day = sintable[(k + 1536) & 2047] * l;
-						l = tilesizx[tilenum];
+						l = pic.getWidth();
 						k = (l >> 1) + xoff;
 						x1 -= mulscale(dax, k, 16);
 						x2 = x1 + mulscale(dax, l, 16);
@@ -2729,18 +2728,18 @@ public abstract class Engine {
 
 							if ((x1 - (clipmove_x)) * (y2 - (clipmove_y)) >= (x2 - (clipmove_x)) * (y1 - (clipmove_y))) // Front
 							{
-								addclipline(x1 + dax, y1 + day, x2 + day, y2 - dax, (short) j + 49152);
+								addclipline(x1 + dax, y1 + day, x2 + day, y2 - dax, j + 49152);
 							} else {
 								if ((cstat & 64) != 0)
 									continue;
-								addclipline(x2 - dax, y2 - day, x1 - day, y1 + dax, (short) j + 49152);
+								addclipline(x2 - dax, y2 - day, x1 - day, y1 + dax, j + 49152);
 							}
 
 							// Side blocker
 							if ((x2 - x1) * ((clipmove_x) - x1) + (y2 - y1) * ((clipmove_y) - y1) < 0) {
-								addclipline(x1 - day, y1 + dax, x1 + dax, y1 + day, (short) j + 49152);
+								addclipline(x1 - day, y1 + dax, x1 + dax, y1 + day, j + 49152);
 							} else if ((x1 - x2) * ((clipmove_x) - x2) + (y1 - y2) * ((clipmove_y) - y2) < 0) {
-								addclipline(x2 + day, y2 - dax, x2 - dax, y2 - day, (short) j + 49152);
+								addclipline(x2 + day, y2 - dax, x2 - dax, y2 - day, j + 49152);
 							}
 						}
 					}
@@ -2754,9 +2753,8 @@ public abstract class Engine {
 							if (((clipmove_z) > spr.z) == ((cstat & 8) == 0))
 								continue;
 
-						tilenum = spr.picnum;
-						xoff = (int) ((byte) ((picanm[tilenum] >> 8) & 255)) + ((int) spr.xoffset);
-						yoff = (int) ((byte) ((picanm[tilenum] >> 16) & 255)) + ((int) spr.yoffset);
+						xoff = (byte) (pic.getOffsetX() + (spr.xoffset));
+						yoff = (byte) (pic.getOffsetY() + (spr.yoffset));
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						if ((cstat & 8) > 0)
@@ -2765,9 +2763,9 @@ public abstract class Engine {
 						k = spr.ang;
 						cosang = sintable[(k + 512) & 2047];
 						sinang = sintable[k & 2047];
-						xspan = tilesizx[tilenum];
+						xspan = pic.getWidth();
 						xrepeat = spr.xrepeat;
-						yspan = tilesizy[tilenum];
+						yspan = pic.getHeight();
 						yrepeat = spr.yrepeat;
 
 						dax = ((xspan >> 1) + xoff) * xrepeat;
@@ -2791,21 +2789,21 @@ public abstract class Engine {
 						if ((rxi[0] - (clipmove_x)) * (ryi[1] - (clipmove_y)) < (rxi[1] - (clipmove_x))
 								* (ryi[0] - (clipmove_y))) {
 							if (clipinsideboxline(cx, cy, rxi[1], ryi[1], rxi[0], ryi[0], rad) != 0)
-								addclipline(rxi[1] - day, ryi[1] + dax, rxi[0] + dax, ryi[0] + day, (short) j + 49152);
+								addclipline(rxi[1] - day, ryi[1] + dax, rxi[0] + dax, ryi[0] + day, j + 49152);
 						} else if ((rxi[2] - (clipmove_x)) * (ryi[3] - (clipmove_y)) < (rxi[3] - (clipmove_x))
 								* (ryi[2] - (clipmove_y))) {
 							if (clipinsideboxline(cx, cy, rxi[3], ryi[3], rxi[2], ryi[2], rad) != 0)
-								addclipline(rxi[3] + day, ryi[3] - dax, rxi[2] - dax, ryi[2] - day, (short) j + 49152);
+								addclipline(rxi[3] + day, ryi[3] - dax, rxi[2] - dax, ryi[2] - day, j + 49152);
 						}
 
 						if ((rxi[1] - (clipmove_x)) * (ryi[2] - (clipmove_y)) < (rxi[2] - (clipmove_x))
 								* (ryi[1] - (clipmove_y))) {
 							if (clipinsideboxline(cx, cy, rxi[2], ryi[2], rxi[1], ryi[1], rad) != 0)
-								addclipline(rxi[2] - dax, ryi[2] - day, rxi[1] - day, ryi[1] + dax, (short) j + 49152);
+								addclipline(rxi[2] - dax, ryi[2] - day, rxi[1] - day, ryi[1] + dax, j + 49152);
 						} else if ((rxi[3] - (clipmove_x)) * (ryi[0] - (clipmove_y)) < (rxi[0] - (clipmove_x))
 								* (ryi[3] - (clipmove_y))) {
 							if (clipinsideboxline(cx, cy, rxi[0], ryi[0], rxi[3], ryi[3], rad) != 0)
-								addclipline(rxi[0] + dax, ryi[0] + day, rxi[3] + day, ryi[3] - dax, (short) j + 49152);
+								addclipline(rxi[0] + dax, ryi[0] + day, rxi[3] + day, ryi[3] - dax, j + 49152);
 						}
 					}
 					break;
@@ -2828,7 +2826,7 @@ public abstract class Engine {
 					templong1 = (goalx - intx) * lx + (goaly - inty) * ly;
 
 					if ((klabs(templong1) >> 11) < templong2)
-						i = (int) divscale(templong1, templong2, 20);
+						i = divscale(templong1, templong2, 20);
 					else
 						i = 0;
 					goalx = mulscale(lx, i, 20) + intx;
@@ -2840,7 +2838,7 @@ public abstract class Engine {
 					j = hitwalls[i];
 					templong2 = dmulscale(clipit[j].x2 - clipit[j].x1, oxvect, clipit[j].y2 - clipit[j].y1, oyvect, 6);
 					if ((templong1 ^ templong2) < 0) {
-						clipmove_sectnum = updatesector(clipmove_x, clipmove_y, (short) clipmove_sectnum);
+						clipmove_sectnum = updatesector(clipmove_x, clipmove_y, clipmove_sectnum);
 						return (retval);
 					}
 				}
@@ -2871,9 +2869,9 @@ public abstract class Engine {
 		clipmove_sectnum = -1;
 		templong1 = 0x7fffffff;
 		for (j = (short) (numsectors - 1); j >= 0; j--)
-			if (inside(clipmove_x, clipmove_y, (short) j) == 1) {
+			if (inside(clipmove_x, clipmove_y, j) == 1) {
 				if ((sector[j].ceilingstat & 2) != 0)
-					templong2 = (int) (getceilzofslope((short) j, clipmove_x, clipmove_y) - (clipmove_z));
+					templong2 = getceilzofslope(j, clipmove_x, clipmove_y) - (clipmove_z);
 				else
 					templong2 = (sector[j].ceilingz - (clipmove_z));
 
@@ -2884,7 +2882,7 @@ public abstract class Engine {
 					}
 				} else {
 					if ((sector[j].floorstat & 2) != 0)
-						templong2 = (int) ((clipmove_z) - getflorzofslope((short) j, clipmove_x, clipmove_y));
+						templong2 = (clipmove_z) - getflorzofslope(j, clipmove_x, clipmove_y);
 					else
 						templong2 = ((clipmove_z) - sector[j].floorz);
 
@@ -2928,7 +2926,7 @@ public abstract class Engine {
 		dir = 1;
 		do {
 			bad = 0;
-			clipsectorlist[0] = (short) pushmove_sectnum;
+			clipsectorlist[0] = pushmove_sectnum;
 			clipsectcnt = 0;
 			clipsectnum = 1;
 			do {
@@ -2974,7 +2972,7 @@ public abstract class Engine {
 								if (daz >= daz2)
 									t = (1 << 30);
 								else
-									t = (int) divscale(daz, daz2, 30);
+									t = divscale(daz, daz2, 30);
 							}
 							dax = wal.x + mulscale(dax, t, 30);
 							day = wal.y + mulscale(day, t, 30);
@@ -3009,7 +3007,7 @@ public abstract class Engine {
 							k--;
 							if (k <= 0)
 								return (bad);
-							pushmove_sectnum = updatesector(pushmove_x, pushmove_y, (short) pushmove_sectnum);
+							pushmove_sectnum = updatesector(pushmove_x, pushmove_y, pushmove_sectnum);
 							if (pushmove_sectnum < 0)
 								return -1;
 						} else {
@@ -3040,7 +3038,7 @@ public abstract class Engine {
 			int j = sector[sectnum].wallnum;
 			do {
 				if(!isValidWall(wallid)) break;
-				
+
 				WALL wal = wall[wallid];
 				i = wal.nextsector;
 				if (i >= 0)
@@ -3138,7 +3136,7 @@ public abstract class Engine {
 		SECTOR sec;
 		WALL wal, wal2;
 		SPRITE spr;
-		int clipsectcnt, startwall, endwall, tilenum, xoff, yoff, dax, day;
+		int clipsectcnt, startwall, endwall, xoff, yoff, dax, day;
 		int xmin, ymin, xmax, ymax, i, j, k, l, dx, dy;
 		int x1, y1, x2, y2, x3, y3, x4, y4, ang, cosang, sinang;
 		int xspan, yspan, xrepeat, yrepeat, dasprclipmask, dawalclipmask;
@@ -3192,7 +3190,7 @@ public abstract class Engine {
 			for (j = startwall; j < endwall; j++) {
 				if (isCorruptWall(j))
 					continue;
-				
+
 				wal = wall[j];
 				k = wal.nextsector;
 				if (k >= 0) {
@@ -3282,6 +3280,7 @@ public abstract class Engine {
 				spr = sprite[j];
 				cstat = spr.cstat;
 				if ((cstat & dasprclipmask) != 0) {
+					Tile pic = getTile(spr.picnum);
 					x1 = spr.x;
 					y1 = spr.y;
 
@@ -3291,26 +3290,24 @@ public abstract class Engine {
 						k = walldist + (spr.clipdist << 2) + 1;
 						if ((klabs(x1 - x) <= k) && (klabs(y1 - y) <= k)) {
 							zofslope[CEIL] = spr.z;
-							k = ((tilesizy[spr.picnum] * spr.yrepeat) << 1);
+							k = ((pic.getHeight() * spr.yrepeat) << 1);
 							if ((cstat & 128) != 0)
 								zofslope[CEIL] += k;
-							if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-								zofslope[CEIL] -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255))
-										* spr.yrepeat << 2);
+							if ((pic.anm & 0x00ff0000) != 0)
+								zofslope[CEIL] -= (pic.getOffsetY() * spr.yrepeat << 2);
 							zofslope[FLOOR] = zofslope[CEIL] - (k << 1);
 							clipyou = 1;
 						}
 						break;
 					case 16:
-						tilenum = spr.picnum;
-						xoff = (int) ((byte) ((picanm[tilenum] >> 8) & 255)) + ((int) spr.xoffset);
+						xoff = (byte) (pic.getOffsetX() + (spr.xoffset));
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						k = spr.ang;
 						l = spr.xrepeat;
 						dax = sintable[k & 2047] * l;
 						day = sintable[(k + 1536) & 2047] * l;
-						l = tilesizx[tilenum];
+						l = pic.getWidth();
 						k = (l >> 1) + xoff;
 						x1 -= mulscale(dax, k, 16);
 						x2 = x1 + mulscale(dax, l, 16);
@@ -3318,12 +3315,11 @@ public abstract class Engine {
 						y2 = y1 + mulscale(day, l, 16);
 						if (clipinsideboxline(x, y, x1, y1, x2, y2, walldist + 1) != 0) {
 							zofslope[CEIL] = spr.z;
-							k = ((tilesizy[spr.picnum] * spr.yrepeat) << 1);
+							k = ((pic.getHeight() * spr.yrepeat) << 1);
 							if ((cstat & 128) != 0)
 								zofslope[CEIL] += k;
-							if ((picanm[spr.picnum] & 0x00ff0000) != 0)
-								zofslope[CEIL] -= ((int) ((byte) ((picanm[spr.picnum] >> 16) & 255))
-										* spr.yrepeat << 2);
+							if ((pic.anm & 0x00ff0000) != 0)
+								zofslope[CEIL] -= (pic.getOffsetY() * spr.yrepeat << 2);
 							zofslope[FLOOR] = zofslope[CEIL] - (k << 1);
 							clipyou = 1;
 						}
@@ -3336,9 +3332,8 @@ public abstract class Engine {
 							if ((z > zofslope[CEIL]) == ((cstat & 8) == 0))
 								continue;
 
-						tilenum = spr.picnum;
-						xoff = (int) ((byte) ((picanm[tilenum] >> 8) & 255)) + ((int) spr.xoffset);
-						yoff = (int) ((byte) ((picanm[tilenum] >> 16) & 255)) + ((int) spr.yoffset);
+						xoff = (byte) (pic.getOffsetX() + (spr.xoffset));
+						yoff = (byte) (pic.getOffsetY() + (spr.yoffset));
 						if ((cstat & 4) > 0)
 							xoff = -xoff;
 						if ((cstat & 8) > 0)
@@ -3347,9 +3342,9 @@ public abstract class Engine {
 						ang = spr.ang;
 						cosang = sintable[(ang + 512) & 2047];
 						sinang = sintable[ang & 2047];
-						xspan = tilesizx[tilenum];
+						xspan = pic.getWidth();
 						xrepeat = spr.xrepeat;
-						yspan = tilesizy[tilenum];
+						yspan = pic.getHeight();
 						yrepeat = spr.yrepeat;
 
 						dax = ((xspan >> 1) + xoff) * xrepeat;
@@ -3428,11 +3423,11 @@ public abstract class Engine {
 			int xd = setaspect_new_use_dimen != 0 ? xdimen : xdim;
 			int yd = setaspect_new_use_dimen != 0 ? ydimen : ydim;
 
-			int vr = (int) divscale(xd * 3, yd * 4, 16);
+			int vr = divscale(xd * 3, yd * 4, 16);
 
 			setaspect(vr, yx);
 		} else
-			setaspect(65536, (int) divscale(ydim * 320, xdim * 200, 16));
+			setaspect(65536, divscale(ydim * 320, xdim * 200, 16));
 	}
 
 	public void setview(int x1, int y1, int x2, int y2) { // jfBuild
@@ -3457,10 +3452,10 @@ public abstract class Engine {
 
 	public void setaspect(int daxrange, int daaspect) { // jfBuild
 		viewingrange = (int) (daxrange * fovFactor);
-		viewingrangerecip = (int) divscale(1, viewingrange, 32);
+		viewingrangerecip = divscale(1, viewingrange, 32);
 
 		yxaspect = daaspect;
-		xyaspect = (int) divscale(1, yxaspect, 32);
+		xyaspect = divscale(1, yxaspect, 32);
 		xdimenscale = scale(xdimen, yxaspect, 320);
 		xdimscale = scale(320, xyaspect, xdimen);
 	}
@@ -3523,7 +3518,7 @@ public abstract class Engine {
 					int gptr = pal[3 * (remapbuf[j] & 0xFF) + 1] & 0xFF;
 					int bptr = pal[3 * (remapbuf[j] & 0xFF) + 2] & 0xFF;
 
-					palookup[palnum][j + i * 256] = (byte) getclosestcol(pal, rptr + mulscale(r - rptr, palscale, 16),
+					palookup[palnum][j + i * 256] = getclosestcol(pal, rptr + mulscale(r - rptr, palscale, 16),
 							gptr + mulscale(g - gptr, palscale, 16), bptr + mulscale(b - bptr, palscale, 16));
 				}
 			}
@@ -3542,12 +3537,12 @@ public abstract class Engine {
 				temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
 		} else {
 			System.arraycopy(dapal, 0, temppal, 0, dapal.length);
-			for(int i = 0; i < dapal.length; i++) 
+			for(int i = 0; i < dapal.length; i++)
 				temppal[i] <<= 2;
 		}
 
 		if(changepalette(temppal)) {
-			if (gl != null) 
+			if (gl != null)
 				gl.gltexinvalidateall(flags);
 
 			palfadergb.r = palfadergb.g = palfadergb.b = 0;
@@ -3558,11 +3553,11 @@ public abstract class Engine {
 	public boolean changepalette(final byte[] palette) {
 		if(render.getType() != RenderType.Software && CRC32.getChecksum(palette) == curpalette.getCrc32())
 			return false;
-		
+
 		curpalette.update(palette);
 		Arrays.fill(palcache, null);
 		render.changepalette(palette); //for shader
-		
+
 		return true;
 	}
 
@@ -3594,14 +3589,15 @@ public abstract class Engine {
 
 	public void setviewtotile(int tilenume, int xsiz, int ysiz) // jfBuild
 	{
+		Tile pic = getTile(tilenume);
 		if (render.getType() == RenderType.Software) {
-			((Software) render).setviewtotile(tilenume, tilesizx[tilenume], tilesizy[tilenume]);
+			((Software) render).setviewtotile(tilenume, pic.getWidth(), pic.getHeight());
 			return;
 		}
 
 		// DRAWROOMS TO TILE BACKUP&SET CODE
-		tilesizx[tilenume] = (short) xsiz;
-		tilesizy[tilenume] = (short) ysiz;
+		pic.setWidth(xsiz);
+		pic.setHeight(ysiz);
 		bakwindowx1[setviewcnt] = windowx1;
 		bakwindowy1[setviewcnt] = windowy1;
 		bakwindowx2[setviewcnt] = windowx2;
@@ -3626,7 +3622,7 @@ public abstract class Engine {
 		offscreenrendering = (setviewcnt > 0);
 
 		if (setviewcnt == 0 && render.getType() != RenderType.Software) {
-			waloff[baktile] = setviewbuf();
+			getTile(baktile).data = setviewbuf();
 			invalidatetile(baktile, -1, -1);
 		}
 
@@ -3637,8 +3633,9 @@ public abstract class Engine {
 	}
 
 	public void squarerotatetile(int tilenume) {
-		int xsiz = tilesizx[tilenume];
-		int ysiz = tilesizy[tilenume];
+		Tile pic = getTile(tilenume);
+		int xsiz = pic.getWidth();
+		int ysiz = pic.getHeight();
 
 		// supports square tiles only for rotation part
 		if (xsiz == ysiz) {
@@ -3663,9 +3660,11 @@ public abstract class Engine {
 	}
 
 	private void squarerotatetileswap(int tilenume, int p1, int p2) {
-		byte tmp = waloff[tilenume][p1];
-		waloff[tilenume][p1] = waloff[tilenume][p2];
-		waloff[tilenume][p2] = tmp;
+		Tile pic = getTile(tilenume);
+
+		byte tmp = pic.data[p1];
+		pic.data[p1] = pic.data[p2];
+		pic.data[p2] = tmp;
 	}
 
 	public void preparemirror(int dax, int day, int daz, float daang, float dahoriz, int dawall, int dasector) { // jfBuild
@@ -3947,7 +3946,7 @@ public abstract class Engine {
 		int byteperpixel = 3;
 		if (BuildGdx.app.getType() == ApplicationType.Android)
 			byteperpixel = 4;
-	
+
 		int base;
 		for (int fx, fy = 0; fy < dheigth; fy++) {
 			base = mulscale(fy, yf, 16) * xdim;
@@ -3975,9 +3974,11 @@ public abstract class Engine {
 	}
 
 	protected byte[] setviewbuf() { // gdxBuild
-		int width = tilesizx[baktile];
-		int heigth = tilesizy[baktile];
-		byte[] data = waloff[baktile];
+		Tile pic = getTile(baktile);
+
+		int width = pic.getWidth();
+		int heigth = pic.getHeight();
+		byte[] data = pic.data;
 		if (data == null || data.length < width * heigth)
 			data = new byte[width * heigth];
 
@@ -4060,14 +4061,17 @@ public abstract class Engine {
 	public void copytilepiece(int tilenume1, int sx1, int sy1, int xsiz, int ysiz, // jfBuild
 			int tilenume2, int sx2, int sy2) {
 
-		int xsiz1 = tilesizx[tilenume1];
-		int ysiz1 = tilesizy[tilenume1];
-		int xsiz2 = tilesizx[tilenume2];
-		int ysiz2 = tilesizy[tilenume2];
+		Tile pic1 = getTile(tilenume1);
+		Tile pic2 = getTile(tilenume2);
+
+		int xsiz1 = pic1.getWidth();
+		int ysiz1 = pic1.getHeight();
+		int xsiz2 = pic2.getWidth();
+		int ysiz2 = pic2.getHeight();
 		if ((xsiz1 > 0) && (ysiz1 > 0) && (xsiz2 > 0) && (ysiz2 > 0)) {
-			if (waloff[tilenume1] == null)
+			if (pic1.data == null)
 				loadtile(tilenume1);
-			if (waloff[tilenume2] == null)
+			if (pic2.data == null)
 				loadtile(tilenume2);
 
 			int x1 = sx1;
@@ -4077,9 +4081,9 @@ public abstract class Engine {
 					int x2 = sx2 + i;
 					int y2 = sy2 + j;
 					if ((x2 >= 0) && (y2 >= 0) && (x2 < xsiz2) && (y2 < ysiz2)) {
-						byte ptr = waloff[tilenume1][x1 * ysiz1 + y1];
+						byte ptr = pic1.data[x1 * ysiz1 + y1];
 						if (ptr != 255)
-							waloff[tilenume2][x2 * ysiz2 + y2] = ptr;
+							pic2.data[x2 * ysiz2 + y2] = ptr;
 					}
 
 					y1++;
@@ -4204,6 +4208,12 @@ public abstract class Engine {
 			fpstime = System.currentTimeMillis();
 		}
 		render.printext(fpsx, fpsy, fpscol, -1, fpsbuffer, 0, scale);
+	}
+
+	public Tile getTile(int tilenum) {
+		if(tiles[tilenum] == null)
+			tiles[tilenum] = new Tile();
+		return tiles[tilenum];
 	}
 
 	private DefScript defs;

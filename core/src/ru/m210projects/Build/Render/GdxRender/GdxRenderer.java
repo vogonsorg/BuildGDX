@@ -40,24 +40,25 @@ import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.TileFont;
 
-public class GdxRenderer extends GLRenderer {
-	
+public class GdxRenderer implements GLRenderer {
+
 	protected final TextureCache textureCache;
-	protected final Engine engine;
 	protected final GdxOrphoRen orphoRen;
 	protected BTexture textAtlas;
 	protected DefScript defs;
-	
+	protected final Engine engine;
+
 	public GdxRenderer(Engine engine) {
-		BuildGdx.app.setFrame(FrameType.GL);
 		this.engine = engine;
-		this.textureCache = createTextureCache();
-		
+
+		BuildGdx.app.setFrame(FrameType.GL);
+		this.textureCache = createTextureCache(engine);
+
 		this.orphoRen = new GdxOrphoRen(engine, textureCache);
 	}
 
-	private TextureCache createTextureCache() {
-		return new TextureCache();
+	private TextureCache createTextureCache(Engine engine) {
+		return new TextureCache(engine);
 	}
 
 	@Override
@@ -73,13 +74,13 @@ public class GdxRenderer extends GLRenderer {
 	@Override
 	public void drawmasks() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void drawrooms() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -95,13 +96,13 @@ public class GdxRenderer extends GLRenderer {
 	@Override
 	public void palfade(HashMap<String, FadeEffect> fades) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void preload() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -131,7 +132,7 @@ public class GdxRenderer extends GLRenderer {
 
 		if(defs == null)
 			return;
-		
+
 		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i=MAXTILES-1; i>=0; i--) {
 			Model m = defs.mdInfo.getModel(i);
@@ -150,7 +151,7 @@ public class GdxRenderer extends GLRenderer {
 	public void drawmapview(int dax, int day, int zoome, int ang) {
 		orphoRen.drawmapview(dax, day, zoome, ang);
 	}
-	
+
 	@Override
 	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
 		orphoRen.drawoverheadmap(cposx, cposy, czoom, cang);
@@ -187,7 +188,7 @@ public class GdxRenderer extends GLRenderer {
 			}
 		}
 	}
-	
+
 	public void gltexinvalidateall() {
 		textureCache.invalidateall();
 	}
@@ -211,13 +212,13 @@ public class GdxRenderer extends GLRenderer {
 	@Override
 	public void settiltang(int tilt) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void setdrunk(float intensive) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -229,13 +230,13 @@ public class GdxRenderer extends GLRenderer {
 	@Override
 	public void addSpriteCorr(int snum) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void removeSpriteCorr(int snum) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -254,18 +255,24 @@ public class GdxRenderer extends GLRenderer {
 	@Override
 	public void changepalette(byte[] palette) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void completemirror() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public boolean isInited() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public PixelFormat getTexFormat() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

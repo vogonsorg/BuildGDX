@@ -11,8 +11,7 @@
 
 package ru.m210projects.Build.Render.Software;
 
-import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Engine.setviewcnt;
+import static ru.m210projects.Build.Engine.CEIL;
 import static ru.m210projects.Build.Engine.FLOOR;
 import static ru.m210projects.Build.Engine.MAXSECTORS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
@@ -22,6 +21,10 @@ import static ru.m210projects.Build.Engine.MAXWALLS;
 import static ru.m210projects.Build.Engine.MAXXDIM;
 import static ru.m210projects.Build.Engine.MAXYDIM;
 import static ru.m210projects.Build.Engine.automapping;
+import static ru.m210projects.Build.Engine.bakwindowx1;
+import static ru.m210projects.Build.Engine.bakwindowx2;
+import static ru.m210projects.Build.Engine.bakwindowy1;
+import static ru.m210projects.Build.Engine.bakwindowy2;
 import static ru.m210projects.Build.Engine.cosglobalang;
 import static ru.m210projects.Build.Engine.cosviewingrangeglobalang;
 import static ru.m210projects.Build.Engine.curpalette;
@@ -44,7 +47,6 @@ import static ru.m210projects.Build.Engine.parallaxtype;
 import static ru.m210projects.Build.Engine.parallaxvisibility;
 import static ru.m210projects.Build.Engine.parallaxyoffs;
 import static ru.m210projects.Build.Engine.parallaxyscale;
-import static ru.m210projects.Build.Engine.picanm;
 import static ru.m210projects.Build.Engine.picsiz;
 import static ru.m210projects.Build.Engine.pow2char;
 import static ru.m210projects.Build.Engine.pow2long;
@@ -52,6 +54,7 @@ import static ru.m210projects.Build.Engine.pskybits;
 import static ru.m210projects.Build.Engine.pskyoff;
 import static ru.m210projects.Build.Engine.radarang;
 import static ru.m210projects.Build.Engine.sector;
+import static ru.m210projects.Build.Engine.setviewcnt;
 import static ru.m210projects.Build.Engine.show2dsector;
 import static ru.m210projects.Build.Engine.show2dsprite;
 import static ru.m210projects.Build.Engine.show2dwall;
@@ -62,38 +65,40 @@ import static ru.m210projects.Build.Engine.sinviewingrangeglobalang;
 import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.spritesortcnt;
-import static ru.m210projects.Build.Engine.tilesizx;
-import static ru.m210projects.Build.Engine.tilesizy;
 import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Engine.transluc;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.viewingrangerecip;
 import static ru.m210projects.Build.Engine.wall;
-import static ru.m210projects.Build.Engine.waloff;
 import static ru.m210projects.Build.Engine.windowx1;
 import static ru.m210projects.Build.Engine.windowx2;
 import static ru.m210projects.Build.Engine.windowy1;
 import static ru.m210projects.Build.Engine.windowy2;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.xdimen;
-import static ru.m210projects.Build.Engine.ydim;
-import static ru.m210projects.Build.Engine.ydimen;
 import static ru.m210projects.Build.Engine.xdimenscale;
 import static ru.m210projects.Build.Engine.xdimscale;
 import static ru.m210projects.Build.Engine.xyaspect;
+import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Engine.ydimen;
 import static ru.m210projects.Build.Engine.yxaspect;
-import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
-import static ru.m210projects.Build.Loader.Voxels.Voxel.*;
+import static ru.m210projects.Build.Loader.Voxels.Voxel.MAXVOXMIPS;
+import static ru.m210projects.Build.Pragmas.divscale;
+import static ru.m210projects.Build.Pragmas.dmulscale;
+import static ru.m210projects.Build.Pragmas.klabs;
+import static ru.m210projects.Build.Pragmas.ksgn;
+import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Pragmas.scale;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics.Option;
-import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Types.Tile2model;
@@ -101,10 +106,12 @@ import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.Tile;
+import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-public abstract class Software extends Renderer {
+public abstract class Software implements Renderer {
 
 	public final int BITSOFPRECISION = 3;
 
@@ -112,7 +119,6 @@ public abstract class Software extends Renderer {
 	protected Engine engine;
 	protected DefScript defs;
 
-	protected int numpages; // XXX
 	public int bytesperline, frameoffset;
 
 	protected int guniqhudid;
@@ -232,7 +238,7 @@ public abstract class Software extends Renderer {
 
 		// Force drawrooms to call dosetaspect & recalculate stuff
 		oxyaspect = oxdimen = oviewingrange = -1;
-		
+
 		globalpalwritten = 0;
 
 		changepalette(curpalette.getBytes());
@@ -244,13 +250,13 @@ public abstract class Software extends Renderer {
 		}
 
 		for (int i = 0; i < 2048; i++)
-			reciptable[i] = (int) divscale(2048, i + 2048, 30);
+			reciptable[i] = divscale(2048, i + 2048, 30);
 
 		updateview();
 
 		for (int i = 1; i < 1024; i++)
 			lowrecip[i] = ((1 << 24) - 1) / i;
-		
+
 		a = new Ac(xdim, ydim, reciptable);
 		a.setvlinebpl(bytesperline);
 
@@ -259,7 +265,7 @@ public abstract class Software extends Renderer {
 
 		isInited = true;
 	}
-	
+
 	protected A getA()
 	{
 		return a;
@@ -271,7 +277,7 @@ public abstract class Software extends Renderer {
 	}
 
 	public void updateview() {
-		xdimenrecip = (int) divscale(1, xdimen, 32);
+		xdimenrecip = divscale(1, xdimen, 32);
 
 		for (int i = 0; i < windowx1; i++) {
 			startumost[i] = 1;
@@ -287,14 +293,15 @@ public abstract class Software extends Renderer {
 		}
 	}
 
-	public void setviewtotile(int tilenume, short xsiz, short ysiz) {
+	public void setviewtotile(int tilenume, int xsiz, int ysiz) {
 		// DRAWROOMS TO TILE BACKUP&SET CODE
-		tilesizx[tilenume] = xsiz;
-		tilesizy[tilenume] = ysiz;
-		bakxsiz[setviewcnt] = xsiz;
-		bakysiz[setviewcnt] = ysiz;
+		Tile pic = engine.getTile(tilenume);
+
+		pic.setWidth(xsiz).setHeight(ysiz);
+		bakxsiz[setviewcnt] = (short) xsiz;
+		bakysiz[setviewcnt] = (short) ysiz;
 		bakframeplace[setviewcnt] = a.getframeplace();
-		a.setframeplace(waloff[tilenume]);
+		a.setframeplace(pic.data);
 		bakwindowx1[setviewcnt] = windowx1;
 		bakwindowy1[setviewcnt] = windowy1;
 		bakwindowx2[setviewcnt] = windowx2;
@@ -353,7 +360,7 @@ public abstract class Software extends Renderer {
 			spritesz[l] = tmp;
 		}
 	}
-	
+
 	@Override
 	public void drawmasks() {
 		int i, j, k, l, gap, xs, ys, xp, yp, yoff, yspan;
@@ -366,6 +373,7 @@ public abstract class Software extends Renderer {
 			xs = tspriteptr[i].x - globalposx;
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
+
 			if (yp > (4 << 8)) {
 				xp = dmulscale(ys, cosglobalang, -xs, singlobalang, 6);
 				spritesx[i] = scale(xp + yp, xdimen << 7, yp);
@@ -394,7 +402,7 @@ public abstract class Software extends Renderer {
 
 		if (spritesortcnt > 0)
 			spritesy[spritesortcnt] = (spritesy[spritesortcnt - 1] ^ 1);
-		
+
 		ys = spritesy[0];
 		i = 0;
 		for (j = 1; j <= spritesortcnt; j++) {
@@ -404,13 +412,14 @@ public abstract class Software extends Renderer {
 			if (j > i + 1) {
 				for (k = i; k < j; k++) {
 					spritesz[k] = tspriteptr[k].z;
-					if ((tspriteptr[k].cstat & 48) != 32) {
-						if (tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES)
-							continue;
+					if(tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES)
+						continue;
 
-						yoff = (int) ((byte) ((picanm[tspriteptr[k].picnum] >> 16) & 255)) + (tspriteptr[k].yoffset);
+					if ((tspriteptr[k].cstat & 48) != 32) {
+						Tile pic = engine.getTile(tspriteptr[k].picnum);
+						yoff = (byte) (pic.getOffsetY() + (tspriteptr[k].yoffset));
 						spritesz[k] -= ((yoff * tspriteptr[k].yrepeat) << 2);
-						yspan = (tilesizy[tspriteptr[k].picnum] * tspriteptr[k].yrepeat << 2);
+						yspan = (pic.getHeight() * tspriteptr[k].yrepeat << 2);
 						if ((tspriteptr[k].cstat & 128) == 0)
 							spritesz[k] -= (yspan >> 1);
 						if (klabs(spritesz[k] - globalposz) < (yspan >> 1))
@@ -419,16 +428,16 @@ public abstract class Software extends Renderer {
 				}
 				for (k = i + 1; k < j; k++)
 					for (l = i; l < k; l++)
-						if (klabs(spritesz[k] - globalposz) < klabs(spritesz[l] - globalposz)) 
+						if (klabs(spritesz[k] - globalposz) < klabs(spritesz[l] - globalposz))
 							swapsprite(k, l, true);
 				for (k = i + 1; k < j; k++)
 					for (l = i; l < k; l++)
-						if (tspriteptr[k].statnum < tspriteptr[l].statnum) 
+						if (tspriteptr[k].statnum < tspriteptr[l].statnum)
 							swapsprite(k, l, false);
 			}
 			i = j;
 		}
-		
+
 		while ((spritesortcnt > 0) && (maskwallcnt > 0)) // While BOTH > 0
 		{
 			j = maskwall[maskwallcnt - 1];
@@ -465,7 +474,7 @@ public abstract class Software extends Renderer {
 				drawmaskwall(--maskwallcnt);
 			}
 		}
-	
+
 		while (spritesortcnt != 0) {
 			spritesortcnt--;
 			if (tspriteptr[spritesortcnt] != null) {
@@ -615,6 +624,7 @@ public abstract class Software extends Renderer {
 	private int[] cz = new int[5];
 	private int[] fz = new int[5];
 
+	@Override
 	public void completemirror() {
 		// Can't reverse with uninitialized data
 		if (inpreparemirror) {
@@ -747,10 +757,12 @@ public abstract class Software extends Renderer {
 						globalxpanning = wal.xpanning & 0xFF;
 						globalypanning = wal.ypanning & 0xFF;
 						globalshiftval = (short) (picsiz[globalpicnum] >> 4);
-						if (pow2long[globalshiftval] != tilesizy[globalpicnum])
+						Tile pic = engine.getTile(globalpicnum);
+
+						if (pow2long[globalshiftval] != pic.getHeight())
 							globalshiftval++;
 						globalshiftval = (short) (32 - globalshiftval);
-						if ((picanm[globalpicnum] & 192) != 0)
+						if (pic.getType() != AnimType.None)
 							globalpicnum += engine.animateoffs(globalpicnum, (short) wallnum + 16384);
 						globalshade = wal.shade;
 						globvis = globalvisibility;
@@ -834,7 +846,7 @@ public abstract class Software extends Renderer {
 								globalpicnum = 0;
 							globalxpanning = wal.xpanning & 0xFF;
 							globalypanning = wal.ypanning & 0xFF;
-							if ((picanm[globalpicnum] & 192) != 0)
+							if (engine.getTile(globalpicnum).getType() != AnimType.None)
 								globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 							globalshade = wal.shade;
 							globalpal = wal.pal;
@@ -847,7 +859,7 @@ public abstract class Software extends Renderer {
 								globalpicnum = 0;
 							globalxpanning = wal.xpanning & 0xFF;
 							globalypanning = wal.ypanning & 0xFF;
-							if ((picanm[globalpicnum] & 192) != 0)
+							if (engine.getTile(globalpicnum).getType() != AnimType.None)
 								globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 							globalshade = wal.shade;
 							globalpal = wal.pal;
@@ -858,7 +870,7 @@ public abstract class Software extends Renderer {
 						if (sec.visibility != 0)
 							globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
 						globalshiftval = (short) (picsiz[globalpicnum] >> 4);
-						if (pow2long[globalshiftval] != tilesizy[globalpicnum])
+						if (pow2long[globalshiftval] != engine.getTile(globalpicnum).getHeight())
 							globalshiftval++;
 						globalshiftval = (short) (32 - globalshiftval);
 						globalyscale = (wal.yrepeat << (globalshiftval - 19));
@@ -946,8 +958,12 @@ public abstract class Software extends Renderer {
 					globalpicnum = 0;
 				globalxpanning = wal.xpanning & 0xFF;
 				globalypanning = wal.ypanning & 0xFF;
-				if ((picanm[globalpicnum] & 192) != 0)
+				Tile pic = engine.getTile(globalpicnum);
+
+				if (pic.getType() != AnimType.None) {
 					globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
+					pic = engine.getTile(globalpicnum);
+				}
 				globalshade = wal.shade;
 				globvis = globalvisibility;
 				if (sec.visibility != 0)
@@ -956,7 +972,7 @@ public abstract class Software extends Renderer {
 				if (palookup[globalpal] == null)
 					globalpal = 0; // JBF: fixes crash
 				globalshiftval = (short) (picsiz[globalpicnum] >> 4);
-				if (pow2long[globalshiftval] != tilesizy[globalpicnum])
+				if (pow2long[globalshiftval] != pic.getHeight())
 					globalshiftval++;
 				globalshiftval = (short) (32 - globalshiftval);
 				globalyscale = (wal.yrepeat << (globalshiftval - 19));
@@ -1005,15 +1021,18 @@ public abstract class Software extends Renderer {
 
 		if (tspr == null || tspr.owner < 0 || tspr.picnum < 0 || tspr.picnum >= MAXTILES || tspr.sectnum < 0)
 			return;
-		
+
 		int tilenum = tspr.picnum;
 		Voxel vtilenum = null;
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
 
-		if ((picanm[tilenum] & 192) != 0)
+		Tile pic = engine.getTile(tilenum);
+		if (pic.getType() != AnimType.None) {
 			tilenum += engine.animateoffs(tilenum, spritenum + 32768);
-		if ((tilesizx[tilenum] <= 0) || (tilesizy[tilenum] <= 0) || (spritenum < 0))
+			pic = engine.getTile(tilenum);
+		}
+		if (!pic.hasSize() || (spritenum < 0))
 			return;
 
 		if ((tspr.xrepeat <= 0) || (tspr.yrepeat <= 0))
@@ -1045,13 +1064,13 @@ public abstract class Software extends Renderer {
 				a.settransnormal();
 		}
 
-		int xoff = ((byte) ((picanm[tilenum] >> 8) & 255)) + (tspr.xoffset);
-		int yoff = ((byte) ((picanm[tilenum] >> 16) & 255)) + (tspr.yoffset);
+		int xoff = (byte) (pic.getOffsetX() + (tspr.xoffset));
+		int yoff = (byte) (pic.getOffsetY() + (tspr.yoffset));
 
 		int xv, yv, x1, y1, x2, y2, dax, day, dax1, dax2, dalx2, darx2;
 		int i, j, k, x, y, z, zz, z1, z2, xp1, yp1, xp2, yp2, xspan, yspan, xsiz, ysiz;
 		long siz;
-		
+
 		switch ((cstat >> 4) & 3) {
 		case 0: // Face sprite
 			if (yp <= (4 << 8))
@@ -1061,12 +1080,12 @@ public abstract class Software extends Renderer {
 
 			xv = mulscale((tspr.xrepeat) << 16, xyaspect, 16);
 
-			xspan = tilesizx[tilenum];
-			yspan = tilesizy[tilenum];
+			xspan = pic.getWidth();
+			yspan = pic.getHeight();
 			xsiz = mulscale(siz, xv * xspan, 30);
 			ysiz = mulscale(siz, tspr.yrepeat * yspan, 14);
 
-			if (((tilesizx[tilenum] >> 11) >= xsiz) || (yspan >= (ysiz >> 1)))
+			if (((xspan >> 11) >= xsiz) || (yspan >= (ysiz >> 1)))
 				return; // Watch out for divscale overflow
 
 			x1 = xb - (xsiz >> 1);
@@ -1214,10 +1233,10 @@ public abstract class Software extends Renderer {
 			if (sec.visibility != 0)
 				globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
 			globalshiftval = (short) (picsiz[globalpicnum] >> 4);
-			if (pow2long[globalshiftval] != tilesizy[globalpicnum])
+			if (pow2long[globalshiftval] != pic.getHeight())
 				globalshiftval++;
 			globalshiftval = (short) (32 - globalshiftval);
-			globalyscale = (int) divscale(512, tspr.yrepeat, globalshiftval - 19);
+			globalyscale = divscale(512, tspr.yrepeat, globalshiftval - 19);
 			globalzd = (((globalposz - z1) * globalyscale) << 8);
 			if ((cstat & 8) > 0) {
 				globalyscale = -globalyscale;
@@ -1239,8 +1258,8 @@ public abstract class Software extends Renderer {
 			if ((cstat & 8) > 0)
 				yoff = -yoff;
 
-			xspan = tilesizx[tilenum];
-			yspan = tilesizy[tilenum];
+			xspan = pic.getWidth();
+			yspan = pic.getHeight();
 			xv = tspr.xrepeat * sintable[(tspr.ang + 2560 + 1536) & 2047];
 			yv = tspr.xrepeat * sintable[(tspr.ang + 2048 + 1536) & 2047];
 			i = (xspan >> 1) + xoff;
@@ -1364,7 +1383,7 @@ public abstract class Software extends Renderer {
 			rx2[MAXWALLSB - 1] = xp2;
 			ry2[MAXWALLSB - 1] = yp2;
 
-			int hplc = (int) divscale(xdimenscale, yb1[MAXWALLSB - 1], 19);
+			int hplc = divscale(xdimenscale, yb1[MAXWALLSB - 1], 19);
 			long hinc = divscale(xdimenscale, yb2[MAXWALLSB - 1], 19);
 			hinc = (hinc - hplc) / (xb2[MAXWALLSB - 1] - xb1[MAXWALLSB - 1] + 1);
 
@@ -1387,10 +1406,10 @@ public abstract class Software extends Renderer {
 			if (sec.visibility != 0)
 				globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
 			globalshiftval = (short) (picsiz[globalpicnum] >> 4);
-			if (pow2long[globalshiftval] != tilesizy[globalpicnum])
+			if (pow2long[globalshiftval] != pic.getHeight())
 				globalshiftval++;
 			globalshiftval = (short) (32 - globalshiftval);
-			globalyscale = (int) divscale(512, tspr.yrepeat, globalshiftval - 19);
+			globalyscale = divscale(512, tspr.yrepeat, globalshiftval - 19);
 			globalzd = (((globalposz - z1) * globalyscale) << 8);
 			if ((cstat & 8) > 0) {
 				globalyscale = -globalyscale;
@@ -1516,8 +1535,8 @@ public abstract class Software extends Renderer {
 				xoff = -xoff;
 			if ((cstat & 8) > 0)
 				yoff = -yoff;
-			xspan = tilesizx[tilenum];
-			yspan = tilesizy[tilenum];
+			xspan = pic.getWidth();
+			yspan = pic.getHeight();
 
 			// Rotate center point
 			dax = tspr.x - globalposx;
@@ -1567,16 +1586,16 @@ public abstract class Software extends Renderer {
 			bot = dmulscale(dax, dax, day, day, 8);
 			if (((klabs(dax) >> 13) >= bot) || ((klabs(day) >> 13) >= bot))
 				return;
-			globalx1 = (int) divscale(dax, bot, 18);
-			globalx2 = (int) divscale(day, bot, 18);
+			globalx1 = divscale(dax, bot, 18);
+			globalx2 = divscale(day, bot, 18);
 
 			dax = rzi[z2] - rzi[z];
 			day = rxi[z2] - rxi[z];
 			bot = dmulscale(dax, dax, day, day, 8);
 			if (((klabs(dax) >> 13) >= bot) || ((klabs(day) >> 13) >= bot))
 				return;
-			globaly1 = (int) divscale(dax, bot, 18);
-			globaly2 = (int) divscale(day, bot, 18);
+			globaly1 = divscale(dax, bot, 18);
+			globaly2 = divscale(day, bot, 18);
 
 			// Calculate globals for hline texture mapping function
 			globalxpanning = (rxi[z] << 12);
@@ -1823,10 +1842,10 @@ public abstract class Software extends Renderer {
 			if (globalpicnum >= MAXTILES)
 				globalpicnum = 0;
 
-			if (waloff[globalpicnum] == null)
+			if (pic.data == null)
 				engine.loadtile(globalpicnum);
 			engine.setgotpic(globalpicnum);
-			globalbufplc = waloff[globalpicnum];
+			globalbufplc = pic.data;
 
 			globvis = mulscale(globalhisibility, viewingrange, 16);
 			if (sec.visibility != 0)
@@ -1929,18 +1948,18 @@ public abstract class Software extends Renderer {
 				nyrepeat = tspr.yrepeat * vtilenum.scale;
 			xv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2560 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
 			yv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2048 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
-			
+
 			tspr.x -= mulscale(xoff, xv, 16) / 1.25f;
 			tspr.y -= mulscale(xoff, yv, 16) / 1.25f;
 			tspr.z -= mulscale(yoff, nyrepeat, 14);
-			
+
 			if ((cstat & 128) == 0)
 				// tspr.z -= mulscale(tilesizy[tspr.picnum], nyrepeat, 15); // GDX this more
 				// correct, but disabled for compatible with eduke
 				tspr.z -= mulscale(vtilenum.zpiv[0], nyrepeat, 22);
 
 			if ((cstat & 8) != 0 && (cstat & 16) != 0)
-				tspr.z += mulscale((tilesizy[tspr.picnum] / 2) - vtilenum.zpiv[0], nyrepeat, 36);
+				tspr.z += mulscale((pic.getHeight() / 2) - vtilenum.zpiv[0], nyrepeat, 36);
 
 			globvis = globalvisibility;
 			globalorientation = cstat;
@@ -1976,7 +1995,7 @@ public abstract class Software extends Renderer {
 		int lx, rx, nx, ny, x1 = 0, y1 = 0, z1, x2 = 0, y2 = 0, z2, yplc, yinc = 0;
 		int yoff, xs = 0, ys = 0, xe, ye, xi = 0, yi = 0, cbackx, cbacky, dagxinc, dagyinc;
 		int voxptr, voxend, zleng, mip;
-		
+
 		int dasprx = daspr.x;
 		int daspry = daspr.y;
 		int dasprz = daspr.z;
@@ -2080,7 +2099,7 @@ public abstract class Software extends Renderer {
 
 		if ((klabs(globalposz - dasprz) >> 10) >= klabs(odayscale))
 			return;
-		
+
 		syoff = divscale(globalposz - dasprz, odayscale, 21) + (dazpivot << 7);
 		yoff = ((klabs(gxinc) + klabs(gyinc)) >> 1);
 
@@ -2213,7 +2232,7 @@ public abstract class Software extends Renderer {
 			}
 			short oand = (short) (pow2char[((xs < backx) ? 1 : 0) + 0] + pow2char[((ys < backy) ? 1 : 0) + 2]);
 			if(xflip) oand ^= 3;
-			
+
 			short oand16 = (short) (oand + 16);
 			short oand32 = (short) (oand + 32);
 
@@ -2269,15 +2288,15 @@ public abstract class Software extends Renderer {
 
 					l1 = distrecip[(ny - yoff) >> 14];
 					l2 = distrecip[(ny + yoff) >> 14];
-					
+
 					int umz = 0;
 					if ((sec.ceilingstat & 3) == 0)
 						umz = mulscale((um < 0) ? l1 : l2, um, 32) + (int) globalhoriz;
-		
+
 					int dmz = 0x7fffffff;
 					if ((sec.floorstat & 3) == 0)
 						dmz = mulscale((dm < 0) ? l2 : l1, dm, 32) + (int) globalhoriz;
-					
+
 					for (; voxptr < voxend; voxptr += zleng + 3) {
 						zleng = davox.data[mip][voxptr + 1] & 0xFF;
 
@@ -2303,9 +2322,9 @@ public abstract class Software extends Renderer {
 								continue;
 							z1 = mulscale(l2, j, 32) + (int) globalhoriz; // Above slab
 							z2 = mulscale(l1, j + (zleng << 15), 32) + (int) globalhoriz;
-							
+
 						}
-						
+
 						int umost = Math.max(daumost[lx], umz);
 						int dmost = Math.min(dadmost[lx], dmz);
 
@@ -2332,7 +2351,7 @@ public abstract class Software extends Renderer {
 						}
 						if (z2 > dmost)
 							z2 = dmost;
-						
+
 						z2 -= z1;
 						if (z2 <= 0)
 							continue;
@@ -2375,15 +2394,19 @@ public abstract class Software extends Renderer {
 			globalpicnum = 0;
 		globalxpanning = wal.xpanning & 0xFF;
 		globalypanning = wal.ypanning & 0xFF;
-		if ((picanm[globalpicnum] & 192) != 0)
-			globalpicnum += engine.animateoffs(globalpicnum, (short) thewall[z] + 16384);
+
+		Tile pic = engine.getTile(globalpicnum);
+		if (pic.getType() != AnimType.None) {
+			globalpicnum += engine.animateoffs(globalpicnum, thewall[z] + 16384);
+			pic = engine.getTile(globalpicnum);
+		}
 		globalshade = wal.shade;
 		globvis = globalvisibility;
 		if (sec.visibility != 0)
 			globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
 		globalpal = wal.pal;
 		globalshiftval = (short) (picsiz[globalpicnum] >> 4);
-		if (pow2long[globalshiftval] != tilesizy[globalpicnum])
+		if (pow2long[globalshiftval] != pic.getHeight())
 			globalshiftval++;
 		globalshiftval = (short) (32 - globalshiftval);
 		globalyscale = (wal.yrepeat << (globalshiftval - 19));
@@ -2448,10 +2471,12 @@ public abstract class Software extends Renderer {
 
 	private void transmaskwallscan(int x1, int x2) {
 		engine.setgotpic(globalpicnum);
-		if ((tilesizx[globalpicnum] <= 0) || (tilesizy[globalpicnum] <= 0))
+		Tile pic = engine.getTile(globalpicnum);
+
+		if (!pic.hasSize())
 			return;
 
-		if (waloff[globalpicnum] == null)
+		if (pic.data == null)
 			engine.loadtile(globalpicnum);
 
 		a.setuptvlineasm(globalshiftval);
@@ -2480,11 +2505,13 @@ public abstract class Software extends Renderer {
 		int vinc = swall[x] * globalyscale;
 		int vplc = globalzd + vinc * (y1v - (int) globalhoriz + 1);
 
+		Tile pic = engine.getTile(globalpicnum);
+
 		int i = lwall[x] + globalxpanning;
-		if (i >= tilesizx[globalpicnum])
-			i %= tilesizx[globalpicnum];
-		byte[] bufplc = waloff[globalpicnum];
-		int bufoffs = i * tilesizy[globalpicnum];
+		if (i >= pic.getWidth())
+			i %= pic.getWidth();
+		byte[] bufplc = pic.data;
+		int bufoffs = i * pic.getHeight();
 
 		int p = ylookup[y1v] + x + frameoffset;
 
@@ -2509,7 +2536,7 @@ public abstract class Software extends Renderer {
 
 		int x = xb1[z];
 		if (bot != 0) {
-			l = (int) divscale(top, bot, 12);
+			l = divscale(top, bot, 12);
 			swall[x] = mulscale(l, sinc, 21) + splc;
 			l *= walxrepeat;
 			lwall[x] = (l >> 18);
@@ -2519,7 +2546,7 @@ public abstract class Software extends Renderer {
 			bot += botinc;
 			if (bot != 0) {
 				ol = l;
-				l = (int) divscale(top, bot, 12);
+				l = divscale(top, bot, 12);
 				swall[x + 4] = mulscale(l, sinc, 21) + splc;
 				l *= walxrepeat;
 				lwall[x + 4] = (l >> 18);
@@ -2538,7 +2565,7 @@ public abstract class Software extends Renderer {
 			bot += (botinc >> 1);
 			if (bot != 0) {
 				ol = l;
-				l = (int) divscale(top, bot, 12);
+				l = divscale(top, bot, 12);
 				swall[x + 2] = mulscale(l, sinc, 21) + splc;
 				l *= walxrepeat;
 				lwall[x + 2] = (l >> 18);
@@ -2550,7 +2577,7 @@ public abstract class Software extends Renderer {
 		if (x + 1 <= xb2[z]) {
 			bot += (botinc >> 2);
 			if (bot != 0) {
-				l = (int) divscale(top + (topinc >> 2), bot, 12);
+				l = divscale(top + (topinc >> 2), bot, 12);
 				swall[x + 1] = mulscale(l, sinc, 21) + splc;
 				lwall[x + 1] = mulscale(l, walxrepeat, 18);
 			}
@@ -2571,17 +2598,19 @@ public abstract class Software extends Renderer {
 		int x, startx;
 		int y1ve, y2ve, tsizx, tsizy, cnt;
 
-		tsizx = tilesizx[globalpicnum];
-		tsizy = tilesizy[globalpicnum];
+		Tile pic = engine.getTile(globalpicnum);
+
+		tsizx = pic.getWidth();
+		tsizy = pic.getHeight();
 		engine.setgotpic(globalpicnum);
-		if ((tsizx <= 0) || (tsizy <= 0))
+		if (!pic.hasSize())
 			return;
 		if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen))
 			return;
 		if ((dwal[x1] < 0) && (dwal[x2] < 0))
 			return;
 
-		if (waloff[globalpicnum] == null)
+		if (pic.data == null)
 			engine.loadtile(globalpicnum);
 
 		startx = x1;
@@ -2621,7 +2650,7 @@ public abstract class Software extends Renderer {
 			vince = swal[x] * globalyscale;
 			vplce = globalzd + vince * (y1ve - (int) globalhoriz + 1);
 			cnt = y2ve - y1ve - 1;
-			a.mvlineasm1(vince, palookup[globalpal], shade, cnt, vplce, waloff[globalpicnum], bufplce,
+			a.mvlineasm1(vince, palookup[globalpal], shade, cnt, vplce, pic.data, bufplce,
 					x + frameoffset + ylookup[y1ve]);
 		}
 
@@ -2633,19 +2662,20 @@ public abstract class Software extends Renderer {
 		boolean ynice;
 		boolean xnice;
 		int y1ve, y2ve;
-		int tsizx, tsizy;
 
-		tsizx = tilesizx[globalpicnum];
-		tsizy = tilesizy[globalpicnum];
+		Tile pic = engine.getTile(globalpicnum);
+
+		int tsizx = pic.getWidth();
+		int tsizy = pic.getHeight();
 		engine.setgotpic(globalpicnum);
-		if ((tsizx <= 0) || (tsizy <= 0))
+		if (!pic.hasSize())
 			return;
 		if (x1 >= uwal.length || x2 >= uwal.length || (uwal[x1] > ydimen) && (uwal[x2] > ydimen))
 			return;
 		if (x1 >= dwal.length || x2 >= dwal.length || (dwal[x1] < 0) && (dwal[x2] < 0))
 			return;
 
-		if (waloff[globalpicnum] == null)
+		if (pic.data == null)
 			engine.loadtile(globalpicnum);
 
 		xnice = (pow2long[picsiz[globalpicnum] & 15] == tsizx);
@@ -2681,8 +2711,8 @@ public abstract class Software extends Renderer {
 
 			int vince = swal[x] * globalyscale;
 			int vplce = globalzd + vince * (y1ve - (int) globalhoriz + 1);
-			
-			a.vlineasm1(vince, palookup[fpalookup], shade, y2ve - y1ve - 1, vplce, waloff[globalpicnum], bufplce,
+
+			a.vlineasm1(vince, palookup[fpalookup], shade, y2ve - y1ve - 1, vplce, pic.data, bufplce,
 					x + frameoffset + ylookup[y1ve]);
 		}
 
@@ -2706,14 +2736,18 @@ public abstract class Software extends Renderer {
 		if (globalpicnum >= MAXTILES)
 			globalpicnum = 0;
 		engine.setgotpic(globalpicnum);
-		if ((tilesizx[globalpicnum] <= 0) || (tilesizy[globalpicnum] <= 0))
-			return;
-		if ((picanm[globalpicnum] & 192) != 0)
-			globalpicnum += engine.animateoffs(globalpicnum, sectnum);
+		Tile pic = engine.getTile(globalpicnum);
 
-		if (waloff[globalpicnum] == null)
+		if (!pic.hasSize())
+			return;
+		if (pic.getType() != AnimType.None) {
+			globalpicnum += engine.animateoffs(globalpicnum, sectnum);
+			pic = engine.getTile(globalpicnum);
+		}
+
+		if (pic.data == null)
 			engine.loadtile(globalpicnum);
-		globalbufplc = waloff[globalpicnum];
+		globalbufplc = pic.data;
 
 		globalshade = sec.floorshade;
 		globvis = globalcisibility;
@@ -2800,7 +2834,7 @@ public abstract class Software extends Renderer {
 		globalx2 = mulscale(globalx2, globalzd, 16);
 		globaly1 = mulscale(globaly1, globalzd, 16);
 		globaly2 = mulscale(globaly2, globalzd, 16);
-		globvis = (int) klabs(mulscale(globvis, globalzd, 10));
+		globvis = klabs(mulscale(globvis, globalzd, 10));
 
 		if ((globalorientation & 0x180) == 0) {
 			y1 = Math.max(dplc[x1], umost[x1]);
@@ -2931,13 +2965,18 @@ public abstract class Software extends Renderer {
 
 		if (globalpicnum >= MAXTILES)
 			globalpicnum = 0;
-		if ((picanm[globalpicnum] & 192) != 0)
+
+		Tile pic = engine.getTile(globalpicnum);
+		if (pic.getType() != AnimType.None) {
 			globalpicnum += engine.animateoffs(globalpicnum, sectnum);
+			pic = engine.getTile(globalpicnum);
+		}
+
 		globalshiftval = (short) (picsiz[globalpicnum] >> 4);
-		if (pow2long[globalshiftval] != tilesizy[globalpicnum])
+		if (pow2long[globalshiftval] != pic.getHeight())
 			globalshiftval++;
 		globalshiftval = (short) (32 - globalshiftval);
-		globalzd = (((tilesizy[globalpicnum] >> 1) + parallaxyoffs) << globalshiftval) + (globalypanning << 24);
+		globalzd = (((pic.getHeight() >> 1) + parallaxyoffs) << globalshiftval) + (globalypanning << 24);
 		globalyscale = (8 << (globalshiftval - 19));
 
 		k = 11 - (picsiz[globalpicnum] & 15) - pskybits;
@@ -3078,10 +3117,10 @@ public abstract class Software extends Renderer {
 		v = mulscale(globalzd, lookups[horizlookup + y - (int) globalhoriz + horizycent], 20);
 		bx = mulscale(globalx2 * x1 + globalx1, v, 14) + globalxpanning;
 		by = mulscale(globaly2 * x1 + globaly1, v, 14) + globalypanning;
-		
+
 		a.sethlineincs(mulscale(globalx2, v, 14), mulscale(globaly2, v, 14));
 		a.setuphline(palookup[globalpal], engine.getpalookup(mulscale(klabs(v), globvis, 28), globalshade) << 8);
-	
+
 		if ((globalorientation & 2) == 0)
 			a.mhline(globalbufplc, bx, (x2 - x1) << 16, 0, by, ylookup[y] + x1 + frameoffset);
 		else {
@@ -3117,12 +3156,16 @@ public abstract class Software extends Renderer {
 			daz = sec.floorz;
 		}
 
-		if ((picanm[globalpicnum] & 192) != 0)
+		Tile pic = engine.getTile(globalpicnum);
+		if (pic.getType() != AnimType.None) {
 			globalpicnum += engine.animateoffs(globalpicnum, sectnum);
+			pic = engine.getTile(globalpicnum);
+		}
+
 		engine.setgotpic(globalpicnum);
-		if ((tilesizx[globalpicnum] <= 0) || (tilesizy[globalpicnum] <= 0))
+		if (!pic.hasSize())
 			return;
-		if (waloff[globalpicnum] == null)
+		if (pic.data == null)
 			engine.loadtile(globalpicnum);
 
 		wal = wall[sec.wallptr];
@@ -3221,7 +3264,7 @@ public abstract class Software extends Renderer {
 		globvis = mulscale(globvis, xdimscale, 16);
 
 		j = globalpal;
-		a.setupslopevlin((picsiz[globalpicnum] & 15) + (((picsiz[globalpicnum] >> 4)) << 8), waloff[globalpicnum],
+		a.setupslopevlin((picsiz[globalpicnum] & 15) + (((picsiz[globalpicnum] >> 4)) << 8), pic.data,
 				-ylookup[1], -(globalzd >> (16 - BITSOFPRECISION)));
 
 		l = (globalzd >> 16);
@@ -3266,8 +3309,8 @@ public abstract class Software extends Renderer {
 					m2 += l;
 				}
 
-				globalx3 = (int) (globalx2 >> 10);
-				globaly3 = (int) (globaly2 >> 10);
+				globalx3 = globalx2 >> 10;
+				globaly3 = globaly2 >> 10;
 				a.slopevlin(ylookup[y2] + x + frameoffset, palookup[j], nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3,
 						globaly3, slopalookup, mulscale(y2, globalzd, 16) + (globalzx >> 6));
 
@@ -3297,15 +3340,19 @@ public abstract class Software extends Renderer {
 		globalpicnum = sec.ceilingpicnum;
 		if (globalpicnum >= MAXTILES)
 			globalpicnum = 0;
-		engine.setgotpic(globalpicnum);
-		if ((tilesizx[globalpicnum] <= 0) || (tilesizy[globalpicnum] <= 0))
-			return;
-		if ((picanm[globalpicnum] & 192) != 0)
-			globalpicnum += engine.animateoffs(globalpicnum, sectnum);
 
-		if (waloff[globalpicnum] == null)
+		Tile pic = engine.getTile(globalpicnum);
+		engine.setgotpic(globalpicnum);
+		if (!pic.hasSize())
+			return;
+		if (pic.getType() != AnimType.None) {
+			globalpicnum += engine.animateoffs(globalpicnum, sectnum);
+			pic = engine.getTile(globalpicnum);
+		}
+
+		if (pic.data == null)
 			engine.loadtile(globalpicnum);
-		globalbufplc = waloff[globalpicnum];
+		globalbufplc = pic.data;
 
 		globalshade = sec.ceilingshade;
 		globvis = globalcisibility;
@@ -3392,7 +3439,7 @@ public abstract class Software extends Renderer {
 		globalx2 = mulscale(globalx2, globalzd, 16);
 		globaly1 = mulscale(globaly1, globalzd, 16);
 		globaly2 = mulscale(globaly2, globalzd, 16);
-		globvis = (int) klabs(mulscale(globvis, globalzd, 10));
+		globvis = klabs(mulscale(globvis, globalzd, 10));
 
 		if ((globalorientation & 0x180) == 0) {
 			y1 = umost[x1];
@@ -3491,7 +3538,7 @@ public abstract class Software extends Renderer {
 
 	@Override
 	public void clearview(int dacol) {
-		a.clearframe((byte) dacol); 
+		a.clearframe((byte) dacol);
 	}
 
 	@Override
@@ -3557,7 +3604,7 @@ public abstract class Software extends Renderer {
 	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
 		if (ysiz < 0)
 			ysiz *= -1;
-		
+
 		byte[] frameplace = a.getframeplace();
 		if (format == PixelFormat.Pal8) {
 			if (indexbuffer != null)
@@ -3599,11 +3646,11 @@ public abstract class Software extends Renderer {
 		if (xyaspect != oxyaspect) {
 			oxyaspect = xyaspect;
 			j = xyaspect * 320;
-			lookups[horizlookup2 + horizycent - 1] = (int) divscale(131072, j, 26);
+			lookups[horizlookup2 + horizycent - 1] = divscale(131072, j, 26);
 			for (i = ydim * 4 - 1; i >= 0; i--)
 				if (i != (horizycent - 1)) {
-					lookups[horizlookup + i] = (int) divscale(1, i - (horizycent - 1), 28);
-					lookups[horizlookup2 + i] = (int) divscale(klabs(lookups[horizlookup + i]), j, 14);
+					lookups[horizlookup + i] = divscale(1, i - (horizycent - 1), 28);
+					lookups[horizlookup2 + i] = divscale(klabs(lookups[horizlookup + i]), j, 14);
 				}
 		}
 
@@ -3626,15 +3673,17 @@ public abstract class Software extends Renderer {
 			}
 
 			for (i = 1; i < 65536; i++)
-				distrecip[i] = (int) divscale(xdimen, i, 20);
+				distrecip[i] = divscale(xdimen, i, 20);
 			nytooclose = xdimen * 2100;
 			nytoofar = 65536 * 16384 - 1048576;
 		}
 	}
 
+	@Override
 	public void settiltang(int tilt) {
 	}
 
+	@Override
 	public void changepalette(byte[] palette) {
 		BuildGdx.graphics.extra(Option.SWChangePalette, palette);
 	}
@@ -3701,9 +3750,12 @@ public abstract class Software extends Renderer {
 				x2 = wal2.x - globalposx;
 				y2 = wal2.y - globalposy;
 
-				if ((nextsectnum >= 0) && ((wal.cstat & 32) == 0) && sectorbordercnt < sectorborder.length
+				if ((nextsectnum >= 0)
+						&& ((wal.cstat & 32) == 0)
+						&& sectorbordercnt < sectorborder.length
 						&& ((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)) {
 					templong = x1 * y2 - x2 * y1;
+
 					if ((toUnsignedLong(templong) + 262144) < 524288)
 						if (mulscale(templong, templong, 5) <= (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
 							sectorborder[sectorbordercnt++] = nextsectnum;
@@ -3722,7 +3774,7 @@ public abstract class Software extends Renderer {
 				do {
 					if ((yp1 >= 256) || (yp2 >= 256))
 						if (dmulscale(xp1, yp2, -xp2, yp1, 32) < 0) { // If wall's facing you
-							if (numscans >= MAXWALLSB)
+							if (numscans >= MAXWALLSB - 1)
 								break;
 
 							if (xp1 >= -yp1) {
@@ -3811,13 +3863,13 @@ public abstract class Software extends Renderer {
 	}
 
 	public static long toUnsignedLong(int x) {
-		return ((long) x) & 0xffffffffL;
+		return (x) & 0xffffffffL;
 	}
 
 	private boolean spritewallfront(SPRITE s, int w) {
 		if(s == null)
 			return false;
-		
+
 		WALL wal = wall[w];
 		int x1 = wal.x;
 		int y1 = wal.y;
@@ -3845,8 +3897,7 @@ public abstract class Software extends Renderer {
 			return (wallfront(b1f, i));
 		}
 
-		for (i = b1f; xb2[i] <= x1b2 && p2[i] != -1; i = p2[i])
-			;
+		for (i = b1f; xb2[i] <= x1b2 && p2[i] != -1; i = p2[i]);
 		return (wallfront(i, b2f));
 	}
 
@@ -3879,7 +3930,7 @@ public abstract class Software extends Renderer {
 		if (t2 == 0)
 			t2 = t1;
 		if ((t1 ^ t2) >= 0) {
-			t2 = (int) dmulscale(globalposx - x11, dy, -dx, globalposy - y11, 2); // pos vs. l1
+			t2 = dmulscale(globalposx - x11, dy, -dx, globalposy - y11, 2); // pos vs. l1
 			return ((t2 ^ t1) >= 0 ? 1 : 0);
 		}
 
@@ -4036,7 +4087,7 @@ public abstract class Software extends Renderer {
 		i = (xv * (y1 - globalposy) - yv * (x1 - globalposx));
 		j = (yv * x2 - xv * y2);
 		if (klabs(j) > klabs(i >> 3))
-			i = (int) divscale(i, j, 28);
+			i = divscale(i, j, 28);
 		if (dastat == 0) {
 			t = mulscale(sector[sectnum].ceilingheinum, dasqr, 15);
 			z1 = sector[sectnum].ceilingz;
@@ -4057,7 +4108,7 @@ public abstract class Software extends Renderer {
 		i = (xv * (y1 - globalposy) - yv * (x1 - globalposx));
 		j = (yv * x2 - xv * y2);
 		if (klabs(j) > klabs(i >> 3))
-			i = (int) divscale(i, j, 28);
+			i = divscale(i, j, 28);
 		if (dastat == 0) {
 			t = mulscale(sector[sectnum].ceilingheinum, dasqr, 15);
 			z2 = sector[sectnum].ceilingz;
@@ -4182,15 +4233,15 @@ public abstract class Software extends Renderer {
 		int xl = lastx[yp];
 		if (xl > xr)
 			return;
-		
+
 		int r = lookups[horizlookup2 + yp - (int) globalhoriz + horizycent];
 		int xinc = globalx1 * r;
 		int yinc = globaly2 * r;
-		
+
 		a.sethlineincs(globalx1 * r, globaly2 * r);
-		
+
 		a.setuphline(palookup[globalpalwritten], engine.getpalookup(mulscale(r, globvis, 16), globalshade) << 8);
-		
+
 		if ((globalorientation & 256) == 0) {
 			a.mhline(globalbufplc, globaly1 * r + globalxpanning - xinc * (xr - xl), (xr - xl) << 16, 0,
 					globalx2 * r + globalypanning - yinc * (xr - xl), ylookup[yp] + xl + frameoffset);
