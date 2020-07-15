@@ -2,7 +2,7 @@
 * MDModel for Polymost
 * by Jonathon Fowler
 * See the included license file "BUILDLIC.TXT" for license info.
-* 
+*
 * This file has been ported to Java by Alexander Makarov-[M210] (m210-2007@mail.ru)
 */
 
@@ -16,11 +16,8 @@ import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.timerticspersec;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.*;
 import static ru.m210projects.Build.Loader.MDAnimation.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTextureWrap;
 
 import com.badlogic.gdx.graphics.Pixmap;
 
@@ -29,7 +26,8 @@ import static ru.m210projects.Build.Gameutils.*;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.TextureHandle.BTexture;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.PixmapTileData;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
@@ -40,16 +38,16 @@ import ru.m210projects.Build.Types.SPRITE;
 public abstract class MDModel extends Model {
 	public MDSkinmap skinmap;
 	public int numskins, skinloaded; // set to 1+numofskin when a skin is loaded and the tex coords are modified,
-	
+
 	public int numframes, cframe, nframe, fpssc;
 	public boolean usesalpha;
     public float oldtime, curtime, interpol;
-    public MDAnimation animations; 
-    
+    public MDAnimation animations;
+
     public abstract int getFrameIndex(String framename);
-    
+
     public void updateanimation(DefScript defs, SPRITE tspr) {
-    	
+
 	    if (numframes < 2)
 	    {
 	        interpol = 0;
@@ -57,7 +55,7 @@ public abstract class MDModel extends Model {
 	    }
 
 	    int tile = tspr.picnum;
-	    
+
 	    cframe = nframe = defs.mdInfo.getParams(tspr.picnum).framenum;
 
 	    boolean smoothdurationp = (GLSettings.animSmoothing.get() && (defs.mdInfo.getParams(tile).smoothduration != 0));
@@ -98,7 +96,7 @@ public abstract class MDModel extends Model {
 	                smooth.mdcurframe = (short) cframe;
 	            }
 	        }
-	        else 
+	        else
 	        {
 	            sprext.mdanimtims = mdtims;
 	            interpol = 0;
@@ -125,14 +123,14 @@ public abstract class MDModel extends Model {
 	        return;
 	    }
 
-	    int fps = (smooth.mdsmooth != 0) ? Math.round((1.0f / (float) (defs.mdInfo.getParams(tile).smoothduration)) * 66.f) : anim.fpssc;
+	    int fps = (smooth.mdsmooth != 0) ? Math.round((1.0f / (defs.mdInfo.getParams(tile).smoothduration)) * 66.f) : anim.fpssc;
 
 	    int i = (int) ((mdtims - sprext.mdanimtims)*((fps*timerticspersec)/120));
 
 	    int j = 65536;
 	    if (smooth.mdsmooth == 0)
 	        j = ((anim.endframe+1-anim.startframe)<<16);
-	    
+
 	    // Just in case you play the game for a VERY long time...
 	    if (i < 0) { i = 0; sprext.mdanimtims = mdtims; }
 	    //compare with j*2 instead of j to ensure i stays > j-65536 for MDANIM_ONESHOT
@@ -149,14 +147,14 @@ public abstract class MDModel extends Model {
 	    {
 	        nframe = anim != null ? anim.startframe : smooth.mdcurframe;
 	        cframe = smooth.mdoldframe;
-	
+
 	        if (k > 65535)
 	        {
 	            sprext.mdanimtims = mdtims;
 	            interpol = 0;
 	            smooth.mdsmooth = 0;
 	            cframe = nframe;
-	
+
 	            smooth.mdoldframe = (short) cframe;
 	            return;
 	        }
@@ -165,13 +163,13 @@ public abstract class MDModel extends Model {
 	    {
 	        cframe = (i>>16)+anim.startframe;
 	        nframe = cframe+1;
-	        if (nframe > anim.endframe) 
+	        if (nframe > anim.endframe)
 	            nframe = anim.startframe;
 
 	        smooth.mdoldframe = (short) cframe;
 	    }
-	    interpol = BClipRange(((float)(i&65535))/65536.f, 0.0f, 1.0f);
-	    
+	    interpol = BClipRange((i&65535)/65536.f, 0.0f, 1.0f);
+
 	    if (cframe < 0 || cframe >= numframes ||
 	    		nframe < 0 || nframe >= numframes)
         {
@@ -185,7 +183,7 @@ public abstract class MDModel extends Model {
                 nframe = numframes - 1;
         }
     }
-    
+
     public MDSkinmap getSkin(int palnum, int skinnum, int surfnum) {
     	for (MDSkinmap sk = skinmap; sk != null; sk = sk.next)
 	        if (sk.palette == palnum && skinnum == sk.skinnum && surfnum == sk.surfnum)
@@ -193,19 +191,19 @@ public abstract class MDModel extends Model {
 
 		return null;
 	}
-    
+
     private void addSkin(MDSkinmap sk) {
     	sk.next = skinmap;
     	skinmap = sk;
 	}
-    
+
     public int setSkin(String skinfn, int palnum, int skinnum, int surfnum, double param, double specpower, double specfactor)
 	{
 		if (skinfn == null) return -2;
 	    if (palnum >= MAXPALOOKUPS) return -3;
 
 	    if (mdnum == 2) surfnum = 0;
-	    
+
 	    MDSkinmap sk = getSkin(palnum, skinnum, surfnum);
 	    if(sk == null)  // no replacement yet defined
 	    	addSkin(sk = new MDSkinmap());
@@ -217,10 +215,10 @@ public abstract class MDModel extends Model {
 	    sk.specpower = (float) specpower;
 	    sk.specfactor = (float) specfactor;
 	    sk.fn = skinfn;
-	    
+
 	    return 0;
 	}
-    
+
     public int setAnimation(String framestart, String frameend, int fpssc, int flags)
 	{
 		MDAnimation ma = new MDAnimation();
@@ -244,19 +242,19 @@ public abstract class MDModel extends Model {
 
 	    return 0;
 	}
-    
-    public BTexture loadskin(DefScript defs, int number, int pal, int surf)
+
+    public GLTile loadskin(DefScript defs, int number, int pal, int surf)
 	{
 	    String skinfile = null;
-	    BTexture texidx = null;
-	    BTexture[] texptr = null;
+	    GLTile texidx = null;
+	    GLTile[] texptr = null;
 	    int idptr = -1;
 	    MDSkinmap sk, skzero = null;
 	    long startticks;
 
 	    if (mdnum == 2)
 	        surf = 0;
-	    
+
 	    if (pal >= MAXPALOOKUPS || defs == null)
 	    	return null;
 
@@ -303,20 +301,20 @@ public abstract class MDModel extends Model {
             	return null;
 	        }
 	    }
-	    
+
 	    if (skinfile == null)
 	        return null;
 
 	    if (texidx != null)
 	        return texidx;
-	    
+
 	    // possibly fetch an already loaded multitexture :_)
 	    if (pal >= (MAXPALOOKUPS - RESERVEDPALS)) {
 	    	for (int i=MAXTILES-1; i>=0; i--) {
 	    		Model m = defs.mdInfo.getModel(i);
 	    		if(m == null || m.mdnum < 2)
 	    			continue;
-	    		
+
 	    		MDModel mi = (MDModel) m;
 	            for (skzero = mi.skinmap; skzero != null; skzero = skzero.next)
 	                if (skzero.fn.equalsIgnoreCase(sk.fn) && skzero.texid[defs.texInfo.getPaletteEffect(pal)] != null)
@@ -329,7 +327,7 @@ public abstract class MDModel extends Model {
 	    }
 
 	    texidx = null;
-	    
+
 	    Resource res = BuildGdx.cache.open(skinfile, 0);
 	    if(res == null)
 	    {
@@ -338,12 +336,12 @@ public abstract class MDModel extends Model {
 	        skinfile = null;
 	        return null;
 	    }
-	    
+
 	    startticks = System.currentTimeMillis();
 	    try {
 	    	byte[] data = res.getBytes();
 			Pixmap pix = new Pixmap(data, 0, data.length);
-			texidx = new BTexture(pix, true); 
+			texidx = new GLTile(new PixmapTileData(pix, true, 0), 0, true);
 	    	usesalpha = true;
 	    } catch(Exception e) {
 	    	Console.Println("Couldn't load file: " + skinfile, OSDTEXT_YELLOW);
@@ -353,38 +351,37 @@ public abstract class MDModel extends Model {
 	    } finally {
 	    	res.close();
 	    }
-
-		setupBoundTexture(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
-		setupBoundTextureWrap(GL_REPEAT);
+		texidx.setupTextureWrap(GL_REPEAT);
 
 	    long etime = System.currentTimeMillis()-startticks;
-	    
+
 	    System.out.println("Load skin: p" + pal +  "-e" + defs.texInfo.getPaletteEffect(pal) + " \"" + skinfile + "\"... " + etime + " ms");
 
         texptr[idptr] = texidx;
 	    return texidx;
 	}
-    
+
     @Override
 	public void setSkinParams(GLFilter filter, int anisotropy) {
 		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
-			for(BTexture tex : sk.texid) {
+			for(GLTile tex : sk.texid) {
 				if(tex == null) continue;
-				bindTexture(tex);
-				setupBoundTexture(filter, anisotropy);
+
+				tex.bind();
+				tex.setupTextureFilter(filter, anisotropy);
 			}
 		}
 	}
-    
+
     @Override
 	public void clearSkins() {
     	for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
 			for(int j = 0; j < sk.texid.length; j++)
 			{
-				BTexture tex = sk.texid[j];
+				GLTile tex = sk.texid[j];
 				if(tex == null) continue;
 
-				tex.dispose();
+				tex.delete();
 				sk.texid[j] = null;
 			}
 		}

@@ -1,5 +1,3 @@
-package ru.m210projects.Build.Types;
-
 //This file is part of BuildGDX.
 //Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
 //
@@ -16,71 +14,69 @@ package ru.m210projects.Build.Types;
 //You should have received a copy of the GNU General Public License
 //along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+package ru.m210projects.Build.Types;
 
 import static com.badlogic.gdx.graphics.GL20.GL_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.pow2char;
 import static ru.m210projects.Build.Engine.textfont;
+import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
-
-import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Render.TextureHandle.BTexture;
-import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class TextFont extends TileFont {
 
 	public TextFont() {
 		super(FontType.Bitmap, textfont, 8, 8, 16, 16);
-		
+
 		sizx = 128;
 		sizy = 128;
 	}
-	
+
 	@Override
-	public Pthtyp getGL(TextureCache textureCache, int col) {
+	public GLTile getGL(TextureManager textureCache, int col) {
 		if(atlas == null)
 			init(textureCache, col);
-		
+
 		return atlas;
 	}
 
 	@Override
-	public Pthtyp init(TextureCache textureCache, int col) {
+	public GLTile init(TextureManager textureCache, int col) {
 		// construct a 8-bit alpha-only texture for the font glyph matrix
-		byte[] tbuf;
-		int tptr;
-		int h, i, j;
-		atlas = new Pthtyp();
-		atlas.glpic = new BTexture(128, 128);
-		
-		atlas.sizx = 128;
-		atlas.sizy = 128;
+		TileFontData dat = new TileFontData(sizx, sizy) {
+			@Override
+			public TextureBuffer buildAtlas(TextureBuffer data) {
+				int tptr;
 
-		tbuf = new byte[sizx * sizy];
-		ByteBuffer fbuf = ByteBuffer.allocateDirect(sizx * sizy).order(ByteOrder.LITTLE_ENDIAN);
-
-		for (h = 0; h < 256; h++) {
-			tptr = (h % 16) * 8 + (h / 16) * sizx * 8;
-			for (i = 0; i < 8; i++) {
-				for (j = 0; j < 8; j++) {
-					if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
-						tbuf[tptr + j] = (byte) 255;
+				for (int h = 0; h < 256; h++) {
+					tptr = (h % 16) * 8 + (h / 16) * sizx * 8;
+					for (int i = 0; i < 8; i++) {
+						for (int j = 0; j < 8; j++) {
+							if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
+								data.put(tptr + j, (byte) 255);
+						}
+						tptr += sizx;
+					}
 				}
-				tptr += sizx;
+
+				return data;
 			}
-		}
 
-		fbuf.put(tbuf);
-		fbuf.rewind();
+			@Override
+			public int getGLInternalFormat() {
+				return GL_ALPHA;
+			}
 
-		atlas.glpic.bind();
-		BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, sizx, sizy, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fbuf);	
-		atlas.glpic.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
+			@Override
+			public int getGLFormat() {
+				return GL_ALPHA;
+			}
+		};
+
+		atlas = new GLTile(dat, 0, false);
+		atlas.setupTextureFilter(glfiltermodes[0], 1);
 		return atlas;
 	}
 

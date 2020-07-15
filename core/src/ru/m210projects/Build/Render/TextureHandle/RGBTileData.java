@@ -1,51 +1,39 @@
-/*
- * ImageUtils for "POLYMOST" code written by Ken Silverman
- * Ken Silverman's official web site: http://www.advsys.net/ken
- *
- * See the included license file "BUILDLIC.TXT" for license info.
- */
-
 package ru.m210projects.Build.Render.TextureHandle;
 
+import static com.badlogic.gdx.graphics.GL20.*;
 import static java.lang.Math.min;
-import static java.lang.Math.max;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Engine.curpalette;
-import static ru.m210projects.Build.Engine.globalshade;
-import static ru.m210projects.Build.Engine.palookup;
 
 import java.nio.ByteBuffer;
 
-import ru.m210projects.Build.Architecture.BuildApplication.Platform;
-import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Render.Renderer.PixelFormat;
-import ru.m210projects.Build.Render.Types.AndroidTextureBuffer;
-import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
-import ru.m210projects.Build.Render.Types.FastTextureBuffer;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Types.Tile;
 
-public class ImageUtils {
+public class RGBTileData extends TileData {
 
-	private static final int TEX_MAX_SIZE = 1024;
-	private static TextureBuffer tmp_buffer;
+	public final TextureBuffer data;
+	public final boolean hasalpha;
+	public final int width, height;
+	public final boolean clamped;
 
-	public static class PicInfo {
-		public final ByteBuffer pic;
-		public final boolean hasalpha;
+	public RGBTileData(Tile tile, int dapal, boolean clamped, boolean alpha, int expflag) {
+		byte[] data = tile.data;
+		int tsizx = tile.getWidth();
+		int tsizy = tile.getHeight();
 
-		public PicInfo(ByteBuffer pic, boolean hasalpha) {
-			this.pic = pic;
-			this.hasalpha = hasalpha;
-		}
-	}
-
-	public static PicInfo loadPic(int xsiz, int ysiz, int tsizx, int tsizy, byte[] data, int dapal, boolean clamped, boolean alphaMode, PixelFormat type) {
-		TextureBuffer buffer = getTmpBuffer();
-		buffer.clear();
-
-		if(data != null && (tsizx * tsizy > data.length || data.length == 0))
+		if(data != null && (data.length == 0 || tile.getSize() > data.length))
 			data = null;
+
+		int xsiz = tsizx;
+		int ysiz = tsizy;
+		if((expflag & 1) != 0)
+			xsiz = calcSize(tsizx);
+		if((expflag & 2) != 0)
+			ysiz = calcSize(tsizy);
+
+		TextureBuffer buffer = getTmpBuffer(xsiz * ysiz * 4);
+		buffer.clear();
 
 		boolean hasalpha = false;
 		if (data == null) {
@@ -53,7 +41,7 @@ public class ImageUtils {
 			tsizx = tsizy = 1;
 			hasalpha = true;
 		} else {
-			if(alphaMode && type != PixelFormat.Pal8) {
+			if(alpha) {
 				for(int i = 0; i < data.length; i++) {
 					if(data[i] == (byte) 255) {
 						hasalpha = true;
@@ -62,15 +50,23 @@ public class ImageUtils {
 				}
 			}
 
+			int pix_len = getPixelFormat().getLength();
 			int dptr = 0;
 			int sptr = 0;
-			int xoffs = xsiz << 2;
+			int xoffs = xsiz * pix_len;
 			if(clamped) {
-				buffer.fill(0, (xsiz * ysiz) << 2, (byte)0);
-				for (int i = 0, j; i < tsizx << 2; i += 4) {
+				for (int y = (ysiz - 1); y >= 0; y--) {
+					sptr = y >= tsizy ? 0 : tsizx;
+					dptr = (xsiz * y + (sptr - 1)) * pix_len;
+					for (int x = sptr; x < xsiz; x++)
+						buffer.putInt(dptr += pix_len, 0);
+				}
+
+				sptr = 0;
+				for (int i = 0, j; i < tsizx * pix_len; i += pix_len) {
 					dptr = i;
 					for (j = 0; j < tsizy; j++) {
-						buffer.putInt(dptr, getColor(data[sptr++], dapal, alphaMode, type));
+						buffer.putInt(dptr, getColor(data[sptr++], dapal, alpha));
 						dptr += xoffs;
 					}
 				}
@@ -79,55 +75,78 @@ public class ImageUtils {
 			else
 			{
 				int p, len = data.length;
-				for (int i = 0, j; i < xoffs; i += 4) {
+				for (int i = 0, j; i < xoffs; i += pix_len) {
 					p = 0;
 					dptr = i;
 					for (j = 0; j < ysiz; j++) {
-						buffer.putInt(dptr, getColor(data[sptr + p++], dapal, alphaMode, type));
+						buffer.putInt(dptr, getColor(data[sptr + p++], dapal, alpha));
 						dptr += xoffs;
 						if(p >= tsizy) p = 0;
 					}
 					if((sptr += tsizy) >= len) sptr = 0;
 				}
 			}
+
+			if(data != null && hasalpha && !GLSettings.textureFilter.get().retro)
+				fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
 		}
-		if(type == PixelFormat.Rgb && data != null && hasalpha && !GLSettings.textureFilter.get().retro)
-			fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
 
-		return new PicInfo(buffer.getBuffer(), hasalpha);
-
+		this.width = xsiz;
+		this.height = ysiz;
+		this.hasalpha = hasalpha;
+		this.data = buffer;
+		this.clamped = clamped;
 	}
 
-	private static int getColor(int dacol, int dapal, boolean alphaMode, PixelFormat type) {
+	@Override
+	public int getGLType() {
+		return GL_UNSIGNED_BYTE;
+	}
+
+	@Override
+	public ByteBuffer getPixels() {
+//		data.rewind();
+		return data.getBuffer();
+	}
+
+	@Override
+	public int getGLInternalFormat() {
+		return (hasalpha ? GL_RGBA : GL_RGB);
+	}
+
+	@Override
+	public int getGLFormat() {
+		return GL_RGBA;
+	}
+
+	@Override
+	public int getWidth() {
+		return width;
+	}
+
+	@Override
+	public int getHeight() {
+		return height;
+	}
+
+	@Override
+	public PixelFormat getPixelFormat() {
+		return PixelFormat.Rgba;
+	}
+
+	protected int getColor(int dacol, int dapal, boolean alphaMode) {
 		dacol &= 0xFF;
-		if(type == PixelFormat.Pal8)
-			return dacol;
-
-		if(type == PixelFormat.Pal8A)
-		{
-			if (alphaMode && dacol == 255)
-				return dacol;
-
-			return dacol | 0xFF000000;
-		}
-
 		if (alphaMode && dacol == 255)
 			return curpalette.getRGBA(0, (byte) 0);
 
 		if(dacol >= palookup[dapal].length)
 			return 0;
 
-		if(UseBloodPal && dapal == 1) //Blood's pal 1
-		{
-			int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
-			dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-		} else
-			dacol = palookup[dapal][dacol] & 0xFF;
-
+		dacol = palookup[dapal][dacol] & 0xFF;
 		return curpalette.getRGBA(dacol, (byte) 0xFF);
 	}
 
-	private static void fixtransparency(TextureBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
+	protected void fixtransparency(TextureBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
 		int dox = daxsiz2 - 1;
 		int doy = daysiz2 - 1;
 		if (clamping) {
@@ -204,19 +223,18 @@ public class ImageUtils {
 		}
 	}
 
-	public static TextureBuffer getTmpBuffer() {
-		if (tmp_buffer == null) {
-			int size = TEX_MAX_SIZE * TEX_MAX_SIZE * 4;
-			try {
-				if(BuildGdx.app.getPlatform() != Platform.Android)
-					tmp_buffer = new FastTextureBuffer(size);
-				else tmp_buffer = new AndroidTextureBuffer(size);
-			} catch (Exception e) {
-				e.printStackTrace();
-				tmp_buffer = new DirectTextureBuffer(size);
-			}
-		}
-		return tmp_buffer;
+	@Override
+	public boolean hasAlpha() {
+		return hasalpha;
 	}
 
+	@Override
+	public boolean isClamped() {
+		return clamped;
+	}
+
+	@Override
+	public boolean isHighTile() {
+		return false;
+	}
 }

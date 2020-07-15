@@ -16,19 +16,90 @@
 
 package ru.m210projects.Build.Types;
 
+import static com.badlogic.gdx.graphics.GL20.*;
+
+import java.nio.ByteBuffer;
 import java.util.HashSet;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TileData;
+import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public abstract class TileFont {
 
+	public abstract static class TileFontData extends TileData {
+
+		public final TextureBuffer data;
+		public final int width, height;
+
+		public TileFontData(int width, int height) {
+			this.width = width;
+			this.height = height;
+			data = buildAtlas(getTmpBuffer(width * height));
+		}
+
+		public abstract TextureBuffer buildAtlas(TextureBuffer data);
+
+		@Override
+		public int getWidth() {
+			return width;
+		}
+
+		@Override
+		public int getHeight() {
+			return height;
+		}
+
+		@Override
+		public ByteBuffer getPixels() {
+			return data.getBuffer();
+		}
+
+		@Override
+		public int getGLType() {
+			return GL_UNSIGNED_BYTE;
+		}
+
+		@Override
+		public int getGLInternalFormat() {
+			return GL_RGBA;
+		}
+
+		@Override
+		public int getGLFormat() {
+			return GL_RGBA;
+		}
+
+		@Override
+		public PixelFormat getPixelFormat() {
+			return PixelFormat.Rgba;
+		}
+
+		@Override
+		public boolean hasAlpha() {
+			return true;
+		}
+
+		@Override
+		public boolean isClamped() {
+			return true;
+		}
+
+		@Override
+		public boolean isHighTile() {
+			return false;
+		}
+	};
+
 	public static final HashSet<TileFont> managedFont = new HashSet<TileFont>();
 
-	public enum FontType { Tilemap, Bitmap };
+	public enum FontType {
+		Tilemap, Bitmap
+	};
 
-	public Pthtyp atlas;
+	public GLTile atlas;
 
 	public Object ptr;
 	public FontType type;
@@ -37,8 +108,7 @@ public abstract class TileFont {
 	public int cols, rows;
 	public int sizx = -1, sizy = -1;
 
-	public TileFont(FontType type, Object ptr, int charsizx, int charsizy, int cols, int rows)
-	{
+	public TileFont(FontType type, Object ptr, int charsizx, int charsizy, int cols, int rows) {
 		this.ptr = ptr;
 		this.type = type;
 		this.charsizx = charsizx;
@@ -49,16 +119,15 @@ public abstract class TileFont {
 		managedFont.add(this);
 	}
 
-	public abstract Pthtyp init(TextureCache textureCache, int col);
+	public abstract GLTile init(TextureManager textureCache, int col);
 
-	public Pthtyp getGL(TextureCache textureCache, int col) {
+	public GLTile getGL(TextureManager textureCache, int col) {
 		return init(textureCache, col);
 	}
 
-	public void dispose()
-	{
-		if(atlas != null && BuildGdx.gl != null)
-			atlas.glpic.dispose();
+	public void dispose() {
+		if (atlas != null && BuildGdx.gl != null)
+			atlas.delete();
 
 		managedFont.remove(this);
 	}

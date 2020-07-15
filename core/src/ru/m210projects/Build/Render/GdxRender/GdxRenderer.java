@@ -33,7 +33,7 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
@@ -42,7 +42,7 @@ import ru.m210projects.Build.Types.TileFont;
 
 public class GdxRenderer implements GLRenderer {
 
-	protected final TextureCache textureCache;
+	protected final TextureManager textureCache;
 	protected final GdxOrphoRen orphoRen;
 	protected BTexture textAtlas;
 	protected DefScript defs;
@@ -57,8 +57,8 @@ public class GdxRenderer implements GLRenderer {
 		this.orphoRen = new GdxOrphoRen(engine, textureCache);
 	}
 
-	private TextureCache createTextureCache(Engine engine) {
-		return new TextureCache(engine);
+	private TextureManager createTextureCache(Engine engine) {
+		return new TextureManager(engine);
 	}
 
 	@Override

@@ -51,19 +51,19 @@ import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.BTexture;
 import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.Tile.AnimType;
 
 public class GdxOrphoRen extends OrphoRenderer {
 
-	protected final TextureCache textureCache;
+	protected final TextureManager textureCache;
 	protected final GdxBatch batch;
 	protected final ShapeRenderer shape;
 	protected BTexture textAtlas;
 
-	public GdxOrphoRen(Engine engine, TextureCache textureCache) {
+	public GdxOrphoRen(Engine engine, TextureManager textureCache) {
 		super(engine);
 		this.textureCache = textureCache;
 

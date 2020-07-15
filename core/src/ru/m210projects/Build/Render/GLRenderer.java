@@ -18,6 +18,8 @@ package ru.m210projects.Build.Render;
 
 import java.util.HashMap;
 
+import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 
 public interface GLRenderer extends Renderer {
@@ -29,6 +31,8 @@ public interface GLRenderer extends Renderer {
 		IndexedTexturesOnly,
 		All
 	}
+
+	public TextureManager newTextureManager(Engine engine);
 
 	public void palfade(HashMap<String, FadeEffect> fades);
 
