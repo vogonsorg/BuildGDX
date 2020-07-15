@@ -374,16 +374,16 @@ public class TextureCache {
 		return (dameth & 256) == 0;
 	}
 
-	public boolean gltexmayhavealpha(int dapicnum, int dapalnum)
-	{
-		for (Pthtyp pth = cache[dapicnum]; pth != null; pth = pth.next)
-	    {
-			if ((pth.picnum == dapicnum) && (pth.palnum == dapalnum))
-		    	return pth.hasAlpha();
-	    }
-
-		return(true);
-	}
+//	public boolean gltexmayhavealpha(int dapicnum, int dapalnum)
+//	{
+//		for (Pthtyp pth = cache[dapicnum]; pth != null; pth = pth.next)
+//	    {
+//			if ((pth.picnum == dapicnum) && (pth.palnum == dapalnum))
+//		    	return pth.hasAlpha();
+//	    }
+//
+//		return(true);
+//	}
 
 	public void uninit() {
 		for (int i=MAXTILES-1; i>=0; i--) {

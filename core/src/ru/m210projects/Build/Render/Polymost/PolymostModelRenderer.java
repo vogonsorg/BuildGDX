@@ -49,7 +49,6 @@ import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.xdimen;
 import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
-import static ru.m210projects.Build.Render.Polymost.Polymost.r_glowmapping;
 import static ru.m210projects.Build.Render.Polymost.Polymost.r_vertexarrays;
 import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
@@ -484,7 +483,7 @@ public class PolymostModelRenderer {
 				}
 			}
 
-			if (r_glowmapping != 0)
+			if (Console.Geti("r_glowmapping") != 0)
 				texid = m.loadskin(defs, skinnum, GLOWPAL, 0);
 			else
 				texid = null;
@@ -635,7 +634,7 @@ public class PolymostModelRenderer {
 					}
 				}
 
-				if (r_glowmapping != 0)
+				if (Console.Geti("r_glowmapping") != 0)
 					texid = m.loadskin(defs, skinnum, GLOWPAL, surfi);
 				else
 					texid = null;

@@ -590,23 +590,10 @@ public class Polymost2D extends OrphoRenderer {
 		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, (short) 0, false, true);
 
 		bindTexture(pth.glpic);
-		Color c = parent.getshadefactor(globalshade);
-
-		switch ((globalorientation >> 7) & 3) {
-		case 0:
-		case 1:
-			c.a = 1.0f;
+		Color c = parent.getshadefactor(globalshade, (globalorientation >> 7) & 3);
+		if(c.a == 1.0f)
 			gl.glDisable(GL_BLEND);
-			break;
-		case 2:
-			c.a = TRANSLUSCENT1;
-			gl.glEnable(GL_BLEND);
-			break;
-		case 3:
-			c.a = TRANSLUSCENT2;
-			gl.glEnable(GL_BLEND);
-			break;
-		}
+		else gl.glEnable(GL_BLEND);
 
 		gl.glColor4f(c.r, c.g, c.b, c.a);
 
@@ -874,7 +861,7 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
 
-		Color polyColor = parent.getshadefactor(shade);
+		Color polyColor = parent.getshadefactor(shade, 0);
 		if (bit == Transparent.Bit1)
 			polyColor.a = TRANSLUSCENT1;
 		if (bit == Transparent.Bit2)
@@ -1272,21 +1259,7 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glEnable(GL_ALPHA_TEST);
 		}
 
-		Color polyColor = parent.getshadefactor(globalshade);
-		switch (method & 3) {
-		default:
-		case 0:
-		case 1:
-			polyColor.a = 1.0f;
-			break;
-		case 2:
-			polyColor.a = TRANSLUSCENT1;
-			break;
-		case 3:
-			polyColor.a = TRANSLUSCENT2;
-			break;
-		}
-
+		Color polyColor = parent.getshadefactor(globalshade, method);
 		if (parent.defs != null) {
 			if (pth != null && pth.isHighTile()) {
 				if (pth.hicr.palnum != globalpal) {

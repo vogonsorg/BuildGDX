@@ -132,6 +132,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ALPHA_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
+import static ru.m210projects.Build.Render.Types.GL10.GL_INTERPOLATE_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODULATE;
@@ -140,6 +141,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE_FILTER_HINT
 import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_ALPHA_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND1_RGB_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND2_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PREVIOUS_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
@@ -148,6 +150,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_ALPHA_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE1_RGB_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE2_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV_MODE;
@@ -197,7 +200,7 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Polymost implements GLRenderer {
 
 	public enum Rendering {
-		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling;
+		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling, Skybox;
 
 		private int index;
 
@@ -217,7 +220,7 @@ public abstract class Polymost implements GLRenderer {
 	public static long TexDebug = -1;
 	public static int r_parallaxskyclamping = 1; // OSD CVAR XXX
 	public static int r_parallaxskypanning = 0; // XXX
-	public static int r_glowmapping = 1;
+//	public static int r_glowmapping = 1;
 	public static int r_vertexarrays = 1; // Vertex Array model drawing cvar
 	public static int r_vbos = 1; // Vertex Buffer Objects model drawing cvars
 
@@ -257,7 +260,7 @@ public abstract class Polymost implements GLRenderer {
 	protected float curpolygonoffset; // internal polygon offset stack for drawing flat sprites to avoid depth
 										// fighting
 
-	public static short drawingskybox = 0;
+//	public static short drawingskybox = 0;
 
 	BTexture frameTexture;
 	private int framew;
@@ -374,7 +377,7 @@ public abstract class Polymost implements GLRenderer {
 		bindTexture(glowTexture);
 
 		gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+		gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
 
 		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
 		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
@@ -382,11 +385,12 @@ public abstract class Polymost implements GLRenderer {
 		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
 		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
 
+		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
+		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
+
 		gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
 		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
 		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
 
 		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -504,9 +508,9 @@ public abstract class Polymost implements GLRenderer {
 				Console.Set("r_detailmapping", 0);
 			}
 
-			if (r_glowmapping != 0) {
+			if (Console.Geti("r_glowmapping") != 0) {
 				Console.Println("Your OpenGL implementation doesn't support glow mapping. Disabling...", 0);
-				r_glowmapping = 0;
+				Console.Set("r_glowmapping", 0);
 			}
 		}
 
@@ -575,17 +579,29 @@ public abstract class Polymost implements GLRenderer {
 		gl.glLoadMatrixf(matrix);
 	}
 
-	protected Color getshadefactor(int shade) {
+	protected Color getshadefactor(int shade, int method) {
 		int shadebound = (shadescale_unbounded != 0 || shade >= numshades) ? numshades : numshades - 1;
 		float clamped_shade = min(max(shade * shadescale, 0), shadebound);
-
 		float f = (numshades - clamped_shade) / numshades;
 
-		polyColor.a = 1.0f;
 		if (UseBloodPal && globalpal == 1)
 			polyColor.r = polyColor.g = polyColor.b = 1.0f; // Blood's pal 1
 		else
 			polyColor.r = polyColor.g = polyColor.b = f;
+
+		switch (method & 3) {
+		default:
+		case 0:
+		case 1:
+			polyColor.a = 1.0f;
+			break;
+		case 2:
+			polyColor.a = TRANSLUSCENT1;
+			break;
+		case 3:
+			polyColor.a = TRANSLUSCENT2;
+			break;
+		}
 
 		return polyColor;
 	}
@@ -717,7 +733,7 @@ public abstract class Polymost implements GLRenderer {
 		if (skyclamphack != 0)
 			method |= 4;
 
-		pth = textureCache.cache(globalpicnum, globalpal, drawingskybox, textureCache.clampingMode(method),
+		pth = textureCache.cache(globalpicnum, globalpal, (short) Rendering.Skybox.getIndex(), textureCache.clampingMode(method),
 				textureCache.alphaMode(method));
 		if (pth == null) // hires texture not found
 			return;
@@ -736,7 +752,7 @@ public abstract class Polymost implements GLRenderer {
 
 		// texture scale by parkar request
 		if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f))
-				&& drawingskybox == 0) {
+				&& Rendering.Skybox.getIndex() == 0) {
 			gl.glMatrixMode(GL_TEXTURE);
 			gl.glLoadIdentity();
 			gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
@@ -744,7 +760,7 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		// detail texture
-		if (Console.Geti("r_detailmapping") != 0 && GLSettings.useHighTile.get() && drawingskybox == 0)
+		if (Console.Geti("r_detailmapping") != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0)
 			detailpth = textureCache.cache(globalpicnum, DETAILPAL, (short) 0, textureCache.clampingMode(method),
 					textureCache.alphaMode(method));
 
@@ -752,7 +768,7 @@ public abstract class Polymost implements GLRenderer {
 				&& (detailpth.hicr.palnum == DETAILPAL)) {
 			texunits = setBoundTextureDetail(detailpth.glpic, texunits);
 
-			f = detailpth != null ? detailpth.hicr.xscale : 1.0;
+//			f = detailpth != null ? detailpth.hicr.xscale : 1.0;
 
 			gl.glMatrixMode(GL_TEXTURE);
 			gl.glLoadIdentity();
@@ -767,7 +783,7 @@ public abstract class Polymost implements GLRenderer {
 			gl.glMatrixMode(GL_MODELVIEW);
 		}
 
-		if (r_glowmapping != 0 && GLSettings.useHighTile.get() && drawingskybox == 0)
+		if (Console.Geti("r_glowmapping") != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0)
 			glowpth = textureCache.cache(globalpicnum, GLOWPAL, (short) 0, textureCache.clampingMode(method),
 					textureCache.alphaMode(method));
 
@@ -824,21 +840,7 @@ public abstract class Polymost implements GLRenderer {
 			}
 		}
 
-		Color polyColor = getshadefactor(globalshade);
-
-		switch (method & 3) {
-		default:
-		case 0:
-		case 1:
-			polyColor.a = 1.0f;
-			break;
-		case 2:
-			polyColor.a = TRANSLUSCENT1;
-			break;
-		case 3:
-			polyColor.a = TRANSLUSCENT2;
-			break;
-		}
+		Color polyColor = getshadefactor(globalshade, method);
 
 		if (defs != null) {
 			if (pth != null && pth.isHighTile()) {
@@ -2047,7 +2049,7 @@ public abstract class Polymost implements GLRenderer {
 				gvy = -gvy;
 				gvo = -gvo; // y-flip skybox floor
 
-				drawingskybox = 6; // floor/6th texture/index 4 of skybox
+				Rendering.Skybox.setIndex(6); // floor/6th texture/index 4 of skybox
 
 				if ((_fy0 > ny0) && (_fy1 > ny1))
 					clipper.domost((float) _x0, (float) _fy0, (float) _x1, (float) _fy1);
@@ -2066,7 +2068,7 @@ public abstract class Polymost implements GLRenderer {
 					clipper.domost((float) _x0, (float) ny0, (float) _x1, (float) ny1);
 			} else {
 
-				drawingskybox = 5; // ceiling/5th texture/index 4 of skybox
+				Rendering.Skybox.setIndex(5); // ceiling/5th texture/index 4 of skybox
 
 				if ((_cy0 < ny0) && (_cy1 < ny1))
 					clipper.domost((float) _x1, (float) _cy1, (float) _x0, (float) _cy0);
@@ -2087,8 +2089,7 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			// wall of skybox
-
-			drawingskybox = (short) (i + 1); // i+1th texture/index i of skybox
+			Rendering.Skybox.setIndex(i + 1); // i+1th texture/index i of skybox
 
 			gdx = (_ryp0 - _ryp1) * gxyaspect * (1.0 / 512.0) / (_ox0 - _ox1);
 			gdy = 0;
@@ -2140,9 +2141,9 @@ public abstract class Polymost implements GLRenderer {
 
 		// Ceiling of skybox
 
-		drawingskybox = 6; // floor/6th texture/index 5 of skybox
+		Rendering.Skybox.setIndex(6); // floor/6th texture/index 5 of skybox
 		if (floor)
-			drawingskybox = 5;
+			Rendering.Skybox.setIndex(5);
 
 		drawalls_ft[0] = 512 / 16;
 		drawalls_ft[1] = 512 / -16;
@@ -2175,7 +2176,7 @@ public abstract class Polymost implements GLRenderer {
 
 		skyclamphack = 0;
 
-		drawingskybox = 0;
+		Rendering.Skybox.setIndex(0);
 	}
 
 	private void drawbackground(int sectnum, double x0, double x1, double y0, double y1, boolean floor) {
