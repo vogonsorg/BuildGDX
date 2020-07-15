@@ -32,7 +32,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLRenderer;
-import ru.m210projects.Build.Render.TextureHandle.BTexture;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GLFilter;
@@ -44,7 +44,7 @@ public class GdxRenderer implements GLRenderer {
 
 	protected final TextureManager textureCache;
 	protected final GdxOrphoRen orphoRen;
-	protected BTexture textAtlas;
+	protected GLTile textAtlas;
 	protected DefScript defs;
 	protected final Engine engine;
 
@@ -52,13 +52,9 @@ public class GdxRenderer implements GLRenderer {
 		this.engine = engine;
 
 		BuildGdx.app.setFrame(FrameType.GL);
-		this.textureCache = createTextureCache(engine);
+		this.textureCache = newTextureManager(engine);
 
 		this.orphoRen = new GdxOrphoRen(engine, textureCache);
-	}
-
-	private TextureManager createTextureCache(Engine engine) {
-		return new TextureManager(engine);
 	}
 
 	@Override
@@ -116,7 +112,7 @@ public class GdxRenderer implements GLRenderer {
 				&& (dapalnum < (MAXPALOOKUPS - RESERVEDPALS)))
 			return;
 
-		textureCache.cache(dapicnum, dapalnum, (short) 0, textureCache.clampingMode((datype & 1) << 2), true);
+		textureCache.bind(dapicnum, dapalnum, 0, 0, (datype & 1) << 2);
 	}
 
 	@Override
@@ -128,7 +124,7 @@ public class GdxRenderer implements GLRenderer {
 	@Override
 	public void gltexapplyprops() {
 		GLFilter filter = GLSettings.textureFilter.get();
-		textureCache.updateSettings(filter);
+		textureCache.setFilter(filter);
 
 		if(defs == null)
 			return;
@@ -274,5 +270,10 @@ public class GdxRenderer implements GLRenderer {
 	public PixelFormat getTexFormat() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public TextureManager newTextureManager(Engine engine) {
+		return new TextureManager(engine);
 	}
 }

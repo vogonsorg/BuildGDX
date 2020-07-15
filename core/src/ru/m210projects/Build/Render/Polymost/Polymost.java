@@ -877,19 +877,7 @@ public abstract class Polymost implements GLRenderer {
 				gl.glEnable(GL_TEXTURE_2D);
 		}
 
-		if (GLInfo.multisample != 0) {
-			while (texunits >= GL_TEXTURE0) {
-				gl.glActiveTexture(texunits);
-				gl.glMatrixMode(GL_TEXTURE);
-				gl.glLoadIdentity();
-				gl.glMatrixMode(GL_MODELVIEW);
-				if (texunits > GL_TEXTURE0) {
-					gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
-					gl.glDisable(GL_TEXTURE_2D);
-				}
-				texunits--;
-			}
-		}
+		textureCache.unbind();
 
 		if (srepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
