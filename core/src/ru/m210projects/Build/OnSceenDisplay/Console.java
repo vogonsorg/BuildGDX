@@ -2,7 +2,7 @@
 // for the Build Engine
 // by Jonathon Fowler (jf@jonof.id.au)
 //
-// This file has been ported to Java and modified 
+// This file has been ported to Java and modified
 // by Alexander Makarov-[M210] (m210-2007@mail.ru)
 
 package ru.m210projects.Build.OnSceenDisplay;
@@ -37,7 +37,7 @@ import static ru.m210projects.Build.Strhandler.Bstrcmp;
 import static ru.m210projects.Build.Strhandler.isdigit;
 
 public class Console {
-	
+
 	public static int OSDTEXT_RED      = -2;
 	public static int OSDTEXT_BLUE     = -1;
 	public static int OSDTEXT_GREEN    = -1;
@@ -46,12 +46,12 @@ public class Console {
 	public static int OSDTEXT_GOLD     = -1;
 	public static int OSDTEXT_WHITE    = -1;
 	public static int OSDTEXT_GREY    = -1;
-	
+
 	public static final int MAXLINES = 512;
 
 	public static final int OSD_EDITLENGTH = 511;
 	public static final int OSD_HISTORYDEPTH = 32;
-	
+
 	public static final int OSD_INITIALIZED = 0x00000001;
 	public static final int OSD_DRAW        = 0x00000002;
 	public static final int OSD_CAPTURE     = 0x00000004;
@@ -59,7 +59,7 @@ public class Console {
 	public static final int OSD_SHIFT       = 0x00000010;
 	public static final int OSD_CTRL        = 0x00000020;
 	public static final int OSD_CAPS        = 0x00000040;
-	
+
 	public static int BGTILE = 2051;
 	public static int BGCTILE = 2046;
 	public static int BGTILE_SIZEX = 128;
@@ -71,11 +71,11 @@ public class Console {
 	public static int BORDERANG = 0;
 	public static int SHADE = 50;
 	public static int PALETTE = 5;
-	
+
 	static OSDFunc func;
 	private static final ByteArrayOutputStream logStream = new ByteArrayOutputStream();
 
-	
+
 	// presentation parameters
 	public static final OSDCOMMAND osdpromptshade = new  OSDCOMMAND( "osdpromptshade", "osdpromptshade: sets the shade of the OSD prompt", 0,  0, 255);
 	public static final OSDCOMMAND osdpromptpal = new  OSDCOMMAND( "osdpromptpal", "osdpromptpal: sets the palette of the OSD prompt", 0, 0, MAXPALOOKUPS-1);
@@ -85,9 +85,9 @@ public class Console {
 	public static final OSDCOMMAND osdtextpal = new  OSDCOMMAND( "osdtextpal", "osdtextpal: sets the palette of the OSD text", 0, 0, MAXPALOOKUPS-1);
 
 	static int osdflags = 0;
-	
+
 	// history display
-	static char[][] osdtext = new char[MAXLINES][]; 
+	static char[][] osdtext = new char[MAXLINES][];
 	static short[][] osdfmt = new short[MAXLINES][];
 	static char[] osdver = new char[64];
 	static int  osdverlen;
@@ -105,7 +105,7 @@ public class Console {
 	static int  keytime=0;
 	static long osdscrtime = 0;
 	static int osdtextscale = 65536;
-	
+
 	// command prompt editing
 	static char[] osdeditbuf = new char[OSD_EDITLENGTH+1];   // editing buffer
 	static char[] osdedittmp = new char[OSD_EDITLENGTH+1];   // editing buffer temporary workspace
@@ -114,13 +114,13 @@ public class Console {
 	static int  osdeditwinstart=0;
 	static int  osdeditwinend=60-1-3;
 	public static final int editlinewidth = (osdcols-1-3);
-	
+
 	// command processing
 	static int osdhistorypos=-1;       // position we are at in the history buffer
 	static char[][] osdhistorybuf = new char[OSD_HISTORYDEPTH][OSD_EDITLENGTH+1];  // history strings
 	static int  osdhistorysize=0;       // number of entries in history
 	static int  osdhistorytotal=0;      // number of total history entries
-	
+
 	public static String[] osd_argv = new String[80];
 	public static int osd_argc = 0;
 	// execution buffer
@@ -160,7 +160,7 @@ public class Console {
 	            return -1;
 	        }
 	    }
-	    
+
 	    osdvars.put(cvar.name, cvar);
 
 	    return 0;
@@ -171,10 +171,10 @@ public class Console {
     	OSDCOMMAND cvar = Get(cmd);
     	if(cvar != null)
     		return cvar.SetValue(value);
-    	
+
     	return false;
     }
-	
+
 	public static int Geti(String osdvar)
     {
 		OSDCOMMAND var = Get(osdvar);
@@ -182,7 +182,7 @@ public class Console {
 			return (int) var.value;
     	return 0;
     }
-	
+
 	public static float Getf(String osdvar)
     {
 		OSDCOMMAND var = Get(osdvar);
@@ -213,17 +213,17 @@ public class Console {
 	    osdtextshade.SetValue(textshade);
 	    osdtextpal.SetValue(textpal);
 	}
-	
+
 	public static void setFunction(OSDFunc func)
 	{
 		Console.func = func;
 	}
-	
+
 	public static void Print(String text, int pal)
 	{
 		if(text == null || text.isEmpty())
 			return;
-		
+
 		if ((osdflags & OSD_INITIALIZED) == 0)
 	        Init();
 
@@ -232,7 +232,7 @@ public class Console {
 		else System.out.println(text);
 
 		LogPrint(text);
-		
+
 		int chp = 0;
 		int s = (int)osdtextshade.value;
 		do
@@ -249,7 +249,7 @@ public class Console {
 	            osdpos=0;
 	            continue;
 	        }
-	        
+
 	        if (text.charAt(chp) == '\t')
 	        {
 	        	for(int i = 0; i < 2; i++)
@@ -276,8 +276,8 @@ public class Console {
     				pal = Integer.parseInt(number, 10);
                     continue;
     			}
-    			
-    			if(num1 == 'S' || num1 == 's') 
+
+    			if(num1 == 'S' || num1 == 's')
     			{
     				chp++;
     				char num = text.charAt(++chp);
@@ -288,8 +288,8 @@ public class Console {
     					continue;
     				}
     			}
-    			
-    			if(num1 == 'O' || num1 == 'o') 
+
+    			if(num1 == 'O' || num1 == 'o')
     			{
     				chp++;
     				pal = (int) osdtextpal.value;
@@ -309,26 +309,26 @@ public class Console {
 	    }
 	    while (++chp < text.length());
 	}
-	
+
 	public static void Println(String text)
 	{
 		Print(text, (int)osdtextpal.value);
 		osdpos = 0;
         LineFeed();
 	}
-	
+
 	public static void Println(String text, int pal)
 	{
 		Print(text, pal);
 		osdpos = 0;
         LineFeed();
 	}
-	
+
 	public static void Print(String text)
 	{
 		Print(text, (int)osdtextpal.value);
 	}
-	
+
 	public static char[][] getTextPtr()
 	{
 	    return osdtext;
@@ -338,22 +338,22 @@ public class Console {
 	{
 	    return osdfmt;
 	}
-	
+
 	public static void SetLogFile(String fn)
 	{
 		if (logfile != null) logfile.close();
 		logfile = null;
 
-		if (fn != null) 
+		if (fn != null)
 			logfile = BuildGdx.compat.open(toLowerCase(fn), Path.User, Mode.Write);
 	}
-	
+
 	public static void CloseLogFile()
 	{
 		if (logfile != null) logfile.close();
 		logfile = null;
 	}
-	
+
 	public static void LogData(byte[] data)
 	{
 		if (logfile != null) {
@@ -361,7 +361,7 @@ public class Console {
 	    }
 	    StreamData(data);
 	}
-	
+
 	public static void StreamData(byte[] data)
 	{
 		try {
@@ -370,7 +370,7 @@ public class Console {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void LogPrint(String str)
 	{
 		if (logfile != null) {
@@ -381,7 +381,7 @@ public class Console {
 	    }
 	    StreamPrint(str);
 	}
-	
+
 	public static void StreamPrint(String str)
 	{
 		try {
@@ -391,12 +391,12 @@ public class Console {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static String GetLog()
 	{
 		return logStream.toString();
 	}
-	
+
 	public static byte[] GetData()
 	{
 		return logStream.toByteArray();
@@ -406,21 +406,21 @@ public class Console {
 	{
 	    return (osdrowscur!=-1 && osdrowscur!=osdrows);
 	}
-	
+
 	public static boolean IsShown()
 	{
 	    return (osdflags & OSD_DRAW) != 0;
 	}
-	
+
 	public static boolean IsInited()
 	{
 		return (osdflags & OSD_INITIALIZED) != 0;
 	}
-	
+
 	private static void Init()
 	{
 //		osdnumsymbols = osdnumcvars = 0;
-		
+
 		osdlines = 1;
 		osdflags |= OSD_INITIALIZED;
 
@@ -436,9 +436,9 @@ public class Console {
 		RegisterCvar(osdeditpal);
 		RegisterCvar(osdtextshade);
 		RegisterCvar(osdtextpal);
-		
+
 		RegisterCvar(new OSDCOMMAND("help",
-			"listsymbols: lists all registered functions, cvars and aliases", 
+			"listsymbols: lists all registered functions, cvars and aliases",
 			new OSDCVARFUNC() {
 			@Override
 			public void execute() {
@@ -448,14 +448,14 @@ public class Console {
 					foundText.add(key);
 					maxwidth = Math.max(maxwidth, key.length());
 				}
-				
+
 				maxwidth += 3;
 				if(foundText.size() > 1) {
 					Collections.sort(foundText);
 					Println("Symbol listing:", OSDTEXT_RED);
 					String msg = "  ";
 					for(int i = 0; i < foundText.size(); i ++)
-		            { 
+		            {
 						msg += foundText.get(i);
 						for(int j = 0; j < maxwidth - foundText.get(i).length(); j++)
 							msg += " ";
@@ -465,22 +465,22 @@ public class Console {
 		                    Print(msg);
 		                    if (i < foundText.size())
 		                    	msg = "  ";
-		                }  
+		                }
 		            }
 					if(msg.length() > 2)
-		        	  Println(msg); 
+		        	  Println(msg);
 					Println("Found " + foundText.size() + " symbols", OSDTEXT_RED);
 				}
 			}
 		}));
-		
+
 		RegisterCvar(new OSDCOMMAND("osdrows",
-			"osdrows: sets the number of visible lines of the OSD", osdrows, 
+			"osdrows: sets the number of visible lines of the OSD", osdrows,
 			new OSDCVARFUNC() {
 			@Override
 			public void execute() {
 				osdrows = Integer.parseInt(osd_argv[1]);
-				
+
 				if (osdrows > osdmaxrows) {
 					osdrows = osdmaxrows;
 					Set("osdrows", osdrows);
@@ -488,9 +488,9 @@ public class Console {
 	            if (osdrowscur!=-1) osdrowscur = osdrows;
 			}
 		}, 0, MAXPALOOKUPS-1));
-		
+
 		RegisterCvar(new OSDCOMMAND("osdtextscale",
-				"osdtextscale: sets the OSD text scale", 
+				"osdtextscale: sets the OSD text scale",
 				new OSDCVARFUNC() {
 				@Override
 				public void execute() {
@@ -513,23 +513,23 @@ public class Console {
 				}
 			}));
 	}
-	
+
 	public static void setTextScale(int scale)
 	{
 		boolean isFullscreen = osdrowscur == osdmaxrows;
 		osdtextscale = scale;
 		if(!Console.IsInited() || func == null) return;
-		
+
 		Console.ResizeDisplay(xdim, ydim);
 		if(isFullscreen)
 			fullscreen(true);
 	}
-	
+
 	public static int getTextScale()
 	{
 		return osdtextscale;
 	}
-	
+
 	public static void setCaptureKey(int sc, int num)
 	{
 		osdkey[num] = sc;
@@ -549,7 +549,7 @@ public class Console {
 	    if(getInput() != null)
 	    	getInput().initMessageInput(null);
 	}
-	
+
 	private static final InputCallback osdcallback = new InputCallback() {
 		@Override
 		public int run(int ch) {
@@ -577,7 +577,7 @@ public class Console {
 			return 0;
 		}
 	};
-	
+
 	public static void toggle()
 	{
 		osdscroll = -osdscroll;
@@ -589,25 +589,25 @@ public class Console {
         CaptureInput(osdscroll == 1);
         osdscrtime = func.getticksfunc();
 	}
-	
+
 	public static void fullscreen(boolean show)
 	{
-		if(show) 
+		if(show)
 			osdrowscur = osdmaxrows;
 		else osdrowscur = -1;
-		
+
 		showDisplay(show?1:0);
 		if(func != null)
 			func.showosd(show?1:0);
 	}
-	
+
 	static boolean lastmatch;
 	static int tabc;
 	public static void HandleScanCode()
 	{
 		if ((osdflags & OSD_INITIALIZED) == 0)
 	        return;
-		
+
 		for(int i = 0; i < 4; i++) {
 			if(getInput().keyStatusOnce(osdkey[i]))
 			{
@@ -615,12 +615,12 @@ public class Console {
 	            return;
 			}
 		}
-		
+
 		if ((osdflags & OSD_CAPTURE) == 0)
 			return;
-		
+
 		keytime = func.gettime();
-		
+
 		if(getInput().keyStatusOnce(Keys.ESCAPE))
 		{
 			osdscroll = -1;
@@ -628,19 +628,19 @@ public class Console {
 	        CaptureInput(false);
 	        osdscrtime = func.getticksfunc();
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.PAGE_UP))
 		{
 			if (osdhead < osdlines-2)
 	            osdhead++;
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.PAGE_DOWN))
 		{
 			if (osdhead > 0)
 	            osdhead--;
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.HOME))
 		{
 			if ((osdflags & OSD_CTRL) != 0)
@@ -652,7 +652,7 @@ public class Console {
 	            osdeditwinend = osdeditwinstart+editlinewidth;
 	        }
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.END))
 		{
 			if ((osdflags & OSD_CTRL) != 0)
@@ -669,12 +669,12 @@ public class Console {
 	            }
 	        }
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.INSERT))
 		{
 			osdflags = (osdflags & ~OSD_OVERTYPE) | (-(((osdflags & OSD_OVERTYPE) == 0)?1:0) & OSD_OVERTYPE);
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.LEFT))
 		{
 			if (osdeditcursor>0)
@@ -702,7 +702,7 @@ public class Console {
 	            osdeditwinstart-=(osdeditwinstart-osdeditcursor);
 	        }
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.RIGHT))
 		{
 			if (osdeditcursor<osdeditlen)
@@ -730,42 +730,42 @@ public class Console {
 	            osdeditwinend+=(osdeditcursor-osdeditwinend);
 	        }
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.UP))
 		{
 			HistoryPrev();
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.DOWN))
 		{
 			HistoryNext();
 		}
-		
+
 		if(getInput().keyStatus(Keys.SHIFT_LEFT) || getInput().keyStatus(Keys.SHIFT_RIGHT)) {
 			osdflags |= OSD_SHIFT;
 		} else osdflags &= ~OSD_SHIFT;
-		
+
 		if(getInput().keyStatus(Keys.CONTROL_LEFT) || getInput().keyStatus(Keys.CONTROL_RIGHT)) {
 			osdflags |= OSD_CTRL;
 		} else osdflags &= ~OSD_CTRL;
-		
+
 		if(getInput().keyStatusOnce(KEY_CAPSLOCK))
 		{
 			osdflags = (osdflags & ~OSD_CAPS) | (-(((osdflags & OSD_CAPS) == 0)?1:0) & OSD_CAPS);
 		}
-		
+
 		if(getInput().keyStatusOnce(Keys.DEL)) //backspace
 		{
 			if (/*osdeditcursor == osdeditlen ||*/ osdeditcursor == 0 || osdeditlen == 0)
 	            return;
 	         if (osdeditcursor <= osdeditlen-1)
 	        	System.arraycopy(osdeditbuf, osdeditcursor, osdeditbuf, osdeditcursor-1, osdeditlen-osdeditcursor);
-	       
+
 	         osdeditlen--;
 	         osdeditcursor--;
 		}
-		
-		if(getInput().keyStatusOnce(Keys.ENTER)) 
+
+		if(getInput().keyStatusOnce(Keys.ENTER))
 		{
 			if (osdeditlen>0)
 	        {
@@ -784,7 +784,7 @@ public class Console {
 	            	osdexeccount++;
 	            osdhistorypos=-1;
 	            String input = new String(osdeditbuf, 0, osdeditlen);
-	            
+
 	            if(Dispatch(input) == -1) {
 	            	Print("\"" + input + "\" is not a valid command or cvar\n", OSDTEXT_RED);
 	            }
@@ -796,7 +796,7 @@ public class Console {
 	        osdeditwinstart=0;
 	        osdeditwinend=editlinewidth;
 		}
-		
+
 		getInput().putMessage(osdcallback, false);
 
 		if(getInput().keyStatusOnce(Keymap.ANYKEY)) {
@@ -805,7 +805,7 @@ public class Console {
 			} else lastmatch = false;
 		}
 	}
-	
+
 	private static void HistoryPrev()
 	{
 	    if (osdhistorypos >= osdhistorysize-1) return;
@@ -829,7 +829,7 @@ public class Console {
 	        }
 	    }
 	}
-	
+
 	private static void HistoryNext()
 	{
 	    if (osdhistorypos < 0) return;
@@ -863,15 +863,15 @@ public class Console {
 	        }
 	    }
 	}
-	
+
 	private static OSDCOMMAND Get(String osdvar)
 	{
 		if(osdvar == null || osdvar.isEmpty() || osdvars == null)
 			return null;
-		
+
 		return osdvars.get(osdvar);
 	}
-	
+
 	private static void TokenizeString(String text)
 	{
 		osd_argc = 0;
@@ -892,7 +892,7 @@ public class Console {
     		index = osdvar.indexOf(" ");
     	}
 	}
-	
+
 	private static void LineFeed()
 	{
         System.arraycopy( osdtext, 0, osdtext, 1, Math.min(osdlines, MAXLINES-1) );
@@ -903,7 +903,7 @@ public class Console {
 
         if (osdlines < MAXLINES) osdlines++;
 	}
-	
+
 	private static List<String> foundText = new ArrayList<String>();
 	private static void ListCommands()
 	{
@@ -932,7 +932,7 @@ public class Console {
 				Println("Found " + foundText.size() + " possible completions for " + "\"" + inputText + "\"", OSDTEXT_RED);
 				String msg = "  ";
 				for(int i = 0; i < foundText.size(); i ++)
-	            { 
+	            {
 					msg += foundText.get(i);
 					for(int j = 0; j < maxwidth - foundText.get(i).length(); j++)
 						msg += " ";
@@ -942,10 +942,10 @@ public class Console {
 	                    Print(msg);
 	                    if (i < foundText.size() - 1)
 	                    	msg = "  ";
-	                }  
+	                }
 	            }
 				if(msg.length() > 2)
-	        	  Println(msg); 
+	        	  Println(msg);
 				Println("Press TAB again to cycle through matches", OSDTEXT_RED);
 				tabc = 0;
 				lastmatch = true;
@@ -960,11 +960,11 @@ public class Console {
 			osdeditcursor = osdeditlen;
 		}
 	}
-	
+
 	private static int Dispatch(String text)
 	{
 		if(osdvars != null) {
-        	TokenizeString(text); 
+        	TokenizeString(text);
         	if(osd_argc >= 1) {
 	        	OSDCOMMAND cvar = Get(osd_argv[0]);
 	        	if(cvar != null)
@@ -991,15 +991,15 @@ public class Console {
         }
 		if(func.textHandler(text))
 			return 0;
-		
+
 		return -1; //unknown command
 	}
-	
+
 	public static void ResizeDisplay(int w, int h)
 	{
-	    int newcols = func.getcolumnwidth((int)divscale(w, osdtextscale, 16)); //XXX
+	    int newcols = func.getcolumnwidth(divscale(w, osdtextscale, 16)); //XXX
 
-	    char[][] newosdtext = new char[MAXLINES][]; 
+	    char[][] newosdtext = new char[MAXLINES][];
 		short[][] newosdfmt = new short[MAXLINES][];
 
 		int line = 0;
@@ -1015,7 +1015,7 @@ public class Console {
 				if(pos >= newcols) {
 					newosdtext[++newline] = newosdtext[swapline];
 					newosdfmt[newline] = newosdfmt[swapline];
-					
+
 					newosdtext[swapline] = new char[newcols];
 					newosdfmt[swapline] = new short[newcols];
 					pos = 0;
@@ -1031,18 +1031,18 @@ public class Console {
 		osdfmt = newosdfmt;
 		osdlines = newline;
 	    osdcols = newcols;
-	    osdmaxrows = func.getrowheight((int) divscale(h, osdtextscale, 16))-2;
+	    osdmaxrows = func.getrowheight(divscale(h, osdtextscale, 16))-2;
 	    if (osdrows > osdmaxrows) {
 	    	osdrows = osdmaxrows;
 	    	Set("osdrows", osdrows);
 	    }
-	    
+
 	    osdpos = 0;
 	    osdhead = 0;
 	    osdeditwinstart = 0;
 	    osdeditwinend = editlinewidth;
 	}
-	
+
 	public static void draw()
 	{
 	    if ((osdflags & OSD_INITIALIZED) == 0 || func == null)
@@ -1085,14 +1085,14 @@ public class Console {
 	    int topoffs = osdhead;
 	    int row = osdrowscur-1;
 	    int lines = Math.min(osdlines-osdhead, osdrowscur);
-	    
-	    func.clearbg(osdcols, mulscale(osdrowscur+1, osdtextscale, 16)); 
+
+	    func.clearbg(osdcols, mulscale(osdrowscur+1, osdtextscale, 16));
 	    for (; lines>0; lines--, row--)
 	    {
 	        func.drawosdstr(0,row,topoffs,osdcols,(int)osdtextshade.value,(int)osdtextpal.value, osdtextscale);
 	        topoffs++;
 	    }
-	    
+
 	    {
 	        int offset = ((osdflags & (OSD_CAPS|OSD_SHIFT)) == (OSD_CAPS|OSD_SHIFT) && osdhead > 0)?1:0;
 	        int shade = ((int)osdpromptshade.value!=0)?(int)osdpromptshade.value:(sintable[(totalclock<<4)&2047]>>11);
@@ -1107,7 +1107,7 @@ public class Console {
 	        int len = Math.min(osdcols-1-3-offset, osdeditlen-osdeditwinstart);
 	        for (int x=len-1; x>=0; x--)
 	        	func.drawchar(3+x+offset,osdrowscur,osdeditbuf[x],(int)(osdeditshade.value)<<1,(int)osdeditpal.value, osdtextscale);
-	        
+
 	        offset += 3+osdeditcursor-osdeditwinstart;
 
 	        func.drawcursor(offset,osdrowscur,osdflags & OSD_OVERTYPE,keytime, osdtextscale);

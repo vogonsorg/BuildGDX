@@ -585,13 +585,12 @@ public class Polymost2D extends OrphoRenderer {
 		setpolymost2dview();
 		gl.glEnable(GL_ALPHA_TEST);
 		gl.glEnable(GL_TEXTURE_2D);
-		textureCache.bind(globalpicnum, globalpal, globalshade, 0, 0);
+		int method = (globalorientation >> 7) & 3;
+		if(method == 0)
+			gl.glDisable(GL_BLEND);
+		else gl.glEnable(GL_BLEND);
 
-//		Color c = parent.getshadefactor(globalshade, (globalorientation >> 7) & 3);
-//		if(c.a == 1.0f)
-//			gl.glDisable(GL_BLEND);
-//		else gl.glEnable(GL_BLEND);
-//		gl.glColor4f(c.r, c.g, c.b, c.a); XXX
+		textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
 
 		tessectrap(rx1, ry1, xb1, npoints); // vertices + textures
 	}
@@ -1242,30 +1241,6 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glEnable(GL_BLEND);
 			gl.glEnable(GL_ALPHA_TEST);
 		}
-
-//		Color polyColor = parent.getshadefactor(globalshade, method);
-//
-//		if (parent.defs != null) {
-//			if (pth != null && pth.isHighTile()) {
-//				if (pth.getPal() != globalpal) {
-//					// apply tinting for replaced textures
-//
-//					Palette p = parent.defs.texInfo.getTints(globalpal);
-//					polyColor.r *= p.r / 255.0f;
-//					polyColor.g *= p.g / 255.0f;
-//					polyColor.b *= p.b / 255.0f;
-//				}
-//
-//				Palette pdetail = parent.defs.texInfo.getTints(MAXPALOOKUPS - 1);
-//				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-//					polyColor.r *= pdetail.r / 255.0f;
-//					polyColor.g *= pdetail.g / 255.0f;
-//					polyColor.b *= pdetail.b / 255.0f;
-//				}
-//			}
-//		} XXX
-//
-//		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		gl.glEnableClientState(GL_VERTEX_ARRAY);

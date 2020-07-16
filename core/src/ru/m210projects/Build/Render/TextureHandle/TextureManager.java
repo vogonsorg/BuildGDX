@@ -73,9 +73,10 @@ public class TextureManager {
 			tile = null;
 		}
 
+		boolean useMipMaps = GLSettings.textureFilter.get().mipmaps;
 		if (tile != null) {
 			if (tile.isInvalidated()) {
-				tile.update(loadPic(si, dapicnum, dapalnum, clamping, alpha, skybox));
+				tile.update(loadPic(si, dapicnum, dapalnum, clamping, alpha, skybox), useMipMaps);
 				tile.setInvalidated(false);
 			}
 		} else {
@@ -87,7 +88,6 @@ public class TextureManager {
 			if (data == null)
 				return null;
 
-			boolean useMipMaps = GLSettings.textureFilter.get().mipmaps;
 			tile = newTile(data, data.isHighTile() ? si.palnum : dapalnum, useMipMaps);
 			if (data.isHighTile()) {
 				tile.setHighTile(si);
@@ -206,7 +206,7 @@ public class TextureManager {
 
 			if (!pic.isLoaded())
 				c.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-			BuildGdx.gl.glColor4f(c.r, c.g, c.b, c.a);
+			tile.setColor(c.r, c.g, c.b, c.a);
 		}
 
 		return tile;

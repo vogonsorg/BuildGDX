@@ -15,6 +15,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_S;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_T;
 import static com.badlogic.gdx.graphics.GL20.GL_UNPACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
+import static ru.m210projects.Build.Render.GLInfo.*;
 import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Render.Types.GL10.GL_CLAMP;
@@ -35,6 +36,8 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE1_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE2_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV_MODE;
+
+import java.nio.ByteBuffer;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GLInfo;
@@ -65,7 +68,6 @@ public class GLTile implements Comparable<GLTile> {
 	protected int glHandle;
 	protected final int glTarget;
 	protected final int width, height;
-	protected boolean useMipMaps;
 	private boolean isRequireShader;
 
 	protected int flags;
@@ -87,7 +89,6 @@ public class GLTile implements Comparable<GLTile> {
 	public GLTile(TileData pic, int palnum, boolean useMipMaps) {
 		this(pic.getWidth(), pic.getHeight());
 		this.palnum = palnum;
-		this.useMipMaps = useMipMaps;
 		if (pic.getPixelFormat() == PixelFormat.Pal8 || pic.getPixelFormat() == PixelFormat.Pal8A)
 			this.isRequireShader = true;
 
@@ -111,7 +112,11 @@ public class GLTile implements Comparable<GLTile> {
 		scalex = scaley = 1.0f;
 	}
 
-	public void update(TileData pic) {
+	public void setColor(float r, float g, float b, float a) {
+		BuildGdx.gl.glColor4f(r, g, b, a);
+	}
+
+	public void update(TileData pic, boolean useMipMaps) {
 		BuildGdx.gl.glBindTexture(glTarget, glHandle);
 
 		BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
@@ -121,10 +126,115 @@ public class GLTile implements Comparable<GLTile> {
 			generateMipmap(pic, false);
 	}
 
-	protected void generateMipmap(TileData pic, boolean doalloc) {
-//		EXTFramebufferObject.glGenerateMipmapEXT(glTarget);
-//		int mipLevel = calcMipLevel(pic.getWidth(), pic.getHeight(), 8192); //XXX Maxgltex
-//		generateMipMapCPU(doalloc, mipLevel, pic);
+	protected int calcMipLevel(int xsiz, int ysiz, int maxsize) {
+		int mipLevel = 0;
+		while ((xsiz >> mipLevel) > (1 << maxsize)
+				|| (ysiz >> mipLevel) > (1 << maxsize))
+			mipLevel++;
+		return mipLevel;
+	}
+
+	protected void generateMipmap(TileData data, boolean doalloc) {
+		if (supportsGenerateMipmaps) {
+			BuildGdx.gl.glGenerateMipmap(glTarget);
+			return;
+		}
+
+		int mipLevel = calcMipLevel(data.getWidth(), data.getHeight(), gltexmaxsize);
+
+		int x2 = data.getWidth(), x3;
+		int y2 = data.getHeight(), y3;
+		int r, g, b, a, k, wpptr, rpptr, wp, rp, index, rgb;
+
+		ByteBuffer pic = data.getPixels();
+	    for (int j = 1, x, y; (x2 > 1) || (y2 > 1); j++)
+	    {
+	        x3 = Math.max(1, x2 >> 1);
+	        y3 = Math.max(1, y2 >> 1);		// this came from the GL_ARB_texture_non_power_of_two spec
+	        for (y = 0; y < y3; y++)
+	        {
+	            wpptr = y * x3;
+	            rpptr = (y << 1) * x2;
+	            for (x = 0; x < x3; x++, wpptr++, rpptr += 2)
+	            {
+	            	wp = wpptr << 2;
+	            	rp = rpptr << 2;
+	            	r = g = b = a = k = 0;
+
+	            	index = rp;
+	                if (pic.get(index + 3) != 0)
+	                {
+	                	r += pic.get(index + 0) & 0xFF;
+						g += pic.get(index + 1) & 0xFF;
+						b += pic.get(index + 2) & 0xFF;
+						a += pic.get(index + 3) & 0xFF;
+	                	k++;
+	                }
+	                index = rp + 4;
+	                if (((x << 1) + 1 < x2) && (pic.get(index + 3) != 0))
+	                {
+	                	r += pic.get(index + 0) & 0xFF;
+						g += pic.get(index + 1) & 0xFF;
+						b += pic.get(index + 2) & 0xFF;
+						a += pic.get(index + 3) & 0xFF;
+	                	k++;
+	                }
+	                if ((y << 1) + 1 < y2)
+	                {
+	                	index = rp + (x2 << 2);
+	                    if (pic.get(index + 3) != 0)
+	                    {
+	                    	r += pic.get(index + 0) & 0xFF;
+							g += pic.get(index + 1) & 0xFF;
+							b += pic.get(index + 2) & 0xFF;
+							a += pic.get(index + 3) & 0xFF;
+	                    	k++;
+	                    }
+
+	                    index = rp + ((x2 + 1) << 2);
+	                    if (((x << 1) + 1 < x2) && pic.get(index + 3) != 0)
+	                    {
+	                    	r += pic.get(index + 0) & 0xFF;
+							g += pic.get(index + 1) & 0xFF;
+							b += pic.get(index + 2) & 0xFF;
+							a += pic.get(index + 3) & 0xFF;
+	                    	k++;
+	                    }
+	                }
+	                switch (k)
+	                {
+		                case 0:
+		                case 1:
+					        rgb = ( (a) << 24 ) + ( (b) << 16 ) + ( (g) << 8 ) + ( (r) << 0 );
+							break;
+						case 2:
+							rgb = ( ((a + 1) >> 1) << 24 ) + ( ((b + 1) >> 1) << 16 ) + ( ((g + 1) >> 1) << 8 ) + ( ((r + 1) >> 1) << 0 );
+							break;
+						case 3:
+							rgb = ( ((a * 85 + 128) >> 8) << 24 ) + ( ((b * 85 + 128) >> 8) << 16 ) + ( ((g * 85 + 128) >> 8) << 8 ) + ( ((r * 85 + 128) >> 8) << 0 );
+							break;
+						case 4:
+							rgb = ( ((a + 2) >> 2) << 24 ) + ( ((b + 2) >> 2) << 16 ) + ( ((g + 2) >> 2) << 8 ) + ( ((r + 2) >> 2) << 0 );
+							break;
+						default:
+							continue;
+	                }
+
+	                pic.putInt(wp, rgb);
+	            }
+	        }
+
+	        if (j >= mipLevel)
+	        {
+	        	if (doalloc) {
+	        		BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, j - mipLevel, data.getGLInternalFormat(), x3, y3, 0, data.getGLFormat(), GL_UNSIGNED_BYTE, pic); // loading 1st time
+				} else {
+					BuildGdx.gl.glTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, data.getGLFormat(), GL_UNSIGNED_BYTE, pic); // overwrite old texture
+				}
+	        }
+	        x2 = x3; y2 = y3;
+	    }
+
 	}
 
 	public void setupTextureWrap(int wrap) {
