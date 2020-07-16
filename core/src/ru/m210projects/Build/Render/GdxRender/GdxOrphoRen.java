@@ -59,7 +59,6 @@ public class GdxOrphoRen extends OrphoRenderer {
 	protected final TextureManager textureCache;
 	protected final GdxBatch batch;
 	protected final ShapeRenderer shape;
-	protected GLTile textAtlas;
 
 	public GdxOrphoRen(Engine engine, TextureManager textureCache) {
 		super(engine);
@@ -71,49 +70,10 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 	@Override
 	public void init() {
-		if(textAtlas == null) {
-			// construct a 256x128 8-bit alpha-only texture for the font glyph matrix
-//			UnsafeBuffer ub = getTmpBuffer();
-			ByteBuffer ub = BufferUtils.newByteBuffer(256 * 128);
-
-			int tptr, i, j;
-			for (int h = 0; h < 256; h++) {
-				tptr = (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 0; i < 8; i++) {
-					for (j = 0; j < 8; j++) {
-						if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							ub.put(tptr + j, (byte) (0xFF));
-					}
-					tptr += 256;
-				}
-			}
-
-			for (int h = 0; h < 256; h++) {
-				tptr = 256 * 64 + (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 1; i < 7; i++) {
-					for (j = 2; j < 6; j++) {
-						if ((smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							ub.put(tptr + j - 2, (byte) (0xFF));
-					}
-					tptr += 256;
-				}
-			}
-
-			textAtlas = new GLTile(256, 128);
-			textAtlas.bind();
-
-			int internalformat = GL_INTENSITY; // ... and GL_LUMINANCE doesn't work in GL3.0
-			int format = GL_LUMINANCE;
-			BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, textAtlas.getWidth(), textAtlas.getHeight(), 0, format, GL_UNSIGNED_BYTE, ub);
-			textAtlas.setupTextureFilter(glfiltermodes[0], 1);
-		}
 	}
 
 	@Override
 	public void uninit() {
-		if (textAtlas != null)
-			textAtlas.delete();
-		textAtlas = null;
 	}
 
 	@Override

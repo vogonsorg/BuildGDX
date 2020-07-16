@@ -252,7 +252,7 @@ public class PolymostModelRenderer {
 		if (m.texid[globalpal] == null)
 			m.loadskin(globalpal, textureCache.getShader() != null);
 		else
-			m.texid[globalpal].bind();
+			textureCache.bind(m.texid[globalpal]);
 
 		if (r_vertexarrays != 0) {
 			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
@@ -462,7 +462,7 @@ public class PolymostModelRenderer {
 		int rendered = 0, skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
 		GLTile texid = m.loadskin(defs, skinnum, globalpal, 0);
 		if (texid != null) {
-			texid.bind();
+			textureCache.bind(texid);
 			if (Console.Geti("r_detailmapping") != 0)
 				texid = m.loadskin(defs, skinnum, DETAILPAL, 0);
 			else
@@ -616,8 +616,7 @@ public class PolymostModelRenderer {
 			skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
 			GLTile texid = m.loadskin(defs, skinnum, globalpal, surfi);
 			if (texid != null) {
-
-				texid.bind();
+				textureCache.bind(texid);
 
 				if (Console.Geti("r_detailmapping") != 0)
 					texid = m.loadskin(defs, skinnum, DETAILPAL, surfi);

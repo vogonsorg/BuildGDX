@@ -25,6 +25,7 @@ import static ru.m210projects.Build.Engine.palookup;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
@@ -137,8 +138,18 @@ public class GdxRenderer implements GLRenderer {
 		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i=MAXTILES-1; i>=0; i--) {
 			Model m = defs.mdInfo.getModel(i);
-	        if(m != null)
-	        	m.setSkinParams(filter, anisotropy);
+	        if(m != null) {
+	        	Iterator<GLTile[]> it = m.getSkins();
+	        	while(it.hasNext()) {
+	        		for (GLTile tex : it.next()) {
+	    				if (tex == null)
+	    					continue;
+
+	    				textureCache.bind(tex);
+	    				tex.setupTextureFilter(filter, anisotropy);
+	    			}
+	        	}
+	        }
 	    }
 	}
 

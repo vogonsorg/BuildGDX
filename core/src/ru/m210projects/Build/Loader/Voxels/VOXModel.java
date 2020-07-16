@@ -18,11 +18,11 @@ import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.Iterator;
 
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
-import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class VOXModel extends Model {
@@ -171,8 +171,24 @@ public class VOXModel extends Model {
 	}
 
 	@Override
-	public void setSkinParams(GLFilter filter, int anisotropy) {
-		/* nothing */
+	public Iterator<GLTile[]> getSkins() {
+		Iterator<GLTile[]> it = new Iterator<GLTile[]>() {
+			@Override
+			public boolean hasNext() {
+				return false;
+			}
+
+			@Override
+			public GLTile[] next() {
+				return texid;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
+		return it;
 	}
 
 	@Override

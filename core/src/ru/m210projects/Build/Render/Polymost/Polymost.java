@@ -130,6 +130,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -233,7 +234,7 @@ public abstract class Polymost implements GLRenderer {
 
 //	public static short drawingskybox = 0;
 
-	GLTile frameTexture;
+	IntBuffer frameTexture;
 	private int framew;
 	private int frameh;
 	private int framesize;
@@ -373,8 +374,18 @@ public abstract class Polymost implements GLRenderer {
 		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			Model m = defs.mdInfo.getModel(i);
-			if (m != null)
-				m.setSkinParams(filter, anisotropy);
+			if (m != null) {
+				Iterator<GLTile[]> it = m.getSkins();
+	        	while(it.hasNext()) {
+	        		for (GLTile tex : it.next()) {
+	    				if (tex == null)
+	    					continue;
+
+	    				textureCache.bind(tex);
+	    				tex.setupTextureFilter(filter, anisotropy);
+	    			}
+	        	}
+			}
 		}
 	}
 
@@ -3331,14 +3342,16 @@ public abstract class Polymost implements GLRenderer {
 		gl.glPolygonOffset(0, 0);
 
 		if (drunk) {
+			BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
+
 			if (frameTexture == null || framew != xdim || frameh != ydim) {
 				if (frameTexture != null)
-					frameTexture.delete();
+					gl.glDeleteTextures(1, frameTexture);
+				else frameTexture = BufferUtils.newIntBuffer(1);
 
-				frameTexture = new GLTile(xdim, ydim);
-				frameTexture.bind();
-				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2)
-					;
+				gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
+				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
+
 				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE,
 						null);
 				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -3348,22 +3361,22 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			gl.glReadBuffer(GL_BACK);
-			frameTexture.bind();
+			gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
 			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framesize, framesize);
 
 			gl.glDisable(GL_DEPTH_TEST);
 			gl.glDisable(GL_ALPHA_TEST);
 			gl.glEnable(GL_TEXTURE_2D);
-			frameTexture.bind();
+			gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
 
 			gl.glMatrixMode(GL_PROJECTION);
 			gl.glPushMatrix();
 			gl.glLoadIdentity();
 
-			float tilt = (drunkIntensive * 360) / 2048f;
-			tilt = min(max(tilt, -MAXDRUNKANGLE), MAXDRUNKANGLE);
+			float tiltang = (drunkIntensive * 360) / 2048f;
+			float tilt = min(max(tiltang, -MAXDRUNKANGLE), MAXDRUNKANGLE);
 
-			gl.glScalef(0.95f, 1, 1);
+			gl.glScalef(1.05f, 1.05f, 1);
 			gl.glRotatef(tilt, 0, 0, 1.0f);
 
 			gl.glMatrixMode(GL_MODELVIEW);
@@ -3373,7 +3386,7 @@ public abstract class Polymost implements GLRenderer {
 			float u = (float) xdim / framesize;
 			float v = (float) ydim / framesize;
 
-			gl.glColor4f(1, 1, 1, 0.5f);
+			gl.glColor4f(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
 			gl.glBegin(GL10.GL_TRIANGLE_FAN);
 			gl.glTexCoord2f(0, 0);
 			gl.glVertex2f(-1f, -1f);
