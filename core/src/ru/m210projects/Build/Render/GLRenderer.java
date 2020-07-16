@@ -34,6 +34,8 @@ public interface GLRenderer extends Renderer {
 
 	public TextureManager newTextureManager(Engine engine);
 
+	public void enableShader(boolean enable);
+
 	public void palfade(HashMap<String, FadeEffect> fades);
 
 	public void preload();

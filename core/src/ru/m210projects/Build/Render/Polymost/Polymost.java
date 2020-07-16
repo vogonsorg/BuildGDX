@@ -190,7 +190,7 @@ public abstract class Polymost implements GLRenderer {
 		}
 	}
 
-	protected final Color polyColor = new Color();
+//	protected final Color polyColor = new Color();
 	public Rendering rendering = Rendering.Nothing;
 	public GLFog globalfog = new GLFog();
 
@@ -314,6 +314,11 @@ public abstract class Polymost implements GLRenderer {
 	@Override
 	public TextureManager newTextureManager(Engine engine) {
 		return new TextureManager(engine);
+	}
+
+	@Override
+	public void enableShader(boolean enable) {
+		textureCache.enableShader(enable);
 	}
 
 	@Override
@@ -690,31 +695,31 @@ public abstract class Polymost implements GLRenderer {
 			}
 		}
 
-		Color polyColor = getshadefactor(globalshade, method);
-		if (defs != null) {
-			if (pth != null && pth.isHighTile()) {
-				if (pth.getPal() != globalpal) {
-					// apply tinting for replaced textures
-
-					Palette p = defs.texInfo.getTints(globalpal);
-					polyColor.r *= p.r / 255.0f;
-					polyColor.g *= p.g / 255.0f;
-					polyColor.b *= p.b / 255.0f;
-				}
-
-				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
-				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-					polyColor.r *= pdetail.r / 255.0f;
-					polyColor.g *= pdetail.g / 255.0f;
-					polyColor.b *= pdetail.b / 255.0f;
-				}
-			}
-		}
-
-		if (HOM)
-			polyColor.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-
-		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+//		Color polyColor = getshadefactor(globalshade, method);
+//		if (defs != null) {
+//			if (pth != null && pth.isHighTile()) {
+//				if (pth.getPal() != globalpal) {
+//					// apply tinting for replaced textures
+//
+//					Palette p = defs.texInfo.getTints(globalpal);
+//					polyColor.r *= p.r / 255.0f;
+//					polyColor.g *= p.g / 255.0f;
+//					polyColor.b *= p.b / 255.0f;
+//				}
+//
+//				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
+//				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
+//					polyColor.r *= pdetail.r / 255.0f;
+//					polyColor.g *= pdetail.g / 255.0f;
+//					polyColor.b *= pdetail.b / 255.0f;
+//				}
+//			}
+//		}
+//
+//		if (HOM)
+//			polyColor.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+//
+//		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		// Hack for walls&masked walls which use textures that are not a power of 2
 		if ((pow2xsplit != 0) && (tsizx != xx)) {
@@ -3749,28 +3754,28 @@ public abstract class Polymost implements GLRenderer {
 		}
 	}
 
-	protected Color getshadefactor(int shade, int method) {
-		float fshade = min(max(shade * 1.04f, 0), numshades);
-		float f = (numshades - fshade) / numshades;
-
-		polyColor.r = polyColor.g = polyColor.b = f;
-
-		switch (method & 3) {
-		default:
-		case 0:
-		case 1:
-			polyColor.a = 1.0f;
-			break;
-		case 2:
-			polyColor.a = TRANSLUSCENT1;
-			break;
-		case 3:
-			polyColor.a = TRANSLUSCENT2;
-			break;
-		}
-
-		return polyColor;
-	}
+//	protected Color getshadefactor(int shade, int method) {
+//		float fshade = min(max(shade * 1.04f, 0), numshades);
+//		float f = (numshades - fshade) / numshades;
+//
+//		polyColor.r = polyColor.g = polyColor.b = f;
+//
+//		switch (method & 3) {
+//		default:
+//		case 0:
+//		case 1:
+//			polyColor.a = 1.0f;
+//			break;
+//		case 2:
+//			polyColor.a = TRANSLUSCENT1;
+//			break;
+//		case 3:
+//			polyColor.a = TRANSLUSCENT2;
+//			break;
+//		}
+//
+//		return polyColor;
+//	}
 
 	@Override
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,

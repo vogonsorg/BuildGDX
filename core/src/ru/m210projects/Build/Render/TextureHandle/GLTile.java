@@ -107,6 +107,8 @@ public class GLTile implements Comparable<GLTile> {
 
 		setClamped(pic.isClamped());
 		setHasAlpha(pic.hasAlpha());
+
+		scalex = scaley = 1.0f;
 	}
 
 	public void update(TileData pic) {

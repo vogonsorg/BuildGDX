@@ -112,6 +112,15 @@ public class IndexedTexShader {
 		this.cache = cache;
 	}
 
+	public void dispose() {
+		shaderProg.dispose();
+		for (int i = 0; i < palette.length; i++) {
+			if (palette[i] != null)
+				palette[i].delete();
+		}
+		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+	}
+
 	private GLTile createPalette(byte[] paldata, int shade) {
 		TileData dat = new PaletteData(paldata, shade);
 		GLTile palette = cache.newTile(dat, 0, false);

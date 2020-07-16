@@ -58,6 +58,11 @@ public class GdxRenderer implements GLRenderer {
 	}
 
 	@Override
+	public void enableShader(boolean enable) {
+		textureCache.enableShader(enable);
+	}
+
+	@Override
 	public void init() {
 		orphoRen.init();
 	}

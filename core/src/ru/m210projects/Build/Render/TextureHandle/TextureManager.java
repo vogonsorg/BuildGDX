@@ -11,6 +11,7 @@ import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
+import static ru.m210projects.Build.Engine.curpalette;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
@@ -26,6 +27,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Polymost.Polymost.Rendering;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Script.TextureHDInfo;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.Tile;
@@ -43,12 +45,8 @@ public class TextureManager {
 		this.engine = engine;
 		cache = new GLTileArray(MAXTILES);
 
-		try {
-			shader = new IndexedTexShader(this);
-		} catch (Exception e) {
-			e.printStackTrace();
-			shader = null;
-		}
+		if (GLSettings.usePaletteShader.get())
+			enableShader(true);
 	}
 
 	public void setTextureInfo(TextureHDInfo info) {
@@ -96,16 +94,13 @@ public class TextureManager {
 				tile.setHasAlpha(alpha);
 				tile.setSkyboxFace(skybox);
 
-				if (skybox > 0)
-				{
-					tile.scalex = (tile.getWidth()) / 64.0f;
-					tile.scaley = (tile.getHeight()) / 64.0f;
-				}
-				else
-				{
+				if (skybox > 0) {
+					tile.scalex = tile.getWidth() / 64.0f;
+					tile.scaley = tile.getHeight() / 64.0f;
+				} else {
 					Tile pic = engine.getTile(dapicnum);
-					tile.scalex = (tile.getWidth()) / ((float)pic.getWidth());
-					tile.scaley = (tile.getHeight()) / ((float)pic.getHeight());
+					tile.scalex = tile.getWidth() / ((float) pic.getWidth());
+					tile.scaley = tile.getHeight() / ((float) pic.getHeight());
 				}
 			}
 			cache.add(tile, dapicnum);
@@ -190,10 +185,28 @@ public class TextureManager {
 				}
 			}
 
-//			Color c = getshadefactor(shade, method);
-//
-//
-//			BuildGdx.gl.glColor4f(c.r, c.g, c.b, c.a);
+			Color c = getshadefactor(shade, method);
+			if (tile.isHighTile() && info != null) {
+				if (tile.getPal() != pal) {
+					// apply tinting for replaced textures
+
+					Palette p = info.getTints(pal);
+					c.r *= p.r / 255.0f;
+					c.g *= p.g / 255.0f;
+					c.b *= p.b / 255.0f;
+				}
+
+				Palette pdetail = info.getTints(MAXPALOOKUPS - 1);
+				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
+					c.r *= pdetail.r / 255.0f;
+					c.g *= pdetail.g / 255.0f;
+					c.b *= pdetail.b / 255.0f;
+				}
+			}
+
+			if (!pic.isLoaded())
+				c.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+			BuildGdx.gl.glColor4f(c.r, c.g, c.b, c.a);
 		}
 
 		return tile;
@@ -202,8 +215,6 @@ public class TextureManager {
 	public void precache(int dapicnum, int dapalnum, boolean clamped) {
 		bind(dapicnum, dapalnum, 0, 0, clamped ? 4 : 0);
 	}
-
-
 
 	public int getTextureUnits() {
 		return texunits;
@@ -276,6 +287,30 @@ public class TextureManager {
 		return fn;
 	}
 
+	protected final Color polyColor = new Color();
+	protected Color getshadefactor(int shade, int method) {
+		float fshade = min(max(shade * 1.04f, 0), numshades);
+		float f = (numshades - fshade) / numshades;
+
+		polyColor.r = polyColor.g = polyColor.b = f;
+
+		switch (method & 3) {
+		default:
+		case 0:
+		case 1:
+			polyColor.a = 1.0f;
+			break;
+		case 2:
+			polyColor.a = TRANSLUSCENT1;
+			break;
+		case 3:
+			polyColor.a = TRANSLUSCENT2;
+			break;
+		}
+
+		return polyColor;
+	}
+
 	public GLTile newTile(TileData pic, int palnum, boolean useMipMaps) {
 		return new GLTile(pic, palnum, useMipMaps);
 	}
@@ -321,5 +356,22 @@ public class TextureManager {
 
 	public boolean isUseShader() {
 		return shader != null && bindedTile != null && bindedTile.isRequireShader();
+	}
+
+	public void enableShader(boolean enable) {
+		if (enable && shader == null) {
+			try {
+				shader = new IndexedTexShader(this);
+				shader.changePalette(curpalette.getBytes());
+			} catch (Exception e) {
+				e.printStackTrace();
+				shader = null;
+			}
+		} else if (shader != null) {
+			shader.dispose();
+			shader = null;
+		}
+
+		uninit();
 	}
 }
