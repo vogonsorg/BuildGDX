@@ -71,6 +71,7 @@ public class GLTile implements Comparable<GLTile> {
 	protected int flags;
 	protected byte skyface;
 	protected Hicreplctyp hicr;
+	protected float scalex, scaley;
 
 	protected int palnum;
 	protected GLTile next;
@@ -273,11 +274,11 @@ public class GLTile implements Comparable<GLTile> {
 	}
 
 	public float getXScale() {
-		return hicr != null ? hicr.xscale : 1.0f;
+		return scalex;
 	}
 
 	public float getYScale() {
-		return hicr != null ? hicr.yscale : 1.0f;
+		return scaley;
 	}
 
 	public float getAlphaCut() {

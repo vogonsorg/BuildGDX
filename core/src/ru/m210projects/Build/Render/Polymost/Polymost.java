@@ -641,8 +641,8 @@ public abstract class Polymost implements GLRenderer {
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		if (pth.isHighTile()) {
-			hackscx = pth.getXScale();
-			hackscy = pth.getYScale();
+			hackscx = 1.0f; //pth.getXScale();
+			hackscy = 1.0f; //pth.getYScale();
 			tsizx = pth.getWidth();
 			tsizy = pth.getHeight();
 			HOM = false;

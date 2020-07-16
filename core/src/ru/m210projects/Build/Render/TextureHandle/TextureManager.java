@@ -93,7 +93,20 @@ public class TextureManager {
 			tile = newTile(data, data.isHighTile() ? si.palnum : dapalnum, useMipMaps);
 			if (data.isHighTile()) {
 				tile.setHighTile(si);
+				tile.setHasAlpha(alpha);
 				tile.setSkyboxFace(skybox);
+
+				if (skybox > 0)
+				{
+					tile.scalex = (tile.getWidth()) / 64.0f;
+					tile.scaley = (tile.getHeight()) / 64.0f;
+				}
+				else
+				{
+					Tile pic = engine.getTile(dapicnum);
+					tile.scalex = (tile.getWidth()) / ((float)pic.getWidth());
+					tile.scaley = (tile.getHeight()) / ((float)pic.getHeight());
+				}
 			}
 			cache.add(tile, dapicnum);
 		}
