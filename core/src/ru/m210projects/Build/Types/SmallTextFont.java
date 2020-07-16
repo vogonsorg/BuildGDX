@@ -37,13 +37,12 @@ public class SmallTextFont extends TileFont {
 	@Override
 	public GLTile getGL(TextureManager textureCache, int col) {
 		if(atlas == null)
-			init(textureCache, col);
+			init();
 
 		return atlas;
 	}
 
-	@Override
-	public GLTile init(TextureManager textureCache, int col) {
+	private GLTile init() {
 		// construct a 8-bit alpha-only texture for the font glyph matrix
 		TileFontData dat = new TileFontData(sizx, sizy) {
 			@Override
@@ -54,8 +53,7 @@ public class SmallTextFont extends TileFont {
 					tptr = (h % 16) * 8 + (h / 16) * sizx * 8;
 					for (int i = 1; i < 7; i++) {
 						for (int j = 2; j < 6; j++) {
-							if ((smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0)
-								data.put(tptr + j - 2, (byte) 255);
+							data.put(tptr + j - 2, (smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0 ? (byte) 255 : 0);
 						}
 						tptr += sizx;
 					}
@@ -75,7 +73,13 @@ public class SmallTextFont extends TileFont {
 			}
 		};
 
-		atlas = new GLTile(dat, 0, false);
+		atlas = new GLTile(dat, 0, false) {
+			@Override
+			public void delete() {
+				super.delete();
+				atlas = null;
+			}
+		};
 		atlas.setupTextureFilter(glfiltermodes[0], 1);
 		return atlas;
 	}

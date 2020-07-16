@@ -16,19 +16,13 @@ import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_FALSE;
 import static com.badlogic.gdx.graphics.GL20.GL_FLOAT;
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
-import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
-import static com.badlogic.gdx.graphics.GL20.GL_NEAREST;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAG_FILTER;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MIN_FILTER;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_FAN;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_STRIP;
 import static com.badlogic.gdx.graphics.GL20.GL_TRUE;
-import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXSPRITESONSCREEN;
 import static ru.m210projects.Build.Engine.MAXTILES;
@@ -47,6 +41,8 @@ import static ru.m210projects.Build.Engine.headspritesect;
 import static ru.m210projects.Build.Engine.nextspritesect;
 import static ru.m210projects.Build.Engine.numsectors;
 import static ru.m210projects.Build.Engine.numshades;
+import static ru.m210projects.Build.Engine.pSmallTextfont;
+import static ru.m210projects.Build.Engine.pTextfont;
 import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Engine.picsiz;
 import static ru.m210projects.Build.Engine.pow2char;
@@ -55,9 +51,7 @@ import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.show2dsector;
 import static ru.m210projects.Build.Engine.show2dsprite;
 import static ru.m210projects.Build.Engine.sintable;
-import static ru.m210projects.Build.Engine.smalltextfont;
 import static ru.m210projects.Build.Engine.sprite;
-import static ru.m210projects.Build.Engine.textfont;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.wall;
@@ -80,16 +74,12 @@ import static ru.m210projects.Build.Render.Polymost.Polymost.MAXWALLSB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_CLIP_PLANE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
-import static ru.m210projects.Build.Render.Types.GL10.GL_INTENSITY;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
 import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
-import static ru.m210projects.Build.Strhandler.Bstrlen;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 
 import com.badlogic.gdx.graphics.Color;
@@ -101,7 +91,6 @@ import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hudtyp;
-import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SECTOR;
@@ -116,7 +105,6 @@ public class Polymost2D extends OrphoRenderer {
 
 	private Polymost parent;
 	private GL10 gl;
-	private IntBuffer polymosttext;
 	private final TextureManager textureCache;
 
 	private final FloatBuffer vertices = BufferUtils.newFloatBuffer(8);
@@ -828,8 +816,7 @@ public class Polymost2D extends OrphoRenderer {
 	}
 
 	@Override
-	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
-			float scale) {
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale) {
 
 		if (font.type == FontType.Tilemap) {
 			if (palookup[col] == null)
@@ -846,7 +833,8 @@ public class Polymost2D extends OrphoRenderer {
 
 		int opal = globalpal;
 		globalpal = col;
-		atlas.bind();
+
+		textureCache.bind(atlas);
 
 		setpolymost2dview();
 		gl.glDisable(GL_FOG);
@@ -856,17 +844,17 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
 
-//		Color polyColor = parent.getshadefactor(shade, 0); XXX
-//		if (bit == Transparent.Bit1)
-//			polyColor.a = TRANSLUSCENT1;
-//		if (bit == Transparent.Bit2)
-//			polyColor.a = TRANSLUSCENT2;
-//
-//		if (font.type == FontType.Tilemap)
-//			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-//		else
-//			gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col),
-//					(int) (polyColor.a * 255));
+		Color polyColor = textureCache.getshadefactor(shade, 0);
+		if (bit == Transparent.Bit1)
+			polyColor.a = TRANSLUSCENT1;
+		if (bit == Transparent.Bit2)
+			polyColor.a = TRANSLUSCENT2;
+
+		if (font.type == FontType.Tilemap)
+			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+		else
+			gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col),
+					(int) (polyColor.a * 255));
 
 		int c = 0, line = 0;
 		int x, y, yoffs;
@@ -917,74 +905,7 @@ public class Polymost2D extends OrphoRenderer {
 
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
-		int oxpos = xpos;
-		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-
-		setpolymost2dview();
-		gl.glDisable(GL_FOG);
-		gl.glDisable(GL_ALPHA_TEST);
-		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
-
-		if (backcol >= 0) {
-			gl.glColor4ub(curpalette.getRed(backcol), curpalette.getGreen(backcol), curpalette.getBlue(backcol),
-					255);
-			int c = Bstrlen(text);
-
-			gl.glBegin(GL_TRIANGLE_FAN);
-			gl.glVertex2i(xpos, ypos);
-			gl.glVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
-			int x = xpos + (c << (3 - fontsize));
-			int y = ypos + (fontsize != 0 ? 6 : 8);
-			gl.glVertex2i(x, y);
-			gl.glVertex2i(xpos + (c << (3 - fontsize)), ypos);
-			gl.glEnd();
-		}
-
-		gl.glEnable(GL_TEXTURE_2D);
-		gl.glEnable(GL_BLEND);
-		gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col), 255);
-		float txc = (fontsize != 0 ? (4.0f / 256.0f) : (8.0f / 256.0f));
-		float tyc = (fontsize != 0 ? (6.0f / 128.0f) : (8.0f / 128.0f));
-
-		gl.glBegin(GL_TRIANGLE_STRIP);
-
-		int c = 0, line = 0;
-		int x, y, yoffs;
-		float tx, ty;
-
-		while (c < text.length && text[c] != '\0') {
-			if (text[c] == '\n') {
-				text[c] = 0;
-				line += 1;
-				xpos = oxpos - (int) (scale * (8 >> fontsize));
-			}
-			if (text[c] == '\r')
-				text[c] = 0;
-
-			tx = (text[c] % 32) / 32.0f;
-			ty = ((text[c] / 32) + (fontsize * 8)) / 16.0f;
-
-			yoffs = (int) (scale * line * (fontsize != 0 ? 6 : 8));
-
-			x = xpos + (int) (scale * (8 >> fontsize));
-			y = ypos + (int) (scale * (fontsize != 0 ? 6 : 8));
-
-			gl.glTexCoord2f(tx, ty);
-			gl.glVertex2i(xpos, ypos + yoffs);
-			gl.glTexCoord2f(tx, ty + tyc);
-			gl.glVertex2i(xpos, y + yoffs);
-			gl.glTexCoord2f(tx + txc, ty);
-			gl.glVertex2i(x, ypos + yoffs);
-			gl.glTexCoord2f(tx + txc, ty + tyc);
-			gl.glVertex2i(x, y + yoffs);
-
-			xpos += scale * (8 >> fontsize);
-			c++;
-		}
-
-		gl.glEnd();
-
-		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+		printext(fontsize == 0 ? pTextfont : pSmallTextfont, xpos, ypos, text, col, 0, Transparent.None, scale);
 	}
 
 	@Override
@@ -1399,56 +1320,10 @@ public class Polymost2D extends OrphoRenderer {
 
 	@Override
 	public void init() {
-		if (polymosttext == null) {
-			// construct a 256x128 8-bit alpha-only texture for the font glyph
-			// matrix
-			byte[] tbuf;
-			int tptr;
-			int h, i, j;
-			polymosttext = BufferUtils.newIntBuffer(1);
-
-			tbuf = new byte[256 * 128];
-			ByteBuffer fbuf = BufferUtils.newByteBuffer(256 * 128);
-
-			for (h = 0; h < 256; h++) {
-				tptr = (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 0; i < 8; i++) {
-					for (j = 0; j < 8; j++) {
-						if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							tbuf[tptr + j] = (byte) 255;
-					}
-					tptr += 256;
-				}
-			}
-
-			for (h = 0; h < 256; h++) {
-				tptr = 256 * 64 + (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 1; i < 7; i++) {
-					for (j = 2; j < 6; j++) {
-						if ((smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							tbuf[tptr + j - 2] = (byte) 255;
-					}
-					tptr += 256;
-				}
-			}
-
-			fbuf.put(tbuf);
-			fbuf.rewind();
-
-			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, 256, 128, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, fbuf);
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
 	}
 
 	@Override
 	public void uninit() {
-		if (polymosttext != null) {
-			// polymosttext.dispose();
-			gl.glDeleteTextures(1, polymosttext);
-		}
-		polymosttext = null;
 	}
 
 	class raster {

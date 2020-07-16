@@ -21,13 +21,12 @@ import static com.badlogic.gdx.graphics.GL20.*;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
-public abstract class TileFont {
+public class TileFont {
 
 	public abstract static class TileFontData extends TileData {
 
@@ -37,7 +36,7 @@ public abstract class TileFont {
 		public TileFontData(int width, int height) {
 			this.width = width;
 			this.height = height;
-			data = buildAtlas(getTmpBuffer(width * height));
+			this.data = buildAtlas(getTmpBuffer(width * height));
 		}
 
 		public abstract TextureBuffer buildAtlas(TextureBuffer data);
@@ -84,7 +83,7 @@ public abstract class TileFont {
 
 		@Override
 		public boolean isClamped() {
-			return true;
+			return false;
 		}
 
 		@Override
@@ -116,19 +115,25 @@ public abstract class TileFont {
 		this.cols = cols;
 		this.rows = rows;
 
+		this.sizx = charsizx * cols;
+		this.sizy = charsizy * rows;
+
 		managedFont.add(this);
 	}
 
-	public abstract GLTile init(TextureManager textureCache, int col);
-
 	public GLTile getGL(TextureManager textureCache, int col) {
-		return init(textureCache, col);
+		return textureCache.bind((Integer) ptr, col, 0, 0, 0);
+	}
+
+	public void uninit() {
+		if (atlas != null) {
+			atlas.delete();
+			atlas = null;
+		}
 	}
 
 	public void dispose() {
-		if (atlas != null && BuildGdx.gl != null)
-			atlas.delete();
-
+		uninit();
 		managedFont.remove(this);
 	}
 

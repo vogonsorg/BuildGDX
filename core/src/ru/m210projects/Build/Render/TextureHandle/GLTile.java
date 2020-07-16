@@ -99,7 +99,6 @@ public class GLTile implements Comparable<GLTile> {
 		BuildGdx.gl.glTexImage2D(glTarget, 0, pic.getGLInternalFormat(), pic.getWidth(), pic.getHeight(), 0,
 				pic.getGLFormat(), pic.getGLType(), pic.getPixels());
 
-
 		if (useMipMaps)
 			generateMipmap(pic, true);
 
@@ -310,11 +309,11 @@ public class GLTile implements Comparable<GLTile> {
 		return height;
 	}
 
-	public void unbind() {
+	protected void unbind() {
 		BuildGdx.gl.glBindTexture(glTarget, 0);
 	}
 
-	public boolean bind() {
+	protected boolean bind() {
 		if (glHandle != 0) {
 			BuildGdx.gl.glBindTexture(glTarget, glHandle);
 			return true;
@@ -325,7 +324,8 @@ public class GLTile implements Comparable<GLTile> {
 
 	public void delete() {
 		if (glHandle != 0) {
-			BuildGdx.gl.glDeleteTexture(glHandle);
+			if (BuildGdx.gl != null)
+				BuildGdx.gl.glDeleteTexture(glHandle);
 			glHandle = 0;
 		}
 	}

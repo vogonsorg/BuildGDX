@@ -13,6 +13,8 @@ import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.curpalette;
 import static ru.m210projects.Build.Engine.numshades;
+import static ru.m210projects.Build.Engine.pSmallTextfont;
+import static ru.m210projects.Build.Engine.pTextfont;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
@@ -132,8 +134,6 @@ public class TextureManager {
 
 	public GLTile bind(int tilenum, int pal, int shade, int skybox, int method) {
 		Tile pic = engine.getTile(tilenum);
-		if (!pic.isLoaded())
-			engine.loadtile(tilenum);
 
 		GLTile tile = get(tilenum, pal, skybox, clampingMode(method), alphaMode(method));
 		if (tile == null)
@@ -151,6 +151,10 @@ public class TextureManager {
 				alpha = TRANSLUSCENT2;
 				break;
 			}
+
+			if (!pic.isLoaded())
+				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+
 			getShader().shaderTransparent(alpha);
 		} else {
 			// texture scale by parkar request
@@ -288,7 +292,7 @@ public class TextureManager {
 	}
 
 	protected final Color polyColor = new Color();
-	protected Color getshadefactor(int shade, int method) {
+	public Color getshadefactor(int shade, int method) {
 		float fshade = min(max(shade * 1.04f, 0), numshades);
 		float f = (numshades - fshade) / numshades;
 
@@ -352,6 +356,10 @@ public class TextureManager {
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			cache.dispose(i);
 		}
+
+		//GLAtlas dispose
+		pTextfont.uninit();
+		pSmallTextfont.uninit();
 	}
 
 	public boolean isUseShader() {

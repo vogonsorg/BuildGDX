@@ -4,10 +4,13 @@ import java.nio.ByteBuffer;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.PixmapIO;
 
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.Types.AndroidTextureBuffer;
 import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
 import ru.m210projects.Build.Render.Types.FastTextureBuffer;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
@@ -88,16 +91,14 @@ public abstract class TileData {
 		if(tmp_buffer == null) {
 			size = TEX_MAX_SIZE * TEX_MAX_SIZE * 4;
 			try {
-	//			if(BuildGdx.app.getPlatform() != Platform.Android) XXX
+				if(BuildGdx.app.getPlatform() != Platform.Android)
 					tmp_buffer = new FastTextureBuffer(size);
-	//			else tmp_buffer = new AndroidTextureBuffer(size);
+				else tmp_buffer = new AndroidTextureBuffer(size);
 			} catch (Exception e) {
 				e.printStackTrace();
 				tmp_buffer = new DirectTextureBuffer(size);
 			}
 		}
 		return tmp_buffer;
-
-//		return ByteBuffer.allocateDirect(size).order(ByteOrder.LITTLE_ENDIAN);
 	}
 }

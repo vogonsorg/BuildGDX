@@ -51,8 +51,6 @@ import static ru.m210projects.Build.Engine.MAXSTATUS;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXWALLS;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
-import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.UseBloodPal;
 import static ru.m210projects.Build.Engine.automapping;
 import static ru.m210projects.Build.Engine.beforedrawrooms;
@@ -74,7 +72,6 @@ import static ru.m210projects.Build.Engine.headspritesect;
 import static ru.m210projects.Build.Engine.inpreparemirror;
 import static ru.m210projects.Build.Engine.nextspritesect;
 import static ru.m210projects.Build.Engine.numsectors;
-import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.offscreenrendering;
 import static ru.m210projects.Build.Engine.palette;
 import static ru.m210projects.Build.Engine.palfadergb;
@@ -137,7 +134,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -161,7 +157,6 @@ import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
-import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
@@ -694,32 +689,6 @@ public abstract class Polymost implements GLRenderer {
 				drawpoly[i].vv = drawpoly[i].px * gvx + drawpoly[i].py * gvy + gvo;
 			}
 		}
-
-//		Color polyColor = getshadefactor(globalshade, method);
-//		if (defs != null) {
-//			if (pth != null && pth.isHighTile()) {
-//				if (pth.getPal() != globalpal) {
-//					// apply tinting for replaced textures
-//
-//					Palette p = defs.texInfo.getTints(globalpal);
-//					polyColor.r *= p.r / 255.0f;
-//					polyColor.g *= p.g / 255.0f;
-//					polyColor.b *= p.b / 255.0f;
-//				}
-//
-//				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
-//				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-//					polyColor.r *= pdetail.r / 255.0f;
-//					polyColor.g *= pdetail.g / 255.0f;
-//					polyColor.b *= pdetail.b / 255.0f;
-//				}
-//			}
-//		}
-//
-//		if (HOM)
-//			polyColor.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-//
-//		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 
 		// Hack for walls&masked walls which use textures that are not a power of 2
 		if ((pow2xsplit != 0) && (tsizx != xx)) {
@@ -3754,29 +3723,6 @@ public abstract class Polymost implements GLRenderer {
 		}
 	}
 
-//	protected Color getshadefactor(int shade, int method) {
-//		float fshade = min(max(shade * 1.04f, 0), numshades);
-//		float f = (numshades - fshade) / numshades;
-//
-//		polyColor.r = polyColor.g = polyColor.b = f;
-//
-//		switch (method & 3) {
-//		default:
-//		case 0:
-//		case 1:
-//			polyColor.a = 1.0f;
-//			break;
-//		case 2:
-//			polyColor.a = TRANSLUSCENT1;
-//			break;
-//		case 3:
-//			polyColor.a = TRANSLUSCENT2;
-//			break;
-//		}
-//
-//		return polyColor;
-//	}
-
 	@Override
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
 			int cy1, int cx2, int cy2) {
@@ -3821,7 +3767,7 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public PixelFormat getTexFormat() {
-		return null; //textureCache.getFormat(); XXX
+		return PixelFormat.Rgb; //textureCache.getFormat(); XXX
 	}
 
 	@Override
