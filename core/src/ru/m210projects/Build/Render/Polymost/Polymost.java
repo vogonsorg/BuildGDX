@@ -51,7 +51,6 @@ import static ru.m210projects.Build.Engine.MAXSTATUS;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXWALLS;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.UseBloodPal;
 import static ru.m210projects.Build.Engine.automapping;
 import static ru.m210projects.Build.Engine.beforedrawrooms;
 import static ru.m210projects.Build.Engine.cosglobalang;
@@ -1276,8 +1275,6 @@ public abstract class Polymost implements GLRenderer {
 					} // yflip
 
 					int shade = wal.shade;
-					if (UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) // Blood's pal 1
-						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 					pow2xsplit = 1;
@@ -1326,8 +1323,6 @@ public abstract class Polymost implements GLRenderer {
 					} // yflip
 
 					int shade = drawalls_nwal.shade;
-					if (UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) // Blood's pal 1
-						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 					pow2xsplit = 1;
@@ -1382,8 +1377,6 @@ public abstract class Polymost implements GLRenderer {
 					}
 
 					int shade = wal.shade;
-					if (UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) // Blood's pal 1
-						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 					pow2xsplit = 1;
 					clipper.domost(x0, cy0, x1, cy1);
@@ -2345,8 +2338,6 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		int shade = wal.shade;
-		if (UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) // Blood's pal 1
-			shade = 0;
 		calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 		drawmaskwall_csy[0] = (drawmaskwall_cz[0] - globalposz) * ryp0 + ghoriz;
@@ -2526,12 +2517,6 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		int shade = (int) (globalshade / 1.5f);
-		if (UseBloodPal) {
-			if (tspr.pal == 5 && tspr.shade == 127)
-				shade = 0; // Blood's shadows (for pal 1)
-			if (globalpal == 1 || tspr.pal == 1) // Blood's pal 1
-				shade = 0;
-		}
 		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
 		tspr.x += spriteext[tspr.owner].xoff;

@@ -228,7 +228,7 @@ public class TextureManager {
 		texunits = GL_TEXTURE0;
 	}
 
-	private TileData loadPic(Hicreplctyp hicr, int dapicnum, int dapalnum, boolean clamping, boolean alpha,
+	protected TileData loadPic(Hicreplctyp hicr, int dapicnum, int dapalnum, boolean clamping, boolean alpha,
 			int skybox) {
 
 		int expand = 1 | 2;
@@ -252,7 +252,7 @@ public class TextureManager {
 		return new RGBTileData(engine.getTile(dapicnum), dapalnum, clamping, alpha, expand);
 	}
 
-	private String checkResource(Hicreplctyp hicr, int dapic, int facen) {
+	protected String checkResource(Hicreplctyp hicr, int dapic, int facen) {
 		if (hicr == null)
 			return null;
 
