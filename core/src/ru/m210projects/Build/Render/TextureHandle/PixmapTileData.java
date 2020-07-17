@@ -10,28 +10,29 @@ public class PixmapTileData extends TileData {
 
 	private Pixmap pixmap;
 	private boolean clamped;
+	private int width, height;
 
 	public PixmapTileData(Pixmap pixmap, boolean clamped, int expflag) {
 		this.pixmap = pixmap;
 		this.clamped = clamped;
 
-		int tsizx = pixmap.getWidth();
-		int tsizy = pixmap.getHeight();
+		width = pixmap.getWidth();
+		height = pixmap.getHeight();
 
-		int xsiz = tsizx;
-		int ysiz = tsizy;
+		int xsiz = width;
+		int ysiz = height;
 		if ((expflag & 1) != 0)
-			xsiz = calcSize(tsizx);
+			xsiz = calcSize(width);
 		if ((expflag & 2) != 0)
-			ysiz = calcSize(tsizy);
+			ysiz = calcSize(height);
 
-		if (xsiz != tsizx || ysiz != tsizy) {
+		if (xsiz != width || ysiz != height) {
 			Pixmap npix = new Pixmap(xsiz, ysiz, pixmap.getFormat());
 			npix.setFilter(Filter.NearestNeighbour);
 
 			if (!clamped) {
-				for (int x = 0, y; x < xsiz; x += tsizx) {
-					for (y = 0; y < ysiz; y += tsizy) {
+				for (int x = 0, y; x < xsiz; x += width) {
+					for (y = 0; y < ysiz; y += height) {
 						npix.drawPixmap(pixmap, x, y);
 					}
 				}
@@ -51,6 +52,14 @@ public class PixmapTileData extends TileData {
 	@Override
 	public boolean isClamped() {
 		return clamped;
+	}
+
+	public int getTileWidth() {
+		return width;
+	}
+
+	public int getTileHeight() {
+		return height;
 	}
 
 	@Override

@@ -78,8 +78,10 @@ public class TextureManager {
 		boolean useMipMaps = GLSettings.textureFilter.get().mipmaps;
 		if (tile != null) {
 			if (tile.isInvalidated()) {
-				tile.update(loadPic(si, dapicnum, dapalnum, clamping, alpha, skybox), useMipMaps);
 				tile.setInvalidated(false);
+
+				TileData data = loadPic(si, dapicnum, dapalnum, clamping, alpha, skybox);
+				tile.update(data, useMipMaps);
 			}
 		} else {
 			if (si != null && dapalnum != 0 && info.findTexture(dapicnum, 0, skybox) == si
@@ -90,22 +92,7 @@ public class TextureManager {
 			if (data == null)
 				return null;
 
-			tile = newTile(data, data.isHighTile() ? si.palnum : dapalnum, useMipMaps);
-			if (data.isHighTile()) {
-				tile.setHighTile(si);
-				tile.setHasAlpha(alpha);
-				tile.setSkyboxFace(skybox);
-
-				if (skybox > 0) {
-					tile.scalex = tile.getWidth() / 64.0f;
-					tile.scaley = tile.getHeight() / 64.0f;
-				} else {
-					Tile pic = engine.getTile(dapicnum);
-					tile.scalex = tile.getWidth() / ((float) pic.getWidth());
-					tile.scaley = tile.getHeight() / ((float) pic.getHeight());
-				}
-			}
-			cache.add(tile, dapicnum);
+			tile = allocTile(data, si, dapicnum, dapalnum, skybox, alpha, useMipMaps);
 		}
 
 		if (GLInfo.multisample != 0 && dapalnum >= (MAXPALOOKUPS - RESERVEDPALS)) {
@@ -158,10 +145,11 @@ public class TextureManager {
 			getShader().shaderTransparent(alpha);
 		} else {
 			// texture scale by parkar request
-			if (tile.getXScale() != 1.0f || (tile.getYScale() != 1.0f) && Rendering.Skybox.getIndex() == 0) {
+
+			if (tile.hicr != null && ((tile.hicr.xscale != 1.0f) || (tile.hicr.yscale != 1.0f)) && Rendering.Skybox.getIndex() == 0) {
 				BuildGdx.gl.glMatrixMode(GL_TEXTURE);
 				BuildGdx.gl.glLoadIdentity();
-				BuildGdx.gl.glScalef(tile.getXScale(), tile.getYScale(), 1.0f);
+				BuildGdx.gl.glScalef(tile.hicr.xscale, tile.hicr.yscale, 1.0f);
 				BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
 			}
 
@@ -173,10 +161,8 @@ public class TextureManager {
 
 						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
 						BuildGdx.gl.glLoadIdentity();
-						if (tile.getXScale() != 1.0f || (tile.getYScale() != 1.0f))
-							BuildGdx.gl.glScalef(tile.getXScale(), tile.getYScale(), 1.0f);
-						if (detail.getXScale() != 1.0f || (detail.getYScale() != 1.0f))
-							BuildGdx.gl.glScalef(detail.getXScale(), detail.getYScale(), 1.0f);
+						if (detail.hicr != null && (detail.hicr.xscale != 1.0f) || (detail.hicr.yscale != 1.0f))
+							BuildGdx.gl.glScalef(detail.hicr.xscale, detail.hicr.yscale, 1.0f);
 						BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
 					}
 				}
@@ -317,6 +303,34 @@ public class TextureManager {
 
 	public GLTile newTile(TileData pic, int palnum, boolean useMipMaps) {
 		return new GLTile(pic, palnum, useMipMaps);
+	}
+
+	protected GLTile allocTile(TileData data, Hicreplctyp si, int dapicnum, int dapalnum, int skybox, boolean alpha, boolean useMipMaps) {
+		GLTile tile = newTile(data, data.isHighTile() ? si.palnum : dapalnum, useMipMaps);
+		if (data.isHighTile()) {
+			tile.setHighTile(si);
+			tile.setHasAlpha(alpha);
+			tile.setSkyboxFace(skybox);
+
+			if (skybox > 0) {
+				tile.scalex = tile.getWidth() / 64.0f;
+				tile.scaley = tile.getHeight() / 64.0f;
+			} else {
+				Tile pic = engine.getTile(dapicnum);
+				int width = tile.getWidth();
+				int height = tile.getHeight();
+				if(data instanceof PixmapTileData) {
+					width = ((PixmapTileData) data).getTileWidth();
+					height = ((PixmapTileData) data).getTileHeight();
+				}
+
+				tile.scalex = width / ((float) pic.getWidth());
+				tile.scaley = height / ((float) pic.getHeight());
+			}
+		}
+
+		cache.add(tile, dapicnum);
+		return tile;
 	}
 
 	public void setFilter(GLFilter filter) {

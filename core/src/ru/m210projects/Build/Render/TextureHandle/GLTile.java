@@ -67,7 +67,7 @@ public class GLTile implements Comparable<GLTile> {
 
 	protected int glHandle;
 	protected final int glTarget;
-	protected final int width, height;
+	protected int width, height;
 	private boolean isRequireShader;
 
 	protected int flags;
@@ -89,6 +89,19 @@ public class GLTile implements Comparable<GLTile> {
 	public GLTile(TileData pic, int palnum, boolean useMipMaps) {
 		this(pic.getWidth(), pic.getHeight());
 		this.palnum = palnum;
+
+		alloc(pic);
+		if (useMipMaps)
+			generateMipmap(pic, true);
+
+		setClamped(pic.isClamped());
+		setHasAlpha(pic.hasAlpha());
+
+		scalex = scaley = 1.0f;
+	}
+
+	protected void alloc(TileData pic) {
+		this.isRequireShader = false;
 		if (pic.getPixelFormat() == PixelFormat.Pal8 || pic.getPixelFormat() == PixelFormat.Pal8A)
 			this.isRequireShader = true;
 
@@ -99,16 +112,8 @@ public class GLTile implements Comparable<GLTile> {
 		BuildGdx.gl.glTexImage2D(glTarget, 0, pic.getGLInternalFormat(), pic.getWidth(), pic.getHeight(), 0,
 				pic.getGLFormat(), pic.getGLType(), pic.getPixels());
 
-		if (useMipMaps)
-			generateMipmap(pic, true);
-
 		setupTextureFilter(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
 		setupTextureWrap(!pic.isClamped() ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
-
-		setClamped(pic.isClamped());
-		setHasAlpha(pic.hasAlpha());
-
-		scalex = scaley = 1.0f;
 	}
 
 	public void setColor(float r, float g, float b, float a) {
@@ -118,7 +123,16 @@ public class GLTile implements Comparable<GLTile> {
 	public void update(TileData pic, boolean useMipMaps) {
 		BuildGdx.gl.glBindTexture(glTarget, glHandle);
 
-		BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
+		//Realloc, because the texture size isn't match
+		if ((getWidth() != pic.getWidth() || getHeight() != pic.getHeight())) {
+			delete();
+
+			this.glHandle = BuildGdx.gl.glGenTexture();
+			this.width = pic.getWidth();
+			this.height = pic.getHeight();
+
+			alloc(pic);
+		} else BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
 				GL_UNSIGNED_BYTE, pic.getPixels());
 
 		if (useMipMaps)

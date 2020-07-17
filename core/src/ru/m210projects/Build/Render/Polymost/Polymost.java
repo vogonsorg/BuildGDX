@@ -635,8 +635,6 @@ public abstract class Polymost implements GLRenderer {
 			return;
 		n = j;
 
-		float hackscx, hackscy;
-
 		if (skyclamphack != 0)
 			method |= 4;
 
@@ -651,15 +649,14 @@ public abstract class Polymost implements GLRenderer {
 		if (trepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+		float hackscx = 1.0f;
+		float hackscy = 1.0f;
 		if (pth.isHighTile()) {
-			hackscx = 1.0f; //pth.getXScale();
-			hackscy = 1.0f; //pth.getYScale();
+			hackscx = pth.getXScale();
+			hackscy = pth.getYScale();
 			tsizx = pth.getWidth();
 			tsizy = pth.getHeight();
 			HOM = false;
-		} else {
-			hackscx = 1.0f;
-			hackscy = 1.0f;
 		}
 
 		if (GLInfo.texnpot == 0) {

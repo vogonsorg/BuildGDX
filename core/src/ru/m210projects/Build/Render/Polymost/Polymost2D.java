@@ -581,6 +581,8 @@ public class Polymost2D extends OrphoRenderer {
 		textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
 
 		tessectrap(rx1, ry1, xb1, npoints); // vertices + textures
+
+		textureCache.unbind();
 	}
 
 	private void drawtrap(float x0, float x1, float y0, float x2, float x3, float y1) {
@@ -901,6 +903,8 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
 
 		globalpal = opal;
+
+		textureCache.unbind();
 	}
 
 	@Override
@@ -1137,8 +1141,10 @@ public class Polymost2D extends OrphoRenderer {
 
 		float hackscx = 1.0f, hackscy = 1.0f;
 		if (pth != null && pth.isHighTile()) {
-			tsizx = pth.getWidth();
-			tsizy = pth.getHeight();
+//			tsizx = pth.getWidth();
+//			tsizy = pth.getHeight();
+			hackscx = pth.getXScale();
+			hackscy = pth.getYScale();
 		}
 
 		float ox2 = hackscx / pth.getWidth();
@@ -1176,6 +1182,8 @@ public class Polymost2D extends OrphoRenderer {
 
 		gl.glMatrixMode(GL_TEXTURE);
 		gl.glPopMatrix();
+
+		textureCache.unbind();
 	}
 
 	private void dorotatesprite3d(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat,
