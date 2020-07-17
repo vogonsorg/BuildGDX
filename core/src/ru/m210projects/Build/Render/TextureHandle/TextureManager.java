@@ -203,7 +203,7 @@ public class TextureManager {
 	}
 
 	public void precache(int dapicnum, int dapalnum, boolean clamped) {
-		bind(dapicnum, dapalnum, 0, 0, clamped ? 4 : 0);
+		get(dapicnum, dapalnum, 0, clamped, true);
 	}
 
 	public int getTextureUnits() {
@@ -232,7 +232,7 @@ public class TextureManager {
 			int skybox) {
 
 		int expand = 1 | 2;
-		System.err.println("loadPic " + dapicnum);
+		//System.err.println("loadPic " + dapicnum + " " + dapalnum + " clamping: " + clamping);
 		if (hicr != null) {
 			String fn = checkResource(hicr, dapicnum, skybox);
 			byte[] data = BuildGdx.cache.getBytes(fn, 0);
