@@ -93,16 +93,28 @@ public class IndexedTexShader {
 	private TextureManager cache;
 
 	public IndexedTexShader(TextureManager cache) throws Exception {
-		String fragment = "uniform sampler2D u_texture;\r\n" + "uniform sampler2D u_colorTable;\r\n"
-				+ "uniform float u_pal;\r\n" + "uniform float u_alpha;\r\n" + "\r\n" + "void main()\r\n" + "{	\r\n"
-				+ "	float index = texture2D(u_texture, gl_TexCoord[0].xy).r;\r\n" + "	if(index == 1.0) discard;\r\n"
-				+ "	\r\n" + "	vec3 color = texture2D(u_colorTable, vec2(index, u_pal / 256.0)).rgb;	\r\n"
-				+ "	gl_FragColor = vec4(color, u_alpha);\r\n" + "}";
+		String fragment =
+				"uniform sampler2D u_texture;\r\n"
+				+ "uniform sampler2D u_colorTable;\r\n"
+				+ "uniform float u_pal;\r\n"
+				+ "uniform float u_alpha;\r\n"
+				+ "\r\n"
+				+ "void main()\r\n"
+				+ "{	\r\n"
+				+ "	float index = texture2D(u_texture, gl_TexCoord[0].xy).r;\r\n"
+				+ "	if(index == 1.0 && u_alpha != 0.0) discard;\r\n"
+				+ "	\r\n"
+				+ "	vec3 color = texture2D(u_colorTable, vec2(index, u_pal / 256.0)).rgb;	\r\n"
+				+ "	gl_FragColor = vec4(color, u_alpha);\r\n"
+				+ "}";
 
-		String vertex = "void main()\r\n" + "{\r\n"
+		String vertex =
+				"void main()\r\n"
+				+ "{\r\n"
 				+ "	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; //ftransform();\r\n"
 				+ "	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;\r\n"
-				+ "	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\r\n" + "}";
+				+ "	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\r\n"
+				+ "}";
 
 		shaderProg = new ShaderProgram(vertex, fragment);
 		if (!shaderProg.isCompiled())
@@ -158,5 +170,9 @@ public class IndexedTexShader {
 
 	public void shaderTransparent(float alpha) {
 		shaderProg.setUniformf("u_alpha", alpha);
+	}
+
+	public ShaderProgram getShaderProgram() {
+		return shaderProg;
 	}
 }
