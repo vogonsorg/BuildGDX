@@ -187,7 +187,7 @@ public abstract class Polymost implements GLRenderer {
 
 //	protected final Color polyColor = new Color();
 	public Rendering rendering = Rendering.Nothing;
-	public GLFog globalfog = new GLFog();
+	public GLFog globalfog;
 
 	public static long TexDebug = -1;
 	public static int r_parallaxskyclamping = 1; // OSD CVAR XXX
@@ -300,6 +300,7 @@ public abstract class Polymost implements GLRenderer {
 		for (int i = 0; i < dcoord.length; i++)
 			dcoord[i] = new Vector2();
 		Arrays.fill(spritewall, -1);
+		this.globalfog = new GLFog();
 
 		this.orpho = new Polymost2D(this);
 		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)

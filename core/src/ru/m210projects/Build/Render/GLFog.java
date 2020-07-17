@@ -3,7 +3,6 @@ package ru.m210projects.Build.Render;
 import static com.badlogic.gdx.graphics.GL20.GL_DONT_CARE;
 import static com.badlogic.gdx.graphics.GL20.GL_LINEAR;
 import static com.badlogic.gdx.graphics.GL20.GL_NICEST;
-import static ru.m210projects.Build.Engine.UseBloodPal;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.palookupfog;
 import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
@@ -22,16 +21,16 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 public class GLFog {
 
 	// For GL_LINEAR fog:
-	private final int FOGDISTCONST = 600;
-	private final float FULLVIS_BEGIN = (float) 2.9e30;
-	private final float FULLVIS_END = (float) 3.0e30;
+	protected final int FOGDISTCONST = 600;
+	protected final float FULLVIS_BEGIN = (float) 2.9e30;
+	protected final float FULLVIS_END = (float) 3.0e30;
 
 	public int shade, pal;
 	public float combvis;
 
 	public boolean nofog;
 
-	private final FloatBuffer color = BufferUtils.newFloatBuffer(4);
+	protected final FloatBuffer color = BufferUtils.newFloatBuffer(4);
 
 	public void init() {
 		if (BuildGdx.graphics.getGLVersion().getVendorString().compareTo("NVIDIA Corporation") == 0) {
@@ -68,13 +67,6 @@ public class GLFog {
 		} else {
 			start = (shade > 0) ? 0 : -(FOGDISTCONST * shade) / combvis;
 			end = (FOGDISTCONST * (numshades - 1 - shade)) / combvis;
-		}
-
-		if (UseBloodPal && pal == 1) // Blood's pal 1
-		{
-			start = 0;
-			if (end > 2)
-				end = 2;
 		}
 
 		color.clear();
