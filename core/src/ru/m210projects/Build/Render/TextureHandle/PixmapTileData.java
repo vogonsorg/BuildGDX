@@ -101,4 +101,9 @@ public class PixmapTileData extends TileData {
 	public PixelFormat getPixelFormat() {
 		return PixelFormat.Rgb;
 	}
+
+	@Override
+	public void dispose() {
+		pixmap.dispose();
+	}
 }

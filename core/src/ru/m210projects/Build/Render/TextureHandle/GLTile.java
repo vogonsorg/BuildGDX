@@ -137,6 +137,8 @@ public class GLTile implements Comparable<GLTile> {
 
 		if (useMipMaps)
 			generateMipmap(pic, false);
+
+		pic.dispose();
 	}
 
 	protected int calcMipLevel(int xsiz, int ysiz, int maxsize) {

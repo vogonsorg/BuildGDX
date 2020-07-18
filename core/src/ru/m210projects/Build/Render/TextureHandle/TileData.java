@@ -53,6 +53,10 @@ public abstract class TileData {
 
 	public abstract boolean isHighTile();
 
+	public void dispose() {
+		/* for implementing */
+	}
+
 	public void save(String name) {
 		int width = getWidth();
 		int height = getHeight();

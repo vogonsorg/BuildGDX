@@ -374,7 +374,7 @@ public abstract class MDModel extends Model {
 
 			@Override
 			public boolean hasNext() {
-				return current.next != null;
+				return current != null && current.next != null;
 			}
 
 			@Override

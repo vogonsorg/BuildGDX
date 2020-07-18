@@ -328,6 +328,7 @@ public class TextureManager {
 				tile.scaley = height / ((float) pic.getHeight());
 			}
 		}
+		data.dispose();
 
 		cache.add(tile, dapicnum);
 		return tile;
