@@ -1,6 +1,7 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
 import static com.badlogic.gdx.graphics.GL20.GL_CLAMP_TO_EDGE;
+import static com.badlogic.gdx.graphics.GL20.GL_NEAREST;
 import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_REPEAT;
 import static com.badlogic.gdx.graphics.GL20.GL_REPLACE;
@@ -15,9 +16,10 @@ import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_S;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_T;
 import static com.badlogic.gdx.graphics.GL20.GL_UNPACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
-import static ru.m210projects.Build.Render.GLInfo.*;
 import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
+import static ru.m210projects.Build.Render.GLInfo.gltexmaxsize;
+import static ru.m210projects.Build.Render.GLInfo.supportsGenerateMipmaps;
 import static ru.m210projects.Build.Render.Types.GL10.GL_CLAMP;
 import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ALPHA_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ARB;
@@ -123,8 +125,15 @@ public class GLTile implements Comparable<GLTile> {
 	public void update(TileData pic, boolean useMipMaps) {
 		BuildGdx.gl.glBindTexture(glTarget, glHandle);
 
+		int width = pic.getWidth();
+		int height = pic.getHeight();
+		if(pic instanceof PixmapTileData) {
+			width = ((PixmapTileData) pic).getTileWidth();
+			height = ((PixmapTileData) pic).getTileHeight();
+		}
+
 		//Realloc, because the texture size isn't match
-		if ((getWidth() != pic.getWidth() || getHeight() != pic.getHeight())) {
+		if ((getWidth() != width || getHeight() != height)) {
 			delete();
 
 			this.glHandle = BuildGdx.gl.glGenTexture();
@@ -266,6 +275,13 @@ public class GLTile implements Comparable<GLTile> {
 	}
 
 	public void setupTextureFilter(GLFilter filter, int anisotropy) {
+		if(isRequireShader) {
+			BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+			return;
+		}
+
 		BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, filter.min);
 		BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, filter.mag);
 		if (anisotropy >= 1) // 1 if you want to disable anisotropy
