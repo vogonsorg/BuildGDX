@@ -118,7 +118,6 @@ import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_CLAMP;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE;
@@ -858,11 +857,6 @@ public abstract class Polymost implements GLRenderer {
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 		if (trepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
-
-		if (!pth.isHighTile() && textureCache.getShader() != null) {
-//			textureCache.unbindShader();
-			globalfog.enable();
-		}
 	}
 
 	// variables that are set to ceiling- or floor-members, depending
@@ -3048,10 +3042,10 @@ public abstract class Polymost implements GLRenderer {
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDisable(GL_ALPHA_TEST);
 		gl.glDisable(GL_TEXTURE_2D);
-		gl.glDisable(GL_FOG);
+		globalfog.disable();
 
 		gl.glEnable(GL_BLEND);
-		boolean hasShader = textureCache.getShader() != null;
+		boolean hasShader = textureCache.isUseShader();
 		if(hasShader)
 			textureCache.getShader().unbind();
 
@@ -3073,6 +3067,8 @@ public abstract class Polymost implements GLRenderer {
 		gl.glPopMatrix();
 
 		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		globalfog.enable();
 	}
 
 	@Override
@@ -3410,7 +3406,6 @@ public abstract class Polymost implements GLRenderer {
 			switch (flags[i]) {
 			case Uninit:
 				textureCache.uninit();
-				Console.Println("TextureCache uninited!", Console.OSDTEXT_RED);
 				break;
 			case SkinsOnly:
 				clearskins(true);

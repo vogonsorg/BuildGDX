@@ -158,6 +158,7 @@ public class TextureManager {
 			if (!pic.isLoaded())
 				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 
+			getShader().shaderDrawLastIndex((method & 3) == 0 || !alphaMode(method));
 			getShader().shaderTransparent(alpha);
 		} else {
 			// texture scale by parkar request
@@ -339,7 +340,6 @@ public class TextureManager {
 				int width = tile.getWidth();
 				int height = tile.getHeight();
 
-
 				tile.scalex = width / ((float) pic.getWidth());
 				tile.scaley = height / ((float) pic.getHeight());
 			}
@@ -384,6 +384,8 @@ public class TextureManager {
 	}
 
 	public void uninit() {
+		Console.Println("TextureCache uninited!", Console.OSDTEXT_RED);
+
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			cache.dispose(i);
 		}
@@ -398,19 +400,25 @@ public class TextureManager {
 	}
 
 	public void enableShader(boolean enable) {
-		if (enable && shader == null) {
-			try {
-				shader = new IndexedTexShader(this);
-				shader.changePalette(curpalette.getBytes());
-			} catch (Exception e) {
-				e.printStackTrace();
-				shader = null;
+		boolean isChanged = false;
+		if (enable) {
+			if(shader == null) {
+				try {
+					shader = new IndexedTexShader(this);
+					shader.changePalette(curpalette.getBytes());
+					isChanged = true;
+				} catch (Exception e) {
+					e.printStackTrace();
+					shader = null;
+				}
 			}
 		} else if (shader != null) {
 			shader.dispose();
 			shader = null;
+			isChanged = true;
 		}
 
-		uninit();
+		if(isChanged)
+			uninit();
 	}
 }

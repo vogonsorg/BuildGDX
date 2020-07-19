@@ -916,12 +916,19 @@ public class Polymost2D extends OrphoRenderer {
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
 		setpolymost2dview(); // JBF 20040205: more efficient setup
 
+		boolean hasShader = textureCache.isUseShader();
+		if(hasShader)
+			textureCache.getShader().unbind();
+
 		col = palookup[0][col] & 0xFF;
 		gl.glBegin(GL_LINES);
 		gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col), 255);
 		gl.glVertex2f(x1 / 4096.0f, y1 / 4096.0f);
 		gl.glVertex2f(x2 / 4096.0f, y2 / 4096.0f);
 		gl.glEnd();
+
+		if(hasShader)
+			textureCache.getShader().bind();
 	}
 
 	@Override
