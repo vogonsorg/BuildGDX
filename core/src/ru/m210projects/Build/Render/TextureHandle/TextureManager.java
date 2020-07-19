@@ -332,12 +332,13 @@ public class TextureManager {
 				tile.scaley = tile.getHeight() / 64.0f;
 			} else {
 				Tile pic = engine.getTile(dapicnum);
+				if(data instanceof PixmapTileData) {
+					tile.width = ((PixmapTileData) data).getTileWidth();
+					tile.height = ((PixmapTileData) data).getTileHeight();
+				}
 				int width = tile.getWidth();
 				int height = tile.getHeight();
-				if(data instanceof PixmapTileData) {
-					width = ((PixmapTileData) data).getTileWidth();
-					height = ((PixmapTileData) data).getTileHeight();
-				}
+
 
 				tile.scalex = width / ((float) pic.getWidth());
 				tile.scaley = height / ((float) pic.getHeight());

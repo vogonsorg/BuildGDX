@@ -31,19 +31,11 @@ public class PixmapTileData extends TileData {
 			npix.setFilter(Filter.NearestNeighbour);
 
 			if (!clamped) {
-//				for (int x = 0, y; x < xsiz; x += width) {
-//					for (y = 0; y < ysiz; y += height) {
-//						npix.drawPixmap(pixmap, x, y);
-//					}
-//				}
-
-				for(int i = 0; i < 2; i++) { //it's not right method because it strache texture's width, but works in fucking polymost
-					npix.drawPixmap(pixmap,
-					        0, 0, width, height,
-					        0, i * height, xsiz, height
-					);
+				for (int x = 0, y; x < xsiz; x += width) {
+					for (y = 0; y < ysiz; y += height) {
+						npix.drawPixmap(pixmap, x, y);
+					}
 				}
-				width = xsiz;
 			} else
 				npix.drawPixmap(pixmap, 0, 0);
 

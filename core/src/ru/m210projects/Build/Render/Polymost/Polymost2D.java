@@ -85,6 +85,7 @@ import java.util.Arrays;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.BufferUtils;
 
+import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
@@ -1135,14 +1136,34 @@ public class Polymost2D extends OrphoRenderer {
 			return;
 
 		int texunits = textureCache.getTextureUnits(), j;
-		float hackscx = 1.0f, hackscy = 1.0f;
-		if (pth != null && pth.isHighTile()) {
-			hackscx = pth.getXScale();
-			hackscy = pth.getYScale();
+//		float hackscx = 1.0f, hackscy = 1.0f;
+//		if (pth != null && pth.isHighTile()) {
+//			hackscx = pth.getXScale();
+//			hackscy = pth.getYScale();
+//		}
+//
+//		float ox2 = hackscx / pth.getWidth();
+//		float oy2 = hackscy / pth.getHeight();
+
+		float ox2 = 0;
+		float oy2 = 0;
+		int xx, yy;
+		if (pth.isHighTile()) {
+			tsizx = pth.getWidth();
+			tsizy = pth.getHeight();
 		}
 
-		float ox2 = hackscx / pth.getWidth();
-		float oy2 = hackscy / pth.getHeight();
+		if (GLInfo.texnpot == 0) {
+			for (xx = 1; xx < tsizx; xx += xx);
+			ox2 = 1.0f / xx;
+			for (yy = 1; yy < tsizy; yy += yy);
+			oy2 = 1.0f / yy;
+		} else {
+			xx = tsizx;
+			ox2 = 1.0f / xx;
+			yy = tsizy;
+			oy2 = 1.0f / yy;
+		}
 
 		if (((method & 3) == 0)) {
 			gl.glDisable(GL_BLEND);
