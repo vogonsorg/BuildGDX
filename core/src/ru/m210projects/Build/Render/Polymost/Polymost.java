@@ -170,7 +170,7 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Polymost implements GLRenderer {
 
 	public enum Rendering {
-		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling, Skybox;
+		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling, Skybox, Model;
 
 		private int index;
 
@@ -205,7 +205,7 @@ public abstract class Polymost implements GLRenderer {
 	private final int SPREXT_AWAY1 = 4;
 	private final int SPREXT_AWAY2 = 8;
 
-	private SPRITE[] tspriteptr = new SPRITE[MAXSPRITESONSCREEN + 1];
+	protected SPRITE[] tspriteptr = new SPRITE[MAXSPRITESONSCREEN + 1];
 
 	private int spritesx[] = new int[MAXSPRITESONSCREEN + 1];
 	private int spritesy[] = new int[MAXSPRITESONSCREEN + 1];
@@ -2482,7 +2482,6 @@ public abstract class Polymost implements GLRenderer {
 		globalpal = tspr.pal & 0xFF;
 		globalorientation = tspr.cstat;
 		spritenum = tspr.owner;
-		rendering = Rendering.Sprite.setIndex(snum);
 		Tile pic = engine.getTile(globalpicnum);
 
 		if ((globalorientation & 48) != 48) {
@@ -2508,9 +2507,6 @@ public abstract class Polymost implements GLRenderer {
 				method = 3 + 4;
 		}
 
-		int shade = (int) (globalshade / 1.5f);
-		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
-
 		tspr.x += spriteext[tspr.owner].xoff;
 		tspr.y += spriteext[tspr.owner].yoff;
 		tspr.z += spriteext[tspr.owner].zoff;
@@ -2518,11 +2514,16 @@ public abstract class Polymost implements GLRenderer {
 		int posx = tspr.x;
 		int posy = tspr.y;
 
+		int shade = (int) (globalshade / 1.5f);
+
 		while ((spriteext[tspr.owner].flags & SPREXT_NOTMD) == 0) {
+			rendering = Rendering.Model.setIndex(snum);
 
 			if (GLSettings.useModels.get()) {
 				Tile2model entry = defs != null ? defs.mdInfo.getParams(tspr.picnum) : null;
 				if (entry != null && entry.model != null && entry.framenum >= 0) {
+					calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
+
 					if (tspr.owner < 0 || tspr.owner >= MAXSPRITES /* || tspr.statnum == TSPR_MIRROR */ ) {
 						if (mdrenderer.mddraw(tspr, xoff, yoff) != 0)
 							return;
@@ -2540,6 +2541,8 @@ public abstract class Polymost implements GLRenderer {
 				if (entry != null) {
 					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
 					if (dist < 48000L * 48000L && entry.voxel != null && entry.voxel.getModel() != null) {
+						calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
+
 						if ((tspr.cstat & 48) != 48) {
 							if (mdrenderer.voxdraw(entry.voxel.getModel(), tspr) != 0)
 								return;
@@ -2555,6 +2558,9 @@ public abstract class Polymost implements GLRenderer {
 			}
 			break;
 		}
+
+		rendering = Rendering.Sprite.setIndex(snum);
+		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
 		if ((spriteext[tspr.owner].flags & SPREXT_AWAY1) != 0) {
 			posx += (sintable[(tspr.ang + 512) & 2047] >> 13);
