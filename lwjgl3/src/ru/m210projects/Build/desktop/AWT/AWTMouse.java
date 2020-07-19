@@ -298,8 +298,6 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			event.x = e.getX();
 			event.y = e.getY();
 			event.type = TouchEvent.TOUCH_DOWN;
-
-			System.err.println(e.getButton());
 			event.button = toGdxButton(e.getButton());
 			event.timeStamp = System.nanoTime();
 			touchEvents.add(event);
