@@ -3051,6 +3051,9 @@ public abstract class Polymost implements GLRenderer {
 		gl.glDisable(GL_FOG);
 
 		gl.glEnable(GL_BLEND);
+		boolean hasShader = textureCache.getShader() != null;
+		if(hasShader)
+			textureCache.getShader().unbind();
 
 		palfadergb.draw(gl);
 		if (fades != null) {
@@ -3060,6 +3063,9 @@ public abstract class Polymost implements GLRenderer {
 				obj.draw(gl);
 			}
 		}
+
+		if(hasShader)
+			textureCache.getShader().bind();
 
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glPopMatrix();
@@ -3323,6 +3329,9 @@ public abstract class Polymost implements GLRenderer {
 
 		if (drunk) {
 			BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
+			boolean hasShader = textureCache.getShader() != null;
+			if(hasShader)
+				textureCache.getShader().unbind();
 
 			if (frameTexture == null || framew != xdim || frameh != ydim) {
 				if (frameTexture != null)
@@ -3389,6 +3398,9 @@ public abstract class Polymost implements GLRenderer {
 			gl.glEnable(GL_DEPTH_TEST);
 			gl.glEnable(GL_ALPHA_TEST);
 			gl.glDisable(GL_TEXTURE_2D);
+
+			if(hasShader)
+				textureCache.getShader().bind();
 		}
 	}
 

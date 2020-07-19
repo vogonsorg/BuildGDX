@@ -68,7 +68,7 @@ public class GLTileArray {
 	public void invalidate(int tilenum) {
 		for (GLTile pth = array[tilenum]; pth != null;) {
 			GLTile next = pth.next;
-			if (pth.hicr == null)
+			if (pth.hicr == null && !pth.isRequireShader())
 				pth.setInvalidated(true);
 			pth = next;
 		}
