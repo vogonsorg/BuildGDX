@@ -119,6 +119,22 @@ public class TextureManager {
 		return tile;
 	}
 
+	/**
+	 *
+	 * @param tilenum
+	 * @param pal
+	 * @param shade
+	 * @param skybox
+	 * @param method
+	 * 		0: solid,
+	 * 		1: masked(255 is transparent),
+	 * 		2: transluscent #1,
+	 * 		3: transluscent #2,
+	 * 		4: it's a sprite, so wraparound isn't needed
+	 * @return GLTile
+	 *
+	 *
+	 */
 	public GLTile bind(int tilenum, int pal, int shade, int skybox, int method) {
 		Tile pic = engine.getTile(tilenum);
 
@@ -145,8 +161,7 @@ public class TextureManager {
 			getShader().shaderTransparent(alpha);
 		} else {
 			// texture scale by parkar request
-
-			if (tile.hicr != null && ((tile.hicr.xscale != 1.0f) || (tile.hicr.yscale != 1.0f)) && Rendering.Skybox.getIndex() == 0) {
+			if (tile.isHighTile() && ((tile.hicr.xscale != 1.0f) || (tile.hicr.yscale != 1.0f)) && Rendering.Skybox.getIndex() == 0) {
 				BuildGdx.gl.glMatrixMode(GL_TEXTURE);
 				BuildGdx.gl.glLoadIdentity();
 				BuildGdx.gl.glScalef(tile.hicr.xscale, tile.hicr.yscale, 1.0f);
@@ -161,7 +176,7 @@ public class TextureManager {
 
 						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
 						BuildGdx.gl.glLoadIdentity();
-						if (detail.hicr != null && (detail.hicr.xscale != 1.0f) || (detail.hicr.yscale != 1.0f))
+						if (detail.isHighTile() && (detail.hicr.xscale != 1.0f) || (detail.hicr.yscale != 1.0f))
 							BuildGdx.gl.glScalef(detail.hicr.xscale, detail.hicr.yscale, 1.0f);
 						BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
 					}
@@ -346,7 +361,7 @@ public class TextureManager {
 		if (tile == null)
 			return;
 
-		if (tile.hicr == null)
+		if (!tile.isHighTile())
 			tile.setInvalidated(true);
 	}
 

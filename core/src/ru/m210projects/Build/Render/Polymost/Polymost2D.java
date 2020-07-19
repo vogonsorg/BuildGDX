@@ -73,9 +73,9 @@ import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.Polymost.Polymost.MAXWALLSB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_CLIP_PLANE0;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
 import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
 
@@ -278,7 +278,7 @@ public class Polymost2D extends OrphoRenderer {
 					pic = engine.getTile(globalpicnum);
 				}
 
-				if (pic.data == null)
+				if (!pic.isLoaded())
 					engine.loadtile(globalpicnum);
 
 				globalshade = max(min(sec.floorshade, numshades - 1), 0);
@@ -545,7 +545,6 @@ public class Polymost2D extends OrphoRenderer {
 	}
 
 	protected void fillpolygon(int npoints) {
-
 		for (int z = 0; z < npoints; z++) {
 			if (xb1[z] >= npoints)
 				xb1[z] = 0;
@@ -553,6 +552,21 @@ public class Polymost2D extends OrphoRenderer {
 
 		if (palookup[globalpal] == null)
 			globalpal = 0;
+
+		setpolymost2dview();
+		gl.glEnable(GL_ALPHA_TEST);
+		gl.glEnable(GL_TEXTURE_2D);
+		int method = (globalorientation >> 7) & 3;
+		if(method == 0)
+			gl.glDisable(GL_BLEND);
+		else gl.glEnable(GL_BLEND);
+
+		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
+		if (pth == null)
+			return;
+
+		textureCache.unbind(); //deactivate effects
+		textureCache.bind(pth);
 
 		globalx1 = mulscale(globalx1, xyaspect, 16);
 		globaly2 = mulscale(globaly2, xyaspect, 16);
@@ -568,21 +582,7 @@ public class Polymost2D extends OrphoRenderer {
 			ry1[i] /= 4096.0f;
 		}
 
-		gl.glDisable(GL_FOG);
-
-		setpolymost2dview();
-		gl.glEnable(GL_ALPHA_TEST);
-		gl.glEnable(GL_TEXTURE_2D);
-		int method = (globalorientation >> 7) & 3;
-		if(method == 0)
-			gl.glDisable(GL_BLEND);
-		else gl.glEnable(GL_BLEND);
-
-		textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
-
 		tessectrap(rx1, ry1, xb1, npoints); // vertices + textures
-
-		textureCache.unbind();
 	}
 
 	private void drawtrap(float x0, float x1, float y0, float x2, float x3, float y1) {
@@ -839,7 +839,6 @@ public class Polymost2D extends OrphoRenderer {
 		textureCache.bind(atlas);
 
 		setpolymost2dview();
-		gl.glDisable(GL_FOG);
 		gl.glDisable(GL_ALPHA_TEST);
 		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
 
@@ -914,8 +913,6 @@ public class Polymost2D extends OrphoRenderer {
 
 	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
-		gl.glDisable(GL_FOG);
-
 		setpolymost2dview(); // JBF 20040205: more efficient setup
 
 		col = palookup[0][col] & 0xFF;
@@ -1095,7 +1092,6 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glTranslatef(-xoff, -yoff, 0);
 		gl.glScalef(xsiz, ysiz, 0);
 
-		gl.glDisable(GL_FOG);
 		drawrotate(method, dastat);
 
 		gl.glDisable(GL_CLIP_PLANE0);
@@ -1135,31 +1131,18 @@ public class Polymost2D extends OrphoRenderer {
 		}
 
 		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
-
 		if (pth == null) // hires texture not found
 			return;
 
+		int texunits = textureCache.getTextureUnits(), j;
 		float hackscx = 1.0f, hackscy = 1.0f;
 		if (pth != null && pth.isHighTile()) {
-//			tsizx = pth.getWidth();
-//			tsizy = pth.getHeight();
 			hackscx = pth.getXScale();
 			hackscy = pth.getYScale();
 		}
 
 		float ox2 = hackscx / pth.getWidth();
 		float oy2 = hackscy / pth.getHeight();
-
-		gl.glMatrixMode(GL_TEXTURE);
-		gl.glPushMatrix();
-		gl.glLoadIdentity();
-		gl.glScalef(tsizx, tsizy, 1.0f);
-		gl.glScalef(ox2, oy2, 1.0f);
-
-		if ((dastat & 4) != 0) {
-			gl.glScalef(1, -1, 1.0f);
-			gl.glTranslatef(0, -1, 0);
-		}
 
 		if (((method & 3) == 0)) {
 			gl.glDisable(GL_BLEND);
@@ -1169,15 +1152,36 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glEnable(GL_ALPHA_TEST);
 		}
 
-		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		gl.glEnableClientState(GL_VERTEX_ARRAY);
-
-		gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
 		gl.glVertexPointer(2, GL_FLOAT, 0, vertices);
+
+		j = GL_TEXTURE0;
+		while (j <= texunits) {
+			gl.glActiveTexture(j);
+			gl.glClientActiveTexture(j++);
+			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
+
+			gl.glMatrixMode(GL_TEXTURE);
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
+			gl.glScalef(tsizx, tsizy, 1.0f);
+			gl.glScalef(ox2, oy2, 1.0f);
+
+			if ((dastat & 4) != 0) {
+				gl.glScalef(1, -1, 1.0f);
+				gl.glTranslatef(0, -1, 0);
+			}
+		}
 
 		gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		j = GL_TEXTURE0;
+		while (j <= texunits) {
+			gl.glClientActiveTexture(j++);
+			gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+
 		gl.glDisableClientState(GL_VERTEX_ARRAY);
 
 		gl.glMatrixMode(GL_TEXTURE);
@@ -1312,7 +1316,6 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glClear(GL_DEPTH_BUFFER_BIT);
 		}
 
-		gl.glDisable(GL_FOG);
 		parent.globalorientation = hudsprite.cstat;
 		parent.mdrenderer.mddraw(hudsprite, 0, 0);
 

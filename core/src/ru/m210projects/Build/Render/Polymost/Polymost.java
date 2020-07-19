@@ -520,9 +520,6 @@ public abstract class Polymost implements GLRenderer {
 	// (dpx,dpy) specifies an n-sided polygon. The polygon must be a convex
 	// clockwise loop.
 	// n must be <= 8 (assume clipping can double number of vertices)
-	// method: 0:solid, 1:masked(255 is transparent), 2:transluscent #1,
-	// 3:transluscent #2
-	// +4 means it's a sprite, so wraparound isn't needed
 
 	private int drawpoly_math(int nn, int i, int j, double ngux, double ngdx, double nguy, double ngdy, double nguo,
 			double ngdo, double var) {
