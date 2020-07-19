@@ -41,7 +41,7 @@ import com.badlogic.gdx.utils.IntSet;
 import com.badlogic.gdx.utils.Pool;
 
 public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelListener, MouseInterface {
-	
+
 	class TouchEvent {
 		static final int TOUCH_DOWN = 0;
 		static final int TOUCH_UP = 1;
@@ -59,11 +59,12 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 	}
 
 	Pool<TouchEvent> usedTouchEvents = new Pool<TouchEvent>(16, 1000) {
+		@Override
 		protected TouchEvent newObject () {
 			return new TouchEvent();
 		}
 	};
-	
+
 	List<TouchEvent> touchEvents = new ArrayList<TouchEvent>();
 	int x = 0;
 	int y = 0;
@@ -73,7 +74,7 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 	boolean touchDown = false;
 	boolean justTouched = false;
 	boolean catched = false;
-	
+
 	Cursor noCursor;
 	Cursor defCursor = Cursor.getDefaultCursor();
 	boolean mouseInside;
@@ -100,34 +101,34 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 		canvas.addMouseMotionListener(this);
 		canvas.addMouseWheelListener(this);
 	}
-	
+
 	@Override
 	public void setWindowHandle() { /* nothing */ }
-	
+
 	private void setMousePosition(int x, int y)
 	{
 		if(robot != null)
 			robot.mouseMove(x, y);
 	}
-	
+
 	@Override
 	public void setCursorPosition(int x, int y)
 	{
 		this.x = x;
 		this.y = y;
-		
+
 		Canvas canvas = display.getCanvas();
 		x += canvas.getLocationOnScreen().x;
 		y += canvas.getLocationOnScreen().y;
 
 		setMousePosition(x, y);
 	}
-	
+
 	@Override
 	public void reset()
 	{
 		Canvas canvas = display.getCanvas();
-		
+
 		touchDown = false;
 		x = canvas.getWidth() / 2;
 		y = canvas.getHeight() / 2;
@@ -146,7 +147,7 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 				justTouched = false;
 				Arrays.fill(justPressedButtons, false);
 			}
-			
+
 			long currentEventTimeStamp = -1;
 			if (processor != null) {
 				int len = touchEvents.size();
@@ -178,26 +179,26 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 				int len = touchEvents.size();
 				for (int i = 0; i < len; i++) {
 					TouchEvent event = touchEvents.get(i);
-					if (event.type == TouchEvent.TOUCH_DOWN) {
+					if (event.type == TouchEvent.TOUCH_DOWN && event.button != -1) {
 						justPressedButtons[event.button] = true;
 						justTouched = true;
 					}
 					usedTouchEvents.free(event);
 				}
 			}
-			
+
 			if (touchEvents.isEmpty()) {
 				deltaX = 0;
 				deltaY = 0;
 				wheel = 0;
 			}
-			
+
 			touchEvents.clear();
-			
+
 			return currentEventTimeStamp;
 		}
 	}
-	
+
 	@Override
 	public void mouseDragged (MouseEvent e) {
 		synchronized (this) {
@@ -256,9 +257,9 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 	}
 
 	private void checkCatched (MouseEvent e) {
-		if(!display.isActive()) 
+		if(!display.isActive())
 			return;
-		
+
 		Canvas canvas = display.getCanvas();
 		if (catched && canvas.isShowing()) {
 			if (e.getX() < 0 || e.getX() >= canvas.getWidth() || e.getY() < 0 || e.getY() >= canvas.getHeight()) {
@@ -267,7 +268,7 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			}
 		}
 	}
-	
+
 	@Override
 	public void showCursor (boolean visible) {
 		if(display == null) return;
@@ -284,11 +285,11 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 				display.m_frame.getContentPane().setCursor(noCursor);
 			}
 		} else {
-			if(display.m_frame.getContentPane().getCursor() != defCursor) 
+			if(display.m_frame.getContentPane().getCursor() != defCursor)
 				display.m_frame.getContentPane().setCursor(defCursor);
 		}
 	}
-	
+
 	@Override
 	public void mousePressed (MouseEvent e) {
 		synchronized (this) {
@@ -297,6 +298,8 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			event.x = e.getX();
 			event.y = e.getY();
 			event.type = TouchEvent.TOUCH_DOWN;
+
+			System.err.println(e.getButton());
 			event.button = toGdxButton(e.getButton());
 			event.timeStamp = System.nanoTime();
 			touchEvents.add(event);
@@ -309,12 +312,14 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			pressedButtons.add(event.button);
 		}
 	}
-	
-	private int toGdxButton (int swingButton) {
-		if (swingButton == MouseEvent.BUTTON1) return Buttons.LEFT;
-		if (swingButton == MouseEvent.BUTTON2) return Buttons.MIDDLE;
-		if (swingButton == MouseEvent.BUTTON3) return Buttons.RIGHT;
-		return Buttons.LEFT;
+
+	private int toGdxButton (int button) {
+		if (button == 1) return Buttons.LEFT;
+		if (button == 2) return Buttons.MIDDLE;
+		if (button == 3) return Buttons.RIGHT;
+		if (button == 4) return Buttons.BACK;
+		if (button == 5) return Buttons.FORWARD;
+		return -1;
 	}
 
 	@Override
@@ -347,11 +352,12 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			event.scrollAmount = e.getWheelRotation();
 			event.timeStamp = System.nanoTime();
 			touchEvents.add(event);
-			
+
 			wheel = -event.scrollAmount;
 		}
 	}
-	
+
+	@Override
 	public void setCursorCatched (boolean catched) {
 		this.catched = catched;
 		showCursor(!catched);
@@ -395,7 +401,7 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 	public boolean isButtonPressed(int button) {
 		return pressedButtons.contains(button);
 	}
-	
+
 	@Override
 	public boolean isButtonJustPressed(int button) {
 		if(button < 0 || button >= justPressedButtons.length) return false;
