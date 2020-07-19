@@ -9,6 +9,9 @@ import com.badlogic.gdx.graphics.PixmapIO;
 
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Compat.Path;
+import ru.m210projects.Build.FileHandle.FileResource;
+import ru.m210projects.Build.FileHandle.FileResource.Mode;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Types.AndroidTextureBuffer;
 import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
@@ -61,10 +64,17 @@ public abstract class TileData {
 		int width = getWidth();
 		int height = getHeight();
 
-		Pixmap pixmap = new Pixmap(width, height, Format.RGB888);
 		ByteBuffer pixels = getPixels();
 		int bytes = getPixelFormat().getLength();
+		if(bytes == 1) {
+			FileResource raw = BuildGdx.compat.open(name + ".raw", Path.Absolute, Mode.Write);
+			raw.writeBytes(pixels, width * height);
+			raw.close();
+			return;
+		}
 
+		name += ".png";
+		Pixmap pixmap = new Pixmap(width, height, Format.RGB888);
 		float[] color = new float[4];
 		for (int i = 0; i < (width * height); i++) {
 			for(int c = 0; c < bytes; c++)
