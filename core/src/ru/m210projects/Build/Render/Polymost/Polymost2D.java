@@ -1193,8 +1193,10 @@ public class Polymost2D extends OrphoRenderer {
 
 		j = GL_TEXTURE0;
 		while (j <= texunits) {
-			gl.glActiveTexture(j);
-			gl.glClientActiveTexture(j++);
+			if (GLInfo.multisample != 0) {
+				gl.glActiveTexture(j);
+				gl.glClientActiveTexture(j++);
+			} else j++;
 			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
 
@@ -1212,11 +1214,13 @@ public class Polymost2D extends OrphoRenderer {
 
 		gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-		j = GL_TEXTURE0;
-		while (j <= texunits) {
-			gl.glClientActiveTexture(j++);
-			gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
+		if (GLInfo.multisample != 0) {
+			j = GL_TEXTURE0;
+			while (j <= texunits) {
+				gl.glClientActiveTexture(j++);
+				gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			}
+		} else gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 		gl.glDisableClientState(GL_VERTEX_ARRAY);
 

@@ -41,7 +41,7 @@ public class TextureManager {
 	private TextureHDInfo info;
 	protected GLTile bindedTile;
 	protected IndexedTexShader shader;
-	protected int texunits;
+	protected int texunits = GL_TEXTURE0;
 
 	public TextureManager(Engine engine) {
 		this.engine = engine;
