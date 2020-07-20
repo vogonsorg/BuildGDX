@@ -684,6 +684,8 @@ public class Polymost2D extends OrphoRenderer {
 			slist[j++] = i;
 		}
 
+		parent.globalfog.apply();
+
 		if (z != 3) // Simple polygon... early out
 		{
 			gl.glBegin(GL_TRIANGLE_FAN);
@@ -864,6 +866,8 @@ public class Polymost2D extends OrphoRenderer {
 		float txc = font.charsizx / (float) font.sizx, tx;
 		float tyc = font.charsizy / (float) font.sizy, ty;
 
+		parent.globalfog.apply();
+
 		gl.glBegin(GL_TRIANGLE_STRIP);
 
 		int oxpos = xpos;
@@ -915,6 +919,8 @@ public class Polymost2D extends OrphoRenderer {
 	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
 		setpolymost2dview(); // JBF 20040205: more efficient setup
+
+		parent.globalfog.apply();
 
 		boolean hasShader = textureCache.isUseShader();
 		if(hasShader)
@@ -1141,6 +1147,8 @@ public class Polymost2D extends OrphoRenderer {
 		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
 		if (pth == null) // hires texture not found
 			return;
+
+		parent.globalfog.apply();
 
 		int texunits = textureCache.getTextureUnits(), j;
 //		float hackscx = 1.0f, hackscy = 1.0f;

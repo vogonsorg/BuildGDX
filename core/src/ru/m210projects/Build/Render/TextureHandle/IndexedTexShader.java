@@ -99,14 +99,14 @@ public class IndexedTexShader {
 				+ "uniform float u_pal;"
 				+ "uniform float u_alpha;"
 				+ "uniform int u_draw255;"
-				+ "uniform float u_fogdensity;"
+				+ "uniform int u_fogenable;"
 				+ "uniform vec4 u_fogcolour;"
 				+ "uniform float u_fogstart;"
 				+ "uniform float u_fogend;"
-				+ "vec4 fog(vec4 src) {"
-				+ "    float dist = gl_FragCoord.z / gl_FragCoord.w;"
-				+ "    float z = u_fogdensity * dist;"
-				+ "    return mix(src, u_fogcolour, 1.0 - clamp((u_fogend - z) / (u_fogend - u_fogstart), 0.0, 1.0));"
+				+ "float fog(float dist) {"
+				//+ " if(u_fogenable == 1)"
+				+ "	return clamp(1.0 - (u_fogend - gl_FogFragCoord) / (u_fogend - u_fogstart), 0.0, 1.0);"
+				//+ " else return 0.0;"
 				+ "}"
 				+ "void main()"
 				+ "{"
@@ -119,7 +119,7 @@ public class IndexedTexShader {
 				+ "	"
 				+ "	vec3 color = texture2D(u_colorTable, vec2(index, u_pal / 256.0)).rgb;"
 				+ "	vec4 src = vec4(color, u_alpha);"
-				+ " gl_FragColor = fog(src);"
+				+ " gl_FragColor = mix(src, u_fogcolour, fog(gl_FogFragCoord));"
 				+ "}"
 				;
 
@@ -128,8 +128,9 @@ public class IndexedTexShader {
 				+ "{"
 				+ "	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; /*ftransform();*/"
 				+ "	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;"
+				+ "	gl_FogFragCoord = abs(gl_Vertex.z);"
 				+ "	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;"
-				+ "}\r\n"
+				+ "}"
 				;
 
 		shaderProg = new ShaderProgram(vertex, fragment);

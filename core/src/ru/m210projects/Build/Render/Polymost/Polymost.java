@@ -71,12 +71,10 @@ import static ru.m210projects.Build.Engine.headspritesect;
 import static ru.m210projects.Build.Engine.inpreparemirror;
 import static ru.m210projects.Build.Engine.nextspritesect;
 import static ru.m210projects.Build.Engine.numsectors;
-import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.offscreenrendering;
 import static ru.m210projects.Build.Engine.palette;
 import static ru.m210projects.Build.Engine.palfadergb;
 import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Engine.palookupfog;
 import static ru.m210projects.Build.Engine.parallaxyoffs;
 import static ru.m210projects.Build.Engine.picsiz;
 import static ru.m210projects.Build.Engine.pow2char;
@@ -135,7 +133,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -430,7 +427,7 @@ public abstract class Polymost implements GLRenderer {
 		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
 		orpho.init();
-		globalfog.init();
+		globalfog.init(textureCache);
 
 		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -696,6 +693,8 @@ public abstract class Polymost implements GLRenderer {
 				drawpoly[i].vv = drawpoly[i].px * gvx + drawpoly[i].py * gvy + gvo;
 			}
 		}
+
+		globalfog.apply();
 
 		// Hack for walls&masked walls which use textures that are not a power of 2
 		if ((pow2xsplit != 0) && (tsizx != xx)) {
@@ -2015,9 +2014,6 @@ public abstract class Polymost implements GLRenderer {
 	public double defznear = 0.1;
 	public double defzfar = 0.9;
 
-	private double FOGSCALE = 0.0001536;
-	private double gvisibility;
-
 	@Override
 	public void drawrooms() // eduke32
 	{
@@ -2046,9 +2042,6 @@ public abstract class Polymost implements GLRenderer {
 		gyxscale = xdimenscale / 131072.0f;
 		gxyaspect = (viewingrange / 65536.0) * xyaspect * 5.0 / 262144.0;
 		gviewxrange = viewingrange * xdimen / (32768.0f * 1024.0f);
-
-		gvisibility = globalvisibility * gxyaspect * FOGSCALE;
-
 		gcosang = cosglobalang / 262144.0f;
 		gsinang = singlobalang / 262144.0f;
 		gcosang2 = cosviewingrangeglobalang / 262144.0f;
@@ -3129,39 +3122,14 @@ public abstract class Polymost implements GLRenderer {
 		globalfog.shade = shade;
 		globalfog.combvis = globalvisibility * ((vis + 16) & 0xFF);
 		globalfog.pal = pal;
-		globalfog.apply();
-
-		if (textureCache.getShader() != null) {
-			float start, end;
-			if (globalfog.combvis == 0) {
-				start = globalfog.FULLVIS_BEGIN;
-				end = globalfog.FULLVIS_END;
-			} else if (shade >= numshades - 1) {
-				start = -1;
-				end = 0.001f;
-			} else {
-				start = (shade > 0) ? 0 : -(globalfog.FOGDISTCONST * shade) / globalfog.combvis;
-				end = (globalfog.FOGDISTCONST * (numshades - 1 - shade)) / globalfog.combvis;
-			}
-
-
-//			float density = (float) (gvisibility * (((vis + 16) & 0xFF) / 255.0f));
-			textureCache.getShader().getShaderProgram().setUniformf("u_fogdensity", 0.0033f);
-			textureCache.getShader().getShaderProgram().setUniformf("u_fogstart", start);
-			textureCache.getShader().getShaderProgram().setUniformf("u_fogend", end);
-
-			float r = (palookupfog[pal][0] / 63.f);
-			float g = (palookupfog[pal][1] / 63.f);
-			float b = (palookupfog[pal][2] / 63.f);
-			textureCache.getShader().getShaderProgram().setUniformf("u_fogcolour", r, g, b, 1);
-		}
+		globalfog.calc();
 	}
 
 	private void calc_and_apply_skyfog(int shade, int vis, int pal) {
 		globalfog.shade = shade;
 		globalfog.combvis = 0;
 		globalfog.pal = pal;
-		globalfog.apply();
+		globalfog.calc();
 	}
 
 	public static void equation(Vector3 ret, float x1, float y1, float x2, float y2) {
