@@ -21,9 +21,9 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 public class GLFog {
 
 	// For GL_LINEAR fog:
-	protected final int FOGDISTCONST = 600;
-	protected final float FULLVIS_BEGIN = (float) 2.9e30;
-	protected final float FULLVIS_END = (float) 3.0e30;
+	public final int FOGDISTCONST = 600;
+	public final float FULLVIS_BEGIN = (float) 2.9e30;
+	public final float FULLVIS_END = (float) 3.0e30;
 
 	public int shade, pal;
 	public float combvis;

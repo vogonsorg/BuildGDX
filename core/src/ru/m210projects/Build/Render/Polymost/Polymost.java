@@ -71,10 +71,12 @@ import static ru.m210projects.Build.Engine.headspritesect;
 import static ru.m210projects.Build.Engine.inpreparemirror;
 import static ru.m210projects.Build.Engine.nextspritesect;
 import static ru.m210projects.Build.Engine.numsectors;
+import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.offscreenrendering;
 import static ru.m210projects.Build.Engine.palette;
 import static ru.m210projects.Build.Engine.palfadergb;
 import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Engine.palookupfog;
 import static ru.m210projects.Build.Engine.parallaxyoffs;
 import static ru.m210projects.Build.Engine.picsiz;
 import static ru.m210projects.Build.Engine.pow2char;
@@ -133,6 +135,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -343,7 +346,7 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public void changepalette(byte[] palette) {
-		if(textureCache.getShader() != null)
+		if (textureCache.getShader() != null)
 			textureCache.getShader().changePalette(palette);
 	}
 
@@ -375,15 +378,15 @@ public abstract class Polymost implements GLRenderer {
 			Model m = defs.mdInfo.getModel(i);
 			if (m != null) {
 				Iterator<GLTile[]> it = m.getSkins();
-	        	while(it.hasNext()) {
-	        		for (GLTile tex : it.next()) {
-	    				if (tex == null)
-	    					continue;
+				while (it.hasNext()) {
+					for (GLTile tex : it.next()) {
+						if (tex == null)
+							continue;
 
-	    				textureCache.bind(tex);
-	    				tex.setupTextureFilter(filter, anisotropy);
-	    			}
-	        	}
+						textureCache.bind(tex);
+						tex.setupTextureFilter(filter, anisotropy);
+					}
+				}
 			}
 		}
 	}
@@ -2012,6 +2015,9 @@ public abstract class Polymost implements GLRenderer {
 	public double defznear = 0.1;
 	public double defzfar = 0.9;
 
+	private double FOGSCALE = 0.0001536;
+	private double gvisibility;
+
 	@Override
 	public void drawrooms() // eduke32
 	{
@@ -2040,6 +2046,9 @@ public abstract class Polymost implements GLRenderer {
 		gyxscale = xdimenscale / 131072.0f;
 		gxyaspect = (viewingrange / 65536.0) * xyaspect * 5.0 / 262144.0;
 		gviewxrange = viewingrange * xdimen / (32768.0f * 1024.0f);
+
+		gvisibility = globalvisibility * gxyaspect * FOGSCALE;
+
 		gcosang = cosglobalang / 262144.0f;
 		gsinang = singlobalang / 262144.0f;
 		gcosang2 = cosviewingrangeglobalang / 262144.0f;
@@ -3052,7 +3061,7 @@ public abstract class Polymost implements GLRenderer {
 
 		gl.glEnable(GL_BLEND);
 		boolean hasShader = textureCache.isUseShader();
-		if(hasShader)
+		if (hasShader)
 			textureCache.getShader().unbind();
 
 		palfadergb.draw(gl);
@@ -3064,7 +3073,7 @@ public abstract class Polymost implements GLRenderer {
 			}
 		}
 
-		if(hasShader)
+		if (hasShader)
 			textureCache.getShader().bind();
 
 		gl.glMatrixMode(GL_MODELVIEW);
@@ -3121,6 +3130,31 @@ public abstract class Polymost implements GLRenderer {
 		globalfog.combvis = globalvisibility * ((vis + 16) & 0xFF);
 		globalfog.pal = pal;
 		globalfog.apply();
+
+		if (textureCache.getShader() != null) {
+			float start, end;
+			if (globalfog.combvis == 0) {
+				start = globalfog.FULLVIS_BEGIN;
+				end = globalfog.FULLVIS_END;
+			} else if (shade >= numshades - 1) {
+				start = -1;
+				end = 0.001f;
+			} else {
+				start = (shade > 0) ? 0 : -(globalfog.FOGDISTCONST * shade) / globalfog.combvis;
+				end = (globalfog.FOGDISTCONST * (numshades - 1 - shade)) / globalfog.combvis;
+			}
+
+
+//			float density = (float) (gvisibility * (((vis + 16) & 0xFF) / 255.0f));
+			textureCache.getShader().getShaderProgram().setUniformf("u_fogdensity", 0.0033f);
+			textureCache.getShader().getShaderProgram().setUniformf("u_fogstart", start);
+			textureCache.getShader().getShaderProgram().setUniformf("u_fogend", end);
+
+			float r = (palookupfog[pal][0] / 63.f);
+			float g = (palookupfog[pal][1] / 63.f);
+			float b = (palookupfog[pal][2] / 63.f);
+			textureCache.getShader().getShaderProgram().setUniformf("u_fogcolour", r, g, b, 1);
+		}
 	}
 
 	private void calc_and_apply_skyfog(int shade, int vis, int pal) {
@@ -3332,16 +3366,18 @@ public abstract class Polymost implements GLRenderer {
 		if (drunk) {
 			BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
 			boolean hasShader = textureCache.getShader() != null;
-			if(hasShader)
+			if (hasShader)
 				textureCache.getShader().unbind();
 
 			if (frameTexture == null || framew != xdim || frameh != ydim) {
 				if (frameTexture != null)
 					gl.glDeleteTextures(1, frameTexture);
-				else frameTexture = BufferUtils.newIntBuffer(1);
+				else
+					frameTexture = BufferUtils.newIntBuffer(1);
 
 				gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
-				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2);
+				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2)
+					;
 
 				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE,
 						null);
@@ -3401,7 +3437,7 @@ public abstract class Polymost implements GLRenderer {
 			gl.glEnable(GL_ALPHA_TEST);
 			gl.glDisable(GL_TEXTURE_2D);
 
-			if(hasShader)
+			if (hasShader)
 				textureCache.getShader().bind();
 		}
 	}
@@ -3773,7 +3809,7 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public PixelFormat getTexFormat() {
-		return PixelFormat.Rgb; //textureCache.getFormat(); XXX
+		return PixelFormat.Rgb; // textureCache.getFormat(); XXX
 	}
 
 	@Override
