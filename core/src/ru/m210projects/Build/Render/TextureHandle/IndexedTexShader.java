@@ -4,7 +4,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
 import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
-import static ru.m210projects.Build.Engine.numshades;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
@@ -134,15 +134,15 @@ public class IndexedTexShader {
 				"uniform vec4 u_fogcolour;" +
 				"uniform float u_fogstart;" +
 				"uniform float u_fogend;" +
-				"" +
+				"varying float v_dist;" +
 				"float fog(float dist) {" +
 				"	if(u_fogenable == 1)" +
-				"		return clamp(1.0 - (u_fogend - gl_FogFragCoord) / (u_fogend - u_fogstart), 0.0, 1.0);" +
+				"		return clamp(1.0 - (u_fogend - dist) / (u_fogend - u_fogstart), 0.0, 1.0);" +
 				"	else return 0.0;" +
 				"}" +
 				"" +
 				"float getpalookup(int dashade) {" +
-				"	float davis = (gl_FogFragCoord * float(u_visibility)) / 48.0;" +
+				"	float davis = (v_dist * float(u_visibility)) / 816.0;" +
 				"	float shade = (min(max(float(dashade) + davis, 0.0), u_numshades - 1.0));" +
 				"" +
 				"	return shade / 64.0;" +
@@ -161,15 +161,17 @@ public class IndexedTexShader {
 				"	if(index == 1.0) index -= 0.5 / 256.0;" +
 				"" +
 				"	vec4 src = vec4(texture2D(u_palette, vec2(index, 0.0)).rgb, u_alpha);" +
-				"	gl_FragColor = mix(src, u_fogcolour, fog(gl_FogFragCoord));" +
+				"	gl_FragColor = mix(src, u_fogcolour, fog(v_dist));" +
 				"}";
 
 		String vertex =
-				  "void main()"
+				" varying float v_dist;"
+				+ "void main()"
 				+ "{"
 				+ "	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; /*ftransform();*/"
 				+ "	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;"
-				+ "	gl_FogFragCoord = abs(gl_Vertex.z);"
+				+ " v_dist = gl_Vertex.z;"
+				+ "	gl_FogFragCoord = abs(v_dist);"
 				+ "	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;"
 				+ "}"
 				;

@@ -23,7 +23,7 @@ public class GLFog {
 	protected final float FULLVIS_END = (float) 3.0e30;
 
 	public int shade, pal;
-	public float combvis;
+	public int combvis;
 
 	public boolean nofog, isEnabled;
 	protected TextureManager manager;

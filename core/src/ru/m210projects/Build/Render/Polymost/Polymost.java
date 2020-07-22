@@ -701,7 +701,7 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		if(textureCache.isUseShader())
-			textureCache.getShader().setVisibility(skyclamphack == 0 ? globalvisibility : 0);
+			textureCache.getShader().setVisibility(globalfog.combvis);
 
 		globalfog.apply();
 
