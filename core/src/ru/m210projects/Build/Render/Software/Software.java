@@ -70,6 +70,7 @@ import static ru.m210projects.Build.Engine.transluc;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.viewingrangerecip;
+import static ru.m210projects.Build.Engine.visibility;
 import static ru.m210projects.Build.Engine.wall;
 import static ru.m210projects.Build.Engine.windowx1;
 import static ru.m210projects.Build.Engine.windowx2;
@@ -492,6 +493,7 @@ public abstract class Software implements Renderer {
 
 		int i = mulscale(xdimenscale, viewingrangerecip, 16);
 		globalpisibility = mulscale(parallaxvisibility, i, 16);
+		globalvisibility = mulscale(visibility, i, 16);
 
 		globalhisibility = mulscale(globalvisibility, xyaspect, 16);
 		globalcisibility = mulscale(globalhisibility, 320, 8);

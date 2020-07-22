@@ -1102,9 +1102,6 @@ public abstract class Engine {
 	}
 
 	public int drawrooms(float daposx, float daposy, float daposz, float daang, float dahoriz, short dacursectnum) { // eDuke32
-																														// visibility
-																														// set
-
 		beforedrawrooms = 0;
 
 		globalposx = (int) daposx;
@@ -1115,7 +1112,7 @@ public abstract class Engine {
 		globalhoriz = ((dahoriz - 100) * xdimenscale / viewingrange) + (ydimen >> 1);
 		pitch = (-getangle(160, (int) (dahoriz - 100))) / (2048.0f / 360.0f);
 
-		globalvisibility = scale(visibility << 2, xdimen, 1680);
+		globalvisibility = scale(visibility << 2, xdimen, 1027);
 
 		globalcursectnum = dacursectnum;
 		totalclocklock = totalclock;
