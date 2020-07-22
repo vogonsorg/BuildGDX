@@ -81,14 +81,14 @@ public class GLFog {
 			BuildGdx.gl.glEnable(GL_FOG);
 		} else {
 			BuildGdx.gl.glDisable(GL_FOG);
+			if(manager.isUseShader())
+				manager.getShader().setFogParams(false, 0.0f, 0.0f, null);
 			return;
 		}
 
-		if(manager.isUseShader()) {
-			manager.getShader().getShaderProgram().setUniformf("u_fogstart", start);
-			manager.getShader().getShaderProgram().setUniformf("u_fogend", end);
-			manager.getShader().getShaderProgram().setUniform4fv("u_fogcolour", color, 0, 4);
-		} else {
+		if(manager.isUseShader())
+			manager.getShader().setFogParams(true, start, FULLVIS_END, color);
+		else {
 			BuildGdx.gl.glFogfv(GL_FOG_COLOR, color, 0);
 			BuildGdx.gl.glFogf(GL_FOG_START, start);
 			BuildGdx.gl.glFogf(GL_FOG_END, end);

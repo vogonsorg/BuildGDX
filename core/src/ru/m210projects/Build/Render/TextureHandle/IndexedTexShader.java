@@ -1,10 +1,11 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
+import static com.badlogic.gdx.graphics.GL20.GL_RGB;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.numshades;
-import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Gameutils.*;
+import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.ByteBuffer;
@@ -12,39 +13,34 @@ import java.nio.ByteBuffer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
+import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class IndexedTexShader {
 
-	private class PaletteData extends TileData {
+	private abstract class ShaderData extends TileData {
 		public final TextureBuffer data;
+		private int w, h;
+		public ShaderData(byte[] data, int w, int h, int bytes) {
+			int len = w * h * bytes;
+			this.w = w;
+			this.h = h;
 
-		public PaletteData(byte[] paldata, int shade) {
-			TextureBuffer buffer = getTmpBuffer(getWidth() * getHeight() * 3);
+			TextureBuffer buffer = getTmpBuffer(len);
 			buffer.clear();
-			for (int p = 0; p < MAXPALOOKUPS; p++) {
-				int pal = p;
-				if (palookup[pal] == null)
-					pal = 0;
-
-				for (int i = 0; i < 256; i++) {
-					int dacol = palookup[pal][i + (shade << 8)] & 0xFF;
-					buffer.putBytes(paldata, 3 * dacol, 3);
-				}
-			}
-
+			buffer.putBytes(data, 0, len);
 			this.data = buffer;
 		}
 
 		@Override
 		public int getWidth() {
-			return 256;
+			return w;
 		}
 
 		@Override
 		public int getHeight() {
-			return MAXPALOOKUPS;
+			return h;
 		}
 
 		@Override
@@ -88,40 +84,85 @@ public class IndexedTexShader {
 		}
 	}
 
-	private GLTile palette[];
+	private class PaletteData extends ShaderData {
+		public PaletteData(byte[] data) {
+			super(data, 256, 1, 3);
+		}
+	}
+
+	private class LookupData extends ShaderData {
+		public LookupData(byte[] data) {
+			super(data, 256, 64, 1);
+		}
+
+		@Override
+		public int getGLFormat() {
+			return GL_LUMINANCE;
+		}
+	}
+
+	private GLTile palette;
+	private GLTile palookup[];
 	private ShaderProgram shaderProg;
 	private TextureManager cache;
 
+	private int paletteloc;
+	private int numshadesloc;
+	private int visibilityloc;
+	private int palookuploc;
+	private int shadeloc;
+	private int alphaloc;
+	private int draw255loc;
+	private int fogenableloc;
+	private int fogstartloc;
+	private int fogendloc;
+	private int fogcolourloc;
+
 	public IndexedTexShader(TextureManager cache) throws Exception {
 		String fragment =
-				  "uniform sampler2D u_texture;"
-				+ "uniform sampler2D u_colorTable;"
-				+ "uniform float u_pal;"
-				+ "uniform float u_alpha;"
-				+ "uniform int u_draw255;"
-				+ "uniform int u_fogenable;"
-				+ "uniform vec4 u_fogcolour;"
-				+ "uniform float u_fogstart;"
-				+ "uniform float u_fogend;"
-				+ "float fog(float dist) {"
-				//+ " if(u_fogenable == 1)"
-				+ "	return clamp(1.0 - (u_fogend - gl_FogFragCoord) / (u_fogend - u_fogstart), 0.0, 1.0);"
-				//+ " else return 0.0;"
-				+ "}"
-				+ "void main()"
-				+ "{"
-				+ "	float index = texture2D(u_texture, gl_TexCoord[0].xy).r;"
-				+ " if(index == 1.0)"
-				+ " {"
-				+ "	 if(u_draw255 == 0) discard;"
-				+ "	 index -= 0.5 / 256.0;"
-				+ " }"
-				+ "	"
-				+ "	vec3 color = texture2D(u_colorTable, vec2(index, u_pal / 256.0)).rgb;"
-				+ "	vec4 src = vec4(color, u_alpha);"
-				+ " gl_FragColor = mix(src, u_fogcolour, fog(gl_FogFragCoord));"
-				+ "}"
-				;
+				"uniform sampler2D u_texture;" +
+				"uniform sampler2D u_palette;" +
+				"uniform sampler2D u_palookup;" +
+				"" +
+				"uniform int u_shade;" +
+				"uniform float u_numshades;" +
+				"uniform int u_visibility;" +
+				"" +
+				"uniform float u_alpha;" +
+				"uniform int u_draw255;" +
+				"uniform int u_fogenable;" +
+				"uniform vec4 u_fogcolour;" +
+				"uniform float u_fogstart;" +
+				"uniform float u_fogend;" +
+				"" +
+				"float fog(float dist) {" +
+				"	if(u_fogenable == 1)" +
+				"		return clamp(1.0 - (u_fogend - gl_FogFragCoord) / (u_fogend - u_fogstart), 0.0, 1.0);" +
+				"	else return 0.0;" +
+				"}" +
+				"" +
+				"float getpalookup(int dashade) {" +
+				"	float davis = (gl_FogFragCoord * float(u_visibility)) / 48.0;" +
+				"	float shade = (min(max(float(dashade) + davis, 0.0), u_numshades - 1.0));" +
+				"" +
+				"	return shade / 64.0;" +
+				"}" +
+				"" +
+				"void main()" +
+				"{" +
+				"	float fi = texture2D(u_texture, gl_TexCoord[0].xy).r;" +
+				"	if(fi == 1.0)" +
+				"	{" +
+				"		if(u_draw255 == 0) discard;" +
+				"		fi -= 0.5 / 256.0;" +
+				"	}" +
+				"	" +
+				"	float index = texture2D(u_palookup, vec2(fi, getpalookup(u_shade))).r;" +
+				"	if(index == 1.0) index -= 0.5 / 256.0;" +
+				"" +
+				"	vec4 src = vec4(texture2D(u_palette, vec2(index, 0.0)).rgb, u_alpha);" +
+				"	gl_FragColor = mix(src, u_fogcolour, fog(gl_FogFragCoord));" +
+				"}";
 
 		String vertex =
 				  "void main()"
@@ -137,33 +178,63 @@ public class IndexedTexShader {
 		if (!shaderProg.isCompiled())
 			throw new Exception("Shader compile error: " + shaderProg.getLog());
 
-		palette = new GLTile[numshades];
+		this.palookup = new GLTile[MAXPALOOKUPS];
 		this.cache = cache;
+
+		this.paletteloc = shaderProg.getUniformLocation("u_palette");
+		this.numshadesloc = shaderProg.getUniformLocation("u_numshades");
+		this.visibilityloc = shaderProg.getUniformLocation("u_visibility");
+		this.palookuploc = shaderProg.getUniformLocation("u_palookup");
+		this.shadeloc = shaderProg.getUniformLocation("u_shade");
+		this.alphaloc = shaderProg.getUniformLocation("u_alpha");
+		this.draw255loc = shaderProg.getUniformLocation("u_draw255");
+		this.fogenableloc = shaderProg.getUniformLocation("u_fogenable");
+		this.fogstartloc = shaderProg.getUniformLocation("u_fogstart");
+		this.fogendloc = shaderProg.getUniformLocation("u_fogend");
+		this.fogcolourloc = shaderProg.getUniformLocation("u_fogcolour");
 	}
 
 	public void dispose() {
+		for (int i = 0; i < MAXPALOOKUPS; i++)
+			if (palookup[i] != null)
+				palookup[i].delete();
+		if(palette != null)
+			palette.delete();
+
 		shaderProg.dispose();
-		for (int i = 0; i < palette.length; i++) {
-			if (palette[i] != null)
-				palette[i].delete();
-		}
 		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 	}
 
-	private GLTile createPalette(byte[] paldata, int shade) {
-		TileData dat = new PaletteData(paldata, shade);
-		GLTile palette = cache.newTile(dat, 0, false);
-		palette.setupTextureFilter(glfiltermodes[0], 1); //GL_NEAREST
+	public void changePalette(byte[] pal) {
+		TileData dat = new PaletteData(pal);
 
-		return palette;
+		if(palette != null)
+			palette.update(dat, false);
+		else palette = cache.newTile(dat, 0, false);
+
+		palette.setupTextureFilter(glfiltermodes[0], 1); //GL_NEAREST
 	}
 
-	public void changePalette(byte[] pal) {
-		for (int i = 0; i < numshades; i++) {
-			if (palette[i] != null)
-				palette[i].delete();
-			palette[i] = createPalette(pal, i);
+	protected GLTile getpalookup(int pal) {
+		if(palookup[pal] == null || palookup[pal].isInvalidated()) {
+			if(Engine.palookup[pal] == null)
+				return palookup[0];
+
+			TileData dat = new LookupData(Engine.palookup[pal]);
+
+			if(palookup[pal] != null) {
+				palookup[pal].setInvalidated(false);
+				palookup[pal].update(dat, false);
+			} else palookup[pal] = cache.newTile(dat, 0, false);
+			palookup[pal].setupTextureFilter(glfiltermodes[0], 1); //GL_NEAREST
 		}
+
+		return palookup[pal];
+	}
+
+	public void invalidatepalookup(int pal) {
+		if(palookup[pal] != null)
+			palookup[pal].setInvalidated(true);
 	}
 
 	public void bind() {
@@ -177,23 +248,39 @@ public class IndexedTexShader {
 	}
 
 	public void setShaderParams(int pal, int shade) {
-		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE1);
 		shade = BClipRange(shade, 0, numshades - 1);
-		palette[shade].bind();
-		shaderProg.setUniformi("u_colorTable", 1);
-		shaderProg.setUniformf("u_pal", pal);
+		shaderProg.setUniformf(numshadesloc, numshades);
+
+		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE1);
+		palette.bind();
+		shaderProg.setUniformi(paletteloc, 1);
+
+		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE2);
+		getpalookup(pal).bind();
+		shaderProg.setUniformi(palookuploc, 2);
+
+		shaderProg.setUniformi(shadeloc, shade);
 		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 	}
 
 	public void shaderTransparent(float alpha) {
-		shaderProg.setUniformf("u_alpha", alpha);
+		shaderProg.setUniformf(alphaloc, alpha);
 	}
 
 	public void shaderDrawLastIndex(boolean draw) {
-		shaderProg.setUniformi("u_draw255", draw ? 1 : 0);
+		shaderProg.setUniformi(draw255loc, draw ? 1 : 0);
 	}
 
-	public ShaderProgram getShaderProgram() {
-		return shaderProg;
+	public void setVisibility(int vis) {
+		shaderProg.setUniformi(visibilityloc, vis);
+	}
+
+	public void setFogParams(boolean enable, float start, float end, float[] fogcolor) {
+		shaderProg.setUniformi(fogenableloc, enable ? 1 : 0);
+		if(!enable) return;
+
+		shaderProg.setUniformf(fogstartloc, start);
+		shaderProg.setUniformf(fogendloc, end);
+		shaderProg.setUniform4fv(fogcolourloc, fogcolor, 0, 4);
 	}
 }

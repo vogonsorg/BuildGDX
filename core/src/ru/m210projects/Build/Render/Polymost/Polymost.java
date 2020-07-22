@@ -274,15 +274,15 @@ public abstract class Polymost implements GLRenderer {
 	protected PolymostModelRenderer mdrenderer;
 	protected boolean isInited = false;
 
-	protected final TextureManager textureCache;
+	protected TextureManager textureCache;
 	protected final Engine engine;
 
 	public Polymost(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
 			BuildGdx.app.setFrame(FrameType.GL);
 		GLInfo.init();
-		this.textureCache = newTextureManager(engine);
 		this.engine = engine;
+		this.textureCache = getTextureManager();
 
 		this.gl = BuildGdx.graphics.getGL10();
 		this.clipper = new PolyClipper(this);
@@ -306,9 +306,15 @@ public abstract class Polymost implements GLRenderer {
 				+ " initialized", OSDTEXT_GOLD);
 	}
 
-	@Override
-	public TextureManager newTextureManager(Engine engine) {
+	protected TextureManager newTextureManager(Engine engine) {
 		return new TextureManager(engine);
+	}
+
+	@Override
+	public TextureManager getTextureManager() {
+		if(textureCache == null)
+			return newTextureManager(engine);
+		return textureCache;
 	}
 
 	@Override
@@ -693,6 +699,9 @@ public abstract class Polymost implements GLRenderer {
 				drawpoly[i].vv = drawpoly[i].px * gvx + drawpoly[i].py * gvy + gvo;
 			}
 		}
+
+		if(textureCache.isUseShader())
+			textureCache.getShader().setVisibility(skyclamphack == 0 ? globalvisibility : 0);
 
 		globalfog.apply();
 
@@ -3423,6 +3432,12 @@ public abstract class Polymost implements GLRenderer {
 			case TexturesOnly:
 			case IndexedTexturesOnly:
 				gltexinvalidate8();
+				break;
+			case Palookup:
+				for (int j = 0; j < MAXPALOOKUPS; j++) {
+					if(textureCache.getShader() != null)
+						textureCache.getShader().invalidatepalookup(j);
+				}
 				break;
 			case All:
 				gltexinvalidateall();

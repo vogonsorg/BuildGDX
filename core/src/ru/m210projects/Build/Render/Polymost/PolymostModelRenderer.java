@@ -254,6 +254,7 @@ public class PolymostModelRenderer {
 		else
 			textureCache.bind(m.texid[globalpal]);
 
+		parent.globalfog.apply();
 		if (r_vertexarrays != 0) {
 			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -497,6 +498,7 @@ public class PolymostModelRenderer {
 
 			MD2Frame cframe = m.frames[m.cframe], nframe = m.frames[m.nframe];
 
+			parent.globalfog.apply();
 			if (r_vertexarrays != 0) {
 				m.verticesBuffer.clear();
 				for (int i = 0; i < m.tris.length; i++) // -60fps, but it's need for animation
@@ -651,6 +653,7 @@ public class PolymostModelRenderer {
 					texid.setupTextureGlow();
 				}
 
+				parent.globalfog.apply();
 				if (r_vertexarrays != 0) {
 					m.indicesBuffer.clear();
 					for (int i = s.numtris - 1; i >= 0; i--)

@@ -288,8 +288,14 @@ public class GdxRenderer implements GLRenderer {
 		return null;
 	}
 
-	@Override
 	public TextureManager newTextureManager(Engine engine) {
 		return new TextureManager(engine);
+	}
+
+	@Override
+	public TextureManager getTextureManager() {
+		if(textureCache == null)
+			return newTextureManager(engine);
+		return textureCache;
 	}
 }

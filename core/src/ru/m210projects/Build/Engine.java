@@ -3526,6 +3526,11 @@ public abstract class Engine {
 			palookupfog[palnum][1] = (byte) g;
 			palookupfog[palnum][2] = (byte) b;
 		}
+
+		final GLRenderer gl = glrender();
+		if(gl != null && gl.getTextureManager().getShader() != null) {
+			gl.getTextureManager().getShader().invalidatepalookup(palnum);
+		}
 	}
 
 	public void setbrightness(int dabrightness, byte[] dapal, GLInvalidateFlag flags) {

@@ -18,7 +18,6 @@ package ru.m210projects.Build.Render;
 
 import java.util.HashMap;
 
-import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 
@@ -29,10 +28,11 @@ public interface GLRenderer extends Renderer {
 		SkinsOnly,
 		TexturesOnly,
 		IndexedTexturesOnly,
+		Palookup,
 		All
 	}
 
-	public TextureManager newTextureManager(Engine engine);
+	public TextureManager getTextureManager();
 
 	public void enableShader(boolean enable);
 
