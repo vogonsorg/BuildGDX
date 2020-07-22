@@ -18,7 +18,7 @@ import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 public class GLFog {
 
 	// For GL_LINEAR fog:
-	protected final int FOGDISTCONST = 600;
+	protected int FOGDISTCONST = 48;
 	protected final float FULLVIS_BEGIN = (float) 2.9e30;
 	protected final float FULLVIS_END = (float) 3.0e30;
 

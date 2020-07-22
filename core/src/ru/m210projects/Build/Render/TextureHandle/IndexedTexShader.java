@@ -4,15 +4,13 @@ import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
 import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
-import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Gameutils.BClipRange;
+import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.ByteBuffer;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
@@ -105,6 +103,7 @@ public class IndexedTexShader {
 	private GLTile palookup[];
 	private ShaderProgram shaderProg;
 	private TextureManager cache;
+	private boolean glfog = false;
 
 	private int paletteloc;
 	private int numshadesloc;
@@ -125,7 +124,7 @@ public class IndexedTexShader {
 				"uniform sampler2D u_palookup;" +
 				"uniform int u_shade;" +
 				"uniform float u_numshades;" +
-				"uniform int u_visibility;" +
+				"uniform float u_visibility;" +
 				"uniform float u_alpha;" +
 				"uniform int u_draw255;" +
 				"uniform int u_fogenable;" +
@@ -139,7 +138,8 @@ public class IndexedTexShader {
 				"	else return 0.0;" +
 				"}" +
 				"float getpalookup(int dashade) {" +
-				"	float davis = (v_dist * float(u_visibility)) / 816.0;" +
+				"	float davis = v_dist * u_visibility;" +
+				"   if(u_fogenable != -1) davis = u_visibility / 64.0;" +
 				"	float shade = (min(max(float(dashade) + davis, 0.0), u_numshades - 1.0));" +
 				"	return shade / 64.0;" +
 				"}" +
@@ -154,7 +154,9 @@ public class IndexedTexShader {
 				"	float index = texture2D(u_palookup, vec2(fi, getpalookup(u_shade))).r;" +
 				"	if(index == 1.0) index -= 0.5 / 256.0;" +
 				"	vec4 src = vec4(texture2D(u_palette, vec2(index, 0.0)).rgb, u_alpha);" +
-				"	gl_FragColor = mix(src, u_fogcolour, fog(v_dist));" +
+				"   if(u_fogenable == -1) " +
+				"		gl_FragColor = src; " +
+				"	else gl_FragColor = mix(src, u_fogcolour, fog(v_dist));" +
 				"}";
 
 		String vertex =
@@ -242,7 +244,6 @@ public class IndexedTexShader {
 	}
 
 	public void setShaderParams(int pal, int shade) {
-		shade = BClipRange(shade, 0, numshades - 1);
 		shaderProg.setUniformf(numshadesloc, numshades);
 
 		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE1);
@@ -266,10 +267,15 @@ public class IndexedTexShader {
 	}
 
 	public void setVisibility(int vis) {
-		shaderProg.setUniformi(visibilityloc, vis);
+		shaderProg.setUniformf(visibilityloc, vis / 64.0f);
 	}
 
 	public void setFogParams(boolean enable, float start, float end, float[] fogcolor) {
+		if(!glfog) {
+			shaderProg.setUniformi(fogenableloc, -1);
+			return;
+		}
+
 		shaderProg.setUniformi(fogenableloc, enable ? 1 : 0);
 		if(!enable) return;
 
