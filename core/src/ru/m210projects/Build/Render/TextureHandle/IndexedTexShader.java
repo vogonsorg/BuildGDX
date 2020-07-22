@@ -123,11 +123,9 @@ public class IndexedTexShader {
 				"uniform sampler2D u_texture;" +
 				"uniform sampler2D u_palette;" +
 				"uniform sampler2D u_palookup;" +
-				"" +
 				"uniform int u_shade;" +
 				"uniform float u_numshades;" +
 				"uniform int u_visibility;" +
-				"" +
 				"uniform float u_alpha;" +
 				"uniform int u_draw255;" +
 				"uniform int u_fogenable;" +
@@ -140,14 +138,11 @@ public class IndexedTexShader {
 				"		return clamp(1.0 - (u_fogend - dist) / (u_fogend - u_fogstart), 0.0, 1.0);" +
 				"	else return 0.0;" +
 				"}" +
-				"" +
 				"float getpalookup(int dashade) {" +
 				"	float davis = (v_dist * float(u_visibility)) / 816.0;" +
 				"	float shade = (min(max(float(dashade) + davis, 0.0), u_numshades - 1.0));" +
-				"" +
 				"	return shade / 64.0;" +
 				"}" +
-				"" +
 				"void main()" +
 				"{" +
 				"	float fi = texture2D(u_texture, gl_TexCoord[0].xy).r;" +
@@ -156,10 +151,8 @@ public class IndexedTexShader {
 				"		if(u_draw255 == 0) discard;" +
 				"		fi -= 0.5 / 256.0;" +
 				"	}" +
-				"	" +
 				"	float index = texture2D(u_palookup, vec2(fi, getpalookup(u_shade))).r;" +
 				"	if(index == 1.0) index -= 0.5 / 256.0;" +
-				"" +
 				"	vec4 src = vec4(texture2D(u_palette, vec2(index, 0.0)).rgb, u_alpha);" +
 				"	gl_FragColor = mix(src, u_fogcolour, fog(v_dist));" +
 				"}";
@@ -171,7 +164,6 @@ public class IndexedTexShader {
 				+ "	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; /*ftransform();*/"
 				+ "	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;"
 				+ " v_dist = gl_Vertex.z;"
-				+ "	gl_FogFragCoord = abs(v_dist);"
 				+ "	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;"
 				+ "}"
 				;

@@ -23,7 +23,7 @@ public class GLFog {
 	protected final float FULLVIS_END = (float) 3.0e30;
 
 	public int shade, pal;
-	public int combvis;
+	public float combvis;
 
 	public boolean nofog, isEnabled;
 	protected TextureManager manager;
@@ -87,7 +87,7 @@ public class GLFog {
 		}
 
 		if(manager.isUseShader())
-			manager.getShader().setFogParams(true, start, FULLVIS_END, color);
+			manager.getShader().setFogParams(true, start, end, color);
 		else {
 			BuildGdx.gl.glFogfv(GL_FOG_COLOR, color, 0);
 			BuildGdx.gl.glFogf(GL_FOG_START, start);
