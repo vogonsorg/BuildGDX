@@ -6,13 +6,10 @@
 
 package ru.m210projects.Build.Loader.Voxels;
 
-import static com.badlogic.gdx.graphics.GL20.*;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.UseBloodPal;
+import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
+import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.curpalette;
-import static ru.m210projects.Build.Engine.globalshade;
-import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
@@ -22,6 +19,7 @@ import java.util.Iterator;
 
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
@@ -32,48 +30,46 @@ public class VOXModel extends Model {
 	private static class VoxTileData extends TileData {
 		public final TextureBuffer data;
 		public final int width, height;
+		public final boolean indexed;
 
 		public VoxTileData(VOXModel vox, int dapal, boolean indexed) {
 			this.width = vox.mytexx;
 			this.height = vox.mytexy;
+			this.indexed = indexed;
 
-			TextureBuffer buffer = getTmpBuffer(width * height * 4);
+			TextureBuffer buffer = getTmpBuffer(indexed ? (width * height) : (width * height * 4));
 			buffer.clear();
 
 			int wpptr, wp, dacol;
 			for (int x, y = 0; y < height; y++) {
 				wpptr = y * width;
 				for (x = 0; x < width; x++, wpptr++) {
-					wp = wpptr << 2;
-
 					if(indexed) {
-						buffer.put(wp, vox.mytex[wpptr]);
+						buffer.put(wpptr, vox.mytex[wpptr]);
 					} else {
+						wp = wpptr << 2;
 						dacol = vox.mytex[wpptr] & 0xFF;
-//						if(UseBloodPal && dapal == 1) //Blood's pal 1
-//						{
-//							int shade = (min(max(globalshade/*+(davis>>8)*/,0),numshades-1));
-//							dacol = palookup[dapal][dacol + (shade << 8)] & 0xFF;
-//						} else
-							dacol = palookup[dapal][dacol] & 0xFF;
+						dacol = palookup[dapal][dacol] & 0xFF;
 
-//						dacol *= 3;
-//						if (gammabrightness == 0) { XXX
-//							r = curpalette[dacol + 0] & 0xFF;
-//							g = curpalette[dacol + 1] & 0xFF;
-//							b = curpalette[dacol + 2] & 0xFF;
-//						}
-//						else {
-//							byte[] brighttable = britable[curbrightness];
-//							r = brighttable[curpalette[dacol + 0] & 0xFF] & 0xFF;
-//							g = brighttable[curpalette[dacol + 1] & 0xFF] & 0xFF;
-//							b = brighttable[curpalette[dacol + 2] & 0xFF] & 0xFF;
-//						}
-//						rgb = ( 255 << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
 						buffer.putInt(wp, curpalette.getRGB(dacol) + ( 255 << 24 ));
 					}
 				}
 			}
+
+//			if (!indexed) {
+//				int wpptr, wp, dacol;
+//				for (int x, y = 0; y < height; y++) {
+//					wpptr = y * width;
+//					for (x = 0; x < width; x++, wpptr++) {
+//						wp = wpptr << 2;
+//						dacol = vox.mytex[wpptr] & 0xFF;
+//						dacol = palookup[dapal][dacol] & 0xFF;
+//
+//						buffer.putInt(wp, curpalette.getRGB(dacol) + (255 << 24));
+//					}
+//				}
+//			} else
+//				buffer.putBytes(vox.mytex, 0, width * height);
 
 			this.data = buffer;
 		}
@@ -105,12 +101,12 @@ public class VOXModel extends Model {
 
 		@Override
 		public int getGLFormat() {
-			return GL_RGBA;
+			return indexed ? GL_LUMINANCE : GL_RGBA;
 		}
 
 		@Override
 		public PixelFormat getPixelFormat() {
-			return PixelFormat.Rgba;
+			return indexed ? PixelFormat.Pal8 : PixelFormat.Rgba;
 		}
 
 		@Override
@@ -131,19 +127,22 @@ public class VOXModel extends Model {
 
 	public class voxrect_t {
 		public vert_t[] v = new vert_t[4];
+
 		public voxrect_t() {
-			for(int i = 0; i < 4; i++)
+			for (int i = 0; i < 4; i++)
 				v[i] = new vert_t();
 		}
 	}
 
-	public class vert_t { public int x, y, z, u, v; }
+	public class vert_t {
+		public int x, y, z, u, v;
+	}
 
-	public void initQuads()
-	{
-		for(int vx = 0; vx < qcnt; vx++)
+	public void initQuads() {
+		for (int vx = 0; vx < qcnt; vx++)
 			quad[vx] = new voxrect_t();
 	}
+
 	public voxrect_t[] quad;
 	public int qcnt, qfacind[] = new int[7];
 	public int mytexx, mytexy;
@@ -157,7 +156,7 @@ public class VOXModel extends Model {
 		if (palookup[dapal] == null || bit8texture)
 			dapal = 0;
 
-		if(texid[dapal] != null)
+		if (texid[dapal] != null)
 			return texid[dapal];
 
 //		long startticks = System.currentTimeMillis();
@@ -168,6 +167,24 @@ public class VOXModel extends Model {
 //		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
 
 		return texid[dapal];
+	}
+
+	public GLTile bindSkin(TextureManager textureCache, int pal, int shade, float alpha) {
+		int dapal = pal;
+		if(textureCache.getShader() != null)
+			pal = 0;
+
+		if (texid[pal] == null)
+			loadskin(pal, textureCache.getShader() != null);
+
+		GLTile tile = textureCache.bind(texid[pal]);
+		if(tile.isRequireShader()) {
+			textureCache.getShader().setShaderParams(dapal, shade);
+			textureCache.getShader().shaderDrawLastIndex(true);
+			textureCache.getShader().shaderTransparent(alpha);
+		}
+
+		return tile;
 	}
 
 	@Override
@@ -193,10 +210,10 @@ public class VOXModel extends Model {
 
 	@Override
 	public void clearSkins() {
-		for(int i = 0; i < texid.length; i++)
-		{
+		for (int i = 0; i < texid.length; i++) {
 			GLTile tex = texid[i];
-			if(tex == null) continue;
+			if (tex == null)
+				continue;
 
 			tex.delete();
 			texid[i] = null;

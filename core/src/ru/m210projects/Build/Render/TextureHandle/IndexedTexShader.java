@@ -165,7 +165,7 @@ public class IndexedTexShader {
 				+ "{"
 				+ "	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; /*ftransform();*/"
 				+ "	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;"
-				+ " v_dist = gl_Vertex.z;"
+				+ " v_dist = gl_ClipVertex.z / gl_ClipVertex.w;"
 				+ "	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;"
 				+ "}"
 				;

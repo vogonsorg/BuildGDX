@@ -249,11 +249,9 @@ public class PolymostModelRenderer {
 		dvoxphack[0] = 0;
 		dvoxphack[1] = 1.f / 256.f;
 
-		if (m.texid[globalpal] == null)
-			m.loadskin(globalpal, textureCache.getShader() != null);
-		else
-			textureCache.bind(m.texid[globalpal]);
-
+		m.bindSkin(textureCache, globalpal, globalshade, polyColor.a);
+		if(textureCache.isUseShader())
+			textureCache.getShader().setVisibility((int)(parent.globalfog.combvis));
 		parent.globalfog.apply();
 		if (r_vertexarrays != 0) {
 			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);

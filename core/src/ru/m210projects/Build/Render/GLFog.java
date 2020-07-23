@@ -28,9 +28,9 @@ public class GLFog {
 	public boolean nofog, isEnabled;
 	protected TextureManager manager;
 
-//	protected final FloatBuffer color = BufferUtils.newFloatBuffer(4);
 	protected final float[] color = new float[4];
 	protected float start, end;
+	protected float curstart, curend, curcolor[] = new float[4];
 
 	public void init(TextureManager manager) {
 		if (BuildGdx.graphics.getGLVersion().getVendorString().compareTo("NVIDIA Corporation") == 0) {
@@ -77,21 +77,30 @@ public class GLFog {
 		if (nofog)
 			return;
 
-		if(isEnabled) {
+		if (isEnabled) {
 			BuildGdx.gl.glEnable(GL_FOG);
 		} else {
 			BuildGdx.gl.glDisable(GL_FOG);
-			if(manager.isUseShader())
+			if (manager.isUseShader())
 				manager.getShader().setFogParams(false, 0.0f, 0.0f, null);
 			return;
 		}
 
-		if(manager.isUseShader())
-			manager.getShader().setFogParams(true, start, end, color);
+		if (start == curstart && end == curend
+				&& color[0] == curcolor[0]
+				&& color[1] == curcolor[1]
+				&& color[2] == curcolor[2])
+			return;
+
+		System.arraycopy(color, 0, curcolor, 0, 3);
+		curstart = start;
+		curend = end;
+		if (manager.isUseShader())
+			manager.getShader().setFogParams(true, curstart, curend, curcolor);
 		else {
-			BuildGdx.gl.glFogfv(GL_FOG_COLOR, color, 0);
-			BuildGdx.gl.glFogf(GL_FOG_START, start);
-			BuildGdx.gl.glFogf(GL_FOG_END, end);
+			BuildGdx.gl.glFogfv(GL_FOG_COLOR, curcolor, 0);
+			BuildGdx.gl.glFogf(GL_FOG_START, curstart);
+			BuildGdx.gl.glFogf(GL_FOG_END, curend);
 		}
 	}
 

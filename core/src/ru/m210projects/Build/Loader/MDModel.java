@@ -248,7 +248,7 @@ public abstract class MDModel extends Model {
 		GLTile[] texptr = null;
 		int idptr = -1;
 		MDSkinmap sk, skzero = null;
-		long startticks;
+//		long startticks;
 
 		if (mdnum == 2)
 			surf = 0;
@@ -342,7 +342,7 @@ public abstract class MDModel extends Model {
 			return null;
 		}
 
-		startticks = System.currentTimeMillis();
+//		startticks = System.currentTimeMillis();
 		try {
 			byte[] data = res.getBytes();
 			Pixmap pix = new Pixmap(data, 0, data.length);
@@ -358,10 +358,9 @@ public abstract class MDModel extends Model {
 		}
 		texidx.setupTextureWrap(GL_REPEAT);
 
-		long etime = System.currentTimeMillis() - startticks;
-
-		System.out.println("Load skin: p" + pal + "-e" + defs.texInfo.getPaletteEffect(pal) + " \"" + skinfile
-				+ "\"... " + etime + " ms");
+//		long etime = System.currentTimeMillis() - startticks;
+//		System.out.println("Load skin: p" + pal + "-e" + defs.texInfo.getPaletteEffect(pal) + " \"" + skinfile
+//				+ "\"... " + etime + " ms");
 
 		texptr[idptr] = texidx;
 		return texidx;
