@@ -866,6 +866,12 @@ public class Polymost2D extends OrphoRenderer {
 		float txc = font.charsizx / (float) font.sizx, tx;
 		float tyc = font.charsizy / (float) font.sizy, ty;
 
+		if(atlas.isRequireShader()) {
+			textureCache.getShader().setShaderParams(col, shade);
+			textureCache.getShader().shaderDrawLastIndex(false);
+			textureCache.getShader().shaderTransparent(polyColor.a);
+		}
+
 		parent.globalfog.apply();
 
 		gl.glBegin(GL_TRIANGLE_STRIP);

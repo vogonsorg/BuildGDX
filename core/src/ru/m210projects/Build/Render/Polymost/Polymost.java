@@ -3140,7 +3140,7 @@ public abstract class Polymost implements GLRenderer {
 		globalfog.calc();
 	}
 
-	private void calc_and_apply_skyfog(int shade, int vis, int pal) {
+	protected void calc_and_apply_skyfog(int shade, int vis, int pal) {
 		globalfog.shade = shade;
 		globalfog.combvis = 0;
 		globalfog.pal = pal;

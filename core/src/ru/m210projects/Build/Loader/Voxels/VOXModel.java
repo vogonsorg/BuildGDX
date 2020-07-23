@@ -40,37 +40,20 @@ public class VOXModel extends Model {
 			TextureBuffer buffer = getTmpBuffer(indexed ? (width * height) : (width * height * 4));
 			buffer.clear();
 
-			int wpptr, wp, dacol;
-			for (int x, y = 0; y < height; y++) {
-				wpptr = y * width;
-				for (x = 0; x < width; x++, wpptr++) {
-					if(indexed) {
-						buffer.put(wpptr, vox.mytex[wpptr]);
-					} else {
+			if (!indexed) {
+				int wpptr, wp, dacol;
+				for (int x, y = 0; y < height; y++) {
+					wpptr = y * width;
+					for (x = 0; x < width; x++, wpptr++) {
 						wp = wpptr << 2;
 						dacol = vox.mytex[wpptr] & 0xFF;
 						dacol = palookup[dapal][dacol] & 0xFF;
 
-						buffer.putInt(wp, curpalette.getRGB(dacol) + ( 255 << 24 ));
+						buffer.putInt(wp, curpalette.getRGB(dacol) + (255 << 24));
 					}
 				}
-			}
-
-//			if (!indexed) {
-//				int wpptr, wp, dacol;
-//				for (int x, y = 0; y < height; y++) {
-//					wpptr = y * width;
-//					for (x = 0; x < width; x++, wpptr++) {
-//						wp = wpptr << 2;
-//						dacol = vox.mytex[wpptr] & 0xFF;
-//						dacol = palookup[dapal][dacol] & 0xFF;
-//
-//						buffer.putInt(wp, curpalette.getRGB(dacol) + (255 << 24));
-//					}
-//				}
-//			} else
-//				buffer.putBytes(vox.mytex, 0, width * height);
-
+			} else
+				buffer.putBytes(vox.mytex, 0, width * height);
 			this.data = buffer;
 		}
 

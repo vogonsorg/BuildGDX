@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class DirectTextureBuffer implements TextureBuffer {
-	
+
 	private ByteBuffer bb;
 	public DirectTextureBuffer(int size)
 	{
@@ -36,7 +36,7 @@ public class DirectTextureBuffer implements TextureBuffer {
 	public int getInt(int i) {
 		return bb.getInt(i);
 	}
-	
+
 	@Override
 	public void putBytes(byte[] src, int srcPos, int length) {
 		bb.put(src, srcPos, length);
@@ -54,7 +54,7 @@ public class DirectTextureBuffer implements TextureBuffer {
 
 	@Override
 	public void fill(int offset, int length, byte value) {
-		for (int i = 0; i < length; i++) 
+		for (int i = 0; i < length; i++)
 			bb.put(offset + i, value);
 	}
 
@@ -65,6 +65,7 @@ public class DirectTextureBuffer implements TextureBuffer {
 
 	@Override
 	public ByteBuffer getBuffer() {
+		bb.rewind();
 		return bb;
 	}
 }
