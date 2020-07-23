@@ -73,6 +73,10 @@ public class GLFog {
 		color[3] = 1;
 	}
 
+	public void setFogScale(int var) {
+		FOGDISTCONST = var;
+	}
+
 	public void apply() {
 		if (nofog)
 			return;

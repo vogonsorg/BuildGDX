@@ -143,7 +143,7 @@ public class GLSettings extends BuildSettings {
 		};
 		useModels = new BooleanVar(true, "Use md2 / md3 models from high resolution pack");
 
-		usePaletteShader = new BooleanVar(false, "Use palette emulation") {
+		usePaletteShader = new BooleanVar(true, "Use palette emulation") {
 			@Override
 			public void execute(Boolean value) {
 				GLRenderer gl = engine.glrender();

@@ -320,6 +320,7 @@ public abstract class Polymost implements GLRenderer {
 	@Override
 	public void enableShader(boolean enable) {
 		textureCache.enableShader(enable);
+		clearskins(true);
 	}
 
 	@Override
