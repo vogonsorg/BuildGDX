@@ -53,6 +53,7 @@ public class TextureManager {
 				shader.changePalette(curpalette.getBytes());
 			} catch (Exception e) {
 				e.printStackTrace();
+				GLSettings.usePaletteShader.set(false);
 				shader = null;
 			}
 		}
