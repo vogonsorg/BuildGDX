@@ -4042,12 +4042,17 @@ public abstract class Engine {
 		int numpal, firstpal, np;
 		int hp;
 
-		if (pal < 0) {
-			numpal = MAXPALOOKUPS;
+		if(gl.getTextureManager().isUseShader(tilenume)) {
+			numpal = 1;
 			firstpal = 0;
 		} else {
-			numpal = 1;
-			firstpal = pal % MAXPALOOKUPS;
+			if (pal < 0) {
+				numpal = MAXPALOOKUPS;
+				firstpal = 0;
+			} else {
+				numpal = 1;
+				firstpal = pal % MAXPALOOKUPS;
+			}
 		}
 
 		for (hp = 0; hp < 8; hp += 4) {
