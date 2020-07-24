@@ -320,7 +320,7 @@ public abstract class Polymost implements GLRenderer {
 	@Override
 	public void enableShader(boolean enable) {
 		textureCache.enableShader(enable);
-		clearskins(true);
+		clearskins(false);
 	}
 
 	@Override
@@ -364,7 +364,7 @@ public abstract class Polymost implements GLRenderer {
 				m.clearSkins();
 
 			Model vox = defs.mdInfo.getVoxModel(i);
-			if (vox != null && textureCache.getShader() == null)
+			if (vox != null && !bit8only)
 				vox.clearSkins();
 		}
 	}
