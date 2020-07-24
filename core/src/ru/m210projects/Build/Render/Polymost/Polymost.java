@@ -703,7 +703,6 @@ public abstract class Polymost implements GLRenderer {
 
 		if(textureCache.isUseShader())
 			textureCache.getShader().setVisibility((int)globalfog.combvis);
-
 		globalfog.apply();
 
 		// Hack for walls&masked walls which use textures that are not a power of 2

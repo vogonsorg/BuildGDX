@@ -871,7 +871,6 @@ public class Polymost2D extends OrphoRenderer {
 			textureCache.getShader().shaderDrawLastIndex(false);
 			textureCache.getShader().shaderTransparent(polyColor.a);
 		}
-
 		parent.globalfog.apply();
 
 		gl.glBegin(GL_TRIANGLE_STRIP);

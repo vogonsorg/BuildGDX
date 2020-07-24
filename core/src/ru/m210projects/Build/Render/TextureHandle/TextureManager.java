@@ -47,8 +47,15 @@ public class TextureManager {
 		this.engine = engine;
 		cache = new GLTileArray(MAXTILES);
 
-		if (GLSettings.usePaletteShader.get())
-			enableShader(true);
+		if (GLSettings.usePaletteShader.get()) {
+			try {
+				shader = new IndexedTexShader(this);
+				shader.changePalette(curpalette.getBytes());
+			} catch (Exception e) {
+				e.printStackTrace();
+				shader = null;
+			}
+		}
 	}
 
 	public void setTextureInfo(TextureHDInfo info) {
@@ -397,6 +404,15 @@ public class TextureManager {
 
 	public boolean isUseShader() {
 		return shader != null && bindedTile != null && bindedTile.isRequireShader();
+	}
+
+	public boolean isUseShader(int dapic) {
+		if(shader != null) {
+			GLTile tile = cache.get(dapic);
+			if(tile != null && tile.isRequireShader())
+				return true;
+		}
+		return false;
 	}
 
 	public void enableShader(boolean enable) {

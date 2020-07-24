@@ -18,6 +18,10 @@ public class GLTileArray {
 		return null;
 	}
 
+	public GLTile get(int picnum) {
+		return array[picnum];
+	}
+
 	public void add(GLTile newNode, int dapicnum) {
 		int p = newNode.compareTo(array[dapicnum]);
 		if (p <= 0) {
