@@ -71,7 +71,6 @@ public abstract class Engine {
 	 * TODO:
 	 * Software renderer: and the draw distance for voxel detail is really low
 	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
-	 * Software renderer: Voxel is not clipped by ceiling geometry
 	 * в консоли может одновременно две одинаковых строки показать (console default font)
 	 *
 	 * osdrows в сохранения конфига
@@ -90,13 +89,9 @@ public abstract class Engine {
 	 * floor-alignment voxels for maphack
 	 *
 	 * для шейдеров:
-	 * затенения уровня в далеке(туман)
 	 * прекэш вокселей - палитра
 	 * FadeScreen
 	 * Проверить HRP модели для шейдеров
-	 * Отключить GL туман для шейдеров
-	 * Отключить фильтрацию текстур для шейдеров
-	 * Не работают текстуры в userepisode
 	 *
 	 * GameAdapter TODO:
 	 * SaveManager findSaves()
@@ -135,7 +130,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 
-	public static final String version = "20.062"; // XX. - year, XX - month, X - build
+	public static final String version = "20.071"; // XX. - year, XX - month, X - build
 
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
