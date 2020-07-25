@@ -75,8 +75,10 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_CLIP_PLANE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
+import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
 
 import java.nio.FloatBuffer;
@@ -1222,6 +1224,12 @@ public class Polymost2D extends OrphoRenderer {
 		if (GLInfo.multisample != 0) {
 			j = GL_TEXTURE0;
 			while (j <= texunits) {
+				gl.glMatrixMode(GL_TEXTURE);
+				gl.glLoadIdentity();
+				gl.glMatrixMode(GL_MODELVIEW);
+				gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
+				gl.glDisable(GL_TEXTURE_2D);
+
 				gl.glClientActiveTexture(j++);
 				gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			}

@@ -286,6 +286,11 @@ public class PolymostModelRenderer {
 			gl.glEnd();
 		}
 
+		if (r_vertexarrays != 0) {
+			gl.glDisableClientState(GL_VERTEX_ARRAY);
+			gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+
 		// ------------
 		gl.glDisable(GL_CULL_FACE);
 		gl.glLoadIdentity();
