@@ -3797,7 +3797,7 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public PixelFormat getTexFormat() {
-		return PixelFormat.Rgb; // textureCache.getFormat(); XXX
+		return PixelFormat.Rgb; //textureCache.getShader() != null ? PixelFormat.Pal8 : PixelFormat.Rgb;
 	}
 
 	@Override

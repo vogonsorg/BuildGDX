@@ -31,8 +31,8 @@ public class GLSettings extends BuildSettings {
 	public static BuildVariable<Boolean> usePaletteShader;
 
 	public static BuildVariable<Integer> gamma;
-	public static BuildVariable<Integer> brightness;
-	public static BuildVariable<Integer> contrast;
+//	public static BuildVariable<Integer> brightness;
+//	public static BuildVariable<Integer> contrast;
 
 	public static BuildVariable<Boolean> animSmoothing;
 
@@ -192,48 +192,49 @@ public class GLSettings extends BuildSettings {
 				if (value instanceof Integer) {
 					float gamma = (Integer) value / 4096.0f;
 					if (engine.glrender() == null || (Boolean) BuildGdx.graphics.extra(Option.GLSetConfiguration,
-							1 - gamma, cfg.fbrightness, cfg.fcontrast))
+							//1 - gamma, cfg.fbrightness, cfg.fcontrast))
+							1 - gamma, 0.0f, 1.0f))
 						return (Integer) value;
 				}
 				return null;
 			}
 		};
 
-		brightness = new BuildVariable<Integer>((int) (cfg.fbrightness * 4096), "Global brightness") {
-			@Override
-			protected void execute(Integer value) {
-				cfg.fbrightness = value / 4096.0f;
-			}
-
-			@Override
-			protected Integer check(Object value) {
-				if (value instanceof Integer) {
-					float brightness = (Integer) value / 4096.0f;
-					if (engine.glrender() == null || (Boolean) BuildGdx.graphics.extra(Option.GLSetConfiguration,
-							cfg.fgamma, brightness, cfg.fcontrast))
-						return (Integer) value;
-				}
-				return null;
-			}
-		};
-
-		contrast = new BuildVariable<Integer>((int) (cfg.fcontrast * 4096), "Global contrast") {
-			@Override
-			protected void execute(Integer value) {
-				cfg.fcontrast = value / 4096.0f;
-			}
-
-			@Override
-			protected Integer check(Object value) {
-				if (value instanceof Integer) {
-					float contrast = (Integer) value / 4096.0f;
-					if (engine.glrender() == null || (Boolean) BuildGdx.graphics.extra(Option.GLSetConfiguration,
-							cfg.fgamma, cfg.fbrightness, contrast))
-						return (Integer) value;
-				}
-				return null;
-			}
-		};
+//		brightness = new BuildVariable<Integer>((int) (cfg.fbrightness * 4096), "Global brightness") {
+//			@Override
+//			protected void execute(Integer value) {
+//				cfg.fbrightness = value / 4096.0f;
+//			}
+//
+//			@Override
+//			protected Integer check(Object value) {
+//				if (value instanceof Integer) {
+//					float brightness = (Integer) value / 4096.0f;
+//					if (engine.glrender() == null || (Boolean) BuildGdx.graphics.extra(Option.GLSetConfiguration,
+//							cfg.fgamma, brightness, cfg.fcontrast))
+//						return (Integer) value;
+//				}
+//				return null;
+//			}
+//		};
+//
+//		contrast = new BuildVariable<Integer>((int) (cfg.fcontrast * 4096), "Global contrast") {
+//			@Override
+//			protected void execute(Integer value) {
+//				cfg.fcontrast = value / 4096.0f;
+//			}
+//
+//			@Override
+//			protected Integer check(Object value) {
+//				if (value instanceof Integer) {
+//					float contrast = (Integer) value / 4096.0f;
+//					if (engine.glrender() == null || (Boolean) BuildGdx.graphics.extra(Option.GLSetConfiguration,
+//							cfg.fgamma, cfg.fbrightness, contrast))
+//						return (Integer) value;
+//				}
+//				return null;
+//			}
+//		};
 	}
 
 }

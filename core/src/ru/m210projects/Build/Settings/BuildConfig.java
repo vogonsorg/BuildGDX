@@ -152,8 +152,8 @@ public abstract class BuildConfig extends IniFile {
 
 	protected int paletteGamma = 0;
 	protected float fgamma = 1;
-	protected float fbrightness = 0;
-	protected float fcontrast = 1;
+//	protected float fbrightness = 0;
+//	protected float fcontrast = 1;
 	public float gFpsScale = 1.0f;
 
 	public KeyType[] keymap;
@@ -370,10 +370,10 @@ public abstract class BuildConfig extends IniFile {
 
 			int gm = GetKeyInt("GLGamma");
 			if( gm != -1) GLSettings.gamma.set(gm);
-			int bg = GetKeyInt("GLBrightness");
-			if( bg != -1) GLSettings.brightness.set(bg);
-			int ct = GetKeyInt("GLContrast");
-			if( ct != -1) GLSettings.contrast.set(ct);
+//			int bg = GetKeyInt("GLBrightness");
+//			if( bg != -1) GLSettings.brightness.set(bg);
+//			int ct = GetKeyInt("GLContrast");
+//			if( ct != -1) GLSettings.contrast.set(ct);
 			value = GetKeyInt("PaletteGamma");
 			if(value != -1) BuildSettings.paletteGamma.set(value);
 
@@ -592,8 +592,8 @@ public abstract class BuildConfig extends IniFile {
 		saveBoolean(fil, "Palette_Emulation", paletteEmulation);
 
 		saveInteger(fil, "GLGamma", GLSettings.gamma.get());
-		saveInteger(fil, "GLBrightness", GLSettings.brightness.get());
-		saveInteger(fil, "GLContrast", GLSettings.contrast.get());
+//		saveInteger(fil, "GLBrightness", GLSettings.brightness.get());
+//		saveInteger(fil, "GLContrast", GLSettings.contrast.get());
 		saveInteger(fil, "PaletteGamma", BuildSettings.paletteGamma.get());
 		saveBoolean(fil, "ShowFPS", gShowFPS);
 		saveString(fil, ";\r\n;\r\n");
