@@ -19,7 +19,7 @@ import ru.m210projects.Build.Types.BuildVariable.RespondType;
 
 public class GLSettings extends BuildSettings {
 
-	public static GLFilter[] glfiltermodes = { new GLFilter("Retro", GL_NEAREST, GL_NEAREST), // 0
+	public static GLFilter[] glfiltermodes = { new GLFilter("None", GL_NEAREST, GL_NEAREST), // 0
 			new GLFilter("Bilinear", GL_LINEAR, GL_LINEAR), // 1
 			new GLFilter("Trilinear", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR) // 2
 	};

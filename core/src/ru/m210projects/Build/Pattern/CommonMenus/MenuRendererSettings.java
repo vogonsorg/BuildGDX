@@ -242,7 +242,7 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 			String[] filters = new String[GLSettings.glfiltermodes.length];
 			for (int i = 0; i < filters.length; i++)
 				filters[i] = GLSettings.glfiltermodes[i].name;
-			GLTextureFilter = BuildConteiner("Texture mode", GLSettings.textureFilter, filters, GLSettings.glfiltermodes);
+			GLTextureFilter = BuildConteiner("Texture filtering", GLSettings.textureFilter, filters, GLSettings.glfiltermodes);
 
 			int anisotropysize = 0;
 			for (int s = (int) maxanisotropy; s > 1; s >>= 1)
