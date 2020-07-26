@@ -71,6 +71,12 @@ public class GLFog {
 		color[1] = (palookupfog[pal][1] / 63.f);
 		color[2] = (palookupfog[pal][2] / 63.f);
 		color[3] = 1;
+
+		if (manager.getShader() != null)
+			manager.getShader().setFogParams(true, start, end, color);
+		BuildGdx.gl.glFogfv(GL_FOG_COLOR, color, 0);
+		BuildGdx.gl.glFogf(GL_FOG_START, start);
+		BuildGdx.gl.glFogf(GL_FOG_END, end);
 	}
 
 	public void setFogScale(int var) {
@@ -78,43 +84,47 @@ public class GLFog {
 	}
 
 	public void apply() {
-		if (nofog)
-			return;
-
-		if (isEnabled) {
-			BuildGdx.gl.glEnable(GL_FOG);
-		} else {
-			BuildGdx.gl.glDisable(GL_FOG);
-			if (manager.isUseShader())
-				manager.getShader().setFogParams(false, 0.0f, 0.0f, null);
-			return;
-		}
-
-		if (start == curstart && end == curend
-				&& color[0] == curcolor[0]
-				&& color[1] == curcolor[1]
-				&& color[2] == curcolor[2])
-			return;
-
-		System.arraycopy(color, 0, curcolor, 0, 3);
-		curstart = start;
-		curend = end;
-		if (manager.isUseShader())
-			manager.getShader().setFogParams(true, curstart, curend, curcolor);
-		else {
-			BuildGdx.gl.glFogfv(GL_FOG_COLOR, curcolor, 0);
-			BuildGdx.gl.glFogf(GL_FOG_START, curstart);
-			BuildGdx.gl.glFogf(GL_FOG_END, curend);
-		}
+//		if (nofog)
+//			return;
+//
+//		if (isEnabled) {
+//			BuildGdx.gl.glEnable(GL_FOG);
+//		} else {
+//			BuildGdx.gl.glDisable(GL_FOG);
+//			if (manager.isUseShader())
+//				manager.getShader().setFogParams(false, 0.0f, 0.0f, null);
+//			return;
+//		}
+//
+//		if (start == curstart && end == curend
+//				&& color[0] == curcolor[0]
+//				&& color[1] == curcolor[1]
+//				&& color[2] == curcolor[2])
+//			return;
+//
+//		System.arraycopy(color, 0, curcolor, 0, 3);
+//		curstart = start;
+//		curend = end;
+//		if (manager.isUseShader())
+//			manager.getShader().setFogParams(true, curstart, curend, curcolor);
+//		else {
+//			BuildGdx.gl.glFogfv(GL_FOG_COLOR, curcolor, 0);
+//			BuildGdx.gl.glFogf(GL_FOG_START, curstart);
+//			BuildGdx.gl.glFogf(GL_FOG_END, curend);
+//		}
 	}
 
 	public void enable() {
 		if (!nofog) {
 			isEnabled = true;
+			BuildGdx.gl.glEnable(GL_FOG);
 		}
 	}
 
 	public void disable() {
 		isEnabled = false;
+		BuildGdx.gl.glDisable(GL_FOG);
+		if (manager.getShader() != null)
+			manager.getShader().setFogParams(false, 0.0f, 0.0f, null);
 	}
 }

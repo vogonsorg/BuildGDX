@@ -104,6 +104,7 @@ public class IndexedTexShader {
 	private ShaderProgram shaderProg;
 	private TextureManager cache;
 	private boolean glfog = false;
+	private boolean isBinded;
 
 	private int paletteloc;
 	private int numshadesloc;
@@ -235,12 +236,18 @@ public class IndexedTexShader {
 
 	public void bind() {
 		shaderProg.begin();
+		isBinded = true;
 		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 	}
 
 	public void unbind() {
 		shaderProg.end();
+		isBinded = false;
 		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+	}
+
+	public boolean isBinded() {
+		return isBinded;
 	}
 
 	public void setShaderParams(int pal, int shade) {
@@ -271,16 +278,18 @@ public class IndexedTexShader {
 	}
 
 	public void setFogParams(boolean enable, float start, float end, float[] fogcolor) {
+		boolean binded = isBinded();
+		if(!binded) bind();
 		if(!glfog) {
 			shaderProg.setUniformi(fogenableloc, -1);
-			return;
+		} else {
+			shaderProg.setUniformi(fogenableloc, enable ? 1 : 0);
+			if(enable) {
+				shaderProg.setUniformf(fogstartloc, start);
+				shaderProg.setUniformf(fogendloc, end);
+				shaderProg.setUniform4fv(fogcolourloc, fogcolor, 0, 4);
+			}
 		}
-
-		shaderProg.setUniformi(fogenableloc, enable ? 1 : 0);
-		if(!enable) return;
-
-		shaderProg.setUniformf(fogstartloc, start);
-		shaderProg.setUniformf(fogendloc, end);
-		shaderProg.setUniform4fv(fogcolourloc, fogcolor, 0, 4);
+		if(!binded) unbind();
 	}
 }
