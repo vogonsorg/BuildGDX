@@ -192,7 +192,6 @@ public abstract class Engine {
 		}
 	}
 
-	public static boolean UseBloodPal = false;
 	public String tilesPath = "tilesXXX.art";
 	public int fpscol = 31;
 
