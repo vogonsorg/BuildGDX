@@ -50,7 +50,6 @@ import static ru.m210projects.Build.Engine.xdimen;
 import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.Render.Polymost.Polymost.r_vertexarrays;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_QUADS;
@@ -65,6 +64,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
 import ru.m210projects.Build.Loader.Model;
@@ -75,8 +75,8 @@ import ru.m210projects.Build.Loader.MD3.MD3Surface;
 import ru.m210projects.Build.Loader.MD3.MD3Vertice;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.TextureHandle.BTexture;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Script.DefScript;
@@ -86,7 +86,7 @@ import ru.m210projects.Build.Types.Tile;
 public class PolymostModelRenderer {
 
 	private Polymost parent;
-	private final TextureCache textureCache;
+	private final TextureManager textureCache;
 	private Engine engine;
 	private GL10 gl;
 	private final Color polyColor = new Color();
@@ -249,11 +249,10 @@ public class PolymostModelRenderer {
 		dvoxphack[0] = 0;
 		dvoxphack[1] = 1.f / 256.f;
 
-		if (m.texid[globalpal] == null)
-			m.loadskin(globalpal, textureCache.isUseShader());
-		else
-			bindTexture(m.texid[globalpal]);
-
+		m.bindSkin(textureCache, globalpal, globalshade, polyColor.a);
+		if(textureCache.isUseShader())
+			textureCache.getShader().setVisibility((int)(parent.globalfog.combvis));
+		parent.globalfog.apply();
 		if (r_vertexarrays != 0) {
 			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -285,6 +284,11 @@ public class PolymostModelRenderer {
 				}
 			}
 			gl.glEnd();
+		}
+
+		if (r_vertexarrays != 0) {
+			gl.glDisableClientState(GL_VERTEX_ARRAY);
+			gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
 
 		// ------------
@@ -460,18 +464,19 @@ public class PolymostModelRenderer {
 		modelPrepare(m, tspr, xoff, yoff);
 
 		int rendered = 0, skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-		BTexture texid = m.loadskin(defs, skinnum, globalpal, 0);
+		GLTile texid = m.loadskin(defs, skinnum, globalpal, 0);
 		if (texid != null) {
-			bindTexture(texid);
+			textureCache.bind(texid);
 			if (Console.Geti("r_detailmapping") != 0)
 				texid = m.loadskin(defs, skinnum, DETAILPAL, 0);
 			else
 				texid = null;
 
 			int texunits = GL_TEXTURE0;
-
 			if (texid != null) {
-				texunits = parent.setBoundTextureDetail(texid, texunits);
+				BuildGdx.gl.glActiveTexture(++texunits);
+				BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+				texid.setupTextureDetail();
 
 				MDSkinmap sk = m.getSkin(DETAILPAL, skinnum, 0);
 				if (sk != null) {
@@ -488,11 +493,15 @@ public class PolymostModelRenderer {
 			else
 				texid = null;
 
-			if (texid != null)
-				texunits = parent.setBoundTextureGlow(texid, texunits);
+			if (texid != null) {
+				BuildGdx.gl.glActiveTexture(++texunits);
+				BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+				texid.setupTextureGlow();
+			}
 
 			MD2Frame cframe = m.frames[m.cframe], nframe = m.frames[m.nframe];
 
+			parent.globalfog.apply();
 			if (r_vertexarrays != 0) {
 				m.verticesBuffer.clear();
 				for (int i = 0; i < m.tris.length; i++) // -60fps, but it's need for animation
@@ -610,10 +619,9 @@ public class PolymostModelRenderer {
 			m.verticesBuffer.flip();
 
 			skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-			BTexture texid = m.loadskin(defs, skinnum, globalpal, surfi);
+			GLTile texid = m.loadskin(defs, skinnum, globalpal, surfi);
 			if (texid != null) {
-
-				bindTexture(texid);
+				textureCache.bind(texid);
 
 				if (Console.Geti("r_detailmapping") != 0)
 					texid = m.loadskin(defs, skinnum, DETAILPAL, surfi);
@@ -623,7 +631,10 @@ public class PolymostModelRenderer {
 				int texunits = GL_TEXTURE0;
 
 				if (texid != null) {
-					texunits = parent.setBoundTextureDetail(texid, texunits);
+					BuildGdx.gl.glActiveTexture(++texunits);
+					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+					texid.setupTextureDetail();
+
 					MDSkinmap sk = m.getSkin(DETAILPAL, skinnum, surfi);
 					if (sk != null) {
 						float f = sk.param;
@@ -639,9 +650,13 @@ public class PolymostModelRenderer {
 				else
 					texid = null;
 
-				if (texid != null)
-					texunits = parent.setBoundTextureGlow(texid, texunits);
+				if (texid != null) {
+					BuildGdx.gl.glActiveTexture(++texunits);
+					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+					texid.setupTextureGlow();
+				}
 
+				parent.globalfog.apply();
 				if (r_vertexarrays != 0) {
 					m.indicesBuffer.clear();
 					for (int i = s.numtris - 1; i >= 0; i--)

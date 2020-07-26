@@ -7,6 +7,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildFont;
 import ru.m210projects.Build.Pattern.ScreenAdapters.SkippableAdapter;
+import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Types.Tile;
@@ -138,6 +139,10 @@ public abstract class MovieScreen extends SkippableAdapter {
 
 		changepalette(mvfil.getPalette());
 
+		final GLRenderer gl = engine.glrender();
+		if(gl != null)
+			gl.gltexinvalidateall(GLInvalidateFlag.Palookup);
+
 		frame = 0;
 		mvtime = 0;
 		LastMS = -1;
@@ -244,6 +249,9 @@ public abstract class MovieScreen extends SkippableAdapter {
 	protected void close() {
 		if (mvfil != null) {
 			System.arraycopy(opalookup, 0, palookup[0], 0, opalookup.length);
+			final GLRenderer gl = engine.glrender();
+			if(gl != null)
+				gl.gltexinvalidateall(GLInvalidateFlag.Palookup);
 			mvfil.close();
 		}
 

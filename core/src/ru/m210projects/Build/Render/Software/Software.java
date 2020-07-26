@@ -70,6 +70,7 @@ import static ru.m210projects.Build.Engine.transluc;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.viewingrangerecip;
+import static ru.m210projects.Build.Engine.visibility;
 import static ru.m210projects.Build.Engine.wall;
 import static ru.m210projects.Build.Engine.windowx1;
 import static ru.m210projects.Build.Engine.windowx2;
@@ -492,6 +493,7 @@ public abstract class Software implements Renderer {
 
 		int i = mulscale(xdimenscale, viewingrangerecip, 16);
 		globalpisibility = mulscale(parallaxvisibility, i, 16);
+		globalvisibility = mulscale(visibility, i, 16);
 
 		globalhisibility = mulscale(globalvisibility, xyaspect, 16);
 		globalcisibility = mulscale(globalhisibility, 320, 8);
@@ -3560,7 +3562,7 @@ public abstract class Software implements Renderer {
 																										// who provided
 																										// this too?
 		int len = num + offset;
-		if (offset < 0 || len == 0)
+		if (offset < 0 || len == 0 || len >= bufptr.length)
 			return;
 		for (int i = offset; i < len; i++) {
 			bufptr[i] = (short) (val >> 16);
@@ -3572,7 +3574,7 @@ public abstract class Software implements Renderer {
 																								// could have provided
 																								// this...
 		int len = num + offset;
-		if (offset < 0 || len == 0)
+		if (offset < 0 || len == 0 || len >= bufptr.length)
 			return;
 
 		for (int i = offset; i < len; i++) {
@@ -3994,15 +3996,21 @@ public abstract class Software implements Renderer {
 					iy2 = inty;
 					ix2 = xcross;
 				}
-				for (i = (xcross + 1); i <= xb2[w]; i++)
+				for (i = (xcross + 1); i <= xb2[w]; i++) {
+					if(i < 0 || i >= mostbuf.length)
+						return (bad);
 					mostbuf[i] = 0;
+				}
 			} else {
 				if (xcross <= xb2[w]) {
 					iy1 = inty;
 					ix1 = xcross;
 				}
-				for (i = xb1[w]; i <= xcross; i++)
+				for (i = xb1[w]; i <= xcross; i++) {
+					if(i < 0 || i >= mostbuf.length)
+						return (bad);
 					mostbuf[i] = 0;
+				}
 			}
 		}
 
@@ -4016,16 +4024,22 @@ public abstract class Software implements Renderer {
 					iy2 = inty;
 					ix2 = xcross;
 				}
-				for (i = (xcross + 1); i <= xb2[w]; i++)
+				for (i = (xcross + 1); i <= xb2[w]; i++) {
+					if(i < 0 || i >= mostbuf.length)
+						return (bad);
 					mostbuf[i] = (short) ydimen;
+				}
 			} else {
 				if (xcross <= xb2[w]) {
 					iy1 = inty;
 					ix1 = xcross;
 				}
 
-				for (i = xb1[w]; i <= xcross; i++)
+				for (i = xb1[w]; i <= xcross; i++) {
+					if(i < 0 || i >= mostbuf.length)
+						return (bad);
 					mostbuf[i] = (short) ydimen;
+				}
 			}
 		}
 
@@ -4034,14 +4048,22 @@ public abstract class Software implements Renderer {
 
 		qinterpolatedown16short(mostbuf, ix1, ix2 - ix1 + 1, y + ((int) globalhoriz << 16), yinc);
 
-		if (ix1 < 0 || mostbuf[ix1] < 0)
+		if (ix1 < 0 || (ix1 < mostbuf.length && mostbuf[ix1] < 0)) {
+			if(ix1 < 0) ix1 = 0;
 			mostbuf[ix1] = 0;
-		if (ix1 >= mostbuf.length || mostbuf[ix1] > ydimen)
+		}
+		if (ix1 >= mostbuf.length || mostbuf[ix1] > ydimen) {
+			if(ix1 >= mostbuf.length) ix1 = mostbuf.length - 1;
 			mostbuf[ix1] = (short) ydimen;
-		if (ix2 < 0 || mostbuf[ix2] < 0)
+		}
+		if (ix2 < 0 || (ix2 < mostbuf.length && mostbuf[ix2] < 0)) {
+			if(ix2 < 0) ix2 = 0;
 			mostbuf[ix2] = 0;
-		if (ix2 >= mostbuf.length || mostbuf[ix2] > ydimen)
+		}
+		if (ix2 >= mostbuf.length || mostbuf[ix2] > ydimen) {
+			if(ix2 >= mostbuf.length) ix2 = mostbuf.length - 1;
 			mostbuf[ix2] = (short) ydimen;
+		}
 
 		return (bad);
 	}

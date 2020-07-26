@@ -122,7 +122,7 @@ public class DEFOSDFUNC implements OSDFunc {
 		drawlogo(daydim);
 
 		if(BORDTILE != -1) {
-			xsiz = pic.getHeight();
+			xsiz = engine.getTile(BORDTILE).getHeight();
 			if (xsiz > 0)
 			{
 				tx2 = xdim / xsiz;

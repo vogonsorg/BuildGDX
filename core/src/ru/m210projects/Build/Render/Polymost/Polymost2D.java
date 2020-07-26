@@ -16,19 +16,13 @@ import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_FALSE;
 import static com.badlogic.gdx.graphics.GL20.GL_FLOAT;
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
-import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
-import static com.badlogic.gdx.graphics.GL20.GL_NEAREST;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAG_FILTER;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MIN_FILTER;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_FAN;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_STRIP;
 import static com.badlogic.gdx.graphics.GL20.GL_TRUE;
-import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXSPRITESONSCREEN;
 import static ru.m210projects.Build.Engine.MAXTILES;
@@ -47,6 +41,8 @@ import static ru.m210projects.Build.Engine.headspritesect;
 import static ru.m210projects.Build.Engine.nextspritesect;
 import static ru.m210projects.Build.Engine.numsectors;
 import static ru.m210projects.Build.Engine.numshades;
+import static ru.m210projects.Build.Engine.pSmallTextfont;
+import static ru.m210projects.Build.Engine.pTextfont;
 import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Engine.picsiz;
 import static ru.m210projects.Build.Engine.pow2char;
@@ -55,9 +51,7 @@ import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.show2dsector;
 import static ru.m210projects.Build.Engine.show2dsprite;
 import static ru.m210projects.Build.Engine.sintable;
-import static ru.m210projects.Build.Engine.smalltextfont;
 import static ru.m210projects.Build.Engine.sprite;
-import static ru.m210projects.Build.Engine.textfont;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.wall;
@@ -77,33 +71,29 @@ import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.Polymost.Polymost.MAXWALLSB;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.bindTexture;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.calcSize;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_CLIP_PLANE0;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
-import static ru.m210projects.Build.Render.Types.GL10.GL_INTENSITY;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
+import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
-import static ru.m210projects.Build.Strhandler.Bstrlen;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.BufferUtils;
 
+import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
-import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hudtyp;
-import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SECTOR;
@@ -118,8 +108,7 @@ public class Polymost2D extends OrphoRenderer {
 
 	private Polymost parent;
 	private GL10 gl;
-	private IntBuffer polymosttext;
-	private final TextureCache textureCache;
+	private final TextureManager textureCache;
 
 	private final FloatBuffer vertices = BufferUtils.newFloatBuffer(8);
 	private final FloatBuffer textures = BufferUtils.newFloatBuffer(8);
@@ -292,7 +281,7 @@ public class Polymost2D extends OrphoRenderer {
 					pic = engine.getTile(globalpicnum);
 				}
 
-				if (pic.data == null)
+				if (!pic.isLoaded())
 					engine.loadtile(globalpicnum);
 
 				globalshade = max(min(sec.floorshade, numshades - 1), 0);
@@ -559,7 +548,6 @@ public class Polymost2D extends OrphoRenderer {
 	}
 
 	protected void fillpolygon(int npoints) {
-
 		for (int z = 0; z < npoints; z++) {
 			if (xb1[z] >= npoints)
 				xb1[z] = 0;
@@ -567,6 +555,21 @@ public class Polymost2D extends OrphoRenderer {
 
 		if (palookup[globalpal] == null)
 			globalpal = 0;
+
+		setpolymost2dview();
+		gl.glEnable(GL_ALPHA_TEST);
+		gl.glEnable(GL_TEXTURE_2D);
+		int method = (globalorientation >> 7) & 3;
+		if(method == 0)
+			gl.glDisable(GL_BLEND);
+		else gl.glEnable(GL_BLEND);
+
+		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
+		if (pth == null)
+			return;
+
+		textureCache.unbind(); //deactivate effects
+		textureCache.bind(pth);
 
 		globalx1 = mulscale(globalx1, xyaspect, 16);
 		globaly2 = mulscale(globaly2, xyaspect, 16);
@@ -581,21 +584,6 @@ public class Polymost2D extends OrphoRenderer {
 			rx1[i] /= 4096.0f;
 			ry1[i] /= 4096.0f;
 		}
-
-		gl.glDisable(GL_FOG);
-
-		setpolymost2dview();
-		gl.glEnable(GL_ALPHA_TEST);
-		gl.glEnable(GL_TEXTURE_2D);
-		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, (short) 0, false, true);
-
-		bindTexture(pth.glpic);
-		Color c = parent.getshadefactor(globalshade, (globalorientation >> 7) & 3);
-		if(c.a == 1.0f)
-			gl.glDisable(GL_BLEND);
-		else gl.glEnable(GL_BLEND);
-
-		gl.glColor4f(c.r, c.g, c.b, c.a);
 
 		tessectrap(rx1, ry1, xb1, npoints); // vertices + textures
 	}
@@ -697,6 +685,8 @@ public class Polymost2D extends OrphoRenderer {
 				trapextx[1] = px[i];
 			slist[j++] = i;
 		}
+
+		parent.globalfog.apply();
 
 		if (z != 3) // Simple polygon... early out
 		{
@@ -833,8 +823,7 @@ public class Polymost2D extends OrphoRenderer {
 	}
 
 	@Override
-	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
-			float scale) {
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale) {
 
 		if (font.type == FontType.Tilemap) {
 			if (palookup[col] == null)
@@ -845,23 +834,23 @@ public class Polymost2D extends OrphoRenderer {
 				return;
 		}
 
-		Pthtyp pth = font.getGL(textureCache, col);
-		if (pth == null)
+		GLTile atlas = font.getGL(textureCache, col);
+		if (atlas == null)
 			return;
 
 		int opal = globalpal;
 		globalpal = col;
-		bindTexture(pth.glpic);
+
+		textureCache.bind(atlas);
 
 		setpolymost2dview();
-		gl.glDisable(GL_FOG);
 		gl.glDisable(GL_ALPHA_TEST);
 		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
 
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
 
-		Color polyColor = parent.getshadefactor(shade, 0);
+		Color polyColor = textureCache.getshadefactor(shade, 0);
 		if (bit == Transparent.Bit1)
 			polyColor.a = TRANSLUSCENT1;
 		if (bit == Transparent.Bit2)
@@ -878,6 +867,13 @@ public class Polymost2D extends OrphoRenderer {
 
 		float txc = font.charsizx / (float) font.sizx, tx;
 		float tyc = font.charsizy / (float) font.sizy, ty;
+
+		if(atlas.isRequireShader()) {
+			textureCache.getShader().setShaderParams(col, shade);
+			textureCache.getShader().shaderDrawLastIndex(false);
+			textureCache.getShader().shaderTransparent(polyColor.a);
+		}
+		parent.globalfog.apply();
 
 		gl.glBegin(GL_TRIANGLE_STRIP);
 
@@ -918,87 +914,24 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
 
 		globalpal = opal;
+
+		textureCache.unbind();
 	}
 
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
-		int oxpos = xpos;
-//		if (textureCache.isUseShader())
-//			gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-
-		setpolymost2dview();
-		gl.glDisable(GL_FOG);
-		gl.glDisable(GL_ALPHA_TEST);
-		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
-
-		if (backcol >= 0) {
-			gl.glColor4ub(curpalette.getRed(backcol), curpalette.getGreen(backcol), curpalette.getBlue(backcol),
-					255);
-			int c = Bstrlen(text);
-
-			gl.glBegin(GL_TRIANGLE_FAN);
-			gl.glVertex2i(xpos, ypos);
-			gl.glVertex2i(xpos, ypos + (fontsize != 0 ? 6 : 8));
-			int x = xpos + (c << (3 - fontsize));
-			int y = ypos + (fontsize != 0 ? 6 : 8);
-			gl.glVertex2i(x, y);
-			gl.glVertex2i(xpos + (c << (3 - fontsize)), ypos);
-			gl.glEnd();
-		}
-
-		gl.glEnable(GL_TEXTURE_2D);
-		gl.glEnable(GL_BLEND);
-		gl.glColor4ub(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col), 255);
-		float txc = (fontsize != 0 ? (4.0f / 256.0f) : (8.0f / 256.0f));
-		float tyc = (fontsize != 0 ? (6.0f / 128.0f) : (8.0f / 128.0f));
-
-		gl.glBegin(GL_TRIANGLE_STRIP);
-
-		int c = 0, line = 0;
-		int x, y, yoffs;
-		float tx, ty;
-
-		while (c < text.length && text[c] != '\0') {
-			if (text[c] == '\n') {
-				text[c] = 0;
-				line += 1;
-				xpos = oxpos - (int) (scale * (8 >> fontsize));
-			}
-			if (text[c] == '\r')
-				text[c] = 0;
-
-			tx = (text[c] % 32) / 32.0f;
-			ty = ((text[c] / 32) + (fontsize * 8)) / 16.0f;
-
-			yoffs = (int) (scale * line * (fontsize != 0 ? 6 : 8));
-
-			x = xpos + (int) (scale * (8 >> fontsize));
-			y = ypos + (int) (scale * (fontsize != 0 ? 6 : 8));
-
-			gl.glTexCoord2f(tx, ty);
-			gl.glVertex2i(xpos, ypos + yoffs);
-			gl.glTexCoord2f(tx, ty + tyc);
-			gl.glVertex2i(xpos, y + yoffs);
-			gl.glTexCoord2f(tx + txc, ty);
-			gl.glVertex2i(x, ypos + yoffs);
-			gl.glTexCoord2f(tx + txc, ty + tyc);
-			gl.glVertex2i(x, y + yoffs);
-
-			xpos += scale * (8 >> fontsize);
-			c++;
-		}
-
-		gl.glEnd();
-
-		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+		printext(fontsize == 0 ? pTextfont : pSmallTextfont, xpos, ypos, text, col, 0, Transparent.None, scale);
 	}
 
 	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
-		gl.glDisable(GL_FOG);
-
 		setpolymost2dview(); // JBF 20040205: more efficient setup
+
+		parent.globalfog.apply();
+
+		boolean hasShader = textureCache.isUseShader();
+		if(hasShader)
+			textureCache.getShader().unbind();
 
 		col = palookup[0][col] & 0xFF;
 		gl.glBegin(GL_LINES);
@@ -1006,6 +939,9 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glVertex2f(x1 / 4096.0f, y1 / 4096.0f);
 		gl.glVertex2f(x2 / 4096.0f, y2 / 4096.0f);
 		gl.glEnd();
+
+		if(hasShader)
+			textureCache.getShader().bind();
 	}
 
 	@Override
@@ -1177,7 +1113,6 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glTranslatef(-xoff, -yoff, 0);
 		gl.glScalef(xsiz, ysiz, 0);
 
-		gl.glDisable(GL_FOG);
 		drawrotate(method, dastat);
 
 		gl.glDisable(GL_CLIP_PLANE0);
@@ -1216,39 +1151,40 @@ public class Polymost2D extends OrphoRenderer {
 			}
 		}
 
-		Pthtyp pth = textureCache.cache(globalpicnum, globalpal, (short) 0, textureCache.clampingMode(method),
-				textureCache.alphaMode(method));
+		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
 		if (pth == null) // hires texture not found
 			return;
 
-		if (!pth.isHighTile()) {
-//			textureCache.bindShader();
-//			textureCache.setShaderParams(globalpal, engine.getpalookup(0, globalshade));
+		parent.globalfog.apply();
+
+		int texunits = textureCache.getTextureUnits(), j;
+//		float hackscx = 1.0f, hackscy = 1.0f;
+//		if (pth != null && pth.isHighTile()) {
+//			hackscx = pth.getXScale();
+//			hackscy = pth.getYScale();
+//		}
+//
+//		float ox2 = hackscx / pth.getWidth();
+//		float oy2 = hackscy / pth.getHeight();
+
+		float ox2 = 0;
+		float oy2 = 0;
+		int xx, yy;
+		if (pth.isHighTile()) {
+			tsizx = pth.getWidth();
+			tsizy = pth.getHeight();
 		}
-		bindTexture(pth.glpic);
 
-		float hackscx = 1.0f, hackscy = 1.0f;
-		if (pth != null && pth.isHighTile()) {
-			tsizx = pth.sizx;
-			tsizy = pth.sizy;
-		}
-
-		float ox2 = hackscx / calcSize(tsizx);
-		float oy2 = hackscy / calcSize(tsizy);
-
-		gl.glMatrixMode(GL_TEXTURE);
-		gl.glPushMatrix();
-		gl.glLoadIdentity();
-		gl.glScalef(tsizx, tsizy, 1.0f);
-		gl.glScalef(ox2, oy2, 1.0f);
-
-		// texture scale by parkar request
-		if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f)))
-			gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
-
-		if ((dastat & 4) != 0) {
-			gl.glScalef(1, -1, 1.0f);
-			gl.glTranslatef(0, -1, 0);
+		if (GLInfo.texnpot == 0) {
+			for (xx = 1; xx < tsizx; xx += xx);
+			ox2 = 1.0f / xx;
+			for (yy = 1; yy < tsizy; yy += yy);
+			oy2 = 1.0f / yy;
+		} else {
+			xx = tsizx;
+			ox2 = 1.0f / xx;
+			yy = tsizy;
+			oy2 = 1.0f / yy;
 		}
 
 		if (((method & 3) == 0)) {
@@ -1259,46 +1195,52 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glEnable(GL_ALPHA_TEST);
 		}
 
-		Color polyColor = parent.getshadefactor(globalshade, method);
-		if (parent.defs != null) {
-			if (pth != null && pth.isHighTile()) {
-				if (pth.hicr.palnum != globalpal) {
-					// apply tinting for replaced textures
+		gl.glEnableClientState(GL_VERTEX_ARRAY);
+		gl.glVertexPointer(2, GL_FLOAT, 0, vertices);
 
-					Palette p = parent.defs.texInfo.getTints(globalpal);
-					polyColor.r *= p.r / 255.0f;
-					polyColor.g *= p.g / 255.0f;
-					polyColor.b *= p.b / 255.0f;
-				}
+		j = GL_TEXTURE0;
+		while (j <= texunits) {
+			if (GLInfo.multisample != 0) {
+				gl.glActiveTexture(j);
+				gl.glClientActiveTexture(j++);
+			} else j++;
+			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
 
-				Palette pdetail = parent.defs.texInfo.getTints(MAXPALOOKUPS - 1);
-				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-					polyColor.r *= pdetail.r / 255.0f;
-					polyColor.g *= pdetail.g / 255.0f;
-					polyColor.b *= pdetail.b / 255.0f;
-				}
+			gl.glMatrixMode(GL_TEXTURE);
+			gl.glPushMatrix();
+			gl.glLoadIdentity();
+			gl.glScalef(tsizx, tsizy, 1.0f);
+			gl.glScalef(ox2, oy2, 1.0f);
+
+			if ((dastat & 4) != 0) {
+				gl.glScalef(1, -1, 1.0f);
+				gl.glTranslatef(0, -1, 0);
 			}
 		}
 
-//		textureCache.shaderTransparent(polyColor.a);
-		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-
-		gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		gl.glEnableClientState(GL_VERTEX_ARRAY);
-
-		gl.glTexCoordPointer(2, GL_FLOAT, 0, textures);
-		gl.glVertexPointer(2, GL_FLOAT, 0, vertices);
-
 		gl.glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-		gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		if (GLInfo.multisample != 0) {
+			j = GL_TEXTURE0;
+			while (j <= texunits) {
+				gl.glMatrixMode(GL_TEXTURE);
+				gl.glLoadIdentity();
+				gl.glMatrixMode(GL_MODELVIEW);
+				gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
+				gl.glDisable(GL_TEXTURE_2D);
+
+				gl.glClientActiveTexture(j++);
+				gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			}
+		} else gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
 		gl.glDisableClientState(GL_VERTEX_ARRAY);
 
 		gl.glMatrixMode(GL_TEXTURE);
 		gl.glPopMatrix();
 
-//		if (!pth.isHighTile())
-//			textureCache.unbindShader();
+		textureCache.unbind();
 	}
 
 	private void dorotatesprite3d(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat,
@@ -1427,7 +1369,6 @@ public class Polymost2D extends OrphoRenderer {
 			gl.glClear(GL_DEPTH_BUFFER_BIT);
 		}
 
-		gl.glDisable(GL_FOG);
 		parent.globalorientation = hudsprite.cstat;
 		parent.mdrenderer.mddraw(hudsprite, 0, 0);
 
@@ -1443,56 +1384,10 @@ public class Polymost2D extends OrphoRenderer {
 
 	@Override
 	public void init() {
-		if (polymosttext == null) {
-			// construct a 256x128 8-bit alpha-only texture for the font glyph
-			// matrix
-			byte[] tbuf;
-			int tptr;
-			int h, i, j;
-			polymosttext = BufferUtils.newIntBuffer(1);
-
-			tbuf = new byte[256 * 128];
-			ByteBuffer fbuf = BufferUtils.newByteBuffer(256 * 128);
-
-			for (h = 0; h < 256; h++) {
-				tptr = (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 0; i < 8; i++) {
-					for (j = 0; j < 8; j++) {
-						if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							tbuf[tptr + j] = (byte) 255;
-					}
-					tptr += 256;
-				}
-			}
-
-			for (h = 0; h < 256; h++) {
-				tptr = 256 * 64 + (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 1; i < 7; i++) {
-					for (j = 2; j < 6; j++) {
-						if ((smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							tbuf[tptr + j - 2] = (byte) 255;
-					}
-					tptr += 256;
-				}
-			}
-
-			fbuf.put(tbuf);
-			fbuf.rewind();
-
-			gl.glBindTexture(GL_TEXTURE_2D, polymosttext);
-			gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, 256, 128, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, fbuf);
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
 	}
 
 	@Override
 	public void uninit() {
-		if (polymosttext != null) {
-			// polymosttext.dispose();
-			gl.glDeleteTextures(1, polymosttext);
-		}
-		polymosttext = null;
 	}
 
 	class raster {

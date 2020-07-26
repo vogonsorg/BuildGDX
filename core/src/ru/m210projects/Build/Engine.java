@@ -71,7 +71,6 @@ public abstract class Engine {
 	 * TODO:
 	 * Software renderer: and the draw distance for voxel detail is really low
 	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
-	 * Software renderer: Voxel is not clipped by ceiling geometry
 	 * в консоли может одновременно две одинаковых строки показать (console default font)
 	 *
 	 * osdrows в сохранения конфига
@@ -90,13 +89,9 @@ public abstract class Engine {
 	 * floor-alignment voxels for maphack
 	 *
 	 * для шейдеров:
-	 * затенения уровня в далеке(туман)
 	 * прекэш вокселей - палитра
 	 * FadeScreen
 	 * Проверить HRP модели для шейдеров
-	 * Отключить GL туман для шейдеров
-	 * Отключить фильтрацию текстур для шейдеров
-	 * Не работают текстуры в userepisode
 	 *
 	 * GameAdapter TODO:
 	 * SaveManager findSaves()
@@ -135,7 +130,7 @@ public abstract class Engine {
 	 *  	bithandler
 	 */
 
-	public static final String version = "20.062"; // XX. - year, XX - month, X - build
+	public static final String version = "20.071"; // XX. - year, XX - month, X - build
 
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -197,7 +192,6 @@ public abstract class Engine {
 		}
 	}
 
-	public static boolean UseBloodPal = false;
 	public String tilesPath = "tilesXXX.art";
 	public int fpscol = 31;
 
@@ -564,7 +558,7 @@ public abstract class Engine {
 			transluc = new byte[65536];
 
 		globalpal = 0;
-		Console.Println("Loading gamma correcion tables");
+		Console.Println("Loading gamma correction tables");
 		fil.read(palookup[globalpal], 0, numshades << 8);
 		Console.Println("Loading translucency table");
 
@@ -1102,9 +1096,6 @@ public abstract class Engine {
 	}
 
 	public int drawrooms(float daposx, float daposy, float daposz, float daang, float dahoriz, short dacursectnum) { // eDuke32
-																														// visibility
-																														// set
-
 		beforedrawrooms = 0;
 
 		globalposx = (int) daposx;
@@ -1115,7 +1106,7 @@ public abstract class Engine {
 		globalhoriz = ((dahoriz - 100) * xdimenscale / viewingrange) + (ydimen >> 1);
 		pitch = (-getangle(160, (int) (dahoriz - 100))) / (2048.0f / 360.0f);
 
-		globalvisibility = scale(visibility << 2, xdimen, 1680);
+		globalvisibility = scale(visibility << 2, xdimen, 1027);
 
 		globalcursectnum = dacursectnum;
 		totalclocklock = totalclock;
@@ -3526,6 +3517,11 @@ public abstract class Engine {
 			palookupfog[palnum][1] = (byte) g;
 			palookupfog[palnum][2] = (byte) b;
 		}
+
+		final GLRenderer gl = glrender();
+		if(gl != null && gl.getTextureManager().getShader() != null) {
+			gl.getTextureManager().getShader().invalidatepalookup(palnum);
+		}
 	}
 
 	public void setbrightness(int dabrightness, byte[] dapal, GLInvalidateFlag flags) {
@@ -4040,12 +4036,17 @@ public abstract class Engine {
 		int numpal, firstpal, np;
 		int hp;
 
-		if (pal < 0) {
-			numpal = MAXPALOOKUPS;
+		if(gl.getTextureManager().isUseShader(tilenume)) {
+			numpal = 1;
 			firstpal = 0;
 		} else {
-			numpal = 1;
-			firstpal = pal % MAXPALOOKUPS;
+			if (pal < 0) {
+				numpal = MAXPALOOKUPS;
+				firstpal = 0;
+			} else {
+				numpal = 1;
+				firstpal = pal % MAXPALOOKUPS;
+			}
 		}
 
 		for (hp = 0; hp < 8; hp += 4) {
