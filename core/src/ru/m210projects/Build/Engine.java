@@ -558,7 +558,7 @@ public abstract class Engine {
 			transluc = new byte[65536];
 
 		globalpal = 0;
-		Console.Println("Loading gamma correcion tables");
+		Console.Println("Loading gamma correction tables");
 		fil.read(palookup[globalpal], 0, numshades << 8);
 		Console.Println("Loading translucency table");
 
