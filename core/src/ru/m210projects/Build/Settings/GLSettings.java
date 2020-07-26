@@ -149,8 +149,10 @@ public class GLSettings extends BuildSettings {
 				GLRenderer gl = engine.glrender();
 				if (gl != null)
 					gl.enableShader(value);
+				cfg.paletteEmulation = value;
 			}
 		};
+		usePaletteShader.set(cfg.paletteEmulation);
 
 		OSDCOMMAND r_paletteshader = new OSDCOMMAND("r_paletteshader",
 				"r_paletteshader: " + GLSettings.usePaletteShader.get(), new OSDCVARFUNC() {
