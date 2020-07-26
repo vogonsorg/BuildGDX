@@ -81,11 +81,12 @@ public class AWTInput implements BuildInput, KeyListener {
 	}
 
 	Pool<KeyEvent> usedKeyEvents = new Pool<KeyEvent>(16, 1000) {
+		@Override
 		protected KeyEvent newObject () {
 			return new KeyEvent();
 		}
 	};
-	
+
 	protected BuildFrame frame;
 
 	List<KeyEvent> keyEvents = new ArrayList<KeyEvent>();
@@ -93,7 +94,7 @@ public class AWTInput implements BuildInput, KeyListener {
 	boolean[] keys = new boolean[256];
 	boolean keyJustPressed = false;
 	boolean[] justPressedKeys = new boolean[256];
-	
+
 	InputProcessor processor;
 	JCanvas canvas;
 
@@ -106,14 +107,15 @@ public class AWTInput implements BuildInput, KeyListener {
 		Arrays.fill(justPressedKeys, false);
 		keyCount = 0;
 		Arrays.fill(keys, false);
-		
+
 		mouse.reset();
 	}
 
+	@Override
 	public void update() {
 		if(!frame.isActive())
 			reset();
-	
+
 		synchronized (this) {
 			if (keyJustPressed) {
 				keyJustPressed = false;
@@ -155,18 +157,19 @@ public class AWTInput implements BuildInput, KeyListener {
 			}
 
 			keyEvents.clear();
-			
+
 			long out = mouse.processEvents(processor);
 			if(out != -1)
 				currentEventTimeStamp = out;
 		}
 	}
-	
+
+	@Override
 	public void init(BuildFrame frame)
 	{
 		this.frame = frame;
 		JDisplay display = ((AWTGraphics) frame.getGraphics()).display;
-		
+
 		if(BuildGdx.app.getPlatform() == Platform.Windows) {
 			try {
 				this.mouse = new LwjglMouse(display);
@@ -174,7 +177,7 @@ public class AWTInput implements BuildInput, KeyListener {
 				e.printStackTrace();
 			}
 		} else LwjglNativesLoader.load(); //This also needs for Pixmap working
-		
+
 		if(this.mouse == null)
 			this.mouse = new AWTMouse(display);
 
@@ -182,7 +185,7 @@ public class AWTInput implements BuildInput, KeyListener {
 	}
 
 	public void setListeners (JCanvas canvas) {
-		if (this.canvas != null) 
+		if (this.canvas != null)
 			canvas.removeKeyListener(this);
 		canvas.addKeyListener(this);
 		canvas.setFocusTraversalKeysEnabled(false);
@@ -204,6 +207,7 @@ public class AWTInput implements BuildInput, KeyListener {
 		return 0;
 	}
 
+	@Override
 	public void getTextInput (final TextInputListener listener, final String title, final String text, final String hint) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -213,6 +217,7 @@ public class AWTInput implements BuildInput, KeyListener {
 				JPanel textPanel = new JPanel() {
 					private static final long serialVersionUID = -4257888082210622881L;
 
+					@Override
 					public boolean isOptimizedDrawingEnabled () {
 						return false;
 					};
@@ -634,7 +639,7 @@ public class AWTInput implements BuildInput, KeyListener {
 		}
 		return Input.Keys.UNKNOWN;
 	}
-	
+
 	@Override
 	public void setInputProcessor (InputProcessor processor) {
 		this.processor = processor;
@@ -733,9 +738,9 @@ public class AWTInput implements BuildInput, KeyListener {
 
 	@Override
 	public void setCursorPosition (int x, int y) {
-		if(!isInsideWindow() || !frame.isActive()) 
+		if(!isInsideWindow() || !frame.isActive())
 			return;
-		
+
 		mouse.setCursorPosition(x, y);
 	}
 
@@ -783,7 +788,7 @@ public class AWTInput implements BuildInput, KeyListener {
 	public int getDWheel() {
 		return mouse.getDWheel();
 	}
-	
+
 	public boolean isInsideWindow() {
 		return mouse.isInsideWindow();
 	}

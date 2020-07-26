@@ -23,6 +23,7 @@ import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.BuildVariable;
+import ru.m210projects.Build.Types.BuildVariable.RespondType;
 
 public abstract class MenuRendererSettings extends BuildMenuList {
 
@@ -36,6 +37,7 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 	public boolean fontShadow = false;
 	public boolean listShadow = false;
 
+	protected BuildMenuList GLHiresMenu;
 	protected boolean RenderParamBuilt = false, GLRenderParamBuilt = false;
 	protected MenuSlider palettedGamma;
 	protected MenuSlider fovSlider;
@@ -44,14 +46,18 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 	protected MenuConteiner fpsLimits;
 	protected DummyItem separator;
 	protected MenuSlider GLGamma;
-	protected MenuSlider GLBrightness;
-	protected MenuSlider GLContrast;
-	protected MenuButton GLReset;
+//	protected MenuSlider GLBrightness;
+//	protected MenuSlider GLContrast;
+//	protected MenuButton GLReset;
 	protected MenuConteiner GLTextureFilter;
 	protected MenuConteiner GLTextureAnisotropy;
 	protected MenuSwitch GLUseHighTile;
 	protected MenuSwitch GLUseModels;
+	protected MenuButton GLHires;
+	protected MenuSwitch GLPalette;
 
+
+	@Override
 	public abstract MenuTitle getTitle(BuildGame app, String text);
 
 	public MenuRendererSettings(final BuildGame app, int x, int y, int width, int step, BuildFont style) {
@@ -64,12 +70,14 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 		title = m_pItems[0];
 	}
 
+	@Override
 	public void mDraw(MenuHandler handler) {
 		if (currentFormat != app.pEngine.getrender().getTexFormat())
 			rebuild();
 		super.mDraw(handler);
 	}
 
+	@Override
 	public boolean mLoadRes(MenuHandler handler, MenuOpt opt) {
 		if (opt == MenuOpt.Open && (currentRenderer != app.pEngine.getrender()
 				|| currentFormat != app.pEngine.getrender().getTexFormat()))
@@ -89,9 +97,9 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 			BuildGLRenderParameters();
 			if (currentFormat == PixelFormat.Rgb) {
 				this.addItem(GLGamma, true);
-				this.addItem(GLBrightness, false);
-				this.addItem(GLContrast, false);
-				this.addItem(GLReset, false);
+//				this.addItem(GLBrightness, false);
+//				this.addItem(GLContrast, false);
+//				this.addItem(GLReset, false);
 			} else
 				this.addItem(palettedGamma, true);
 
@@ -100,11 +108,15 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 			this.addItem(fovSlider, false);
 			this.addItem(vSync, false);
 			this.addItem(fpsLimits, false);
-			this.addItem(GLTextureFilter, false);
-			this.addItem(GLTextureAnisotropy, false);
+//			this.addItem(GLTextureFilter, false);
+//			this.addItem(GLTextureAnisotropy, false);
 			this.addItem(useVoxels, false);
-			this.addItem(GLUseHighTile, false);
-			this.addItem(GLUseModels, false);
+//			this.addItem(GLUseHighTile, false);
+//			this.addItem(GLUseModels, false);
+
+			this.addItem(separator, false);
+			this.addItem(GLPalette, false);
+			this.addItem(GLHires, false);
 			return;
 		} else {
 			this.addItem(palettedGamma, true);
@@ -194,34 +206,62 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 			return;
 
 		GLGamma = BuildSlider("Gamma", GLSettings.gamma, 0, 4096, 64, 4096);
-		GLBrightness = BuildSlider("Brightness", GLSettings.brightness, -4096, 4096, 64, 4096);
-		GLContrast = BuildSlider("Contrast", GLSettings.contrast, 0, 8192, 64, 4096);
-		GLReset = BuildButton("Reset to default", new MenuProc() {
+		int ogamma = GLSettings.gamma.get();
+		if(GLSettings.gamma.set(64) == RespondType.Fail)
+			GLGamma.mCheckEnableItem(false);
+		else GLSettings.gamma.set(ogamma);
+
+//		GLBrightness = BuildSlider("Brightness", GLSettings.brightness, -4096, 4096, 64, 4096);
+//		GLContrast = BuildSlider("Contrast", GLSettings.contrast, 0, 8192, 64, 4096);
+//		GLReset = BuildButton("Reset to default", new MenuProc() {
+//			@Override
+//			public void run(MenuHandler handler, MenuItem pItem) {
+//				GLSettings.gamma.set(0);
+//				GLSettings.brightness.set(0);
+//				GLSettings.contrast.set(4096);
+//			}
+//		});
+
+		GLHires = BuildButton("Hires settings", new MenuProc() {
 			@Override
 			public void run(MenuHandler handler, MenuItem pItem) {
-				GLSettings.gamma.set(0);
-				GLSettings.brightness.set(0);
-				GLSettings.contrast.set(4096);
+				handler.mOpen(GLHiresMenu, -1);
 			}
 		});
 
-		String[] filters = new String[GLSettings.glfiltermodes.length];
-		for (int i = 0; i < filters.length; i++)
-			filters[i] = GLSettings.glfiltermodes[i].name;
-		GLTextureFilter = BuildConteiner("Texture mode", GLSettings.textureFilter, filters, GLSettings.glfiltermodes);
+		GLPalette = BuildSwitch("Palette emulation", GLSettings.usePaletteShader);
 
-		int anisotropysize = 0;
-		for (int s = (int) maxanisotropy; s > 1; s >>= 1)
-			anisotropysize++;
-		Integer[] list = new Integer[anisotropysize + 1];
-		String[] anisotropies = new String[anisotropysize + 1];
-		for (int i = 0; i < list.length; i++) {
-			list[i] = pow2long[i];
-			anisotropies[i] = i == 0 ? "None" : list[i] + "x";
+		{ //Hires menu
+			GLHiresMenu = new BuildMenuList(app, "Hires settings", this.list.x, this.list.y, width, this.list.mFontOffset(), 10) {
+				@Override
+				public MenuTitle getTitle(BuildGame app, String text) {
+					return MenuRendererSettings.this.getTitle(app, text);
+				}
+			};
+
+			String[] filters = new String[GLSettings.glfiltermodes.length];
+			for (int i = 0; i < filters.length; i++)
+				filters[i] = GLSettings.glfiltermodes[i].name;
+			GLTextureFilter = BuildConteiner("Texture filtering", GLSettings.textureFilter, filters, GLSettings.glfiltermodes);
+
+			int anisotropysize = 0;
+			for (int s = (int) maxanisotropy; s > 1; s >>= 1)
+				anisotropysize++;
+			Integer[] list = new Integer[anisotropysize + 1];
+			String[] anisotropies = new String[anisotropysize + 1];
+			for (int i = 0; i < list.length; i++) {
+				list[i] = pow2long[i];
+				anisotropies[i] = i == 0 ? "None" : list[i] + "x";
+			}
+			GLTextureAnisotropy = BuildConteiner("Anisotropy", GLSettings.textureAnisotropy, anisotropies, list);
+			GLUseHighTile = BuildSwitch("True color textures", GLSettings.useHighTile);
+			GLUseModels = BuildSwitch("3d models", GLSettings.useModels);
+
+			GLHiresMenu.addItem(GLTextureFilter, true);
+			GLHiresMenu.addItem(GLTextureAnisotropy, false);
+			GLHiresMenu.addItem(GLUseHighTile, false);
+			GLHiresMenu.addItem(GLUseModels, false);
 		}
-		GLTextureAnisotropy = BuildConteiner("Anisotropy", GLSettings.textureAnisotropy, anisotropies, list);
-		GLUseHighTile = BuildSwitch("True color textures", GLSettings.useHighTile);
-		GLUseModels = BuildSwitch("3d models", GLSettings.useModels);
 
 		GLRenderParamBuilt = true;
 	}

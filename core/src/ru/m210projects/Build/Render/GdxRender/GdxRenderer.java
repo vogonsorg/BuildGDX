@@ -25,6 +25,7 @@ import static ru.m210projects.Build.Engine.palookup;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
@@ -32,8 +33,8 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLRenderer;
-import ru.m210projects.Build.Render.TextureHandle.BTexture;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
@@ -42,9 +43,9 @@ import ru.m210projects.Build.Types.TileFont;
 
 public class GdxRenderer implements GLRenderer {
 
-	protected final TextureCache textureCache;
+	protected final TextureManager textureCache;
 	protected final GdxOrphoRen orphoRen;
-	protected BTexture textAtlas;
+	protected GLTile textAtlas;
 	protected DefScript defs;
 	protected final Engine engine;
 
@@ -52,13 +53,14 @@ public class GdxRenderer implements GLRenderer {
 		this.engine = engine;
 
 		BuildGdx.app.setFrame(FrameType.GL);
-		this.textureCache = createTextureCache(engine);
+		this.textureCache = newTextureManager(engine);
 
 		this.orphoRen = new GdxOrphoRen(engine, textureCache);
 	}
 
-	private TextureCache createTextureCache(Engine engine) {
-		return new TextureCache(engine);
+	@Override
+	public void enableShader(boolean enable) {
+		textureCache.enableShader(enable);
 	}
 
 	@Override
@@ -116,7 +118,7 @@ public class GdxRenderer implements GLRenderer {
 				&& (dapalnum < (MAXPALOOKUPS - RESERVEDPALS)))
 			return;
 
-		textureCache.cache(dapicnum, dapalnum, (short) 0, textureCache.clampingMode((datype & 1) << 2), true);
+		textureCache.bind(dapicnum, dapalnum, 0, 0, (datype & 1) << 2);
 	}
 
 	@Override
@@ -128,7 +130,7 @@ public class GdxRenderer implements GLRenderer {
 	@Override
 	public void gltexapplyprops() {
 		GLFilter filter = GLSettings.textureFilter.get();
-		textureCache.updateSettings(filter);
+		textureCache.setFilter(filter);
 
 		if(defs == null)
 			return;
@@ -136,8 +138,18 @@ public class GdxRenderer implements GLRenderer {
 		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i=MAXTILES-1; i>=0; i--) {
 			Model m = defs.mdInfo.getModel(i);
-	        if(m != null)
-	        	m.setSkinParams(filter, anisotropy);
+	        if(m != null) {
+	        	Iterator<GLTile[]> it = m.getSkins();
+	        	while(it.hasNext()) {
+	        		for (GLTile tex : it.next()) {
+	    				if (tex == null)
+	    					continue;
+
+	    				textureCache.bind(tex);
+	    				tex.setupTextureFilter(filter, anisotropy);
+	    			}
+	        	}
+	        }
 	    }
 	}
 
@@ -274,5 +286,16 @@ public class GdxRenderer implements GLRenderer {
 	public PixelFormat getTexFormat() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public TextureManager newTextureManager(Engine engine) {
+		return new TextureManager(engine);
+	}
+
+	@Override
+	public TextureManager getTextureManager() {
+		if(textureCache == null)
+			return newTextureManager(engine);
+		return textureCache;
 	}
 }

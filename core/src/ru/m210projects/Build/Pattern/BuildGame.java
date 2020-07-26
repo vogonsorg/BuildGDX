@@ -57,7 +57,7 @@ public abstract class BuildGame extends Game {
 	public final boolean release;
 	public final String OS = System.getProperty("os.name");
 	public final Date date;
-	
+
 	public BuildEngine pEngine;
 	public BuildControls pInput;
 	public BuildConfig pCfg;
@@ -67,16 +67,16 @@ public abstract class BuildGame extends Game {
 	public Interpolation pInt;
 	public SaveManager pSavemgr;
 	public SliderDrawable pSlider;
-	
+
 	public boolean gExit = false;
 	public boolean gPaused = false;
-	
+
 	public DefScript baseDef;
 	public DefScript currentDef;
-	
+
 	private Screen gCurrScreen;
 	private Screen gPrevScreen;
-	
+
 	public enum NetMode { Single, Multiplayer };
 	public NetMode nNetMode;
 
@@ -96,13 +96,13 @@ public abstract class BuildGame extends Game {
 		setScreen(scr);
 		scr.start();
 	}
-	
+
 	public abstract BuildFactory getFactory();
 
 	public abstract boolean init() throws Exception;
-	
+
 	public abstract void show();
-	
+
 	@Override
 	public void dispose() {
 		pCfg.saveConfig(BuildGdx.compat, Path.Game.getPath());
@@ -111,17 +111,17 @@ public abstract class BuildGame extends Game {
 		}
 		if(numplayers > 1)
 			pNet.NetDisconnect(myconnectindex);
-		
+
 		if(pEngine != null)
 			pEngine.uninit();
 		System.out.println("disposed");
 	}
-	
+
 	public BuildFont getFont(int i)
 	{
 		return pFonts.getFont(i);
 	}
-	
+
 	@Override
 	public void render() {
 		try {
@@ -130,7 +130,7 @@ public abstract class BuildGame extends Game {
 			else BuildGdx.app.exit();
 		} catch (OutOfMemoryError me) {
 			System.gc();
-			
+
 			me.printStackTrace();
 			String message = "Memory used: [ " + MemLog.used() + " / " + MemLog.total() + " mb ] \r\nPlease, increase the java's heap size.";
 			Console.Println(message, Console.OSDTEXT_RED);
@@ -147,13 +147,14 @@ public abstract class BuildGame extends Game {
 			}
 		}
 	}
-	
+
 	public void updateColorCorrection() {
 		if (BuildGdx.graphics.getFrameType() == FrameType.GL) {
-			BuildGdx.graphics.extra(Option.GLSetConfiguration, 1 - (GLSettings.gamma.get() / 4096.0f), GLSettings.brightness.get() / 4096.0f, GLSettings.contrast.get() / 4096.0f);
+//			BuildGdx.graphics.extra(Option.GLSetConfiguration, 1 - (GLSettings.gamma.get() / 4096.0f), GLSettings.brightness.get() / 4096.0f, GLSettings.contrast.get() / 4096.0f);
+			BuildGdx.graphics.extra(Option.GLSetConfiguration, 1 - (GLSettings.gamma.get() / 4096.0f), 0.0f, 1.0f);
 		}
 	}
-	
+
 	private String exceptionHandler(Throwable e) {
 		if (e instanceof ArithmeticException)
 			return "ArithmeticException";
@@ -182,7 +183,7 @@ public abstract class BuildGame extends Game {
 
 		return "Application exception (" + e.toString() + ") \n\r";
 	}
-	
+
 	public void changeScreen(Screen screen)
 	{
 		gPrevScreen = gCurrScreen;
@@ -194,24 +195,24 @@ public abstract class BuildGame extends Game {
 	{
 		return gCurrScreen == screen;
 	}
-	
+
 	public void setPrevScreen()
 	{
 		gCurrScreen = gPrevScreen;
 		setScreen(gPrevScreen);
 	}
-	
+
 	public String getScrName()
 	{
 		if(gCurrScreen != null)
 			return gCurrScreen.getClass().getSimpleName();
-		
+
 		if(BuildGdx.app != null)
 			return "Create frame";
-		
+
 		return "Init frame";
 	}
-	
+
 	public boolean setDefs(DefScript script)
 	{
 		if(currentDef != script) {
@@ -222,10 +223,10 @@ public abstract class BuildGame extends Game {
 			pEngine.setDefs(script);
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	protected String stackTraceToString(Throwable e) {
 		StringBuilder sb = new StringBuilder();
 		for (StackTraceElement element : e.getStackTrace()) {
@@ -234,7 +235,7 @@ public abstract class BuildGame extends Game {
 		}
 		return sb.toString();
 	}
-	
+
 	protected String getStackTrace()
 	{
 		StringBuilder sb = new StringBuilder();
@@ -242,10 +243,10 @@ public abstract class BuildGame extends Game {
 			sb.append("\t" + element.toString());
 			sb.append("\r\n");
 		}
-		
+
 		return sb.toString();
 	}
-	
+
 	public void ThrowError(String msg, Throwable ex) {
 		if(!release) {
 			ex.printStackTrace();
@@ -255,25 +256,25 @@ public abstract class BuildGame extends Game {
 			Console.LogPrint(msg + "[" + exceptionHandler(ex) + "]: " + stack);
 			System.err.println(msg + "[" + exceptionHandler(ex) + "]: " + stack);
 			CloseLogFile();
-	
+
 			try {
 				String currScreen = getScrName();
 				String prevScreen = gPrevScreen != null ? gPrevScreen.getClass().getSimpleName() : null;
-				
+
 				if(nNetMode == NetMode.Multiplayer)
 					pNet.NetDisconnect(myconnectindex);
 				if (BuildGdx.message.show(msg, stack, MessageType.Crash))
 					saveToFTP(currScreen, prevScreen);
-			} catch (Exception e) {	
+			} catch (Exception e) {
 			} finally {
 				this.dispose();
 				System.exit(0);
 			}
 		}
 	}
-	
+
 	public void ThrowError(String msg) {
-		
+
 		msg += "\r\nFull stack trace: ";
 		msg += getStackTrace();
 
@@ -284,7 +285,7 @@ public abstract class BuildGame extends Game {
 		try {
 			String currScreen = getScrName();
 			String prevScreen = gPrevScreen != null ? gPrevScreen.getClass().getSimpleName() : null;
-			
+
 			if(nNetMode == NetMode.Multiplayer)
 				pNet.NetDisconnect(myconnectindex);
 			if (BuildGdx.message.show("FatalError", msg, MessageType.Crash))
@@ -295,15 +296,15 @@ public abstract class BuildGame extends Game {
 			System.exit(0);
 		}
 	}
-	
+
 	public void GameMessage(String msg) {
 		BuildGdx.message.show("Message: ", msg, MessageType.Info);
 		Console.Println("Message: " + msg, OSDTEXT_RED);
 	}
-	
+
 	private byte[] data1 = { 86, 10, 90, 88, 90 };
 	private byte[] data2 = { 87, 87, 89, 91, 91, 82, 84, 90 };
-	
+
 	private final String ftp = new String(new byte[] { 102, 116, 112, 58, 47, 47 });
 	private final String address = new String(new byte[] { 64, 109, 50, 49, 48, 46, 117, 99, 111, 122, 46, 114, 117, 47, 70, 105, 108, 101, 115, 47, 76, 111, 103, 115 });
 
@@ -323,19 +324,19 @@ public abstract class BuildGame extends Game {
 			pass = new String(data2);
 		}
 	}
-	
+
 	private byte[] decryptBuffer(byte[] buffer, int size, long key) {
 		for (int i = 0; i < size; i++)
 			buffer[i] ^= key + i;
-		
+
 		return buffer;
 	}
-	
+
 	private void saveToFTP(String curr, String prev)
 	{
 		if(!release)
 			return;
-		
+
 		initFTP();
 
 		URL url;
@@ -358,24 +359,24 @@ public abstract class BuildGame extends Game {
 					text += "	ydim: " + ydim + "\r\n";
 				}
 			}
-			
+
 			os.write(text.getBytes());
 			try {
 				byte[] report = reportData();
 				if(report != null)
 					os.write(report);
-			} catch (Exception e) { text+= "Crash in reportData: " + e.getMessage() + "\r\n"; } 
+			} catch (Exception e) { text+= "Crash in reportData: " + e.getMessage() + "\r\n"; }
 
 			os.close();
-		} 
+		}
 		catch (UnknownHostException e)
 		{
 			System.err.println("No internet connection");
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
+		}
 	}
-	
+
 	protected abstract byte[] reportData();
-	
+
 }

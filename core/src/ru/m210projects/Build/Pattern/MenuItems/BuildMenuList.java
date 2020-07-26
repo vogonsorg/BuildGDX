@@ -49,6 +49,7 @@ public abstract class BuildMenuList extends BuildMenu {
 			this.l_OldMouseFocus = 0;
 		}
 
+		@Override
 		public int mFontOffset() {
 			return l_step;
 		}
@@ -138,7 +139,7 @@ public abstract class BuildMenuList extends BuildMenu {
 			if ((pItem.flags & 4) != 0)
 				pItem.callback(handler, opt);
 		}
-		
+
 		@Override
 		protected void ListDefault(MenuHandler handler, MenuOpt opt) {
 			ListCallback(handler, opt);
@@ -210,7 +211,7 @@ public abstract class BuildMenuList extends BuildMenu {
 		}
 	}
 
-	private MenuItemList list;
+	protected MenuItemList list;
 	private BuildGame app;
 
 	public BuildMenuList(BuildGame app, String title, int x, int y, int width, int step, int nShowElements) {
@@ -225,6 +226,7 @@ public abstract class BuildMenuList extends BuildMenu {
 			super.addItem(scroller, false);
 	}
 
+	@Override
 	public int addItem(MenuItem pItem, boolean nFirstItem) {
 		if (pItem == null)
 			return -1;
@@ -235,11 +237,11 @@ public abstract class BuildMenuList extends BuildMenu {
 	public void clear() {
 		list.clear();
 	}
-	
+
 	@Override
 	public boolean mGetFocusedItem(MenuItem m_pItem) {
 		if(!super.mGetFocusedItem(m_pItem)) {
-			if ( list.l_nFocus >= 0 && list.l_nFocus < list.m_pItems.size()) 
+			if ( list.l_nFocus >= 0 && list.l_nFocus < list.m_pItems.size())
 			    return m_pItem == list.m_pItems.get(list.l_nFocus);
 		}
 		return false;

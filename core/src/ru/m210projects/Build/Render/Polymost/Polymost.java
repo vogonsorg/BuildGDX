@@ -25,10 +25,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_NICEST;
 import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_REPEAT;
-import static com.badlogic.gdx.graphics.GL20.GL_REPLACE;
 import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_SRC_COLOR;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAG_FILTER;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MIN_FILTER;
@@ -45,8 +42,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
-import static ru.m210projects.Build.Engine.DETAILPAL;
-import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Engine.MAXDRUNKANGLE;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSECTORS;
@@ -56,9 +51,6 @@ import static ru.m210projects.Build.Engine.MAXSTATUS;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXWALLS;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
-import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
-import static ru.m210projects.Build.Engine.UseBloodPal;
 import static ru.m210projects.Build.Engine.automapping;
 import static ru.m210projects.Build.Engine.beforedrawrooms;
 import static ru.m210projects.Build.Engine.cosglobalang;
@@ -79,7 +71,6 @@ import static ru.m210projects.Build.Engine.headspritesect;
 import static ru.m210projects.Build.Engine.inpreparemirror;
 import static ru.m210projects.Build.Engine.nextspritesect;
 import static ru.m210projects.Build.Engine.numsectors;
-import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.offscreenrendering;
 import static ru.m210projects.Build.Engine.palette;
 import static ru.m210projects.Build.Engine.palfadergb;
@@ -125,42 +116,23 @@ import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.bindTexture;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_CLAMP;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
-import static ru.m210projects.Build.Render.Types.GL10.GL_INTERPOLATE_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MODULATE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE_FILTER_HINT_NV;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND1_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND2_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PREVIOUS_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
-import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE1_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE2_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV_MODE;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -179,13 +151,11 @@ import ru.m210projects.Build.Render.GLFog;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.OrphoRenderer;
-import ru.m210projects.Build.Render.TextureHandle.BTexture;
-import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
-import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
@@ -200,7 +170,7 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Polymost implements GLRenderer {
 
 	public enum Rendering {
-		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling, Skybox;
+		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling, Skybox, Model;
 
 		private int index;
 
@@ -214,13 +184,13 @@ public abstract class Polymost implements GLRenderer {
 		}
 	}
 
+//	protected final Color polyColor = new Color();
 	public Rendering rendering = Rendering.Nothing;
-	public GLFog globalfog = new GLFog();
+	public GLFog globalfog;
 
 	public static long TexDebug = -1;
 	public static int r_parallaxskyclamping = 1; // OSD CVAR XXX
 	public static int r_parallaxskypanning = 0; // XXX
-//	public static int r_glowmapping = 1;
 	public static int r_vertexarrays = 1; // Vertex Array model drawing cvar
 	public static int r_vbos = 1; // Vertex Buffer Objects model drawing cvars
 
@@ -235,7 +205,7 @@ public abstract class Polymost implements GLRenderer {
 	private final int SPREXT_AWAY1 = 4;
 	private final int SPREXT_AWAY2 = 8;
 
-	private SPRITE[] tspriteptr = new SPRITE[MAXSPRITESONSCREEN + 1];
+	protected SPRITE[] tspriteptr = new SPRITE[MAXSPRITESONSCREEN + 1];
 
 	private int spritesx[] = new int[MAXSPRITESONSCREEN + 1];
 	private int spritesy[] = new int[MAXSPRITESONSCREEN + 1];
@@ -262,7 +232,7 @@ public abstract class Polymost implements GLRenderer {
 
 //	public static short drawingskybox = 0;
 
-	BTexture frameTexture;
+	IntBuffer frameTexture;
 	private int framew;
 	private int frameh;
 	private int framesize;
@@ -304,15 +274,15 @@ public abstract class Polymost implements GLRenderer {
 	protected PolymostModelRenderer mdrenderer;
 	protected boolean isInited = false;
 
-	protected final TextureCache textureCache;
+	protected TextureManager textureCache;
 	protected final Engine engine;
 
 	public Polymost(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
 			BuildGdx.app.setFrame(FrameType.GL);
 		GLInfo.init();
-		this.textureCache = new TextureCache(engine);
 		this.engine = engine;
+		this.textureCache = getTextureManager();
 
 		this.gl = BuildGdx.graphics.getGL10();
 		this.clipper = new PolyClipper(this);
@@ -329,10 +299,28 @@ public abstract class Polymost implements GLRenderer {
 		for (int i = 0; i < dcoord.length; i++)
 			dcoord[i] = new Vector2();
 		Arrays.fill(spritewall, -1);
+		this.globalfog = new GLFog();
 
 		this.orpho = new Polymost2D(this);
 		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
 				+ " initialized", OSDTEXT_GOLD);
+	}
+
+	protected TextureManager newTextureManager(Engine engine) {
+		return new TextureManager(engine);
+	}
+
+	@Override
+	public TextureManager getTextureManager() {
+		if(textureCache == null)
+			return newTextureManager(engine);
+		return textureCache;
+	}
+
+	@Override
+	public void enableShader(boolean enable) {
+		textureCache.enableShader(enable);
+		clearskins(false);
 	}
 
 	@Override
@@ -341,61 +329,6 @@ public abstract class Polymost implements GLRenderer {
 		if (this.defs != null)
 			gltexinvalidateall(GLInvalidateFlag.Uninit, GLInvalidateFlag.All);
 		this.defs = defs;
-	}
-
-	protected int setBoundTextureDetail(BTexture detailTexture, int texunits) {
-		gl.glActiveTexture(++texunits);
-
-		gl.glEnable(GL_TEXTURE_2D);
-		bindTexture(detailTexture);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
-
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		return texunits;
-	}
-
-	protected int setBoundTextureGlow(BTexture glowTexture, int texunits) {
-		gl.glActiveTexture(++texunits);
-
-		gl.glEnable(GL_TEXTURE_2D);
-		bindTexture(glowTexture);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
-
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-		gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
-
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		return texunits;
 	}
 
 	@Override
@@ -417,7 +350,8 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public void changepalette(byte[] palette) {
-		textureCache.changePalette(palette);
+		if (textureCache.getShader() != null)
+			textureCache.getShader().changePalette(palette);
 	}
 
 	public void clearskins(boolean bit8only) {
@@ -430,7 +364,7 @@ public abstract class Polymost implements GLRenderer {
 				m.clearSkins();
 
 			Model vox = defs.mdInfo.getVoxModel(i);
-			if (vox != null && !textureCache.isUseShader())
+			if (vox != null && !bit8only)
 				vox.clearSkins();
 		}
 	}
@@ -438,7 +372,7 @@ public abstract class Polymost implements GLRenderer {
 	@Override
 	public void gltexapplyprops() {
 		GLFilter filter = GLSettings.textureFilter.get();
-		textureCache.updateSettings(filter);
+		textureCache.setFilter(filter);
 
 		if (defs == null)
 			return;
@@ -446,8 +380,18 @@ public abstract class Polymost implements GLRenderer {
 		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			Model m = defs.mdInfo.getModel(i);
-			if (m != null)
-				m.setSkinParams(filter, anisotropy);
+			if (m != null) {
+				Iterator<GLTile[]> it = m.getSkins();
+				while (it.hasNext()) {
+					for (GLTile tex : it.next()) {
+						if (tex == null)
+							continue;
+
+						textureCache.bind(tex);
+						tex.setupTextureFilter(filter, anisotropy);
+					}
+				}
+			}
 		}
 	}
 
@@ -490,7 +434,7 @@ public abstract class Polymost implements GLRenderer {
 		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
 		orpho.init();
-		globalfog.init();
+		globalfog.init(textureCache);
 
 		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -579,39 +523,9 @@ public abstract class Polymost implements GLRenderer {
 		gl.glLoadMatrixf(matrix);
 	}
 
-	protected Color getshadefactor(int shade, int method) {
-		int shadebound = (shadescale_unbounded != 0 || shade >= numshades) ? numshades : numshades - 1;
-		float clamped_shade = min(max(shade * shadescale, 0), shadebound);
-		float f = (numshades - clamped_shade) / numshades;
-
-		if (UseBloodPal && globalpal == 1)
-			polyColor.r = polyColor.g = polyColor.b = 1.0f; // Blood's pal 1
-		else
-			polyColor.r = polyColor.g = polyColor.b = f;
-
-		switch (method & 3) {
-		default:
-		case 0:
-		case 1:
-			polyColor.a = 1.0f;
-			break;
-		case 2:
-			polyColor.a = TRANSLUSCENT1;
-			break;
-		case 3:
-			polyColor.a = TRANSLUSCENT2;
-			break;
-		}
-
-		return polyColor;
-	}
-
 	// (dpx,dpy) specifies an n-sided polygon. The polygon must be a convex
 	// clockwise loop.
 	// n must be <= 8 (assume clipping can double number of vertices)
-	// method: 0:solid, 1:masked(255 is transparent), 2:transluscent #1,
-	// 3:transluscent #2
-	// +4 means it's a sprite, so wraparound isn't needed
 
 	private int drawpoly_math(int nn, int i, int j, double ngux, double ngdx, double nguy, double ngdy, double nguo,
 			double ngdo, double var) {
@@ -629,7 +543,6 @@ public abstract class Polymost implements GLRenderer {
 	int skyclamphack = 0;
 
 	private final Polygon drawpoly[] = new Polygon[16];
-	private final Color polyColor = new Color();
 
 	protected void drawpoly(Surface[] dm, int n, int method) {
 		double ngdx = 0.0, ngdy = 0.0, ngdo = 0.0, ngux = 0.0, nguy = 0.0, nguo = 0.0;
@@ -638,9 +551,6 @@ public abstract class Polymost implements GLRenderer {
 		int i, j, k, nn, tsizx, tsizy, xx, yy;
 
 		boolean dorot;
-
-		Pthtyp pth = null, detailpth = null, glowpth = null;
-		int texunits = GL_TEXTURE0;
 
 		if (method == -1)
 			return;
@@ -728,77 +638,28 @@ public abstract class Polymost implements GLRenderer {
 			return;
 		n = j;
 
-		float hackscx, hackscy;
-
 		if (skyclamphack != 0)
 			method |= 4;
 
-		pth = textureCache.cache(globalpicnum, globalpal, (short) Rendering.Skybox.getIndex(), textureCache.clampingMode(method),
-				textureCache.alphaMode(method));
-		if (pth == null) // hires texture not found
+		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, Rendering.Skybox.getIndex(), method);
+		if (pth == null)
 			return;
 
-		if (!pth.isHighTile() && textureCache.isUseShader()) {
-//			textureCache.bindShader();
-//			textureCache.setShaderParams(globalpal, engine.getpalookup(globalvisibility, globalshade));
-			gl.glDisable(GL_FOG);
-		}
-		bindTexture(pth.glpic);
+		int texunits = textureCache.getTextureUnits();
 
 		if (srepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		if (trepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		// texture scale by parkar request
-		if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f))
-				&& Rendering.Skybox.getIndex() == 0) {
-			gl.glMatrixMode(GL_TEXTURE);
-			gl.glLoadIdentity();
-			gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
-			gl.glMatrixMode(GL_MODELVIEW);
-		}
-
-		// detail texture
-		if (Console.Geti("r_detailmapping") != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0)
-			detailpth = textureCache.cache(globalpicnum, DETAILPAL, (short) 0, textureCache.clampingMode(method),
-					textureCache.alphaMode(method));
-
-		if (GLInfo.multisample != 0 && detailpth != null && detailpth.hicr != null
-				&& (detailpth.hicr.palnum == DETAILPAL)) {
-			texunits = setBoundTextureDetail(detailpth.glpic, texunits);
-
-//			f = detailpth != null ? detailpth.hicr.xscale : 1.0;
-
-			gl.glMatrixMode(GL_TEXTURE);
-			gl.glLoadIdentity();
-
-			if (pth != null && pth.hicr != null && ((pth.hicr.xscale != 1.0f) || (pth.hicr.yscale != 1.0f)))
-				gl.glScalef(pth.hicr.xscale, pth.hicr.yscale, 1.0f);
-
-			if (detailpth != null && detailpth.hicr != null
-					&& ((detailpth.hicr.xscale != 1.0f) || (detailpth.hicr.yscale != 1.0f)))
-				gl.glScalef(detailpth.hicr.xscale, detailpth.hicr.yscale, 1.0f);
-
-			gl.glMatrixMode(GL_MODELVIEW);
-		}
-
-		if (Console.Geti("r_glowmapping") != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0)
-			glowpth = textureCache.cache(globalpicnum, GLOWPAL, (short) 0, textureCache.clampingMode(method),
-					textureCache.alphaMode(method));
-
-		if (GLInfo.multisample != 0 && glowpth != null && glowpth.hicr != null && (glowpth.hicr.palnum == GLOWPAL))
-			texunits = setBoundTextureGlow(glowpth.glpic, texunits);
-
-		if (pth != null && pth.isHighTile()) {
-			hackscx = pth.scalex;
-			hackscy = pth.scaley;
-			tsizx = pth.sizx;
-			tsizy = pth.sizy;
+		float hackscx = 1.0f;
+		float hackscy = 1.0f;
+		if (pth.isHighTile()) {
+			hackscx = pth.getXScale();
+			hackscy = pth.getYScale();
+			tsizx = pth.getWidth();
+			tsizy = pth.getHeight();
 			HOM = false;
-		} else {
-			hackscx = 1.0f;
-			hackscy = 1.0f;
 		}
 
 		if (GLInfo.texnpot == 0) {
@@ -820,8 +681,8 @@ public abstract class Polymost implements GLRenderer {
 			gl.glDisable(GL_ALPHA_TEST); // alpha_test
 		} else {
 			float al = 0.0f; // PLAG : default alphacut was 0.32 before goodalpha
-			if (pth != null && pth.hicr != null && pth.hicr.alphacut >= 0.0)
-				al = pth.hicr.alphacut;
+			if (pth != null && pth.getAlphaCut() >= 0.0f)
+				al = pth.getAlphaCut();
 			if (alphahackarray[globalpicnum] != 0)
 				al = alphahackarray[globalpicnum];
 			if (HOM)
@@ -840,33 +701,9 @@ public abstract class Polymost implements GLRenderer {
 			}
 		}
 
-		Color polyColor = getshadefactor(globalshade, method);
-
-		if (defs != null) {
-			if (pth != null && pth.isHighTile()) {
-				if (pth.hicr.palnum != globalpal) {
-					// apply tinting for replaced textures
-
-					Palette p = defs.texInfo.getTints(globalpal);
-					polyColor.r *= p.r / 255.0f;
-					polyColor.g *= p.g / 255.0f;
-					polyColor.b *= p.b / 255.0f;
-				}
-
-				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
-				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-					polyColor.r *= pdetail.r / 255.0f;
-					polyColor.g *= pdetail.g / 255.0f;
-					polyColor.b *= pdetail.b / 255.0f;
-				}
-			}
-		}
-
-		if (HOM)
-			polyColor.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-
-//		textureCache.shaderTransparent(polyColor.a);
-		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+		if(textureCache.isUseShader())
+			textureCache.getShader().setVisibility((int)globalfog.combvis);
+		globalfog.apply();
 
 		// Hack for walls&masked walls which use textures that are not a power of 2
 		if ((pow2xsplit != 0) && (tsizx != xx)) {
@@ -1025,29 +862,12 @@ public abstract class Polymost implements GLRenderer {
 				gl.glEnable(GL_TEXTURE_2D);
 		}
 
-		if (GLInfo.multisample != 0) {
-			while (texunits >= GL_TEXTURE0) {
-				gl.glActiveTexture(texunits);
-				gl.glMatrixMode(GL_TEXTURE);
-				gl.glLoadIdentity();
-				gl.glMatrixMode(GL_MODELVIEW);
-				if (texunits > GL_TEXTURE0) {
-					gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
-					gl.glDisable(GL_TEXTURE_2D);
-				}
-				texunits--;
-			}
-		}
+		textureCache.unbind();
 
 		if (srepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 		if (trepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
-
-		if (!pth.isHighTile() && textureCache.isUseShader()) {
-//			textureCache.unbindShader();
-			globalfog.enable();
-		}
 	}
 
 	// variables that are set to ceiling- or floor-members, depending
@@ -1458,8 +1278,6 @@ public abstract class Polymost implements GLRenderer {
 					} // yflip
 
 					int shade = wal.shade;
-					if (UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) // Blood's pal 1
-						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 					pow2xsplit = 1;
@@ -1508,8 +1326,6 @@ public abstract class Polymost implements GLRenderer {
 					} // yflip
 
 					int shade = drawalls_nwal.shade;
-					if (UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) // Blood's pal 1
-						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 					pow2xsplit = 1;
@@ -1564,8 +1380,6 @@ public abstract class Polymost implements GLRenderer {
 					}
 
 					int shade = wal.shade;
-					if (UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) // Blood's pal 1
-						shade = 0;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 					pow2xsplit = 1;
 					clipper.domost(x0, cy0, x1, cy1);
@@ -2527,8 +2341,6 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		int shade = wal.shade;
-		if (UseBloodPal && (globalpal == 1 || sec.floorpal == 1)) // Blood's pal 1
-			shade = 0;
 		calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 		drawmaskwall_csy[0] = (drawmaskwall_cz[0] - globalposz) * ryp0 + ghoriz;
@@ -2681,7 +2493,6 @@ public abstract class Polymost implements GLRenderer {
 		globalpal = tspr.pal & 0xFF;
 		globalorientation = tspr.cstat;
 		spritenum = tspr.owner;
-		rendering = Rendering.Sprite.setIndex(snum);
 		Tile pic = engine.getTile(globalpicnum);
 
 		if ((globalorientation & 48) != 48) {
@@ -2707,15 +2518,6 @@ public abstract class Polymost implements GLRenderer {
 				method = 3 + 4;
 		}
 
-		int shade = (int) (globalshade / 1.5f);
-		if (UseBloodPal) {
-			if (tspr.pal == 5 && tspr.shade == 127)
-				shade = 0; // Blood's shadows (for pal 1)
-			if (globalpal == 1 || tspr.pal == 1) // Blood's pal 1
-				shade = 0;
-		}
-		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
-
 		tspr.x += spriteext[tspr.owner].xoff;
 		tspr.y += spriteext[tspr.owner].yoff;
 		tspr.z += spriteext[tspr.owner].zoff;
@@ -2723,11 +2525,16 @@ public abstract class Polymost implements GLRenderer {
 		int posx = tspr.x;
 		int posy = tspr.y;
 
+		int shade = (int) (globalshade / 1.5f);
+
 		while ((spriteext[tspr.owner].flags & SPREXT_NOTMD) == 0) {
+			rendering = Rendering.Model.setIndex(snum);
 
 			if (GLSettings.useModels.get()) {
 				Tile2model entry = defs != null ? defs.mdInfo.getParams(tspr.picnum) : null;
 				if (entry != null && entry.model != null && entry.framenum >= 0) {
+					calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
+
 					if (tspr.owner < 0 || tspr.owner >= MAXSPRITES /* || tspr.statnum == TSPR_MIRROR */ ) {
 						if (mdrenderer.mddraw(tspr, xoff, yoff) != 0)
 							return;
@@ -2745,6 +2552,8 @@ public abstract class Polymost implements GLRenderer {
 				if (entry != null) {
 					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
 					if (dist < 48000L * 48000L && entry.voxel != null && entry.voxel.getModel() != null) {
+						calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
+
 						if ((tspr.cstat & 48) != 48) {
 							if (mdrenderer.voxdraw(entry.voxel.getModel(), tspr) != 0)
 								return;
@@ -2760,6 +2569,9 @@ public abstract class Polymost implements GLRenderer {
 			}
 			break;
 		}
+
+		rendering = Rendering.Sprite.setIndex(snum);
+		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
 		if ((spriteext[tspr.owner].flags & SPREXT_AWAY1) != 0) {
 			posx += (sintable[(tspr.ang + 512) & 2047] >> 13);
@@ -3247,9 +3059,12 @@ public abstract class Polymost implements GLRenderer {
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDisable(GL_ALPHA_TEST);
 		gl.glDisable(GL_TEXTURE_2D);
-		gl.glDisable(GL_FOG);
+		globalfog.disable();
 
 		gl.glEnable(GL_BLEND);
+		boolean hasShader = textureCache.isUseShader();
+		if (hasShader)
+			textureCache.getShader().unbind();
 
 		palfadergb.draw(gl);
 		if (fades != null) {
@@ -3260,12 +3075,17 @@ public abstract class Polymost implements GLRenderer {
 			}
 		}
 
+		if (hasShader)
+			textureCache.getShader().bind();
+
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glPopMatrix();
 		gl.glMatrixMode(GL_PROJECTION);
 		gl.glPopMatrix();
 
 		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		globalfog.enable();
 	}
 
 	@Override
@@ -3279,12 +3099,12 @@ public abstract class Polymost implements GLRenderer {
 			return;
 
 //		Console.Println("precached " + dapicnum + " " + dapalnum + " type " + datype);
-		textureCache.cache(dapicnum, dapalnum, (short) 0, textureCache.clampingMode((datype & 1) << 2), true);
+		textureCache.precache(dapicnum, dapalnum, datype == 1);
 
 		if (datype == 0 || defs == null)
 			return;
 
-		if (textureCache.isUseShader() && BuildSettings.useVoxels.get()) {
+		if (textureCache.getShader() != null && BuildSettings.useVoxels.get()) {
 			VOXModel vox = defs.mdInfo.getVoxModel(dapicnum);
 			if (vox != null)
 				vox.loadskin(dapalnum, true);
@@ -3309,16 +3129,21 @@ public abstract class Polymost implements GLRenderer {
 
 	protected void calc_and_apply_fog(int shade, int vis, int pal) {
 		globalfog.shade = shade;
-		globalfog.combvis = globalvisibility * ((vis + 16) & 0xFF);
+		//globalfog.combvis = globalvisibility * ((vis + 16) & 0xFF);
+
+		globalfog.combvis = globalvisibility;
+		if(vis != 0)
+			globalfog.combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
+
 		globalfog.pal = pal;
-		globalfog.apply();
+		globalfog.calc();
 	}
 
-	private void calc_and_apply_skyfog(int shade, int vis, int pal) {
+	protected void calc_and_apply_skyfog(int shade, int vis, int pal) {
 		globalfog.shade = shade;
 		globalfog.combvis = 0;
 		globalfog.pal = pal;
-		globalfog.apply();
+		globalfog.calc();
 	}
 
 	public static void equation(Vector3 ret, float x1, float y1, float x2, float y2) {
@@ -3521,13 +3346,21 @@ public abstract class Polymost implements GLRenderer {
 		gl.glPolygonOffset(0, 0);
 
 		if (drunk) {
+			BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
+			boolean hasShader = textureCache.getShader() != null;
+			if (hasShader)
+				textureCache.getShader().unbind();
+
 			if (frameTexture == null || framew != xdim || frameh != ydim) {
 				if (frameTexture != null)
-					frameTexture.dispose();
-				frameTexture = new BTexture(xdim, ydim);
-				bindTexture(frameTexture);
+					gl.glDeleteTextures(1, frameTexture);
+				else
+					frameTexture = BufferUtils.newIntBuffer(1);
+
+				gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
 				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2)
 					;
+
 				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE,
 						null);
 				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -3537,22 +3370,22 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			gl.glReadBuffer(GL_BACK);
-			bindTexture(frameTexture);
+			gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
 			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framesize, framesize);
 
 			gl.glDisable(GL_DEPTH_TEST);
 			gl.glDisable(GL_ALPHA_TEST);
 			gl.glEnable(GL_TEXTURE_2D);
-			bindTexture(frameTexture);
+			gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
 
 			gl.glMatrixMode(GL_PROJECTION);
 			gl.glPushMatrix();
 			gl.glLoadIdentity();
 
-			float tilt = (drunkIntensive * 360) / 2048f;
-			tilt = min(max(tilt, -MAXDRUNKANGLE), MAXDRUNKANGLE);
+			float tiltang = (drunkIntensive * 360) / 2048f;
+			float tilt = min(max(tiltang, -MAXDRUNKANGLE), MAXDRUNKANGLE);
 
-			gl.glScalef(0.95f, 1, 1);
+			gl.glScalef(1.05f, 1.05f, 1);
 			gl.glRotatef(tilt, 0, 0, 1.0f);
 
 			gl.glMatrixMode(GL_MODELVIEW);
@@ -3562,7 +3395,7 @@ public abstract class Polymost implements GLRenderer {
 			float u = (float) xdim / framesize;
 			float v = (float) ydim / framesize;
 
-			gl.glColor4f(1, 1, 1, 0.5f);
+			gl.glColor4f(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
 			gl.glBegin(GL10.GL_TRIANGLE_FAN);
 			gl.glTexCoord2f(0, 0);
 			gl.glVertex2f(-1f, -1f);
@@ -3585,6 +3418,9 @@ public abstract class Polymost implements GLRenderer {
 			gl.glEnable(GL_DEPTH_TEST);
 			gl.glEnable(GL_ALPHA_TEST);
 			gl.glDisable(GL_TEXTURE_2D);
+
+			if (hasShader)
+				textureCache.getShader().bind();
 		}
 	}
 
@@ -3594,7 +3430,6 @@ public abstract class Polymost implements GLRenderer {
 			switch (flags[i]) {
 			case Uninit:
 				textureCache.uninit();
-				Console.Println("TextureCache uninited!", Console.OSDTEXT_RED);
 				break;
 			case SkinsOnly:
 				clearskins(true);
@@ -3602,6 +3437,12 @@ public abstract class Polymost implements GLRenderer {
 			case TexturesOnly:
 			case IndexedTexturesOnly:
 				gltexinvalidate8();
+				break;
+			case Palookup:
+				for (int j = 0; j < MAXPALOOKUPS; j++) {
+					if(textureCache.getShader() != null)
+						textureCache.getShader().invalidatepalookup(j);
+				}
 				break;
 			case All:
 				gltexinvalidateall();
@@ -3956,7 +3797,7 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public PixelFormat getTexFormat() {
-		return textureCache.getFormat();
+		return PixelFormat.Rgb; //textureCache.getShader() != null ? PixelFormat.Pal8 : PixelFormat.Rgb;
 	}
 
 	@Override

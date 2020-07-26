@@ -19,9 +19,9 @@ package ru.m210projects.Build.Render.Types;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TRIANGLES;
 
 public abstract class FadeEffect {
-	public int sfactor; 
+	public int sfactor;
 	public int dfactor;
-	public int r, g, b, a; 
+	public int r, g, b, a;
 
 	public FadeEffect(int sfactor, int dfactor)
 	{
@@ -32,7 +32,7 @@ public abstract class FadeEffect {
 	public abstract void update(int intensive);
 
 	public void draw(GL10 gl) {
-		
+
 		gl.glBlendFunc(sfactor, dfactor);
 		gl.glColor4ub(r, g, b, a);
 

@@ -33,7 +33,6 @@ import static ru.m210projects.Build.Engine.smalltextfont;
 import static ru.m210projects.Build.Engine.textfont;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
-import static ru.m210projects.Build.Render.TextureHandle.TextureUtils.setupBoundTexture;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_INTENSITY;
 import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
@@ -49,21 +48,19 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
-import ru.m210projects.Build.Render.TextureHandle.BTexture;
-import ru.m210projects.Build.Render.TextureHandle.Pthtyp;
-import ru.m210projects.Build.Render.TextureHandle.TextureCache;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.Tile.AnimType;
 
 public class GdxOrphoRen extends OrphoRenderer {
 
-	protected final TextureCache textureCache;
+	protected final TextureManager textureCache;
 	protected final GdxBatch batch;
 	protected final ShapeRenderer shape;
-	protected BTexture textAtlas;
 
-	public GdxOrphoRen(Engine engine, TextureCache textureCache) {
+	public GdxOrphoRen(Engine engine, TextureManager textureCache) {
 		super(engine);
 		this.textureCache = textureCache;
 
@@ -73,49 +70,10 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 	@Override
 	public void init() {
-		if(textAtlas == null) {
-			// construct a 256x128 8-bit alpha-only texture for the font glyph matrix
-//			UnsafeBuffer ub = getTmpBuffer();
-			ByteBuffer ub = BufferUtils.newByteBuffer(256 * 128);
-
-			int tptr, i, j;
-			for (int h = 0; h < 256; h++) {
-				tptr = (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 0; i < 8; i++) {
-					for (j = 0; j < 8; j++) {
-						if ((textfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							ub.put(tptr + j, (byte) (0xFF));
-					}
-					tptr += 256;
-				}
-			}
-
-			for (int h = 0; h < 256; h++) {
-				tptr = 256 * 64 + (h % 32) * 8 + (h / 32) * 256 * 8;
-				for (i = 1; i < 7; i++) {
-					for (j = 2; j < 6; j++) {
-						if ((smalltextfont[h * 8 + i] & pow2char[7 - j]) != 0)
-							ub.put(tptr + j - 2, (byte) (0xFF));
-					}
-					tptr += 256;
-				}
-			}
-
-			textAtlas = new BTexture(256, 128);
-			textAtlas.bind();
-
-			int internalformat = GL_INTENSITY; // ... and GL_LUMINANCE doesn't work in GL3.0
-			int format = GL_LUMINANCE;
-			BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, internalformat, textAtlas.getWidth(), textAtlas.getHeight(), 0, format, GL_UNSIGNED_BYTE, ub);
-			setupBoundTexture(glfiltermodes[0], 0);
-		}
 	}
 
 	@Override
 	public void uninit() {
-		if (textAtlas != null)
-			textAtlas.dispose();
-		textAtlas = null;
 	}
 
 	@Override
@@ -146,7 +104,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 		bindBatch();
 		if (backcol >= 0) {
 			batch.setColor(curpalette.getRed(backcol) / 255.0f, curpalette.getGreen(backcol) / 255.0f,curpalette.getBlue(backcol) / 255.0f, 1.0f);
-			batch.draw(textAtlas, xpos, ypos, Bstrlen(text) * xsiz, 8, 0, 0, 64, 0, 1, 1, 0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
+//			batch.draw(textAtlas, xpos, ypos, Bstrlen(text) * xsiz, 8, 0, 0, 64, 0, 1, 1, 0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
 		}
 
 		int oxpos = xpos;
@@ -161,9 +119,9 @@ public class GdxOrphoRen extends OrphoRenderer {
 			if (text[c] == '\r') text[c] = 0;
 			yoffs = (int) (scale * line * (8 >> fontsize));
 
-			batch.draw(textAtlas, xpos, ypos, xsiz, ysiz,
-				0, -yoffs, (text[c] % 32) * 8, (text[c] / 32) * 8 + (fontsize * 64), xsiz, ysiz,
-				0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
+//			batch.draw(textAtlas, xpos, ypos, xsiz, ysiz,
+//				0, -yoffs, (text[c] % 32) * 8, (text[c] / 32) * 8 + (fontsize * 64), xsiz, ysiz,
+//				0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
 
 			xpos += scale * (xsiz << 16);
 			c++;
@@ -229,7 +187,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 		if (pic.data == null)
 			engine.loadtile(picnum);
 
-		Pthtyp pth = textureCache.cache(picnum, dapalnum, (short) 0, textureCache.clampingMode(method), textureCache.alphaMode(method));
+		GLTile pth = textureCache.bind(picnum, dapalnum, dashade, 0, method);
 		if(pth == null) return;
 
 		if (((method & 3) == 0))
@@ -245,7 +203,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		bindBatch();
 		batch.setColor(shade, shade, shade, alpha);
-		batch.draw(pth.glpic, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
+//		batch.draw(pth.glpic, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
 	}
 
 	private void bindBatch()
