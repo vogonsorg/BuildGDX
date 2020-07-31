@@ -14,9 +14,27 @@ public class Spriteext {
 	public short flags;
 	public short xpanning, ypanning;
 	public float alpha;
-	
-	public void clear()
-	{
+
+	public Spriteext() {
+		clear();
+	}
+
+	public Spriteext(Spriteext src) {
+		this.mdanimtims = src.mdanimtims;
+		this.mdanimcur = src.mdanimcur;
+		this.angoff = src.angoff;
+		this.pitch = src.pitch;
+		this.roll = src.roll;
+		this.xoff = src.xoff;
+		this.yoff = src.yoff;
+		this.zoff = src.zoff;
+		this.flags = src.flags;
+		this.xpanning = src.xpanning;
+		this.ypanning = src.ypanning;
+		this.alpha = src.alpha;
+	}
+
+	public void clear() {
 		mdanimtims = 0;
 		mdanimcur = 0;
 		angoff = 0;

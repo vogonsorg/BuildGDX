@@ -43,7 +43,6 @@ import static ru.m210projects.Build.Engine.pitch;
 import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.sintable;
 import static ru.m210projects.Build.Engine.sprite;
-import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.xdimen;
@@ -79,6 +78,7 @@ import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Palette;
+import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
@@ -766,8 +766,10 @@ public class PolymostModelRenderer {
 
 		f = gcosang2 * gshang;
 		g = gsinang2 * gshang;
-		k4 = sintable[(tspr.ang + spriteext[tspr.owner].angoff + 1024) & 2047] / 16384.0f;
-		k5 = sintable[(tspr.ang + spriteext[tspr.owner].angoff + 512) & 2047] / 16384.0f;
+		Spriteext sprext = parent.defs.mapInfo.getSpriteInfo(tspr.owner);
+
+		k4 = sintable[(tspr.ang + (sprext != null ? sprext.angoff : 0) + 1024) & 2047] / 16384.0f;
+		k5 = sintable[(tspr.ang + (sprext != null ? sprext.angoff : 0) + 512) & 2047] / 16384.0f;
 		k2 = k0 * (1 - k4) + k1 * k5;
 		k3 = k1 * (1 - k4) - k0 * k5;
 		k6 = f * gstang - gsinang * gctang;
@@ -804,7 +806,9 @@ public class PolymostModelRenderer {
 	public void md3_vox_calcmat_common(SPRITE tspr, Vector3 a0, float f, Matrix4 mat) {
 		float yaw = globalang / (2048.0f / 360.0f) - 90.0f;
 		float roll = parent.gtang * 57.3f; // XXX 57.3f WFT
-		float spriteang = ((tspr.ang + spriteext[tspr.owner].angoff + 512) & 2047) / (2048.0f / 360.0f);
+		Spriteext sprext = parent.defs.mapInfo.getSpriteInfo(tspr.owner);
+
+		float spriteang = ((tspr.ang + (sprext != null ? sprext.angoff : 0) + 512) & 2047) / (2048.0f / 360.0f);
 
 		// gtang tilt rotation (roll)
 		// gstang = sin(qtang)
@@ -846,7 +850,9 @@ public class PolymostModelRenderer {
 	public void md3_vox_calcmat_common(SPRITE tspr, Vector3 a0) {
 		float yaw = globalang / (2048.0f / 360.0f) - 90.0f;
 		float roll = parent.gtang * 57.3f; // XXX 57.3f WTF
-		float spriteang = ((tspr.ang + spriteext[tspr.owner].angoff + 512) & 2047) / (2048.0f / 360.0f);
+		Spriteext sprext = parent.defs.mapInfo.getSpriteInfo(tspr.owner);
+
+		float spriteang = ((tspr.ang + (sprext != null ? sprext.angoff : 0) + 512) & 2047) / (2048.0f / 360.0f);
 
 		gl.glLoadIdentity();
 		gl.glRotatef(roll, 0, 0, -1);

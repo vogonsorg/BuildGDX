@@ -16,26 +16,19 @@
 
 package ru.m210projects.Build.Render.Types;
 
-import static ru.m210projects.Build.Render.Types.GL10.*;
-
-import ru.m210projects.Build.Architecture.BuildGdx;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 
 public class GLFilter {
 	public String name;
-	public int min,mag;
+	public TextureFilter min,mag;
 	public boolean mipmaps, retro;
-	
-	public GLFilter(String name, int min, int mag) {
+
+	public GLFilter(String name, TextureFilter min, TextureFilter mag) {
 		this.name = name;
 		this.min = min;
 		this.mag = mag;
-		this.mipmaps = (min >= GL_NEAREST_MIPMAP_NEAREST || mag >= GL_NEAREST_MIPMAP_NEAREST);
-		this.retro = min == GL_NEAREST && mag == GL_NEAREST;
-	}
-	
-	public void apply()
-	{
-		BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this.mag);
-		BuildGdx.gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this.min);
+
+		this.mipmaps = (min.isMipMap() || mag.isMipMap());
+		this.retro = min == TextureFilter.Nearest && mag == TextureFilter.Nearest ;
 	}
 }

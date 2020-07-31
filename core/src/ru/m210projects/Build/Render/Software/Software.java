@@ -63,7 +63,6 @@ import static ru.m210projects.Build.Engine.singlobalang;
 import static ru.m210projects.Build.Engine.sintable;
 import static ru.m210projects.Build.Engine.sinviewingrangeglobalang;
 import static ru.m210projects.Build.Engine.sprite;
-import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.spritesortcnt;
 import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Engine.transluc;
@@ -102,6 +101,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
@@ -1971,7 +1971,10 @@ public abstract class Software implements Renderer {
 			i = tspr.ang + 1536;
 			if ((mflags & MD_ROTATE) != 0)
 				i -= (5 * totalclock) & 2047;
-			i += spriteext[tspr.owner].angoff;
+
+			Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
+			if(sprext != null)
+				i += sprext.angoff;
 
 			float f = 1.0f;
 			if ((sprite[tspr.owner].cstat & 48) == 16 || (sprite[tspr.owner].cstat & 48) == 32)

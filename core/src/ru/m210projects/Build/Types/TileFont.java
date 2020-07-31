@@ -16,80 +16,23 @@
 
 package ru.m210projects.Build.Types;
 
-import static com.badlogic.gdx.graphics.GL20.*;
-
-import java.nio.ByteBuffer;
 import java.util.HashSet;
 
+import ru.m210projects.Build.Render.TextureHandle.DummyTileData;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
-import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class TileFont {
 
-	public abstract static class TileFontData extends TileData {
-
-		public final TextureBuffer data;
-		public final int width, height;
+	public abstract static class TileFontData extends DummyTileData {
 
 		public TileFontData(int width, int height) {
-			this.width = width;
-			this.height = height;
-			this.data = buildAtlas(getTmpBuffer(width * height));
+			super(width, height);
+			buildAtlas(data);
 		}
 
 		public abstract TextureBuffer buildAtlas(TextureBuffer data);
-
-		@Override
-		public int getWidth() {
-			return width;
-		}
-
-		@Override
-		public int getHeight() {
-			return height;
-		}
-
-		@Override
-		public ByteBuffer getPixels() {
-			return data.getBuffer();
-		}
-
-		@Override
-		public int getGLType() {
-			return GL_UNSIGNED_BYTE;
-		}
-
-		@Override
-		public int getGLInternalFormat() {
-			return GL_RGBA;
-		}
-
-		@Override
-		public int getGLFormat() {
-			return GL_RGBA;
-		}
-
-		@Override
-		public PixelFormat getPixelFormat() {
-			return PixelFormat.Rgba;
-		}
-
-		@Override
-		public boolean hasAlpha() {
-			return true;
-		}
-
-		@Override
-		public boolean isClamped() {
-			return false;
-		}
-
-		@Override
-		public boolean isHighTile() {
-			return false;
-		}
 	};
 
 	public static final HashSet<TileFont> managedFont = new HashSet<TileFont>();

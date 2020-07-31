@@ -1,26 +1,18 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
-import static com.badlogic.gdx.graphics.GL20.GL_CLAMP_TO_EDGE;
-import static com.badlogic.gdx.graphics.GL20.GL_NEAREST;
 import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_REPEAT;
 import static com.badlogic.gdx.graphics.GL20.GL_REPLACE;
 import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_SRC_COLOR;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAG_FILTER;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAX_ANISOTROPY_EXT;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MIN_FILTER;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_S;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_T;
 import static com.badlogic.gdx.graphics.GL20.GL_UNPACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Render.GLInfo.gltexmaxsize;
 import static ru.m210projects.Build.Render.GLInfo.supportsGenerateMipmaps;
-import static ru.m210projects.Build.Render.Types.GL10.GL_CLAMP;
 import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ALPHA_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_RGB_ARB;
@@ -41,13 +33,18 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV_MODE;
 
 import java.nio.ByteBuffer;
 
+import com.badlogic.gdx.graphics.GLTexture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.Texture.TextureWrap;
+import com.badlogic.gdx.math.MathUtils;
+
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Settings.GLSettings;
 
-public class GLTile implements Comparable<GLTile> {
+public class GLTile extends GLTexture implements Comparable<GLTile> {
 
 	public static enum FlagType {
 		Clamped(0), HighTile(1), SkyboxFace(2), HasAlpha(3), Invalidated(7);
@@ -67,10 +64,9 @@ public class GLTile implements Comparable<GLTile> {
 		}
 	};
 
-	protected int glHandle;
-	protected final int glTarget;
 	protected int width, height;
 	private boolean isRequireShader;
+	protected float anisotropicFilterLevel = 1.0f;
 
 	protected int flags;
 	protected byte skyface;
@@ -81,8 +77,7 @@ public class GLTile implements Comparable<GLTile> {
 	protected GLTile next;
 
 	public GLTile(int width, int height) {
-		this.glTarget = GL_TEXTURE_2D;
-		this.glHandle = BuildGdx.gl.glGenTexture();
+		super(GL_TEXTURE_2D);
 		this.width = width;
 		this.height = height;
 		this.isRequireShader = false;
@@ -115,7 +110,7 @@ public class GLTile implements Comparable<GLTile> {
 				pic.getGLFormat(), pic.getGLType(), pic.getPixels());
 
 		setupTextureFilter(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
-		setupTextureWrap(!pic.isClamped() ? GL_REPEAT : GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+		setupTextureWrap(!pic.isClamped() ? TextureWrap.Repeat : TextureWrap.ClampToEdge);
 	}
 
 	public void setColor(float r, float g, float b, float a) {
@@ -261,31 +256,40 @@ public class GLTile implements Comparable<GLTile> {
 
 	}
 
-	public void setupTextureWrap(int wrap) {
-		BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, wrap);
-		BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, wrap);
+	public void setupTextureWrap(TextureWrap wrap) {
+		unsafeSetWrap(wrap, wrap, true);
 	}
 
-	public void setupTextureWrapS(int wrap) {
-		BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_WRAP_S, wrap);
+	public void setupTextureWrapS(TextureWrap wrap) {
+		unsafeSetWrap(wrap, null, true);
 	}
 
-	public void setupTextureWrapT(int wrap) {
-		BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_WRAP_T, wrap);
+	public void setupTextureWrapT(TextureWrap wrap) {
+		unsafeSetWrap(null, wrap, true);
 	}
 
 	public void setupTextureFilter(GLFilter filter, int anisotropy) {
 		if(isRequireShader) {
-			BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+			unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
+			unsafeSetAnisotropicFilter(1, true);
 			return;
 		}
 
-		BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MIN_FILTER, filter.min);
-		BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MAG_FILTER, filter.mag);
-		if (anisotropy >= 1) // 1 if you want to disable anisotropy
-			BuildGdx.gl.glTexParameteri(glTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+		unsafeSetFilter(filter.min, filter.mag, true);
+		unsafeSetAnisotropicFilter(anisotropy, true);
+	}
+
+	public float unsafeSetAnisotropicFilter(float level, boolean force) {
+		// 1 if you want to disable anisotropy
+
+		float max = GLInfo.getMaxAnisotropicFilterLevel();
+		if (max == 1.0f) return 1.0f;
+
+		level = Math.min(level, max);
+		if (!force && MathUtils.isEqual(level, anisotropicFilterLevel, 0.1f))
+			return anisotropicFilterLevel;
+		BuildGdx.gl.glTexParameterf(glTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, level);
+		return anisotropicFilterLevel = level;
 	}
 
 	public void setupTextureGlow() {
@@ -308,7 +312,7 @@ public class GLTile implements Comparable<GLTile> {
 		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
 		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
 
-		setupTextureWrap(GL_REPEAT);
+		setupTextureWrap(TextureWrap.Repeat);
 	}
 
 	public void setupTextureDetail() {
@@ -330,30 +334,31 @@ public class GLTile implements Comparable<GLTile> {
 
 		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
 
-		setupTextureWrap(GL_REPEAT);
+		setupTextureWrap(TextureWrap.Repeat);
 	}
 
+	@Override
 	public int getWidth() {
 		return width;
 	}
 
+	@Override
 	public int getHeight() {
 		return height;
 	}
 
-	protected void unbind() {
+	public void unbind() {
 		BuildGdx.gl.glBindTexture(glTarget, 0);
 	}
 
-	protected boolean bind() {
+	@Override
+	public void bind() {
 		if (glHandle != 0) {
 			BuildGdx.gl.glBindTexture(glTarget, glHandle);
-			return true;
 		}
-
-		return false;
 	}
 
+	@Override
 	public void delete() {
 		if (glHandle != 0) {
 			if (BuildGdx.gl != null)
@@ -456,4 +461,17 @@ public class GLTile implements Comparable<GLTile> {
 
 		return this.palnum - src.palnum;
 	}
+
+	@Override
+	public int getDepth() {
+		return 0;
+	}
+
+	@Override
+	public boolean isManaged() {
+		return false;
+	}
+
+	@Override
+	protected void reload() {}
 }

@@ -26,102 +26,105 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.Spriteext;
 
 public class Maphack extends Scriptfile {
-	
+
 	private long MapCRC;
 	private Spriteext[] spriteext;
+
 	private static enum Token {
-		MapCRC, 
-		Sprite,
-		
-		AngleOffset,
-		XOffset,
-		YOffset,
-		ZOffset,
-		NoModel,
-		
-		Error,
-		EOF;
+		MapCRC, Sprite,
+
+		AngleOffset, XOffset, YOffset, ZOffset, NoModel,
+
+		Error, EOF;
 	}
 
-	private final static Map<String , Token> basetokens = new HashMap<String , Token>() {
+	private final static Map<String, Token> basetokens = new HashMap<String, Token>() {
 		private static final long serialVersionUID = 1L;
 		{
 			put("sprite", Token.Sprite);
 			put("crc32", Token.MapCRC);
 		}
 	};
-	
-	private final static Map<String , Token> sprite_tokens = new HashMap<String , Token>() {
+
+	private final static Map<String, Token> sprite_tokens = new HashMap<String, Token>() {
 		private static final long serialVersionUID = 1L;
 		{
-			put("angoff",     Token.AngleOffset);
-			put("mdxoff",	  Token.XOffset);
-			put("mdyoff",	  Token.YOffset);
-			put("mdzoff",	  Token.ZOffset);
-			put("notmd",	  Token.NoModel);
+			put("angoff", Token.AngleOffset);
+			put("mdxoff", Token.XOffset);
+			put("mdyoff", Token.YOffset);
+			put("mdzoff", Token.ZOffset);
+			put("notmd", Token.NoModel);
 		}
-    };
+	};
+
+	public Maphack() { // new maphack
+		super("", new byte[0]);
+
+		spriteext = new Spriteext[MAXSPRITES];
+		for (int i = 0; i < MAXSPRITES; i++)
+			spriteext[i] = new Spriteext();
+	}
 
 	public Maphack(String filename) {
 		super(filename, BuildGdx.cache.getBytes(filename, 0));
-		
+
 		spriteext = new Spriteext[MAXSPRITES];
 		for (int i = 0; i < MAXSPRITES; i++)
 			spriteext[i] = new Spriteext();
 
 		Integer value;
-		while (true)
-        {
-			switch(gettoken(basetokens))
-			{
-				case MapCRC:
-					Integer crc32 = getsymbol();
-					if(crc32 == null) break;
-					
-					MapCRC = crc32 & 0xFFFFFFFFL;
+		while (true) {
+			switch (gettoken(basetokens)) {
+			case MapCRC:
+				Integer crc32 = getsymbol();
+				if (crc32 == null)
 					break;
-				case Sprite:
-					Integer sprnum = getsymbol();
-					if(sprnum == null) break;
-	
-					switch (gettoken(sprite_tokens))
-	                {
-		            	default: break;
-		                case AngleOffset:
-		                	if((value = getsymbol()) != null)
-		                		spriteext[sprnum].angoff = value.shortValue();
-		                	break;
-		                case XOffset:
-		                	if((value = getsymbol()) != null)
-		                		spriteext[sprnum].xoff = value;
-		                	break;
-		                case YOffset:
-		                	if((value = getsymbol()) != null)
-		                		spriteext[sprnum].yoff = value;
-		                	break;
-		                case ZOffset:
-		                	if((value = getsymbol()) != null)
-		                		spriteext[sprnum].zoff = value;
-		                	break;
-		                case NoModel:
-		                	spriteext[sprnum].flags |= 1; //SPREXT_NOTMD;
-		                	break;	
-	                }
-					
+
+				MapCRC = crc32 & 0xFFFFFFFFL;
+				break;
+			case Sprite:
+				Integer sprnum = getsymbol();
+				if (sprnum == null)
 					break;
-				case Error:
-					break;
-				case EOF:
-					return;
+
+				switch (gettoken(sprite_tokens)) {
 				default:
 					break;
+				case AngleOffset:
+					if ((value = getsymbol()) != null)
+						spriteext[sprnum].angoff = value.shortValue();
+					break;
+				case XOffset:
+					if ((value = getsymbol()) != null)
+						spriteext[sprnum].xoff = value;
+					break;
+				case YOffset:
+					if ((value = getsymbol()) != null)
+						spriteext[sprnum].yoff = value;
+					break;
+				case ZOffset:
+					if ((value = getsymbol()) != null)
+						spriteext[sprnum].zoff = value;
+					break;
+				case NoModel:
+					spriteext[sprnum].flags |= 1; // SPREXT_NOTMD;
+					break;
+				}
+
+				break;
+			case Error:
+				break;
+			case EOF:
+				return;
+			default:
+				break;
 			}
-        }
+		}
 	}
-	
-	private Token gettoken(Map<String , Token> list) {
+
+	private Token gettoken(Map<String, Token> list) {
 		int tok;
-		if ((tok = gettoken()) == -2) 
+		if ((tok = gettoken()) == -2)
 			return Token.EOF;
 
 		Token out = list.get(toLowerCase(textbuf.substring(tok, textptr)));
@@ -131,11 +134,12 @@ public class Maphack extends Scriptfile {
 		errorptr = textptr;
 		return Token.Error;
 	}
-	
-	public boolean loadHack(long crc32, Spriteext[] dst)
-	{
-		if(crc32 != MapCRC) return false;
-		System.arraycopy(spriteext, 0, dst, 0, MAXSPRITES);
-		return true;
+
+	public Spriteext getSpriteInfo(int spriteid) {
+		return spriteext[spriteid];
+	}
+
+	public long getMapCRC() {
+		return MapCRC;
 	}
 }

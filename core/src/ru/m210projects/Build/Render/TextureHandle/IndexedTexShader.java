@@ -2,53 +2,26 @@ package ru.m210projects.Build.Render.TextureHandle;
 
 import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
 import static com.badlogic.gdx.graphics.GL20.GL_RGB;
-import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.numshades;
-import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
-
-import java.nio.ByteBuffer;
 
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class IndexedTexShader {
 
-	private abstract class ShaderData extends TileData {
-		public final TextureBuffer data;
-		private int w, h;
-		public ShaderData(byte[] data, int w, int h, int bytes) {
+	private abstract class ShaderData extends DummyTileData {
+
+		public ShaderData(byte[] buf, int w, int h, int bytes) {
+			super(w, h);
 			int len = w * h * bytes;
-			this.w = w;
-			this.h = h;
 
-			TextureBuffer buffer = getTmpBuffer(len);
-			buffer.clear();
-			buffer.putBytes(data, 0, len);
-			this.data = buffer;
-		}
-
-		@Override
-		public int getWidth() {
-			return w;
-		}
-
-		@Override
-		public int getHeight() {
-			return h;
-		}
-
-		@Override
-		public ByteBuffer getPixels() {
-			return data.getBuffer();
-		}
-
-		@Override
-		public int getGLType() {
-			return GL_UNSIGNED_BYTE;
+			data.clear();
+			data.putBytes(buf, 0, len);
 		}
 
 		@Override
@@ -68,16 +41,6 @@ public class IndexedTexShader {
 
 		@Override
 		public boolean hasAlpha() {
-			return false;
-		}
-
-		@Override
-		public boolean isClamped() {
-			return false;
-		}
-
-		@Override
-		public boolean isHighTile() {
 			return false;
 		}
 	}
@@ -209,7 +172,7 @@ public class IndexedTexShader {
 			palette.update(dat, false);
 		else palette = cache.newTile(dat, 0, false);
 
-		palette.setupTextureFilter(glfiltermodes[0], 1); //GL_NEAREST
+		palette.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
 	}
 
 	protected GLTile getpalookup(int pal) {
@@ -223,7 +186,8 @@ public class IndexedTexShader {
 				palookup[pal].setInvalidated(false);
 				palookup[pal].update(dat, false);
 			} else palookup[pal] = cache.newTile(dat, 0, false);
-			palookup[pal].setupTextureFilter(glfiltermodes[0], 1); //GL_NEAREST
+
+			palookup[pal].unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
 		}
 
 		return palookup[pal];
@@ -291,5 +255,9 @@ public class IndexedTexShader {
 			}
 		}
 		if(!binded) unbind();
+	}
+
+	public ShaderProgram getShaderProgram() { //this necessary for mesh.draw();
+		return shaderProg;
 	}
 }

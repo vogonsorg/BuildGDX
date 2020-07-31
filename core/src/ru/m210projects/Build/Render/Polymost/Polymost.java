@@ -88,7 +88,6 @@ import static ru.m210projects.Build.Engine.singlobalang;
 import static ru.m210projects.Build.Engine.sintable;
 import static ru.m210projects.Build.Engine.sinviewingrangeglobalang;
 import static ru.m210projects.Build.Engine.sprite;
-import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.spritesortcnt;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.viewingrange;
@@ -117,7 +116,6 @@ import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_CLAMP;
 import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE;
@@ -156,6 +154,7 @@ import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
@@ -865,9 +864,9 @@ public abstract class Polymost implements GLRenderer {
 		textureCache.unbind();
 
 		if (srepeat != 0)
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		if (trepeat != 0)
-			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLInfo.clamptoedge ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
 	// variables that are set to ceiling- or floor-members, depending
@@ -2518,16 +2517,20 @@ public abstract class Polymost implements GLRenderer {
 				method = 3 + 4;
 		}
 
-		tspr.x += spriteext[tspr.owner].xoff;
-		tspr.y += spriteext[tspr.owner].yoff;
-		tspr.z += spriteext[tspr.owner].zoff;
+		Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
+
+		if(sprext != null) {
+			tspr.x += sprext.xoff;
+			tspr.y += sprext.yoff;
+			tspr.z += sprext.zoff;
+		}
 
 		int posx = tspr.x;
 		int posy = tspr.y;
 
 		int shade = (int) (globalshade / 1.5f);
 
-		while ((spriteext[tspr.owner].flags & SPREXT_NOTMD) == 0) {
+		while (sprext == null || (sprext.flags & SPREXT_NOTMD) == 0) {
 			rendering = Rendering.Model.setIndex(snum);
 
 			if (GLSettings.useModels.get()) {
@@ -2573,14 +2576,17 @@ public abstract class Polymost implements GLRenderer {
 		rendering = Rendering.Sprite.setIndex(snum);
 		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
-		if ((spriteext[tspr.owner].flags & SPREXT_AWAY1) != 0) {
-			posx += (sintable[(tspr.ang + 512) & 2047] >> 13);
-			posy += (sintable[(tspr.ang) & 2047] >> 13);
+		if(sprext != null) {
+			if ((sprext.flags & SPREXT_AWAY1) != 0) {
+				posx += (sintable[(tspr.ang + 512) & 2047] >> 13);
+				posy += (sintable[(tspr.ang) & 2047] >> 13);
 
-		} else if ((spriteext[tspr.owner].flags & SPREXT_AWAY2) != 0) {
-			posx -= (sintable[(tspr.ang + 512) & 2047] >> 13);
-			posy -= (sintable[(tspr.ang) & 2047] >> 13);
+			} else if ((sprext.flags & SPREXT_AWAY2) != 0) {
+				posx -= (sintable[(tspr.ang + 512) & 2047] >> 13);
+				posy -= (sintable[(tspr.ang) & 2047] >> 13);
+			}
 		}
+
 		oldsizx = tsizx = pic.getWidth();
 		oldsizy = tsizy = pic.getHeight();
 
@@ -2665,15 +2671,17 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			// sprite panning
-			if (spriteext[spritenum].xpanning != 0) {
-				guy -= gdy * ((spriteext[spritenum].xpanning) / 255.f) * tsizx;
-				guo -= gdo * ((spriteext[spritenum].xpanning) / 255.f) * tsizx;
-				srepeat = 1;
-			}
-			if (spriteext[spritenum].ypanning != 0) {
-				gvy -= gdy * ((spriteext[spritenum].ypanning) / 255.f) * tsizy;
-				gvo -= gdo * ((spriteext[spritenum].ypanning) / 255.f) * tsizy;
-				trepeat = 1;
+			if(sprext != null) {
+				if (sprext.xpanning != 0) {
+					guy -= gdy * ((sprext.xpanning) / 255.f) * tsizx;
+					guo -= gdo * ((sprext.xpanning) / 255.f) * tsizx;
+					srepeat = 1;
+				}
+				if (sprext.ypanning != 0) {
+					gvy -= gdy * ((sprext.ypanning) / 255.f) * tsizy;
+					gvo -= gdo * ((sprext.ypanning) / 255.f) * tsizy;
+					trepeat = 1;
+				}
 			}
 
 			// Clip sprites to ceilings/floors when no parallaxing and not
@@ -2778,11 +2786,12 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			// sprite panning
-			if (spriteext[spritenum].xpanning != 0) {
-				t0 -= ((spriteext[spritenum].xpanning) / 255.f);
-				t1 -= ((spriteext[spritenum].xpanning) / 255.f);
+			if (sprext != null && sprext.xpanning != 0) {
+				t0 -= ((sprext.xpanning) / 255.f);
+				t1 -= ((sprext.xpanning) / 255.f);
 				srepeat = 1;
 			}
+
 			gux = (t0 * ryp0 - t1 * ryp1) * gxyaspect * tsizx / (sx0 - sx1);
 			guy = 0;
 			guo = t0 * ryp0 * gxyaspect * tsizx - gux * sx0;
@@ -2799,10 +2808,10 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			// sprite panning
-			if (spriteext[spritenum].ypanning != 0) {
-				gvx -= gdx * ((spriteext[spritenum].ypanning) / 255.f) * tsizy;
-				gvy -= gdy * ((spriteext[spritenum].ypanning) / 255.f) * tsizy;
-				gvo -= gdo * ((spriteext[spritenum].ypanning) / 255.f) * tsizy;
+			if (sprext != null && sprext.ypanning != 0) {
+				gvx -= gdx * ((sprext.ypanning) / 255.f) * tsizy;
+				gvy -= gdy * ((sprext.ypanning) / 255.f) * tsizy;
+				gvo -= gdo * ((sprext.ypanning) / 255.f) * tsizy;
 				trepeat = 1;
 			}
 
@@ -3003,15 +3012,17 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			// sprite panning
-			if (spriteext[spritenum].xpanning != 0) {
-				guy -= gdy * ((spriteext[spritenum].xpanning) / 255.f) * tsizx;
-				guo -= gdo * ((spriteext[spritenum].xpanning) / 255.f) * tsizx;
-				srepeat = 1;
-			}
-			if (spriteext[spritenum].ypanning != 0) {
-				gvy -= gdy * ((spriteext[spritenum].ypanning) / 255.f) * tsizy;
-				gvo -= gdo * ((spriteext[spritenum].ypanning) / 255.f) * tsizy;
-				trepeat = 1;
+			if(sprext != null) {
+				if (sprext.xpanning != 0) {
+					guy -= gdy * ((sprext.xpanning) / 255.f) * tsizx;
+					guo -= gdo * ((sprext.xpanning) / 255.f) * tsizx;
+					srepeat = 1;
+				}
+				if (sprext.ypanning != 0) {
+					gvy -= gdy * ((sprext.ypanning) / 255.f) * tsizy;
+					gvo -= gdo * ((sprext.ypanning) / 255.f) * tsizy;
+					trepeat = 1;
+				}
 			}
 
 			pic.setWidth(tsizx).setHeight(tsizy);
@@ -3465,9 +3476,16 @@ public abstract class Polymost implements GLRenderer {
 		omdtims = mdtims;
 		mdtims = engine.getticks();
 
-		for (int i = 0; i < MAXSPRITES; i++)
-			if ((mdpause != 0 && spriteext[i].mdanimtims != 0) || ((spriteext[i].flags & SPREXT_NOMDANIM) != 0))
-				spriteext[i].mdanimtims += mdtims - omdtims;
+		for (int i = 0; i < MAXSPRITES; i++) {
+			if(mdpause != 0) {
+				Spriteext sprext = defs.mapInfo.getSpriteInfo(i);
+				if(sprext == null) continue;
+
+				if ((mdpause != 0 && sprext.mdanimtims != 0) || ((sprext.flags & SPREXT_NOMDANIM) != 0))
+					sprext.mdanimtims += mdtims - omdtims;
+			}
+
+		}
 
 		beforedrawrooms = 1;
 		ogshang = -1;
@@ -3631,7 +3649,6 @@ public abstract class Polymost implements GLRenderer {
 	public void preload() {
 		System.err.println("Preload");
 		for (int i = 0; i < MAXSPRITES; i++) {
-			spriteext[i].clear();
 			removeSpriteCorr(i);
 			SPRITE spr = sprite[i];
 			if (spr == null || ((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS)

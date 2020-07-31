@@ -8,22 +8,22 @@
 
 package ru.m210projects.Build.Loader;
 
-import static com.badlogic.gdx.graphics.GL20.GL_REPEAT;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.spriteext;
 import static ru.m210projects.Build.Engine.timerticspersec;
-import static ru.m210projects.Build.Loader.MDAnimation.*;
+import static ru.m210projects.Build.Gameutils.BClipRange;
+import static ru.m210projects.Build.Loader.MDAnimation.MDANIM_ONESHOT;
+import static ru.m210projects.Build.Loader.MDAnimation.mdpause;
+import static ru.m210projects.Build.Loader.MDAnimation.mdtims;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 
 import java.util.Iterator;
 
 import com.badlogic.gdx.graphics.Pixmap;
-
-import static ru.m210projects.Build.Gameutils.*;
+import com.badlogic.gdx.graphics.Texture.TextureWrap;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.Resource;
@@ -61,7 +61,7 @@ public abstract class MDModel extends Model {
 		boolean smoothdurationp = (GLSettings.animSmoothing.get() && (defs.mdInfo.getParams(tile).smoothduration != 0));
 
 		Spritesmooth smooth = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mdInfo.getSmoothParams(tspr.owner) : null;
-		Spriteext sprext = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? spriteext[tspr.owner] : null;
+		Spriteext sprext = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mapInfo.getSpriteInfo(tspr.owner) : null;
 
 		MDAnimation anim;
 		for (anim = animations; anim != null && anim.startframe != cframe; anim = anim.next) {
@@ -356,7 +356,7 @@ public abstract class MDModel extends Model {
 		} finally {
 			res.close();
 		}
-		texidx.setupTextureWrap(GL_REPEAT);
+		texidx.setupTextureWrap(TextureWrap.Repeat);
 
 //		long etime = System.currentTimeMillis() - startticks;
 //		System.out.println("Load skin: p" + pal + "-e" + defs.texInfo.getPaletteEffect(pal) + " \"" + skinfile

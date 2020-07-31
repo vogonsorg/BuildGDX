@@ -28,7 +28,7 @@ public class GLInfo {
 
 	public static float maxanisotropy;
 	public static boolean bgra;
-	public static boolean clamptoedge;
+//	public static boolean clamptoedge;
 	public static byte texcompr;
 	public static byte texnpot;
 	public static byte multisample;
@@ -57,10 +57,10 @@ public class GLInfo {
 			BuildGdx.gl.glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, buf);
 			maxanisotropy = buf.get(); // supports anisotropy. get the maximum anisotropy level
 		}
-		if (BuildGdx.graphics.supportsExtension("GL_EXT_texture_edge_clamp") ||
-				BuildGdx.graphics.supportsExtension("GL_SGIS_texture_edge_clamp")) {
-			clamptoedge = true; // supports GL_CLAMP_TO_EDGE or GL_CLAMP_TO_EDGE_SGIS
-		}
+//		if (BuildGdx.graphics.supportsExtension("GL_EXT_texture_edge_clamp") ||
+//				BuildGdx.graphics.supportsExtension("GL_SGIS_texture_edge_clamp")) {
+//			clamptoedge = true; // supports GL_CLAMP_TO_EDGE or GL_CLAMP_TO_EDGE_SGIS
+//		}
 		if (BuildGdx.graphics.supportsExtension("GL_EXT_bgra")) {
 			bgra = true; // support bgra textures
 		}
@@ -105,5 +105,9 @@ public class GLInfo {
 			for (; i > 1; i >>= 1)
 				gltexmaxsize++;
 		}
+	}
+
+	public static float getMaxAnisotropicFilterLevel() {
+		return maxanisotropy;
 	}
 }

@@ -17,32 +17,24 @@
 package ru.m210projects.Build.Render.GdxRender;
 
 import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
-import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.curpalette;
+import static ru.m210projects.Build.Engine.globalpal;
 import static ru.m210projects.Build.Engine.numshades;
+import static ru.m210projects.Build.Engine.pSmallTextfont;
+import static ru.m210projects.Build.Engine.pTextfont;
 import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Engine.pow2char;
-import static ru.m210projects.Build.Engine.smalltextfont;
-import static ru.m210projects.Build.Engine.textfont;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_INTENSITY;
-import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
-import static ru.m210projects.Build.Strhandler.Bstrlen;
-
-import java.nio.ByteBuffer;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -51,8 +43,9 @@ import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Types.Tile;
-import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.Tile.AnimType;
+import ru.m210projects.Build.Types.TileFont;
+import ru.m210projects.Build.Types.TileFont.FontType;
 
 public class GdxOrphoRen extends OrphoRenderer {
 
@@ -85,48 +78,73 @@ public class GdxOrphoRen extends OrphoRenderer {
 	@Override
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
-		// TODO Auto-generated method stub
+		if (font.type == FontType.Tilemap) {
+			if (palookup[col] == null)
+				col = 0;
 
-	}
+			int nTile = (Integer) font.ptr;
+			if (engine.getTile(nTile).data == null && engine.loadtile(nTile) == null)
+				return;
+		}
 
-	@Override
-	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
+		GLTile atlas = font.getGL(textureCache, col);
+		if (atlas == null)
+			return;
+
+		int opal = globalpal;
+		globalpal = col;
+
+		textureCache.bind(atlas);
+
 		BuildGdx.gl.glDisable(GL_ALPHA_TEST);
 		BuildGdx.gl.glDepthMask(false); // disable writing to the z-buffer
 		BuildGdx.gl.glEnable(GL_BLEND);
-
-		int xsiz = (fontsize != 0 ? 4 : 8);
-		int ysiz = (fontsize != 0 ? 6 : 8);
+		BuildGdx.gl.glEnable(GL_TEXTURE_2D);
 
 		xpos <<= 16;
 		ypos <<= 16;
 
 		bindBatch();
-		if (backcol >= 0) {
-			batch.setColor(curpalette.getRed(backcol) / 255.0f, curpalette.getGreen(backcol) / 255.0f,curpalette.getBlue(backcol) / 255.0f, 1.0f);
-//			batch.draw(textAtlas, xpos, ypos, Bstrlen(text) * xsiz, 8, 0, 0, 64, 0, 1, 1, 0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
-		}
+//		if (shade >= 0) {
+//			batch.setColor(curpalette.getRed(shade) / 255.0f, curpalette.getGreen(shade) / 255.0f,curpalette.getBlue(shade) / 255.0f, 1.0f);
+//			batch.draw(atlas, xpos, ypos, text.length * xsiz, 8, 0, 0, 64, 0, 1, 1, 0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
+//		}
 
 		int oxpos = xpos;
 		int c = 0, line = 0, yoffs;
+		float tx, ty;
+		int df = font.sizx / font.cols;
+
 		batch.setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f,curpalette.getBlue(col) / 255.0f, 1.0f);
 		while (c < text.length && text[c] != '\0') {
 			if (text[c] == '\n') {
 				text[c] = 0;
 				line += 1;
-				xpos = oxpos - (int) (scale * (8 >> fontsize));
+				xpos = oxpos - (int) (scale * font.charsizx);
 			}
 			if (text[c] == '\r') text[c] = 0;
-			yoffs = (int) (scale * line * (8 >> fontsize));
+			yoffs = (int) (scale * line * font.charsizy);
 
-//			batch.draw(textAtlas, xpos, ypos, xsiz, ysiz,
-//				0, -yoffs, (text[c] % 32) * 8, (text[c] / 32) * 8 + (fontsize * 64), xsiz, ysiz,
-//				0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
+			tx = (text[c] % font.cols) * df;
+			ty = (text[c] / font.cols) * df;
 
-			xpos += scale * (xsiz << 16);
+			batch.draw(atlas, xpos, ypos, font.charsizx, font.charsizy,
+					0, -yoffs, tx, ty, font.charsizx, font.charsizy,
+					0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
+
+			xpos += scale * (font.charsizx << 16);
 			c++;
 		}
 		BuildGdx.gl.glDepthMask(true); // re-enable writing to the z-buffer
+
+		globalpal = opal;
+
+		textureCache.unbind();
+	}
+
+	@Override
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
+		printext(fontsize == 0 ? pTextfont : pSmallTextfont, xpos, ypos, text, col, 0, Transparent.None, scale);
 	}
 
 	@Override
@@ -203,7 +221,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		bindBatch();
 		batch.setColor(shade, shade, shade, alpha);
-//		batch.draw(pth.glpic, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
+		batch.draw(pth, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
 	}
 
 	private void bindBatch()

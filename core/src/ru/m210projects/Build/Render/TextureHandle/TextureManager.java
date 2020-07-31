@@ -118,10 +118,10 @@ public class TextureManager {
 		if (bindedTile != null && shader != null && bindedTile.isRequireShader() && !tile.isRequireShader())
 			shader.unbind();
 
-		if (tile.bind()) {
-			if (shader != null && tile.isRequireShader() && (bindedTile == null || !bindedTile.isRequireShader()))
-				shader.bind();
-		}
+		tile.bind();
+		if (shader != null && tile.isRequireShader() && (bindedTile == null || !bindedTile.isRequireShader()))
+			shader.bind();
+
 		bindedTile = tile;
 
 		return tile;
@@ -416,7 +416,7 @@ public class TextureManager {
 		return false;
 	}
 
-	public void enableShader(boolean enable) {
+	public boolean enableShader(boolean enable) {
 		boolean isChanged = false;
 		if (enable) {
 			if(shader == null) {
@@ -437,5 +437,7 @@ public class TextureManager {
 
 		if(isChanged)
 			uninit();
+
+		return shader != null;
 	}
 }

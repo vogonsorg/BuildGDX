@@ -59,6 +59,7 @@ public class DefScript {
 	public final TextureHDInfo texInfo;
 	public final ModelInfo mdInfo;
 	public final AudioInfo audInfo;
+	public final MapHackInfo mapInfo;
 	protected final Engine engine;
 
 	protected FileEntry currentAddon;
@@ -117,6 +118,7 @@ public class DefScript {
 		this.texInfo = new TextureHDInfo(src.texInfo);
 		this.mdInfo = new ModelInfo(src.mdInfo, src.disposable);
 		this.audInfo = new AudioInfo(src.audInfo);
+		this.mapInfo = createMapHackInfo(src.mapInfo);
 		this.engine = src.engine;
 		for (int i = 0; i < MAXTILES; i++) {
 			if (src.tiles[i] == null)
@@ -145,8 +147,15 @@ public class DefScript {
 		texInfo = new TextureHDInfo();
 		mdInfo = new ModelInfo();
 		audInfo = new AudioInfo();
+		mapInfo = createMapHackInfo(null);
 
 		this.engine = engine;
+	}
+
+	protected MapHackInfo createMapHackInfo(MapHackInfo src) {
+		if(src != null)
+			return new MapHackInfo(src);
+		return new MapHackInfo();
 	}
 
 	public boolean loadScript(FileEntry file) {
@@ -427,6 +436,7 @@ public class DefScript {
 			// other stuff
 			put("tilefromtexture", new TileFromTextureToken());
 			put("animtilerange", new AnimRangeToken());
+			put("mapinfo", new MaphackToken());
 
 			// gdx
 			tok = new AudioToken();
@@ -435,6 +445,56 @@ public class DefScript {
 			put("includeif", new AddonToken());
 		}
 	};
+
+	public enum MapHackTokens {
+		FILE, MHK, MD4;
+	};
+
+	protected class MaphackToken implements Token {
+		private final Map<String, MapHackTokens> maptokens = new HashMap<String, MapHackTokens>() {
+			private static final long serialVersionUID = 1L;
+			{
+				put("mapfile", MapHackTokens.FILE);
+				put("mhkfile", MapHackTokens.MHK);
+				put("mapmd4", MapHackTokens.MD4);
+			}
+		};
+
+		@Override
+		public BaseToken parse(Scriptfile script) {
+			int end;
+			if ((end = script.getbraces()) == -1)
+				return BaseToken.Error;
+
+			Object tk;
+			String file = null, mhk = null;
+			while (script.textptr < end) {
+				tk = gettoken(script, maptokens);
+				if(checkErrorToken(script, tk))
+					continue;
+
+				switch ((MapHackTokens) tk) {
+				default:
+					break;
+				case FILE:
+					file = getFile(script);
+					break;
+				case MHK:
+					mhk = getFile(script);
+					break;
+				case MD4:
+					script.gettoken();
+					/* nothing do with it */
+					break;
+				}
+			}
+
+			if(mapInfo.addMapInfo(file, mhk))
+				return BaseToken.Ok;
+
+			return BaseToken.Error;
+		}
+	}
 
 	protected class IncludeToken implements Token {
 		@Override
@@ -1744,5 +1804,17 @@ public class DefScript {
 
 			return BaseToken.Ok;
 		}
+	}
+
+	protected boolean checkErrorToken(Scriptfile script, Object tk) {
+		if (tk instanceof BaseToken) {
+			int line = script.getlinum(script.ltextptr);
+			Console.Println(script.filename + " has unknown token \"" + toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr)) + "\" on line: "
+					+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+			OSDTEXT_RED);
+			return true;
+		}
+
+		return false;
 	}
 }

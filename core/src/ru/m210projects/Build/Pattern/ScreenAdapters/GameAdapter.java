@@ -20,6 +20,7 @@ import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Net.Mmulti.*;
 import static ru.m210projects.Build.Pattern.BuildNet.*;
+import static ru.m210projects.Build.Strhandler.toLowerCase;
 
 import com.badlogic.gdx.ScreenAdapter;
 
@@ -35,7 +36,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuHandler;
 import ru.m210projects.Build.Settings.BuildConfig;
 
 public abstract class GameAdapter extends ScreenAdapter {
-	
+
 	protected BuildGame game;
 	protected BuildNet pNet;
 	protected MenuHandler pMenu;
@@ -54,24 +55,24 @@ public abstract class GameAdapter extends ScreenAdapter {
 		this.pCfg = game.pCfg;
 		this.load = load;
 	}
-	
+
 	public void PreFrame(BuildNet net) { /* nothing */ }
-	
+
 	public void PostFrame(BuildNet net) { /* nothing */ }
 
 	public abstract void ProcessFrame(BuildNet net);
-	
-	/** 
+
+	/**
 	 * Don't use DrawWorld() for save game!
 	 */
 	public abstract void DrawWorld(float smooth);
-	
+
 	public abstract void DrawHud(float smooth);
-	
+
 	public abstract void KeyHandler();
-	
+
 	public abstract void sndHandlePause(boolean pause);
-	
+
 	protected abstract boolean prepareboard(String map);
 
 	public GameAdapter setTitle(String title)
@@ -79,7 +80,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		load.setTitle(title);
 		return this;
 	}
-	
+
 	public GameAdapter loadboard(final String map, final Runnable prestart)
 	{
 		pNet.ready2send = false;
@@ -90,25 +91,34 @@ public abstract class GameAdapter extends ScreenAdapter {
 				if(prepareboard(map)) {
 					if(prestart != null)
 						prestart.run();
+
+					String mapname = map;
+					int index = toLowerCase(mapname).indexOf(".map");
+					if(index == -1)
+						mapname = mapname + ".map";
+
+					if(game.currentDef.mapInfo.load(mapname))
+						System.err.println("Maphack loaded for map: " + mapname);
+
 					startboard(startboard);
 				} //do nothing, it's better to handle it in each game manualy
 			}
 		});
-		
+
 		return this;
 	}
-	
+
 	private Runnable startboard = new Runnable() {
 		@Override
 		public void run() {
 			pNet.WaitForAllPlayers(0);
 			System.gc();
-			
+
 			pNet.ResetTimers();
 			game.pInput.resetMousePos();
 			pNet.ready2send = true;
 			game.changeScreen(GameAdapter.this);
-			
+
 			pEngine.faketimerhandler();
 		}
 	};
@@ -116,38 +126,38 @@ public abstract class GameAdapter extends ScreenAdapter {
 	protected void startboard(Runnable startboard) {
 		startboard.run();
 	}
-	
+
 	@Override
 	public void show() {
 		pMenu.mClose();
 	}
-	
+
 	@Override
 	public void render(float delta) {
 		KeyHandler();
 
 		if (numplayers > 1) {
 			pEngine.faketimerhandler();
-			
+
 			pNet.GetPackets();
-			while (pNet.gPredictTail < pNet.gNetFifoHead[myconnectindex] && !game.gPaused) 
+			while (pNet.gPredictTail < pNet.gNetFifoHead[myconnectindex] && !game.gPaused)
 				pNet.UpdatePrediction(pNet.gFifoInput[pNet.gPredictTail & kFifoMask][myconnectindex]);
 		} else pNet.bufferJitter = 0;
-		
+
 		PreFrame(pNet);
-		
+
 		int i;
 		while (pNet.gNetFifoHead[myconnectindex] - pNet.gNetFifoTail > pNet.bufferJitter && !game.gExit) {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
 				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
 			if (i >= 0) break;
-			
+
 			pEngine.faketimerhandler(); //game timer sync
 			ProcessFrame(pNet);
 		}
-		
+
 		pNet.CheckSync();
-		
+
 		float smoothratio = 65536;
 		if (!game.gPaused && (game.nNetMode != NetMode.Single || !pMenu.gShowMenu && !Console.IsShown())) {
 			smoothratio = pEngine.getsmoothratio();
@@ -164,13 +174,13 @@ public abstract class GameAdapter extends ScreenAdapter {
 			gScreenCapture.run();
 			gScreenCapture = null;
 		}
-		
+
 		DrawHud(smoothratio);
 		game.pInt.restoreinterpolations();
-		
+
 		if(pMenu.gShowMenu)
 			pMenu.mDrawMenu();
-		
+
 		PostFrame(pNet);
 
 		if (pCfg.gShowFPS)
@@ -179,7 +189,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		pEngine.sampletimer();
 		pEngine.nextpage();
 	}
-	
+
 	public void capture(final int width, final int height) {
 		gScreenCapture = new Runnable() {
 			@Override
@@ -188,12 +198,12 @@ public abstract class GameAdapter extends ScreenAdapter {
 			}
 		};
 	}
-	
+
 	public boolean isScreenSaving()
 	{
 		return gScreenCapture != null;
 	}
-	
+
 	@Override
 	public void pause () {
 		if (game.nNetMode == NetMode.Single && numplayers < 2) {
@@ -201,7 +211,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 			sndHandlePause(game.gPaused);
 		}
 
-		if (BuildGdx.graphics.getFrameType() == FrameType.GL) 
+		if (BuildGdx.graphics.getFrameType() == FrameType.GL)
 			BuildGdx.graphics.extra(Option.GLDefConfiguration);
 	}
 

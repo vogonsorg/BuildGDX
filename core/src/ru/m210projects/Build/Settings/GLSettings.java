@@ -1,8 +1,9 @@
 package ru.m210projects.Build.Settings;
 
-import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Engine.pow2long;
 import static ru.m210projects.Build.OnSceenDisplay.Console.osd_argv;
+
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -19,9 +20,10 @@ import ru.m210projects.Build.Types.BuildVariable.RespondType;
 
 public class GLSettings extends BuildSettings {
 
-	public static GLFilter[] glfiltermodes = { new GLFilter("None", GL_NEAREST, GL_NEAREST), // 0
-			new GLFilter("Bilinear", GL_LINEAR, GL_LINEAR), // 1
-			new GLFilter("Trilinear", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR) // 2
+	public static GLFilter[] glfiltermodes = {
+			new GLFilter("None", TextureFilter.Nearest, TextureFilter.Nearest), // 0
+			new GLFilter("Bilinear", TextureFilter.Linear, TextureFilter.Linear), // 1
+			new GLFilter("Trilinear", TextureFilter.MipMapLinearLinear, TextureFilter.Linear) // 2
 	};
 
 	public static BuildVariable<GLFilter> textureFilter;

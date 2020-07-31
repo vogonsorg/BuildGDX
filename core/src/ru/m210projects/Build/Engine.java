@@ -9,13 +9,28 @@
 
 package ru.m210projects.Build;
 
-import static java.lang.Math.*;
-import static ru.m210projects.Build.FileHandle.Compat.*;
-import static ru.m210projects.Build.Pragmas.*;
-import static ru.m210projects.Build.Gameutils.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+import static ru.m210projects.Build.Gameutils.BClampAngle;
+import static ru.m210projects.Build.Gameutils.BClipRange;
+import static ru.m210projects.Build.Gameutils.BCosAngle;
+import static ru.m210projects.Build.Gameutils.BSinAngle;
+import static ru.m210projects.Build.Gameutils.isCorruptWall;
+import static ru.m210projects.Build.Gameutils.isValidSector;
+import static ru.m210projects.Build.Gameutils.isValidWall;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
-import static ru.m210projects.Build.Strhandler.*;
-import static ru.m210projects.Build.OnSceenDisplay.Console.*;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
+import static ru.m210projects.Build.Pragmas.divscale;
+import static ru.m210projects.Build.Pragmas.dmulscale;
+import static ru.m210projects.Build.Pragmas.klabs;
+import static ru.m210projects.Build.Pragmas.ksgn;
+import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Pragmas.scale;
+import static ru.m210projects.Build.Strhandler.Bitoa;
+import static ru.m210projects.Build.Strhandler.buildString;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,8 +40,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
+import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.Graphics.DisplayMode;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.PixmapIO;
+
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.FileHandle.DirectoryEntry;
 import ru.m210projects.Build.FileHandle.FileResource;
 import ru.m210projects.Build.FileHandle.Resource;
@@ -42,10 +65,8 @@ import ru.m210projects.Build.Render.Renderer.RenderType;
 import ru.m210projects.Build.Render.Software.Software;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
-import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
-import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.BuildPos;
 import ru.m210projects.Build.Types.Hitscan;
 import ru.m210projects.Build.Types.InvalidVersionException;
@@ -55,15 +76,9 @@ import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.SmallTextFont;
 import ru.m210projects.Build.Types.TextFont;
+import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
-
-import com.badlogic.gdx.Application.ApplicationType;
-import com.badlogic.gdx.Graphics.DisplayMode;
-import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.PixmapIO;
 
 public abstract class Engine {
 
@@ -248,7 +263,7 @@ public abstract class Engine {
 	public static short numsectors, numwalls, numsprites;
 	public static int totalclock;
 	public static short pskyoff[], zeropskyoff[], pskybits;
-	public static Spriteext[] spriteext;
+//	public static Spriteext[] spriteext;
 	public static byte parallaxtype;
 	public static boolean showinvisibility;
 	public static int visibility, parallaxvisibility;
@@ -999,10 +1014,6 @@ public abstract class Engine {
 			public void update(int intensive) {
 			}
 		};
-
-		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID]; // for nextpage
-		for (int i = 0; i < spriteext.length; i++)
-			spriteext[i] = new Spriteext();
 	}
 
 	public Engine() throws Exception { // gdxBuild
