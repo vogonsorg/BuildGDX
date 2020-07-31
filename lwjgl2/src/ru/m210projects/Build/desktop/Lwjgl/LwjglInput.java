@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2011 See AUTHORS file.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,14 +58,14 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildInput;
 
 /** An implementation of the {@link Input} interface hooking a LWJGL panel for input.
- * 
+ *
  * @author mzechner */
 public class LwjglInput implements BuildInput {
-	
+
 	protected BuildFrame frame;
 	protected Cursor emptyCursor;
 	protected Cursor defCursor = Mouse.getNativeCursor();
-	
+
 	static public float keyRepeatInitialTime = 0.4f;
 	static public float keyRepeatTime = 0.1f;
 
@@ -88,12 +88,14 @@ public class LwjglInput implements BuildInput {
 	long lastTime;
 
 	Pool<KeyEvent> usedKeyEvents = new Pool<KeyEvent>(16, 1000) {
+		@Override
 		protected KeyEvent newObject () {
 			return new KeyEvent();
 		}
 	};
 
 	Pool<TouchEvent> usedTouchEvents = new Pool<TouchEvent>(16, 1000) {
+		@Override
 		protected TouchEvent newObject () {
 			return new TouchEvent();
 		}
@@ -103,34 +105,41 @@ public class LwjglInput implements BuildInput {
 		Keyboard.enableRepeatEvents(false);
 		Mouse.setClipMouseCoordinatesToWindow(false);
 	}
-	
+
 	@Override
 	public void init(BuildFrame frame) { this.frame = frame; }
 
+	@Override
 	public float getAccelerometerX () {
 		return 0;
 	}
 
+	@Override
 	public float getAccelerometerY () {
 		return 0;
 	}
 
+	@Override
 	public float getAccelerometerZ () {
 		return 0;
 	}
-	
+
+	@Override
 	public float getGyroscopeX () {
 		return 0;
 	}
 
+	@Override
 	public float getGyroscopeY () {
 		return 0;
 	}
 
+	@Override
 	public float getGyroscopeZ () {
 		return 0;
 	}
 
+	@Override
 	public void getTextInput (final TextInputListener listener, final String title, final String text, final String hint) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -223,10 +232,12 @@ public class LwjglInput implements BuildInput {
 		return 1;
 	}
 
+	@Override
 	public int getX () {
 		return (int)(Mouse.getX() * Display.getPixelScaleFactor());
 	}
 
+	@Override
 	public int getY () {
 		return BuildGdx.graphics.getHeight() - 1 - (int)(Mouse.getY() * Display.getPixelScaleFactor());
 	}
@@ -234,7 +245,7 @@ public class LwjglInput implements BuildInput {
 	public boolean isAccelerometerAvailable () {
 		return false;
 	}
-	
+
 	public boolean isGyroscopeAvailable () {
 		return false;
 	}
@@ -243,7 +254,7 @@ public class LwjglInput implements BuildInput {
 	public boolean isKeyPressed (int key) {
 		if (key == Input.Keys.ANY_KEY)
 			return pressedKeys > 0;
-	
+
 		int code;
 		if((code = getLwjglKeyCode(key)) == 0) return false;
 
@@ -261,11 +272,13 @@ public class LwjglInput implements BuildInput {
 		return justPressedKeys[key];
 	}
 
+	@Override
 	public boolean isTouched () {
 		boolean button = Mouse.isButtonDown(0) || Mouse.isButtonDown(1) || Mouse.isButtonDown(2);
 		return button;
 	}
 
+	@Override
 	public int getX (int pointer) {
 		if (pointer > 0)
 			return 0;
@@ -273,6 +286,7 @@ public class LwjglInput implements BuildInput {
 			return getX();
 	}
 
+	@Override
 	public int getY (int pointer) {
 		if (pointer > 0)
 			return 0;
@@ -280,6 +294,7 @@ public class LwjglInput implements BuildInput {
 			return getY();
 	}
 
+	@Override
 	public boolean isTouched (int pointer) {
 		if (pointer > 0)
 			return false;
@@ -314,13 +329,13 @@ public class LwjglInput implements BuildInput {
 	@Override
 	public boolean isCatchBackKey () {
 		return false;
-	}	
+	}
 
 	@Override
 	public void setCatchMenuKey (boolean catchMenu) {
-		
+
 	}
-	
+
 	@Override
 	public boolean isCatchMenuKey () {
 		return false;
@@ -396,7 +411,7 @@ public class LwjglInput implements BuildInput {
 			touchEvents.clear();
 		}
 	}
-	
+
 	protected int getGdxKeyCode(int eventKey) {
 		switch (eventKey) {
 		case Keyboard.KEY_PAUSE:
@@ -412,7 +427,7 @@ public class LwjglInput implements BuildInput {
 		}
 	}
 
-	protected int getLwjglKeyCode (int gdxKeyCode) { 
+	protected int getLwjglKeyCode (int gdxKeyCode) {
 		switch (gdxKeyCode) {
 		case KEY_PAUSE:
 			return Keyboard.KEY_PAUSE;
@@ -426,7 +441,8 @@ public class LwjglInput implements BuildInput {
 			return com.badlogic.gdx.backends.lwjgl.LwjglInput.getLwjglKeyCode(gdxKeyCode);
 		}
 	}
-	
+
+	@Override
 	public void update () {
 		updateTime();
 		updateMouse();
@@ -514,7 +530,7 @@ public class LwjglInput implements BuildInput {
 			keyJustPressed = false;
 			Arrays.fill(justPressedKeys, false);
 		}
-		
+
 		if (lastKeyCharPressed != 0) {
 			keyRepeatTimer -= deltaTime;
 			if (keyRepeatTimer < 0) {
@@ -576,7 +592,7 @@ public class LwjglInput implements BuildInput {
 					keyEvents.add(event);
 
 					pressedKeys--;
-					if(pressedKeys < 0) 
+					if(pressedKeys < 0)
 						pressedKeys = 0;
 					lastKeyCharPressed = 0;
 				}
@@ -607,7 +623,7 @@ public class LwjglInput implements BuildInput {
 	@Override
 	public boolean isButtonPressed (int button) {
 		if(button >= 5) return false;
-		
+
 		return Mouse.isButtonDown(button);
 	}
 
@@ -703,7 +719,7 @@ public class LwjglInput implements BuildInput {
 
 	@Override
 	public void getRotationMatrix (float[] matrix) {}
-	
+
 	@Override
 	public void processMessages() {
 		Display.processMessages();
@@ -714,12 +730,12 @@ public class LwjglInput implements BuildInput {
 		try {
 			if(emptyCursor == null)
 				emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null);
-			
-			if (emptyCursor != null && Mouse.isInsideWindow() && Display.isActive()) 
+
+			if (emptyCursor != null && Mouse.isInsideWindow() && Display.isActive())
 				Mouse.setNativeCursor(emptyCursor);
 			else Mouse.setNativeCursor(defCursor);
 		} catch (Exception e) {}
-		
+
 		return false;
 	}
 
