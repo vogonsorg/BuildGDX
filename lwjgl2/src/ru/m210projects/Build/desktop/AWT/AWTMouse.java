@@ -132,8 +132,8 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 		touchDown = false;
 		x = canvas.getWidth() / 2;
 		y = canvas.getHeight() / 2;
-		deltaX = 0;
-		deltaY = 0;
+//		deltaX = 0;
+//		deltaY = 0;
 		wheel = 0;
 		justTouched = false;
 		pressedButtons.clear();
@@ -188,8 +188,8 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			}
 
 			if (touchEvents.isEmpty()) {
-				deltaX = 0;
-				deltaY = 0;
+//				deltaX = 0;
+//				deltaY = 0;
 				wheel = 0;
 			}
 
@@ -210,8 +210,8 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			event.timeStamp = System.nanoTime();
 			touchEvents.add(event);
 
-			deltaX = event.x - x;
-			deltaY = event.y - y;
+			deltaX += (event.x - x);
+			deltaY += (event.y - y);
 			x = event.x;
 			y = event.y;
 			checkCatched(e);
@@ -229,8 +229,8 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			event.timeStamp = System.nanoTime();
 			touchEvents.add(event);
 
-			deltaX = event.x - x;
-			deltaY = event.y - y;
+			deltaX += (event.x - x);
+			deltaY += (event.y - y);
 			x = event.x;
 			y = event.y;
 			checkCatched(e);
@@ -302,8 +302,8 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			event.timeStamp = System.nanoTime();
 			touchEvents.add(event);
 
-			deltaX = event.x - x;
-			deltaY = event.y - y;
+			deltaX += (event.x - x);
+			deltaY += (event.y - y);
 			x = event.x;
 			y = event.y;
 			touchDown = true;
@@ -332,8 +332,8 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 			event.timeStamp = System.nanoTime();
 			touchEvents.add(event);
 
-			deltaX = event.x - x;
-			deltaY = event.y - y;
+			deltaX += (event.x - x);
+			deltaY += (event.y - y);
 			x = event.x;
 			y = event.y;
 			pressedButtons.remove(event.button);
@@ -377,12 +377,16 @@ public class AWTMouse implements MouseMotionListener, MouseListener, MouseWheelL
 
 	@Override
 	public int getDeltaX() {
-		return deltaX;
+		int out = deltaX;
+		deltaX = 0;
+		return out;
 	}
 
 	@Override
 	public int getDeltaY() {
-		return deltaY;
+		int out = deltaY;
+		deltaY = 0;
+		return out;
 	}
 
 	@Override

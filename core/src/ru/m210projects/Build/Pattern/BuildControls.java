@@ -33,19 +33,19 @@ import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.BuildConfig.MenuKeys;
 
 public abstract class BuildControls {
-	
+
 	public int oldPosX;
 	public int oldPosY;
 	public boolean[] maxisstatus;
 	public Vector2 mouseMove;
 	public Vector2 stick1;
 	public Vector2 stick2;
-	
+
 	protected BuildControllers gpmanager;
 	protected BuildConfig pCfg;
-	
+
 	public enum JoyStick { Turning, Moving };
-	
+
 	public BuildControls(BuildConfig cfg, BuildControllers gpmanager)
 	{
 		this.pCfg = cfg;
@@ -56,17 +56,17 @@ public abstract class BuildControls {
 		this.stick1 = new Vector2();
 		this.stick2 = new Vector2();
 	}
-	
+
 	public float getScaleX()
 	{
 		return 4.0f;
 	}
-	
+
 	public float getScaleY()
 	{
 		return 1 / 4.0f;
 	}
-	
+
 	public void resetMousePos()
 	{
 		if(BuildGdx.app.isActive())
@@ -74,17 +74,17 @@ public abstract class BuildControls {
 		oldPosX = xdim / 2;
 		oldPosY = ydim / 2;
 	}
-	
+
 	public void ctrlMouseHandler()
 	{
 		mouseMove.set(0, 0);
 		Arrays.fill(maxisstatus, false);
-		
+
 		if (pCfg.useMouse) {
-			
-			int dx = BuildGdx.input.getX() - oldPosX;
-			int dy = BuildGdx.input.getY() - oldPosY;
-			
+
+			int dx = BuildGdx.input.getDeltaX(); //BuildGdx.input.getX() - oldPosX;
+			int dy = BuildGdx.input.getDeltaY(); //BuildGdx.input.getY() - oldPosY;
+
 			if(dx != 0) {
 				if(dx > 0)
 				{
@@ -97,7 +97,7 @@ public abstract class BuildControls {
 					}
 				}
 			}
-			
+
 			if(dy != 0) {
 				if(dy > 0)
 				{
@@ -105,7 +105,7 @@ public abstract class BuildControls {
 						maxisstatus[pCfg.mouseaxis[AXISDOWN]] = true;
 					}
 				} else {
-					if(pCfg.mouseaxis[AXISUP] != -1) {	
+					if(pCfg.mouseaxis[AXISUP] != -1) {
 						maxisstatus[pCfg.mouseaxis[AXISUP]] = true;
 					}
 				}
@@ -121,24 +121,24 @@ public abstract class BuildControls {
 			resetMousePos();
 		}
 	}
-	
+
 	public float ctrlGetMouseMove()
 	{
 		return mouseMove.y * pCfg.gMouseMoveSpeed / 65536f;
 	}
-	
+
 	public float ctrlGetMouseLook(boolean invert)
 	{
-		if(invert) 
+		if(invert)
 			return -mouseMove.y * pCfg.gMouseLookSpeed / 65536f;
 		return mouseMove.y * pCfg.gMouseLookSpeed / 65536f;
 	}
-	
+
 	public float ctrlGetMouseTurn()
 	{
 		return mouseMove.x * pCfg.gMouseTurnSpeed / 65536f;
 	}
-	
+
 	public float ctrlGetMouseStrafe()
 	{
 		return mouseMove.x * pCfg.gMouseStrafeSpeed / 2097152f;
@@ -152,28 +152,28 @@ public abstract class BuildControls {
 			stick2.set(gpmanager.getStickValue(pCfg.gJoyDevice, pCfg.gJoyStrafeAxis, pCfg.gJoyMoveAxis));
         }
 	}
-	
+
 	public Vector2 ctrlGetStick(JoyStick stick) {
-		
+
 		if(stick == JoyStick.Turning)
 			return stick1;
-		
+
 		return stick2;
 	}
 
 	public boolean ctrlPadStatusOnce(KeyType buttonCode)
 	{
-		if(buttonCode instanceof MenuKeys) 
+		if(buttonCode instanceof MenuKeys)
 			return gpmanager.isValidDevice(pCfg.gJoyDevice) && gpmanager.buttonStatusOnce(pCfg.gJoyDevice, pCfg.gJoyMenukeys[((MenuKeys) buttonCode).getJoyNum()]);
-		
+
 		return gpmanager.isValidDevice(pCfg.gJoyDevice) && gpmanager.buttonStatusOnce(pCfg.gJoyDevice, pCfg.gpadkeys[buttonCode.getNum()]);
 	}
-	
+
 	public boolean ctrlPadStatus(KeyType buttonCode)
 	{
-		if(buttonCode instanceof MenuKeys) 
+		if(buttonCode instanceof MenuKeys)
 			return gpmanager.isValidDevice(pCfg.gJoyDevice) && gpmanager.buttonStatus(pCfg.gJoyDevice, pCfg.gJoyMenukeys[((MenuKeys) buttonCode).getJoyNum()]);
-		
+
 		return gpmanager.isValidDevice(pCfg.gJoyDevice) && gpmanager.buttonStatus(pCfg.gJoyDevice, pCfg.gpadkeys[buttonCode.getNum()]);
 	}
 
@@ -185,7 +185,7 @@ public abstract class BuildControls {
 		}
 		return false;
 	}
-	
+
 	public boolean ctrlAxisStatus(int keyId)
 	{
 		if(keyId >= 0 && maxisstatus[keyId])
@@ -193,12 +193,12 @@ public abstract class BuildControls {
 
 		return false;
 	}
-	
+
 	public boolean ctrlKeyStatusOnce(int keyId)
 	{
 		return getInput().keyStatusOnce(keyId);
 	}
-	
+
 	public boolean ctrlKeyStatus(int keyId)
 	{
 		return getInput().keyStatus(keyId);
@@ -208,7 +208,7 @@ public abstract class BuildControls {
 	{
 		return getInput().keyPressed(keyId);
 	}
-	
+
 	public boolean ctrlGetInputKey(KeyType keyName, boolean once) {
 		final KeyInput input = getInput();
 		final int key1 = pCfg.primarykeys[keyName.getNum()];
@@ -229,47 +229,47 @@ public abstract class BuildControls {
 					|| /* keyName > Turn_Right && */ctrlPadStatus(keyName);
 		}
 	}
-	
+
 	public void ctrlResetKeyStatus() {
 		getInput().resetKeyStatus();
 		gpmanager.resetButtonStatus();
 	}
-	
+
 	public void ctrlResetInput() {
 		ctrlResetKeyStatus();
 		Arrays.fill(getInput().hitkey, false);
 	}
-	
+
 	public boolean ctrlMenuMouse()
 	{
 		return pCfg.menuMouse;
 	}
-	
+
 	public BuildControllers ctrlGetGamepadManager()
 	{
 		return gpmanager;
 	}
-	
+
 	public void ctrlSetDeadZone(float value)
 	{
 		gpmanager.setDeadZone(value);
 	}
-	
+
 	public boolean ctrlIsValidDevice(int deviceIndex)
 	{
 		return gpmanager.isValidDevice(deviceIndex) && gpmanager.getControllers() > 0;
 	}
-	
+
 	public int ctrlGetControllers()
 	{
 		return gpmanager.getControllers();
 	}
-	
+
 	public String ctrlGetControllerName(int num)
 	{
 		return gpmanager.getControllerName(num);
 	}
-	
+
 	public abstract void ctrlGetInput(NetInput input);
 
 }

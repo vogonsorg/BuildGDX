@@ -19,19 +19,19 @@ package ru.m210projects.Build.Architecture;
 import com.badlogic.gdx.Input;
 
 public interface BuildInput extends Input {
-	
+
 	public void init(BuildFrame frame);
-	
+
 	public void dispose();
-	
+
 	void update();
-	
+
 	void processEvents();
-	
+
 	public void processMessages();
-	
+
 	public boolean cursorHandler();
-	
-	public int getDWheel(); 
+
+	public int getDWheel();
 
 }

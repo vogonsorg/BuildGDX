@@ -512,13 +512,13 @@ public class LwjglInput implements BuildInput {
 				touchEvents.add(event);
 				mouseX = event.x;
 				mouseY = event.y;
-				deltaX = (int)(Mouse.getEventDX() * Display.getPixelScaleFactor());
-				deltaY = (int)(Mouse.getEventDY() * Display.getPixelScaleFactor());
+				deltaX += (int)(Mouse.getEventDX() * Display.getPixelScaleFactor());
+				deltaY += (int)(Mouse.getEventDY() * Display.getPixelScaleFactor());
 			}
 
 			if (events == 0) {
-				deltaX = 0;
-				deltaY = 0;
+//				deltaX = 0;
+//				deltaY = 0;
 			} else {
 				BuildGdx.graphics.requestRendering();
 			}
@@ -683,7 +683,9 @@ public class LwjglInput implements BuildInput {
 
 	@Override
 	public int getDeltaX() {
-		return deltaX;
+		int out = deltaX;
+		deltaX = 0;
+		return out;
 	}
 
 	@Override
@@ -696,7 +698,9 @@ public class LwjglInput implements BuildInput {
 
 	@Override
 	public int getDeltaY() {
-		return -deltaY;
+		int out = -deltaY;
+		deltaY = 0;
+		return out;
 	}
 
 	@Override
