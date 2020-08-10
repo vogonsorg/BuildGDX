@@ -2277,6 +2277,7 @@ public abstract class Engine {
 	}
 
 	public void nextpage() { // gdxBuild
+		faketimerhandler();
 		Console.draw();
 		render.nextpage();
 		BuildGdx.audio.update();

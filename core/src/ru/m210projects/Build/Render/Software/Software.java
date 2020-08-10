@@ -3550,8 +3550,6 @@ public abstract class Software implements Renderer {
 	public void nextpage() {
 		byte[] frameplace = a.getframeplace();
 		System.arraycopy(frameplace, 0, BuildGdx.graphics.extra(Option.SWGetFrame), 0, frameplace.length); // Math.min(frameplace.length,
-																											// dst.length)
-		engine.faketimerhandler();
 	}
 
 	@Override

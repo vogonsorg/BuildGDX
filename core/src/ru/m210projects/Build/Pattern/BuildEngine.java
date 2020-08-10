@@ -13,11 +13,11 @@ import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.ScreenAdapters.LoadingAdapter;
 
 public abstract class BuildEngine extends Engine {
-	
+
 	protected int ticks;
 	protected long timerskipticks;
 	protected float frametime;
-	
+
 	private BuildGame game;
 
 	public BuildEngine(BuildGame game, int ticks) throws Exception {
@@ -25,55 +25,50 @@ public abstract class BuildEngine extends Engine {
 		this.game = game;
 		this.ticks = ticks;
 	}
-	
+
+	@Override
 	public void inittimer(int tickspersecond) {
 		super.inittimer(tickspersecond);
-		
+
 		timerskipticks = (timerfreq / timerticspersec) * ticks;
 		updatesmoothticks();
 	}
-	
+
 	public int getsmoothratio()
 	{
 //		return ((totalclock - game.pNet.ototalclock + ticks) << 16) / ticks;
 //		return (int) (((System.nanoTime() - timernexttick) * 65536.0f) / (timerskipticks * 1000000.0f));
 		return (int) ((frametime += BuildGdx.graphics.getDeltaTime() * 1000.0f * 65536.0f) / timerskipticks);
 	}
-	
+
 	@Override
 	public void faketimerhandler() {
 		BuildNet net = game.pNet;
 		if(net == null) return; //not initialized yet
 
 		Screen current = game.getScreen();
-		if (!(current instanceof GameAdapter) && !(current instanceof LoadingAdapter) 
-				&& !(current instanceof InitScreen) ) 
+		if (!(current instanceof GameAdapter) && !(current instanceof LoadingAdapter)
+				&& !(current instanceof InitScreen) )
 			handleevents();
-		
+
 //		if (totalclock < net.ototalclock + ticks || !net.ready2send)
 //			return;
-//		
+//
 //		net.ototalclock = totalclock;
-		
+
 		if (totalclock < net.ototalclock || !net.ready2send)
 			return;
-		
+
 		net.ototalclock += ticks;
 		updatesmoothticks();
 		handleevents();
 		GetInput(net);
 	}
-	
+
 	public void updatesmoothticks()
 	{
 		game.pInt.requestUpdating();
 		frametime = 0.0f;
-	}
-	
-	public void nextpage()
-	{
-		super.nextpage();
-		game.pInt.clearinterpolations();
 	}
 
 	@Override
@@ -106,7 +101,7 @@ public abstract class BuildEngine extends Engine {
 						wall[tempshort].y = day;
 					}
 					else break;
-					
+
 					cnt--;
 				}
 				while ((tempshort != pointhighlight) && (cnt > 0));
@@ -116,13 +111,13 @@ public abstract class BuildEngine extends Engine {
 		}
 		while ((tempshort != pointhighlight) && (cnt > 0));
 	}
-	
+
 	@Override
 	public void handleevents() {
 		super.handleevents();
 		game.pInput.gpmanager.handler();
 	}
-	
+
 	protected void GetInput(BuildNet net) {
 		if (numplayers > 1)
 			net.GetPackets();
@@ -144,10 +139,10 @@ public abstract class BuildEngine extends Engine {
 			net.gNetFifoHead[myconnectindex]++;
 			return;
 		}
-		
+
 		net.gFifoInput[net.gNetFifoHead[myconnectindex] & 0xFF][myconnectindex].Copy(net.gInput);
 		net.gNetFifoHead[myconnectindex]++;
-		
+
 		if ( game.nNetMode == NetMode.Multiplayer && numplayers < 2) {
 			for (int i = connecthead; i >= 0; i = connectpoint2[i]) {
 				if (i != myconnectindex) {
@@ -157,7 +152,7 @@ public abstract class BuildEngine extends Engine {
 			}
 			return;
 		}
-		
+
 		net.GetNetworkInput();
 	}
 }

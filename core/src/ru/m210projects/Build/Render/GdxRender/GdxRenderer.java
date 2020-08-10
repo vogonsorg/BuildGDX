@@ -124,7 +124,6 @@ public class GdxRenderer implements GLRenderer {
 	@Override
 	public void nextpage() {
 		orphoRen.nextpage();
-		engine.faketimerhandler();
 	}
 
 	@Override

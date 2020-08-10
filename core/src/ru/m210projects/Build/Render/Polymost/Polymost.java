@@ -348,7 +348,7 @@ public abstract class Polymost implements GLRenderer {
 	}
 
 	@Override
-	public void changepalette(byte[] palette) {
+	public void changepalette(final byte[] palette) {
 		if (textureCache.getShader() != null)
 			textureCache.getShader().changePalette(palette);
 	}
@@ -3471,8 +3471,6 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public void nextpage() {
-		engine.faketimerhandler();
-
 		omdtims = mdtims;
 		mdtims = engine.getticks();
 

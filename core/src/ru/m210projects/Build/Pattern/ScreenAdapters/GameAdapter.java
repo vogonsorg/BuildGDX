@@ -46,6 +46,8 @@ public abstract class GameAdapter extends ScreenAdapter {
 	protected LoadingAdapter load;
 	public byte[] captBuffer;
 
+//	protected static Thread gameThread;
+
 	public GameAdapter(final BuildGame game, LoadingAdapter load)
 	{
 		this.game = game;
@@ -54,6 +56,31 @@ public abstract class GameAdapter extends ScreenAdapter {
 		this.pEngine = game.pEngine;
 		this.pCfg = game.pCfg;
 		this.load = load;
+
+//		if(gameThread == null) {
+//		gameThread = new Thread(new Runnable() {
+//			@Override
+//			public void run() {
+//				while(!game.gExit) {
+//					if(!pNet.ready2send) continue;
+//
+//					int i;
+//					while (pNet.gNetFifoHead[myconnectindex] - pNet.gNetFifoTail > pNet.bufferJitter && !game.gExit) {
+//						for (i = connecthead; i >= 0; i = connectpoint2[i])
+//							if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
+//						if (i >= 0) break;
+//
+//						synchronized(GameAdapter.this) {
+//							pEngine.faketimerhandler(); //game timer sync
+//							ProcessFrame(pNet);
+//						}
+//					}
+//				}
+//			}
+//		});
+//		gameThread.setName("BuildGDX Game Thread");
+//		gameThread.start();
+//		}
 	}
 
 	public void PreFrame(BuildNet net) { /* nothing */ }
@@ -133,7 +160,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 	}
 
 	@Override
-	public void render(float delta) {
+	public synchronized void render(float delta) {
 		KeyHandler();
 
 		if (numplayers > 1) {
@@ -152,8 +179,10 @@ public abstract class GameAdapter extends ScreenAdapter {
 				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
 			if (i >= 0) break;
 
-			pEngine.faketimerhandler(); //game timer sync
-			ProcessFrame(pNet);
+			synchronized(GameAdapter.this) {
+				pEngine.faketimerhandler(); //game timer sync
+				ProcessFrame(pNet);
+			}
 		}
 
 		pNet.CheckSync();
@@ -188,6 +217,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 
 		pEngine.sampletimer();
 		pEngine.nextpage();
+		game.pInt.clearinterpolations();
 	}
 
 	public void capture(final int width, final int height) {
