@@ -467,7 +467,7 @@ public class DefScript {
 				return BaseToken.Error;
 
 			Object tk;
-			String file = null, mhk = null;
+			String file = null, mhk = null, md4 = null;
 			while (script.textptr < end) {
 				tk = gettoken(script, maptokens);
 				if(checkErrorToken(script, tk))
@@ -483,13 +483,12 @@ public class DefScript {
 					mhk = getFile(script);
 					break;
 				case MD4:
-					script.gettoken();
-					/* nothing do with it */
+					md4 = script.getstring();
 					break;
 				}
 			}
 
-			if(mapInfo.addMapInfo(file, mhk))
+			if(mapInfo.addMapInfo(file, mhk, md4))
 				return BaseToken.Ok;
 
 			return BaseToken.Error;

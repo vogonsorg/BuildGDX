@@ -4,9 +4,9 @@ import static ru.m210projects.Build.Strhandler.*;
 
 import java.util.HashMap;
 
-import ru.m210projects.Build.CRC32;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.Types.Spriteext;
+import ru.m210projects.Build.Types.MD4;
 
 public class MapHackInfo {
 
@@ -21,20 +21,24 @@ public class MapHackInfo {
 		hacklist = new HashMap<String, String>(src.hacklist);
 	}
 
-	public boolean addMapInfo(String map, String mhkscript) {
-		hacklist.put(toLowerCase(map), toLowerCase(mhkscript));
-		return true;
+	public boolean addMapInfo(String map, String mhkscript, String md4) {
+		byte[] bytes = BuildGdx.cache.getBytes(map, 0);
+		if(bytes != null && mhkscript != null) {
+			if(md4 == null || MD4.getChecksum(bytes).equals(md4.toUpperCase())) {
+				hacklist.put(toLowerCase(map), toLowerCase(mhkscript));
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean load(String mapname) {
 		unload();
-		if(hasMaphack(mapname)) {
-			byte[] bytes = BuildGdx.cache.getBytes(mapname, 0);
-			if(bytes != null) {
-				long crc32 = CRC32.getChecksum(bytes);
-				if(load(mapname, crc32))
-					return true;
-			}
+
+		String mhk = hacklist.get(toLowerCase(mapname));
+		if(mhk != null) {
+			this.maphack = new Maphack(mhk);
+			return true;
 		}
 
 		return false;
@@ -42,19 +46,6 @@ public class MapHackInfo {
 
 	public boolean isLoaded() {
 		return maphack != null;
-	}
-
-	protected boolean load(String mapname, long crc32) {
-		String mhk = hacklist.get(toLowerCase(mapname));
-		if(mhk != null) {
-			Maphack maphack = new Maphack(mhk);
-			if(maphack.getMapCRC() == crc32) {
-				this.maphack = maphack;
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	public void load(Maphack info) {

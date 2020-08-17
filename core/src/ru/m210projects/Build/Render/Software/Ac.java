@@ -28,7 +28,7 @@ public class Ac implements A {
 
 	public Ac(int xdim, int ydim, int[] reciptable) {
 		this.reciptable = reciptable;
-		
+
 		this.frameplace = new byte[xdim * ydim];
 	}
 
@@ -82,14 +82,14 @@ public class Ac implements A {
 		byte[] remap = ghlinepal;
 		int shiftx = 32 - glogx;
 		int shifty = 32 - glogy;
-		
+
 		int xinc = gbxinc; //it affects on fps
 		int yinc = gbyinc;
 
 		try {
 			for (; cnt >= 0; cnt--) {
 				int index = ((bx >>> shiftx) << glogy) + (by >>> shifty);
-				
+
 				drawpixel(p, remap[(gbuf[index] & 0xFF) + paloffs]); //XXX
 				bx -= xinc;
 				by -= yinc;
@@ -112,13 +112,13 @@ public class Ac implements A {
 	@Override
 	public void slopevlin(int p, byte[] pal, int slopaloffs, int cnt, int bx, int by, int x3, int y3, int[] slopalookup,
 			int bz) {
-		
+
 		int u, v, i, index;
 		byte[] remap = pal;
 		int shiftx = 32 - glogx;
 		int shifty = 32 - glogy;
 		int inc = gpinc; //it affects on fps
-		
+
 		try {
 			for (; cnt > 0; cnt--) {
 				i = krecipasm(bz >> 6);
@@ -175,13 +175,13 @@ public class Ac implements A {
 	public void mvlineasm1(int vinc, byte[] pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
 		byte[] remap = pal;
 		int pl = bpl; //it affects on fps
-		
+
 		try {
 			for (; cnt >= 0; cnt--) {
 				int index = bufoffs + (vplc >>> glogy);
 				if(index >= bufplc.length)
 					return;
-				
+
 				int ch = bufplc[index] & 0xFF;
 				if (ch != 255)
 					drawpixel(p, remap[ch + shade]);
@@ -201,7 +201,7 @@ public class Ac implements A {
 	public void tvlineasm1(int vinc, byte[] pal, int shade, int cnt, int vplc, byte[] bufplc, int bufoffs, int p) {
 		byte[] remap = pal;
 		int pl = bpl; //it affects on fps
-		
+
 		try {
 			if (transmode != 0) {
 				for (; cnt >= 0; cnt--) {
@@ -255,11 +255,11 @@ public class Ac implements A {
 		byte[] remap = hlinepal;
 		int shiftx = 32 - glogx;
 		int shifty = 32 - glogy;
-		
+
 		int xinc = asm1; //it affects on fps
 		int yinc = asm2;
 		int shade = hlineshade;
-		
+
 		try {
 			for (cntup16 >>= 16; cntup16 > 0; cntup16--) {
 				int index = ((bx >>> shiftx) << glogy) + (by >>> shifty);
@@ -287,11 +287,11 @@ public class Ac implements A {
 		byte[] remap = hlinepal;
 		int shiftx = 32 - glogx;
 		int shifty = 32 - glogy;
-		
+
 		int xinc = asm1; //it affects on fps
 		int yinc = asm2;
 		int shade = hlineshade;
-		
+
 		try {
 			if (transmode != 0) {
 				for (cntup16 >>= 16; cntup16 > 0; cntup16--) {
@@ -339,7 +339,7 @@ public class Ac implements A {
 		int yinc = gbyinc;
 		int pl = bpl;
 		int shade = gshade;
-		
+
 		try {
 			for (; cnt > 1; cnt--) {
 				int index = bufoffs + (bx >> 16) * glogy + (by >> 16);
@@ -385,7 +385,7 @@ public class Ac implements A {
 			}
 		} catch (Throwable e) {
 		}
-		
+
 	}
 
 	@Override
@@ -450,7 +450,7 @@ public class Ac implements A {
 		byte[] remap = gpal;
 		int pl = bpl;
 		int shade = gshade;
-		
+
 		switch (transmode) {
 		case 0:
 			while (dy > 0) {
@@ -488,7 +488,9 @@ public class Ac implements A {
 
 	@Override
 	public void drawpixel(int ptr, byte col) {
-		frameplace[ptr] = col;
+		try { //still has crashes
+			frameplace[ptr] = col;
+		} catch(Exception e) {}
 	}
 
 	@Override
