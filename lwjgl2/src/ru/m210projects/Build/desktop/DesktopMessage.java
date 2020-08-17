@@ -21,8 +21,6 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
-import com.badlogic.gdx.Graphics.DisplayMode;
-
 import ru.m210projects.Build.Architecture.BuildFrame;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildMessage;
@@ -31,34 +29,34 @@ public class DesktopMessage implements BuildMessage {
 	private JOptionPane panel;
 	private BuildFrame frame;
 	private boolean update;
-	
+
 	public DesktopMessage(boolean update)
 	{
 		this.update = update;
 	}
-	
+
 	@Override
 	public void setFrame(BuildFrame frame) {
 		this.frame = frame;
 	}
-	
+
 	@Override
-	public synchronized boolean show(String header, String message, MessageType type) {
+	public boolean show(String header, String message, MessageType type) {
 		if(panel == null && (panel = InitPanel()) == null)
 			return false;
-		
+
 		if(message.length() >= 384)
 		{
 			message = message.substring(0, 384);
 			message += "...";
 		}
 
-		DisplayMode fullscreen = null;
-		if(BuildGdx.graphics != null && BuildGdx.graphics.isFullscreen()) {
-			fullscreen = BuildGdx.graphics.getDisplayMode();
-			BuildGdx.graphics.setWindowedMode(BuildGdx.graphics.getWidth(), BuildGdx.graphics.getHeight());
-		}
-		
+//		DisplayMode fullscreen = null;
+//		if(BuildGdx.graphics != null && BuildGdx.graphics.isFullscreen()) {
+//			fullscreen = BuildGdx.graphics.getDisplayMode();
+//			BuildGdx.graphics.setWindowedMode(BuildGdx.graphics.getWidth(), BuildGdx.graphics.getHeight());
+//		}
+
 		if(update)
 		{
 			message = "You are using the old version of BuildGdx and have to update it! \r\n \r\n \r\n" + message;
@@ -75,9 +73,9 @@ public class DesktopMessage implements BuildMessage {
 				ShowPanel(JOptionPane.INFORMATION_MESSAGE, JOptionPane.YES_NO_OPTION, header, message);
 			}
 
-	        if(fullscreen != null)
-	        	BuildGdx.graphics.setFullscreenMode(fullscreen);
-	        
+//	        if(fullscreen != null)
+//	        	BuildGdx.graphics.setFullscreenMode(fullscreen);
+
 	        Object selectedValue = panel.getValue();
 	        if (selectedValue instanceof Integer) {
 	        	if(((Integer)selectedValue).intValue() == JOptionPane.YES_OPTION)
@@ -87,33 +85,33 @@ public class DesktopMessage implements BuildMessage {
 			return false;
 		case Info:
 			ShowPanel(JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, header, message);
-			if(fullscreen != null)
-	        	BuildGdx.graphics.setFullscreenMode(fullscreen);
-			
+//			if(fullscreen != null)
+//	        	BuildGdx.graphics.setFullscreenMode(fullscreen);
+
 			return false;
 		}
-		
+
 		return false;
 	}
-	
+
 	protected JDialog ShowPanel(int messageType, int optionType, String header, String message)
 	{
 		panel.setMessageType(messageType);
 		panel.setMessage(message);
-		panel.setOptionType(optionType);		
+		panel.setOptionType(optionType);
 		final JDialog dialog = panel.createDialog(header);
 		if(frame.icon != null)
 			dialog.setIconImage(Toolkit.getDefaultToolkit().getImage(frame.icon));
 		panel.setBackground(dialog.getBackground());
-		dialog.setLocation(frame.getX() + (BuildGdx.graphics.getWidth() - dialog.getWidth()) / 2, 
+		dialog.setLocation(frame.getX() + (BuildGdx.graphics.getWidth() - dialog.getWidth()) / 2,
 				frame.getY() + (BuildGdx.graphics.getHeight() - dialog.getHeight()) / 2);
 		dialog.setAlwaysOnTop(true);
 		dialog.setVisible(true);
 		dialog.dispose();
-		
+
 		return dialog;
 	}
-	
+
 	protected JOptionPane InitPanel()
 	{
 		JOptionPane frame = null;

@@ -48,7 +48,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics;
 
 public class LwjglGraphics extends BuildGraphics {
-	
+
 	/** The suppored OpenGL extensions */
 	private static Array<String> extensions;
 	private static GLVersion glVersion;
@@ -56,7 +56,7 @@ public class LwjglGraphics extends BuildGraphics {
 	private BufferFormat bufferFormat = new BufferFormat(8, 8, 8, 8, 16, 8, 0, false);
 	private boolean usingGL30;
 	private int rate;
-	
+
 	public LwjglGraphics(BuildConfiguration config)
 	{
 		LwjglNativesLoader.load();
@@ -96,7 +96,7 @@ public class LwjglGraphics extends BuildGraphics {
 					}
 				}
 			}
-			
+
 			if(bestMode == null) {
 				bestMode = this.getDesktopDisplayMode();
 			}
@@ -123,26 +123,26 @@ public class LwjglGraphics extends BuildGraphics {
 			}
 			Display.setIcon(icons);
 		}
-		
+
 		Display.setTitle(config.title);
 		Display.setResizable(config.resizable);
 		Display.setInitialBackground(0, 0, 0);
 		Display.setLocation(config.x, config.y);
 		setUndecorated(config.borderless);
-		
+
 		int gles30ContextMajorVersion = 3;
 		int gles30ContextMinorVersion = 2;
-		
+
 		createDisplayPixelFormat(config.useGL30, gles30ContextMajorVersion, gles30ContextMinorVersion);
 		initiateGL();
 	}
-	
+
 	private void initiateGL() throws Exception {
 		extractVersion();
 		extractExtensions();
-		
+
 		gl10 = new LwjglGL10();
-		if (usingGL30) { 
+		if (usingGL30) {
 			Class<?> GL30 = Class.forName("com.badlogic.gdx.backends.lwjgl.LwjglGL30");
 			Constructor<?> LwjglGL30 = GL30.getDeclaredConstructor();
 			LwjglGL30.setAccessible(true);
@@ -308,7 +308,7 @@ public class LwjglGraphics extends BuildGraphics {
 	public boolean supportsDisplayModeChange() {
 		return true;
 	}
-	
+
 	private class LwjglMonitor extends Monitor {
 		protected LwjglMonitor (int virtualX, int virtualY, String name) {
 			super(virtualX, virtualY, name);
@@ -360,7 +360,8 @@ public class LwjglGraphics extends BuildGraphics {
 		org.lwjgl.opengl.DisplayMode mode = Display.getDisplayMode();
 		return new LwjglDisplayMode(mode.getWidth(), mode.getHeight(), mode.getFrequency(), mode.getBitsPerPixel(), mode);
 	}
-	
+
+	@Override
 	public DisplayMode getDesktopDisplayMode() {
 		org.lwjgl.opengl.DisplayMode mode = Display.getDesktopDisplayMode();
 		return new LwjglDisplayMode(mode.getWidth(), mode.getHeight(), mode.getFrequency(), mode.getBitsPerPixel(), mode);
@@ -370,7 +371,7 @@ public class LwjglGraphics extends BuildGraphics {
 	public DisplayMode getDisplayMode(Monitor monitor) {
 		return getDisplayMode();
 	}
-	
+
 	private class LwjglDisplayMode extends DisplayMode {
 		org.lwjgl.opengl.DisplayMode mode;
 
@@ -394,7 +395,7 @@ public class LwjglGraphics extends BuildGraphics {
 			config.height = (int)(mode.getHeight() * scaleFactor);
 			if (BuildGdx.gl != null) BuildGdx.gl.glViewport(0, 0, config.width, config.height);
 			resize = true;
-			
+
 			rate = mode.getFrequency();
 			return true;
 		} catch (LWJGLException e) {
@@ -426,7 +427,7 @@ public class LwjglGraphics extends BuildGraphics {
 			config.height = (int)(targetDisplayMode.getHeight() * scaleFactor);
 			if (BuildGdx.gl != null) BuildGdx.gl.glViewport(0, 0, config.width, config.height);
 			resize = true;
-			
+
 			rate = Display.getDesktopDisplayMode().getFrequency();
 			return true;
 		} catch (LWJGLException e) {
@@ -436,7 +437,7 @@ public class LwjglGraphics extends BuildGraphics {
 
 	@Override
 	public void setTitle(String title) {
-		if (title == null) 
+		if (title == null)
 			title = "";
 		Display.setTitle(title);
 	}
@@ -477,10 +478,10 @@ public class LwjglGraphics extends BuildGraphics {
 	public Cursor newCursor (Pixmap pixmap, int xHotspot, int yHotspot) {
 		return new LwjglCursor(pixmap, xHotspot, yHotspot);
 	}
-	
+
 	@Override
 	public void setCursor(Cursor cursor) {
-		if (SharedLibraryLoader.isMac) 
+		if (SharedLibraryLoader.isMac)
 			return;
 
 		try {
@@ -492,56 +493,56 @@ public class LwjglGraphics extends BuildGraphics {
 
 	@Override
 	public void setSystemCursor(SystemCursor systemCursor) {
-		if (SharedLibraryLoader.isMac) 
+		if (SharedLibraryLoader.isMac)
 			return;
-		
+
 		try {
 			Mouse.setNativeCursor(null);
 		} catch (LWJGLException e) {
 			throw new GdxRuntimeException("Couldn't set system cursor");
 		}
 	}
-	
+
 	@Override
 	public GraphicsType getType() {
 		return GraphicsType.LWJGL;
 	}
-	
+
 	@Override
 	public Object extra(Option opt, Object... obj) {
 		switch(opt)
 		{
 		case GLSetConfiguration:
-			if(obj.length < 3) 
+			if(obj.length < 3)
 				return false;
 			float gamma = (Float) obj[0];
 			float brightness = (Float) obj[1];
 			float contrast = (Float) obj[2];
-			
+
 			return setDisplayConfiguration(gamma, brightness, contrast);
 		case GLDefConfiguration:
 			return setDisplayConfiguration(1.0f, 0.0f, 1.0f);
 		default:
-			throw new UnsupportedOperationException("not implemented"); 
+			throw new UnsupportedOperationException("not implemented");
 		}
 	}
-	
+
 	private boolean setDisplayConfiguration(float gamma, float brightness, float contrast) {
 		if( !Display.isCreated() || !Mouse.isCreated() || !Keyboard.isCreated()) return false;
 		try {
 			Display.setDisplayConfiguration(gamma, brightness, contrast);
 		} catch (Exception e) { e.printStackTrace(); return false; }
-		
+
 		return true;
 	}
-	
+
 	private class LwjglCursor implements Cursor {
 		org.lwjgl.input.Cursor lwjglCursor = null;
 
 		public LwjglCursor (Pixmap pixmap, int xHotspot, int yHotspot) {
-			if (SharedLibraryLoader.isMac) 
+			if (SharedLibraryLoader.isMac)
 				return;
-			
+
 			try {
 				if (pixmap == null) {
 					lwjglCursor = null;
