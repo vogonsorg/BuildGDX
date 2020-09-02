@@ -31,15 +31,15 @@ public class WALL {
 	public short lotag, hitag, extra; //6
 
 	public WALL() {}
-	
+
 	public WALL(byte[] data) {
     	buildWall(new DataResource(data));
 	}
-	
+
 	public WALL(Resource data) {
     	buildWall(data);
 	}
-	
+
 	public void buildWall(Resource bb)
 	{
 		x = bb.readInt();
@@ -65,7 +65,7 @@ public class WALL {
     	hitag = bb.readShort();
     	extra = bb.readShort();
 	}
-	
+
 	public void set(WALL src) {
 		x = src.x;
     	y = src.y;
@@ -85,11 +85,11 @@ public class WALL {
     	hitag = src.hitag;
     	extra = src.extra;
 	}
-	
+
 	public byte[] getBytes()
 	{
 		buffer.clear();
-		
+
 		buffer.putInt(this.x);
     	buffer.putInt(this.y);
     	buffer.putShort(this.point2);
@@ -107,10 +107,44 @@ public class WALL {
     	buffer.putShort(this.lotag);
     	buffer.putShort(this.hitag);
     	buffer.putShort(this.extra);
-		
+
     	return buffer.array();
 	}
 
+	public boolean isSwapped() {
+		return (cstat & 2) != 0;
+	}
+
+
+	public boolean isBottomAligned() {
+		return (cstat & 4) != 0;
+	}
+
+	public boolean isXFlip() {
+		return (cstat & 8) != 0;
+	}
+
+	public boolean isYFlip() {
+		return (cstat & 256) != 0;
+	}
+
+	public boolean isMasked() {
+		return (cstat & 16) != 0;
+	}
+
+	public boolean isOneWay() {
+		return (cstat & 32) != 0;
+	}
+
+	public boolean isTransparent() {
+		return (cstat & 128) != 0;
+	}
+
+	public boolean isTransparent2() {
+		return (cstat & 512) != 0;
+	}
+
+	@Override
 	public String toString()
 	{
 		String out = "x " + x + " \r\n";

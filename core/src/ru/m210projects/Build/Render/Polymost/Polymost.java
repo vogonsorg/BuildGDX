@@ -1255,40 +1255,41 @@ public abstract class Polymost implements GLRenderer {
 					if (engine.getTile(globalpicnum).getType() != AnimType.None)
 						globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 
-					if ((wal.cstat & 4) == 0)
+					if (!wal.isBottomAligned())
 						i = sector[nextsectnum].ceilingz;
 					else
 						i = sec.ceilingz;
 
 					// over
-					calc_ypanning(i, ryp0, ryp1, x0, x1, wal.ypanning, wal.yrepeat, (wal.cstat & 4) != 0);
+					calc_ypanning(i, ryp0, ryp1, x0, x1, wal.ypanning, wal.yrepeat, wal.isBottomAligned());
 
-					if ((wal.cstat & 8) != 0) // xflip
+					if (wal.isXFlip())
 					{
 						t = fwalxrepeat * 8 + wal.xpanning * 2;
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
 						guo = gdo * t - guo;
 					}
-					if ((wal.cstat & 256) != 0) {
+
+					if (wal.isYFlip()) {
 						gvx = -gvx;
 						gvy = -gvy;
 						gvo = -gvo;
-					} // yflip
+					}
 
 					int shade = wal.shade;
 					calc_and_apply_fog(shade, sec.visibility, sec.floorpal);
 
 					pow2xsplit = 1;
 					clipper.domost(x1, ocy1, x0, ocy0);
-					if ((wal.cstat & 8) != 0) {
+					if (wal.isXFlip()) {
 						gux = ogux;
 						guy = oguy;
 						guo = oguo;
 					}
 				}
 				if (((ofy0 < fy0) || (ofy1 < fy1)) && (((sec.floorstat & sector[nextsectnum].floorstat) & 1)) == 0) {
-					if ((wal.cstat & 2) == 0) {
+					if (!wal.isSwapped()) {
 						drawalls_nwal.set(wal);
 					} else {
 						drawalls_nwal.set(wall[wal.nextwall]);
@@ -1302,23 +1303,23 @@ public abstract class Polymost implements GLRenderer {
 					if (engine.getTile(globalpicnum).getType() != AnimType.None)
 						globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 
-					if ((drawalls_nwal.cstat & 4) == 0)
+					if (!drawalls_nwal.isBottomAligned())
 						i = sector[nextsectnum].floorz;
 					else
 						i = sec.ceilingz;
 
 					// under
 					calc_ypanning(i, ryp0, ryp1, x0, x1, drawalls_nwal.ypanning, wal.yrepeat,
-							(drawalls_nwal.cstat & 4) == 0);
+							!drawalls_nwal.isBottomAligned());
 
-					if ((wal.cstat & 8) != 0) // xflip
+					if (wal.isXFlip())
 					{
 						t = (fwalxrepeat * 8 + drawalls_nwal.xpanning * 2);
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
 						guo = gdo * t - guo;
 					}
-					if ((drawalls_nwal.cstat & 256) != 0) {
+					if (drawalls_nwal.isYFlip()) {
 						gvx = -gvx;
 						gvy = -gvy;
 						gvo = -gvo;
@@ -1337,10 +1338,10 @@ public abstract class Polymost implements GLRenderer {
 				}
 			}
 
-			if ((nextsectnum < 0) || (wal.cstat & 32) != 0) // White/1-way wall
+			if ((nextsectnum < 0) || wal.isOneWay()) // White/1-way wall
 			{
 				do {
-					boolean maskingOneWay = (nextsectnum >= 0 && (wal.cstat & 32) != 0);
+					boolean maskingOneWay = (nextsectnum >= 0 && wal.isOneWay());
 					if (maskingOneWay) {
 						if (getclosestpointonwall(globalposx, globalposy, wallnum, projPoint) == 0
 								&& klabs(globalposx - (int) projPoint.x) + klabs(globalposy - (int) projPoint.y) <= 128)
@@ -1353,7 +1354,7 @@ public abstract class Polymost implements GLRenderer {
 					if (engine.getTile(globalpicnum).getType() != AnimType.None)
 						globalpicnum += engine.animateoffs(globalpicnum, wallnum + 16384);
 
-					boolean nwcs4 = (wal.cstat & 4) == 0;
+					boolean nwcs4 = !wal.isBottomAligned();
 
 					if (nextsectnum >= 0) {
 						i = nwcs4 ? nextsec.ceilingz : sec.ceilingz;
@@ -1364,14 +1365,14 @@ public abstract class Polymost implements GLRenderer {
 					// white
 					calc_ypanning(i, ryp0, ryp1, x0, x1, wal.ypanning, wal.yrepeat, nwcs4 && !maskingOneWay);
 
-					if ((wal.cstat & 8) != 0) // xflip
+					if (wal.isXFlip())
 					{
 						t = (fwalxrepeat * 8 + wal.xpanning * 2);
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
 						guo = gdo * t - guo;
 					}
-					if ((wal.cstat & 256) != 0) // yflip
+					if (wal.isYFlip())
 					{
 						gvx = -gvx;
 						gvy = -gvy;
@@ -1535,7 +1536,7 @@ public abstract class Polymost implements GLRenderer {
 
 				nextsectnum = wal.nextsector; // Scan close sectors
 
-				if ((nextsectnum >= 0) && ((wal.cstat & 32) == 0) && sectorbordercnt < sectorborder.length
+				if ((nextsectnum >= 0) && !wal.isOneWay() && sectorbordercnt < sectorborder.length
 						&& ((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)) {
 					d = x1 * y2 - x2 * y1;
 					xp1 = (x2 - x1);
@@ -2314,26 +2315,26 @@ public abstract class Polymost implements GLRenderer {
 		guy = 0;
 
 		// mask
-		calc_ypanning(((wal.cstat & 4) == 0) ? max(nsec.ceilingz, sec.ceilingz) : min(nsec.floorz, sec.floorz), ryp0,
+		calc_ypanning((!wal.isBottomAligned()) ? max(nsec.ceilingz, sec.ceilingz) : min(nsec.floorz, sec.floorz), ryp0,
 				ryp1, x0, x1, wal.ypanning, wal.yrepeat, false);
 
-		if ((wal.cstat & 8) != 0) // xflip
+		if (wal.isXFlip())
 		{
 			t = (wal.xrepeat & 0xFF) * 8 + wal.xpanning * 2;
 			gux = gdx * t - gux;
 			guy = gdy * t - guy;
 			guo = gdo * t - guo;
 		}
-		if ((wal.cstat & 256) != 0) {
+		if (wal.isYFlip()) {
 			gvx = -gvx;
 			gvy = -gvy;
 			gvo = -gvo;
-		} // yflip
+		}
 
 		method = 1;
 		pow2xsplit = 1;
-		if ((wal.cstat & 128) != 0) {
-			if ((wal.cstat & 512) == 0)
+		if (wal.isTransparent()) {
+			if (!wal.isTransparent2())
 				method = 2;
 			else
 				method = 3;
