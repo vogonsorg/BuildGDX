@@ -5,6 +5,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.numshades;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -80,6 +81,10 @@ public class IndexedTexShader {
 	private int fogstartloc;
 	private int fogendloc;
 	private int fogcolourloc;
+	private int cx1loc;
+	private int cy1loc;
+	private int cx2loc;
+	private int cy2loc;
 
 	public IndexedTexShader(TextureManager cache) throws Exception {
 		String fragment =
@@ -95,6 +100,10 @@ public class IndexedTexShader {
 				"uniform vec4 u_fogcolour;" +
 				"uniform float u_fogstart;" +
 				"uniform float u_fogend;" +
+				"uniform float u_cx1;\n" +
+				"uniform float u_cy1;\n" +
+				"uniform float u_cx2;\n" +
+				"uniform float u_cy2;\n" +
 				"varying float v_dist;" +
 				"float fog(float dist) {" +
 				"	if(u_fogenable == 1)" +
@@ -109,6 +118,9 @@ public class IndexedTexShader {
 				"}" +
 				"void main()" +
 				"{" +
+				"	if(gl_FragCoord.x < u_cx1 || gl_FragCoord.x > u_cx2" +
+				"		|| gl_FragCoord.y > u_cy1 || gl_FragCoord.y < u_cy2)" +
+				"		discard;" +
 				"	float fi = texture2D(u_texture, gl_TexCoord[0].xy).r;" +
 				"	if(fi == 1.0)" +
 				"	{" +
@@ -152,6 +164,14 @@ public class IndexedTexShader {
 		this.fogstartloc = shaderProg.getUniformLocation("u_fogstart");
 		this.fogendloc = shaderProg.getUniformLocation("u_fogend");
 		this.fogcolourloc = shaderProg.getUniformLocation("u_fogcolour");
+		this.cx1loc = shaderProg.getUniformLocation("u_cx1");
+		this.cy1loc = shaderProg.getUniformLocation("u_cy1");
+		this.cx2loc = shaderProg.getUniformLocation("u_cx2");
+		this.cy2loc = shaderProg.getUniformLocation("u_cy2");
+
+		bind();
+		setShaderClip(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		unbind();
 	}
 
 	public void dispose() {
@@ -212,6 +232,13 @@ public class IndexedTexShader {
 
 	public boolean isBinded() {
 		return isBinded;
+	}
+
+	public void setShaderClip(float x1, float y1, float x2, float y2) {
+		shaderProg.setUniformf(cx1loc, x1);
+		shaderProg.setUniformf(cy1loc, Gdx.graphics.getHeight() - y1);
+		shaderProg.setUniformf(cx2loc, x2 );
+		shaderProg.setUniformf(cy2loc, Gdx.graphics.getHeight() - y2);
 	}
 
 	public void setShaderParams(int pal, int shade) {
