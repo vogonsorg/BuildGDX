@@ -246,7 +246,7 @@ public class Scriptfile {
 
 		textbuf = new String(data, 0, flen);
 		textptr = 0;
-		eof = nflen - 1;
+		eof = textbuf.length() - 1;
 	}
 
 	public Scriptfile(String filename, byte[] data) {
