@@ -35,6 +35,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager.ExpandTexture;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
@@ -288,7 +289,7 @@ public class GdxRenderer implements GLRenderer {
 	}
 
 	public TextureManager newTextureManager(Engine engine) {
-		return new TextureManager(engine);
+		return new TextureManager(engine, ExpandTexture.Vertical);
 	}
 
 	@Override

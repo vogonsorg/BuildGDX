@@ -151,6 +151,7 @@ import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager.ExpandTexture;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
@@ -306,7 +307,7 @@ public abstract class Polymost implements GLRenderer {
 	}
 
 	protected TextureManager newTextureManager(Engine engine) {
-		return new TextureManager(engine);
+		return new TextureManager(engine, ExpandTexture.Both);
 	}
 
 	@Override

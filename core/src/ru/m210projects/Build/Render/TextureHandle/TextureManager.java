@@ -42,8 +42,22 @@ public class TextureManager {
 	protected GLTile bindedTile;
 	protected IndexedTexShader shader;
 	protected int texunits = GL_TEXTURE0;
+	protected ExpandTexture expand = ExpandTexture.Both;
 
-	public TextureManager(Engine engine) {
+	public enum ExpandTexture {
+		Horizontal(1), Vertical(2), Both(1 | 2);
+
+		private byte bit;
+		ExpandTexture(int bit) {
+			this.bit = (byte) bit;
+		}
+
+		public byte get() {
+			return bit;
+		}
+	};
+
+	public TextureManager(Engine engine, ExpandTexture opt) {
 		this.engine = engine;
 		cache = new GLTileArray(MAXTILES);
 
@@ -57,6 +71,7 @@ public class TextureManager {
 				shader = null;
 			}
 		}
+		this.expand = opt;
 	}
 
 	public void setTextureInfo(TextureHDInfo info) {
@@ -255,14 +270,13 @@ public class TextureManager {
 	protected TileData loadPic(Hicreplctyp hicr, int dapicnum, int dapalnum, boolean clamping, boolean alpha,
 			int skybox) {
 
-		int expand = 1 | 2;
 		//System.err.println("loadPic " + dapicnum + " " + dapalnum + " clamping: " + clamping);
 		if (hicr != null) {
 			String fn = checkResource(hicr, dapicnum, skybox);
 			byte[] data = BuildGdx.cache.getBytes(fn, 0);
 			if (data != null) {
 				try {
-					return new PixmapTileData(new Pixmap(data, 0, data.length), clamping, expand);
+					return new PixmapTileData(new Pixmap(data, 0, data.length), clamping, expand.get());
 				} catch (Throwable t) {
 					t.printStackTrace();
 					if (skybox != 0)
@@ -272,8 +286,8 @@ public class TextureManager {
 		}
 
 		if (shader != null)
-			return new IndexedTileData(engine.getTile(dapicnum), clamping, alpha, expand);
-		return new RGBTileData(engine.getTile(dapicnum), dapalnum, clamping, alpha, expand);
+			return new IndexedTileData(engine.getTile(dapicnum), clamping, alpha, expand.get());
+		return new RGBTileData(engine.getTile(dapicnum), dapalnum, clamping, alpha, expand.get());
 	}
 
 	protected String checkResource(Hicreplctyp hicr, int dapic, int facen) {

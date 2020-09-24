@@ -86,9 +86,10 @@ public abstract class TileData {
 			pixmap.drawPixel(col, row);
 		}
 
-		PixmapIO.writePNG(new FileHandle(name), pixmap);
+		FileHandle f = new FileHandle(name);
+		PixmapIO.writePNG(f, pixmap);
 
-		System.out.println(name + " saved!");
+		System.out.println(f.file().getAbsolutePath() + " saved!");
 		pixmap.dispose();
 	}
 
