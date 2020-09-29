@@ -117,6 +117,14 @@ public class Gameutils {
 		return (Math.cos(rad_ang) * 16384.0);
 	}
 
+	public static double AngleToDegrees(double ang) {
+		return (ang * 360) * (1.0 / 2048.0);
+	}
+
+	public static double AngleToRadians(double ang) {
+		return (ang * Math.PI) * (1.0 / 1024.0);
+	}
+
 	public static boolean isValidSector(int i) {
 		return i >= 0 && i < MAXSECTORS && sector[i] != null;
 	}
