@@ -34,7 +34,7 @@ public class IndexedTileData extends TileData {
 
 		boolean hasalpha = false;
 		if (data == null) {
-			buffer.put(0, (byte) 0);
+			buffer.put(0, (byte) 255);
 			tsizx = tsizy = 1;
 			hasalpha = true;
 		} else {
@@ -42,11 +42,11 @@ public class IndexedTileData extends TileData {
 			int sptr = 0;
 			int xoffs = xsiz;
 			if(clamped) {
-				for (int y = (ysiz - 1); y >= 0; y--) {
+				for (int y = ysiz; y >= 0; y--) {
 					sptr = y >= tsizy ? 0 : tsizx;
 					dptr = (xsiz * y + (sptr - 1));
 					for (int x = sptr; x < xsiz; x++)
-						buffer.put(dptr++, (byte) 0);
+						buffer.put(dptr++, (byte) 255);
 				}
 
 				sptr = 0;
