@@ -60,7 +60,27 @@ public class Gameutils {
 		for (int i = 1; i < len; i += i)
 			System.arraycopy(array, start, array, start + i, ((len - i) < i) ? (len - i) : i);
 	}
+	
+	public static float invSqrt(float x) {
+	    float xhalf = 0.5f * x;
+	    int i = Float.floatToIntBits(x);
+	    i = 0x5f3759df - (i >> 1);
+	    x = Float.intBitsToFloat(i);
+	    x *= (1.5f - xhalf * x * x);
+	    return x;
+	}
+	
+	public static float Sqrt(float x) {
+	    return x > 0.0f ? x * invSqrt(x) : 0.0f;
+	}
 
+	public static double angle(double dx, double dy, boolean deg) {
+		double k = deg ? 90.0 : Math.PI / 2.0;
+		if (dy >= 0.0f)
+			return k * ((dx >= 0 ? dy / (dx + dy) : 1 - dx / (-dx + dy)));
+		return k * ((dx < 0 ? 2 - dy / (-dx - dy) : 3 + dx / (dx - dy)));
+	}
+	
 	public static float BClampAngle(float angle) {
 		return angle < 0 ? (angle % 2048) + 2048 : angle % 2048;
 	}

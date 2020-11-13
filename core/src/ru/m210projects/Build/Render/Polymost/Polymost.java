@@ -1388,10 +1388,11 @@ public abstract class Polymost implements GLRenderer {
 
 			}
 
-			if (nextsectnum >= 0)
+			if (nextsectnum >= 0) {
 				if (((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)
 						&& (clipper.testvisiblemost(x0, x1) != 0))
 					scansector(nextsectnum);
+			}
 		}
 	}
 
