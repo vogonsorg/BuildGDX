@@ -19,45 +19,70 @@ package ru.m210projects.Build.Types;
 public class Timer {
 	private static long startTime;
 	private static long spentTime;
-	
-	private static long summTime;
-	private static long count;
-	
+
+	private static long startAvrTime;
+	private static long LastSummTime;
+	private static long Lastcount;
+
+	private static long AvrSummTime;
+	private static long Avrcount;
+
 	public static void start() {
 		startTime = System.nanoTime();
 	}
-	
+
 	public static long result() {
 		spentTime = System.nanoTime() - startTime;
-		System.out.println(spentTime / 1000000f +" microsec");
+		System.out.println(spentTime / 1000000f + " microsec");
 		return spentTime;
 	}
-	
-	public static long resultAverage() {
-		spentTime = System.nanoTime() - startTime;
-		count++;
-		summTime += (spentTime / 1000f);
-		long result = (summTime / count);
-		if((count % 255) == 1)
-		System.out.println(result +" microsec");
-		return result;
+
+	public static void startAverage() {
+		startTime = System.nanoTime();
+		if (startAvrTime == -1)
+			startAvrTime = startTime;
 	}
-	
+
+	public static long resultAverage(int updateTimeSec) {
+		spentTime = System.nanoTime() - startTime;
+		LastSummTime += spentTime;
+		Lastcount++;
+		if ((System.nanoTime() - startAvrTime) / 1000000f >= (updateTimeSec * 1000f)) {
+			long result = (LastSummTime / Lastcount);
+			AvrSummTime += result;
+			Avrcount++;
+			System.out.println(
+					"T: " + (result / 1000000f) + " ms, Avr: " + ((AvrSummTime / Avrcount) / 1000000f) + " ms");
+
+			startAvrTime = -1;
+			LastSummTime = 0;
+			Lastcount = 0;
+			return result;
+		}
+
+		return 0;
+	}
+
+	public static void resetAverage() {
+		AvrSummTime = 0;
+		Avrcount = 0;
+	}
+
 	public static long result(String comment) {
 		spentTime = System.nanoTime() - startTime;
-		
-		System.out.println(comment + " : " + spentTime / 1000f +" microsec");
+
+		System.out.println(comment + " : " + spentTime / 1000f + " microsec");
 		return spentTime;
 	}
-	
+
 	public static void startFPS() {
 		startTime = System.nanoTime();
 	}
-	
+
 	public static int FPSresult() {
-		spentTime = (long) ((System.nanoTime() - startTime));
-		long fps = (long) (1000000000.0/spentTime);
-		System.out.println(fps +" fps");
+		spentTime = ((System.nanoTime() - startTime));
+		long fps = (long) (1000000000.0 / spentTime);
+		System.out.println(fps + " fps");
 		return (int) fps;
 	}
 }

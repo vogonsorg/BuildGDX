@@ -32,7 +32,7 @@ public class LinkedList<T> {
 		protected Node<T> next;
 		protected Node<T> prev;
 
-		protected final Node<T> unlink() {
+		public final Node<T> unlink() {
 			Node<T> t = next;
 			if (prev != null)
 				prev.next = next;
@@ -43,6 +43,9 @@ public class LinkedList<T> {
 		}
 
 		protected final void insertAfter(Node<T> node) {
+			if (node.equals(this))
+				return;
+
 			node.next = next;
 			node.prev = this;
 			if (next != null)
@@ -51,6 +54,9 @@ public class LinkedList<T> {
 		}
 
 		protected final void insertBefore(Node<T> node) {
+			if (node.equals(this))
+				return;
+
 			node.next = this;
 			node.prev = prev;
 			if (prev != null)
@@ -78,14 +84,10 @@ public class LinkedList<T> {
 	protected int size;
 
 	public void clear() {
-		Node<T> node = head;
-		while (node != null) {
-			Node<T> next = node.next;
+		for (Node<T> node = head; node != null; node = node.next) {
 			node.prev = null;
 			node.next = null;
-			node = next;
 		}
-
 		head = tail = null;
 		size = 0;
 	}
@@ -137,6 +139,9 @@ public class LinkedList<T> {
 	}
 
 	public void add(Node<T> node) {
+		if (node.equals(tail) || node.equals(head))
+			return;
+
 		if (tail != null) {
 			tail.next = node;
 			node.prev = tail;
@@ -217,6 +222,9 @@ public class LinkedList<T> {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void sort(Comparator<? super T> c) {
+		if (size == 0)
+			return;
+
 		Object[] a = this.toArray();
 		Arrays.sort(a, (Comparator) c);
 
