@@ -83,66 +83,36 @@ import ru.m210projects.Build.Types.WALL;
 public abstract class Engine {
 
 	/*
-	 * TODO:
-	 * Software renderer: and the draw distance for voxel detail is really low
-	 * Software renderer: You might want to look at wall sprites. I noticed a lot of them clipping through geometry in classic render
-	 * в консоли может одновременно две одинаковых строки показать (console default font)
+	 * TODO: Software renderer: and the draw distance for voxel detail is really low
+	 * Software renderer: You might want to look at wall sprites. I noticed a lot of
+	 * them clipping through geometry in classic render пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	 * пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (console default font)
 	 *
-	 * osdrows в сохранения конфига
-	 * Туман зависит от разрешения экрана (Polymost)
-	 * History list for last used IP's (client could be better for multiplayer) or copy paste IP if possible.
-	 * brz фильтр
-	 * broadcast
-	 * Some sort of anti-aliasing option. The NVidia control panel's anti-aliasing works, but it introduces artifacting on voxels.
-	 * бинд в консоль
-	 * плохой перенос строк в консоли если строк больше 2х
-	 * оптимизировать Bsprintf
-	 * сохранения в папку (почему то не находит файл)
-	 * render: некоторые горизонтальные модели не там где надо под определенным
-	 * углом пропадает спрайт 2д карта подглюкивает вылазиют полигоны за скайбокс
-	 * потолок
-	 * floor-alignment voxels for maphack
+	 * osdrows пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (Polymost)
+	 * History list for last used IP's (client could be better for multiplayer) or
+	 * copy paste IP if possible. brz пїЅпїЅпїЅпїЅпїЅпїЅ broadcast Some sort of anti-aliasing
+	 * option. The NVidia control panel's anti-aliasing works, but it introduces
+	 * artifacting on voxels. пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+	 * пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 2пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Bsprintf пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ
+	 * пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ) render: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+	 * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 2пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	 * пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ floor-alignment voxels for maphack
 	 *
-	 * для шейдеров:
-	 * прекэш вокселей - палитра
-	 * FadeScreen
-	 * Проверить HRP модели для шейдеров
+	 * пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅпїЅпїЅпїЅ FadeScreen пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ HRP пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+	 * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	 *
-	 * GameAdapter TODO:
-	 * SaveManager findSaves()
-	 * Launcher start parameters
+	 * GameAdapter TODO: SaveManager findSaves() Launcher start parameters
 	 *
 	 *
-	 * Architecture:
-	 * 	Engine
-	 * 		messages
-	 * 		filecache
-	 * 		filegroup		-> 		filecache
-	 * 		(net) mmulti
-	 * 		audiomanger (BAudio)
-	 * 			midimodule
-	 * 			openal
-	 * 		renderer
-	 * 			polymost	->    texturecache
-	 * 			software
-	 * 		input
-	 * 			keyboard -> input()
-	 * 			gamepad	-> gpmanager
+	 * Architecture: Engine messages filecache filegroup -> filecache (net) mmulti
+	 * audiomanger (BAudio) midimodule openal renderer polymost -> texturecache
+	 * software input keyboard -> input() gamepad -> gpmanager
 	 *
-	 * 		OnScreenDisplay
-	 * 			Console
-	 * 		loader
-	 * 			md2
-	 * 			md3
-	 * 			vox
-	 * 			wav
+	 * OnScreenDisplay Console loader md2 md3 vox wav
 	 *
 	 *
-	 *  Utils
-	 *  	string handler
-	 *  	def loader + common + scriptfile	-> texturecache / mdloader
-	 *  	pragmas
-	 *  	bithandler
+	 * Utils string handler def loader + common + scriptfile -> texturecache /
+	 * mdloader pragmas bithandler
 	 */
 
 	public static final String version = "20.081"; // XX. - year, XX - month, X - build
@@ -183,7 +153,7 @@ public abstract class Engine {
 		}
 	}
 
-	public class Point {
+	public static class Point {
 		private int x, y, z;
 
 		public int getX() {
@@ -204,6 +174,22 @@ public abstract class Engine {
 			this.z = z;
 
 			return this;
+		}
+
+		public Point set(int x, int y) {
+			this.x = x;
+			this.y = y;
+			this.z = 0;
+
+			return this;
+		}
+
+		public boolean equals(int x, int y) {
+			return this.x == x && this.y == y;
+		}
+
+		public boolean equals(int x, int y, int z) {
+			return this.x == x && this.y == y && this.z == z;
 		}
 	}
 
@@ -417,8 +403,7 @@ public abstract class Engine {
 		int frames = getTile(tilenum).getFrames();
 
 		if (frames > 0) {
-			switch (getTile(tilenum).getType())
-			{
+			switch (getTile(tilenum).getType()) {
 			case Oscil:
 				index = clock % (frames * 2);
 				if (index >= frames)
@@ -430,7 +415,7 @@ public abstract class Engine {
 			case Backward:
 				index = -(clock % (frames + 1));
 				break;
-			default: //None
+			default: // None
 				break;
 			}
 		}
@@ -586,7 +571,7 @@ public abstract class Engine {
 		paletteloaded = 1;
 	}
 
-	protected Byte palcache[] = new Byte[0x40000]; //buffer 256kb
+	protected Byte palcache[] = new Byte[0x40000]; // buffer 256kb
 
 	public byte getclosestcol(byte[] palette, int r, int g, int b) { // jfBuild
 		int i, k, dist;
@@ -603,7 +588,7 @@ public abstract class Engine {
 		mindist++;
 
 		Byte out = palcache[rgb & (palcache.length - 1)];
-		if(out != null)
+		if (out != null)
 			return out;
 
 		r = 64 - r;
@@ -730,7 +715,7 @@ public abstract class Engine {
 			return (0);
 		if (sprite[spritenum].sectnum == MAXSECTORS)
 			return (-1);
-		if (deletespritesect((short)spritenum) < 0)
+		if (deletespritesect((short) spritenum) < 0)
 			return (-1);
 		insertspritesect(newsectnum);
 		return (0);
@@ -744,7 +729,7 @@ public abstract class Engine {
 			return (0);
 		if (sprite[spritenum].statnum == MAXSTATUS)
 			return (-1);
-		if (deletespritestat((short)spritenum) < 0)
+		if (deletespritestat((short) spritenum) < 0)
 			return (-1);
 		insertspritestat(newstatnum);
 		return (0);
@@ -1161,7 +1146,7 @@ public abstract class Engine {
 		case 7:
 			break;
 		case 8:
-			if(MAXSECTORS == MAXSECTORSV8)
+			if (MAXSECTORS == MAXSECTORSV8)
 				break;
 		default:
 			fil.close();
@@ -1202,7 +1187,7 @@ public abstract class Engine {
 
 		fil.close();
 
-		if(inside(pos.x, pos.y, pos.sectnum) == -1)
+		if (inside(pos.x, pos.y, pos.sectnum) == -1)
 			throw new RuntimeException("Player should be in a sector!");
 
 		return pos;
@@ -1320,7 +1305,7 @@ public abstract class Engine {
 
 		fil.close();
 
-		if(inside(pos.x, pos.y, pos.sectnum) == -1)
+		if (inside(pos.x, pos.y, pos.sectnum) == -1)
 			throw new RuntimeException("Player should be in a sector!");
 
 		return pos;
@@ -1464,7 +1449,7 @@ public abstract class Engine {
 
 			for (int i = localtilestart; i <= localtileend; i++) {
 				int dasiz = getTile(i).getSize();
-				if(dasiz > 0) {
+				if (dasiz > 0) {
 					Tile pic = getTile(i);
 					pic.data = new byte[dasiz];
 					fil.read(pic.data);
@@ -1730,8 +1715,7 @@ public abstract class Engine {
 		if (klabs(xvect) > klabs(yvect)) {
 			return (short) (((radarang[640 + scale(160, yvect, xvect)] >> 6) + ((xvect < 0 ? 1 : 0) << 10)) & 2047);
 		}
-		return (short) (((radarang[640 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10))
-				& 2047);
+		return (short) (((radarang[640 - scale(160, xvect, yvect)] >> 6) + 512 + ((yvect < 0 ? 1 : 0) << 10)) & 2047);
 	}
 
 	public int ksqrt(int a) { // jfBuild
@@ -2555,7 +2539,7 @@ public abstract class Engine {
 		clipsectnum = 1;
 		do {
 			dasect = clipsectorlist[clipsectcnt++];
-			if(!isValidSector(dasect))
+			if (!isValidSector(dasect))
 				continue;
 
 			sec = sector[dasect];
@@ -3040,7 +3024,8 @@ public abstract class Engine {
 			short wallid = sector[sectnum].wallptr;
 			int j = sector[sectnum].wallnum;
 			do {
-				if(!isValidWall(wallid)) break;
+				if (!isValidWall(wallid))
+					break;
 
 				WALL wal = wall[wallid];
 				i = wal.nextsector;
@@ -3072,7 +3057,8 @@ public abstract class Engine {
 			short wallid = sector[sectnum].wallptr;
 			int j = sector[sectnum].wallnum;
 			do {
-				if(!isValidWall(wallid)) break;
+				if (!isValidWall(wallid))
+					break;
 
 				WALL wal = wall[wallid];
 				i = wal.nextsector;
@@ -3531,7 +3517,7 @@ public abstract class Engine {
 		}
 
 		final GLRenderer gl = glrender();
-		if(gl != null && gl.getTextureManager().getShader() != null) {
+		if (gl != null && gl.getTextureManager().getShader() != null) {
 			gl.getTextureManager().getShader().invalidatepalookup(palnum);
 		}
 	}
@@ -3545,11 +3531,11 @@ public abstract class Engine {
 				temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
 		} else {
 			System.arraycopy(dapal, 0, temppal, 0, dapal.length);
-			for(int i = 0; i < dapal.length; i++)
+			for (int i = 0; i < dapal.length; i++)
 				temppal[i] <<= 2;
 		}
 
-		if(changepalette(temppal)) {
+		if (changepalette(temppal)) {
 			if (gl != null)
 				gl.gltexinvalidateall(flags);
 
@@ -3559,12 +3545,12 @@ public abstract class Engine {
 	}
 
 	public boolean changepalette(final byte[] palette) {
-		if(render.getType() != RenderType.Software && CRC32.getChecksum(palette) == curpalette.getCrc32())
+		if (render.getType() != RenderType.Software && CRC32.getChecksum(palette) == curpalette.getCrc32())
 			return false;
 
 		curpalette.update(palette);
 		Arrays.fill(palcache, null);
-		render.changepalette(palette); //for shader
+		render.changepalette(palette); // for shader
 
 		return true;
 	}
@@ -3959,8 +3945,8 @@ public abstract class Engine {
 		for (int fx, fy = 0; fy < dheigth; fy++) {
 			base = mulscale(fy, yf, 16) * xdim;
 			for (fx = 0; fx < dwidth; fx++) {
-				capture[dheigth * fx + fy] = getcol(frame, base + mulscale(fx, xf, 16),
-						render.getType().getFrameType(), byteperpixel);
+				capture[dheigth * fx + fy] = getcol(frame, base + mulscale(fx, xf, 16), render.getType().getFrameType(),
+						byteperpixel);
 			}
 		}
 
@@ -4048,7 +4034,7 @@ public abstract class Engine {
 		int numpal, firstpal, np;
 		int hp;
 
-		if(gl.getTextureManager().isUseShader(tilenume)) {
+		if (gl.getTextureManager().isUseShader(tilenume)) {
 			numpal = 1;
 			firstpal = 0;
 		} else {
@@ -4224,7 +4210,7 @@ public abstract class Engine {
 	}
 
 	public Tile getTile(int tilenum) {
-		if(tiles[tilenum] == null)
+		if (tiles[tilenum] == null)
 			tiles[tilenum] = new Tile();
 		return tiles[tilenum];
 	}
