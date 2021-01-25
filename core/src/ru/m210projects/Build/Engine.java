@@ -4102,18 +4102,34 @@ public abstract class Engine {
 		gotpic[tilenume >> 3] |= pow2char[tilenume & 7];
 	}
 
-	public int clockdir(short wallstart) // Returns: 0 is CW, 1 is CCW
+	public enum Clockdir {
+		CW(0), CCW(1);
+
+		private final int value;
+
+		Clockdir(int val) {
+			this.value = val;
+		}
+
+		public int getValue() {
+			return value;
+		}
+	};
+
+	public Clockdir clockdir(int wallstart) // Returns: 0 is CW, 1 is CCW
 	{
 		int minx = 0x7fffffff;
 		int themin = -1;
 		int i = wallstart - 1;
 		do {
-			i++;
+			if (!Gameutils.isValidWall(++i))
+				break;
+
 			if (wall[wall[i].point2].x < minx) {
 				minx = wall[wall[i].point2].x;
 				themin = i;
 			}
-		} while ((wall[i].point2 != wallstart) && (i < MAXWALLS));
+		} while (wall[i].point2 != wallstart);
 
 		int x0 = wall[themin].x;
 		int y0 = wall[themin].y;
@@ -4123,19 +4139,19 @@ public abstract class Engine {
 		int y2 = wall[wall[wall[themin].point2].point2].y;
 
 		if ((y1 >= y2) && (y1 <= y0))
-			return (0);
+			return Clockdir.CW;
 		if ((y1 >= y0) && (y1 <= y2))
-			return (1);
+			return Clockdir.CCW;
 
 		int templong = (x0 - x1) * (y2 - y1) - (x2 - x1) * (y0 - y1);
 		if (templong < 0)
-			return (0);
+			return Clockdir.CW;
 		else
-			return (1);
+			return Clockdir.CCW;
 	}
 
 	public int loopinside(int x, int y, short startwall) {
-		int cnt = clockdir(startwall);
+		int cnt = clockdir(startwall).getValue();
 		int i = startwall;
 
 		int x1, x2, y1, y2, templong;

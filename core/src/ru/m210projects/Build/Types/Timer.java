@@ -71,7 +71,7 @@ public class Timer {
 	public static long result(String comment) {
 		spentTime = System.nanoTime() - startTime;
 
-		System.out.println(comment + " : " + spentTime / 1000f + " microsec");
+		System.out.println(comment + " : " + spentTime / 1000000f + " microsec");
 		return spentTime;
 	}
 
