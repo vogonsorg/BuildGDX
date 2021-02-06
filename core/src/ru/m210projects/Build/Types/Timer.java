@@ -24,6 +24,7 @@ public class Timer {
 	private static long LastSummTime;
 	private static long Lastcount;
 
+	private static long AvrResultTime;
 	private static long AvrSummTime;
 	private static long Avrcount;
 
@@ -48,7 +49,7 @@ public class Timer {
 		LastSummTime += spentTime;
 		Lastcount++;
 		if ((System.nanoTime() - startAvrTime) / 1000000f >= (updateTimeSec * 1000f)) {
-			long result = (LastSummTime / Lastcount);
+			long result = AvrResultTime = (LastSummTime / Lastcount);
 			AvrSummTime += result;
 			Avrcount++;
 			System.out.println(
@@ -60,7 +61,7 @@ public class Timer {
 			return result;
 		}
 
-		return 0;
+		return AvrResultTime;
 	}
 
 	public static void resetAverage() {
