@@ -37,9 +37,9 @@ import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Render.Renderer.RenderType;
 
 public class BuildApplication implements Application {
-	
+
 	public enum Platform { Windows, Linux, MacOSX, Android };
-	
+
 	protected BuildFrame frame;
 	protected final BuildConfiguration config;
 	protected final ApplicationListener listener;
@@ -47,7 +47,7 @@ public class BuildApplication implements Application {
 	protected final ApplicationType type;
 	protected final Clipboard clipboard;
 	protected final Files files;
-	
+
 	protected int version;
 	protected boolean running = true;
 	protected Thread mainLoopThread;
@@ -57,13 +57,13 @@ public class BuildApplication implements Application {
 	public BuildApplication (BuildGame listener, final ApplicationFactory factory, RenderType type) {
 		this.listener = listener;
 		this.config = factory.getConfiguration();
-		
+
 		if (config.title == null) config.title = listener.getClass().getSimpleName();
-		
-		frame = factory.getFrame(config, type.getFrameType());
+
+		frame = factory.getFrame();
 		if(config.getIconPaths().size > 0)
 			frame.icon = this.getClass().getResource("/" + config.getIconPaths().first());
-		
+
 		Gdx.app = BuildGdx.app = this;
 		Gdx.files = BuildGdx.files = files = factory.getFiles();
 		BuildGdx.audio = factory.getAudio();
@@ -88,11 +88,11 @@ public class BuildApplication implements Application {
 				public void run () {
 					try {
 						frame.setType(type);
-						
+
 						mainLoop();
 					} catch (Throwable t) {
 						destroyLoop();
-						
+
 						if (t instanceof RuntimeException)
 							throw (RuntimeException)t;
 						else throw new GdxRuntimeException(t);
@@ -102,18 +102,18 @@ public class BuildApplication implements Application {
 			mainLoopThread.start();
 		}
 	}
-	
+
 	private void mainLoop () {
 		listener.create();
 
 		while (running) {
 			BuildGdx.input.processMessages();
-			
+
 			switch(frame.getStatus()) {
 			case Closed:
 				exit();
 				break;
-			case Running: 
+			case Running:
 				break;
 			case Pause:
 				listener.pause();
@@ -139,7 +139,7 @@ public class BuildApplication implements Application {
 		}
 		destroyLoop();
 	}
-	
+
 	private void destroyLoop() {
 		if(BuildGdx.input != null)
 			BuildGdx.input.setCursorCatched(false);
@@ -153,7 +153,7 @@ public class BuildApplication implements Application {
 			BuildGdx.message.dispose();
 		frame.dispose();
 	}
-	
+
 	public void stop () {
 		running = false;
 		try {
@@ -161,7 +161,8 @@ public class BuildApplication implements Application {
 		} catch (Exception ex) {
 		}
 	}
-	
+
+	@Override
 	public void exit () {
 		postRunnable(new Runnable() {
 			@Override
@@ -170,7 +171,7 @@ public class BuildApplication implements Application {
 			}
 		});
 	}
-	
+
 	public boolean executeRunnables () {
 		synchronized (runnables) {
 			for (int i = runnables.size - 1; i >= 0; i--)
@@ -183,42 +184,46 @@ public class BuildApplication implements Application {
 		while (executedRunnables.size > 0);
 		return true;
 	}
-	
+
+	@Override
 	public ApplicationListener getApplicationListener()
 	{
 		return listener;
 	}
-	
+
 	public void setFrame(FrameType type)
 	{
 		frame.setType(type);
 	}
-	
+
 	public boolean isActive()
 	{
 		return frame.getGraphics().isActive();
 	}
-	
+
+	@Override
 	public void postRunnable (Runnable runnable) {
 		synchronized (runnables) {
 			runnables.add(runnable);
 		}
 	}
-	
+
+	@Override
 	public Clipboard getClipboard() {
 		return clipboard;
 	}
-	
+
 	public Platform getPlatform() {
 		return platform;
 	}
-	
+
+	@Override
 	public ApplicationType getType() {
 		return type;
 	}
 
 	//Gdx Application
-	
+
 	@Override
 	public Graphics getGraphics() {
 		return frame.getGraphics();
@@ -233,7 +238,7 @@ public class BuildApplication implements Application {
 	public Files getFiles() {
 		return files;
 	}
-	
+
 	@Override
 	public int getVersion() {
 		return version;
@@ -248,7 +253,7 @@ public class BuildApplication implements Application {
 	public long getNativeHeap() {
 		return getJavaHeap();
 	}
-	
+
 	//Gdx Application unused
 
 	@Override
@@ -292,7 +297,7 @@ public class BuildApplication implements Application {
 	@Override
 	public void setApplicationLogger(ApplicationLogger applicationLogger) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -310,12 +315,12 @@ public class BuildApplication implements Application {
 	@Override
 	public void addLifecycleListener(LifecycleListener listener) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void removeLifecycleListener(LifecycleListener listener) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

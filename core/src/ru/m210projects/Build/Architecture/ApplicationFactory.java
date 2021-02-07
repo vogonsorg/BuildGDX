@@ -21,30 +21,29 @@ import com.badlogic.gdx.Files;
 import com.badlogic.gdx.utils.Clipboard;
 
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
-import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Audio.BuildAudio;
 import ru.m210projects.Build.Input.BuildControllers;
 
 public interface ApplicationFactory {
-	
+
 	public int getVersion();
 
 	public BuildConfiguration getConfiguration();
-	
+
 	public BuildMessage getMessage();
-	
+
 	public BuildAudio getAudio();
 
 	public Files getFiles();
-	
+
 	public BuildControllers getControllers();
 
 	public Platform getPlatform();
-	
-	public BuildFrame getFrame(BuildConfiguration config, FrameType type);
+
+	public BuildFrame getFrame();
 
 	public ApplicationType getApplicationType();
-	
+
 	public Clipboard getClipboard();
 
 }
