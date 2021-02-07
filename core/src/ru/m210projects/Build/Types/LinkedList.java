@@ -26,6 +26,12 @@ public class LinkedList<T> {
 
 			return this;
 		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
 	}
 
 	public abstract static class Node<T> {

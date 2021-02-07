@@ -18,6 +18,7 @@ package ru.m210projects.Build.Architecture;
 
 import java.net.URL;
 
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
@@ -31,22 +32,44 @@ public abstract class BuildFrame {
 		Running, Pause, Resume, Changed, Closed
 	}
 
-	private FrameType type;
+	protected FrameType type;
 	public URL icon;
 
 	protected BuildInput input;
 	protected BuildGraphics graphics;
-	private final BuildConfiguration config;
+	protected final BuildConfiguration config;
+	protected final ApplicationListener listener;
 
 	protected boolean wasActive = true;
 
-	public BuildFrame(BuildConfiguration config) {
+	public BuildFrame(ApplicationListener listener, BuildConfiguration config) {
 		this.config = config;
+		this.listener = listener;
 	}
 
 	public abstract BuildGraphics getGraphics(FrameType type);
 
 	public abstract BuildInput getInput(FrameType type);
+
+	public void render() {
+		listener.render();
+	}
+
+	public void create() {
+		listener.create();
+	}
+
+	public void pause() {
+		listener.pause();
+	}
+
+	public void resume() {
+		listener.resume();
+	}
+
+	public void resize(int width, int height) {
+		listener.resize(width, height);
+	}
 
 	public void setType(FrameType type)
 	{
@@ -57,7 +80,6 @@ public abstract class BuildFrame {
 			input = getInput(type);
 
 			init();
-			graphics.setVSync(getConfig().vsync);
 
 			Gdx.gl = BuildGdx.gl = graphics.getGL10();
 			Gdx.gl20 = BuildGdx.gl20 = graphics.getGL20();
@@ -84,21 +106,22 @@ public abstract class BuildFrame {
 			throw new GdxRuntimeException(e);
 		}
 
+		graphics.setVSync(config.vsync);
 		graphics.resize = true;
 		graphics.lastTime = System.nanoTime();
 		return this;
 	}
 
 	protected boolean isChanged() {
-		getConfig().x = graphics.getX();
-		getConfig().y = graphics.getY();
+		config.x = graphics.getX();
+		config.y = graphics.getY();
 		if (graphics.resize || graphics.wasResized()
-			|| graphics.getWidth() != getConfig().width
-			|| graphics.getHeight() != getConfig().height) {
+			|| graphics.getWidth() != config.width
+			|| graphics.getHeight() != config.height) {
 			graphics.resize = false;
-			getConfig().width = graphics.getWidth();
-			getConfig().height = graphics.getHeight();
-			graphics.updateSize(getConfig().width, getConfig().height);
+			config.width = graphics.getWidth();
+			config.height = graphics.getHeight();
+			graphics.updateSize(config.width, config.height);
 			graphics.requestRendering();
 			return true;
 		}
@@ -111,8 +134,8 @@ public abstract class BuildFrame {
 		shouldRender |= graphics.shouldRender();
 		input.processEvents();
 
-		if (!isActive && getConfig().backgroundFPS == -1) shouldRender = false;
-		int frameRate = isActive ? getConfig().foregroundFPS : getConfig().backgroundFPS;
+		if (!isActive && config.backgroundFPS == -1) shouldRender = false;
+		int frameRate = isActive ? config.foregroundFPS : config.backgroundFPS;
 
 		if(graphics.vsync)
 			frameRate = graphics.getRefreshRate();
@@ -123,7 +146,7 @@ public abstract class BuildFrame {
 		} else {
 			// Sleeps to avoid wasting CPU in an empty loop.
 			if (frameRate == -1) frameRate = 10;
-			if (frameRate == 0) frameRate = getConfig().backgroundFPS;
+			if (frameRate == 0) frameRate = config.backgroundFPS;
 			if (frameRate == 0) frameRate = 30;
 		}
 		if (frameRate > 0) graphics.sync(frameRate);

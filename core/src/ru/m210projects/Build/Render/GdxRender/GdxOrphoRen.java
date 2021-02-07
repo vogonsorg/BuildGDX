@@ -33,6 +33,7 @@ import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 
@@ -59,10 +60,32 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		this.batch = new GdxBatch();
 		this.shape = new ShapeRenderer();
+
+		String frag = "#ifdef GL_ES\n" //
+				+ "#define LOWP lowp\n" //
+				+ "precision mediump float;\n" //
+				+ "#else\n" //
+				+ "#define LOWP \n" //
+				+ "#endif\n" //
+				+ "varying LOWP vec4 v_color;\n" //
+				+ "varying vec2 v_texCoords;\n" //
+				+ "uniform sampler2D u_texture;\n" //
+				+ "void main()\n"//
+				+ "{\n" //
+				+ " if(texture2D(u_texture, v_texCoords).a == 0.0) discard;"
+				+ "  gl_FragColor = v_color;\n" //
+				+ "}";
+
+		ShaderProgram shader = new ShaderProgram(batch.getShader().getVertexShaderSource(), frag);
+		if (!shader.isCompiled())
+			System.err.println("Shader compile error: " + shader.getLog());
+
+		batch.setShader(shader);
 	}
 
 	@Override
 	public void init() {
+		//this.batch.setShader(textureCache.getShader().getShaderProgram());
 	}
 
 	@Override

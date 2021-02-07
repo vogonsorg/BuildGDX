@@ -17,6 +17,7 @@
 package ru.m210projects.Build.desktop;
 
 import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglClipboard;
@@ -46,11 +47,18 @@ import ru.m210projects.Build.desktop.audio.LwjglAL;
 
 public class DesktopFactory implements ApplicationFactory {
 
-	private BuildConfiguration cfg;
+	private final BuildConfiguration cfg;
+	private final ApplicationListener listener;
 
-	public DesktopFactory(BuildConfiguration cfg)
+	public DesktopFactory(ApplicationListener listener, BuildConfiguration cfg)
 	{
 		this.cfg = cfg;
+		this.listener = listener;
+	}
+
+	@Override
+	public ApplicationListener getListener() {
+		return listener;
 	}
 
 	@Override
@@ -95,7 +103,7 @@ public class DesktopFactory implements ApplicationFactory {
 
 	@Override
 	public BuildFrame getFrame() {
-		return new BuildFrame(cfg) {
+		return new BuildFrame(listener, cfg) {
 			@Override
 			public BuildGraphics getGraphics(FrameType type) {
 				if(type == FrameType.GL)

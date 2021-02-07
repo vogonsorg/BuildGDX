@@ -16,6 +16,8 @@
 
 package ru.m210projects.Build.Architecture;
 
+import java.io.File;
+
 import com.badlogic.gdx.Application;
 
 import com.badlogic.gdx.ApplicationListener;
@@ -33,7 +35,6 @@ import com.badlogic.gdx.utils.Clipboard;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
-import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Render.Renderer.RenderType;
 
 public class BuildApplication implements Application {
@@ -54,15 +55,15 @@ public class BuildApplication implements Application {
 	protected final Array<Runnable> runnables = new Array<Runnable>();
 	protected final Array<Runnable> executedRunnables = new Array<Runnable>();
 
-	public BuildApplication (BuildGame listener, final ApplicationFactory factory, RenderType type) {
-		this.listener = listener;
+	public BuildApplication (final ApplicationFactory factory, RenderType type) {
+		this.listener = factory.getListener();
 		this.config = factory.getConfiguration();
 
 		if (config.title == null) config.title = listener.getClass().getSimpleName();
 
 		frame = factory.getFrame();
 		if(config.getIconPaths().size > 0)
-			frame.icon = this.getClass().getResource("/" + config.getIconPaths().first());
+			frame.icon = this.getClass().getResource(File.separator + config.getIconPaths().first());
 
 		Gdx.app = BuildGdx.app = this;
 		Gdx.files = BuildGdx.files = files = factory.getFiles();
@@ -88,7 +89,6 @@ public class BuildApplication implements Application {
 				public void run () {
 					try {
 						frame.setType(type);
-
 						mainLoop();
 					} catch (Throwable t) {
 						destroyLoop();
@@ -104,7 +104,7 @@ public class BuildApplication implements Application {
 	}
 
 	private void mainLoop () {
-		listener.create();
+		frame.create();
 
 		while (running) {
 			BuildGdx.input.processMessages();
@@ -116,13 +116,13 @@ public class BuildApplication implements Application {
 			case Running:
 				break;
 			case Pause:
-				listener.pause();
+				frame.pause();
 				break;
 			case Resume:
-				listener.resume();
+				frame.resume();
 				break;
 			case Changed:
-				listener.resize(config.width, config.height);
+				frame.resize(config.width, config.height);
 				break;
 			}
 
@@ -133,7 +133,7 @@ public class BuildApplication implements Application {
 			if (!running) break;
 
 			if(frame.process(shouldRender)) {
-				listener.render();
+				frame.render();
 				frame.update();
 			}
 		}

@@ -17,6 +17,7 @@
 package ru.m210projects.Build.Architecture;
 
 import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.utils.Clipboard;
 
@@ -27,6 +28,8 @@ import ru.m210projects.Build.Input.BuildControllers;
 public interface ApplicationFactory {
 
 	public int getVersion();
+
+	public ApplicationListener getListener();
 
 	public BuildConfiguration getConfiguration();
 
