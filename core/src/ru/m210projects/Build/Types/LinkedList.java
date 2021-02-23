@@ -135,11 +135,13 @@ public class LinkedList<T> {
 	}
 
 	public void add(Node<T> item, Comparator<T> c) {
+		if(item.next != null || item.prev != null)
+			return; //already in the list
 		insertBefore(compare(item, c), item);
 	}
 
 	public void add(Node<T> node) {
-		if (node.equals(tail) || node.equals(head))
+		if (node == null || node.equals(tail) || node.equals(head))
 			return;
 
 		if (tail != null) {
@@ -192,6 +194,13 @@ public class LinkedList<T> {
 		return null;
 	}
 
+	public T prev(Node<T> node) {
+		if (node.prev != null)
+			return node.prev.getValue();
+
+		return null;
+	}
+
 	public T getFirst() {
 		if (head != null)
 			return head.getValue();
@@ -232,12 +241,15 @@ public class LinkedList<T> {
 		tail = (Node<T>) a[size - 1];
 
 		Node<T> node = head;
+		Node<T> prev = null;
 		for (int i = 1; i < size; i++) {
 			node.next = (Node<T>) a[i];
-			node.prev = (Node<T>) a[i - 1];
+			node.prev = prev;
+			prev = node;
 			node = node.next;
 		}
 		node.next = null;
+		node.prev = prev;
 	}
 
 	@Override
