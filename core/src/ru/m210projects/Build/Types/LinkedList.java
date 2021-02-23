@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 
-public class LinkedList<T> {
+public class LinkedList<T> implements Iterable<T> {
 
-	private final class LinkedListIterator implements Iterator<Node<T>> {
+	private final class LinkedListIterator implements Iterator<T> {
 		Node<T> node = head;
 
 		@Override
@@ -15,13 +15,13 @@ public class LinkedList<T> {
 		}
 
 		@Override
-		public Node<T> next() {
+		public T next() {
 			Node<T> node = this.node;
 			this.node = node.next;
-			return node;
+			return node.getValue();
 		}
 
-		public Iterator<Node<T>> init() {
+		public Iterator<T> init() {
 			this.node = head;
 
 			return this;
@@ -215,7 +215,8 @@ public class LinkedList<T> {
 		return null;
 	}
 
-	public Iterator<Node<T>> iterator() {
+	@Override
+	public Iterator<T> iterator() {
 		if (it == null)
 			it = new LinkedListIterator();
 		return it.init();
@@ -225,12 +226,12 @@ public class LinkedList<T> {
 		Object[] result = new Object[size];
 		int i = 0;
 		for (Node<T> x = head; x != null; x = x.next)
-			result[i++] = x.getValue();
+			result[i++] = x;
 		return result;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void sort(Comparator<? super T> c) {
+	public void sort(Comparator<T> c) {
 		if (size == 0)
 			return;
 
@@ -254,14 +255,14 @@ public class LinkedList<T> {
 
 	@Override
 	public String toString() {
-		Iterator<Node<T>> it = iterator();
+		Iterator<T> it = iterator();
 		if (!it.hasNext())
 			return "[]";
 
 		StringBuilder sb = new StringBuilder();
 		sb.append('[');
 		for (;;) {
-			Node<T> e = it.next();
+			T e = it.next();
 			sb.append(e);
 			if (!it.hasNext())
 				return sb.append(']').toString();
