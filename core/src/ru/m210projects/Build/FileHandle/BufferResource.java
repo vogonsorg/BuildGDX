@@ -9,6 +9,14 @@ public class BufferResource extends ByteArrayOutputStream {
 
 	private static byte[] tmpbuf = new byte[1024];
 
+	public BufferResource() {
+		super();
+	}
+
+	public BufferResource(int size) {
+		super(size);
+	}
+
 	public int writeBytes(Object array) {
 		int len = 0;
 		if (array instanceof byte[])
@@ -94,7 +102,7 @@ public class BufferResource extends ByteArrayOutputStream {
 	public int writeBoolean(boolean value) {
 		return writeByte(value ? 1 : 0);
 	}
-	
+
 	public int writeByte(int value) {
 		tmpbuf[0] = (byte) value;
 
@@ -129,11 +137,18 @@ public class BufferResource extends ByteArrayOutputStream {
 		tmpbuf[5] = (byte) ((value >>> 40) & 0xFF);
 		tmpbuf[6] = (byte) ((value >>> 48) & 0xFF);
 		tmpbuf[7] = (byte) ((value >>> 56) & 0xFF);
-		
+
 		this.write(tmpbuf, 0, 8);
 		return 8;
 	}
 
+	public void skip(int count) {
+		tmpbuf[0] = 0;
+		while (count-- > 0)
+			this.write(tmpbuf, 0, 1);
+	}
+
+	@Override
 	public int size() {
 		return count;
 	}
