@@ -69,6 +69,12 @@ public class Timer {
 		Avrcount = 0;
 	}
 
+	public static float getAverage() {
+		if(Avrcount != 0)
+			return ((AvrSummTime / Avrcount) / 1000000f);
+		return AvrSummTime / 1000000f;
+	}
+
 	public static long result(String comment) {
 		spentTime = System.nanoTime() - startTime;
 
