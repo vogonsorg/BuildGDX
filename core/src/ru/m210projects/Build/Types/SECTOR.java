@@ -47,6 +47,86 @@ public class SECTOR {
 		buildSector(data);
 	}
 
+	public boolean isParallaxCeiling() {
+		return (ceilingstat & 1) != 0;
+	}
+
+	public boolean isSlopedCeiling() {
+		return (ceilingstat & 2) != 0;
+	}
+
+	public boolean isTexSwapedCeiling() {
+		return (ceilingstat & 4) != 0;
+	}
+
+	public boolean isTexSmooshedCeiling() {
+		return (ceilingstat & 8) != 0;
+	}
+
+	public boolean isTexXFlippedCeiling() {
+		return (ceilingstat & 16) != 0;
+	}
+
+	public boolean isTexYFlippedCeiling() {
+		return (ceilingstat & 32) != 0;
+	}
+
+	public boolean isRelativeTexCeiling() {
+		return (ceilingstat & 64) != 0;
+	}
+
+	public boolean isMaskedTexCeiling() {
+		return (ceilingstat & 128) != 0;
+	}
+
+	public boolean isTransparentCeiling() {
+		return (ceilingstat & 256) != 0;
+	}
+
+	public boolean isTransparent2Ceiling() {
+		return (ceilingstat & (128 | 256)) != 0;
+	}
+
+	public boolean isParallaxFloor() {
+		return (floorstat & 1) != 0;
+	}
+
+	public boolean isSlopedFloor() {
+		return (floorstat & 2) != 0;
+	}
+
+	public boolean isTexSwapedFloor() {
+		return (floorstat & 4) != 0;
+	}
+
+	public boolean isTexSmooshedFloor() {
+		return (floorstat & 8) != 0;
+	}
+
+	public boolean isTexXFlippedFloor() {
+		return (floorstat & 16) != 0;
+	}
+
+	public boolean isTexYFlippedFloor() {
+		return (floorstat & 32) != 0;
+	}
+
+	public boolean isRelativeTexFloor() {
+		return (floorstat & 64) != 0;
+	}
+
+	public boolean isMaskedTexFloor() {
+		return (floorstat & 128) != 0;
+	}
+
+	public boolean isTransparentFloor() {
+		return (floorstat & 256) != 0;
+	}
+
+	public boolean isTransparent2Floor() {
+		return (floorstat & (128 | 256)) != 0;
+	}
+
 	public void buildSector(Resource bb) {
 		wallptr = bb.readShort();
 		if (wallptr < 0 || wallptr >= MAXWALLS)
