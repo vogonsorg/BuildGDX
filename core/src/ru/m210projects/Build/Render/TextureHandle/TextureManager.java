@@ -22,6 +22,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -40,6 +41,9 @@ public class TextureManager {
 	private final GLTileArray cache;
 	private TextureHDInfo info;
 	protected GLTile bindedTile;
+
+//	public GLTile palette;
+//	public GLTile palookup[];
 	protected IndexedTexShader shader;
 	protected int texunits = GL_TEXTURE0;
 	protected ExpandTexture expand = ExpandTexture.Both;
@@ -48,6 +52,7 @@ public class TextureManager {
 		Horizontal(1), Vertical(2), Both(1 | 2);
 
 		private byte bit;
+
 		ExpandTexture(int bit) {
 			this.bit = (byte) bit;
 		}
@@ -59,7 +64,8 @@ public class TextureManager {
 
 	public TextureManager(Engine engine, ExpandTexture opt) {
 		this.engine = engine;
-		cache = new GLTileArray(MAXTILES);
+		this.cache = new GLTileArray(MAXTILES);
+//		this.palookup = new GLTile[MAXPALOOKUPS];
 
 		if (GLSettings.usePaletteShader.get()) {
 			try {
@@ -148,12 +154,9 @@ public class TextureManager {
 	 * @param pal
 	 * @param shade
 	 * @param skybox
-	 * @param method
-	 * 		0: solid,
-	 * 		1: masked(255 is transparent),
-	 * 		2: transluscent #1,
-	 * 		3: transluscent #2,
-	 * 		4: it's a sprite, so wraparound isn't needed
+	 * @param method  0: solid, 1: masked(255 is transparent), 2: transluscent #1,
+	 *                3: transluscent #2, 4: it's a sprite, so wraparound isn't
+	 *                needed
 	 * @return GLTile
 	 *
 	 *
@@ -166,6 +169,8 @@ public class TextureManager {
 			return null;
 
 		if (tile.isRequireShader()) {
+			if (!getShader().isBinded())
+				getShader().bind();
 			getShader().setShaderParams(pal, shade);
 
 			float alpha = 1.0f;
@@ -185,7 +190,8 @@ public class TextureManager {
 			getShader().shaderTransparent(alpha);
 		} else {
 			// texture scale by parkar request
-			if (tile.isHighTile() && ((tile.hicr.xscale != 1.0f) || (tile.hicr.yscale != 1.0f)) && Rendering.Skybox.getIndex() == 0) {
+			if (tile.isHighTile() && ((tile.hicr.xscale != 1.0f) || (tile.hicr.yscale != 1.0f))
+					&& Rendering.Skybox.getIndex() == 0) {
 				BuildGdx.gl.glMatrixMode(GL_TEXTURE);
 				BuildGdx.gl.glLoadIdentity();
 				BuildGdx.gl.glScalef(tile.hicr.xscale, tile.hicr.yscale, 1.0f);
@@ -270,7 +276,8 @@ public class TextureManager {
 	protected TileData loadPic(Hicreplctyp hicr, int dapicnum, int dapalnum, boolean clamping, boolean alpha,
 			int skybox) {
 
-		//System.err.println("loadPic " + dapicnum + " " + dapalnum + " clamping: " + clamping);
+		// System.err.println("loadPic " + dapicnum + " " + dapalnum + " clamping: " +
+		// clamping);
 		if (hicr != null) {
 			String fn = checkResource(hicr, dapicnum, skybox);
 			byte[] data = BuildGdx.cache.getBytes(fn, 0);
@@ -316,6 +323,7 @@ public class TextureManager {
 	}
 
 	protected final Color polyColor = new Color();
+
 	public Color getshadefactor(int shade, int method) {
 		float fshade = min(max(shade * 1.04f, 0), numshades);
 		float f = (numshades - fshade) / numshades;
@@ -343,7 +351,8 @@ public class TextureManager {
 		return new GLTile(pic, palnum, useMipMaps);
 	}
 
-	protected GLTile allocTile(TileData data, Hicreplctyp si, int dapicnum, int dapalnum, int skybox, boolean alpha, boolean useMipMaps) {
+	protected GLTile allocTile(TileData data, Hicreplctyp si, int dapicnum, int dapalnum, int skybox, boolean alpha,
+			boolean useMipMaps) {
 		GLTile tile = newTile(data, data.isHighTile() ? si.palnum : dapalnum, useMipMaps);
 		if (data.isHighTile()) {
 			tile.setHighTile(si);
@@ -355,7 +364,7 @@ public class TextureManager {
 				tile.scaley = tile.getHeight() / 64.0f;
 			} else {
 				Tile pic = engine.getTile(dapicnum);
-				if(data instanceof PixmapTileData) {
+				if (data instanceof PixmapTileData) {
 					tile.width = ((PixmapTileData) data).getTileWidth();
 					tile.height = ((PixmapTileData) data).getTileHeight();
 				}
@@ -412,19 +421,36 @@ public class TextureManager {
 			cache.dispose(i);
 		}
 
-		//GLAtlas dispose
+//		for (int i = 0; i < MAXPALOOKUPS; i++)
+//			if (palookup[i] != null)
+//				palookup[i].delete();
+//		if (palette != null)
+//			palette.delete();
+
+		// GLAtlas dispose
 		pTextfont.uninit();
 		pSmallTextfont.uninit();
 	}
+
+//	public void changePalette(byte[] pal) {
+//		TileData dat = new PaletteData(pal);
+//
+//		if (palette != null)
+//			palette.update(dat, false);
+//		else
+//			palette = newTile(dat, 0, false);
+//
+//		palette.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
+//	}
 
 	public boolean isUseShader() {
 		return shader != null && bindedTile != null && bindedTile.isRequireShader();
 	}
 
 	public boolean isUseShader(int dapic) {
-		if(shader != null) {
+		if (shader != null) {
 			GLTile tile = cache.get(dapic);
-			if(tile != null && tile.isRequireShader())
+			if (tile != null && tile.isRequireShader())
 				return true;
 		}
 		return false;
@@ -433,7 +459,7 @@ public class TextureManager {
 	public boolean enableShader(boolean enable) {
 		boolean isChanged = false;
 		if (enable) {
-			if(shader == null) {
+			if (shader == null) {
 				try {
 					shader = new IndexedTexShader(this);
 					shader.changePalette(curpalette.getBytes());
@@ -449,7 +475,7 @@ public class TextureManager {
 			isChanged = true;
 		}
 
-		if(isChanged)
+		if (isChanged)
 			uninit();
 
 		return shader != null;
