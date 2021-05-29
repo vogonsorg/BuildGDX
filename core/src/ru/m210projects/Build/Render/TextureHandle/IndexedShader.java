@@ -43,6 +43,7 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ "uniform float u_cx2;" //
 			+ "uniform float u_cy2;" //
 			+ "varying float v_dist;" //
+			+ "varying vec2 v_texCoords;" //
 			+ "float fog(float dist) {" //
 			+ "	if(u_fogenable == 1)" //
 			+ "		return clamp(1.0 - (u_fogend - dist) / (u_fogend - u_fogstart), 0.0, 1.0);" //
@@ -59,7 +60,7 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ "	if(gl_FragCoord.x < u_cx1 || gl_FragCoord.x > u_cx2" //
 			+ "		|| gl_FragCoord.y > u_cy1 || gl_FragCoord.y < u_cy2)" //
 			+ "		discard;" //
-			+ "	float fi = texture2D(u_texture, gl_TexCoord[0].xy).r;" //
+			+ "	float fi = texture2D(u_texture, v_texCoords).r;" //
 			+ "	if(fi == 1.0)" //
 			+ "	{" //
 			+ "		if(u_draw255 == 0) discard;" //
@@ -74,12 +75,14 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ "}"; //
 
 	public static final String defaultVertex = "varying float v_dist;" //
+			+ "varying vec2 v_texCoords;" //
 			+ "void main()" //
 			+ "{" //
 			+ "	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;" //
-			+ "	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;" //
-			+ " v_dist = gl_ClipVertex.z / gl_ClipVertex.w;" //
+			+ "	vec4 mv = gl_ModelViewMatrix * gl_Vertex;" //
+			+ " v_dist = mv.z / mv.w;" //
 			+ "	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;" //
+			+ " v_texCoords = gl_TexCoord[0].xy;" //
 			+ "}"; //
 
 	private int paletteloc;

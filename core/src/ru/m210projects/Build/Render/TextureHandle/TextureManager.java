@@ -38,7 +38,6 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -85,9 +84,11 @@ public class TextureManager {
 		this.engine = engine;
 		this.cache = new GLTileArray(MAXTILES);
 		this.palookups = new GLTile[MAXPALOOKUPS];
-
-		Gdx.input.setCursorCatched(false);
-		this.shader = allocIndexedShader();
+		if (GLSettings.usePaletteShader.get()) {
+			this.shader = allocIndexedShader();
+			if (this.shader == null)
+				GLSettings.usePaletteShader.set(false);
+		}
 		this.expand = opt;
 	}
 
@@ -424,6 +425,12 @@ public class TextureManager {
 		return shader;
 	}
 
+	public void setShader(IndexedShader shader) {
+		if (this.shader != null)
+			this.shader.dispose();
+		this.shader = shader;
+	}
+
 	public boolean clampingMode(int dameth) {
 		return ((dameth & 4) >> 2) == 1;
 	}
@@ -438,12 +445,6 @@ public class TextureManager {
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			cache.dispose(i);
 		}
-
-		for (int i = 0; i < MAXPALOOKUPS; i++)
-			if (palookups[i] != null)
-				palookups[i].dispose();
-		if (palette != null)
-			palette.dispose();
 
 		// GLAtlas dispose
 		pTextfont.uninit();

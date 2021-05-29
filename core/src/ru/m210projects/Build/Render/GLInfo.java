@@ -89,10 +89,8 @@ public class GLInfo {
 			vbos = 1;
 		}
 		if (BuildGdx.graphics.supportsExtension("GL_ARB_framebuffer_object")
-				|| BuildGdx.graphics.supportsExtension("GL_EXT_framebuffer_object")
-				|| BuildGdx.gl30 != null
-				|| BuildGdx.app.getType() == ApplicationType.Android
-				|| BuildGdx.app.getType() == ApplicationType.WebGL
+				|| BuildGdx.graphics.supportsExtension("GL_EXT_framebuffer_object") || BuildGdx.gl30 != null
+				|| BuildGdx.app.getType() == ApplicationType.Android || BuildGdx.app.getType() == ApplicationType.WebGL
 				|| BuildGdx.app.getType() == ApplicationType.iOS) {
 			supportsGenerateMipmaps = true;
 		}
@@ -109,5 +107,15 @@ public class GLInfo {
 
 	public static float getMaxAnisotropicFilterLevel() {
 		return maxanisotropy;
+	}
+
+	public static int calcSize(int size) {
+		int nsize = 1;
+		if (GLInfo.texnpot == 0) {
+			for (; nsize < size; nsize *= 2)
+				;
+			return nsize;
+		}
+		return size == 0 ? 1 : size;
 	}
 }
