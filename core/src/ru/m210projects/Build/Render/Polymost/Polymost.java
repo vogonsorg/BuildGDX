@@ -312,7 +312,7 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public TextureManager getTextureManager() {
-		if(textureCache == null)
+		if (textureCache == null)
 			return newTextureManager(engine);
 		return textureCache;
 	}
@@ -351,7 +351,7 @@ public abstract class Polymost implements GLRenderer {
 	@Override
 	public void changepalette(final byte[] palette) {
 		if (textureCache.getShader() != null)
-			textureCache.getShader().changePalette(palette);
+			textureCache.changePalette(palette);
 	}
 
 	public void clearskins(boolean bit8only) {
@@ -701,8 +701,8 @@ public abstract class Polymost implements GLRenderer {
 			}
 		}
 
-		if(textureCache.isUseShader())
-			textureCache.getShader().setVisibility((int)globalfog.combvis);
+		if (textureCache.isUseShader())
+			textureCache.getShader().setVisibility((int) globalfog.combvis);
 		globalfog.apply();
 
 		// Hack for walls&masked walls which use textures that are not a power of 2
@@ -1264,8 +1264,7 @@ public abstract class Polymost implements GLRenderer {
 					// over
 					calc_ypanning(i, ryp0, ryp1, x0, x1, wal.ypanning, wal.yrepeat, wal.isBottomAligned());
 
-					if (wal.isXFlip())
-					{
+					if (wal.isXFlip()) {
 						t = fwalxrepeat * 8 + wal.xpanning * 2;
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
@@ -1313,8 +1312,7 @@ public abstract class Polymost implements GLRenderer {
 					calc_ypanning(i, ryp0, ryp1, x0, x1, drawalls_nwal.ypanning, wal.yrepeat,
 							!drawalls_nwal.isBottomAligned());
 
-					if (wal.isXFlip())
-					{
+					if (wal.isXFlip()) {
 						t = (fwalxrepeat * 8 + drawalls_nwal.xpanning * 2);
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
@@ -1366,15 +1364,13 @@ public abstract class Polymost implements GLRenderer {
 					// white
 					calc_ypanning(i, ryp0, ryp1, x0, x1, wal.ypanning, wal.yrepeat, nwcs4 && !maskingOneWay);
 
-					if (wal.isXFlip())
-					{
+					if (wal.isXFlip()) {
 						t = (fwalxrepeat * 8 + wal.xpanning * 2);
 						gux = gdx * t - gux;
 						guy = gdy * t - guy;
 						guo = gdo * t - guo;
 					}
-					if (wal.isYFlip())
-					{
+					if (wal.isYFlip()) {
 						gvx = -gvx;
 						gvy = -gvy;
 						gvo = -gvo;
@@ -2320,8 +2316,7 @@ public abstract class Polymost implements GLRenderer {
 		calc_ypanning((!wal.isBottomAligned()) ? max(nsec.ceilingz, sec.ceilingz) : min(nsec.floorz, sec.floorz), ryp0,
 				ryp1, x0, x1, wal.ypanning, wal.yrepeat, false);
 
-		if (wal.isXFlip())
-		{
+		if (wal.isXFlip()) {
 			t = (wal.xrepeat & 0xFF) * 8 + wal.xpanning * 2;
 			gux = gdx * t - gux;
 			guy = gdy * t - guy;
@@ -2522,7 +2517,7 @@ public abstract class Polymost implements GLRenderer {
 
 		Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
 
-		if(sprext != null) {
+		if (sprext != null) {
 			tspr.x += sprext.xoff;
 			tspr.y += sprext.yoff;
 			tspr.z += sprext.zoff;
@@ -2579,7 +2574,7 @@ public abstract class Polymost implements GLRenderer {
 		rendering = Rendering.Sprite.setIndex(snum);
 		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
-		if(sprext != null) {
+		if (sprext != null) {
 			if ((sprext.flags & SPREXT_AWAY1) != 0) {
 				posx += (sintable[(tspr.ang + 512) & 2047] >> 13);
 				posy += (sintable[(tspr.ang) & 2047] >> 13);
@@ -2674,7 +2669,7 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			// sprite panning
-			if(sprext != null) {
+			if (sprext != null) {
 				if (sprext.xpanning != 0) {
 					guy -= gdy * ((sprext.xpanning) / 255.f) * tsizx;
 					guo -= gdo * ((sprext.xpanning) / 255.f) * tsizx;
@@ -3015,7 +3010,7 @@ public abstract class Polymost implements GLRenderer {
 			}
 
 			// sprite panning
-			if(sprext != null) {
+			if (sprext != null) {
 				if (sprext.xpanning != 0) {
 					guy -= gdy * ((sprext.xpanning) / 255.f) * tsizx;
 					guo -= gdo * ((sprext.xpanning) / 255.f) * tsizx;
@@ -3078,7 +3073,7 @@ public abstract class Polymost implements GLRenderer {
 		gl.glEnable(GL_BLEND);
 		boolean hasShader = textureCache.isUseShader();
 		if (hasShader)
-			textureCache.getShader().unbind();
+			textureCache.getShader().end();
 
 		palfadergb.draw(gl);
 		if (fades != null) {
@@ -3090,7 +3085,7 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		if (hasShader)
-			textureCache.getShader().bind();
+			textureCache.getShader().begin();
 
 		gl.glMatrixMode(GL_MODELVIEW);
 		gl.glPopMatrix();
@@ -3143,10 +3138,10 @@ public abstract class Polymost implements GLRenderer {
 
 	protected void calc_and_apply_fog(int shade, int vis, int pal) {
 		globalfog.shade = shade;
-		//globalfog.combvis = globalvisibility * ((vis + 16) & 0xFF);
+		// globalfog.combvis = globalvisibility * ((vis + 16) & 0xFF);
 
 		globalfog.combvis = globalvisibility;
-		if(vis != 0)
+		if (vis != 0)
 			globalfog.combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
 
 		globalfog.pal = pal;
@@ -3363,7 +3358,7 @@ public abstract class Polymost implements GLRenderer {
 			BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
 			boolean hasShader = textureCache.getShader() != null;
 			if (hasShader)
-				textureCache.getShader().unbind();
+				textureCache.getShader().end();
 
 			if (frameTexture == null || framew != xdim || frameh != ydim) {
 				if (frameTexture != null)
@@ -3434,7 +3429,7 @@ public abstract class Polymost implements GLRenderer {
 			gl.glDisable(GL_TEXTURE_2D);
 
 			if (hasShader)
-				textureCache.getShader().bind();
+				textureCache.getShader().begin();
 		}
 	}
 
@@ -3454,8 +3449,8 @@ public abstract class Polymost implements GLRenderer {
 				break;
 			case Palookup:
 				for (int j = 0; j < MAXPALOOKUPS; j++) {
-					if(textureCache.getShader() != null)
-						textureCache.getShader().invalidatepalookup(j);
+					if (textureCache.getShader() != null)
+						textureCache.invalidatepalookup(j);
 				}
 				break;
 			case All:
@@ -3478,9 +3473,10 @@ public abstract class Polymost implements GLRenderer {
 		mdtims = engine.getticks();
 
 		for (int i = 0; i < MAXSPRITES; i++) {
-			if(mdpause != 0) {
+			if (mdpause != 0) {
 				Spriteext sprext = defs.mapInfo.getSpriteInfo(i);
-				if(sprext == null) continue;
+				if (sprext == null)
+					continue;
 
 				if ((mdpause != 0 && sprext.mdanimtims != 0) || ((sprext.flags & SPREXT_NOMDANIM) != 0))
 					sprext.mdanimtims += mdtims - omdtims;
@@ -3815,7 +3811,7 @@ public abstract class Polymost implements GLRenderer {
 
 	@Override
 	public PixelFormat getTexFormat() {
-		return PixelFormat.Rgb; //textureCache.getShader() != null ? PixelFormat.Pal8 : PixelFormat.Rgb;
+		return PixelFormat.Rgb; // textureCache.getShader() != null ? PixelFormat.Pal8 : PixelFormat.Rgb;
 	}
 
 	@Override

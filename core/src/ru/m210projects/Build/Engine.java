@@ -3471,7 +3471,7 @@ public abstract class Engine {
 		render.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
 	}
 
-	public void makepalookup(int palnum, byte[] remapbuf, int r, int g, int b, int dastat) // jfBuild
+	public void makepalookup(final int palnum, byte[] remapbuf, int r, int g, int b, int dastat) // jfBuild
 	{
 		if (paletteloaded == 0)
 			return;
@@ -3516,10 +3516,15 @@ public abstract class Engine {
 			palookupfog[palnum][2] = (byte) b;
 		}
 
-		final GLRenderer gl = glrender();
-		if (gl != null && gl.getTextureManager().getShader() != null) {
-			gl.getTextureManager().getShader().invalidatepalookup(palnum);
-		}
+		BuildGdx.app.postRunnable(new Runnable() {
+			@Override
+			public void run() {
+				final GLRenderer gl = glrender();
+				if (gl != null && gl.getTextureManager().getShader() != null) {
+					gl.getTextureManager().invalidatepalookup(palnum);
+				}
+			}
+		});
 	}
 
 	public void setbrightness(int dabrightness, byte[] dapal, GLInvalidateFlag flags) {

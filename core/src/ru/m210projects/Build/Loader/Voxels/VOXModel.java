@@ -154,17 +154,17 @@ public class VOXModel extends Model {
 
 	public GLTile bindSkin(TextureManager textureCache, int pal, int shade, float alpha) {
 		int dapal = pal;
-		if(textureCache.getShader() != null)
+		if (textureCache.getShader() != null)
 			pal = 0;
 
 		if (texid[pal] == null)
 			loadskin(pal, textureCache.getShader() != null);
 
 		GLTile tile = textureCache.bind(texid[pal]);
-		if(tile.isRequireShader()) {
-			textureCache.getShader().setShaderParams(dapal, shade);
-			textureCache.getShader().shaderDrawLastIndex(true);
-			textureCache.getShader().shaderTransparent(alpha);
+		if (tile.isRequireShader()) {
+			textureCache.getShader().setTextureParams(dapal, shade);
+			textureCache.getShader().setDrawLastIndex(true);
+			textureCache.getShader().setTransparent(alpha);
 		}
 
 		return tile;

@@ -122,12 +122,12 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 
 		int width = pic.getWidth();
 		int height = pic.getHeight();
-		if(pic instanceof PixmapTileData) {
+		if (pic instanceof PixmapTileData) {
 			width = ((PixmapTileData) pic).getTileWidth();
 			height = ((PixmapTileData) pic).getTileHeight();
 		}
 
-		//Realloc, because the texture size isn't match
+		// Realloc, because the texture size isn't match
 		if ((getWidth() != width || getHeight() != height)) {
 			delete();
 
@@ -136,8 +136,9 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 			this.height = pic.getHeight();
 
 			alloc(pic);
-		} else BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
-				GL_UNSIGNED_BYTE, pic.getPixels());
+		} else
+			BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
+					GL_UNSIGNED_BYTE, pic.getPixels());
 
 		if (useMipMaps)
 			generateMipmap(pic, false);
@@ -147,8 +148,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 
 	protected int calcMipLevel(int xsiz, int ysiz, int maxsize) {
 		int mipLevel = 0;
-		while ((xsiz >> mipLevel) > (1 << maxsize)
-				|| (ysiz >> mipLevel) > (1 << maxsize))
+		while ((xsiz >> mipLevel) > (1 << maxsize) || (ysiz >> mipLevel) > (1 << maxsize))
 			mipLevel++;
 		return mipLevel;
 	}
@@ -166,93 +166,89 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		int r, g, b, a, k, wpptr, rpptr, wp, rp, index, rgb;
 
 		ByteBuffer pic = data.getPixels();
-	    for (int j = 1, x, y; (x2 > 1) || (y2 > 1); j++)
-	    {
-	        x3 = Math.max(1, x2 >> 1);
-	        y3 = Math.max(1, y2 >> 1);		// this came from the GL_ARB_texture_non_power_of_two spec
-	        for (y = 0; y < y3; y++)
-	        {
-	            wpptr = y * x3;
-	            rpptr = (y << 1) * x2;
-	            for (x = 0; x < x3; x++, wpptr++, rpptr += 2)
-	            {
-	            	wp = wpptr << 2;
-	            	rp = rpptr << 2;
-	            	r = g = b = a = k = 0;
+		for (int j = 1, x, y; (x2 > 1) || (y2 > 1); j++) {
+			x3 = Math.max(1, x2 >> 1);
+			y3 = Math.max(1, y2 >> 1); // this came from the GL_ARB_texture_non_power_of_two spec
+			for (y = 0; y < y3; y++) {
+				wpptr = y * x3;
+				rpptr = (y << 1) * x2;
+				for (x = 0; x < x3; x++, wpptr++, rpptr += 2) {
+					wp = wpptr << 2;
+					rp = rpptr << 2;
+					r = g = b = a = k = 0;
 
-	            	index = rp;
-	                if (pic.get(index + 3) != 0)
-	                {
-	                	r += pic.get(index + 0) & 0xFF;
+					index = rp;
+					if (pic.get(index + 3) != 0) {
+						r += pic.get(index + 0) & 0xFF;
 						g += pic.get(index + 1) & 0xFF;
 						b += pic.get(index + 2) & 0xFF;
 						a += pic.get(index + 3) & 0xFF;
-	                	k++;
-	                }
-	                index = rp + 4;
-	                if (((x << 1) + 1 < x2) && (pic.get(index + 3) != 0))
-	                {
-	                	r += pic.get(index + 0) & 0xFF;
+						k++;
+					}
+					index = rp + 4;
+					if (((x << 1) + 1 < x2) && (pic.get(index + 3) != 0)) {
+						r += pic.get(index + 0) & 0xFF;
 						g += pic.get(index + 1) & 0xFF;
 						b += pic.get(index + 2) & 0xFF;
 						a += pic.get(index + 3) & 0xFF;
-	                	k++;
-	                }
-	                if ((y << 1) + 1 < y2)
-	                {
-	                	index = rp + (x2 << 2);
-	                    if (pic.get(index + 3) != 0)
-	                    {
-	                    	r += pic.get(index + 0) & 0xFF;
+						k++;
+					}
+					if ((y << 1) + 1 < y2) {
+						index = rp + (x2 << 2);
+						if (pic.get(index + 3) != 0) {
+							r += pic.get(index + 0) & 0xFF;
 							g += pic.get(index + 1) & 0xFF;
 							b += pic.get(index + 2) & 0xFF;
 							a += pic.get(index + 3) & 0xFF;
-	                    	k++;
-	                    }
+							k++;
+						}
 
-	                    index = rp + ((x2 + 1) << 2);
-	                    if (((x << 1) + 1 < x2) && pic.get(index + 3) != 0)
-	                    {
-	                    	r += pic.get(index + 0) & 0xFF;
+						index = rp + ((x2 + 1) << 2);
+						if (((x << 1) + 1 < x2) && pic.get(index + 3) != 0) {
+							r += pic.get(index + 0) & 0xFF;
 							g += pic.get(index + 1) & 0xFF;
 							b += pic.get(index + 2) & 0xFF;
 							a += pic.get(index + 3) & 0xFF;
-	                    	k++;
-	                    }
-	                }
-	                switch (k)
-	                {
-		                case 0:
-		                case 1:
-					        rgb = ( (a) << 24 ) + ( (b) << 16 ) + ( (g) << 8 ) + ( (r) << 0 );
-							break;
-						case 2:
-							rgb = ( ((a + 1) >> 1) << 24 ) + ( ((b + 1) >> 1) << 16 ) + ( ((g + 1) >> 1) << 8 ) + ( ((r + 1) >> 1) << 0 );
-							break;
-						case 3:
-							rgb = ( ((a * 85 + 128) >> 8) << 24 ) + ( ((b * 85 + 128) >> 8) << 16 ) + ( ((g * 85 + 128) >> 8) << 8 ) + ( ((r * 85 + 128) >> 8) << 0 );
-							break;
-						case 4:
-							rgb = ( ((a + 2) >> 2) << 24 ) + ( ((b + 2) >> 2) << 16 ) + ( ((g + 2) >> 2) << 8 ) + ( ((r + 2) >> 2) << 0 );
-							break;
-						default:
-							continue;
-	                }
+							k++;
+						}
+					}
+					switch (k) {
+					case 0:
+					case 1:
+						rgb = ((a) << 24) + ((b) << 16) + ((g) << 8) + ((r) << 0);
+						break;
+					case 2:
+						rgb = (((a + 1) >> 1) << 24) + (((b + 1) >> 1) << 16) + (((g + 1) >> 1) << 8)
+								+ (((r + 1) >> 1) << 0);
+						break;
+					case 3:
+						rgb = (((a * 85 + 128) >> 8) << 24) + (((b * 85 + 128) >> 8) << 16)
+								+ (((g * 85 + 128) >> 8) << 8) + (((r * 85 + 128) >> 8) << 0);
+						break;
+					case 4:
+						rgb = (((a + 2) >> 2) << 24) + (((b + 2) >> 2) << 16) + (((g + 2) >> 2) << 8)
+								+ (((r + 2) >> 2) << 0);
+						break;
+					default:
+						continue;
+					}
 
-	                pic.putInt(wp, rgb);
-	            }
-	        }
-
-	        if (j >= mipLevel)
-	        {
-	        	if (doalloc) {
-	        		BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, j - mipLevel, data.getGLInternalFormat(), x3, y3, 0, data.getGLFormat(), GL_UNSIGNED_BYTE, pic); // loading 1st time
-				} else {
-					BuildGdx.gl.glTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, data.getGLFormat(), GL_UNSIGNED_BYTE, pic); // overwrite old texture
+					pic.putInt(wp, rgb);
 				}
-	        }
-	        x2 = x3; y2 = y3;
-	    }
+			}
+
+			if (j >= mipLevel) {
+				if (doalloc) {
+					BuildGdx.gl.glTexImage2D(GL_TEXTURE_2D, j - mipLevel, data.getGLInternalFormat(), x3, y3, 0,
+							data.getGLFormat(), GL_UNSIGNED_BYTE, pic); // loading 1st time
+				} else {
+					BuildGdx.gl.glTexSubImage2D(GL_TEXTURE_2D, j - mipLevel, 0, 0, x3, y3, data.getGLFormat(),
+							GL_UNSIGNED_BYTE, pic); // overwrite old texture
+				}
+			}
+			x2 = x3;
+			y2 = y3;
+		}
 
 	}
 
@@ -269,7 +265,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	}
 
 	public void setupTextureFilter(GLFilter filter, int anisotropy) {
-		if(isRequireShader) {
+		if (isRequireShader) {
 			unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
 			unsafeSetAnisotropicFilter(1, true);
 			return;
@@ -280,10 +276,13 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	}
 
 	public float unsafeSetAnisotropicFilter(float level, boolean force) {
-		// 1 if you want to disable anisotropy
+		if (isRequireShader)
+			return 1.0f;
 
+		// 1 if you want to disable anisotropy
 		float max = GLInfo.getMaxAnisotropicFilterLevel();
-		if (max == 1.0f) return 1.0f;
+		if (max == 1.0f)
+			return 1.0f;
 
 		level = Math.min(level, max);
 		if (!force && MathUtils.isEqual(level, anisotropicFilterLevel, 0.1f))
@@ -473,5 +472,6 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	}
 
 	@Override
-	protected void reload() {}
+	protected void reload() {
+	}
 }
