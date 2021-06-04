@@ -16,7 +16,7 @@
 
 package ru.m210projects.Build.Types;
 
-import static com.badlogic.gdx.graphics.GL20.GL_ALPHA;
+import static com.badlogic.gdx.graphics.GL20.*;
 import static ru.m210projects.Build.Engine.pow2char;
 import static ru.m210projects.Build.Engine.textfont;
 import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;

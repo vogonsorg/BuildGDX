@@ -35,6 +35,7 @@ import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 
@@ -55,6 +56,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 	protected final TextureManager textureCache;
 	protected final GdxBatch batch;
 	protected final ShapeRenderer shape;
+	protected ShaderProgram bitmapShader;
 
 	public GdxOrphoRen(Engine engine, TextureManager textureCache) {
 		super(engine);
@@ -62,6 +64,44 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		this.batch = new GdxBatch();
 		this.shape = new ShapeRenderer();
+		this.bitmapShader = createBitmapShader();
+	}
+
+	public ShaderProgram createBitmapShader() {
+		String vertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
+				+ "attribute vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
+				+ "attribute vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
+				+ "uniform mat4 u_projTrans;\n" //
+				+ "varying vec4 v_color;\n" //
+				+ "varying vec2 v_texCoords;\n" //
+				+ "\n" //
+				+ "void main()\n" //
+				+ "{\n" //
+				+ "   v_color = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
+				+ "   v_color.a = v_color.a * (255.0/254.0);\n" //
+				+ "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
+				+ "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
+				+ "}\n";
+
+		String fragmentShader = "#ifdef GL_ES\n" //
+				+ "#define LOWP lowp\n" //
+				+ "precision mediump float;\n" //
+				+ "#else\n" //
+				+ "#define LOWP \n" //
+				+ "#endif\n" //
+				+ "varying LOWP vec4 v_color;\n" //
+				+ "varying vec2 v_texCoords;\n" //
+				+ "uniform sampler2D u_texture;\n" //
+				+ "void main()\n" //
+				+ "{" //
+				+ "	float alpha = texture2D(u_texture, v_texCoords).a;" //
+				+ "	gl_FragColor = vec4(v_color.rgb, alpha);\n" //
+				+ "}"; //
+
+		ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
+		if (!shader.isCompiled())
+			throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
+		return shader;
 	}
 
 	@Override
@@ -81,6 +121,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 	@Override
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
+
 		if (font.type == FontType.Tilemap) {
 			if (palookup[col] == null)
 				col = 0;
@@ -89,6 +130,9 @@ public class GdxOrphoRen extends OrphoRenderer {
 			if (!engine.getTile(nTile).isLoaded() && engine.loadtile(nTile) == null)
 				return;
 		}
+
+		ShaderProgram oldShader = batch.getShader();
+		batch.setShader(bitmapShader);
 
 		GLTile atlas = font.getGL(textureCache, col);
 		if (atlas == null)
@@ -134,6 +178,8 @@ public class GdxOrphoRen extends OrphoRenderer {
 			c++;
 		}
 		BuildGdx.gl.glDepthMask(true); // re-enable writing to the z-buffer
+
+		batch.setShader(oldShader);
 	}
 
 	@Override
