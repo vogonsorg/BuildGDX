@@ -63,7 +63,7 @@ public class TextureManager {
 	protected GLTile bindedTile;
 	protected GLTile palette; // to shader
 	protected GLTile palookups[]; // to shader
-	protected IndexedShader shader;
+//	protected IndexedShader shader;
 	protected int texunits = GL_TEXTURE0;
 	protected ExpandTexture expand = ExpandTexture.Both;
 
@@ -85,11 +85,11 @@ public class TextureManager {
 		this.engine = engine;
 		this.cache = new GLTileArray(MAXTILES);
 		this.palookups = new GLTile[MAXPALOOKUPS];
-		if (GLSettings.usePaletteShader.get()) {
-			this.shader = allocIndexedShader();
-			if (this.shader == null)
-				GLSettings.usePaletteShader.set(false);
-		}
+//		if (GLSettings.usePaletteShader.get()) {
+//			this.shader = allocIndexedShader();
+//			if (this.shader == null)
+//				GLSettings.usePaletteShader.set(false);
+//		}
 		this.expand = opt;
 	}
 
@@ -97,7 +97,7 @@ public class TextureManager {
 		this.info = info;
 	}
 
-	protected GLTile get(int dapicnum, int dapalnum, int skybox, boolean clamping, boolean alpha) {
+	protected GLTile get(PixelFormat fmt, int dapicnum, int dapalnum, int skybox, boolean clamping, boolean alpha) {
 		Hicreplctyp si = (GLSettings.useHighTile.get() && info != null) ? info.findTexture(dapicnum, dapalnum, skybox)
 				: null;
 
@@ -114,9 +114,8 @@ public class TextureManager {
 			tile = null;
 		}
 
-		PixelFormat fmt = shader != null ? PixelFormat.Pal8 : PixelFormat.Rgb;
 		boolean useMipMaps = GLSettings.textureFilter.get().mipmaps;
-		if (tile != null) {
+		if (tile != null && tile.getPixelFormat() == fmt) {
 			if (tile.isInvalidated()) {
 				tile.setInvalidated(false);
 
@@ -124,6 +123,9 @@ public class TextureManager {
 				tile.update(data, useMipMaps);
 			}
 		} else {
+			if (tile != null)
+				cache.dispose(dapicnum); // old texture
+
 			if (si != null && dapalnum != 0 && info.findTexture(dapicnum, 0, skybox) == si
 					&& (tile = cache.get(dapicnum, 0, clamping, skybox)) != null)
 				return tile;
@@ -147,18 +149,18 @@ public class TextureManager {
 		if (bindedTile == tile)
 			return tile;
 
-		if (shader != null && tile.getPixelFormat() != PixelFormat.Pal8 && bindedTile != null
-				&& bindedTile.getPixelFormat() == PixelFormat.Pal8) {
-			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-			shader.end();
-		}
+//		if (shader != null && tile.getPixelFormat() != PixelFormat.Pal8 && bindedTile != null
+//				&& bindedTile.getPixelFormat() == PixelFormat.Pal8) {
+//			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+//			shader.end();
+//		}
 
 		tile.bind();
-		if (shader != null && tile.getPixelFormat() == PixelFormat.Pal8
-				&& (bindedTile == null || bindedTile.getPixelFormat() != PixelFormat.Pal8)) {
-			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-			shader.begin();
-		}
+//		if (shader != null && tile.getPixelFormat() == PixelFormat.Pal8
+//				&& (bindedTile == null || bindedTile.getPixelFormat() != PixelFormat.Pal8)) {
+//			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+//			shader.begin();
+//		}
 
 		bindedTile = tile;
 
@@ -176,99 +178,99 @@ public class TextureManager {
 	 *                needed
 	 * @return GLTile
 	 */
-	public GLTile bind(int tilenum, int pal, int shade, int skybox, int method) {
-		Tile pic = engine.getTile(tilenum);
+	public GLTile bind(PixelFormat fmt, int tilenum, int pal, int shade, int skybox, int method) {
+//		Tile pic = engine.getTile(tilenum);
 
-		GLTile tile = get(tilenum, pal, skybox, clampingMode(method), alphaMode(method));
+		GLTile tile = get(fmt, tilenum, pal, skybox, clampingMode(method), alphaMode(method));
 		if (tile == null)
 			return null;
 
 		bind(tile);
-		if (tile.getPixelFormat() == PixelFormat.Pal8) {
-			if (!shader.isBinded()) {
-				BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-				shader.begin();
-			}
-			shader.setTextureParams(pal, shade);
-
-			float alpha = 1.0f;
-			switch (method & 3) {
-			case 2:
-				alpha = TRANSLUSCENT1;
-				break;
-			case 3:
-				alpha = TRANSLUSCENT2;
-				break;
-			}
-
-			if (!pic.isLoaded())
-				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-
-			shader.setDrawLastIndex((method & 3) == 0 || !alphaMode(method));
-			shader.setTransparent(alpha);
-		} else {
-			// texture scale by parkar request
-			if (tile.isHighTile() && ((tile.hicr.xscale != 1.0f) || (tile.hicr.yscale != 1.0f))
-					&& Rendering.Skybox.getIndex() == 0) {
-				BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-				BuildGdx.gl.glLoadIdentity();
-				BuildGdx.gl.glScalef(tile.hicr.xscale, tile.hicr.yscale, 1.0f);
-				BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-			}
-
-			if (GLInfo.multisample != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0) {
-				if (Console.Geti("r_detailmapping") != 0) {
-					GLTile detail = get(tilenum, DETAILPAL, 0, clampingMode(method), alphaMode(method));
-					if (detail != null) {
-						bind(detail);
-						detail.setupTextureDetail();
-
-						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-						BuildGdx.gl.glLoadIdentity();
-						if (detail.isHighTile() && (detail.hicr.xscale != 1.0f) || (detail.hicr.yscale != 1.0f))
-							BuildGdx.gl.glScalef(detail.hicr.xscale, detail.hicr.yscale, 1.0f);
-						BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-					}
-				}
-
-				if (Console.Geti("r_glowmapping") != 0) {
-					GLTile glow = get(tilenum, GLOWPAL, 0, clampingMode(method), alphaMode(method));
-					if (glow != null) {
-						bind(glow);
-						glow.setupTextureGlow();
-					}
-				}
-			}
-
-			Color c = getshadefactor(shade, method);
-			if (tile.isHighTile() && info != null) {
-				if (tile.getPal() != pal) {
-					// apply tinting for replaced textures
-
-					Palette p = info.getTints(pal);
-					c.r *= p.r / 255.0f;
-					c.g *= p.g / 255.0f;
-					c.b *= p.b / 255.0f;
-				}
-
-				Palette pdetail = info.getTints(MAXPALOOKUPS - 1);
-				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-					c.r *= pdetail.r / 255.0f;
-					c.g *= pdetail.g / 255.0f;
-					c.b *= pdetail.b / 255.0f;
-				}
-			}
-
-			if (!pic.isLoaded())
-				c.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-			tile.setColor(c.r, c.g, c.b, c.a);
-		}
+//		if (tile.getPixelFormat() == PixelFormat.Pal8) {
+//			if (!shader.isBinded()) {
+//				BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+//				shader.begin();
+//			}
+//			shader.setTextureParams(pal, shade);
+//
+//			float alpha = 1.0f;
+//			switch (method & 3) {
+//			case 2:
+//				alpha = TRANSLUSCENT1;
+//				break;
+//			case 3:
+//				alpha = TRANSLUSCENT2;
+//				break;
+//			}
+//
+//			if (!pic.isLoaded())
+//				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+//
+//			shader.setDrawLastIndex((method & 3) == 0 || !alphaMode(method));
+//			shader.setTransparent(alpha);
+//		} else {
+//			// texture scale by parkar request
+//			if (tile.isHighTile() && ((tile.hicr.xscale != 1.0f) || (tile.hicr.yscale != 1.0f))
+//					&& Rendering.Skybox.getIndex() == 0) {
+//				BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+//				BuildGdx.gl.glLoadIdentity();
+//				BuildGdx.gl.glScalef(tile.hicr.xscale, tile.hicr.yscale, 1.0f);
+//				BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+//			}
+//
+//			if (GLInfo.multisample != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0) {
+//				if (Console.Geti("r_detailmapping") != 0) {
+//					GLTile detail = get(tilenum, DETAILPAL, 0, clampingMode(method), alphaMode(method));
+//					if (detail != null) {
+//						bind(detail);
+//						detail.setupTextureDetail();
+//
+//						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+//						BuildGdx.gl.glLoadIdentity();
+//						if (detail.isHighTile() && (detail.hicr.xscale != 1.0f) || (detail.hicr.yscale != 1.0f))
+//							BuildGdx.gl.glScalef(detail.hicr.xscale, detail.hicr.yscale, 1.0f);
+//						BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+//					}
+//				}
+//
+//				if (Console.Geti("r_glowmapping") != 0) {
+//					GLTile glow = get(tilenum, GLOWPAL, 0, clampingMode(method), alphaMode(method));
+//					if (glow != null) {
+//						bind(glow);
+//						glow.setupTextureGlow();
+//					}
+//				}
+//			}
+//
+//			Color c = getshadefactor(shade, method);
+//			if (tile.isHighTile() && info != null) {
+//				if (tile.getPal() != pal) {
+//					// apply tinting for replaced textures
+//
+//					Palette p = info.getTints(pal);
+//					c.r *= p.r / 255.0f;
+//					c.g *= p.g / 255.0f;
+//					c.b *= p.b / 255.0f;
+//				}
+//
+//				Palette pdetail = info.getTints(MAXPALOOKUPS - 1);
+//				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
+//					c.r *= pdetail.r / 255.0f;
+//					c.g *= pdetail.g / 255.0f;
+//					c.b *= pdetail.b / 255.0f;
+//				}
+//			}
+//
+//			if (!pic.isLoaded())
+//				c.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+//			tile.setColor(c.r, c.g, c.b, c.a);
+//		}
 
 		return tile;
 	}
 
-	public void precache(int dapicnum, int dapalnum, boolean clamped) {
-		get(dapicnum, dapalnum, 0, clamped, true);
+	public void precache(PixelFormat fmt, int dapicnum, int dapalnum, boolean clamped) {
+		get(fmt, dapicnum, dapalnum, 0, clamped, true);
 	}
 
 	public int getTextureUnits() {
@@ -535,19 +537,19 @@ public class TextureManager {
 		return null;
 	}
 
-	public IndexedShader getShader() {
-		return shader;
-	}
-
-	public void setShader(IndexedShader shader) {
-		if (this.shader != null)
-			this.shader.dispose();
-		this.shader = shader;
-	}
+//	public IndexedShader getShader() {
+//		return shader;
+//	}
+//
+//	public void setShader(IndexedShader shader) {
+//		if (this.shader != null)
+//			this.shader.dispose();
+//		this.shader = shader;
+//	}
 
 	public void changePalette(byte[] pal) {
-		if (shader == null)
-			return;
+//		if (shader == null)
+//			return;
 
 		TileData dat = new PaletteData(pal);
 
@@ -560,53 +562,53 @@ public class TextureManager {
 	}
 
 	public void invalidatepalookup(int pal) {
-		if (shader == null)
-			return;
+//		if (shader == null)
+//			return;
 
 		if (palookups[pal] != null)
 			palookups[pal].setInvalidated(true);
 	}
 
-	public boolean isUseShader() {
-		return shader != null && bindedTile != null && bindedTile.getPixelFormat() == PixelFormat.Pal8;
-	}
+//	public boolean isUseShader() {
+//		return shader != null && bindedTile != null && bindedTile.getPixelFormat() == PixelFormat.Pal8;
+//	}
 
 	public boolean isUseShader(int dapic) {
-		if (shader != null) {
-			GLTile tile = cache.get(dapic);
-			if (tile != null && tile.getPixelFormat() == PixelFormat.Pal8)
-				return true;
-		}
+//		if (shader != null) {
+		GLTile tile = cache.get(dapic);
+		if (tile != null && tile.getPixelFormat() == PixelFormat.Pal8)
+			return true;
+//		}
 		return false;
 	}
 
-	public boolean enableShader(boolean enable) {
-		boolean isChanged = false;
-		if (enable) {
-			if (shader == null) {
-				shader = allocIndexedShader();
-				if (shader != null) {
-					changePalette(curpalette.getBytes());
-					isChanged = true;
-				}
-			}
-		} else if (shader != null) {
-			shader.dispose();
-			shader = null;
-			palette.dispose();
-			palette = null;
-			for (int i = 0; i < MAXPALOOKUPS; i++)
-				if (palookups[i] != null) {
-					palookups[i].dispose();
-					palookups[i] = null;
-				}
-
-			isChanged = true;
-		}
-
-		if (isChanged)
-			uninit();
-
-		return shader != null;
-	}
+//	public boolean enableShader(boolean enable) {
+//		boolean isChanged = false;
+//		if (enable) {
+//			if (shader == null) {
+//				shader = allocIndexedShader();
+//				if (shader != null) {
+//					changePalette(curpalette.getBytes());
+//					isChanged = true;
+//				}
+//			}
+//		} else if (shader != null) {
+//			shader.dispose();
+//			shader = null;
+//			palette.dispose();
+//			palette = null;
+//			for (int i = 0; i < MAXPALOOKUPS; i++)
+//				if (palookups[i] != null) {
+//					palookups[i].dispose();
+//					palookups[i] = null;
+//				}
+//
+//			isChanged = true;
+//		}
+//
+//		if (isChanged)
+//			uninit();
+//
+//		return shader != null;
+//	}
 }

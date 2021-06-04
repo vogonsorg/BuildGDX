@@ -36,7 +36,7 @@ public class TextFont extends TileFont {
 
 	@Override
 	public GLTile getGL(TextureManager textureCache, int col) {
-		if(atlas == null)
+		if (atlas == null)
 			init();
 
 		return atlas;

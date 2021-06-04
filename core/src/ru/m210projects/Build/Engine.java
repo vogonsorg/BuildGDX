@@ -3520,7 +3520,7 @@ public abstract class Engine {
 			@Override
 			public void run() {
 				final GLRenderer gl = glrender();
-				if (gl != null && gl.getTextureManager().getShader() != null) {
+				if (gl != null) {
 					gl.getTextureManager().invalidatepalookup(palnum);
 				}
 			}

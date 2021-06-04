@@ -151,13 +151,29 @@ public class GdxBatch {
 				+ "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
 				+ "}\n";
 
-		String fragmentShader = "#ifdef GL_ES\n" + "#define LOWP lowp\n" + "precision mediump float;\n" + "#else\n"
-				+ "#define LOWP \n" + "#endif\n" + "varying LOWP vec4 v_color;\n" + "varying vec2 v_texCoords;\n"
-				+ "uniform sampler2D u_texture;\n" + "\n" + "uniform float cx1;\n" + "uniform float cy1;\n"
-				+ "uniform float cx2;\n" + "uniform float cy2;\n" + "\n" + "void main()\n" + "{\n"
-				+ "	//rotatesprite clipping\n" + "	if( gl_FragCoord.x < cx1 || gl_FragCoord.x > cx2 + 1.0\n"
-				+ "		|| gl_FragCoord.y > cy1 || gl_FragCoord.y < cy2 - 1.0 ) \n" + "		discard;\n"
-				+ "	gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" + "}\n";
+		String fragmentShader = "#ifdef GL_ES\n" //
+				+ "#define LOWP lowp\n" //
+				+ "precision mediump float;\n" //
+				+ "#else\n" //
+				+ "#define LOWP \n" //
+				+ "#endif\n" //
+				+ "varying LOWP vec4 v_color;\n" //
+				+ "varying vec2 v_texCoords;\n" //
+				+ "uniform sampler2D u_texture;\n" //
+				+ "\n" //
+				+ "uniform float cx1;\n" //
+				+ "uniform float cy1;\n" //
+				+ "uniform float cx2;\n" //
+				+ "uniform float cy2;\n" //
+				+ "\n" //
+				+ "void main()\n" //
+				+ "{\n" //
+				+ "	//rotatesprite clipping\n" //
+				+ "	if( gl_FragCoord.x < cx1 || gl_FragCoord.x > cx2 + 1.0\n" //
+				+ "		|| gl_FragCoord.y > cy1 || gl_FragCoord.y < cy2 - 1.0 ) \n" //
+				+ "		discard;\n" //
+				+ "	gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" //
+				+ "}\n"; //
 
 		ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
 		if (!shader.isCompiled())
@@ -432,13 +448,12 @@ public class GdxBatch {
 	}
 
 	private void setupMatrices() {
-//		combinedMatrix.set(projectionMatrix).mul(transformMatrix);
 		if (customShader != null) {
 			customShader.setUniformMatrix("u_projTrans", projectionMatrix);
-			customShader.setUniformi("u_texture", 0);
+			// customShader.setUniformi("u_texture", 0);
 		} else {
 			shader.setUniformMatrix("u_projTrans", projectionMatrix);
-			shader.setUniformi("u_texture", 0);
+			// shader.setUniformi("u_texture", 0);
 		}
 	}
 

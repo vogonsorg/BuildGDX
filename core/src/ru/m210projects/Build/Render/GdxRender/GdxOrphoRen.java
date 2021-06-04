@@ -26,7 +26,6 @@ import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.curpalette;
-import static ru.m210projects.Build.Engine.globalpal;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.pSmallTextfont;
 import static ru.m210projects.Build.Engine.pTextfont;
@@ -45,6 +44,7 @@ import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
@@ -86,16 +86,13 @@ public class GdxOrphoRen extends OrphoRenderer {
 				col = 0;
 
 			int nTile = (Integer) font.ptr;
-			if (engine.getTile(nTile).data == null && engine.loadtile(nTile) == null)
+			if (!engine.getTile(nTile).isLoaded() && engine.loadtile(nTile) == null)
 				return;
 		}
 
 		GLTile atlas = font.getGL(textureCache, col);
 		if (atlas == null)
 			return;
-
-		int opal = globalpal;
-		globalpal = col;
 
 		textureCache.bind(atlas);
 
@@ -109,11 +106,6 @@ public class GdxOrphoRen extends OrphoRenderer {
 		ypos <<= 16;
 
 		bindBatch();
-//		if (shade >= 0) {
-//			batch.setColor(curpalette.getRed(shade) / 255.0f, curpalette.getGreen(shade) / 255.0f,curpalette.getBlue(shade) / 255.0f, 1.0f);
-//			batch.draw(atlas, xpos, ypos, text.length * xsiz, 8, 0, 0, 64, 0, 1, 1, 0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
-//		}
-
 		int oxpos = xpos;
 		int c = 0, line = 0, yoffs;
 		float tx, ty;
@@ -121,6 +113,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		batch.setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f,
 				curpalette.getBlue(col) / 255.0f, 1.0f);
+
 		while (c < text.length && text[c] != '\0') {
 			if (text[c] == '\n') {
 				text[c] = 0;
@@ -141,10 +134,6 @@ public class GdxOrphoRen extends OrphoRenderer {
 			c++;
 		}
 		BuildGdx.gl.glDepthMask(true); // re-enable writing to the z-buffer
-
-		globalpal = opal;
-
-		textureCache.unbind();
 	}
 
 	@Override
@@ -214,7 +203,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 		if (pic.data == null)
 			engine.loadtile(picnum);
 
-		GLTile pth = textureCache.bind(picnum, dapalnum, dashade, 0, method);
+		GLTile pth = textureCache.bind(PixelFormat.Rgba, picnum, dapalnum, dashade, 0, method); // XXX
 		if (pth == null)
 			return;
 
