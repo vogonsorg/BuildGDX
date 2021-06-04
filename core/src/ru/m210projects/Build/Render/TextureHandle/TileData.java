@@ -21,9 +21,10 @@ import ru.m210projects.Build.Render.Types.TextureBuffer;
 public abstract class TileData {
 
 	public enum PixelFormat {
-		Rgb(3), Rgba(4), Pal8(1), Pal8A(3);
+		Rgb(3), Rgba(4), Pal8(1); // , Pal8A(3);
 
 		private final int bytes;
+
 		PixelFormat(int bytes) {
 			this.bytes = bytes;
 		}
@@ -66,7 +67,7 @@ public abstract class TileData {
 
 		ByteBuffer pixels = getPixels();
 		int bytes = getPixelFormat().getLength();
-		if(bytes == 1) {
+		if (bytes == 1) {
 			FileResource raw = BuildGdx.compat.open(name + ".raw", Path.Absolute, Mode.Write);
 			raw.writeBytes(pixels, width * height);
 			raw.close();
@@ -77,7 +78,7 @@ public abstract class TileData {
 		Pixmap pixmap = new Pixmap(width, height, Format.RGB888);
 		float[] color = new float[4];
 		for (int i = 0; i < (width * height); i++) {
-			for(int c = 0; c < bytes; c++)
+			for (int c = 0; c < bytes; c++)
 				color[c] = (pixels.get((i * bytes) + c) & 0xFF) / 255.f;
 
 			pixmap.setColor(color[0], color[1], color[2], 1.0f);
@@ -96,19 +97,21 @@ public abstract class TileData {
 	protected int calcSize(int size) {
 		int nsize = 1;
 		if (GLInfo.texnpot == 0) {
-			for (; nsize < size; nsize *= 2);
+			for (; nsize < size; nsize *= 2)
+				;
 			return nsize;
 		}
 		return size == 0 ? 1 : size;
 	}
 
 	protected static TextureBuffer getTmpBuffer(int size) {
-		if(tmp_buffer == null) {
+		if (tmp_buffer == null) {
 			size = TEX_MAX_SIZE * TEX_MAX_SIZE * 4;
 			try {
-				if(BuildGdx.app.getPlatform() != Platform.Android)
+				if (BuildGdx.app.getPlatform() != Platform.Android)
 					tmp_buffer = new FastTextureBuffer(size);
-				else tmp_buffer = new AndroidTextureBuffer(size);
+				else
+					tmp_buffer = new AndroidTextureBuffer(size);
 			} catch (Exception e) {
 				e.printStackTrace();
 				tmp_buffer = new DirectTextureBuffer(size);

@@ -17,6 +17,8 @@
 package ru.m210projects.Build.Render.GdxRender;
 
 import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
+import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
+import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -33,6 +35,7 @@ import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 
@@ -96,6 +99,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		textureCache.bind(atlas);
 
+		BuildGdx.gl.glDisable(GL_DEPTH_TEST);
 		BuildGdx.gl.glDisable(GL_ALPHA_TEST);
 		BuildGdx.gl.glDepthMask(false); // disable writing to the z-buffer
 		BuildGdx.gl.glEnable(GL_BLEND);
@@ -115,21 +119,22 @@ public class GdxOrphoRen extends OrphoRenderer {
 		float tx, ty;
 		int df = font.sizx / font.cols;
 
-		batch.setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f,curpalette.getBlue(col) / 255.0f, 1.0f);
+		batch.setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f,
+				curpalette.getBlue(col) / 255.0f, 1.0f);
 		while (c < text.length && text[c] != '\0') {
 			if (text[c] == '\n') {
 				text[c] = 0;
 				line += 1;
 				xpos = oxpos - (int) (scale * font.charsizx);
 			}
-			if (text[c] == '\r') text[c] = 0;
+			if (text[c] == '\r')
+				text[c] = 0;
 			yoffs = (int) (scale * line * font.charsizy);
 
 			tx = (text[c] % font.cols) * df;
 			ty = (text[c] / font.cols) * df;
 
-			batch.draw(atlas, xpos, ypos, font.charsizx, font.charsizy,
-					0, -yoffs, tx, ty, font.charsizx, font.charsizy,
+			batch.draw(atlas, xpos, ypos, font.charsizx, font.charsizy, 0, -yoffs, tx, ty, font.charsizx, font.charsizy,
 					0, (int) (scale * 65536), 8, 0, 0, xdim - 1, ydim - 1);
 
 			xpos += scale * (font.charsizx << 16);
@@ -161,9 +166,12 @@ public class GdxOrphoRen extends OrphoRenderer {
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
 			int cy1, int cx2, int cy2) {
 
-		if (picnum >= MAXTILES) return;
-		if ((cx1 > cx2) || (cy1 > cy2)) return;
-		if (z <= 16) return;
+		if (picnum >= MAXTILES)
+			return;
+		if ((cx1 > cx2) || (cy1 > cy2))
+			return;
+		if (z <= 16)
+			return;
 
 		Tile pic = engine.getTile(picnum);
 		if (pic.getType() != AnimType.None)
@@ -197,7 +205,8 @@ public class GdxOrphoRen extends OrphoRenderer {
 		if ((dastat & 4) != 0)
 			yoff = ysiz - yoff;
 
-		if (picnum >= MAXTILES) picnum = 0;
+		if (picnum >= MAXTILES)
+			picnum = 0;
 		if (palookup[dapalnum & 0xFF] == null)
 			dapalnum = 0;
 
@@ -206,17 +215,23 @@ public class GdxOrphoRen extends OrphoRenderer {
 			engine.loadtile(picnum);
 
 		GLTile pth = textureCache.bind(picnum, dapalnum, dashade, 0, method);
-		if(pth == null) return;
+		if (pth == null)
+			return;
 
 		if (((method & 3) == 0))
 			batch.disableBlending();
-		else batch.enableBlending();
+		else
+			batch.enableBlending();
 
 		float shade = (numshades - min(max(dashade, 0), numshades)) / (float) numshades;
 		float alpha = 1.0f;
 		switch (method & 3) {
-			case 2: alpha = TRANSLUSCENT1; break;
-			case 3: alpha = TRANSLUSCENT2; break;
+		case 2:
+			alpha = TRANSLUSCENT1;
+			break;
+		case 3:
+			alpha = TRANSLUSCENT2;
+			break;
 		}
 
 		bindBatch();
@@ -224,15 +239,17 @@ public class GdxOrphoRen extends OrphoRenderer {
 		batch.draw(pth, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
 	}
 
-	private void bindBatch()
-	{
-		if(!batch.isDrawing())
+	private void bindBatch() {
+		Gdx.gl.glDisable(GL_CULL_FACE);
+		Gdx.gl.glDisable(GL_DEPTH_TEST);
+
+		if (!batch.isDrawing())
 			batch.begin();
 	}
 
 	@Override
 	public void nextpage() {
-		if(batch.isDrawing())
+		if (batch.isDrawing())
 			batch.end();
 	}
 

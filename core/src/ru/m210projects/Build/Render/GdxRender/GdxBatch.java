@@ -62,34 +62,48 @@ public class GdxBatch {
 	private final ShaderProgram shader;
 	private ShaderProgram customShader = null;
 	private boolean ownsShader;
-	
+
 	float color = Color.WHITE_FLOAT_BITS;
 
 	/** The maximum number of sprites rendered in one batch so far. **/
 	public int maxSpritesInBatch = 0;
 
-	/** Constructs a new GdxBatch with a size of 1000, one buffer, and the default shader.
-	 * @see GdxBatch#GdxBatch(int, ShaderProgram) */
-	public GdxBatch () {
+	/**
+	 * Constructs a new GdxBatch with a size of 1000, one buffer, and the default
+	 * shader.
+	 * 
+	 * @see GdxBatch#GdxBatch(int, ShaderProgram)
+	 */
+	public GdxBatch() {
 		this(32, null);
 	}
 
-	/** Constructs a new GdxBatch. Sets the projection matrix to an orthographic projection with y-axis point upwards, x-axis
-	 * point to the right and the origin being in the bottom left corner of the screen. The projection will be pixel perfect with
-	 * respect to the current screen resolution.
+	/**
+	 * Constructs a new GdxBatch. Sets the projection matrix to an orthographic
+	 * projection with y-axis point upwards, x-axis point to the right and the
+	 * origin being in the bottom left corner of the screen. The projection will be
+	 * pixel perfect with respect to the current screen resolution.
 	 * <p>
-	 * The defaultShader specifies the shader to use. Note that the names for uniforms for this default shader are different than
-	 * the ones expect for shaders set with {@link #setShader(ShaderProgram)}. See {@link #createDefaultShader()}.
-	 * @param size The max number of sprites in a single batch. Max of 8191.
-	 * @param defaultShader The default shader to use. This is not owned by the GdxBatch and must be disposed separately. */
-	public GdxBatch (int size, ShaderProgram defaultShader) {
-		// 32767 is max vertex index, so 32767 / 4 vertices per sprite = 8191 sprites max.
-		if (size > 8191) throw new IllegalArgumentException("Can't have more than 8191 sprites per batch: " + size);
+	 * The defaultShader specifies the shader to use. Note that the names for
+	 * uniforms for this default shader are different than the ones expect for
+	 * shaders set with {@link #setShader(ShaderProgram)}. See
+	 * {@link #createDefaultShader()}.
+	 * 
+	 * @param size          The max number of sprites in a single batch. Max of
+	 *                      8191.
+	 * @param defaultShader The default shader to use. This is not owned by the
+	 *                      GdxBatch and must be disposed separately.
+	 */
+	public GdxBatch(int size, ShaderProgram defaultShader) {
+		// 32767 is max vertex index, so 32767 / 4 vertices per sprite = 8191 sprites
+		// max.
+		if (size > 8191)
+			throw new IllegalArgumentException("Can't have more than 8191 sprites per batch: " + size);
 
 		mesh = new Mesh(false, size * 4, size * 6,
-			new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
-			new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
-			new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
+				new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
+				new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
+				new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
 
 		projectionMatrix.setToOrtho(0, BuildGdx.graphics.getWidth() - 1, BuildGdx.graphics.getHeight() - 1, 0, 0, 1);
 
@@ -102,14 +116,14 @@ public class GdxBatch {
 		short j = 0;
 		for (int i = 0; i < len; i += 6, j += 4) {
 			indices[i] = j;
-			indices[i + 1] = (short)(j + 1);
-			indices[i + 2] = (short)(j + 2);
-			indices[i + 3] = (short)(j + 2);
-			indices[i + 4] = (short)(j + 3);
+			indices[i + 1] = (short) (j + 1);
+			indices[i + 2] = (short) (j + 2);
+			indices[i + 3] = (short) (j + 2);
+			indices[i + 4] = (short) (j + 3);
 			indices[i + 5] = j;
 		}
 		mesh.setIndices(indices);
-	
+
 		if (defaultShader == null) {
 			shader = createDefaultShader();
 			ownsShader = true;
@@ -117,56 +131,45 @@ public class GdxBatch {
 			shader = defaultShader;
 	}
 
-	/** Returns a new instance of the default shader used by GdxBatch for GL2 when no shader is specified. */
-	static public ShaderProgram createDefaultShader () {
+	/**
+	 * Returns a new instance of the default shader used by GdxBatch for GL2 when no
+	 * shader is specified.
+	 */
+	static public ShaderProgram createDefaultShader() {
 		String vertexShader = "attribute vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
-			+ "attribute vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
-			+ "attribute vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
-			+ "uniform mat4 u_projTrans;\n" //
-			+ "varying vec4 v_color;\n" //
-			+ "varying vec2 v_texCoords;\n" //
-			+ "\n" //
-			+ "void main()\n" //
-			+ "{\n" //
-			+ "   v_color = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
-			+ "   v_color.a = v_color.a * (255.0/254.0);\n" //
-			+ "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
-			+ "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
-			+ "}\n";
-		
-		String fragmentShader = "#ifdef GL_ES\n" + 
-			"#define LOWP lowp\n" + 
-			"precision mediump float;\n" + 
-			"#else\n" + 
-			"#define LOWP \n" + 
-			"#endif\n" + 
-			"varying LOWP vec4 v_color;\n" + 
-			"varying vec2 v_texCoords;\n" + 
-			"uniform sampler2D u_texture;\n" + 
-			"\n" + 
-			"uniform float cx1;\n" + 
-			"uniform float cy1;\n" + 
-			"uniform float cx2;\n" + 
-			"uniform float cy2;\n" + 
-			"\n" + 
-			"void main()\n" + 
-			"{\n" + 
-			"	//rotatesprite clipping\n" + 
-			"	if( gl_FragCoord.x < cx1 || gl_FragCoord.x > cx2 + 1.0\n" + 
-			"		|| gl_FragCoord.y > cy1 || gl_FragCoord.y < cy2 - 1.0 ) \n" + 
-			"		discard;\n" + 
-			"	gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" + 
-			"}\n";
+				+ "attribute vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
+				+ "attribute vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
+				+ "uniform mat4 u_projTrans;\n" //
+				+ "varying vec4 v_color;\n" //
+				+ "varying vec2 v_texCoords;\n" //
+				+ "\n" //
+				+ "void main()\n" //
+				+ "{\n" //
+				+ "   v_color = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" //
+				+ "   v_color.a = v_color.a * (255.0/254.0);\n" //
+				+ "   v_texCoords = " + ShaderProgram.TEXCOORD_ATTRIBUTE + "0;\n" //
+				+ "   gl_Position =  u_projTrans * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" //
+				+ "}\n";
+
+		String fragmentShader = "#ifdef GL_ES\n" + "#define LOWP lowp\n" + "precision mediump float;\n" + "#else\n"
+				+ "#define LOWP \n" + "#endif\n" + "varying LOWP vec4 v_color;\n" + "varying vec2 v_texCoords;\n"
+				+ "uniform sampler2D u_texture;\n" + "\n" + "uniform float cx1;\n" + "uniform float cy1;\n"
+				+ "uniform float cx2;\n" + "uniform float cy2;\n" + "\n" + "void main()\n" + "{\n"
+				+ "	//rotatesprite clipping\n" + "	if( gl_FragCoord.x < cx1 || gl_FragCoord.x > cx2 + 1.0\n"
+				+ "		|| gl_FragCoord.y > cy1 || gl_FragCoord.y < cy2 - 1.0 ) \n" + "		discard;\n"
+				+ "	gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" + "}\n";
 
 		ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
-		if (!shader.isCompiled()) throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
+		if (!shader.isCompiled())
+			throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
 		return shader;
 	}
 
-	public void begin () {
-		if (drawing) throw new IllegalStateException("GdxBatch.end must be called before begin.");
+	public void begin() {
+		if (drawing)
+			throw new IllegalStateException("GdxBatch.end must be called before begin.");
 
-		BuildGdx.gl.glDepthMask(false);
+		BuildGdx.gl20.glDepthMask(false);
 		if (customShader != null)
 			customShader.begin();
 		else
@@ -176,15 +179,18 @@ public class GdxBatch {
 		drawing = true;
 	}
 
-	public void end () {
-		if (!drawing) throw new IllegalStateException("GdxBatch.begin must be called before end.");
-		if (idx > 0) flush();
+	public void end() {
+		if (!drawing)
+			throw new IllegalStateException("GdxBatch.begin must be called before end.");
+		if (idx > 0)
+			flush();
 		lastTexture = null;
 		drawing = false;
 
-		GL20 gl = BuildGdx.gl;
+		GL20 gl = BuildGdx.gl20;
 		gl.glDepthMask(true);
-		if (isBlendingEnabled()) gl.glDisable(GL20.GL_BLEND);
+		if (isBlendingEnabled())
+			gl.glDisable(GL20.GL_BLEND);
 
 		if (customShader != null)
 			customShader.end();
@@ -192,43 +198,45 @@ public class GdxBatch {
 			shader.end();
 	}
 
-	public void setColor (float r, float g, float b, float a) {
-		int intBits = (int)(255 * a) << 24 | (int)(255 * b) << 16 | (int)(255 * g) << 8 | (int)(255 * r);
+	public void setColor(float r, float g, float b, float a) {
+		int intBits = (int) (255 * a) << 24 | (int) (255 * b) << 16 | (int) (255 * g) << 8 | (int) (255 * r);
 		color = NumberUtils.intToFloatColor(intBits);
 	}
 
 	private float[] currClipBounds = new float[4];
 	private float[] lastClipBounds = new float[4];
 
-	public void draw(GLTexture tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, int angle, int z, int dastat,  int cx1, int cy1, int cx2, int cy2)
-	{
-		this.draw(tex, sx, sy, sizx, sizy, xoffset, yoffset, 0.0f, 0.0f, sizx, sizy, angle, z, dastat, cx1, cy1, cx2, cy2);
+	public void draw(GLTexture tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, int angle, int z,
+			int dastat, int cx1, int cy1, int cx2, int cy2) {
+		this.draw(tex, sx, sy, sizx, sizy, xoffset, yoffset, 0.0f, 0.0f, sizx, sizy, angle, z, dastat, cx1, cy1, cx2,
+				cy2);
 	}
 
-	public void draw(GLTexture tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, float srcX, float srcY, float srcWidth, float srcHeight, int angle, int z, int dastat, int cx1, int cy1, int cx2, int cy2)
-	{
-		if (!drawing) throw new IllegalStateException("GdxBatch.begin must be called before draw.");
-		
+	public void draw(GLTexture tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, float srcX,
+			float srcY, float srcWidth, float srcHeight, int angle, int z, int dastat, int cx1, int cy1, int cx2,
+			int cy2) {
+		if (!drawing)
+			throw new IllegalStateException("GdxBatch.begin must be called before draw.");
+
 		if (tex != lastTexture)
 			switchTexture(tex);
-		else if(idx == vertices.length)
+		else if (idx == vertices.length)
 			flush();
-		
+
 		currClipBounds[0] = cx1;
 		currClipBounds[1] = ydim - cy1;
 		currClipBounds[2] = cx2;
 		currClipBounds[3] = ydim - cy2;
-		
-		if( currClipBounds[0] != lastClipBounds[0] || currClipBounds[1] != lastClipBounds[1] 
-			|| currClipBounds[2] != lastClipBounds[2] || currClipBounds[3] != lastClipBounds[3] )
-		{
+
+		if (currClipBounds[0] != lastClipBounds[0] || currClipBounds[1] != lastClipBounds[1]
+				|| currClipBounds[2] != lastClipBounds[2] || currClipBounds[3] != lastClipBounds[3]) {
 			flush();
-			
+
 			shader.setUniformf("cx1", currClipBounds[0]);
 			shader.setUniformf("cy1", currClipBounds[1]);
 			shader.setUniformf("cx2", currClipBounds[2]);
 			shader.setUniformf("cy2", currClipBounds[3]);
-			
+
 			System.arraycopy(currClipBounds, 0, lastClipBounds, 0, 4);
 		}
 
@@ -275,7 +283,7 @@ public class GdxBatch {
 				sx = (xdim << 15) + scale(normxofs, xdim, 320);
 				if ((dastat & 512) != 0)
 					sx += (oxdim - xdim) << 16;
-				else if((dastat & 256) == 0)
+				else if ((dastat & 256) == 0)
 					sx += (oxdim - xdim) << 15;
 
 				zoomsc = scale(xdim, ouryxaspect, 320);
@@ -296,7 +304,7 @@ public class GdxBatch {
 		final float OriginX = sx / 65536.0f;
 		final float OriginY = sy / 65536.0f;
 		float x1, y1, x2, y2, x3, y3, x4, y4;
-		
+
 		// rotate
 		if (angle != 0) {
 			final float rotation = 360.0f * angle / 2048.0f;
@@ -305,21 +313,19 @@ public class GdxBatch {
 
 			x1 = OriginX + (sin * yoffs - cos * xoffs) * aspectFix;
 			y1 = OriginY - xoffs * sin - yoffs * cos;
-			
+
 			x4 = x1 + width * cos * aspectFix;
 			y4 = y1 + width * sin;
-			
+
 			x2 = x1 - height * sin * aspectFix;
 			y2 = y1 + height * cos;
-			
+
 			x3 = x2 + (x4 - x1);
 			y3 = y2 + (y4 - y1);
-		} 
-		else
-		{
+		} else {
 			x1 = x2 = OriginX - xoffs * aspectFix;
 			y1 = y4 = OriginY - yoffs;
-			
+
 			x3 = x4 = x1 + width * aspectFix;
 			y2 = y3 = y1 + height;
 		}
@@ -361,12 +367,14 @@ public class GdxBatch {
 		vertices[idx + 19] = v;
 		this.idx = idx + 20;
 	}
-	
-	public void flush () {
-		if (idx == 0) return;
+
+	public void flush() {
+		if (idx == 0)
+			return;
 
 		int spritesInBatch = idx / 20;
-		if (spritesInBatch > maxSpritesInBatch) maxSpritesInBatch = spritesInBatch;
+		if (spritesInBatch > maxSpritesInBatch)
+			maxSpritesInBatch = spritesInBatch;
 		int count = spritesInBatch * 6;
 
 		lastTexture.bind();
@@ -376,10 +384,11 @@ public class GdxBatch {
 		mesh.getIndicesBuffer().limit(count);
 
 		if (blendingDisabled) {
-			BuildGdx.gl.glDisable(GL20.GL_BLEND);
+			BuildGdx.gl20.glDisable(GL20.GL_BLEND);
 		} else {
-			BuildGdx.gl.glEnable(GL20.GL_BLEND);
-			if (blendSrcFunc != -1) BuildGdx.gl.glBlendFuncSeparate(blendSrcFunc, blendDstFunc, blendSrcFuncAlpha, blendDstFuncAlpha);
+			BuildGdx.gl20.glEnable(GL20.GL_BLEND);
+			if (blendSrcFunc != -1)
+				BuildGdx.gl20.glBlendFuncSeparate(blendSrcFunc, blendDstFunc, blendSrcFuncAlpha, blendDstFuncAlpha);
 		}
 
 		mesh.render(customShader != null ? customShader : shader, GL20.GL_TRIANGLES, 0, count);
@@ -387,24 +396,28 @@ public class GdxBatch {
 		idx = 0;
 	}
 
-	public void disableBlending () {
-		if (blendingDisabled) return;
+	public void disableBlending() {
+		if (blendingDisabled)
+			return;
 		flush();
 		blendingDisabled = true;
 	}
 
-	public void enableBlending () {
-		if (!blendingDisabled) return;
+	public void enableBlending() {
+		if (!blendingDisabled)
+			return;
 		flush();
 		blendingDisabled = false;
 	}
 
-	public void setBlendFunction (int srcFunc, int dstFunc) {
+	public void setBlendFunction(int srcFunc, int dstFunc) {
 		setBlendFunctionSeparate(srcFunc, dstFunc, srcFunc, dstFunc);
 	}
 
 	public void setBlendFunctionSeparate(int srcFuncColor, int dstFuncColor, int srcFuncAlpha, int dstFuncAlpha) {
-		if (blendSrcFunc == srcFuncColor && blendDstFunc == dstFuncColor && blendSrcFuncAlpha == srcFuncAlpha && blendDstFuncAlpha == dstFuncAlpha) return;
+		if (blendSrcFunc == srcFuncColor && blendDstFunc == dstFuncColor && blendSrcFuncAlpha == srcFuncAlpha
+				&& blendDstFuncAlpha == dstFuncAlpha)
+			return;
 		flush();
 		blendSrcFunc = srcFuncColor;
 		blendDstFunc = dstFuncColor;
@@ -412,12 +425,13 @@ public class GdxBatch {
 		blendDstFuncAlpha = dstFuncAlpha;
 	}
 
-	public void dispose () {
+	public void dispose() {
 		mesh.dispose();
-		if (ownsShader && shader != null) shader.dispose();
+		if (ownsShader && shader != null)
+			shader.dispose();
 	}
 
-	private void setupMatrices () {
+	private void setupMatrices() {
 //		combinedMatrix.set(projectionMatrix).mul(transformMatrix);
 		if (customShader != null) {
 			customShader.setUniformMatrix("u_projTrans", projectionMatrix);
@@ -428,14 +442,14 @@ public class GdxBatch {
 		}
 	}
 
-	protected void switchTexture (GLTexture texture) {
+	protected void switchTexture(GLTexture texture) {
 		flush();
 		lastTexture = texture;
 		invTexWidth = 1.0f / texture.getWidth();
 		invTexHeight = 1.0f / texture.getHeight();
 	}
 
-	public void setShader (ShaderProgram shader) {
+	public void setShader(ShaderProgram shader) {
 		if (drawing) {
 			flush();
 			if (customShader != null)
@@ -453,14 +467,14 @@ public class GdxBatch {
 		}
 	}
 
-	public ShaderProgram getShader () {
+	public ShaderProgram getShader() {
 		if (customShader == null) {
 			return shader;
 		}
 		return customShader;
 	}
 
-	public boolean isBlendingEnabled () {
+	public boolean isBlendingEnabled() {
 		return !blendingDisabled;
 	}
 

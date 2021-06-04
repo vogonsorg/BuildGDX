@@ -92,6 +92,7 @@ import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Tile2model;
@@ -869,7 +870,7 @@ public class Polymost2D extends OrphoRenderer {
 		float txc = font.charsizx / (float) font.sizx, tx;
 		float tyc = font.charsizy / (float) font.sizy, ty;
 
-		if (atlas.isRequireShader()) {
+		if (atlas.getPixelFormat() == PixelFormat.Pal8) {
 			textureCache.getShader().setTextureParams(col, shade);
 			textureCache.getShader().setDrawLastIndex(false);
 			textureCache.getShader().setTransparent(polyColor.a);

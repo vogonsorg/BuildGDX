@@ -48,6 +48,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.Polymost.Polymost.Rendering;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Script.TextureHDInfo;
@@ -103,9 +104,6 @@ public class TextureManager {
 		if (si == null) {
 			if (skybox != 0 || dapalnum >= (MAXPALOOKUPS - RESERVEDPALS))
 				return null;
-
-			if (shader != null)
-				dapalnum = 0; // don't load 8bit texture with pal != 0, it's work of shader
 		}
 
 		GLTile tile = cache.get(dapicnum, dapalnum, clamping, skybox);
@@ -116,12 +114,13 @@ public class TextureManager {
 			tile = null;
 		}
 
+		PixelFormat fmt = shader != null ? PixelFormat.Pal8 : PixelFormat.Rgb;
 		boolean useMipMaps = GLSettings.textureFilter.get().mipmaps;
 		if (tile != null) {
 			if (tile.isInvalidated()) {
 				tile.setInvalidated(false);
 
-				TileData data = loadPic(si, dapicnum, dapalnum, clamping, alpha, skybox);
+				TileData data = loadPic(fmt, si, dapicnum, dapalnum, clamping, alpha, skybox);
 				tile.update(data, useMipMaps);
 			}
 		} else {
@@ -129,7 +128,7 @@ public class TextureManager {
 					&& (tile = cache.get(dapicnum, 0, clamping, skybox)) != null)
 				return tile;
 
-			TileData data = loadPic(si, dapicnum, dapalnum, clamping, alpha, skybox);
+			TileData data = loadPic(fmt, si, dapicnum, dapalnum, clamping, alpha, skybox);
 			if (data == null)
 				return null;
 
@@ -148,13 +147,15 @@ public class TextureManager {
 		if (bindedTile == tile)
 			return tile;
 
-		if (shader != null && !tile.isRequireShader() && bindedTile != null && bindedTile.isRequireShader()) {
+		if (shader != null && tile.getPixelFormat() != PixelFormat.Pal8 && bindedTile != null
+				&& bindedTile.getPixelFormat() == PixelFormat.Pal8) {
 			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 			shader.end();
 		}
 
 		tile.bind();
-		if (shader != null && tile.isRequireShader() && (bindedTile == null || !bindedTile.isRequireShader())) {
+		if (shader != null && tile.getPixelFormat() == PixelFormat.Pal8
+				&& (bindedTile == null || bindedTile.getPixelFormat() != PixelFormat.Pal8)) {
 			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 			shader.begin();
 		}
@@ -183,7 +184,7 @@ public class TextureManager {
 			return null;
 
 		bind(tile);
-		if (tile.isRequireShader()) {
+		if (tile.getPixelFormat() == PixelFormat.Pal8) {
 			if (!shader.isBinded()) {
 				BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 				shader.begin();
@@ -292,8 +293,8 @@ public class TextureManager {
 		texunits = GL_TEXTURE0;
 	}
 
-	protected TileData loadPic(Hicreplctyp hicr, int dapicnum, int dapalnum, boolean clamping, boolean alpha,
-			int skybox) {
+	protected TileData loadPic(PixelFormat fmt, Hicreplctyp hicr, int dapicnum, int dapalnum, boolean clamping,
+			boolean alpha, int skybox) {
 
 		// System.err.println("loadPic " + dapicnum + " " + dapalnum + " clamping: " +
 		// clamping);
@@ -311,7 +312,7 @@ public class TextureManager {
 			}
 		}
 
-		if (shader != null)
+		if (fmt == PixelFormat.Pal8)
 			return new IndexedTileData(engine.getTile(dapicnum), clamping, alpha, expand.get());
 		return new RGBTileData(engine.getTile(dapicnum), dapalnum, clamping, alpha, expand.get());
 	}
@@ -421,16 +422,6 @@ public class TextureManager {
 			cache.invalidate(j);
 	}
 
-	public IndexedShader getShader() {
-		return shader;
-	}
-
-	public void setShader(IndexedShader shader) {
-		if (this.shader != null)
-			this.shader.dispose();
-		this.shader = shader;
-	}
-
 	public boolean clampingMode(int dameth) {
 		return ((dameth & 4) >> 2) == 1;
 	}
@@ -502,16 +493,10 @@ public class TextureManager {
 	}
 
 	public GLTile getPalette() {
-		if (shader == null)
-			return null;
-
 		return palette;
 	}
 
 	public GLTile getPalookup(int pal) {
-		if (shader == null)
-			return null;
-
 		if (palookups[pal] == null || palookups[pal].isInvalidated()) {
 			if (Engine.palookup[pal] == null) {
 				return palookups[0];
@@ -550,6 +535,16 @@ public class TextureManager {
 		return null;
 	}
 
+	public IndexedShader getShader() {
+		return shader;
+	}
+
+	public void setShader(IndexedShader shader) {
+		if (this.shader != null)
+			this.shader.dispose();
+		this.shader = shader;
+	}
+
 	public void changePalette(byte[] pal) {
 		if (shader == null)
 			return;
@@ -573,13 +568,13 @@ public class TextureManager {
 	}
 
 	public boolean isUseShader() {
-		return shader != null && bindedTile != null && bindedTile.isRequireShader();
+		return shader != null && bindedTile != null && bindedTile.getPixelFormat() == PixelFormat.Pal8;
 	}
 
 	public boolean isUseShader(int dapic) {
 		if (shader != null) {
 			GLTile tile = cache.get(dapic);
-			if (tile != null && tile.isRequireShader())
+			if (tile != null && tile.getPixelFormat() == PixelFormat.Pal8)
 				return true;
 		}
 		return false;

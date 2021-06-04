@@ -21,6 +21,7 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class VOXModel extends Model {
@@ -161,7 +162,7 @@ public class VOXModel extends Model {
 			loadskin(pal, textureCache.getShader() != null);
 
 		GLTile tile = textureCache.bind(texid[pal]);
-		if (tile.isRequireShader()) {
+		if (tile.getPixelFormat() == PixelFormat.Pal8) {
 			textureCache.getShader().setTextureParams(dapal, shade);
 			textureCache.getShader().setDrawLastIndex(true);
 			textureCache.getShader().setTransparent(alpha);

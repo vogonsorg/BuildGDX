@@ -65,7 +65,8 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	};
 
 	protected int width, height;
-	private boolean isRequireShader;
+//	private boolean isRequireShader;
+	protected PixelFormat fmt;
 	protected float anisotropicFilterLevel = 1.0f;
 
 	protected int flags;
@@ -76,11 +77,11 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	protected int palnum;
 	protected GLTile next;
 
-	public GLTile(int width, int height) {
+	private GLTile(int width, int height) {
 		super(GL_TEXTURE_2D);
 		this.width = width;
 		this.height = height;
-		this.isRequireShader = false;
+//		this.isRequireShader = false;
 	}
 
 	public GLTile(TileData pic, int palnum, boolean useMipMaps) {
@@ -93,14 +94,15 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 
 		setClamped(pic.isClamped());
 		setHasAlpha(pic.hasAlpha());
+		this.fmt = pic.getPixelFormat();
 
 		scalex = scaley = 1.0f;
 	}
 
 	protected void alloc(TileData pic) {
-		this.isRequireShader = false;
-		if (pic.getPixelFormat() == PixelFormat.Pal8 || pic.getPixelFormat() == PixelFormat.Pal8A)
-			this.isRequireShader = true;
+//		this.isRequireShader = false;
+//		if (pic.getPixelFormat() == PixelFormat.Pal8 || pic.getPixelFormat() == PixelFormat.Pal8A)
+//			this.isRequireShader = true;
 
 		BuildGdx.gl.glBindTexture(glTarget, glHandle);
 
@@ -113,8 +115,12 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		setupTextureWrap(!pic.isClamped() ? TextureWrap.Repeat : TextureWrap.ClampToEdge);
 	}
 
+	public PixelFormat getPixelFormat() {
+		return fmt;
+	}
+
 	public void setColor(float r, float g, float b, float a) {
-		BuildGdx.gl.glColor4f(r, g, b, a);
+		BuildGdx.gl.glColor4f(r, g, b, a); // GL30 exception
 	}
 
 	public void update(TileData pic, boolean useMipMaps) {
@@ -265,7 +271,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	}
 
 	public void setupTextureFilter(GLFilter filter, int anisotropy) {
-		if (isRequireShader) {
+		if (fmt == PixelFormat.Pal8) {
 			unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
 			unsafeSetAnisotropicFilter(1, true);
 			return;
@@ -276,7 +282,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	}
 
 	public float unsafeSetAnisotropicFilter(float level, boolean force) {
-		if (isRequireShader)
+		if (fmt == PixelFormat.Pal8)
 			return 1.0f;
 
 		// 1 if you want to disable anisotropy
@@ -440,9 +446,9 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 			flags &= ~bit.getBit();
 	}
 
-	public boolean isRequireShader() {
-		return isRequireShader;
-	}
+//	public boolean isRequireShader() {
+//		return isRequireShader;
+//	}
 
 	@Override
 	public String toString() {

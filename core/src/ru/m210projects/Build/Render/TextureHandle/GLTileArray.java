@@ -16,6 +16,7 @@
 
 package ru.m210projects.Build.Render.TextureHandle;
 
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.GLFilter;
 
 public class GLTileArray {
@@ -28,6 +29,9 @@ public class GLTileArray {
 
 	public GLTile get(int picnum, int palnum, boolean clamped, int surfnum) {
 		for (GLTile pth = array[picnum]; pth != null && pth.palnum <= palnum; pth = pth.next) {
+			if (pth.getPixelFormat() == PixelFormat.Pal8)
+				return pth;
+
 			if (pth.palnum == palnum && pth.isClamped() == clamped && pth.skyface == surfnum)
 				return pth;
 		}
@@ -89,7 +93,7 @@ public class GLTileArray {
 		for (GLTile pth = array[tilenum]; pth != null;) {
 			GLTile next = pth.next;
 
-			if (pth.hicr == null && !pth.isRequireShader())
+			if (pth.hicr == null && pth.getPixelFormat() != PixelFormat.Pal8)
 				pth.setInvalidated(true);
 			pth = next;
 		}
