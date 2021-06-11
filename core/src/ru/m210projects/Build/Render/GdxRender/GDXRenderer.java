@@ -1,0 +1,660 @@
+// This file is part of BuildGDX.
+// Copyright (C) 2017-2021  Alexander Makarov-[M210] (m210-2007@mail.ru)
+//
+// BuildGDX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// BuildGDX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
+
+package ru.m210projects.Build.Render.GdxRender;
+
+import static com.badlogic.gdx.graphics.GL20.*;
+import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
+import static ru.m210projects.Build.Pragmas.dmulscale;
+import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Matrix4;
+
+import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Gameutils;
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.OrphoRenderer;
+import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager.ExpandTexture;
+import ru.m210projects.Build.Render.TextureHandle.TileData;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
+import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.Tile;
+import ru.m210projects.Build.Types.TileFont;
+import ru.m210projects.Build.Types.WALL;
+import ru.m210projects.Build.Types.Tile.AnimType;
+import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
+import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
+
+public class GDXRenderer implements GLRenderer {
+
+	protected TextureManager textureCache;
+	protected final Engine engine;
+	protected boolean isInited = false;
+	protected GL20 gl;
+	protected float defznear = 0.001f;
+	protected float defzfar = 1.0f;
+	protected int fov = 90;
+
+	protected float gtang = 0.0f;
+
+	protected WorldMesh world;
+	protected SectorScanner scanner;
+	protected BuildCamera cam;
+	protected SpriteRenderer sprR;
+	protected OrphoRenderer orphoRen;
+	protected DefScript defs;
+	protected ShaderProgram skyshader;
+	protected IndexedShader texshader;
+
+	public GDXRenderer(Engine engine) {
+		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
+			BuildGdx.app.setFrame(FrameType.GL);
+		GLInfo.init();
+		this.engine = engine;
+		this.textureCache = getTextureManager();
+		this.texshader = allocIndexedShader();
+		this.texshader.setFogParams(false, 0, 0, null);
+		this.textureCache.changePalette(curpalette.getBytes());
+
+		this.gl = BuildGdx.graphics.getGL20();
+		this.sprR = new SpriteRenderer(engine, this);
+		this.scanner = new SectorScanner(engine) {
+			@Override
+			protected Matrix4 getSpriteMatrix(SPRITE tspr) {
+				return sprR.getMatrix(tspr);
+			}
+		};
+
+		this.orphoRen = new GdxOrphoRen(engine, textureCache);
+		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
+				+ " initialized", OSDTEXT_GOLD);
+	}
+
+	protected IndexedShader getTextureShader() {
+		return texshader;
+	}
+
+	private IndexedShader allocIndexedShader() {
+		try {
+			FileInputStream fis = new FileInputStream(new File("worldshader_vert.glsl"));
+			byte[] data = new byte[fis.available()];
+			fis.read(data);
+			String vert = new String(data);
+
+			return new IndexedShader(vert, IndexedShader.defaultFragment) {
+				@Override
+				public void bindPalette() {
+					textureCache.getPalette().bind();
+				}
+
+				@Override
+				public void bindPalookup(int pal) {
+					textureCache.getPalookup(pal).bind();
+				}
+			};
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	private void createSkyShader() {
+		FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(new File("skyshader_frag.glsl"));
+			byte[] data = new byte[fis.available()];
+			fis.read(data);
+			String frag = new String(data);
+
+			fis = new FileInputStream(new File("skyshader_vert.glsl"));
+			data = new byte[fis.available()];
+			fis.read(data);
+			String vert = new String(data);
+
+			skyshader = new ShaderProgram(vert, frag);
+			if (!skyshader.isCompiled())
+				System.err.println("Shader compile error: " + skyshader.getLog());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void init() {
+		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+		this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
+
+		createSkyShader();
+		orphoRen.init();
+
+		isInited = true;
+	}
+
+	@Override
+	public void uninit() {
+		orphoRen.uninit();
+
+		textureCache.uninit();
+	}
+
+	@Override
+	public RenderType getType() {
+		return RenderType.Polymost; // XXX
+	}
+
+	@Override
+	public PixelFormat getTexFormat() {
+		return PixelFormat.Rgb;
+	}
+
+	@Override
+	public boolean isInited() {
+		return isInited;
+	}
+
+	private void drawMask(int w) {
+		gl.glDepthFunc(GL20.GL_LESS);
+		gl.glDepthRangef(0.0001f, 0.99999f);
+
+		drawSurf(world.getMaskedWall(w), 0);
+
+		gl.glDepthFunc(GL20.GL_LESS);
+		gl.glDepthRangef(defznear, defzfar);
+	}
+
+	@Override
+	public void drawmasks() {
+		int maskwallcnt = scanner.getMaskwallCount();
+		sprR.sort(scanner.getSprites(), spritesortcnt);
+
+		while ((spritesortcnt > 0) && (maskwallcnt > 0)) { // While BOTH > 0
+			int j = scanner.getMaskwalls()[maskwallcnt - 1];
+			if (!spritewallfront(scanner.getSprites()[spritesortcnt - 1], j))
+				drawsprite(--spritesortcnt);
+			else {
+				// Check to see if any sprites behind the masked wall...
+				for (int i = spritesortcnt - 2; i >= 0; i--) {
+					if (!spritewallfront(scanner.getSprites()[i], j)) {
+						drawsprite(i);
+						scanner.getSprites()[i] = null;
+					}
+				}
+				// finally safe to draw the masked wall
+				drawmaskwall(--maskwallcnt);
+			}
+		}
+
+		while (spritesortcnt != 0) {
+			spritesortcnt--;
+			if (scanner.getSprites()[spritesortcnt] != null) {
+				drawsprite(spritesortcnt);
+			}
+		}
+
+		while (maskwallcnt > 0)
+			drawmaskwall(--maskwallcnt);
+	}
+
+	public void drawsprite(int i) {
+		sprR.begin(textureCache, cam);
+		SPRITE tspr = scanner.getSprites()[i];
+		if (tspr != null)
+			sprR.draw(tspr);
+		sprR.end();
+	}
+
+	private void drawmaskwall(int i) {
+		drawMask(scanner.getMaskwalls()[i]);
+	}
+
+	private boolean spritewallfront(SPRITE s, int w) {
+		if (s == null)
+			return false;
+
+		WALL wal = wall[w];
+		int x1 = wal.x;
+		int y1 = wal.y;
+		wal = wall[wal.point2];
+		return (dmulscale(wal.x - x1, s.y - y1, -(s.x - x1), wal.y - y1, 32) >= 0);
+	}
+
+	@Override
+	public void drawrooms() {
+		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		gl.glClearColor(0.0f, 0.5f, 0.5f, 1); // XXX
+		gl.glDisable(GL_BLEND);
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_DEPTH_TEST);
+
+		gl.glDepthFunc(GL_LESS);
+		gl.glDepthRangef(defznear, defzfar);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CW);
+		gl.glCullFace(GL_BACK);
+
+		cam.fieldOfView = 71; // fov = 71 as in Polymost
+
+		cam.setPosition(globalposx, globalposy, globalposz);
+		cam.setDirection(globalang, globalhoriz, gtang);
+		cam.update(true);
+
+		if (globalcursectnum >= MAXSECTORS) {
+			globalcursectnum -= MAXSECTORS;
+		} else {
+			short i = globalcursectnum;
+			globalcursectnum = engine.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
+			if (globalcursectnum < 0)
+				globalcursectnum = i;
+		}
+
+		ArrayList<VisibleSector> sectors = scanner.process(cam, world, globalcursectnum);
+		ShaderProgram shader = texshader;
+
+//		for (int i = 0; i < sectors.size(); i++) {
+//			VisibleSector sec = sectors.get(i);
+//			int sectnum = sec.index;
+//
+//			world.getFloor(sectnum);
+//			world.getCeiling(sectnum);
+//			for (int w = 0; w < sec.walls.size; w++) {
+//				int z = sec.walls.get(w);
+//				world.getWall(z, sectnum);
+//			}
+//		}
+
+		shader.begin();
+		shader.setUniformi("u_drawSprite", 0);
+		shader.setUniformMatrix("u_projTrans", cam.combined);
+		shader.setUniformMatrix("u_modelView", cam.view);
+
+		for (int i = 0; i < sectors.size(); i++)
+			drawSector(sectors.get(i));
+		for (int i = 0; i < sectors.size(); i++)
+			drawSkySector(sectors.get(i));
+
+		shader.end();
+
+		spritesortcnt = scanner.getSpriteCount();
+		tsprite = scanner.getSprites();
+	}
+
+	private void drawSector(VisibleSector sec) {
+		int sectnum = sec.index;
+		gotsector[sectnum >> 3] |= pow2char[sectnum & 7];
+
+		if ((sec.secflags & 1) != 0)
+			drawSurf(world.getFloor(sectnum), 0);
+
+		if ((sec.secflags & 2) != 0)
+			drawSurf(world.getCeiling(sectnum), 0);
+
+		for (int w = 0; w < sec.walls.size; w++) {
+			int flags = sec.wallflags.get(w);
+			int z = sec.walls.get(w);
+			drawSurf(world.getWall(z, sectnum), flags);
+			drawSurf(world.getUpper(z, sectnum), flags);
+			drawSurf(world.getLower(z, sectnum), flags);
+		}
+	}
+
+	public void drawSkySector(VisibleSector sec) {
+		for (int w = 0; w < sec.skywalls.size; w++) {
+			int z = sec.skywalls.get(w);
+			drawSky(world.getParallaxCeiling(z));
+			drawSky(world.getParallaxFloor(z));
+		}
+	}
+
+	private void drawSky(GLSurface surf) {
+		if (surf == null)
+			return;
+
+		int offset = surf.offset;
+		int count = surf.count;
+		drawSky(offset, count, surf.picnum, surf.pal, surf.method);
+	}
+
+	private void drawSky(int offset, int count, int picnum, int palnum, int method) {
+		if (count == 0)
+			return;
+
+		if (engine.getTile(picnum).getType() != AnimType.None)
+			picnum += engine.animateoffs(picnum, 0);
+
+		Tile pic = engine.getTile(picnum);
+		if (pic.data == null)
+			engine.loadtile(picnum);
+
+		engine.setgotpic(picnum);
+		GLTile pth = textureCache.bind(TileData.PixelFormat.Pal8, picnum, palnum, 0, 0, method);
+		if (pth != null) {
+			skyshader.begin();
+			gl.glActiveTexture(GL20.GL_TEXTURE1);
+			textureCache.getPalette().bind();
+			skyshader.setUniformi("u_palette", 1);
+
+			gl.glActiveTexture(GL20.GL_TEXTURE2);
+			textureCache.getPalookup(palnum).bind();
+			skyshader.setUniformi("u_palookup", 2);
+			gl.glActiveTexture(GL20.GL_TEXTURE0);
+
+			skyshader.setUniformf("u_camera", cam.position.x, cam.position.y, cam.position.z);
+			skyshader.setUniformMatrix("u_projTrans", cam.combined);
+
+			if ((method & 3) == 0) {
+				gl.glDisable(GL_BLEND);
+				gl.glDisable(GL_ALPHA_TEST);
+			} else {
+				gl.glEnable(GL_BLEND);
+				gl.glEnable(GL_ALPHA_TEST);
+			}
+
+			world.getMesh().render(skyshader, GL_TRIANGLES, offset, count);
+			skyshader.end();
+		}
+	}
+
+	private void drawSurf(GLSurface surf, int flags) {
+		if (surf == null)
+			return;
+
+		if (surf.count != 0 && (flags == 0 || (surf.visflag & flags) != 0)) {
+			int picnum = surf.picnum;
+
+			if (engine.getTile(picnum).getType() != AnimType.None)
+				picnum += engine.animateoffs(picnum, 0);
+
+			Tile pic = engine.getTile(picnum);
+			if (pic.data == null)
+				engine.loadtile(picnum);
+
+			int method = surf.method;
+			if (!pic.isLoaded())
+				method = 0; // invalid data
+
+			engine.setgotpic(picnum);
+			GLTile pth = textureCache.bind(PixelFormat.Pal8, picnum, surf.pal, surf.shade, 0, method);
+			if (pth != null) {
+				int combvis = globalvisibility;
+				if (surf.vis != 0)
+					combvis = mulscale(globalvisibility, (surf.vis + 16) & 0xFF, 4);
+				texshader.setVisibility((int) (-combvis / 64.0f));
+
+				if ((method & 3) == 0) {
+					Gdx.gl.glDisable(GL_BLEND);
+					Gdx.gl.glDisable(GL_ALPHA_TEST);
+				} else {
+					Gdx.gl.glEnable(GL_BLEND);
+					Gdx.gl.glEnable(GL_ALPHA_TEST);
+				}
+
+				world.getMesh().render(texshader, GL_TRIANGLES, surf.offset, surf.count);
+			}
+		}
+	}
+
+	@Override
+	public void clearview(int dacol) {
+		gl.glClearColor(curpalette.getRed(dacol) / 255.0f, //
+				curpalette.getGreen(dacol) / 255.0f, //
+				curpalette.getBlue(dacol) / 255.0f, 0); //
+		gl.glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	@Override
+	public void changepalette(byte[] palette) {
+		textureCache.changePalette(palette);
+	}
+
+	@Override
+	public void nextpage() {
+		// TODO Auto-generated method stub
+
+		orphoRen.nextpage();
+	}
+
+	@Override
+	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
+			int cy1, int cx2, int cy2) {
+		orphoRen.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
+	}
+
+	@Override
+	public void drawmapview(int dax, int day, int zoome, int ang) {
+		orphoRen.drawmapview(dax, day, zoome, ang);
+	}
+
+	@Override
+	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
+		orphoRen.drawoverheadmap(cposx, cposy, czoom, cang);
+	}
+
+	@Override
+	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
+			float scale) {
+		orphoRen.printext(font, xpos, ypos, text, col, shade, bit, scale);
+	}
+
+	@Override
+	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
+		orphoRen.printext(xpos, ypos, col, backcol, text, fontsize, scale);
+	}
+
+	@Override
+	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void drawline256(int x1, int y1, int x2, int y2, int col) {
+		orphoRen.drawline256(x1, y1, x2, y2, col);
+	}
+
+	@Override
+	public void settiltang(int tilt) {
+		if (tilt == 0)
+			gtang = 0.0f;
+		else
+			gtang = (float) Gameutils.AngleToDegrees(tilt);
+	}
+
+	@Override
+	public void setDefs(DefScript defs) {
+		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
+		if (this.defs != null)
+			gltexinvalidateall();
+		this.defs = defs;
+	}
+
+	@Override
+	public TextureManager getTextureManager() {
+		if (textureCache == null) {
+			textureCache = new TextureManager(engine, ExpandTexture.Vertical) {
+
+				@Override
+				public void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method) {
+					if (tile.getPixelFormat() == TileData.PixelFormat.Pal8) {
+						if (!texshader.isBinded()) {
+							BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+							texshader.begin();
+						}
+						texshader.setTextureParams(pal, shade);
+
+						float alpha = 1.0f;
+						switch (method & 3) {
+						case 2:
+							alpha = TRANSLUSCENT1;
+							break;
+						case 3:
+							alpha = TRANSLUSCENT2;
+							break;
+						}
+
+						if (!engine.getTile(tilenum).isLoaded())
+							alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+
+						texshader.setDrawLastIndex((method & 3) == 0 || !textureCache.alphaMode(method));
+						texshader.setTransparent(alpha);
+					}
+				}
+
+			};
+		}
+		return textureCache;
+	}
+
+	@Override
+	public void enableShader(boolean enable) {
+		// XXX
+	}
+
+	@Override
+	public void palfade(HashMap<String, FadeEffect> fades) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void preload() {
+		// TODO Auto-generated method stub
+		world = new WorldMesh(engine);
+		scanner.init();
+	}
+
+	@Override
+	public void precache(int dapicnum, int dapalnum, int datype) {
+		if ((palookup[dapalnum] == null) && (dapalnum < (MAXPALOOKUPS - RESERVEDPALS)))
+			return;
+
+		textureCache.bind(TileData.PixelFormat.Pal8, dapicnum, dapalnum, 0, 0, (datype & 1) << 2); // XXX
+	}
+
+	@Override
+	public void gltexapplyprops() {
+		GLFilter filter = GLSettings.textureFilter.get();
+		textureCache.setFilter(filter);
+
+		if (defs == null)
+			return;
+
+		int anisotropy = GLSettings.textureAnisotropy.get();
+		for (int i = MAXTILES - 1; i >= 0; i--) {
+			Model m = defs.mdInfo.getModel(i);
+			if (m != null) {
+				Iterator<GLTile[]> it = m.getSkins();
+				while (it.hasNext()) {
+					for (GLTile tex : it.next()) {
+						if (tex == null)
+							continue;
+
+						textureCache.bind(tex);
+						tex.setupTextureFilter(filter, anisotropy);
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public void gltexinvalidateall(GLInvalidateFlag... flags) {
+		for (int i = 0; i < flags.length; i++) {
+			switch (flags[i]) {
+			case Uninit:
+				textureCache.uninit();
+				break;
+			case SkinsOnly:
+//				clearskins(true); XXX
+				break;
+			case TexturesOnly:
+			case IndexedTexturesOnly:
+				textureCache.invalidateall();
+				break;
+			case Palookup:
+				for (int j = 0; j < MAXPALOOKUPS; j++) {
+					if (texshader != null)
+						textureCache.invalidatepalookup(j);
+				}
+				break;
+			case All:
+				textureCache.invalidateall();
+				break;
+			}
+		}
+	}
+
+	@Override
+	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {
+		textureCache.invalidate(dapicnum, dapalnum, textureCache.clampingMode(dameth));
+	}
+
+	@Override
+	public void setdrunk(float intensive) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public float getdrunk() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void addSpriteCorr(int snum) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void removeSpriteCorr(int snum) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void completemirror() {
+		/* nothing */ }
+}

@@ -23,6 +23,7 @@ import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class SmallTextFont extends TileFont {
@@ -35,8 +36,8 @@ public class SmallTextFont extends TileFont {
 	}
 
 	@Override
-	public GLTile getGL(TextureManager textureCache, int col) {
-		if(atlas == null)
+	public GLTile getGL(TextureManager textureCache, PixelFormat fmt, int col) {
+		if (atlas == null)
 			init();
 
 		return atlas;

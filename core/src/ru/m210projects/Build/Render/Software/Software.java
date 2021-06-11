@@ -101,6 +101,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
@@ -267,8 +268,7 @@ public abstract class Software implements Renderer {
 		isInited = true;
 	}
 
-	protected A getA()
-	{
+	protected A getA() {
 		return a;
 	}
 
@@ -342,8 +342,7 @@ public abstract class Software implements Renderer {
 		isInited = false;
 	}
 
-	public void swapsprite(int k, int l, boolean z)
-	{
+	public void swapsprite(int k, int l, boolean z) {
 		SPRITE stmp = tspriteptr[k];
 		tspriteptr[k] = tspriteptr[l];
 		tspriteptr[l] = stmp;
@@ -355,7 +354,7 @@ public abstract class Software implements Renderer {
 		spritesy[k] = spritesy[l];
 		spritesy[l] = tmp;
 
-		if(z) {
+		if (z) {
 			tmp = spritesz[k];
 			spritesz[k] = spritesz[l];
 			spritesz[l] = tmp;
@@ -398,7 +397,7 @@ public abstract class Software implements Renderer {
 				for (l = i; l >= 0; l -= gap) {
 					if (spritesy[l] <= spritesy[l + gap])
 						break;
-					swapsprite(l, l+gap, false);
+					swapsprite(l, l + gap, false);
 				}
 
 		if (spritesortcnt > 0)
@@ -413,7 +412,7 @@ public abstract class Software implements Renderer {
 			if (j > i + 1) {
 				for (k = i; k < j; k++) {
 					spritesz[k] = tspriteptr[k].z;
-					if(tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES)
+					if (tspriteptr[k].picnum < 0 || tspriteptr[k].picnum > MAXTILES)
 						continue;
 
 					if ((tspriteptr[k].cstat & 48) != 32) {
@@ -1973,7 +1972,7 @@ public abstract class Software implements Renderer {
 				i -= (5 * totalclock) & 2047;
 
 			Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
-			if(sprext != null)
+			if (sprext != null)
 				i += sprext.angoff;
 
 			float f = 1.0f;
@@ -1991,7 +1990,8 @@ public abstract class Software implements Renderer {
 
 	}
 
-	private void voxdraw(SPRITE daspr, int dasprang, int daxscale, int dayscale, Voxel daindex, int[] daumost, int[] dadmost) {
+	private void voxdraw(SPRITE daspr, int dasprang, int daxscale, int dayscale, Voxel daindex, int[] daumost,
+			int[] dadmost) {
 		int i, j, k, x, y, syoff, ggxstart, ggystart, nxoff;
 		int cosang, sinang, sprcosang, sprsinang, backx, backy, gxinc, gyinc;
 		int daxsiz, daysiz, daxpivot, daypivot, dazpivot;
@@ -2056,7 +2056,7 @@ public abstract class Software implements Renderer {
 			dayscale = mulscale(dayscale << mip, davox.scale, 8);
 		}
 
-		int odayscale = dayscale; //tspr.yrepeat
+		int odayscale = dayscale; // tspr.yrepeat
 		daxscale = mulscale(daxscale, xyaspect, 16);
 		daxscale = scale(daxscale, xdimenscale, xdimen << 8);
 		dayscale = scale(dayscale, mulscale(xdimenscale, viewingrangerecip, 16), xdimen << 8);
@@ -2114,7 +2114,7 @@ public abstract class Software implements Renderer {
 		short[] shortptr;
 
 		int dm = divscale(sec.floorz - globalposz, odayscale, 21);
-	    int um = divscale(sec.ceilingz - globalposz, odayscale, 21);
+		int um = divscale(sec.ceilingz - globalposz, odayscale, 21);
 		for (cnt = 0; cnt < 8; cnt++) {
 			switch (cnt) {
 			case 0:
@@ -2236,7 +2236,8 @@ public abstract class Software implements Renderer {
 				break;
 			}
 			short oand = (short) (pow2char[((xs < backx) ? 1 : 0) + 0] + pow2char[((ys < backy) ? 1 : 0) + 2]);
-			if(xflip) oand ^= 3;
+			if (xflip)
+				oand ^= 3;
 
 			short oand16 = (short) (oand + 16);
 			short oand32 = (short) (oand + 32);
@@ -3111,9 +3112,9 @@ public abstract class Software implements Renderer {
 	private void ceilspritehline(int x2, int y) {
 		int x1, v, bx, by;
 
-		// x = x1 + (x2-x1)t + (y1-y2)u ³ x = 160v
-		// y = y1 + (y2-y1)t + (x2-x1)u ³ y = (scrx-160)v
-		// z = z1 = z2 ³ z = posz + (scry-horiz)v
+		// x = x1 + (x2-x1)t + (y1-y2)u ï¿½ x = 160v
+		// y = y1 + (y2-y1)t + (x2-x1)u ï¿½ y = (scrx-160)v
+		// z = z1 = z2 ï¿½ z = posz + (scry-horiz)v
 
 		x1 = lastx[y];
 		if (x2 < x1)
@@ -3269,8 +3270,8 @@ public abstract class Software implements Renderer {
 		globvis = mulscale(globvis, xdimscale, 16);
 
 		j = globalpal;
-		a.setupslopevlin((picsiz[globalpicnum] & 15) + (((picsiz[globalpicnum] >> 4)) << 8), pic.data,
-				-ylookup[1], -(globalzd >> (16 - BITSOFPRECISION)));
+		a.setupslopevlin((picsiz[globalpicnum] & 15) + (((picsiz[globalpicnum] >> 4)) << 8), pic.data, -ylookup[1],
+				-(globalzd >> (16 - BITSOFPRECISION)));
 
 		l = (globalzd >> 16);
 
@@ -3316,8 +3317,8 @@ public abstract class Software implements Renderer {
 
 				globalx3 = globalx2 >> 10;
 				globaly3 = globaly2 >> 10;
-				a.slopevlin(ylookup[y2] + x + frameoffset, palookup[j], nptr2, y2 - y1 + 1, globalx1, globaly1, globalx3,
-						globaly3, slopalookup, mulscale(y2, globalzd, 16) + (globalzx >> 6));
+				a.slopevlin(ylookup[y2] + x + frameoffset, palookup[j], nptr2, y2 - y1 + 1, globalx1, globaly1,
+						globalx3, globaly3, slopalookup, mulscale(y2, globalzd, 16) + (globalzx >> 6));
 
 //				if ((x & 15) == 0)
 //					engine.faketimerhandler();
@@ -3753,9 +3754,7 @@ public abstract class Software implements Renderer {
 				x2 = wal2.x - globalposx;
 				y2 = wal2.y - globalposy;
 
-				if ((nextsectnum >= 0)
-						&& ((wal.cstat & 32) == 0)
-						&& sectorbordercnt < sectorborder.length
+				if ((nextsectnum >= 0) && ((wal.cstat & 32) == 0) && sectorbordercnt < sectorborder.length
 						&& ((gotsector[nextsectnum >> 3] & pow2char[nextsectnum & 7]) == 0)) {
 					templong = x1 * y2 - x2 * y1;
 
@@ -3870,7 +3869,7 @@ public abstract class Software implements Renderer {
 	}
 
 	private boolean spritewallfront(SPRITE s, int w) {
-		if(s == null)
+		if (s == null)
 			return false;
 
 		WALL wal = wall[w];
@@ -3900,7 +3899,8 @@ public abstract class Software implements Renderer {
 			return (wallfront(b1f, i));
 		}
 
-		for (i = b1f; xb2[i] <= x1b2 && p2[i] != -1; i = p2[i]);
+		for (i = b1f; xb2[i] <= x1b2 && p2[i] != -1; i = p2[i])
+			;
 		return (wallfront(i, b2f));
 	}
 
@@ -3998,7 +3998,7 @@ public abstract class Software implements Renderer {
 					ix2 = xcross;
 				}
 				for (i = (xcross + 1); i <= xb2[w]; i++) {
-					if(i < 0 || i >= mostbuf.length)
+					if (i < 0 || i >= mostbuf.length)
 						return (bad);
 					mostbuf[i] = 0;
 				}
@@ -4008,7 +4008,7 @@ public abstract class Software implements Renderer {
 					ix1 = xcross;
 				}
 				for (i = xb1[w]; i <= xcross; i++) {
-					if(i < 0 || i >= mostbuf.length)
+					if (i < 0 || i >= mostbuf.length)
 						return (bad);
 					mostbuf[i] = 0;
 				}
@@ -4026,7 +4026,7 @@ public abstract class Software implements Renderer {
 					ix2 = xcross;
 				}
 				for (i = (xcross + 1); i <= xb2[w]; i++) {
-					if(i < 0 || i >= mostbuf.length)
+					if (i < 0 || i >= mostbuf.length)
 						return (bad);
 					mostbuf[i] = (short) ydimen;
 				}
@@ -4037,7 +4037,7 @@ public abstract class Software implements Renderer {
 				}
 
 				for (i = xb1[w]; i <= xcross; i++) {
-					if(i < 0 || i >= mostbuf.length)
+					if (i < 0 || i >= mostbuf.length)
 						return (bad);
 					mostbuf[i] = (short) ydimen;
 				}
@@ -4050,19 +4050,23 @@ public abstract class Software implements Renderer {
 		qinterpolatedown16short(mostbuf, ix1, ix2 - ix1 + 1, y + ((int) globalhoriz << 16), yinc);
 
 		if (ix1 < 0 || (ix1 < mostbuf.length && mostbuf[ix1] < 0)) {
-			if(ix1 < 0) ix1 = 0;
+			if (ix1 < 0)
+				ix1 = 0;
 			mostbuf[ix1] = 0;
 		}
 		if (ix1 >= mostbuf.length || mostbuf[ix1] > ydimen) {
-			if(ix1 >= mostbuf.length) ix1 = mostbuf.length - 1;
+			if (ix1 >= mostbuf.length)
+				ix1 = mostbuf.length - 1;
 			mostbuf[ix1] = (short) ydimen;
 		}
 		if (ix2 < 0 || (ix2 < mostbuf.length && mostbuf[ix2] < 0)) {
-			if(ix2 < 0) ix2 = 0;
+			if (ix2 < 0)
+				ix2 = 0;
 			mostbuf[ix2] = 0;
 		}
 		if (ix2 >= mostbuf.length || mostbuf[ix2] > ydimen) {
-			if(ix2 >= mostbuf.length) ix2 = mostbuf.length - 1;
+			if (ix2 >= mostbuf.length)
+				ix2 = mostbuf.length - 1;
 			mostbuf[ix2] = (short) ydimen;
 		}
 

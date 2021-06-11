@@ -565,7 +565,7 @@ public class Polymost2D extends OrphoRenderer {
 		else
 			gl.glEnable(GL_BLEND);
 
-		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
+		GLTile pth = textureCache.bind(parent.getTextureFormat(), globalpicnum, globalpal, globalshade, 0, method);
 		if (pth == null)
 			return;
 
@@ -836,7 +836,7 @@ public class Polymost2D extends OrphoRenderer {
 				return;
 		}
 
-		GLTile atlas = font.getGL(textureCache, col);
+		GLTile atlas = font.getGL(textureCache, parent.getTextureFormat(), col);
 		if (atlas == null)
 			return;
 
@@ -871,9 +871,9 @@ public class Polymost2D extends OrphoRenderer {
 		float tyc = font.charsizy / (float) font.sizy, ty;
 
 		if (atlas.getPixelFormat() == PixelFormat.Pal8) {
-			textureCache.getShader().setTextureParams(col, shade);
-			textureCache.getShader().setDrawLastIndex(false);
-			textureCache.getShader().setTransparent(polyColor.a);
+			parent.getShader().setTextureParams(col, shade);
+			parent.getShader().setDrawLastIndex(false);
+			parent.getShader().setTransparent(polyColor.a);
 		}
 		parent.globalfog.apply();
 
@@ -931,9 +931,9 @@ public class Polymost2D extends OrphoRenderer {
 
 		parent.globalfog.apply();
 
-		boolean hasShader = textureCache.isUseShader();
+		boolean hasShader = parent.getShader() != null && parent.getShader().isBinded();
 		if (hasShader)
-			textureCache.getShader().end();
+			parent.getShader().end();
 
 		col = palookup[0][col] & 0xFF;
 		gl.glBegin(GL_LINES);
@@ -943,7 +943,7 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glEnd();
 
 		if (hasShader)
-			textureCache.getShader().begin();
+			parent.getShader().begin();
 	}
 
 	@Override
@@ -1153,7 +1153,7 @@ public class Polymost2D extends OrphoRenderer {
 			}
 		}
 
-		GLTile pth = textureCache.bind(globalpicnum, globalpal, globalshade, 0, method);
+		GLTile pth = textureCache.bind(parent.getTextureFormat(), globalpicnum, globalpal, globalshade, 0, method);
 		if (pth == null) // hires texture not found
 			return;
 

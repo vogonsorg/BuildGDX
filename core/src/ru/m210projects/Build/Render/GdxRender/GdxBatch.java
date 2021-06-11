@@ -450,10 +450,10 @@ public class GdxBatch {
 	private void setupMatrices() {
 		if (customShader != null) {
 			customShader.setUniformMatrix("u_projTrans", projectionMatrix);
-			// customShader.setUniformi("u_texture", 0);
+			customShader.setUniformi("u_texture", 0);
 		} else {
 			shader.setUniformMatrix("u_projTrans", projectionMatrix);
-			// shader.setUniformi("u_texture", 0);
+			shader.setUniformi("u_texture", 0);
 		}
 	}
 

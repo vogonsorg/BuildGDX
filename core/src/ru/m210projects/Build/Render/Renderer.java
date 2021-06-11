@@ -19,6 +19,7 @@ package ru.m210projects.Build.Render;
 import java.nio.ByteBuffer;
 
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.TileFont;
 
@@ -48,10 +49,6 @@ public interface Renderer {
 		None, Bit1, Bit2
 	}
 
-	public enum PixelFormat {
-		Rgb, Pal8, Pal8A
-	}
-
 	public PixelFormat getTexFormat();
 
 	public void init();
@@ -70,8 +67,8 @@ public interface Renderer {
 
 	public void nextpage();
 
-	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat,
-			int cx1, int cy1, int cx2, int cy2);
+	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
+			int cy1, int cx2, int cy2);
 
 	public void completemirror();
 

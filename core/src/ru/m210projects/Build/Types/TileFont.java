@@ -21,6 +21,7 @@ import java.util.HashSet;
 import ru.m210projects.Build.Render.TextureHandle.DummyTileData;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class TileFont {
@@ -64,8 +65,8 @@ public class TileFont {
 		managedFont.add(this);
 	}
 
-	public GLTile getGL(TextureManager textureCache, int col) {
-		return textureCache.bind((Integer) ptr, col, 0, 0, 0);
+	public GLTile getGL(TextureManager textureCache, PixelFormat fmt, int col) {
+		return textureCache.bind(fmt, (Integer) ptr, col, 0, 0, 0);
 	}
 
 	public void uninit() {

@@ -76,6 +76,7 @@ import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -249,9 +250,14 @@ public class PolymostModelRenderer {
 		dvoxphack[0] = 0;
 		dvoxphack[1] = 1.f / 256.f;
 
-		m.bindSkin(textureCache, globalpal, globalshade, polyColor.a);
-		if(textureCache.isUseShader())
-			textureCache.getShader().setVisibility((int)(parent.globalfog.combvis));
+		GLTile skin = m.bindSkin(parent.getTextureFormat(), textureCache, globalpal, globalshade, polyColor.a);
+		if (skin.getPixelFormat() == PixelFormat.Pal8) {
+			parent.getShader().setTextureParams(globalpal, globalshade);
+			parent.getShader().setDrawLastIndex(true);
+			parent.getShader().setTransparent(polyColor.a);
+			parent.getShader().setVisibility((int) (parent.globalfog.combvis));
+		}
+
 		parent.globalfog.apply();
 		if (r_vertexarrays != 0) {
 			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);

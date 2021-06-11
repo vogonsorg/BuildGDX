@@ -136,15 +136,15 @@ public class VOXModel extends Model {
 	public int is8bit;
 	public FloatBuffer uv;
 
-	public GLTile loadskin(int dapal, boolean bit8texture) {
-		if (palookup[dapal] == null || bit8texture)
+	public GLTile loadskin(PixelFormat fmt, int dapal) {
+		if (palookup[dapal] == null || fmt == PixelFormat.Pal8)
 			dapal = 0;
 
 		if (texid[dapal] != null)
 			return texid[dapal];
 
 //		long startticks = System.currentTimeMillis();
-		VoxTileData dat = new VoxTileData(this, dapal, bit8texture);
+		VoxTileData dat = new VoxTileData(this, dapal, fmt == PixelFormat.Pal8);
 		texid[dapal] = new GLTile(dat, dapal, false);
 		texid[dapal].setupTextureFilter(glfiltermodes[0], 1);
 //		long etime = System.currentTimeMillis()-startticks;
@@ -153,21 +153,14 @@ public class VOXModel extends Model {
 		return texid[dapal];
 	}
 
-	public GLTile bindSkin(TextureManager textureCache, int pal, int shade, float alpha) {
-		int dapal = pal;
-		if (textureCache.getShader() != null)
+	public GLTile bindSkin(PixelFormat fmt, TextureManager textureCache, int pal, int shade, float alpha) {
+		if (fmt == PixelFormat.Pal8)
 			pal = 0;
 
 		if (texid[pal] == null)
-			loadskin(pal, textureCache.getShader() != null);
+			loadskin(fmt, pal);
 
 		GLTile tile = textureCache.bind(texid[pal]);
-		if (tile.getPixelFormat() == PixelFormat.Pal8) {
-			textureCache.getShader().setTextureParams(dapal, shade);
-			textureCache.getShader().setDrawLastIndex(true);
-			textureCache.getShader().setTransparent(alpha);
-		}
-
 		return tile;
 	}
 

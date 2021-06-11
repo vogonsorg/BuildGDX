@@ -134,7 +134,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 		ShaderProgram oldShader = batch.getShader();
 		batch.setShader(bitmapShader);
 
-		GLTile atlas = font.getGL(textureCache, col);
+		GLTile atlas = font.getGL(textureCache, PixelFormat.Pal8, col);
 		if (atlas == null)
 			return;
 

@@ -18,7 +18,7 @@ import ru.m210projects.Build.Pattern.MenuItems.MenuSwitch;
 import ru.m210projects.Build.Pattern.MenuItems.MenuTitle;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.Renderer;
-import ru.m210projects.Build.Render.Renderer.PixelFormat;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -55,7 +55,6 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 	protected MenuSwitch GLUseModels;
 	protected MenuButton GLHires;
 	protected MenuSwitch GLPalette;
-
 
 	@Override
 	public abstract MenuTitle getTitle(BuildGame app, String text);
@@ -207,9 +206,10 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 
 		GLGamma = BuildSlider("Gamma", GLSettings.gamma, 0, 4096, 64, 4096);
 		int ogamma = GLSettings.gamma.get();
-		if(GLSettings.gamma.set(64) == RespondType.Fail)
+		if (GLSettings.gamma.set(64) == RespondType.Fail)
 			GLGamma.mCheckEnableItem(false);
-		else GLSettings.gamma.set(ogamma);
+		else
+			GLSettings.gamma.set(ogamma);
 
 //		GLBrightness = BuildSlider("Brightness", GLSettings.brightness, -4096, 4096, 64, 4096);
 //		GLContrast = BuildSlider("Contrast", GLSettings.contrast, 0, 8192, 64, 4096);
@@ -231,8 +231,9 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 
 		GLPalette = BuildSwitch("Palette emulation", GLSettings.usePaletteShader);
 
-		{ //Hires menu
-			GLHiresMenu = new BuildMenuList(app, "Hires settings", this.list.x, this.list.y, width, this.list.mFontOffset(), 10) {
+		{ // Hires menu
+			GLHiresMenu = new BuildMenuList(app, "Hires settings", this.list.x, this.list.y, width,
+					this.list.mFontOffset(), 10) {
 				@Override
 				public MenuTitle getTitle(BuildGame app, String text) {
 					return MenuRendererSettings.this.getTitle(app, text);
@@ -242,7 +243,8 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 			String[] filters = new String[GLSettings.glfiltermodes.length];
 			for (int i = 0; i < filters.length; i++)
 				filters[i] = GLSettings.glfiltermodes[i].name;
-			GLTextureFilter = BuildConteiner("Texture filtering", GLSettings.textureFilter, filters, GLSettings.glfiltermodes);
+			GLTextureFilter = BuildConteiner("Texture filtering", GLSettings.textureFilter, filters,
+					GLSettings.glfiltermodes);
 
 			int anisotropysize = 0;
 			for (int s = (int) maxanisotropy; s > 1; s >>= 1)

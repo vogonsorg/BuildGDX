@@ -22,14 +22,11 @@ import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.DETAILPAL;
-import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
-import static ru.m210projects.Build.Engine.curpalette;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.pSmallTextfont;
 import static ru.m210projects.Build.Engine.pTextfont;
@@ -39,7 +36,6 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 
@@ -47,23 +43,20 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
-import ru.m210projects.Build.Render.Polymost.Polymost.Rendering;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.GLFilter;
-import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Script.TextureHDInfo;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.Tile;
 
-public class TextureManager {
+public abstract class TextureManager {
 
 	protected final Engine engine;
-	private final GLTileArray cache;
-	private TextureHDInfo info;
+	protected final GLTileArray cache;
+	protected TextureHDInfo info;
 	protected GLTile bindedTile;
 	protected GLTile palette; // to shader
 	protected GLTile palookups[]; // to shader
-//	protected IndexedShader shader;
 	protected int texunits = GL_TEXTURE0;
 	protected ExpandTexture expand = ExpandTexture.Both;
 
@@ -85,11 +78,6 @@ public class TextureManager {
 		this.engine = engine;
 		this.cache = new GLTileArray(MAXTILES);
 		this.palookups = new GLTile[MAXPALOOKUPS];
-//		if (GLSettings.usePaletteShader.get()) {
-//			this.shader = allocIndexedShader();
-//			if (this.shader == null)
-//				GLSettings.usePaletteShader.set(false);
-//		}
 		this.expand = opt;
 	}
 
@@ -179,95 +167,16 @@ public class TextureManager {
 	 * @return GLTile
 	 */
 	public GLTile bind(PixelFormat fmt, int tilenum, int pal, int shade, int skybox, int method) {
-//		Tile pic = engine.getTile(tilenum);
-
 		GLTile tile = get(fmt, tilenum, pal, skybox, clampingMode(method), alphaMode(method));
 		if (tile == null)
 			return null;
 
 		bind(tile);
-//		if (tile.getPixelFormat() == PixelFormat.Pal8) {
-//			if (!shader.isBinded()) {
-//				BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-//				shader.begin();
-//			}
-//			shader.setTextureParams(pal, shade);
-//
-//			float alpha = 1.0f;
-//			switch (method & 3) {
-//			case 2:
-//				alpha = TRANSLUSCENT1;
-//				break;
-//			case 3:
-//				alpha = TRANSLUSCENT2;
-//				break;
-//			}
-//
-//			if (!pic.isLoaded())
-//				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-//
-//			shader.setDrawLastIndex((method & 3) == 0 || !alphaMode(method));
-//			shader.setTransparent(alpha);
-//		} else {
-//			// texture scale by parkar request
-//			if (tile.isHighTile() && ((tile.hicr.xscale != 1.0f) || (tile.hicr.yscale != 1.0f))
-//					&& Rendering.Skybox.getIndex() == 0) {
-//				BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-//				BuildGdx.gl.glLoadIdentity();
-//				BuildGdx.gl.glScalef(tile.hicr.xscale, tile.hicr.yscale, 1.0f);
-//				BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-//			}
-//
-//			if (GLInfo.multisample != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0) {
-//				if (Console.Geti("r_detailmapping") != 0) {
-//					GLTile detail = get(tilenum, DETAILPAL, 0, clampingMode(method), alphaMode(method));
-//					if (detail != null) {
-//						bind(detail);
-//						detail.setupTextureDetail();
-//
-//						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-//						BuildGdx.gl.glLoadIdentity();
-//						if (detail.isHighTile() && (detail.hicr.xscale != 1.0f) || (detail.hicr.yscale != 1.0f))
-//							BuildGdx.gl.glScalef(detail.hicr.xscale, detail.hicr.yscale, 1.0f);
-//						BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-//					}
-//				}
-//
-//				if (Console.Geti("r_glowmapping") != 0) {
-//					GLTile glow = get(tilenum, GLOWPAL, 0, clampingMode(method), alphaMode(method));
-//					if (glow != null) {
-//						bind(glow);
-//						glow.setupTextureGlow();
-//					}
-//				}
-//			}
-//
-//			Color c = getshadefactor(shade, method);
-//			if (tile.isHighTile() && info != null) {
-//				if (tile.getPal() != pal) {
-//					// apply tinting for replaced textures
-//
-//					Palette p = info.getTints(pal);
-//					c.r *= p.r / 255.0f;
-//					c.g *= p.g / 255.0f;
-//					c.b *= p.b / 255.0f;
-//				}
-//
-//				Palette pdetail = info.getTints(MAXPALOOKUPS - 1);
-//				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-//					c.r *= pdetail.r / 255.0f;
-//					c.g *= pdetail.g / 255.0f;
-//					c.b *= pdetail.b / 255.0f;
-//				}
-//			}
-//
-//			if (!pic.isLoaded())
-//				c.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-//			tile.setColor(c.r, c.g, c.b, c.a);
-//		}
-
+		setTextureParameters(tile, tilenum, pal, shade, skybox, method);
 		return tile;
 	}
+
+	public abstract void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method);
 
 	public void precache(PixelFormat fmt, int dapicnum, int dapalnum, boolean clamped) {
 		get(fmt, dapicnum, dapalnum, 0, clamped, true);
@@ -517,40 +426,19 @@ public class TextureManager {
 		return palookups[pal];
 	}
 
-	public IndexedShader allocIndexedShader() {
-		try {
-			return new IndexedShader() {
-				@Override
-				public void bindPalette() {
-					palette.bind();
-				}
-
-				@Override
-				public void bindPalookup(int pal) {
-					getPalookup(pal).bind();
-				}
-			};
-		} catch (Exception e) {
-			e.printStackTrace();
+	public void disposePalette() {
+		palette.dispose();
+		palette = null;
+		for (int i = 0; i < MAXPALOOKUPS; i++) {
+			if (palookups[i] != null) {
+				palookups[i].dispose();
+				palookups[i] = null;
+			}
 		}
 
-		return null;
 	}
 
-//	public IndexedShader getShader() {
-//		return shader;
-//	}
-//
-//	public void setShader(IndexedShader shader) {
-//		if (this.shader != null)
-//			this.shader.dispose();
-//		this.shader = shader;
-//	}
-
 	public void changePalette(byte[] pal) {
-//		if (shader == null)
-//			return;
-
 		TileData dat = new PaletteData(pal);
 
 		if (palette != null)
@@ -562,53 +450,18 @@ public class TextureManager {
 	}
 
 	public void invalidatepalookup(int pal) {
-//		if (shader == null)
-//			return;
-
 		if (palookups[pal] != null)
 			palookups[pal].setInvalidated(true);
 	}
 
-//	public boolean isUseShader() {
-//		return shader != null && bindedTile != null && bindedTile.getPixelFormat() == PixelFormat.Pal8;
-//	}
+	public GLTile getLastBinded() {
+		return bindedTile;
+	}
 
 	public boolean isUseShader(int dapic) {
-//		if (shader != null) {
 		GLTile tile = cache.get(dapic);
 		if (tile != null && tile.getPixelFormat() == PixelFormat.Pal8)
 			return true;
-//		}
 		return false;
 	}
-
-//	public boolean enableShader(boolean enable) {
-//		boolean isChanged = false;
-//		if (enable) {
-//			if (shader == null) {
-//				shader = allocIndexedShader();
-//				if (shader != null) {
-//					changePalette(curpalette.getBytes());
-//					isChanged = true;
-//				}
-//			}
-//		} else if (shader != null) {
-//			shader.dispose();
-//			shader = null;
-//			palette.dispose();
-//			palette = null;
-//			for (int i = 0; i < MAXPALOOKUPS; i++)
-//				if (palookups[i] != null) {
-//					palookups[i].dispose();
-//					palookups[i] = null;
-//				}
-//
-//			isChanged = true;
-//		}
-//
-//		if (isChanged)
-//			uninit();
-//
-//		return shader != null;
-//	}
 }

@@ -419,6 +419,14 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		return palnum;
 	}
 
+	public float getHiresXScale() {
+		return hicr.xscale;
+	}
+
+	public float getHiresYScale() {
+		return hicr.yscale;
+	}
+
 	public boolean isGlowTexture() {
 		return hicr != null && (hicr.palnum == GLOWPAL);
 	}
