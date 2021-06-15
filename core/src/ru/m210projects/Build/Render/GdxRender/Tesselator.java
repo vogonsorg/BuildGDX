@@ -85,6 +85,10 @@ public class Tesselator {
 		this.sectnum = sectnum;
 	}
 
+	public int getSector() {
+		return sectnum;
+	}
+
 	private List<Zoid_t> initZoids(final int sectnum) {
 		final SECTOR sec = sector[sectnum];
 		final int n = sec.wallnum;
@@ -422,10 +426,10 @@ public class Tesselator {
 			return null;
 
 		surf.size = count;
-		if (mesh.getMesh() == null) { // when initializing
-			for (int i = 0; i < count; i++)
-				vertices.addAll(-1, -1, -1, -1, -1);
-		}
+//		if (mesh.getMesh() == null) { // when initializing
+//			for (int i = 0; i < count; i++)
+//				vertices.addAll(-1, -1, -1, -1, -1);
+//		}
 
 		return surf;
 	}

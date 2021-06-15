@@ -4,6 +4,8 @@ import static ru.m210projects.Build.Engine.*;
 
 import java.util.ArrayList;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.utils.FloatArray;
@@ -23,6 +25,7 @@ public class WorldMesh {
 	protected Engine engine;
 	private int maxVertices;
 	private int meshOffset;
+	protected GLSurface lastSurf;
 
 	public enum Heinum {
 		MaxWall, Max, Lower, Upper, Portal, SkyLower, SkyUpper
@@ -61,6 +64,7 @@ public class WorldMesh {
 
 		Timer.start();
 		FloatArray vertices = new FloatArray();
+		lastSurf = null;
 		maxVertices = 0;
 		meshOffset = 0;
 		for (short s = 0; s < numsectors; s++) {
@@ -539,6 +543,7 @@ public class WorldMesh {
 		GLSurface surf = floors[sectnum];
 		if (floorhash[sectnum] != hash) {
 			floorhash[sectnum] = hash;
+
 			tess.setSector(sectnum, true);
 			vertices.clear();
 			surf = addFloor(vertices, sectnum);
@@ -555,6 +560,7 @@ public class WorldMesh {
 		GLSurface surf = ceilings[sectnum];
 		if (ceilinghash[sectnum] != hash) {
 			ceilinghash[sectnum] = hash;
+
 			tess.setSector(sectnum, true);
 			vertices.clear();
 			surf = addCeiling(vertices, sectnum);
@@ -627,6 +633,8 @@ public class WorldMesh {
 
 		hash = prime * hash + wal.x;
 		hash = prime * hash + wal.y;
+		hash = prime * hash + wall[wal.point2].x;
+		hash = prime * hash + wall[wal.point2].y;
 		hash = prime * hash + wal.cstat;
 		hash = prime * hash + wal.xpanning;
 		hash = prime * hash + wal.ypanning;
@@ -665,6 +673,8 @@ public class WorldMesh {
 
 			hash = prime * hash + swal.x; // TODO: Why does it need
 			hash = prime * hash + swal.y;
+			hash = prime * hash + wall[swal.point2].x;
+			hash = prime * hash + wall[swal.point2].y;
 
 			hash = prime * hash + nsec.floorz;
 			hash = prime * hash + nsec.floorheinum;
@@ -695,26 +705,58 @@ public class WorldMesh {
 
 			GLSurface surf = new GLSurface(offset);
 			surf.count = count;
-			meshOffset += 2 * surf.count; // XXX
+			surf.limit = count;
+			meshOffset += surf.count;
 			array[num] = surf;
+			if (lastSurf != null)
+				lastSurf.next = surf;
+			lastSurf = surf;
 
 			if (mesh != null)
 				mesh.getVerticesBuffer().limit(meshOffset * tess.getVertexSize());
 
 			return surf;
+		} else if (array[num].limit < count) {
+			shiftFrom(array[num].next, count - array[num].limit);
+			array[num].limit = count;
 		}
 
 		array[num].count = count;
 		return array[num];
 	}
 
+	private void shiftFrom(GLSurface surf, int shift) {
+		if (surf == null)
+			return;
+
+		System.err.println("shift");
+
+		int size = meshOffset;
+		int newSize = size - surf.offset;
+		float[] newItems = new float[newSize * tess.getVertexSize()];
+		mesh.getVertices(surf.offset * tess.getVertexSize(), newItems);
+
+		surf.offset += shift;
+		meshOffset += shift;
+		mesh.getVerticesBuffer().limit(meshOffset * tess.getVertexSize());
+		mesh.updateVertices(surf.offset * tess.getVertexSize(), newItems, 0, newItems.length);
+
+		surf = surf.next;
+		while (surf != null) {
+			surf.offset += shift;
+			surf = surf.next;
+		}
+	}
+
 	public static class GLSurface {
 		public int offset;
-		public int count;
+		public int count, limit;
 		public int method = 0;
 		public int visflag = 0; // 1 - lower, 2 - upper, 0 - white
 
 		public int picnum, shade, pal, vis;
+
+		protected GLSurface next;
 
 		public GLSurface(int offset) {
 			this.offset = offset;
