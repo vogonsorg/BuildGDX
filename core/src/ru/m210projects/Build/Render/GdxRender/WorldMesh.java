@@ -75,6 +75,8 @@ public class WorldMesh {
 		meshOffset = 0;
 		for (short s = 0; s < numsectors; s++) {
 			SECTOR sec = sector[s];
+			if(sec.floorz == sec.ceilingz)
+				continue;
 
 			tess.setSector(s, true);
 
@@ -101,6 +103,7 @@ public class WorldMesh {
 
 			maxVertices += tess.getMaxVertices();
 		}
+
 		Timer.result("WorldMesh built in: ");
 
 //		mesh = new GL10Mesh(BuildGdx.gl, true, maxVertices, 0, tess.attributes);
@@ -735,16 +738,15 @@ public class WorldMesh {
 			lastSurf = surf;
 
 			validateMesh = true;
-//			if (mesh != null)
-//				mesh.getVerticesBuffer().limit(meshOffset * tess.getVertexSize());
-
 			if (mesh != null)
 				System.err.println("new meshOffset: " + (meshOffset * tess.getVertexSize()) + " "
 						+ mesh.getVerticesBuffer().limit() + " size: " + mesh.getVerticesBuffer().capacity());
 
 			return surf;
 		} else if (array[num].limit < count) {
-			shiftFrom(array[num].next, count - array[num].limit);
+			int shift = count - array[num].limit;
+			shiftFrom(array[num].next, shift);
+			meshOffset += shift;
 			array[num].limit = count;
 		}
 
@@ -763,6 +765,7 @@ public class WorldMesh {
 //			buffer.limit(newLimit);
 //			validateMesh = false;
 //		}
+
 		tess.setSector(-1, false);
 	}
 
@@ -778,7 +781,6 @@ public class WorldMesh {
 		mesh.getVertices(surf.offset * tess.getVertexSize(), newItems);
 
 		surf.offset += shift;
-		meshOffset += shift;
 		validateMesh = true;
 //		mesh.getVerticesBuffer().limit(meshOffset * tess.getVertexSize());
 		mesh.updateVertices(surf.offset * tess.getVertexSize(), newItems, 0, newItems.length);
