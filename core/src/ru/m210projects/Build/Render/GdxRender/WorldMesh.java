@@ -522,16 +522,17 @@ public class WorldMesh {
 			surf = addParallaxFloor(vertices, sectnum, wallnum);
 			if (surf != null)
 				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
+
+			checkValidate();
 		}
 
-		checkValidate();
 		return walls[wallnum];
 	}
 
 	protected void checkValidate() {
 		if (validateMesh) {
 			FloatBuffer buffer = mesh.getVerticesBuffer();
-			int newLimit = (meshOffset + 64) * tess.getVertexSize();
+			int newLimit = (meshOffset + tess.getMaxVertices()) * tess.getVertexSize();
 			if (newLimit > buffer.capacity())
 				newLimit = buffer.capacity();
 			buffer.limit(newLimit);
@@ -571,9 +572,10 @@ public class WorldMesh {
 			if (surf != null) {
 				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 			}
+
+			checkValidate();
 		}
 
-		checkValidate();
 		return surf;
 	}
 
@@ -589,9 +591,10 @@ public class WorldMesh {
 			if (surf != null) {
 				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 			}
+
+			checkValidate();
 		}
 
-		checkValidate();
 		return surf;
 	}
 
