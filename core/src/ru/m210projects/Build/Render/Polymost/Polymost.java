@@ -2144,6 +2144,8 @@ public abstract class Polymost implements GLRenderer {
 		int i, j, n, n2, closest;
 		double ox, oy, oz, ox2, oy2, oz2, r;
 
+		globalhoriz = (globalhoriz * xdimenscale / viewingrange) + (ydimen >> 1);
+
 		if (offscreenrendering) {
 			if (setviewcnt == 1)
 				ogshang = gshang;

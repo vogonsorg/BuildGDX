@@ -80,7 +80,7 @@ public class Tesselator {
 	}
 
 	public void setSector(int sectnum, boolean initZoids) {
-		if (initZoids)
+		if (initZoids && this.sectnum != sectnum)
 			initZoids(sectnum);
 		this.sectnum = sectnum;
 	}

@@ -487,6 +487,8 @@ public abstract class Software implements Renderer {
 
 	@Override
 	public void drawrooms() {
+		globalhoriz = (globalhoriz * xdimenscale / viewingrange) + (ydimen >> 1);
+
 		globaluclip = (0 - (int) globalhoriz) * xdimscale;
 		globaldclip = (ydimen - (int) globalhoriz) * xdimscale;
 

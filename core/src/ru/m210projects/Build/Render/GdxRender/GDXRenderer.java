@@ -34,10 +34,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -52,6 +54,7 @@ import ru.m210projects.Build.Render.TextureHandle.TextureManager.ExpandTexture;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -64,6 +67,10 @@ import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
 import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 
 public class GDXRenderer implements GLRenderer {
+
+	/*
+	 * TODO: Get rid of GLsurface shade/pal/vis
+	 */
 
 	protected TextureManager textureCache;
 	protected final Engine engine;
@@ -83,6 +90,9 @@ public class GDXRenderer implements GLRenderer {
 	protected DefScript defs;
 	protected ShaderProgram skyshader;
 	protected IndexedShader texshader;
+
+	private ByteBuffer pix32buffer;
+	private ByteBuffer pix8buffer;
 
 	public GDXRenderer(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
@@ -274,7 +284,7 @@ public class GDXRenderer implements GLRenderer {
 		gl.glFrontFace(GL_CW);
 		gl.glCullFace(GL_BACK);
 
-		cam.fieldOfView = 71; // fov = 71 as in Polymost
+		cam.fieldOfView = 71; // fov = 71 as in Polymost XXX
 
 		cam.setPosition(globalposx, globalposy, globalposz);
 		cam.setDirection(globalang, globalhoriz, gtang);
@@ -451,7 +461,8 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void nextpage() {
 		// TODO Auto-generated method stub
-
+		if (world != null)
+			world.nextpage();
 		orphoRen.nextpage();
 	}
 
@@ -484,7 +495,77 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz) {
-		// TODO Auto-generated method stub
+		if (pix32buffer != null)
+			pix32buffer.clear();
+
+		boolean reverse = false;
+		if (ysiz < 0) {
+			ysiz *= -1;
+			reverse = true;
+		}
+
+		int byteperpixel = 3;
+		int fmt = GL10.GL_RGB;
+		if (BuildGdx.app.getPlatform() == Platform.Android) {
+			byteperpixel = 4;
+			fmt = GL10.GL_RGBA;
+		}
+
+		if (pix32buffer == null || pix32buffer.capacity() < xsiz * ysiz * byteperpixel)
+			pix32buffer = BufferUtils.newByteBuffer(xsiz * ysiz * byteperpixel);
+		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
+		gl.glReadPixels(0, ydim - ysiz, xsiz, ysiz, fmt, GL10.GL_UNSIGNED_BYTE, pix32buffer);
+
+		if (format == PixelFormat.Rgb) {
+			if (reverse) {
+				int b1, b2 = 0;
+				for (int p, x, y = 0; y < ysiz / 2; y++) {
+					b1 = byteperpixel * (ysiz - y - 1) * xsiz;
+					for (x = 0; x < xsiz; x++) {
+						for (p = 0; p < byteperpixel; p++) {
+							byte tmp = pix32buffer.get(b1 + p);
+							pix32buffer.put(b1 + p, pix32buffer.get(b2 + p));
+							pix32buffer.put(b2 + p, tmp);
+						}
+						b1 += byteperpixel;
+						b2 += byteperpixel;
+					}
+				}
+			}
+			pix32buffer.rewind();
+			return pix32buffer;
+		} else if (format == PixelFormat.Pal8) {
+			if (pix8buffer != null)
+				pix8buffer.clear();
+			if (pix8buffer == null || pix8buffer.capacity() < xsiz * ysiz)
+				pix8buffer = BufferUtils.newByteBuffer(xsiz * ysiz);
+
+			int base = 0, r, g, b;
+			if (reverse) {
+				for (int x, y = 0; y < ysiz; y++) {
+					base = byteperpixel * (ysiz - y - 1) * xsiz;
+					for (x = 0; x < xsiz; x++) {
+						r = (pix32buffer.get(base++) & 0xFF) >> 2;
+						g = (pix32buffer.get(base++) & 0xFF) >> 2;
+						b = (pix32buffer.get(base++) & 0xFF) >> 2;
+						pix8buffer.put(engine.getclosestcol(palette, r, g, b));
+					}
+				}
+			} else {
+				for (int i = 0; i < pix8buffer.capacity(); i++) {
+					r = (pix32buffer.get(base++) & 0xFF) >> 2;
+					g = (pix32buffer.get(base++) & 0xFF) >> 2;
+					b = (pix32buffer.get(base++) & 0xFF) >> 2;
+					if (byteperpixel == 4)
+						base++; // Android
+					pix8buffer.put(engine.getclosestcol(palette, r, g, b));
+				}
+			}
+
+			pix8buffer.rewind();
+			return pix8buffer;
+		}
+
 		return null;
 	}
 

@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.math.MathUtils;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.DataResource;
@@ -41,6 +42,12 @@ import ru.m210projects.Build.FileHandle.GroupResource;
 import ru.m210projects.Build.Script.DefScript;
 
 public class Gameutils {
+
+	public static final float degreesToBuildAngle = 1024.0f / 180.0f;
+	public static final float radiansToBuildAngle = 1024.0f / MathUtils.PI;
+
+	public static final float buildAngleToDegrees = 180.0f / 1024.0f;
+	public static final float buildAngleToRadians = MathUtils.PI / 1024.0f;
 
 	public static void fill(byte[] array, int value) {
 		int len = array.length;
@@ -60,27 +67,27 @@ public class Gameutils {
 		for (int i = 1; i < len; i += i)
 			System.arraycopy(array, start, array, start + i, ((len - i) < i) ? (len - i) : i);
 	}
-	
+
 	public static float invSqrt(float x) {
-	    float xhalf = 0.5f * x;
-	    int i = Float.floatToIntBits(x);
-	    i = 0x5f3759df - (i >> 1);
-	    x = Float.intBitsToFloat(i);
-	    x *= (1.5f - xhalf * x * x);
-	    return x;
+		float xhalf = 0.5f * x;
+		int i = Float.floatToIntBits(x);
+		i = 0x5f3759df - (i >> 1);
+		x = Float.intBitsToFloat(i);
+		x *= (1.5f - xhalf * x * x);
+		return x;
 	}
-	
+
 	public static float Sqrt(float x) {
-	    return x > 0.0f ? x * invSqrt(x) : 0.0f;
+		return x > 0.0f ? x * invSqrt(x) : 0.0f;
 	}
 
 	public static double angle(double dx, double dy, boolean deg) {
 		double k = deg ? 90.0 : Math.PI / 2.0;
-		if (dy >= 0.0f)
+		if (dy >= 0.0)
 			return k * ((dx >= 0 ? dy / (dx + dy) : 1 - dx / (-dx + dy)));
 		return k * ((dx < 0 ? 2 - dy / (-dx - dy) : 3 + dx / (dx - dy)));
 	}
-	
+
 	public static float BClampAngle(float angle) {
 		return angle < 0 ? (angle % 2048) + 2048 : angle % 2048;
 	}
@@ -265,7 +272,8 @@ public class Gameutils {
 		if (data != null) {
 			DataResource res = new DataResource(null, filename, -1, data);
 			Group group = BuildGdx.cache.add(res, filename);
-			if (group == null) return;
+			if (group == null)
+				return;
 
 			GroupResource def = group.open(appdef);
 			if (def != null) {

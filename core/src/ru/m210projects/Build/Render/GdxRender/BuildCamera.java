@@ -1,6 +1,5 @@
 package ru.m210projects.Build.Render.GdxRender;
 
-import static java.lang.Math.sqrt;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.*;
 
@@ -12,6 +11,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
+
 import com.badlogic.gdx.math.Plane.PlaneSide;
 
 public class BuildCamera extends PerspectiveCamera {
@@ -89,19 +89,20 @@ public class BuildCamera extends PerspectiveCamera {
 	}
 
 	public float getAngle() {
-		float angle = (float) Math.atan2(direction.y, direction.x) * MathUtils.radiansToDegrees;
+		float angle = MathUtils.atan2(direction.y, direction.x);
 		if (angle < 0)
-			angle += 360.0f;
-		return BClampAngle((angle * 2048.0f) / 360.0f);
+			angle += MathUtils.PI2;
+		return BClampAngle(angle * radiansToBuildAngle);
 	}
 
 	public void setDirection(double ang, double horiz, double tilt) {
-		double r = (halfheight - horiz);
-		float gshang = (float) (r / sqrt(r * r + halfwidth * halfwidth));
-		float gchang = (float) sqrt(1.0 - gshang * gshang);
-		double rads = AngleToRadians(ang);
-		float gcosang = (float) Math.cos(rads);
-		float gsinang = (float) Math.sin(rads);
+		float yaw = (float) AngleToRadians(ang);
+		float gcosang = MathUtils.cos(yaw);
+		float gsinang = MathUtils.sin(yaw);
+
+		float pitch = -MathUtils.atan2((float) horiz, 128.0f);
+		float gchang = MathUtils.cos(pitch);
+		float gshang = MathUtils.sin(pitch);
 
 		direction.set(gcosang * gchang, gsinang * gchang, gshang);
 		direction.nor();
