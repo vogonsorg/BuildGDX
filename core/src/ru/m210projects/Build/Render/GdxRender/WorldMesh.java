@@ -283,7 +283,7 @@ public class WorldMesh {
 			if (info == null)
 				return setNull(lower_skies, wallnum);
 
-			surf = getSurface(lower_skies, wallnum, info.getSize());
+			surf = getSurface(lower_skies, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
 				surf.shade = info.shade;
@@ -317,7 +317,7 @@ public class WorldMesh {
 			if (info == null)
 				return setNull(upper_skies, wallnum);
 
-			surf = getSurface(upper_skies, wallnum, info.getSize());
+			surf = getSurface(upper_skies, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
 				surf.shade = info.shade;
@@ -343,7 +343,7 @@ public class WorldMesh {
 		if (info == null)
 			return setNull(walls, wallnum);
 
-		surf = getSurface(walls, wallnum, info.getSize());
+		surf = getSurface(walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
 			surf.shade = info.shade;
@@ -368,7 +368,7 @@ public class WorldMesh {
 		if (info == null)
 			return setNull(upper_walls, wallnum);
 
-		GLSurface surf = getSurface(upper_walls, wallnum, info.getSize());
+		GLSurface surf = getSurface(upper_walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
 			surf.shade = info.shade;
@@ -393,7 +393,7 @@ public class WorldMesh {
 		if (info == null)
 			return setNull(lower_walls, wallnum);
 
-		GLSurface surf = getSurface(lower_walls, wallnum, info.getSize());
+		GLSurface surf = getSurface(lower_walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
 			surf.shade = info.shade;
@@ -418,7 +418,7 @@ public class WorldMesh {
 			if (info == null)
 				return setNull(maskwalls, wallnum);
 
-			surf = getSurface(maskwalls, wallnum, info.getSize());
+			surf = getSurface(maskwalls, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
 				surf.shade = info.shade;
@@ -449,7 +449,7 @@ public class WorldMesh {
 		if (info == null)
 			return setNull(floors, sectnum);
 
-		GLSurface surf = getSurface(floors, sectnum, info.getSize());
+		GLSurface surf = getSurface(floors, sectnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
 			surf.shade = info.shade;
@@ -471,7 +471,7 @@ public class WorldMesh {
 		if (info == null)
 			return setNull(ceilings, sectnum);
 
-		GLSurface surf = getSurface(ceilings, sectnum, info.getSize());
+		GLSurface surf = getSurface(ceilings, sectnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
 			surf.shade = info.shade;
@@ -534,8 +534,6 @@ public class WorldMesh {
 			int newLimit = (meshOffset + 64) * tess.getVertexSize();
 			if (newLimit > buffer.capacity())
 				newLimit = buffer.capacity();
-
-			System.err.println("newLimit " + newLimit);
 			buffer.limit(newLimit);
 			validateMesh = false;
 		}
@@ -723,25 +721,24 @@ public class WorldMesh {
 		return null;
 	}
 
-	private GLSurface getSurface(GLSurface[] array, int num, int count) {
+	private GLSurface getSurface(GLSurface[] array, int num, int count, int limit) {
 		if (array[num] == null) {
 			if (count == 0)
 				return null;
 
 			GLSurface surf = new GLSurface(meshOffset);
 			surf.count = count;
-			surf.limit = count;
+			surf.limit = limit;
 			meshOffset += surf.count;
 			array[num] = surf;
 			if (lastSurf != null)
 				lastSurf.next = surf;
 			lastSurf = surf;
-
 			validateMesh = true;
-			if (mesh != null)
-				System.err.println("new meshOffset: " + (meshOffset * tess.getVertexSize()) + " "
-						+ mesh.getVerticesBuffer().limit() + " size: " + mesh.getVerticesBuffer().capacity());
 
+//			if (mesh != null)
+//				System.err.println("new meshOffset: " + (meshOffset * tess.getVertexSize()) + " "
+//						+ mesh.getVerticesBuffer().limit() + " size: " + mesh.getVerticesBuffer().capacity());
 			return surf;
 		} else if (array[num].limit < count) {
 			int shift = count - array[num].limit;
@@ -755,17 +752,6 @@ public class WorldMesh {
 	}
 
 	public void nextpage() {
-//		if (mesh != null && validateMesh) {
-//			FloatBuffer buffer = mesh.getVerticesBuffer();
-//			int newLimit = (meshOffset + 64) * tess.getVertexSize();
-//			if (newLimit > buffer.capacity())
-//				newLimit = buffer.capacity();
-//
-//			System.err.println("newLimit " + newLimit);
-//			buffer.limit(newLimit);
-//			validateMesh = false;
-//		}
-
 		tess.setSector(-1, false);
 	}
 
@@ -782,7 +768,6 @@ public class WorldMesh {
 
 		surf.offset += shift;
 		validateMesh = true;
-//		mesh.getVerticesBuffer().limit(meshOffset * tess.getVertexSize());
 		mesh.updateVertices(surf.offset * tess.getVertexSize(), newItems, 0, newItems.length);
 
 		surf = surf.next;

@@ -426,10 +426,15 @@ public class Tesselator {
 			return null;
 
 		surf.size = count;
-//		if (mesh.getMesh() == null) { // when initializing
-//			for (int i = 0; i < count; i++)
-//				vertices.addAll(-1, -1, -1, -1, -1);
-//		}
+		surf.limit = count;
+//		if(type == Type.Wall || type == Type.Sky) {
+//			surf.limit = 6;
+//			if (mesh.getMesh() == null) { // when initializing
+//				int pads = 6 - count;
+////				for (int i = 0; i < pads; i++)
+////					vertices.addAll(-1, -1, -1, -1, -1); //XXX
+//			}
+//		} else surf.limit = count;
 
 		return surf;
 	}
@@ -489,17 +494,22 @@ public class Tesselator {
 
 	protected static class SurfaceInfo {
 		public int picnum, pal, shade;
-		public int size;
+		public int size, limit;
 
 		protected void clear() {
 			picnum = -1;
 			pal = -1;
 			shade = 0;
 			size = 0;
+			limit = 0;
 		}
 
 		protected int getSize() {
 			return size;
+		}
+
+		protected int getLimit() {
+			return limit;
 		}
 	}
 
