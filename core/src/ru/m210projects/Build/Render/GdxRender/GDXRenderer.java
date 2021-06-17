@@ -83,6 +83,9 @@ public class GDXRenderer implements GLRenderer {
 //	SW textures bug
 //	Palfade
 //	Drunk mode
+//	Hires + models
+//	Skyboxes
+//	Sky texture
 
 	protected TextureManager textureCache;
 	protected final Engine engine;

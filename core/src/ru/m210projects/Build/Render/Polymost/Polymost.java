@@ -289,11 +289,11 @@ public abstract class Polymost implements GLRenderer {
 		this.engine = engine;
 		this.textureCache = getTextureManager();
 
-		if (GLSettings.usePaletteShader.get()) {
-			this.texshader = allocIndexedShader();
-			if (this.texshader == null)
-				GLSettings.usePaletteShader.set(false);
-		}
+//		if (GLSettings.usePaletteShader.get()) {
+//			this.texshader = allocIndexedShader();
+//			if (this.texshader == null)
+//				GLSettings.usePaletteShader.set(false);
+//		}
 
 		this.gl = BuildGdx.graphics.getGL10();
 		this.clipper = new PolyClipper(this);
@@ -548,6 +548,8 @@ public abstract class Polymost implements GLRenderer {
 		gl.glShadeModel(GL_SMOOTH); // GL_FLAT
 		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
 		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+		enableShader(GLSettings.usePaletteShader.get());
 
 		orpho.init();
 		globalfog.init(textureCache);

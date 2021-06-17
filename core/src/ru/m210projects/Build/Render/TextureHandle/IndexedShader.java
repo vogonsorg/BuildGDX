@@ -38,10 +38,10 @@ public abstract class IndexedShader extends ShaderProgram {
 //			+ "uniform vec4 u_fogcolour;" //
 //			+ "uniform float u_fogstart;" //
 //			+ "uniform float u_fogend;" //
-//			+ "uniform float u_cx1;" //
-//			+ "uniform float u_cy1;" //
-//			+ "uniform float u_cx2;" //
-//			+ "uniform float u_cy2;" //
+			+ "uniform float u_cx1;" //
+			+ "uniform float u_cy1;" //
+			+ "uniform float u_cx2;" //
+			+ "uniform float u_cy2;" //
 			+ "varying float v_dist;" //
 			+ "varying vec2 v_texCoords;" //
 //			+ "float fog(float dist) {" //
@@ -57,9 +57,9 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ "}" //
 			+ "void main()" //
 			+ "{" //
-//			+ "	if(gl_FragCoord.x < u_cx1 || gl_FragCoord.x > u_cx2" //
-//			+ "		|| gl_FragCoord.y > u_cy1 || gl_FragCoord.y < u_cy2)" //
-//			+ "		discard;" //
+			+ "	if(gl_FragCoord.x < u_cx1 || gl_FragCoord.x > u_cx2" //
+			+ "		|| gl_FragCoord.y > u_cy1 || gl_FragCoord.y < u_cy2)" //
+			+ "		discard;" //
 			+ "	float fi = texture2D(u_texture, v_texCoords).r;" //
 			+ "	if(fi == 1.0)" //
 			+ "	{" //
@@ -79,8 +79,8 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ "void main()" //
 			+ "{" //
 			+ "	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;" //
-			+ "	vec4 mv = gl_ModelViewMatrix * gl_Vertex;" //
-			+ " v_dist = mv.z / mv.w;" //
+			+ "	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;" //
+			+ " v_dist = gl_ClipVertex.z / gl_ClipVertex.w;" //
 			+ "	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;" //
 			+ " v_texCoords = gl_TexCoord[0].xy;" //
 			+ "}"; //
