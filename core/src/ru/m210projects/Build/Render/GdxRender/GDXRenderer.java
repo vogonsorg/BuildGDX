@@ -61,6 +61,7 @@ import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
+import ru.m210projects.Build.Types.Timer;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
@@ -93,6 +94,7 @@ public class GDXRenderer implements GLRenderer {
 
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
+	private long renderTime, scanTime;
 
 	public GDXRenderer(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
@@ -271,8 +273,11 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void drawrooms() {
-		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		gl.glClearColor(0.0f, 0.5f, 0.5f, 1); // XXX
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+
+//		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//		gl.glClearColor(0.0f, 0.5f, 0.5f, 1); // XXX
+
 		gl.glDisable(GL_BLEND);
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_DEPTH_TEST);
@@ -299,7 +304,15 @@ public class GDXRenderer implements GLRenderer {
 				globalcursectnum = i;
 		}
 
+		if (inpreparemirror) {
+
+			inpreparemirror = false;
+		}
+
+		scanTime = System.nanoTime();
 		ArrayList<VisibleSector> sectors = scanner.process(cam, world, globalcursectnum);
+		scanTime = System.nanoTime() - scanTime;
+
 		ShaderProgram shader = texshader;
 
 //		for (int i = 0; i < sectors.size(); i++) {
@@ -314,6 +327,7 @@ public class GDXRenderer implements GLRenderer {
 //			}
 //		}
 
+		renderTime = System.nanoTime();
 		shader.begin();
 		shader.setUniformi("u_drawSprite", 0);
 		shader.setUniformMatrix("u_projTrans", cam.combined);
@@ -325,6 +339,7 @@ public class GDXRenderer implements GLRenderer {
 			drawSkySector(sectors.get(i));
 
 		shader.end();
+		renderTime = System.nanoTime() - renderTime;
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
@@ -374,7 +389,7 @@ public class GDXRenderer implements GLRenderer {
 			picnum += engine.animateoffs(picnum, 0);
 
 		Tile pic = engine.getTile(picnum);
-		if (pic.data == null)
+		if (!pic.isLoaded())
 			engine.loadtile(picnum);
 
 		engine.setgotpic(picnum);
@@ -392,6 +407,12 @@ public class GDXRenderer implements GLRenderer {
 
 			skyshader.setUniformf("u_camera", cam.position.x, cam.position.y, cam.position.z);
 			skyshader.setUniformMatrix("u_projTrans", cam.combined);
+
+			if (!pic.isLoaded()) {
+				skyshader.setUniformf("u_alpha", 0.01f);
+				method = 1;
+			} else
+				skyshader.setUniformf("u_alpha", 1.0f);
 
 			if ((method & 3) == 0) {
 				gl.glDisable(GL_BLEND);
@@ -417,12 +438,12 @@ public class GDXRenderer implements GLRenderer {
 				picnum += engine.animateoffs(picnum, 0);
 
 			Tile pic = engine.getTile(picnum);
-			if (pic.data == null)
+			if (!pic.isLoaded())
 				engine.loadtile(picnum);
 
 			int method = surf.method;
 			if (!pic.isLoaded())
-				method = 0; // invalid data
+				method = 1; // invalid data, HOM
 
 			engine.setgotpic(picnum);
 			GLTile pth = textureCache.bind(PixelFormat.Pal8, picnum, surf.pal, surf.shade, 0, method);
@@ -464,6 +485,18 @@ public class GDXRenderer implements GLRenderer {
 		if (world != null)
 			world.nextpage();
 		orphoRen.nextpage();
+
+		// showTimers();
+
+		beforedrawrooms = 1;
+	}
+
+	private void showTimers() {
+		float scan = scanTime / 1000000.0f;
+		float rend = renderTime / 1000000.0f;
+
+		System.out.println("ScanTime: " + scan + "ms");
+		System.out.println("RenderTime: " + rend + "ms");
 	}
 
 	@Override

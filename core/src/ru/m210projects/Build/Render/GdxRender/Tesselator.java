@@ -426,15 +426,17 @@ public class Tesselator {
 			return null;
 
 		surf.size = count;
-		surf.limit = count;
-//		if(type == Type.Wall || type == Type.Sky) {
-//			surf.limit = 6;
-//			if (mesh.getMesh() == null) { // when initializing
-//				int pads = 6 - count;
-////				for (int i = 0; i < pads; i++)
-////					vertices.addAll(-1, -1, -1, -1, -1); //XXX
-//			}
-//		} else surf.limit = count;
+		if (type == Type.Wall || type == Type.Sky) {
+			surf.limit = 6; // Walls are quads (3 + 3 tris)
+			if (mesh.getMesh() == null) { // when initializing
+				int pads = 6 - count;
+				for (int i = 0; i < pads; i++) {
+					for (int j = 0; j < getVertexSize(); j++)
+						vertices.add(-1);
+				}
+			}
+		} else
+			surf.limit = count;
 
 		return surf;
 	}

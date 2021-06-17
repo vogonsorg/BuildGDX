@@ -75,8 +75,8 @@ public class WorldMesh {
 		meshOffset = 0;
 		for (short s = 0; s < numsectors; s++) {
 			SECTOR sec = sector[s];
-			if(sec.floorz == sec.ceilingz)
-				continue;
+//			if(sec.floorz == sec.ceilingz)
+//				continue;
 
 			tess.setSector(s, true);
 
@@ -732,7 +732,7 @@ public class WorldMesh {
 			GLSurface surf = new GLSurface(meshOffset);
 			surf.count = count;
 			surf.limit = limit;
-			meshOffset += surf.count;
+			meshOffset += surf.limit;
 			array[num] = surf;
 			if (lastSurf != null)
 				lastSurf.next = surf;
