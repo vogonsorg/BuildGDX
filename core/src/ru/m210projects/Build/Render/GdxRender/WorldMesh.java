@@ -286,9 +286,11 @@ public class WorldMesh {
 			surf = getSurface(lower_skies, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
-				surf.shade = info.shade;
-				surf.pal = info.pal;
-				surf.vis = sec.visibility;
+//				surf.shade = info.shade;
+//				surf.pal = info.pal;
+				surf.obj = info.obj;
+				surf.type = Type.Floor;
+				surf.vis_ptr = sectnum;
 				surf.visflag = 0;
 			}
 		}
@@ -320,9 +322,11 @@ public class WorldMesh {
 			surf = getSurface(upper_skies, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
-				surf.shade = info.shade;
-				surf.pal = info.pal;
-				surf.vis = sec.visibility;
+//				surf.shade = info.shade;
+//				surf.pal = info.pal;
+				surf.obj = info.obj;
+				surf.type = Type.Ceiling;
+				surf.vis_ptr = sectnum;
 				surf.visflag = 0;
 			}
 		}
@@ -346,9 +350,11 @@ public class WorldMesh {
 		surf = getSurface(walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-			surf.shade = info.shade;
-			surf.pal = info.pal;
-			surf.vis = sector[sectnum].visibility;
+//			surf.shade = info.shade;
+//			surf.pal = info.pal;
+			surf.obj = info.obj;
+			surf.type = Type.Wall;
+			surf.vis_ptr = sectnum;
 
 			surf.visflag = 0;
 		}
@@ -371,9 +377,12 @@ public class WorldMesh {
 		GLSurface surf = getSurface(upper_walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-			surf.shade = info.shade;
-			surf.pal = info.pal;
-			surf.vis = sector[sectnum].visibility;
+//			surf.shade = info.shade;
+//			surf.pal = info.pal;
+//			surf.vis = sector[sectnum];
+			surf.obj = info.obj;
+			surf.type = Type.Wall;
+			surf.vis_ptr = sectnum;
 
 			surf.visflag = 2;
 		}
@@ -396,9 +405,12 @@ public class WorldMesh {
 		GLSurface surf = getSurface(lower_walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-			surf.shade = info.shade;
-			surf.pal = info.pal;
-			surf.vis = sector[sectnum].visibility;
+//			surf.shade = info.shade;
+//			surf.pal = info.pal;
+//			surf.vis = sector[sectnum];
+			surf.obj = info.obj;
+			surf.type = Type.Wall;
+			surf.vis_ptr = sectnum;
 
 			surf.visflag = 1;
 		}
@@ -421,9 +433,12 @@ public class WorldMesh {
 			surf = getSurface(maskwalls, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
-				surf.shade = info.shade;
-				surf.pal = info.pal;
-				surf.vis = sector[sectnum].visibility;
+//				surf.shade = info.shade;
+//				surf.pal = info.pal;
+//				surf.vis = sector[sectnum];
+				surf.obj = info.obj;
+				surf.type = Type.Wall;
+				surf.vis_ptr = sectnum;
 
 				surf.method = 1;
 				if (!wal.isOneWay() && wal.isTransparent()) {
@@ -452,9 +467,12 @@ public class WorldMesh {
 		GLSurface surf = getSurface(floors, sectnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-			surf.shade = info.shade;
-			surf.pal = info.pal;
-			surf.vis = sector[sectnum].visibility;
+//			surf.shade = info.shade;
+//			surf.pal = info.pal;
+//			surf.vis = sector[sectnum];
+			surf.obj = info.obj;
+			surf.type = Type.Floor;
+			surf.vis_ptr = sectnum;
 		}
 
 		if (surf != null && surf.count == 0)
@@ -474,9 +492,12 @@ public class WorldMesh {
 		GLSurface surf = getSurface(ceilings, sectnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-			surf.shade = info.shade;
-			surf.pal = info.pal;
-			surf.vis = sector[sectnum].visibility;
+//			surf.shade = info.shade;
+//			surf.pal = info.pal;
+//			surf.vis = sector[sectnum];
+			surf.obj = info.obj;
+			surf.type = Type.Ceiling;
+			surf.vis_ptr = sectnum;
 		}
 
 		if (surf != null && surf.count == 0)
@@ -615,11 +636,8 @@ public class WorldMesh {
 		hash = prime * hash + sec.ceilingstat;
 		hash = prime * hash + sec.ceilingheinum;
 		hash = prime * hash + sec.ceilingpicnum;
-		hash = prime * hash + sec.ceilingpal;
-		hash = prime * hash + sec.ceilingshade;
 		hash = prime * hash + sec.ceilingxpanning;
 		hash = prime * hash + sec.ceilingypanning;
-		hash = prime * hash + sec.visibility;
 
 		return hash;
 	}
@@ -641,11 +659,8 @@ public class WorldMesh {
 		hash = prime * hash + sec.floorstat;
 		hash = prime * hash + sec.floorheinum;
 		hash = prime * hash + sec.floorpicnum;
-		hash = prime * hash + sec.floorpal;
-		hash = prime * hash + sec.floorshade;
 		hash = prime * hash + sec.floorxpanning;
 		hash = prime * hash + sec.floorypanning;
-		hash = prime * hash + sec.visibility;
 
 		return hash;
 	}
@@ -667,8 +682,6 @@ public class WorldMesh {
 		hash = prime * hash + wal.xrepeat;
 		hash = prime * hash + wal.yrepeat;
 		hash = prime * hash + wal.picnum; // upper texture
-		hash = prime * hash + wal.pal;
-		hash = prime * hash + wal.shade;
 		hash = prime * hash + wal.overpicnum; // middle texture
 
 		if (wal.isSwapped() && wal.nextwall != -1) {
@@ -679,8 +692,6 @@ public class WorldMesh {
 			hash = prime * hash + swal.xrepeat;
 			hash = prime * hash + swal.yrepeat;
 			hash = prime * hash + swal.picnum;
-			hash = prime * hash + swal.pal;
-			hash = prime * hash + swal.shade;
 		}
 
 		hash = prime * hash + sec.floorz;
@@ -786,12 +797,42 @@ public class WorldMesh {
 		public int method = 0;
 		public int visflag = 0; // 1 - lower, 2 - upper, 0 - white
 
-		public int picnum, shade, pal, vis;
+		public int picnum;
+		public Object obj;
+		public Type type;
+		public int vis_ptr;
+//		public int picnum, shade, pal, vis;
 
 		protected GLSurface next;
 
 		public GLSurface(int offset) {
 			this.offset = offset;
+		}
+
+		public short getPal() {
+			switch (type) {
+			case Floor:
+				return ((SECTOR) obj).floorpal;
+			case Ceiling:
+				return ((SECTOR) obj).ceilingpal;
+			case Wall:
+				return ((WALL) obj).pal;
+			default:
+				return 0;
+			}
+		}
+
+		public byte getShade() {
+			switch (type) {
+			case Floor:
+				return ((SECTOR) obj).floorshade;
+			case Ceiling:
+				return ((SECTOR) obj).ceilingshade;
+			case Wall:
+				return ((WALL) obj).shade;
+			default:
+				return 0;
+			}
 		}
 	}
 }

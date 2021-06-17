@@ -211,8 +211,9 @@ public class Tesselator {
 		case Ceiling: {
 			SECTOR sec = sector[num];
 			surf.picnum = type == Type.Floor ? sec.floorpicnum : sec.ceilingpicnum;
-			surf.shade = type == Type.Floor ? sec.floorshade : sec.ceilingshade;
-			surf.pal = type == Type.Floor ? sec.floorpal : sec.ceilingpal;
+			surf.obj = sec;
+//			surf.shade = type == Type.Floor ? sec.floorshade : sec.ceilingshade;
+//			surf.pal = type == Type.Floor ? sec.floorpal : sec.ceilingpal;
 			Tile pic = engine.getTile(surf.picnum);
 
 			int n = 0, j = 0;
@@ -357,8 +358,7 @@ public class Tesselator {
 
 				int picnum = (k == -1 ? ptr.overpicnum : ptr.picnum);
 				surf.picnum = picnum;
-				surf.shade = ptr.shade;
-				surf.pal = ptr.pal;
+				surf.obj = ptr;
 
 				Tile pic = engine.getTile(picnum);
 				uCoff = wal.xrepeat * 8.0f / pic.getWidth();
@@ -377,8 +377,7 @@ public class Tesselator {
 				}
 			} else {
 				surf.picnum = heinum == Heinum.SkyLower ? sector[sectnum].floorpicnum : sector[sectnum].ceilingpicnum;
-				surf.shade = 0;
-				surf.pal = heinum == Heinum.SkyLower ? sector[sectnum].floorpal : sector[sectnum].ceilingpal;
+				surf.obj = sector[sectnum];
 			}
 
 			vertex[0] = pol.get(0);
@@ -495,13 +494,14 @@ public class Tesselator {
 	}
 
 	protected static class SurfaceInfo {
-		public int picnum, pal, shade;
+		public int picnum; // , pal, shade;
+		public Object obj;
 		public int size, limit;
 
 		protected void clear() {
 			picnum = -1;
-			pal = -1;
-			shade = 0;
+//			pal = -1;
+//			shade = 0;
 			size = 0;
 			limit = 0;
 		}

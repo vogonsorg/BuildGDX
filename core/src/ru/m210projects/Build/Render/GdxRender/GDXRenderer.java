@@ -46,6 +46,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.OrphoRenderer;
+import ru.m210projects.Build.Render.GdxRender.Tesselator.Type;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
@@ -58,6 +59,7 @@ import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
@@ -69,9 +71,18 @@ import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 
 public class GDXRenderer implements GLRenderer {
 
-	/*
-	 * TODO: Get rid of GLsurface shade/pal/vis
-	 */
+//	TODO:
+//	Skywalls visible flags 
+//	Sky hole at the top
+//	Mirror matrix 
+//	Blood E1M1 ROR bug 
+//	Sector update fps drops
+//	Scansectors memory leak (WallFrustum)
+//	Maskwall sort
+//	Orpho renderer 8bit textures
+//	SW textures bug
+//	Palfade
+//	Drunk mode
 
 	protected TextureManager textureCache;
 	protected final Engine engine;
@@ -305,7 +316,6 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		if (inpreparemirror) {
-
 			inpreparemirror = false;
 		}
 
@@ -314,18 +324,6 @@ public class GDXRenderer implements GLRenderer {
 		scanTime = System.nanoTime() - scanTime;
 
 		ShaderProgram shader = texshader;
-
-//		for (int i = 0; i < sectors.size(); i++) {
-//			VisibleSector sec = sectors.get(i);
-//			int sectnum = sec.index;
-//
-//			world.getFloor(sectnum);
-//			world.getCeiling(sectnum);
-//			for (int w = 0; w < sec.walls.size; w++) {
-//				int z = sec.walls.get(w);
-//				world.getWall(z, sectnum);
-//			}
-//		}
 
 		renderTime = System.nanoTime();
 		shader.begin();
@@ -378,7 +376,7 @@ public class GDXRenderer implements GLRenderer {
 
 		int offset = surf.offset;
 		int count = surf.count;
-		drawSky(offset, count, surf.picnum, surf.pal, surf.method);
+		drawSky(offset, count, surf.picnum, surf.getPal(), surf.method);
 	}
 
 	private void drawSky(int offset, int count, int picnum, int palnum, int method) {
@@ -446,11 +444,12 @@ public class GDXRenderer implements GLRenderer {
 				method = 1; // invalid data, HOM
 
 			engine.setgotpic(picnum);
-			GLTile pth = textureCache.bind(PixelFormat.Pal8, picnum, surf.pal, surf.shade, 0, method);
+			GLTile pth = textureCache.bind(PixelFormat.Pal8, picnum, surf.getPal(), surf.getShade(), 0, method);
 			if (pth != null) {
 				int combvis = globalvisibility;
-				if (surf.vis != 0)
-					combvis = mulscale(globalvisibility, (surf.vis + 16) & 0xFF, 4);
+				int vis = sector[surf.vis_ptr].visibility;
+				if (vis != 0)
+					combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
 				texshader.setVisibility((int) (-combvis / 64.0f));
 
 				if ((method & 3) == 0) {
