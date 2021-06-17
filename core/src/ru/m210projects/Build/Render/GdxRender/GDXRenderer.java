@@ -34,6 +34,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
@@ -72,10 +73,9 @@ import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//	Skywalls visible flags 
+//	Skywalls visible flags
 //	Sky hole at the top
-//	Mirror matrix 
-//	Blood E1M1 ROR bug 
+//	Blood E1M1 ROR bug
 //	Sector update fps drops
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
@@ -301,7 +301,6 @@ public class GDXRenderer implements GLRenderer {
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CW);
-		gl.glCullFace(GL_BACK);
 
 		cam.fieldOfView = 71; // fov = 71 as in Polymost XXX
 
@@ -318,10 +317,6 @@ public class GDXRenderer implements GLRenderer {
 				globalcursectnum = i;
 		}
 
-		if (inpreparemirror) {
-			inpreparemirror = false;
-		}
-
 		scanTime = System.nanoTime();
 		ArrayList<VisibleSector> sectors = scanner.process(cam, world, globalcursectnum);
 		scanTime = System.nanoTime() - scanTime;
@@ -330,6 +325,15 @@ public class GDXRenderer implements GLRenderer {
 
 		renderTime = System.nanoTime();
 		shader.begin();
+		if (inpreparemirror) {
+			inpreparemirror = false;
+			gl.glCullFace(GL_FRONT);
+			shader.setUniformi("u_mirror", 1);
+		} else {
+			gl.glCullFace(GL_BACK);
+			shader.setUniformi("u_mirror", 0);
+		}
+
 		shader.setUniformi("u_drawSprite", 0);
 		shader.setUniformMatrix("u_projTrans", cam.combined);
 		shader.setUniformMatrix("u_modelView", cam.view);
