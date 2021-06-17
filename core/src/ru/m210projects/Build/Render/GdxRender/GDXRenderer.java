@@ -73,7 +73,8 @@ import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//	Skywalls visible flags
+//	Visibility resolution
+//	Duke cameras
 //	Sky hole at the top
 //	Blood E1M1 ROR bug
 //	Sector update fps drops
@@ -301,8 +302,6 @@ public class GDXRenderer implements GLRenderer {
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CW);
-
-		cam.fieldOfView = 71; // fov = 71 as in Polymost XXX
 
 		cam.setPosition(globalposx, globalposy, globalposz);
 		cam.setDirection(globalang, globalhoriz, gtang);

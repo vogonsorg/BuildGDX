@@ -137,8 +137,7 @@ public abstract class SectorScanner {
 						continue;
 
 					int nextsectnum = wal.nextsector;
-					ArrayList<Vertex> points = mesh.getPoints(Heinum.Max, sectnum, z);
-					if (points != null && pFrustum.wallInFrustum(points)) {
+					if (pFrustum.wallInFrustum(mesh.getPoints(Heinum.Max, sectnum, z))) {
 						gotwall[z >> 3] |= pow2char[z & 7];
 						if (nextsectnum != -1) {
 							if (!checkWallRange(nextsectnum, wal.nextwall)) {
@@ -162,11 +161,9 @@ public abstract class SectorScanner {
 								wal.nextsector = i; // XXX
 							}
 
-							if ((points = mesh.getPoints(Heinum.Lower, sectnum, z)) != null
-									&& pFrustum.wallInFrustum(points))
+							if (pFrustum.wallInFrustum(mesh.getPoints(Heinum.Lower, sectnum, z)))
 								wallflags[z] |= 1;
-							if ((points = mesh.getPoints(Heinum.Upper, sectnum, z)) != null
-									&& pFrustum.wallInFrustum(points))
+							if (pFrustum.wallInFrustum(mesh.getPoints(Heinum.Upper, sectnum, z)))
 								wallflags[z] |= 2;
 
 							if (!pvs.checkSector(nextsectnum))
@@ -179,6 +176,7 @@ public abstract class SectorScanner {
 								portal.sectnum = nextsectnum;
 							} else {
 								// Handle the next portal
+								ArrayList<Vertex> points;
 								if ((points = mesh.getPoints(Heinum.Portal, sectnum, z)) == null)
 									continue;
 
@@ -252,8 +250,8 @@ public abstract class SectorScanner {
 			sectnum = pFrustum.sectnum;
 			VisibleSector sec = handled[sectnum];
 
-			boolean isParallaxCeiling = (sector[sectnum].ceilingstat & 1) != 0;
-			boolean isParallaxFloor = (sector[sectnum].floorstat & 1) != 0;
+			boolean isParallaxCeiling = sector[sectnum].isParallaxCeiling();
+			boolean isParallaxFloor = sector[sectnum].isParallaxFloor();
 
 			int startwall = sector[sectnum].wallptr;
 			int endwall = sector[sectnum].wallnum + startwall;
@@ -274,8 +272,12 @@ public abstract class SectorScanner {
 				if (wal.isMasked() || wal.isOneWay())
 					maskwall[maskwallcnt++] = z;
 
-				if (isParallaxCeiling || isParallaxFloor)
-					sec.skywalls.add(z);
+				if (isParallaxCeiling || isParallaxFloor) {
+					if ((isParallaxFloor && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyLower, sectnum, z)))
+							|| (isParallaxCeiling
+									&& pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyUpper, sectnum, z))))
+						sec.skywalls.add(z);
+				}
 				sec.walls.add(z);
 				sec.wallflags.add(wallflags[z]);
 			}
@@ -372,8 +374,8 @@ public abstract class SectorScanner {
 				int wz = isFloor ? engine.getflorzofslope((short) sectnum, wal.x, wal.y)
 						: engine.getceilzofslope((short) sectnum, wal.x, wal.y);
 
-				if ((isFloor && (sector[sectnum].floorstat & 2) == 0 && globalposz > wz)
-						|| (!isFloor && (sector[sectnum].ceilingstat & 2) == 0 && globalposz < wz))
+				if ((isFloor && !sector[sectnum].isSlopedFloor() && globalposz > wz)
+						|| (!isFloor && !sector[sectnum].isSlopedCeiling() && globalposz < wz))
 					continue;
 
 				if (plane.testPoint(wal.x, wal.y, wz) != PlaneSide.Back)

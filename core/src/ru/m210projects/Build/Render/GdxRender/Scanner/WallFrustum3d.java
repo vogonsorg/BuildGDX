@@ -68,6 +68,9 @@ public class WallFrustum3d implements Poolable {
 	}
 
 	public boolean wallInFrustum(ArrayList<? extends Vector3> points) {
+		if(points == null)
+			return false;
+
 		rebuild();
 		final int len = points.size();
 		Plane: for (int i = 0; i < planes.length; i++) {
