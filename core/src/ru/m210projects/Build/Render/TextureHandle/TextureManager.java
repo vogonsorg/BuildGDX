@@ -359,10 +359,8 @@ public abstract class TextureManager {
 
 		public ShaderData(byte[] buf, int w, int h, int bytes) {
 			super(w, h);
-			int len = w * h * bytes;
-
 			data.clear();
-			data.putBytes(buf, 0, len);
+			data.putBytes(buf, 0, buf.length);
 		}
 
 		@Override

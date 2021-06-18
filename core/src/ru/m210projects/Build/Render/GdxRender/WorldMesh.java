@@ -428,14 +428,6 @@ public class WorldMesh {
 				surf.ptr = info.obj;
 				surf.type = Type.Wall;
 				surf.vis_ptr = sectnum;
-
-				surf.method = 1;
-				if (!wal.isOneWay() && wal.isTransparent()) {
-					if (!wal.isTransparent2())
-						surf.method = 2;
-					else
-						surf.method = 3;
-				}
 			}
 		}
 
@@ -806,7 +798,6 @@ public class WorldMesh {
 	public class GLSurface {
 		public int offset;
 		public int count, limit;
-		public int method = 0;
 		public int visflag = 0; // 1 - lower, 2 - upper, 0 - white
 
 		public int picnum;
@@ -826,6 +817,30 @@ public class WorldMesh {
 
 		public void render(ShaderProgram shader) {
 			mesh.render(shader, GL20.GL_TRIANGLES, offset, count);
+		}
+
+		public int getMethod() {
+			switch (type) {
+			case Floor:
+				return (((SECTOR) ptr).floorstat >> 7) & 3;
+			case Ceiling:
+				return (((SECTOR) ptr).ceilingstat >> 7) & 3;
+			case Wall:
+				int method = 0;
+				WALL wal = (WALL) ptr;
+				if(wal.isMasked()) {
+					method = 1;
+					if (!wal.isOneWay() && wal.isTransparent()) {
+						if (!wal.isTransparent2())
+							method = 2;
+						else
+							method = 3;
+					}
+				}
+				return method;
+			default:
+				return 0;
+			}
 		}
 
 		public short getPal() {

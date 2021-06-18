@@ -4,6 +4,7 @@ import static com.badlogic.gdx.graphics.GL20.*;
 
 import java.nio.ByteBuffer;
 
+import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Types.Tile;
 
@@ -29,8 +30,7 @@ public class IndexedTileData extends TileData {
 		if((expflag & 2) != 0)
 			ysiz = calcSize(tsizy);
 
-		TextureBuffer buffer = getTmpBuffer(xsiz * ysiz);
-		buffer.clear();
+		TextureBuffer buffer = new DirectTextureBuffer(data != null ? xsiz * ysiz : 1);
 
 		boolean hasalpha = false;
 		if (data == null) {
@@ -42,7 +42,7 @@ public class IndexedTileData extends TileData {
 			int sptr = 0;
 			int xoffs = xsiz;
 			if(clamped) {
-				for (int y = ysiz; y >= 0; y--) {
+				for (int y = ysiz - 1; y >= 0; y--) {
 					sptr = y >= tsizy ? 0 : tsizx;
 					dptr = (xsiz * y + (sptr - 1));
 					for (int x = sptr; x < xsiz; x++)

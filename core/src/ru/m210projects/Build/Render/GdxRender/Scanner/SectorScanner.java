@@ -281,13 +281,17 @@ public abstract class SectorScanner {
 						|| (isParallaxCeiling && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyUpper, sectnum, z)))) {
 
 					if (isParallaxCeiling) {
-						skyCeilingPic = sector[sectnum].ceilingpicnum;
-						skyCeilingPal = sector[sectnum].ceilingpal;
+						if(engine.getTile(sector[sectnum].ceilingpicnum).hasSize()) {
+							skyCeilingPic = sector[sectnum].ceilingpicnum;
+							skyCeilingPal = sector[sectnum].ceilingpal;
+						}
 					}
 
 					if (isParallaxFloor) {
-						skyFloorPic = sector[sectnum].floorpicnum;
-						skyFloorPal = sector[sectnum].floorpal;
+						if(engine.getTile(sector[sectnum].floorpicnum).hasSize()) {
+							skyFloorPic = sector[sectnum].floorpicnum;
+							skyFloorPal = sector[sectnum].floorpal;
+						}
 					}
 
 					sec.skywalls.add(z);

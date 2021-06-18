@@ -75,8 +75,8 @@ public class GDXRenderer implements GLRenderer {
 
 //	TODO:
 //	Visibility resolution
-//	Duke cameras
-//	Sky hole at the top
+//	Duke cameras bug
+//	Overheadmap
 //	Blood E1M1 ROR bug
 //	Sector update fps drops
 //	Scansectors memory leak (WallFrustum)
@@ -120,7 +120,6 @@ public class GDXRenderer implements GLRenderer {
 		this.engine = engine;
 		this.textureCache = getTextureManager();
 		this.texshader = allocIndexedShader();
-		this.texshader.setFogParams(false, 0, 0, null);
 		this.textureCache.changePalette(curpalette.getBytes());
 
 		this.gl = BuildGdx.graphics.getGL20();
@@ -209,12 +208,12 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public RenderType getType() {
-		return RenderType.Polymost; // XXX
+		return RenderType.RenderGDX;
 	}
 
 	@Override
 	public PixelFormat getTexFormat() {
-		return PixelFormat.Rgb;
+		return PixelFormat.Pal8;
 	}
 
 	@Override
@@ -322,30 +321,30 @@ public class GDXRenderer implements GLRenderer {
 		ArrayList<VisibleSector> sectors = scanner.process(cam, world, globalcursectnum);
 		scanTime = System.nanoTime() - scanTime;
 
-		ShaderProgram shader = texshader;
-
 		renderTime = System.nanoTime();
 
-		drawSkyPlanes();
-		shader.begin();
+
+		texshader.begin();
 		if (inpreparemirror) {
 			inpreparemirror = false;
 			gl.glCullFace(GL_FRONT);
-			shader.setUniformi("u_mirror", 1);
+			texshader.setUniformi("u_mirror", 1);
 		} else {
 			gl.glCullFace(GL_BACK);
-			shader.setUniformi("u_mirror", 0);
+			texshader.setUniformi("u_mirror", 0);
 		}
 
-		shader.setUniformi("u_drawSprite", 0);
-		shader.setUniformMatrix("u_projTrans", cam.combined);
-		shader.setUniformMatrix("u_modelView", cam.view);
+		texshader.setUniformi("u_drawSprite", 0);
+		texshader.setUniformMatrix("u_projTrans", cam.combined);
+		texshader.setUniformMatrix("u_modelView", cam.view);
+		texshader.setClip(0, 0, xdim, ydim);
 
 		for (int i = 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
 		for (int i = 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
-		shader.end();
+		drawSkyPlanes();
+		texshader.end();
 		renderTime = System.nanoTime() - renderTime;
 
 		spritesortcnt = scanner.getSpriteCount();
@@ -354,13 +353,14 @@ public class GDXRenderer implements GLRenderer {
 
 	private void drawSkyPlanes() {
 		gl.glDisable(GL_CULL_FACE);
-		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDepthMask(false);
+//		gl.glDisable(GL_DEPTH_TEST);
 
 		if (scanner.getSkyPicnum(Heinum.SkyUpper) != -1) {
 			textureCache.bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyUpper),
 					scanner.getSkyPal(Heinum.SkyUpper), 0, 0, 0);
 			transform.idt();
-			transform.translate(cam.position.x, cam.position.y, cam.position.z - 1);
+			transform.translate(cam.position.x, cam.position.y, cam.position.z - 100);
 			transform.scale(cam.far, cam.far, 1.0f);
 
 			skyshader.begin();
@@ -373,7 +373,7 @@ public class GDXRenderer implements GLRenderer {
 			textureCache.bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyLower),
 					scanner.getSkyPal(Heinum.SkyLower), 0, 0, 0);
 			transform.idt();
-			transform.translate(cam.position.x, cam.position.y, cam.position.z + 1);
+			transform.translate(cam.position.x, cam.position.y, cam.position.z + 100);
 			transform.scale(cam.far, cam.far, 1.0f);
 
 			skyshader.begin();
@@ -384,7 +384,8 @@ public class GDXRenderer implements GLRenderer {
 		transform.idt();
 
 		gl.glEnable(GL_CULL_FACE);
-		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthMask(true);
+//		gl.glEnable(GL_DEPTH_TEST);
 	}
 
 	private void drawSector(VisibleSector sec) {
@@ -411,12 +412,12 @@ public class GDXRenderer implements GLRenderer {
 			int z = sec.skywalls.get(w);
 			GLSurface ceil = world.getParallaxCeiling(z);
 			if (ceil != null) {
-				drawSky(ceil, ceil.picnum, ceil.getPal(), ceil.method);
+				drawSky(ceil, ceil.picnum, ceil.getPal(), ceil.getMethod());
 			}
 
 			GLSurface floor = world.getParallaxFloor(z);
 			if (floor != null) {
-				drawSky(floor, floor.picnum, floor.getPal(), floor.method);
+				drawSky(floor, floor.picnum, floor.getPal(), floor.getMethod());
 			}
 		}
 	}
@@ -482,7 +483,7 @@ public class GDXRenderer implements GLRenderer {
 			if (!pic.isLoaded())
 				engine.loadtile(picnum);
 
-			int method = surf.method;
+			int method = surf.getMethod();
 			if (!pic.isLoaded())
 				method = 1; // invalid data, HOM
 
@@ -523,7 +524,6 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void nextpage() {
-		// TODO Auto-generated method stub
 		if (world != null)
 			world.nextpage();
 		orphoRen.nextpage();
