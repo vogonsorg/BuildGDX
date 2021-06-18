@@ -11,8 +11,10 @@ import static ru.m210projects.Build.Engine.wall;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.FloatArray;
 
 import ru.m210projects.Build.Engine;
@@ -51,6 +53,7 @@ public class WorldMesh {
 	private GLSurface[] lower_skies = new GLSurface[MAXWALLS];
 	private GLSurface[] floors = new GLSurface[MAXSECTORS];
 	private GLSurface[] ceilings = new GLSurface[MAXSECTORS];
+	private GLSurface skyPlane;
 
 	private final int[] zofslope = new int[2];
 	private static final int CEILING1 = 0;
@@ -73,10 +76,13 @@ public class WorldMesh {
 		lastSurf = null;
 		maxVertices = 0;
 		meshOffset = 0;
+
+		skyPlane = addSkyPlane(vertices);
+
 		for (short s = 0; s < numsectors; s++) {
 			SECTOR sec = sector[s];
-//			if(sec.floorz == sec.ceilingz)
-//				continue;
+			if (sec.floorz == sec.ceilingz)
+				continue;
 
 			tess.setSector(s, true);
 
@@ -105,8 +111,6 @@ public class WorldMesh {
 		}
 
 		Timer.result("WorldMesh built in: ");
-
-//		mesh = new GL10Mesh(BuildGdx.gl, true, maxVertices, 0, tess.attributes);
 		mesh = new Mesh(false, maxVertices, 0, tess.attributes);
 
 		mesh.setVertices(vertices.items, 0, maxVertices * tess.getVertexSize());
@@ -286,9 +290,7 @@ public class WorldMesh {
 			surf = getSurface(lower_skies, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
-//				surf.shade = info.shade;
-//				surf.pal = info.pal;
-				surf.obj = info.obj;
+				surf.ptr = info.obj;
 				surf.type = Type.Floor;
 				surf.vis_ptr = sectnum;
 				surf.visflag = 0;
@@ -322,9 +324,7 @@ public class WorldMesh {
 			surf = getSurface(upper_skies, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
-//				surf.shade = info.shade;
-//				surf.pal = info.pal;
-				surf.obj = info.obj;
+				surf.ptr = info.obj;
 				surf.type = Type.Ceiling;
 				surf.vis_ptr = sectnum;
 				surf.visflag = 0;
@@ -350,9 +350,7 @@ public class WorldMesh {
 		surf = getSurface(walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-//			surf.shade = info.shade;
-//			surf.pal = info.pal;
-			surf.obj = info.obj;
+			surf.ptr = info.obj;
 			surf.type = Type.Wall;
 			surf.vis_ptr = sectnum;
 
@@ -377,10 +375,7 @@ public class WorldMesh {
 		GLSurface surf = getSurface(upper_walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-//			surf.shade = info.shade;
-//			surf.pal = info.pal;
-//			surf.vis = sector[sectnum];
-			surf.obj = info.obj;
+			surf.ptr = info.obj;
 			surf.type = Type.Wall;
 			surf.vis_ptr = sectnum;
 
@@ -405,10 +400,7 @@ public class WorldMesh {
 		GLSurface surf = getSurface(lower_walls, wallnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-//			surf.shade = info.shade;
-//			surf.pal = info.pal;
-//			surf.vis = sector[sectnum];
-			surf.obj = info.obj;
+			surf.ptr = info.obj;
 			surf.type = Type.Wall;
 			surf.vis_ptr = sectnum;
 
@@ -433,10 +425,7 @@ public class WorldMesh {
 			surf = getSurface(maskwalls, wallnum, info.getSize(), info.getLimit());
 			if (surf != null) {
 				surf.picnum = info.picnum;
-//				surf.shade = info.shade;
-//				surf.pal = info.pal;
-//				surf.vis = sector[sectnum];
-				surf.obj = info.obj;
+				surf.ptr = info.obj;
 				surf.type = Type.Wall;
 				surf.vis_ptr = sectnum;
 
@@ -467,16 +456,41 @@ public class WorldMesh {
 		GLSurface surf = getSurface(floors, sectnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-//			surf.shade = info.shade;
-//			surf.pal = info.pal;
-//			surf.vis = sector[sectnum];
-			surf.obj = info.obj;
+			surf.ptr = info.obj;
 			surf.type = Type.Floor;
 			surf.vis_ptr = sectnum;
 		}
 
 		if (surf != null && surf.count == 0)
 			return null;
+
+		return surf;
+	}
+
+	private GLSurface addSkyPlane(FloatArray vertices) {
+		float SIZEX = 1.0f / 2;
+		float SIZEY = 1.0f / 2;
+
+		float[] spr_vertices = { //
+				-SIZEX, SIZEY, 0, 1, 1, //
+				SIZEX, SIZEY, 0, 0, 1, //
+				SIZEX, -SIZEY, 0, 0, 0, //
+				-SIZEX, -SIZEY, 0, 1, 0, //
+		};
+
+		vertices.addAll(spr_vertices[0], spr_vertices[1], spr_vertices[2], spr_vertices[3], spr_vertices[4]); // 0
+		vertices.addAll(spr_vertices[5], spr_vertices[6], spr_vertices[7], spr_vertices[8], spr_vertices[9]); // 1
+		vertices.addAll(spr_vertices[10], spr_vertices[11], spr_vertices[12], spr_vertices[13], spr_vertices[14]); // 2
+
+		vertices.addAll(spr_vertices[0], spr_vertices[1], spr_vertices[2], spr_vertices[3], spr_vertices[4]); // 0
+		vertices.addAll(spr_vertices[10], spr_vertices[11], spr_vertices[12], spr_vertices[13], spr_vertices[14]); // 2
+		vertices.addAll(spr_vertices[15], spr_vertices[16], spr_vertices[17], spr_vertices[18], spr_vertices[19]); // 3
+
+		GLSurface surf = new GLSurface(meshOffset);
+		surf.count = 6;
+		surf.limit = 6;
+		surf.type = Type.Sky;
+		meshOffset += surf.limit;
 
 		return surf;
 	}
@@ -492,10 +506,7 @@ public class WorldMesh {
 		GLSurface surf = getSurface(ceilings, sectnum, info.getSize(), info.getLimit());
 		if (surf != null) {
 			surf.picnum = info.picnum;
-//			surf.shade = info.shade;
-//			surf.pal = info.pal;
-//			surf.vis = sector[sectnum];
-			surf.obj = info.obj;
+			surf.ptr = info.obj;
 			surf.type = Type.Ceiling;
 			surf.vis_ptr = sectnum;
 		}
@@ -579,6 +590,10 @@ public class WorldMesh {
 
 	public GLSurface getParallaxCeiling(int wallnum) {
 		return upper_skies[wallnum];
+	}
+
+	public GLSurface getSkyPlane() {
+		return skyPlane;
 	}
 
 	public GLSurface getFloor(int sectnum) {
@@ -773,13 +788,10 @@ public class WorldMesh {
 		if (surf == null)
 			return;
 
-		System.err.println("shift");
-
 		int size = meshOffset;
 		int newSize = size - surf.offset;
 		float[] newItems = new float[newSize * tess.getVertexSize()];
 		mesh.getVertices(surf.offset * tess.getVertexSize(), newItems);
-
 		surf.offset += shift;
 		validateMesh = true;
 		mesh.updateVertices(surf.offset * tess.getVertexSize(), newItems, 0, newItems.length);
@@ -791,17 +803,16 @@ public class WorldMesh {
 		}
 	}
 
-	public static class GLSurface {
+	public class GLSurface {
 		public int offset;
 		public int count, limit;
 		public int method = 0;
 		public int visflag = 0; // 1 - lower, 2 - upper, 0 - white
 
 		public int picnum;
-		public Object obj;
-		public Type type;
-		public int vis_ptr;
-//		public int picnum, shade, pal, vis;
+		private Object ptr;
+		private Type type;
+		private int vis_ptr;
 
 		protected GLSurface next;
 
@@ -809,14 +820,22 @@ public class WorldMesh {
 			this.offset = offset;
 		}
 
+		public int getVisibility() {
+			return sector[vis_ptr].visibility;
+		}
+
+		public void render(ShaderProgram shader) {
+			mesh.render(shader, GL20.GL_TRIANGLES, offset, count);
+		}
+
 		public short getPal() {
 			switch (type) {
 			case Floor:
-				return ((SECTOR) obj).floorpal;
+				return ((SECTOR) ptr).floorpal;
 			case Ceiling:
-				return ((SECTOR) obj).ceilingpal;
+				return ((SECTOR) ptr).ceilingpal;
 			case Wall:
-				return ((WALL) obj).pal;
+				return ((WALL) ptr).pal;
 			default:
 				return 0;
 			}
@@ -825,11 +844,11 @@ public class WorldMesh {
 		public byte getShade() {
 			switch (type) {
 			case Floor:
-				return ((SECTOR) obj).floorshade;
+				return ((SECTOR) ptr).floorshade;
 			case Ceiling:
-				return ((SECTOR) obj).ceilingshade;
+				return ((SECTOR) ptr).ceilingshade;
 			case Wall:
-				return ((WALL) obj).shade;
+				return ((WALL) ptr).shade;
 			default:
 				return 0;
 			}

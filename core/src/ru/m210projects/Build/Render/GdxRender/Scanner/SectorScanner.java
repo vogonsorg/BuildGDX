@@ -73,6 +73,9 @@ public abstract class SectorScanner {
 	public Integer[] maskwall = new Integer[MAXWALLS]; // XXX memory leak
 	public int maskwallcnt;
 
+	private int skyCeilingPic, skyCeilingPal;
+	private int skyFloorPic, skyFloorPal;
+
 	private PolygonClipper cl = new PolygonClipper();
 
 	public SectorScanner(Engine engine) {
@@ -105,6 +108,8 @@ public abstract class SectorScanner {
 		Gameutils.fill(gotwall, (byte) 0);
 		Gameutils.fill(wallflags, (byte) 0);
 		Arrays.fill(handled, null);
+
+		skyCeilingPic = skyCeilingPal = skyFloorPic = skyFloorPal = -1;
 
 		maskwallcnt = 0;
 		spritesortcnt = 0;
@@ -272,12 +277,22 @@ public abstract class SectorScanner {
 				if (wal.isMasked() || wal.isOneWay())
 					maskwall[maskwallcnt++] = z;
 
-				if (isParallaxCeiling || isParallaxFloor) {
-					if ((isParallaxFloor && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyLower, sectnum, z)))
-							|| (isParallaxCeiling
-									&& pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyUpper, sectnum, z))))
-						sec.skywalls.add(z);
+				if ((isParallaxFloor && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyLower, sectnum, z)))
+						|| (isParallaxCeiling && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyUpper, sectnum, z)))) {
+
+					if (isParallaxCeiling) {
+						skyCeilingPic = sector[sectnum].ceilingpicnum;
+						skyCeilingPal = sector[sectnum].ceilingpal;
+					}
+
+					if (isParallaxFloor) {
+						skyFloorPic = sector[sectnum].floorpicnum;
+						skyFloorPal = sector[sectnum].floorpal;
+					}
+
+					sec.skywalls.add(z);
 				}
+
 				sec.walls.add(z);
 				sec.wallflags.add(wallflags[z]);
 			}
@@ -302,6 +317,18 @@ public abstract class SectorScanner {
 
 		// Arrays.sort(maskwall, 0, maskwallcnt, comp); // masks sort TODO
 		return sectors;
+	}
+
+	public int getSkyPal(Heinum h) {
+		if (h == Heinum.SkyLower)
+			return skyFloorPal;
+		return skyCeilingPal;
+	}
+
+	public int getSkyPicnum(Heinum h) {
+		if (h == Heinum.SkyLower)
+			return skyFloorPic;
+		return skyCeilingPic;
 	}
 
 	private boolean checkWallRange(int sectnum, int z) {

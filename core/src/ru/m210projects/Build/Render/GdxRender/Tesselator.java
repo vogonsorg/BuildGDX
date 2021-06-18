@@ -494,14 +494,13 @@ public class Tesselator {
 	}
 
 	protected static class SurfaceInfo {
-		public int picnum; // , pal, shade;
+		public int picnum;
 		public Object obj;
 		public int size, limit;
 
 		protected void clear() {
 			picnum = -1;
-//			pal = -1;
-//			shade = 0;
+			obj = null;
 			size = 0;
 			limit = 0;
 		}

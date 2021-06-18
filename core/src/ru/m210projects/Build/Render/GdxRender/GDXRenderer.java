@@ -49,6 +49,7 @@ import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.GdxRender.Tesselator.Type;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
+import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
@@ -110,6 +111,7 @@ public class GDXRenderer implements GLRenderer {
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
 	private long renderTime, scanTime;
+	private Matrix4 transform = new Matrix4();
 
 	public GDXRenderer(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
@@ -323,6 +325,8 @@ public class GDXRenderer implements GLRenderer {
 		ShaderProgram shader = texshader;
 
 		renderTime = System.nanoTime();
+
+		drawSkyPlanes();
 		shader.begin();
 		if (inpreparemirror) {
 			inpreparemirror = false;
@@ -341,12 +345,46 @@ public class GDXRenderer implements GLRenderer {
 			drawSector(sectors.get(i));
 		for (int i = 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
-
 		shader.end();
 		renderTime = System.nanoTime() - renderTime;
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
+	}
+
+	private void drawSkyPlanes() {
+		gl.glDisable(GL_CULL_FACE);
+		gl.glDisable(GL_DEPTH_TEST);
+
+		if (scanner.getSkyPicnum(Heinum.SkyUpper) != -1) {
+			textureCache.bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyUpper),
+					scanner.getSkyPal(Heinum.SkyUpper), 0, 0, 0);
+			transform.idt();
+			transform.translate(cam.position.x, cam.position.y, cam.position.z - 1);
+			transform.scale(cam.far, cam.far, 1.0f);
+
+			skyshader.begin();
+			skyshader.setUniformMatrix("u_transform", transform);
+			world.getSkyPlane().render(skyshader);
+			skyshader.end();
+		}
+
+		if (scanner.getSkyPicnum(Heinum.SkyLower) != -1) {
+			textureCache.bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyLower),
+					scanner.getSkyPal(Heinum.SkyLower), 0, 0, 0);
+			transform.idt();
+			transform.translate(cam.position.x, cam.position.y, cam.position.z + 1);
+			transform.scale(cam.far, cam.far, 1.0f);
+
+			skyshader.begin();
+			skyshader.setUniformMatrix("u_transform", transform);
+			world.getSkyPlane().render(skyshader);
+			skyshader.end();
+		}
+		transform.idt();
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glEnable(GL_DEPTH_TEST);
 	}
 
 	private void drawSector(VisibleSector sec) {
@@ -371,22 +409,20 @@ public class GDXRenderer implements GLRenderer {
 	public void drawSkySector(VisibleSector sec) {
 		for (int w = 0; w < sec.skywalls.size; w++) {
 			int z = sec.skywalls.get(w);
-			drawSky(world.getParallaxCeiling(z));
-			drawSky(world.getParallaxFloor(z));
+			GLSurface ceil = world.getParallaxCeiling(z);
+			if (ceil != null) {
+				drawSky(ceil, ceil.picnum, ceil.getPal(), ceil.method);
+			}
+
+			GLSurface floor = world.getParallaxFloor(z);
+			if (floor != null) {
+				drawSky(floor, floor.picnum, floor.getPal(), floor.method);
+			}
 		}
 	}
 
-	private void drawSky(GLSurface surf) {
-		if (surf == null)
-			return;
-
-		int offset = surf.offset;
-		int count = surf.count;
-		drawSky(offset, count, surf.picnum, surf.getPal(), surf.method);
-	}
-
-	private void drawSky(int offset, int count, int picnum, int palnum, int method) {
-		if (count == 0)
+	private void drawSky(GLSurface surf, int picnum, int palnum, int method) {
+		if (surf.count == 0)
 			return;
 
 		if (engine.getTile(picnum).getType() != AnimType.None)
@@ -411,6 +447,7 @@ public class GDXRenderer implements GLRenderer {
 
 			skyshader.setUniformf("u_camera", cam.position.x, cam.position.y, cam.position.z);
 			skyshader.setUniformMatrix("u_projTrans", cam.combined);
+			skyshader.setUniformMatrix("u_transform", transform);
 
 			if (!pic.isLoaded()) {
 				skyshader.setUniformf("u_alpha", 0.01f);
@@ -426,7 +463,7 @@ public class GDXRenderer implements GLRenderer {
 				gl.glEnable(GL_ALPHA_TEST);
 			}
 
-			world.getMesh().render(skyshader, GL_TRIANGLES, offset, count);
+			surf.render(skyshader);
 			skyshader.end();
 		}
 	}
@@ -453,7 +490,7 @@ public class GDXRenderer implements GLRenderer {
 			GLTile pth = textureCache.bind(PixelFormat.Pal8, picnum, surf.getPal(), surf.getShade(), 0, method);
 			if (pth != null) {
 				int combvis = globalvisibility;
-				int vis = sector[surf.vis_ptr].visibility;
+				int vis = surf.getVisibility();
 				if (vis != 0)
 					combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
 				texshader.setVisibility((int) (-combvis / 64.0f));
@@ -466,7 +503,7 @@ public class GDXRenderer implements GLRenderer {
 					Gdx.gl.glEnable(GL_ALPHA_TEST);
 				}
 
-				world.getMesh().render(texshader, GL_TRIANGLES, surf.offset, surf.count);
+				surf.render(texshader);
 			}
 		}
 	}
