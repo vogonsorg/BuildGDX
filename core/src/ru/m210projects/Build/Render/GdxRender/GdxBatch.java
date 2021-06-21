@@ -131,6 +131,10 @@ public class GdxBatch {
 			shader = defaultShader;
 	}
 
+	public void resize(int width, int height) {
+		projectionMatrix.setToOrtho(0, width, height, 0, 0, 1);
+	}
+
 	/**
 	 * Returns a new instance of the default shader used by GdxBatch for GL2 when no
 	 * shader is specified.
@@ -226,6 +230,55 @@ public class GdxBatch {
 			int dastat, int cx1, int cy1, int cx2, int cy2) {
 		this.draw(tex, sx, sy, sizx, sizy, xoffset, yoffset, 0.0f, 0.0f, sizx, sizy, angle, z, dastat, cx1, cy1, cx2,
 				cy2);
+	}
+
+	public void drawFade() {
+		if (!drawing)
+			throw new IllegalStateException("GdxBatch.begin must be called before draw.");
+
+		if (idx != 0)
+			flush();
+
+		currClipBounds[0] = 0;
+		currClipBounds[1] = ydim;
+		currClipBounds[2] = xdim;
+		currClipBounds[3] = 0;
+
+		shader.setUniformf("cx1", currClipBounds[0]);
+		shader.setUniformf("cy1", currClipBounds[1]);
+		shader.setUniformf("cx2", currClipBounds[2]);
+		shader.setUniformf("cy2", currClipBounds[3]);
+
+		System.arraycopy(currClipBounds, 0, lastClipBounds, 0, 4);
+
+		float color = this.color;
+		int idx = this.idx;
+		vertices[idx + 0] = 0;
+		vertices[idx + 1] = 0;
+		vertices[idx + 2] = color;
+		vertices[idx + 3] = 0;
+		vertices[idx + 4] = 0;
+
+		vertices[idx + 5] = 0;
+		vertices[idx + 6] = ydim;
+		vertices[idx + 7] = color;
+		vertices[idx + 8] = 0;
+		vertices[idx + 9] = 1;
+
+		vertices[idx + 10] = xdim;
+		vertices[idx + 11] = ydim;
+		vertices[idx + 12] = color;
+		vertices[idx + 13] = 1;
+		vertices[idx + 14] = 1;
+
+		vertices[idx + 15] = xdim;
+		vertices[idx + 16] = 0;
+		vertices[idx + 17] = color;
+		vertices[idx + 18] = 1;
+		vertices[idx + 19] = 0;
+		this.idx = idx + 20;
+
+		flush();
 	}
 
 	public void draw(GLTexture tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, float srcX,

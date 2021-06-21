@@ -22,6 +22,8 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
+import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -74,16 +76,16 @@ import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//	Visibility resolution
-//	Duke cameras bug
-//	Overheadmap
-//	Blood E1M1 ROR bug
 //	Sector update fps drops
+//	SW textures bug
+//	Palfade
+//  Top / bottom transparent bug with glass maskedwall
+//	ROR / Mirror bugs
+
+//	Overheadmap
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
 //	Orpho renderer 8bit textures
-//	SW textures bug
-//	Palfade
 //	Drunk mode
 //	Hires + models
 //	Skyboxes
@@ -103,7 +105,7 @@ public class GDXRenderer implements GLRenderer {
 	protected SectorScanner scanner;
 	protected BuildCamera cam;
 	protected SpriteRenderer sprR;
-	protected OrphoRenderer orphoRen;
+	protected GdxOrphoRen orphoRen;
 	protected DefScript defs;
 	protected ShaderProgram skyshader;
 	protected IndexedShader texshader;
@@ -112,6 +114,8 @@ public class GDXRenderer implements GLRenderer {
 	private ByteBuffer pix8buffer;
 	private long renderTime, scanTime;
 	private Matrix4 transform = new Matrix4();
+	private boolean isRORDrawing = false;
+	private float glox1, gloy1, glox2, gloy2;
 
 	public GDXRenderer(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
@@ -287,9 +291,28 @@ public class GDXRenderer implements GLRenderer {
 		return (dmulscale(wal.x - x1, s.y - y1, -(s.x - x1), wal.y - y1, 32) >= 0);
 	}
 
+	public void resizeglcheck() {
+		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
+			glox1 = windowx1;
+			gloy1 = windowy1;
+			glox2 = windowx2;
+			gloy2 = windowy2;
+
+			gl.glViewport(windowx1, ydim - (windowy2 + 1), windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
+
+			cam.viewportWidth = windowx2;
+			cam.viewportHeight = windowy2;
+
+			orphoRen.resize(windowx2, windowy2);
+		}
+	}
+
 	@Override
 	public void drawrooms() {
-		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		if (!isRORDrawing)
+			gl.glClear(GL_DEPTH_BUFFER_BIT);
+		else
+			isRORDrawing = false;
 
 //		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //		gl.glClearColor(0.0f, 0.5f, 0.5f, 1); // XXX
@@ -303,13 +326,17 @@ public class GDXRenderer implements GLRenderer {
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CW);
+		resizeglcheck();
 
 		cam.setPosition(globalposx, globalposy, globalposz);
 		cam.setDirection(globalang, globalhoriz, gtang);
 		cam.update(true);
 
+		globalvisibility = visibility << 2;
 		if (globalcursectnum >= MAXSECTORS) {
 			globalcursectnum -= MAXSECTORS;
+			if (!inpreparemirror)
+				isRORDrawing = true;
 		} else {
 			short i = globalcursectnum;
 			globalcursectnum = engine.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
@@ -322,7 +349,6 @@ public class GDXRenderer implements GLRenderer {
 		scanTime = System.nanoTime() - scanTime;
 
 		renderTime = System.nanoTime();
-
 
 		texshader.begin();
 		if (inpreparemirror) {
@@ -526,6 +552,9 @@ public class GDXRenderer implements GLRenderer {
 	public void nextpage() {
 		if (world != null)
 			world.nextpage();
+
+//		orphoRen.palfade(null); // XXX
+
 		orphoRen.nextpage();
 
 		// showTimers();
@@ -696,7 +725,6 @@ public class GDXRenderer implements GLRenderer {
 						texshader.setTransparent(alpha);
 					}
 				}
-
 			};
 		}
 		return textureCache;
@@ -709,7 +737,11 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void palfade(HashMap<String, FadeEffect> fades) {
-		// TODO Auto-generated method stub
+		gl.glDisable(GL_DEPTH_TEST);
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDisable(GL_TEXTURE_2D);
+
+		gl.glEnable(GL_BLEND);
 
 	}
 

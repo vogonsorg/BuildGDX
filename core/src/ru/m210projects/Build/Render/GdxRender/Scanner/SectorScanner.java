@@ -277,18 +277,19 @@ public abstract class SectorScanner {
 				if (wal.isMasked() || wal.isOneWay())
 					maskwall[maskwallcnt++] = z;
 
+				// XXX Blood E1M1 bug - doesn't see sky on the second floor
 				if ((isParallaxFloor && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyLower, sectnum, z)))
 						|| (isParallaxCeiling && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyUpper, sectnum, z)))) {
 
 					if (isParallaxCeiling) {
-						if(engine.getTile(sector[sectnum].ceilingpicnum).hasSize()) {
+						if (engine.getTile(sector[sectnum].ceilingpicnum).hasSize()) {
 							skyCeilingPic = sector[sectnum].ceilingpicnum;
 							skyCeilingPal = sector[sectnum].ceilingpal;
 						}
 					}
 
 					if (isParallaxFloor) {
-						if(engine.getTile(sector[sectnum].floorpicnum).hasSize()) {
+						if (engine.getTile(sector[sectnum].floorpicnum).hasSize()) {
 							skyFloorPic = sector[sectnum].floorpicnum;
 							skyFloorPal = sector[sectnum].floorpal;
 						}

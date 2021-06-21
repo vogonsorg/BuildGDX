@@ -22,7 +22,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.curpalette;
@@ -33,6 +33,8 @@ import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
+
+import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -46,6 +48,7 @@ import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
+import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
@@ -180,6 +183,17 @@ public class GdxOrphoRen extends OrphoRenderer {
 		BuildGdx.gl.glDepthMask(true); // re-enable writing to the z-buffer
 
 		batch.setShader(oldShader);
+	}
+
+	protected void palfade(HashMap<String, FadeEffect> fades) {
+		batch.enableBlending();
+//		batch.setColor(palfadergb.r, palfadergb.g, palfadergb.b, palfadergb.a);
+		batch.setColor(255, palfadergb.g, palfadergb.b, palfadergb.a);
+		batch.drawFade();
+	}
+
+	public void resize(int width, int height) {
+		batch.resize(width, height);
 	}
 
 	@Override
