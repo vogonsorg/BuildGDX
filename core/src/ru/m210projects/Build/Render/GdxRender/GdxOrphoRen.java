@@ -34,8 +34,6 @@ import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
-import java.util.HashMap;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -48,7 +46,6 @@ import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
-import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
@@ -101,7 +98,13 @@ public class GdxOrphoRen extends OrphoRenderer {
 				+ "	gl_FragColor = vec4(v_color.rgb, alpha);\n" //
 				+ "}"; //
 
-		ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
+		ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader) {
+			@Override
+			public void begin() {
+				super.begin();
+				GDXRenderer.currentShader = this;
+			}
+		};
 		if (!shader.isCompiled())
 			throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
 		return shader;
@@ -133,6 +136,9 @@ public class GdxOrphoRen extends OrphoRenderer {
 			if (!engine.getTile(nTile).isLoaded() && engine.loadtile(nTile) == null)
 				return;
 		}
+
+		batch.flush();
+		batch.setClip(0, 0, xdim - 1, ydim - 1);
 
 		ShaderProgram oldShader = batch.getShader();
 		batch.setShader(bitmapShader);
@@ -183,13 +189,6 @@ public class GdxOrphoRen extends OrphoRenderer {
 		BuildGdx.gl.glDepthMask(true); // re-enable writing to the z-buffer
 
 		batch.setShader(oldShader);
-	}
-
-	protected void palfade(HashMap<String, FadeEffect> fades) {
-		batch.enableBlending();
-//		batch.setColor(palfadergb.r, palfadergb.g, palfadergb.b, palfadergb.a);
-		batch.setColor(255, palfadergb.g, palfadergb.b, palfadergb.a);
-		batch.drawFade();
 	}
 
 	public void resize(int width, int height) {
@@ -286,6 +285,37 @@ public class GdxOrphoRen extends OrphoRenderer {
 		bindBatch();
 		batch.setColor(shade, shade, shade, alpha);
 		batch.draw(pth, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
+	}
+
+	public void setTexture(GLTile tile) {
+		batch.setTexture(tile);
+	}
+
+	public void addVertex(float x, float y, float u, float v) {
+		batch.addVertex(x, y, u, v);
+	}
+
+	public void begin() {
+		if (!batch.isDrawing())
+			batch.begin();
+	}
+
+	public void end() {
+		if (batch.isDrawing())
+			batch.end();
+	}
+
+	public void draw(GLTile tile, int x, int y, int angle, int scale, float r, float g, float b, float alpha) {
+		bindBatch();
+		if (alpha == 1.0)
+			batch.disableBlending();
+		else
+			batch.enableBlending();
+
+		batch.setColor(r, g, b, alpha);
+		batch.draw(tile, x << 16, y << 16, tile.getWidth(), tile.getHeight(), 0, xdim, angle, scale, 16 | 8 | 32 | 4, 0,
+				0, xdim - 1, ydim - 1);
+		batch.end();
 	}
 
 	private void bindBatch() {

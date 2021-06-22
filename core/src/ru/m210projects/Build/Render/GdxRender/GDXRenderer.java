@@ -17,23 +17,25 @@
 package ru.m210projects.Build.Render.GdxRender;
 
 import static com.badlogic.gdx.graphics.GL20.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -49,6 +51,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.OrphoRenderer;
+import ru.m210projects.Build.Render.GLRenderer.Rendering;
 import ru.m210projects.Build.Render.GdxRender.Tesselator.Type;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
@@ -60,6 +63,7 @@ import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
+import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -78,7 +82,6 @@ public class GDXRenderer implements GLRenderer {
 //	TODO:
 //	Sector update fps drops
 //	SW textures bug
-//	Palfade
 //  Top / bottom transparent bug with glass maskedwall
 //	ROR / Mirror bugs
 
@@ -90,6 +93,8 @@ public class GDXRenderer implements GLRenderer {
 //	Hires + models
 //	Skyboxes
 //	Sky texture
+
+	public Rendering rendering = Rendering.Nothing;
 
 	protected TextureManager textureCache;
 	protected final Engine engine;
@@ -109,6 +114,8 @@ public class GDXRenderer implements GLRenderer {
 	protected DefScript defs;
 	protected ShaderProgram skyshader;
 	protected IndexedShader texshader;
+	protected FadeShader fadeshader;
+	public static ShaderProgram currentShader;
 
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
@@ -116,6 +123,12 @@ public class GDXRenderer implements GLRenderer {
 	private Matrix4 transform = new Matrix4();
 	private boolean isRORDrawing = false;
 	private float glox1, gloy1, glox2, gloy2;
+	private boolean drunk;
+	private float drunkIntensive = 1.0f;
+
+	private GLTile frameTexture;
+	private int framew;
+	private int frameh;
 
 	public GDXRenderer(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
@@ -123,8 +136,6 @@ public class GDXRenderer implements GLRenderer {
 		GLInfo.init();
 		this.engine = engine;
 		this.textureCache = getTextureManager();
-		this.texshader = allocIndexedShader();
-		this.textureCache.changePalette(curpalette.getBytes());
 
 		this.gl = BuildGdx.graphics.getGL20();
 		this.sprR = new SpriteRenderer(engine, this);
@@ -161,6 +172,12 @@ public class GDXRenderer implements GLRenderer {
 				public void bindPalookup(int pal) {
 					textureCache.getPalookup(pal).bind();
 				}
+
+				@Override
+				public void begin() {
+					super.begin();
+					currentShader = this;
+				}
 			};
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -169,7 +186,7 @@ public class GDXRenderer implements GLRenderer {
 		return null;
 	}
 
-	private void createSkyShader() {
+	private ShaderProgram allocSkyShader() {
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(new File("skyshader_frag.glsl"));
@@ -181,13 +198,23 @@ public class GDXRenderer implements GLRenderer {
 			data = new byte[fis.available()];
 			fis.read(data);
 			String vert = new String(data);
+			ShaderProgram skyshader = new ShaderProgram(vert, frag) {
+				@Override
+				public void begin() {
+					super.begin();
+					currentShader = this;
+				}
+			};
 
-			skyshader = new ShaderProgram(vert, frag);
 			if (!skyshader.isCompiled())
 				System.err.println("Shader compile error: " + skyshader.getLog());
+
+			return skyshader;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		return null;
 	}
 
 	@Override
@@ -197,7 +224,17 @@ public class GDXRenderer implements GLRenderer {
 
 		this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
 
-		createSkyShader();
+		this.skyshader = allocSkyShader();
+		this.fadeshader = new FadeShader() {
+			@Override
+			public void begin() {
+				super.begin();
+				currentShader = this;
+			}
+		};
+		this.texshader = allocIndexedShader();
+		this.textureCache.changePalette(curpalette.getBytes());
+
 		orphoRen.init();
 
 		isInited = true;
@@ -266,17 +303,103 @@ public class GDXRenderer implements GLRenderer {
 
 		while (maskwallcnt > 0)
 			drawmaskwall(--maskwallcnt);
+
+		renderDrunkEffect();
+	}
+
+	protected void renderDrunkEffect() {
+		if (drunk) {
+			BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
+			boolean hasShader = texshader != null && texshader.isBinded();
+			if (hasShader)
+				texshader.end();
+
+			if (frameTexture == null || framew != xdim || frameh != ydim) {
+				int size = 1;
+				for (size = 1; size < Math.max(xdim, ydim); size <<= 1)
+					;
+
+				if (frameTexture != null)
+					frameTexture.dispose();
+				else
+					frameTexture = new GLTile(size, size);
+
+				frameTexture.bind();
+				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frameTexture.getWidth(), frameTexture.getHeight(), 0, GL_RGB,
+						GL_UNSIGNED_BYTE, null);
+				frameTexture.unsafeSetFilter(TextureFilter.Linear, TextureFilter.Linear);
+				framew = xdim;
+				frameh = ydim;
+			}
+
+			frameTexture.bind();
+			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frameTexture.getWidth(), frameTexture.getHeight());
+
+			gl.glDisable(GL_DEPTH_TEST);
+			gl.glEnable(GL_TEXTURE_2D);
+
+			float tiltang = (drunkIntensive * 360) / 2048f;
+			float tilt = min(max(tiltang, -MAXDRUNKANGLE), MAXDRUNKANGLE);
+			float u = (float) xdim / frameTexture.getWidth();
+			float v = (float) ydim / frameTexture.getHeight();
+
+			orphoRen.begin();
+			orphoRen.setTexture(frameTexture);
+			orphoRen.addVertex(0, 0, 0, 0);
+			orphoRen.addVertex(0, ydim, 0, v);
+			orphoRen.addVertex(xdim, ydim, u, v);
+			orphoRen.addVertex(xdim, 0, u, 0);
+			orphoRen.end();
+
+//			gl.glMatrixMode(GL_PROJECTION);
+//			gl.glPushMatrix();
+//			gl.glLoadIdentity();
+//
+//			gl.glScalef(1.05f, 1.05f, 1);
+//			gl.glRotatef(tilt, 0, 0, 1.0f);
+//
+//			gl.glMatrixMode(GL_MODELVIEW);
+//			gl.glPushMatrix();
+//			gl.glLoadIdentity();
+//
+//			float u = (float) xdim / frameTexture.getWidth();
+//			float v = (float) ydim / frameTexture.getHeight();
+//
+//			gl.glColor4f(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
+//			gl.glBegin(GL_TRIANGLE_FAN);
+//			gl.glTexCoord2f(0, 0);
+//			gl.glVertex2f(-1f, -1f);
+//
+//			gl.glTexCoord2f(0, v);
+//			gl.glVertex2f(-1f, 1f);
+//
+//			gl.glTexCoord2f(u, v);
+//			gl.glVertex2f(1f, 1f);
+//
+//			gl.glTexCoord2f(u, 0);
+//			gl.glVertex2f(1f, -1f);
+//			gl.glEnd();
+
+			gl.glEnable(GL_DEPTH_TEST);
+			gl.glDisable(GL_TEXTURE_2D);
+
+			if (hasShader)
+				texshader.begin();
+		}
 	}
 
 	public void drawsprite(int i) {
 		sprR.begin(textureCache, cam);
 		SPRITE tspr = scanner.getSprites()[i];
-		if (tspr != null)
+		if (tspr != null) {
+			rendering = Rendering.Sprite.setIndex(i);
 			sprR.draw(tspr);
+		}
 		sprR.end();
 	}
 
 	private void drawmaskwall(int i) {
+		rendering = Rendering.MaskWall.setIndex(i);
 		drawMask(scanner.getMaskwalls()[i]);
 	}
 
@@ -350,6 +473,8 @@ public class GDXRenderer implements GLRenderer {
 
 		renderTime = System.nanoTime();
 
+		rendering = Rendering.Nothing;
+
 		texshader.begin();
 		if (inpreparemirror) {
 			inpreparemirror = false;
@@ -418,15 +543,20 @@ public class GDXRenderer implements GLRenderer {
 		int sectnum = sec.index;
 		gotsector[sectnum >> 3] |= pow2char[sectnum & 7];
 
-		if ((sec.secflags & 1) != 0)
+		if ((sec.secflags & 1) != 0) {
+			rendering = Rendering.Floor.setIndex(sectnum);
 			drawSurf(world.getFloor(sectnum), 0);
+		}
 
-		if ((sec.secflags & 2) != 0)
+		if ((sec.secflags & 2) != 0) {
+			rendering = Rendering.Ceiling.setIndex(sectnum);
 			drawSurf(world.getCeiling(sectnum), 0);
+		}
 
 		for (int w = 0; w < sec.walls.size; w++) {
 			int flags = sec.wallflags.get(w);
 			int z = sec.walls.get(w);
+			rendering = Rendering.Wall.setIndex(z);
 			drawSurf(world.getWall(z, sectnum), flags);
 			drawSurf(world.getUpper(z, sectnum), flags);
 			drawSurf(world.getLower(z, sectnum), flags);
@@ -484,10 +614,10 @@ public class GDXRenderer implements GLRenderer {
 
 			if ((method & 3) == 0) {
 				gl.glDisable(GL_BLEND);
-				gl.glDisable(GL_ALPHA_TEST);
+//				gl.glDisable(GL_ALPHA_TEST);
 			} else {
 				gl.glEnable(GL_BLEND);
-				gl.glEnable(GL_ALPHA_TEST);
+//				gl.glEnable(GL_ALPHA_TEST);
 			}
 
 			surf.render(skyshader);
@@ -524,10 +654,10 @@ public class GDXRenderer implements GLRenderer {
 
 				if ((method & 3) == 0) {
 					Gdx.gl.glDisable(GL_BLEND);
-					Gdx.gl.glDisable(GL_ALPHA_TEST);
+//					Gdx.gl.glDisable(GL_ALPHA_TEST);
 				} else {
 					Gdx.gl.glEnable(GL_BLEND);
-					Gdx.gl.glEnable(GL_ALPHA_TEST);
+//					Gdx.gl.glEnable(GL_ALPHA_TEST);
 				}
 
 				surf.render(texshader);
@@ -552,9 +682,6 @@ public class GDXRenderer implements GLRenderer {
 	public void nextpage() {
 		if (world != null)
 			world.nextpage();
-
-//		orphoRen.palfade(null); // XXX
-
 		orphoRen.nextpage();
 
 		// showTimers();
@@ -573,6 +700,7 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
 			int cy1, int cx2, int cy2) {
+		rendering = Rendering.Tile.setIndex(picnum);
 		orphoRen.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
 	}
 
@@ -589,11 +717,13 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
+		rendering = Rendering.Tile.setIndex(0);
 		orphoRen.printext(font, xpos, ypos, text, col, shade, bit, scale);
 	}
 
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
+		rendering = Rendering.Tile.setIndex(0);
 		orphoRen.printext(xpos, ypos, col, backcol, text, fontsize, scale);
 	}
 
@@ -609,16 +739,16 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		int byteperpixel = 3;
-		int fmt = GL10.GL_RGB;
+		int fmt = GL_RGB;
 		if (BuildGdx.app.getPlatform() == Platform.Android) {
 			byteperpixel = 4;
-			fmt = GL10.GL_RGBA;
+			fmt = GL_RGBA;
 		}
 
 		if (pix32buffer == null || pix32buffer.capacity() < xsiz * ysiz * byteperpixel)
 			pix32buffer = BufferUtils.newByteBuffer(xsiz * ysiz * byteperpixel);
-		gl.glPixelStorei(GL10.GL_PACK_ALIGNMENT, 1);
-		gl.glReadPixels(0, ydim - ysiz, xsiz, ysiz, fmt, GL10.GL_UNSIGNED_BYTE, pix32buffer);
+		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		gl.glReadPixels(0, ydim - ysiz, xsiz, ysiz, fmt, GL_UNSIGNED_BYTE, pix32buffer);
 
 		if (format == PixelFormat.Rgb) {
 			if (reverse) {
@@ -738,18 +868,39 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void palfade(HashMap<String, FadeEffect> fades) {
 		gl.glDisable(GL_DEPTH_TEST);
-		gl.glDisable(GL_ALPHA_TEST);
+//		gl.glDisable(GL_ALPHA_TEST);
 		gl.glDisable(GL_TEXTURE_2D);
 
 		gl.glEnable(GL_BLEND);
 
+		texshader.end();
+		fadeshader.begin();
+
+		palfadergb.draw(fadeshader);
+		if (fades != null) {
+			Iterator<FadeEffect> it = fades.values().iterator();
+			while (it.hasNext()) {
+				FadeEffect obj = it.next();
+				obj.draw(fadeshader);
+			}
+		}
+
+		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	@Override
 	public void preload() {
-		// TODO Auto-generated method stub
 		world = new WorldMesh(engine);
 		scanner.init();
+
+		for (int i = 0; i < MAXSPRITES; i++) {
+			removeSpriteCorr(i);
+			SPRITE spr = sprite[i];
+			if (spr == null || ((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS)
+				continue;
+
+			addSpriteCorr(i);
+		}
 	}
 
 	@Override
@@ -820,14 +971,18 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void setdrunk(float intensive) {
-		// TODO Auto-generated method stub
-
+		if (intensive == 0) {
+			drunk = false;
+			drunkIntensive = 0;
+		} else {
+			drunk = true;
+			drunkIntensive = intensive;
+		}
 	}
 
 	@Override
 	public float getdrunk() {
-		// TODO Auto-generated method stub
-		return 0;
+		return drunkIntensive;
 	}
 
 	@Override

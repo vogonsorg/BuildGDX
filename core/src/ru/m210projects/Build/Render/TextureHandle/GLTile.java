@@ -77,11 +77,10 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	protected int palnum;
 	protected GLTile next;
 
-	private GLTile(int width, int height) {
+	public GLTile(int width, int height) {
 		super(GL_TEXTURE_2D);
 		this.width = width;
 		this.height = height;
-//		this.isRequireShader = false;
 	}
 
 	public GLTile(TileData pic, int palnum, boolean useMipMaps) {

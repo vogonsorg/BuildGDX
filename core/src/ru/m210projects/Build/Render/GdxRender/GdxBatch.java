@@ -37,6 +37,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
 public class GdxBatch {
 
@@ -49,9 +50,7 @@ public class GdxBatch {
 
 	boolean drawing = false;
 
-//	private final Matrix4 transformMatrix = new Matrix4();
 	private final Matrix4 projectionMatrix = new Matrix4();
-//	private final Matrix4 combinedMatrix = new Matrix4();
 
 	private boolean blendingDisabled = false;
 	private int blendSrcFunc = GL20.GL_SRC_ALPHA;
@@ -179,7 +178,13 @@ public class GdxBatch {
 				+ "	gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" //
 				+ "}\n"; //
 
-		ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader);
+		ShaderProgram shader = new ShaderProgram(vertexShader, fragmentShader) {
+			@Override
+			public void begin() {
+				super.begin();
+				GDXRenderer.currentShader = this;
+			}
+		};
 		if (!shader.isCompiled())
 			throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
 		return shader;
@@ -232,53 +237,44 @@ public class GdxBatch {
 				cy2);
 	}
 
-	public void drawFade() {
-		if (!drawing)
-			throw new IllegalStateException("GdxBatch.begin must be called before draw.");
+	protected boolean setClip(int x1, int y1, int x2, int y2) {
+		currClipBounds[0] = x1;
+		currClipBounds[1] = ydim - y1;
+		currClipBounds[2] = x2;
+		currClipBounds[3] = ydim - y2;
 
-		if (idx != 0)
+		if (currClipBounds[0] != lastClipBounds[0] || currClipBounds[1] != lastClipBounds[1]
+				|| currClipBounds[2] != lastClipBounds[2] || currClipBounds[3] != lastClipBounds[3]) {
 			flush();
 
-		currClipBounds[0] = 0;
-		currClipBounds[1] = ydim;
-		currClipBounds[2] = xdim;
-		currClipBounds[3] = 0;
+			shader.setUniformf("cx1", currClipBounds[0]);
+			shader.setUniformf("cy1", currClipBounds[1]);
+			shader.setUniformf("cx2", currClipBounds[2]);
+			shader.setUniformf("cy2", currClipBounds[3]);
 
-		shader.setUniformf("cx1", currClipBounds[0]);
-		shader.setUniformf("cy1", currClipBounds[1]);
-		shader.setUniformf("cx2", currClipBounds[2]);
-		shader.setUniformf("cy2", currClipBounds[3]);
+			System.arraycopy(currClipBounds, 0, lastClipBounds, 0, 4);
+			return true;
+		}
 
-		System.arraycopy(currClipBounds, 0, lastClipBounds, 0, 4);
+		return false;
+	}
 
+	public void setTexture(GLTile tile) {
+		if (tile != lastTexture)
+			switchTexture(tile);
+	}
+
+	public void addVertex(float x, float y, float u, float v) {
 		float color = this.color;
 		int idx = this.idx;
-		vertices[idx + 0] = 0;
-		vertices[idx + 1] = 0;
+
+		vertices[idx + 0] = x;
+		vertices[idx + 1] = y;
 		vertices[idx + 2] = color;
-		vertices[idx + 3] = 0;
-		vertices[idx + 4] = 0;
+		vertices[idx + 3] = u;
+		vertices[idx + 4] = v;
 
-		vertices[idx + 5] = 0;
-		vertices[idx + 6] = ydim;
-		vertices[idx + 7] = color;
-		vertices[idx + 8] = 0;
-		vertices[idx + 9] = 1;
-
-		vertices[idx + 10] = xdim;
-		vertices[idx + 11] = ydim;
-		vertices[idx + 12] = color;
-		vertices[idx + 13] = 1;
-		vertices[idx + 14] = 1;
-
-		vertices[idx + 15] = xdim;
-		vertices[idx + 16] = 0;
-		vertices[idx + 17] = color;
-		vertices[idx + 18] = 1;
-		vertices[idx + 19] = 0;
-		this.idx = idx + 20;
-
-		flush();
+		this.idx = idx + 5;
 	}
 
 	public void draw(GLTexture tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, float srcX,
@@ -292,22 +288,7 @@ public class GdxBatch {
 		else if (idx == vertices.length)
 			flush();
 
-		currClipBounds[0] = cx1;
-		currClipBounds[1] = ydim - cy1;
-		currClipBounds[2] = cx2;
-		currClipBounds[3] = ydim - cy2;
-
-		if (currClipBounds[0] != lastClipBounds[0] || currClipBounds[1] != lastClipBounds[1]
-				|| currClipBounds[2] != lastClipBounds[2] || currClipBounds[3] != lastClipBounds[3]) {
-			flush();
-
-			shader.setUniformf("cx1", currClipBounds[0]);
-			shader.setUniformf("cy1", currClipBounds[1]);
-			shader.setUniformf("cx2", currClipBounds[2]);
-			shader.setUniformf("cy2", currClipBounds[3]);
-
-			System.arraycopy(currClipBounds, 0, lastClipBounds, 0, 4);
-		}
+		setClip(cx1, cy1, cx2, cy2);
 
 		int ourxyaspect = xyaspect;
 		if ((dastat & 2) == 0) {

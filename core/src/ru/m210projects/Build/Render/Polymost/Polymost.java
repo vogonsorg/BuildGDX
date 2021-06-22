@@ -131,7 +131,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GLTexture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -172,21 +175,6 @@ import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
 public abstract class Polymost implements GLRenderer {
-
-	public enum Rendering {
-		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling, Skybox, Model;
-
-		private int index;
-
-		public int getIndex() {
-			return index;
-		}
-
-		public Rendering setIndex(int i) {
-			this.index = i;
-			return this;
-		}
-	}
 
 //	protected final Color polyColor = new Color();
 	public Rendering rendering = Rendering.Nothing;
@@ -236,10 +224,11 @@ public abstract class Polymost implements GLRenderer {
 
 //	public static short drawingskybox = 0;
 
-	IntBuffer frameTexture;
+	GLTile frameTexture;
+//	IntBuffer frameTexture;
 	private int framew;
 	private int frameh;
-	private int framesize;
+//	private int framesize;
 
 	protected float gyxscale, gviewxrange, ghalfx, grhalfxdown10, grhalfxdown10x;
 	protected double gxyaspect;
@@ -3196,12 +3185,12 @@ public abstract class Polymost implements GLRenderer {
 		if (hasShader)
 			texshader.end();
 
-		palfadergb.draw(gl);
+		palfadergb.draw(null);
 		if (fades != null) {
 			Iterator<FadeEffect> it = fades.values().iterator();
 			while (it.hasNext()) {
 				FadeEffect obj = it.next();
-				obj.draw(gl);
+				obj.draw(null);
 			}
 		}
 
@@ -3482,31 +3471,30 @@ public abstract class Polymost implements GLRenderer {
 				texshader.end();
 
 			if (frameTexture == null || framew != xdim || frameh != ydim) {
-				if (frameTexture != null)
-					gl.glDeleteTextures(1, frameTexture);
-				else
-					frameTexture = BufferUtils.newIntBuffer(1);
-
-				gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
-				for (framesize = 1; framesize < Math.max(xdim, ydim); framesize *= 2)
+				int size = 1;
+				for (size = 1; size < Math.max(xdim, ydim); size <<= 1)
 					;
 
-				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, framesize, framesize, 0, GL10.GL_RGB, GL_UNSIGNED_BYTE,
-						null);
-				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				if (frameTexture != null)
+					frameTexture.dispose();
+				else
+					frameTexture = new GLTile(size, size);
+
+				frameTexture.bind();
+
+				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL10.GL_RGB, frameTexture.getWidth(), frameTexture.getHeight(), 0,
+						GL10.GL_RGB, GL_UNSIGNED_BYTE, null);
+				frameTexture.unsafeSetFilter(TextureFilter.Linear, TextureFilter.Linear);
 				framew = xdim;
 				frameh = ydim;
 			}
 
-			gl.glReadBuffer(GL_BACK);
-			gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
-			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framesize, framesize);
+			frameTexture.bind();
+			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frameTexture.getWidth(), frameTexture.getHeight());
 
 			gl.glDisable(GL_DEPTH_TEST);
 			gl.glDisable(GL_ALPHA_TEST);
 			gl.glEnable(GL_TEXTURE_2D);
-			gl.glBindTexture(GL_TEXTURE_2D, frameTexture);
 
 			gl.glMatrixMode(GL_PROJECTION);
 			gl.glPushMatrix();
@@ -3522,8 +3510,8 @@ public abstract class Polymost implements GLRenderer {
 			gl.glPushMatrix();
 			gl.glLoadIdentity();
 
-			float u = (float) xdim / framesize;
-			float v = (float) ydim / framesize;
+			float u = (float) xdim / frameTexture.getWidth();
+			float v = (float) ydim / frameTexture.getHeight();
 
 			gl.glColor4f(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
 			gl.glBegin(GL10.GL_TRIANGLE_FAN);

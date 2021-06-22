@@ -23,13 +23,23 @@ import ru.m210projects.Build.Render.Types.FadeEffect;
 
 public interface GLRenderer extends Renderer {
 
+	public enum Rendering {
+		Nothing, Sprite, Wall, MaskWall, Floor, Ceiling, Skybox, Model, Tile;
+
+		private int index;
+
+		public int getIndex() {
+			return index;
+		}
+
+		public Rendering setIndex(int i) {
+			this.index = i;
+			return this;
+		}
+	}
+
 	public enum GLInvalidateFlag {
-		Uninit,
-		SkinsOnly,
-		TexturesOnly,
-		IndexedTexturesOnly,
-		Palookup,
-		All
+		Uninit, SkinsOnly, TexturesOnly, IndexedTexturesOnly, Palookup, All
 	}
 
 	public TextureManager getTextureManager();
