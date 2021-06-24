@@ -24,11 +24,12 @@ import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
+import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,8 +38,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
@@ -50,9 +51,6 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
-import ru.m210projects.Build.Render.OrphoRenderer;
-import ru.m210projects.Build.Render.GLRenderer.Rendering;
-import ru.m210projects.Build.Render.GdxRender.Tesselator.Type;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
@@ -62,16 +60,13 @@ import ru.m210projects.Build.Render.TextureHandle.TextureManager.ExpandTexture;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
-import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
-import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
-import ru.m210projects.Build.Types.Timer;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
@@ -81,15 +76,13 @@ public class GDXRenderer implements GLRenderer {
 
 //	TODO:
 //	Sector update fps drops
-//	SW textures bug
-//  Top / bottom transparent bug with glass maskedwall
 //	ROR / Mirror bugs
 
 //	Overheadmap
+//  Sprite texture black pixel
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
 //	Orpho renderer 8bit textures
-//	Drunk mode
 //	Hires + models
 //	Skyboxes
 //	Sky texture
@@ -307,9 +300,12 @@ public class GDXRenderer implements GLRenderer {
 		renderDrunkEffect();
 	}
 
-	protected void renderDrunkEffect() {
+	protected void renderDrunkEffect() { // TODO: to shader
+		drunk = true;
 		if (drunk) {
-			BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
+			set2dview();
+
+			gl.glActiveTexture(GL_TEXTURE0);
 			boolean hasShader = texshader != null && texshader.isBinded();
 			if (hasShader)
 				texshader.end();
@@ -332,56 +328,52 @@ public class GDXRenderer implements GLRenderer {
 				frameh = ydim;
 			}
 
-			frameTexture.bind();
+			textureCache.bind(frameTexture);
 			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frameTexture.getWidth(), frameTexture.getHeight());
 
 			gl.glDisable(GL_DEPTH_TEST);
-			gl.glEnable(GL_TEXTURE_2D);
+			gl.glDisable(GL_CULL_FACE);
 
 			float tiltang = (drunkIntensive * 360) / 2048f;
 			float tilt = min(max(tiltang, -MAXDRUNKANGLE), MAXDRUNKANGLE);
 			float u = (float) xdim / frameTexture.getWidth();
 			float v = (float) ydim / frameTexture.getHeight();
 
+			int originX = xdim / 2;
+			int originY = ydim / 2;
+			float width = xdim * 1.05f;
+			float height = ydim * 1.05f;
+
+			float xoffs = width / 2;
+			float yoffs = height / 2;
+
+			final float rotation = 360.0f * tiltang / 2048.0f;
+			final float cos = MathUtils.cosDeg(rotation);
+			final float sin = MathUtils.sinDeg(rotation);
+
+			float x1 = originX + (sin * yoffs - cos * xoffs);
+			float y1 = originY - xoffs * sin - yoffs * cos;
+
+			float x4 = x1 + width * cos;
+			float y4 = y1 + width * sin;
+
+			float x2 = x1 - height * sin;
+			float y2 = y1 + height * cos;
+
+			float x3 = x2 + (x4 - x1);
+			float y3 = y2 + (y4 - y1);
+
 			orphoRen.begin();
+			orphoRen.setColor(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
 			orphoRen.setTexture(frameTexture);
-			orphoRen.addVertex(0, 0, 0, 0);
-			orphoRen.addVertex(0, ydim, 0, v);
-			orphoRen.addVertex(xdim, ydim, u, v);
-			orphoRen.addVertex(xdim, 0, u, 0);
+			orphoRen.addVertex(x1, ydim - y1, 0, 0);
+			orphoRen.addVertex(x2, ydim - y2, 0, v);
+			orphoRen.addVertex(x3, ydim - y3, u, v);
+			orphoRen.addVertex(x4, ydim - y4, u, 0);
 			orphoRen.end();
 
-//			gl.glMatrixMode(GL_PROJECTION);
-//			gl.glPushMatrix();
-//			gl.glLoadIdentity();
-//
-//			gl.glScalef(1.05f, 1.05f, 1);
-//			gl.glRotatef(tilt, 0, 0, 1.0f);
-//
-//			gl.glMatrixMode(GL_MODELVIEW);
-//			gl.glPushMatrix();
-//			gl.glLoadIdentity();
-//
-//			float u = (float) xdim / frameTexture.getWidth();
-//			float v = (float) ydim / frameTexture.getHeight();
-//
-//			gl.glColor4f(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
-//			gl.glBegin(GL_TRIANGLE_FAN);
-//			gl.glTexCoord2f(0, 0);
-//			gl.glVertex2f(-1f, -1f);
-//
-//			gl.glTexCoord2f(0, v);
-//			gl.glVertex2f(-1f, 1f);
-//
-//			gl.glTexCoord2f(u, v);
-//			gl.glVertex2f(1f, 1f);
-//
-//			gl.glTexCoord2f(u, 0);
-//			gl.glVertex2f(1f, -1f);
-//			gl.glEnd();
-
 			gl.glEnable(GL_DEPTH_TEST);
-			gl.glDisable(GL_TEXTURE_2D);
+			gl.glEnable(GL_CULL_FACE);
 
 			if (hasShader)
 				texshader.begin();
@@ -414,7 +406,15 @@ public class GDXRenderer implements GLRenderer {
 		return (dmulscale(wal.x - x1, s.y - y1, -(s.x - x1), wal.y - y1, 32) >= 0);
 	}
 
-	public void resizeglcheck() {
+	protected void set2dview() {
+		if (gloy1 != -1) {
+			gl.glViewport(0, 0, xdim, ydim);
+			orphoRen.resize(xdim, ydim);
+		}
+		gloy1 = -1;
+	}
+
+	protected void resizeglcheck() {
 		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
 			glox1 = windowx1;
 			gloy1 = windowy1;
@@ -425,8 +425,6 @@ public class GDXRenderer implements GLRenderer {
 
 			cam.viewportWidth = windowx2;
 			cam.viewportHeight = windowy2;
-
-			orphoRen.resize(windowx2, windowy2);
 		}
 	}
 
@@ -437,8 +435,8 @@ public class GDXRenderer implements GLRenderer {
 		else
 			isRORDrawing = false;
 
-//		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//		gl.glClearColor(0.0f, 0.5f, 0.5f, 1); // XXX
+		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		gl.glClearColor(0.0f, 0.5f, 0.5f, 1); // XXX
 
 		gl.glDisable(GL_BLEND);
 		gl.glEnable(GL_TEXTURE_2D);
@@ -701,16 +699,19 @@ public class GDXRenderer implements GLRenderer {
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
 			int cy1, int cx2, int cy2) {
 		rendering = Rendering.Tile.setIndex(picnum);
+		set2dview();
 		orphoRen.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
 	}
 
 	@Override
 	public void drawmapview(int dax, int day, int zoome, int ang) {
+		set2dview();
 		orphoRen.drawmapview(dax, day, zoome, ang);
 	}
 
 	@Override
 	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
+		set2dview();
 		orphoRen.drawoverheadmap(cposx, cposy, czoom, cang);
 	}
 
@@ -718,12 +719,14 @@ public class GDXRenderer implements GLRenderer {
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
 		rendering = Rendering.Tile.setIndex(0);
+		set2dview();
 		orphoRen.printext(font, xpos, ypos, text, col, shade, bit, scale);
 	}
 
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		rendering = Rendering.Tile.setIndex(0);
+		set2dview();
 		orphoRen.printext(xpos, ypos, col, backcol, text, fontsize, scale);
 	}
 
@@ -805,6 +808,7 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
+		set2dview();
 		orphoRen.drawline256(x1, y1, x2, y2, col);
 	}
 
@@ -862,17 +866,17 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void enableShader(boolean enable) {
-		// XXX
+		// TODO: 8bit / rgb switch
 	}
 
 	@Override
-	public void palfade(HashMap<String, FadeEffect> fades) {
+	public void palfade(HashMap<String, FadeEffect> fades) { // TODO: to shader?
 		gl.glDisable(GL_DEPTH_TEST);
-//		gl.glDisable(GL_ALPHA_TEST);
 		gl.glDisable(GL_TEXTURE_2D);
 
 		gl.glEnable(GL_BLEND);
 
+		set2dview();
 		texshader.end();
 		fadeshader.begin();
 

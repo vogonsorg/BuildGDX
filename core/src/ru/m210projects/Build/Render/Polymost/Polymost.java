@@ -20,15 +20,12 @@ import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_FASTEST;
 import static com.badlogic.gdx.graphics.GL20.GL_GREATER;
 import static com.badlogic.gdx.graphics.GL20.GL_LEQUAL;
-import static com.badlogic.gdx.graphics.GL20.GL_LINEAR;
 import static com.badlogic.gdx.graphics.GL20.GL_NICEST;
 import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_REPEAT;
 import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAG_FILTER;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MIN_FILTER;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_S;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_T;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_FAN;
@@ -126,14 +123,11 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -3489,7 +3483,7 @@ public abstract class Polymost implements GLRenderer {
 				frameh = ydim;
 			}
 
-			frameTexture.bind();
+			textureCache.bind(frameTexture);
 			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frameTexture.getWidth(), frameTexture.getHeight());
 
 			gl.glDisable(GL_DEPTH_TEST);

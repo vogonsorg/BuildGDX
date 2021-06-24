@@ -428,6 +428,7 @@ public class WorldMesh {
 				surf.ptr = info.obj;
 				surf.type = Type.Wall;
 				surf.vis_ptr = sectnum;
+				surf.visflag = 4;
 			}
 		}
 
@@ -798,7 +799,7 @@ public class WorldMesh {
 	public class GLSurface {
 		public int offset;
 		public int count, limit;
-		public int visflag = 0; // 1 - lower, 2 - upper, 0 - white
+		public int visflag = 0; // 1 - lower, 2 - upper, 4 - masked, 0 - white
 
 		public int picnum;
 		private Object ptr;
@@ -828,7 +829,7 @@ public class WorldMesh {
 			case Wall:
 				int method = 0;
 				WALL wal = (WALL) ptr;
-				if(wal.isMasked()) {
+				if (wal.isMasked() && visflag == 4) {
 					method = 1;
 					if (!wal.isOneWay() && wal.isTransparent()) {
 						if (!wal.isTransparent2())

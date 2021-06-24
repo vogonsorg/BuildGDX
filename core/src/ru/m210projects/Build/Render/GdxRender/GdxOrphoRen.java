@@ -38,6 +38,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -291,6 +292,10 @@ public class GdxOrphoRen extends OrphoRenderer {
 		batch.setTexture(tile);
 	}
 
+	public void setColor(float r, float g, float b, float a) {
+		batch.setColor(r, g, b, a);
+	}
+
 	public void addVertex(float x, float y, float u, float v) {
 		batch.addVertex(x, y, u, v);
 	}
@@ -298,6 +303,8 @@ public class GdxOrphoRen extends OrphoRenderer {
 	public void begin() {
 		if (!batch.isDrawing())
 			batch.begin();
+		else
+			batch.flush();
 	}
 
 	public void end() {

@@ -29,8 +29,11 @@ public class GLTileArray {
 
 	public GLTile get(int picnum, int palnum, boolean clamped, int surfnum) {
 		for (GLTile pth = array[picnum]; pth != null && pth.palnum <= palnum; pth = pth.next) {
-			if (pth.getPixelFormat() == PixelFormat.Pal8)
-				return pth;
+			if (pth.getPixelFormat() == PixelFormat.Pal8) {
+				if (pth.isClamped() == clamped)
+					return pth;
+				continue;
+			}
 
 			if (pth.palnum == palnum && pth.isClamped() == clamped && pth.skyface == surfnum)
 				return pth;
