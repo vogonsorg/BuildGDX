@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.FloatArray;
 
 import ru.m210projects.Build.Engine;
@@ -794,6 +795,16 @@ public class WorldMesh {
 			surf.offset += shift;
 			surf = surf.next;
 		}
+	}
+
+	public Vector3[] getPositions(int offset, int count) {
+		Vector3[] out = new Vector3[count];
+		FloatBuffer buffer = mesh.getVerticesBuffer();
+		for (int i = 0; i < count; i++) {
+			int offs = (offset + i) * tess.getVertexSize();
+			out[i] = new Vector3(buffer.get(offs++), buffer.get(offs++), buffer.get(offs++));
+		}
+		return out;
 	}
 
 	public class GLSurface {
