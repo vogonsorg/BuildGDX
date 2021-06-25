@@ -68,7 +68,7 @@ public class WallFrustum3d implements Poolable {
 	}
 
 	public boolean wallInFrustum(ArrayList<? extends Vector3> points) {
-		if(points == null)
+		if (points == null)
 			return false;
 
 		rebuild();
@@ -123,16 +123,6 @@ public class WallFrustum3d implements Poolable {
 	}
 
 	private WallFrustum3d buildFrustum() {
-		if (cam == null) {
-
-			System.err.println(this.sectnum);
-
-			System.err.println(bounds[0].x);
-			System.err.println(bounds[0].y);
-			System.err.println(bounds[1].x);
-			System.err.println(bounds[1].y);
-		}
-
 		cam.unproject(tmpVec[0].set(bounds[0].x, bounds[0].y, 1));
 		cam.unproject(tmpVec[1].set(bounds[0].x, bounds[1].y, 1));
 		cam.unproject(tmpVec[2].set(bounds[1].x, bounds[1].y, 1));
@@ -177,9 +167,6 @@ public class WallFrustum3d implements Poolable {
 				if (minx < n.bounds[0].x || maxx > n.bounds[1].x || miny < n.bounds[0].y || maxy > n.bounds[1].y) {
 					n.handled = false;
 					n.setBounds(minx, miny, maxx, maxy);
-
-					if (n.cam == null)
-						System.err.println("aaa " + frustum.cam); // XXX
 					n.rebuildRequest = true;
 					return n; // n.buildFrustum();
 				}

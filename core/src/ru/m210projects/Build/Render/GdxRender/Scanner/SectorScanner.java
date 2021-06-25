@@ -56,7 +56,6 @@ public abstract class SectorScanner {
 
 	private PotentiallyVisibleSet pvs;
 
-	private ArrayList<VisibleSector> sectors;
 	private WallFrustum3d[] portqueue; // to linkedlist
 	private final int queuemask; // pay attention!
 	private int pqhead, pqtail;
@@ -82,7 +81,6 @@ public abstract class SectorScanner {
 		this.engine = engine;
 		pvs = new PotentiallyVisibleSet();
 
-		sectors = new ArrayList<VisibleSector>();
 		portqueue = new WallFrustum3d[512];
 		queuemask = portqueue.length - 1;
 		tsprite = new SPRITE[MAXSPRITESONSCREEN + 1];
@@ -98,9 +96,14 @@ public abstract class SectorScanner {
 		pvs.info.init(engine);
 	}
 
-	public ArrayList<VisibleSector> process(BuildCamera cam, WorldMesh mesh, int sectnum) {
+	public void clear() {
+		pSectorPool.reset();
+		pFrustumPool.reset();
+	}
+
+	public void process(ArrayList<VisibleSector> sectors, BuildCamera cam, WorldMesh mesh, int sectnum) {
 		if (!Gameutils.isValidSector(sectnum))
-			return sectors;
+			return;
 
 		pvs.process(cam, mesh, sectnum);
 
@@ -114,10 +117,7 @@ public abstract class SectorScanner {
 		maskwallcnt = 0;
 		spritesortcnt = 0;
 
-		sectors.clear();
 		pqhead = pqtail = 0;
-		pSectorPool.reset();
-		pFrustumPool.reset();
 
 		int cursectnum = sectnum;
 		portqueue[(pqtail++) & queuemask] = pFrustumPool.obtain().set(cam, sectnum);
@@ -312,6 +312,8 @@ public abstract class SectorScanner {
 
 			checkSprites(pFrustum, sectnum);
 
+			for (int i = 0; i < 4; i++)
+				sec.clipPlane[i].set(pFrustum.planes[i]);
 			sec.secflags = secflags;
 //			sec.setBounds(pFrustum.getBounds());
 			sec.x1 = sec.y1 = 0;
@@ -321,7 +323,7 @@ public abstract class SectorScanner {
 		} while (pqhead != pqtail);
 
 		// Arrays.sort(maskwall, 0, maskwallcnt, comp); // masks sort TODO
-		return sectors;
+		return;
 	}
 
 	public int getSkyPal(Heinum h) {

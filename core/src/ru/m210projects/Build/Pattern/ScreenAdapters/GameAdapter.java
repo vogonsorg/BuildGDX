@@ -48,8 +48,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 
 //	protected static Thread gameThread;
 
-	public GameAdapter(final BuildGame game, LoadingAdapter load)
-	{
+	public GameAdapter(final BuildGame game, LoadingAdapter load) {
 		this.game = game;
 		this.pNet = game.pNet;
 		this.pMenu = game.pMenu;
@@ -83,9 +82,11 @@ public abstract class GameAdapter extends ScreenAdapter {
 //		}
 	}
 
-	public void PreFrame(BuildNet net) { /* nothing */ }
+	public void PreFrame(BuildNet net) {
+		/* nothing */ }
 
-	public void PostFrame(BuildNet net) { /* nothing */ }
+	public void PostFrame(BuildNet net) {
+		/* nothing */ }
 
 	public abstract void ProcessFrame(BuildNet net);
 
@@ -102,33 +103,31 @@ public abstract class GameAdapter extends ScreenAdapter {
 
 	protected abstract boolean prepareboard(String map);
 
-	public GameAdapter setTitle(String title)
-	{
+	public GameAdapter setTitle(String title) {
 		load.setTitle(title);
 		return this;
 	}
 
-	public GameAdapter loadboard(final String map, final Runnable prestart)
-	{
+	public GameAdapter loadboard(final String map, final Runnable prestart) {
 		pNet.ready2send = false;
 		game.changeScreen(load);
 		load.init(new Runnable() {
 			@Override
 			public void run() {
-				if(prepareboard(map)) {
-					if(prestart != null)
+				if (prepareboard(map)) {
+					if (prestart != null)
 						prestart.run();
 
 					String mapname = map;
 					int index = toLowerCase(mapname).indexOf(".map");
-					if(index == -1)
+					if (index == -1)
 						mapname = mapname + ".map";
 
-					if(game.currentDef.mapInfo.load(mapname))
+					if (game.currentDef.mapInfo.load(mapname))
 						System.err.println("Maphack loaded for map: " + mapname);
 
 					startboard(startboard);
-				} //do nothing, it's better to handle it in each game manualy
+				} // do nothing, it's better to handle it in each game manualy
 			}
 		});
 
@@ -169,18 +168,21 @@ public abstract class GameAdapter extends ScreenAdapter {
 			pNet.GetPackets();
 			while (pNet.gPredictTail < pNet.gNetFifoHead[myconnectindex] && !game.gPaused)
 				pNet.UpdatePrediction(pNet.gFifoInput[pNet.gPredictTail & kFifoMask][myconnectindex]);
-		} else pNet.bufferJitter = 0;
+		} else
+			pNet.bufferJitter = 0;
 
 		PreFrame(pNet);
 
 		int i;
 		while (pNet.gNetFifoHead[myconnectindex] - pNet.gNetFifoTail > pNet.bufferJitter && !game.gExit) {
 			for (i = connecthead; i >= 0; i = connectpoint2[i])
-				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i]) break;
-			if (i >= 0) break;
+				if (pNet.gNetFifoTail == pNet.gNetFifoHead[i])
+					break;
+			if (i >= 0)
+				break;
 
-			synchronized(GameAdapter.this) {
-				pEngine.faketimerhandler(); //game timer sync
+			synchronized (GameAdapter.this) {
+				pEngine.faketimerhandler(); // game timer sync
 				ProcessFrame(pNet);
 			}
 		}
@@ -197,7 +199,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		}
 
 		game.pInt.dointerpolations(smoothratio);
-		DrawWorld(smoothratio); //smooth sprites
+		DrawWorld(smoothratio); // smooth sprites
 
 		if (gScreenCapture != null) {
 			gScreenCapture.run();
@@ -207,7 +209,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		DrawHud(smoothratio);
 		game.pInt.restoreinterpolations();
 
-		if(pMenu.gShowMenu)
+		if (pMenu.gShowMenu)
 			pMenu.mDrawMenu();
 
 		PostFrame(pNet);
@@ -229,13 +231,12 @@ public abstract class GameAdapter extends ScreenAdapter {
 		};
 	}
 
-	public boolean isScreenSaving()
-	{
+	public boolean isScreenSaving() {
 		return gScreenCapture != null;
 	}
 
 	@Override
-	public void pause () {
+	public void pause() {
 		if (game.nNetMode == NetMode.Single && numplayers < 2) {
 			game.gPaused = true;
 			sndHandlePause(game.gPaused);
@@ -246,7 +247,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 	}
 
 	@Override
-	public void resume () {
+	public void resume() {
 		if (game.nNetMode == NetMode.Single && numplayers < 2) {
 			{
 				game.gPaused = false;

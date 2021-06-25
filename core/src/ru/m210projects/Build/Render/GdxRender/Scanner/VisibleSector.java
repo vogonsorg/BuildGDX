@@ -1,5 +1,6 @@
 package ru.m210projects.Build.Render.GdxRender.Scanner;
 
+import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntArray;
 
@@ -15,6 +16,7 @@ public class VisibleSector implements Poolable {
 
 	// bounds
 	public float x1, y1, x2, y2;
+	public Plane[] clipPlane = { new Plane(), new Plane(), new Plane(), new Plane() };
 
 	public VisibleSector set(int index) {
 		this.index = index;

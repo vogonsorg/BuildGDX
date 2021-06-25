@@ -114,7 +114,7 @@ public class GDXRenderer implements GLRenderer {
 	private ByteBuffer pix8buffer;
 	private long renderTime, scanTime;
 	private Matrix4 transform = new Matrix4();
-	private boolean isRORDrawing = false;
+	private boolean clearStatus = false;
 	private float glox1, gloy1, glox2, gloy2;
 	private boolean drunk;
 	private float drunkIntensive = 1.0f;
@@ -155,7 +155,12 @@ public class GDXRenderer implements GLRenderer {
 			fis.read(data);
 			String vert = new String(data);
 
-			return new IndexedShader(vert, IndexedShader.defaultFragment) {
+			fis = new FileInputStream(new File("worldshader_frag.glsl"));
+			data = new byte[fis.available()];
+			fis.read(data);
+			String frag = new String(data);
+
+			return new IndexedShader(vert, frag) { // IndexedShader.defaultFragment
 				@Override
 				public void bindPalette() {
 					textureCache.getPalette().bind();
@@ -428,15 +433,18 @@ public class GDXRenderer implements GLRenderer {
 		}
 	}
 
+	protected Matrix4 mirrorCombined = new Matrix4(), mirrorView = new Matrix4();
+//	protected int mirrorOffset;
+	protected ArrayList<VisibleSector> sectors = new ArrayList<VisibleSector>();
+	protected ArrayList<VisibleSector> mirrors = new ArrayList<VisibleSector>();
+
 	@Override
 	public void drawrooms() {
-		if (!isRORDrawing)
-			gl.glClear(GL_DEPTH_BUFFER_BIT);
-		else
-			isRORDrawing = false;
-
-		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		gl.glClearColor(0.0f, 0.5f, 0.5f, 1); // XXX
+		if (!clearStatus) { // once at frame
+			gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			gl.glClearColor(0.0f, 0.5f, 0.5f, 1);
+			clearStatus = true;
+		}
 
 		gl.glDisable(GL_BLEND);
 		gl.glEnable(GL_TEXTURE_2D);
@@ -456,8 +464,12 @@ public class GDXRenderer implements GLRenderer {
 		globalvisibility = visibility << 2;
 		if (globalcursectnum >= MAXSECTORS) {
 			globalcursectnum -= MAXSECTORS;
-			if (!inpreparemirror)
-				isRORDrawing = true;
+
+//			mirrors.clear();
+//			scanner.process(mirrors, cam, world, globalcursectnum);
+//			mirrorCombined.set(cam.combined);
+//			mirrorView.set(cam.view);
+//			return;
 		} else {
 			short i = globalcursectnum;
 			globalcursectnum = engine.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
@@ -466,13 +478,14 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		scanTime = System.nanoTime();
-		ArrayList<VisibleSector> sectors = scanner.process(cam, world, globalcursectnum);
+		sectors.clear();
+		scanner.clear();
+		scanner.process(sectors, cam, world, globalcursectnum);
 		scanTime = System.nanoTime() - scanTime;
 
 		renderTime = System.nanoTime();
 
 		rendering = Rendering.Nothing;
-
 		texshader.begin();
 		if (inpreparemirror) {
 			inpreparemirror = false;
@@ -540,6 +553,15 @@ public class GDXRenderer implements GLRenderer {
 	private void drawSector(VisibleSector sec) {
 		int sectnum = sec.index;
 		gotsector[sectnum >> 3] |= pow2char[sectnum & 7];
+
+//		texshader.setUniformf("plane[0]", sec.clipPlane[0].normal.x, sec.clipPlane[0].normal.y,
+//				sec.clipPlane[0].normal.z, sec.clipPlane[0].d);
+//		texshader.setUniformf("plane[1]", sec.clipPlane[1].normal.x, sec.clipPlane[1].normal.y,
+//				sec.clipPlane[1].normal.z, sec.clipPlane[1].d);
+//		texshader.setUniformf("plane[2]", sec.clipPlane[2].normal.x, sec.clipPlane[2].normal.y,
+//				sec.clipPlane[2].normal.z, sec.clipPlane[2].d);
+//		texshader.setUniformf("plane[3]", sec.clipPlane[3].normal.x, sec.clipPlane[3].normal.y,
+//				sec.clipPlane[3].normal.z, sec.clipPlane[3].d);
 
 		if ((sec.secflags & 1) != 0) {
 			rendering = Rendering.Floor.setIndex(sectnum);
@@ -652,10 +674,8 @@ public class GDXRenderer implements GLRenderer {
 
 				if ((method & 3) == 0) {
 					Gdx.gl.glDisable(GL_BLEND);
-//					Gdx.gl.glDisable(GL_ALPHA_TEST);
 				} else {
 					Gdx.gl.glEnable(GL_BLEND);
-//					Gdx.gl.glEnable(GL_ALPHA_TEST);
 				}
 
 				surf.render(texshader);
@@ -678,6 +698,7 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void nextpage() {
+		clearStatus = false;
 		if (world != null)
 			world.nextpage();
 		orphoRen.nextpage();
