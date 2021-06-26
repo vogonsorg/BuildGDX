@@ -16,16 +16,65 @@
 
 package ru.m210projects.Build.Render.GdxRender;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL20.GL_BACK;
+import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
+import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
+import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
+import static com.badlogic.gdx.graphics.GL20.GL_CW;
+import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
+import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
+import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
+import static com.badlogic.gdx.graphics.GL20.GL_LESS;
+import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
+import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
+import static com.badlogic.gdx.graphics.GL20.GL_RGB;
+import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
+import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE0;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
+import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Engine.MAXDRUNKANGLE;
+import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
+import static ru.m210projects.Build.Engine.MAXSECTORS;
+import static ru.m210projects.Build.Engine.MAXSPRITES;
+import static ru.m210projects.Build.Engine.MAXSTATUS;
+import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.RESERVEDPALS;
+import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
+import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
+import static ru.m210projects.Build.Engine.beforedrawrooms;
+import static ru.m210projects.Build.Engine.curpalette;
+import static ru.m210projects.Build.Engine.globalang;
+import static ru.m210projects.Build.Engine.globalcursectnum;
+import static ru.m210projects.Build.Engine.globalhoriz;
+import static ru.m210projects.Build.Engine.globalposx;
+import static ru.m210projects.Build.Engine.globalposy;
+import static ru.m210projects.Build.Engine.globalposz;
+import static ru.m210projects.Build.Engine.globalvisibility;
+import static ru.m210projects.Build.Engine.gotsector;
+import static ru.m210projects.Build.Engine.inpreparemirror;
+import static ru.m210projects.Build.Engine.palette;
+import static ru.m210projects.Build.Engine.palfadergb;
+import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Engine.pow2char;
+import static ru.m210projects.Build.Engine.sprite;
+import static ru.m210projects.Build.Engine.spritesortcnt;
+import static ru.m210projects.Build.Engine.tsprite;
+import static ru.m210projects.Build.Engine.visibility;
+import static ru.m210projects.Build.Engine.wall;
+import static ru.m210projects.Build.Engine.windowx1;
+import static ru.m210projects.Build.Engine.windowx2;
+import static ru.m210projects.Build.Engine.windowy1;
+import static ru.m210projects.Build.Engine.windowy2;
+import static ru.m210projects.Build.Engine.xdim;
+import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,19 +89,22 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
+import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
+import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
@@ -66,11 +118,9 @@ import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
+import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
-import ru.m210projects.Build.Types.Tile.AnimType;
-import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
-import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 
 public class GDXRenderer implements GLRenderer {
 
@@ -488,7 +538,7 @@ public class GDXRenderer implements GLRenderer {
 		rendering = Rendering.Nothing;
 		texshader.begin();
 		if (inpreparemirror) {
-			inpreparemirror = false;
+			// inpreparemirror = false;
 			gl.glCullFace(GL_FRONT);
 			texshader.setUniformi("u_mirror", 1);
 		} else {
@@ -499,18 +549,27 @@ public class GDXRenderer implements GLRenderer {
 		texshader.setUniformi("u_drawSprite", 0);
 		texshader.setUniformMatrix("u_projTrans", cam.combined);
 		texshader.setUniformMatrix("u_modelView", cam.view);
+		texshader.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
+		texshader.setUniformf("u_resolution", xdim, ydim);
 		texshader.setClip(0, 0, xdim, ydim);
 
 		for (int i = 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
+
+		setFrustum(null);
+
 		for (int i = 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
 		drawSkyPlanes();
+
 		texshader.end();
+
 		renderTime = System.nanoTime() - renderTime;
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
+
+		inpreparemirror = false;
 	}
 
 	private void drawSkyPlanes() {
@@ -554,14 +613,8 @@ public class GDXRenderer implements GLRenderer {
 		int sectnum = sec.index;
 		gotsector[sectnum >> 3] |= pow2char[sectnum & 7];
 
-//		texshader.setUniformf("plane[0]", sec.clipPlane[0].normal.x, sec.clipPlane[0].normal.y,
-//				sec.clipPlane[0].normal.z, sec.clipPlane[0].d);
-//		texshader.setUniformf("plane[1]", sec.clipPlane[1].normal.x, sec.clipPlane[1].normal.y,
-//				sec.clipPlane[1].normal.z, sec.clipPlane[1].d);
-//		texshader.setUniformf("plane[2]", sec.clipPlane[2].normal.x, sec.clipPlane[2].normal.y,
-//				sec.clipPlane[2].normal.z, sec.clipPlane[2].d);
-//		texshader.setUniformf("plane[3]", sec.clipPlane[3].normal.x, sec.clipPlane[3].normal.y,
-//				sec.clipPlane[3].normal.z, sec.clipPlane[3].d);
+		if (!inpreparemirror)
+			setFrustum(sec.clipPlane);
 
 		if ((sec.secflags & 1) != 0) {
 			rendering = Rendering.Floor.setIndex(sectnum);
@@ -1008,6 +1061,28 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public float getdrunk() {
 		return drunkIntensive;
+	}
+
+	private void setFrustum(Plane[] clipPlane) {
+		if (clipPlane == null) {
+			texshader.setUniformi("u_frustumClipping", 0);
+			return;
+		}
+
+		texshader.setUniformi("u_frustumClipping", 1);
+//		texshader.setUniformf("u_plane[0]", clipPlane[0].normal.x, clipPlane[0].normal.y, clipPlane[0].normal.z,
+//				clipPlane[0].d);
+//		texshader.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
+//				clipPlane[1].d);
+//		texshader.setUniformf("u_plane[2]", clipPlane[2].normal.x, clipPlane[2].normal.y, clipPlane[2].normal.z,
+//				clipPlane[2].d);
+//		texshader.setUniformf("u_plane[3]", clipPlane[3].normal.x, clipPlane[3].normal.y, clipPlane[3].normal.z,
+//				clipPlane[3].d);
+
+		texshader.setUniformf("u_plane[0]", clipPlane[0].normal.x, clipPlane[0].normal.y, clipPlane[0].normal.z,
+				clipPlane[0].d);
+		texshader.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
+				clipPlane[1].d);
 	}
 
 	@Override

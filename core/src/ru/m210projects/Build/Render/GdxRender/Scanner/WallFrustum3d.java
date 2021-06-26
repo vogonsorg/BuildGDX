@@ -168,7 +168,7 @@ public class WallFrustum3d implements Poolable {
 					n.handled = false;
 					n.setBounds(minx, miny, maxx, maxy);
 					n.rebuildRequest = true;
-					return n; // n.buildFrustum();
+					return n;
 				}
 
 				return null;
@@ -226,61 +226,38 @@ public class WallFrustum3d implements Poolable {
 		return bounds;
 	}
 
-//	private Vector3[] calcBounds(Vector3[] points, int len) {
-//		bounds[0].x = bounds[1].x = points[0].x;
-//		bounds[0].y = bounds[1].y = points[0].y;
-//
-//		for (int i = 1; i < len; i++) {
-//			Vector3 v = points[i];
-//			if (v.x < bounds[0].x)
-//				bounds[0].x = v.x;
-//			if (v.y < bounds[0].y)
-//				bounds[0].y = v.y;
-//
-//			if (v.x > bounds[1].x)
-//				bounds[1].x = v.x;
-//			if (v.y > bounds[1].y)
-//				bounds[1].y = v.y;
-//		}
-//
-//		bounds[0].x = (float) Math.floor(bounds[0].x);
-//		bounds[1].x = (float) Math.ceil(bounds[1].x);
-//		bounds[0].y = (float) Math.floor(bounds[0].y);
-//		bounds[1].y = (float) Math.ceil(bounds[1].y);
-//
-//		bounds[0].x = Math.max(bounds[0].x, 0);
-//		bounds[1].x = Math.min(bounds[1].x, xdim);
-//		bounds[0].y = Math.max(bounds[0].y, 0);
-//		bounds[1].y = Math.min(bounds[1].y, ydim);
-//
-//		return bounds;
-//	}
-
 	public boolean clipBounds(WallFrustum3d viewport) {
-//		if ((sector[sectnum].ceilingstat & 1) == 0 && (sector[sectnum].floorstat & 1) == 0) {
 		bounds[0].x = (viewport.bounds[0].x >= bounds[0].x) ? viewport.bounds[0].x : bounds[0].x;
 		bounds[1].x = (viewport.bounds[1].x <= bounds[1].x) ? viewport.bounds[1].x : bounds[1].x;
 		bounds[0].y = (viewport.bounds[0].y >= bounds[0].y) ? viewport.bounds[0].y : bounds[0].y;
 		bounds[1].y = (viewport.bounds[1].y <= bounds[1].y) ? viewport.bounds[1].y : bounds[1].y;
-//		} else {
-//			bounds[0].x = (viewport.bounds[0].x >= bounds[0].x) ? viewport.bounds[0].x : bounds[0].x;
-//			bounds[1].x = (viewport.bounds[1].x <= bounds[1].x) ? viewport.bounds[1].x : bounds[1].x;
-//
-//			if ((sector[sectnum].floorstat & 1) != 0) {
-//				bounds[0].y = (viewport.bounds[0].y >= bounds[0].y) ? viewport.bounds[0].y : bounds[0].y;
-//				bounds[1].y = (viewport.bounds[1].y > bounds[1].y) ? viewport.bounds[1].y : bounds[1].y;
-//			}
-//
-//			if ((sector[sectnum].ceilingstat & 1) != 0) {
-//				bounds[0].y = (viewport.bounds[0].y < bounds[0].y) ? viewport.bounds[0].y : bounds[0].y;
-//				bounds[1].y = (viewport.bounds[1].y <= bounds[1].y) ? viewport.bounds[1].y : bounds[1].y;
-//			}
-//		}
 
 		if (bounds[1].x - bounds[0].x <= 0 || bounds[1].y - bounds[0].y <= 0)
 			return false;
 
 		return true;
+	}
+
+	public static final Plane[] clipPlanes = { new Plane(), new Plane() };
+
+	public Plane[] getPlanes() {
+		// XXX Temporaly code below:
+
+		Vector3[] bounds = getBounds();
+		float b0x = bounds[0].x;
+		float b0y = bounds[0].y;
+		float b1x = bounds[1].x;
+		float b1y = bounds[1].y;
+
+		cam.unproject(tmpVec[0].set(b0x, b0y, 1));
+		cam.unproject(tmpVec[1].set(b0x, b1y, 1));
+		cam.unproject(tmpVec[2].set(b1x, b1y, 1));
+		cam.unproject(tmpVec[3].set(b1x, b0y, 1));
+
+		build(clipPlanes[0], tmpVec[1], tmpVec[0]); // left
+		build(clipPlanes[1], tmpVec[3], tmpVec[2]); // right
+
+		return clipPlanes;
 	}
 
 	public Vector3[] getBounds() {

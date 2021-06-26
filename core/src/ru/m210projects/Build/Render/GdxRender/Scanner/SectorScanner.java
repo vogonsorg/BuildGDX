@@ -312,13 +312,8 @@ public abstract class SectorScanner {
 
 			checkSprites(pFrustum, sectnum);
 
-			for (int i = 0; i < 4; i++)
-				sec.clipPlane[i].set(pFrustum.planes[i]);
 			sec.secflags = secflags;
-//			sec.setBounds(pFrustum.getBounds());
-			sec.x1 = sec.y1 = 0;
-			sec.x2 = xdim;
-			sec.y2 = ydim;
+			sec.setFrustum(pFrustum.getPlanes());
 			sectors.add(sec);
 		} while (pqhead != pqtail);
 
