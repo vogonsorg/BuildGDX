@@ -37,41 +37,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.MAXDRUNKANGLE;
-import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
-import static ru.m210projects.Build.Engine.MAXSECTORS;
-import static ru.m210projects.Build.Engine.MAXSPRITES;
-import static ru.m210projects.Build.Engine.MAXSTATUS;
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
-import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
-import static ru.m210projects.Build.Engine.beforedrawrooms;
-import static ru.m210projects.Build.Engine.curpalette;
-import static ru.m210projects.Build.Engine.globalang;
-import static ru.m210projects.Build.Engine.globalcursectnum;
-import static ru.m210projects.Build.Engine.globalhoriz;
-import static ru.m210projects.Build.Engine.globalposx;
-import static ru.m210projects.Build.Engine.globalposy;
-import static ru.m210projects.Build.Engine.globalposz;
-import static ru.m210projects.Build.Engine.globalvisibility;
-import static ru.m210projects.Build.Engine.gotsector;
-import static ru.m210projects.Build.Engine.inpreparemirror;
-import static ru.m210projects.Build.Engine.palette;
-import static ru.m210projects.Build.Engine.palfadergb;
-import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Engine.pow2char;
-import static ru.m210projects.Build.Engine.sprite;
-import static ru.m210projects.Build.Engine.spritesortcnt;
-import static ru.m210projects.Build.Engine.tsprite;
-import static ru.m210projects.Build.Engine.visibility;
-import static ru.m210projects.Build.Engine.wall;
-import static ru.m210projects.Build.Engine.windowx1;
-import static ru.m210projects.Build.Engine.windowx2;
-import static ru.m210projects.Build.Engine.windowy1;
-import static ru.m210projects.Build.Engine.windowy2;
-import static ru.m210projects.Build.Engine.xdim;
-import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
@@ -125,13 +91,16 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//	Sector update fps drops
-//	ROR / Mirror bugs
+//  DukeDC6 train wall update bug
 
+//  Setviewtotile bug (tekwar, blood)
+//  Textures reload custom episode
+//  Blood E1M1 sky visible bug
 //	Overheadmap
-//  Sprite texture black pixel
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
+//  Engine fov change
+//  enableShader
 //	Orpho renderer 8bit textures
 //	Hires + models
 //	Skyboxes
@@ -491,10 +460,11 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void drawrooms() {
 		if (!clearStatus) { // once at frame
-			gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			gl.glClear(GL_COLOR_BUFFER_BIT);
 			gl.glClearColor(0.0f, 0.5f, 0.5f, 1);
 			clearStatus = true;
 		}
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
 
 		gl.glDisable(GL_BLEND);
 		gl.glEnable(GL_TEXTURE_2D);
@@ -553,6 +523,8 @@ public class GDXRenderer implements GLRenderer {
 		texshader.setUniformf("u_resolution", xdim, ydim);
 		texshader.setClip(0, 0, xdim, ydim);
 
+		prerender(sectors);
+
 		for (int i = 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
 
@@ -570,6 +542,47 @@ public class GDXRenderer implements GLRenderer {
 		tsprite = scanner.getSprites();
 
 		inpreparemirror = false;
+	}
+
+	private ArrayList<GLSurface> halls = new ArrayList<GLSurface>();
+
+	private void prerender(ArrayList<VisibleSector> sectors) {
+		halls.clear();
+		setFrustum(null);
+
+		for (int i = 0; i < sectors.size(); i++) {
+			VisibleSector sec = sectors.get(i);
+
+			int sectnum = sec.index;
+			if ((sec.secflags & 1) != 0) {
+				checkHOM(world.getFloor(sectnum));
+			}
+			if ((sec.secflags & 2) != 0) {
+				checkHOM(world.getCeiling(sectnum));
+			}
+			for (int w = 0; w < sec.walls.size; w++) {
+				int z = sec.walls.get(w);
+
+				checkHOM(world.getWall(z, sectnum));
+				checkHOM(world.getUpper(z, sectnum));
+				checkHOM(world.getLower(z, sectnum));
+				checkHOM(world.getMaskedWall(z));
+			}
+		}
+
+		for (int i = 0; i < halls.size(); i++) {
+			GLSurface surf = halls.get(i);
+			drawSurf(surf, 0);
+		}
+	}
+
+	private void checkHOM(GLSurface surf) {
+		if (surf == null)
+			return;
+
+		int picnum = surf.picnum;
+		if (!engine.getTile(picnum).isLoaded() && engine.loadtile(picnum) == null)
+			halls.add(surf);
 	}
 
 	private void drawSkyPlanes() {
@@ -926,6 +939,7 @@ public class GDXRenderer implements GLRenderer {
 							break;
 						}
 
+						// XXX
 						if (!engine.getTile(tilenum).isLoaded())
 							alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 
@@ -1064,6 +1078,9 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	private void setFrustum(Plane[] clipPlane) {
+		if (!texshader.isBinded())
+			texshader.begin();
+
 		if (clipPlane == null) {
 			texshader.setUniformi("u_frustumClipping", 0);
 			return;

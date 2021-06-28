@@ -20,14 +20,14 @@ public class IndexedTileData extends TileData {
 		int tsizx = tile.getWidth();
 		int tsizy = tile.getHeight();
 
-		if(data != null && (data.length == 0 || tile.getSize() > data.length))
+		if (data != null && (data.length == 0 || tile.getSize() > data.length))
 			data = null;
 
 		int xsiz = tsizx;
 		int ysiz = tsizy;
-		if((expflag & 1) != 0)
+		if ((expflag & 1) != 0)
 			xsiz = calcSize(tsizx);
-		if((expflag & 2) != 0)
+		if ((expflag & 2) != 0)
 			ysiz = calcSize(tsizy);
 
 		TextureBuffer buffer = new DirectTextureBuffer(data != null ? xsiz * ysiz : 1);
@@ -35,16 +35,16 @@ public class IndexedTileData extends TileData {
 		boolean hasalpha = false;
 		if (data == null) {
 			buffer.put(0, (byte) 255);
-			tsizx = tsizy = 1;
+			tsizx = tsizy = 1; // xsiz = ysiz = 1; Crash cause
 			hasalpha = true;
 		} else {
 			int dptr = 0;
 			int sptr = 0;
 			int xoffs = xsiz;
-			if(clamped) {
+			if (clamped) {
 				for (int y = ysiz - 1; y >= 0; y--) {
 					sptr = y >= tsizy ? 0 : tsizx;
-					dptr = (xsiz * y + (sptr - 1));
+					dptr = (xsiz * y + sptr);
 					for (int x = sptr; x < xsiz; x++)
 						buffer.put(dptr++, (byte) 255);
 				}
@@ -58,9 +58,7 @@ public class IndexedTileData extends TileData {
 					}
 				}
 				hasalpha = true;
-			}
-			else
-			{
+			} else {
 				int p, len = data.length;
 				for (int i = 0, j; i < xoffs; i++) {
 					p = 0;
@@ -68,9 +66,11 @@ public class IndexedTileData extends TileData {
 					for (j = 0; j < ysiz; j++) {
 						buffer.put(dptr, data[sptr + p++]);
 						dptr += xoffs;
-						if(p >= tsizy) p = 0;
+						if (p >= tsizy)
+							p = 0;
 					}
-					if((sptr += tsizy) >= len) sptr = 0;
+					if ((sptr += tsizy) >= len)
+						sptr = 0;
 				}
 			}
 		}
@@ -99,7 +99,7 @@ public class IndexedTileData extends TileData {
 
 	@Override
 	public int getGLFormat() {
-		return GL_LUMINANCE; //GL_RED;
+		return GL_LUMINANCE; // GL_RED;
 	}
 
 	@Override

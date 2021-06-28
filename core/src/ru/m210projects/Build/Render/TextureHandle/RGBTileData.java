@@ -6,6 +6,7 @@ import static ru.m210projects.Build.Engine.*;
 
 import java.nio.ByteBuffer;
 
+import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.Tile;
@@ -22,39 +23,39 @@ public class RGBTileData extends TileData {
 		int tsizx = tile.getWidth();
 		int tsizy = tile.getHeight();
 
-		if(data != null && (data.length == 0 || tile.getSize() > data.length))
+		if (data != null && (data.length == 0 || tile.getSize() > data.length))
 			data = null;
 
 		int xsiz = tsizx;
 		int ysiz = tsizy;
-		if((expflag & 1) != 0)
+		if ((expflag & 1) != 0)
 			xsiz = calcSize(tsizx);
-		if((expflag & 2) != 0)
+		if ((expflag & 2) != 0)
 			ysiz = calcSize(tsizy);
 
-		TextureBuffer buffer = getTmpBuffer(xsiz * ysiz * 4);
-		buffer.clear();
-
+		TextureBuffer buffer = new DirectTextureBuffer(data != null ? xsiz * ysiz * 4 : 4);
 		boolean hasalpha = false;
+
 		if (data == null) {
 			buffer.putInt(0, 0);
-			tsizx = tsizy = 1;
+			tsizx = tsizy = xsiz = ysiz = 1;
 			hasalpha = true;
 		} else {
-			if(alpha) {
-				for(int i = 0; i < data.length; i++) {
-					if(data[i] == (byte) 255) {
+			int pix_len = getPixelFormat().getLength();
+
+			if (alpha) {
+				for (int i = 0; i < data.length; i++) {
+					if (data[i] == (byte) 255) {
 						hasalpha = true;
 						break;
 					}
 				}
 			}
 
-			int pix_len = getPixelFormat().getLength();
 			int dptr = 0;
 			int sptr = 0;
 			int xoffs = xsiz * pix_len;
-			if(clamped) {
+			if (clamped) {
 				for (int y = (ysiz - 1); y >= 0; y--) {
 					sptr = y >= tsizy ? 0 : tsizx;
 					dptr = (xsiz * y + (sptr - 1)) * pix_len;
@@ -71,9 +72,7 @@ public class RGBTileData extends TileData {
 					}
 				}
 				hasalpha = true;
-			}
-			else
-			{
+			} else {
 				int p, len = data.length;
 				for (int i = 0, j; i < xoffs; i += pix_len) {
 					p = 0;
@@ -81,13 +80,15 @@ public class RGBTileData extends TileData {
 					for (j = 0; j < ysiz; j++) {
 						buffer.putInt(dptr, getColor(data[sptr + p++], dapal, alpha));
 						dptr += xoffs;
-						if(p >= tsizy) p = 0;
+						if (p >= tsizy)
+							p = 0;
 					}
-					if((sptr += tsizy) >= len) sptr = 0;
+					if ((sptr += tsizy) >= len)
+						sptr = 0;
 				}
 			}
 
-			if(data != null && hasalpha && !GLSettings.textureFilter.get().retro)
+			if (data != null && hasalpha && !GLSettings.textureFilter.get().retro)
 				fixtransparency(buffer, tsizx, tsizy, xsiz, ysiz, clamped);
 		}
 
@@ -139,14 +140,15 @@ public class RGBTileData extends TileData {
 		if (alphaMode && dacol == 255)
 			return curpalette.getRGBA(0, (byte) 0);
 
-		if(dacol >= palookup[dapal].length)
+		if (dacol >= palookup[dapal].length)
 			return 0;
 
 		dacol = palookup[dapal][dacol] & 0xFF;
 		return curpalette.getRGBA(dacol, (byte) 0xFF);
 	}
 
-	protected void fixtransparency(TextureBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2, boolean clamping) {
+	protected void fixtransparency(TextureBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2,
+			boolean clamping) {
 		int dox = daxsiz2 - 1;
 		int doy = daysiz2 - 1;
 		if (clamping) {
@@ -168,7 +170,8 @@ public class RGBTileData extends TileData {
 			wpptr = y * daxsiz2 + dox;
 			for (x = dox; x >= 0; x--, wpptr--) {
 				wp = (wpptr << 2);
-				if(dapic.get(wp + 3) != 0) continue;
+				if (dapic.get(wp + 3) != 0)
+					continue;
 
 				r = g = b = j = 0;
 				index = wp - 4;
@@ -203,16 +206,19 @@ public class RGBTileData extends TileData {
 				switch (j) {
 				case 0:
 				case 1:
-			        rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( b << 16 ) + ( g << 8 ) + ( r << 0 );
+					rgb = ((dapic.get(wp + 3) & 0xFF) << 24) + (b << 16) + (g << 8) + (r << 0);
 					break;
 				case 2:
-					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b + 1) >> 1) << 16 ) + ( ((g + 1) >> 1) << 8 ) + ( ((r + 1) >> 1) << 0 );
+					rgb = ((dapic.get(wp + 3) & 0xFF) << 24) + (((b + 1) >> 1) << 16) + (((g + 1) >> 1) << 8)
+							+ (((r + 1) >> 1) << 0);
 					break;
 				case 3:
-					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b * 85 + 128) >> 8) << 16 ) + ( ((g * 85 + 128) >> 8) << 8 ) + ( ((r * 85 + 128) >> 8) << 0 );
+					rgb = ((dapic.get(wp + 3) & 0xFF) << 24) + (((b * 85 + 128) >> 8) << 16)
+							+ (((g * 85 + 128) >> 8) << 8) + (((r * 85 + 128) >> 8) << 0);
 					break;
 				case 4:
-					rgb = ( (dapic.get(wp + 3) & 0xFF) << 24 ) + ( ((b + 2) >> 2) << 16 ) + ( ((g + 2) >> 2) << 8 ) + ( ((r + 2) >> 2) << 0 );
+					rgb = ((dapic.get(wp + 3) & 0xFF) << 24) + (((b + 2) >> 2) << 16) + (((g + 2) >> 2) << 8)
+							+ (((r + 2) >> 2) << 0);
 					break;
 				default:
 					continue;

@@ -5,6 +5,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 
 import java.nio.ByteBuffer;
 
+import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class DummyTileData extends TileData {
@@ -15,7 +16,7 @@ public class DummyTileData extends TileData {
 	public DummyTileData(int width, int height) {
 		this.width = width;
 		this.height = height;
-		this.data = getTmpBuffer(width * height * 4);
+		this.data = new DirectTextureBuffer(width * height * 4);
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
+import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class VOXModel extends Model {
@@ -38,8 +39,7 @@ public class VOXModel extends Model {
 			this.height = vox.mytexy;
 			this.indexed = indexed;
 
-			TextureBuffer buffer = getTmpBuffer(indexed ? (width * height) : (width * height * 4));
-			buffer.clear();
+			TextureBuffer buffer = new DirectTextureBuffer(indexed ? (width * height) : (width * height * 4));
 
 			if (!indexed) {
 				int wpptr, wp, dacol;
