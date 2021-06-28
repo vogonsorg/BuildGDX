@@ -3919,7 +3919,7 @@ public abstract class Engine {
 			PixmapIO.writePNG(new FileHandle(pci), capture);
 			userdir.addFile(pci);
 			capture.dispose();
-			return fn + a + b + c + d + ".png";
+			return pci.getAbsolutePath();
 		} catch (Throwable e) {
 			if (capture != null)
 				capture.dispose();

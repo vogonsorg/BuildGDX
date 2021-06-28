@@ -35,8 +35,10 @@ public class IndexedTileData extends TileData {
 		boolean hasalpha = false;
 		if (data == null) {
 			buffer.put(0, (byte) 255);
-			tsizx = tsizy = 1; // xsiz = ysiz = 1; Crash cause
+			tsizx = tsizy = 1;
 			hasalpha = true;
+			if (buffer.getBuffer().capacity() < xsiz * ysiz)
+				xsiz = ysiz = 1;
 		} else {
 			int dptr = 0;
 			int sptr = 0;

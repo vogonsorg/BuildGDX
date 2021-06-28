@@ -42,8 +42,6 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +69,8 @@ import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
 import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
+import ru.m210projects.Build.Render.GdxRender.Shaders.SkyShader;
+import ru.m210projects.Build.Render.GdxRender.Shaders.WorldShader;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
@@ -100,7 +100,7 @@ public class GDXRenderer implements GLRenderer {
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
 //  Engine fov change
-//  enableShader
+//  enable/ disable rgb shader
 //	Orpho renderer 8bit textures
 //	Hires + models
 //	Skyboxes
@@ -131,7 +131,6 @@ public class GDXRenderer implements GLRenderer {
 
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
-	private long renderTime, scanTime;
 	private Matrix4 transform = new Matrix4();
 	private boolean clearStatus = false;
 	private float glox1, gloy1, glox2, gloy2;
@@ -169,17 +168,17 @@ public class GDXRenderer implements GLRenderer {
 
 	private IndexedShader allocIndexedShader() {
 		try {
-			FileInputStream fis = new FileInputStream(new File("worldshader_vert.glsl"));
-			byte[] data = new byte[fis.available()];
-			fis.read(data);
-			String vert = new String(data);
+//			FileInputStream fis = new FileInputStream(new File("worldshader_vert.glsl"));
+//			byte[] data = new byte[fis.available()];
+//			fis.read(data);
+//			String vert = new String(data);
+//
+//			fis = new FileInputStream(new File("worldshader_frag.glsl"));
+//			data = new byte[fis.available()];
+//			fis.read(data);
+//			String frag = new String(data);
 
-			fis = new FileInputStream(new File("worldshader_frag.glsl"));
-			data = new byte[fis.available()];
-			fis.read(data);
-			String frag = new String(data);
-
-			return new IndexedShader(vert, frag) { // IndexedShader.defaultFragment
+			return new IndexedShader(WorldShader.vertex, WorldShader.fragment) { // IndexedShader.defaultFragment
 				@Override
 				public void bindPalette() {
 					textureCache.getPalette().bind();
@@ -204,18 +203,19 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	private ShaderProgram allocSkyShader() {
-		FileInputStream fis = null;
+//		FileInputStream fis = null;
 		try {
-			fis = new FileInputStream(new File("skyshader_frag.glsl"));
-			byte[] data = new byte[fis.available()];
-			fis.read(data);
-			String frag = new String(data);
+//			fis = new FileInputStream(new File("skyshader_frag.glsl"));
+//			byte[] data = new byte[fis.available()];
+//			fis.read(data);
+//			String frag = new String(data);
+//
+//			fis = new FileInputStream(new File("skyshader_vert.glsl"));
+//			data = new byte[fis.available()];
+//			fis.read(data);
+//			String vert = new String(data);
 
-			fis = new FileInputStream(new File("skyshader_vert.glsl"));
-			data = new byte[fis.available()];
-			fis.read(data);
-			String vert = new String(data);
-			ShaderProgram skyshader = new ShaderProgram(vert, frag) {
+			ShaderProgram skyshader = new ShaderProgram(SkyShader.vertex, SkyShader.fragment) {
 				@Override
 				public void begin() {
 					super.begin();
@@ -497,13 +497,9 @@ public class GDXRenderer implements GLRenderer {
 				globalcursectnum = i;
 		}
 
-		scanTime = System.nanoTime();
 		sectors.clear();
 		scanner.clear();
 		scanner.process(sectors, cam, world, globalcursectnum);
-		scanTime = System.nanoTime() - scanTime;
-
-		renderTime = System.nanoTime();
 
 		rendering = Rendering.Nothing;
 		texshader.begin();
@@ -536,8 +532,6 @@ public class GDXRenderer implements GLRenderer {
 
 		texshader.end();
 
-		renderTime = System.nanoTime() - renderTime;
-
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
 
@@ -554,25 +548,27 @@ public class GDXRenderer implements GLRenderer {
 			VisibleSector sec = sectors.get(i);
 
 			int sectnum = sec.index;
-			if ((sec.secflags & 1) != 0) {
+			if ((sec.secflags & 1) != 0)
 				checkHOM(world.getFloor(sectnum));
-			}
-			if ((sec.secflags & 2) != 0) {
+
+			if ((sec.secflags & 2) != 0)
 				checkHOM(world.getCeiling(sectnum));
-			}
+
 			for (int w = 0; w < sec.walls.size; w++) {
 				int z = sec.walls.get(w);
+				int flags = sec.wallflags.get(w);
 
 				checkHOM(world.getWall(z, sectnum));
-				checkHOM(world.getUpper(z, sectnum));
-				checkHOM(world.getLower(z, sectnum));
+				if ((flags & 1) != 0)
+					checkHOM(world.getLower(z, sectnum));
+				if ((flags & 2) != 0)
+					checkHOM(world.getUpper(z, sectnum));
 				checkHOM(world.getMaskedWall(z));
 			}
 		}
 
 		for (int i = 0; i < halls.size(); i++) {
-			GLSurface surf = halls.get(i);
-			drawSurf(surf, 0);
+			drawSurf(halls.get(i), 0);
 		}
 	}
 
@@ -769,17 +765,7 @@ public class GDXRenderer implements GLRenderer {
 			world.nextpage();
 		orphoRen.nextpage();
 
-		// showTimers();
-
 		beforedrawrooms = 1;
-	}
-
-	private void showTimers() {
-		float scan = scanTime / 1000000.0f;
-		float rend = renderTime / 1000000.0f;
-
-		System.out.println("ScanTime: " + scan + "ms");
-		System.out.println("RenderTime: " + rend + "ms");
 	}
 
 	@Override
@@ -939,7 +925,6 @@ public class GDXRenderer implements GLRenderer {
 							break;
 						}
 
-						// XXX
 						if (!engine.getTile(tilenum).isLoaded())
 							alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 
