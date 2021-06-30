@@ -86,14 +86,15 @@ public class WorldShader {
 			+ "}\n" //
 			+ "\n" //
 			+ "void main() {  \n" //
-			+ "    if(u_frustumClipping && !isvisible())\n" //
+			+ "    if(u_alpha == 0.0 || (u_frustumClipping && !isvisible()))\n" //
 			+ "        discard;\n" //
-			+ "        \n" //
-			+ "    if(u_alpha == 0.0) discard;\n" //
 			+ "\n" //
 			+ "    float fi = texture2D(u_texture, v_texCoords).r;\n" //
 			+ "    if(fi == 1.0) {\n" //
-			+ "        if(!u_draw255) discard;\n" //
+			+ "        if(!u_draw255) {\n" //
+			+ "            gl_FragColor = vec4(0.0);\n" //
+			+ "            return;\n" //
+			+ "        }\n" //
 			+ "        fi -= 0.5 / 256.0;\n" //
 			+ "    }\n" //
 			+ "    float index = texture2D(u_palookup, vec2(fi, getpalookup(u_shade))).r;\n" //

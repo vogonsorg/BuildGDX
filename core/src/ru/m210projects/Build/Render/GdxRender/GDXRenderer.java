@@ -44,6 +44,7 @@ import static ru.m210projects.Build.Pragmas.mulscale;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -141,6 +142,10 @@ public class GDXRenderer implements GLRenderer {
 	private int framew;
 	private int frameh;
 
+	protected ArrayList<VisibleSector> sectors = new ArrayList<VisibleSector>();
+	private ArrayList<GLSurface> bunchfirst = new ArrayList<GLSurface>();
+	protected boolean[] mirrorTextures = new boolean[MAXTILES];
+
 	public GDXRenderer(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
 			BuildGdx.app.setFrame(FrameType.GL);
@@ -158,8 +163,20 @@ public class GDXRenderer implements GLRenderer {
 		};
 
 		this.orphoRen = new GdxOrphoRen(engine, textureCache);
+
+		Arrays.fill(mirrorTextures, false);
+		int[] mirrors = getMirrorTextures();
+		if (mirrors != null) {
+			for (int i = 0; i < mirrors.length; i++)
+				mirrorTextures[mirrors[i]] = true;
+		}
+
 		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
 				+ " initialized", OSDTEXT_GOLD);
+	}
+
+	protected int[] getMirrorTextures() {
+		return null;
 	}
 
 	protected IndexedShader getTextureShader() {
@@ -452,11 +469,6 @@ public class GDXRenderer implements GLRenderer {
 		}
 	}
 
-	protected Matrix4 mirrorCombined = new Matrix4(), mirrorView = new Matrix4();
-//	protected int mirrorOffset;
-	protected ArrayList<VisibleSector> sectors = new ArrayList<VisibleSector>();
-	protected ArrayList<VisibleSector> mirrors = new ArrayList<VisibleSector>();
-
 	@Override
 	public void drawrooms() {
 		if (!clearStatus) { // once at frame
@@ -484,12 +496,6 @@ public class GDXRenderer implements GLRenderer {
 		globalvisibility = visibility << 2;
 		if (globalcursectnum >= MAXSECTORS) {
 			globalcursectnum -= MAXSECTORS;
-
-//			mirrors.clear();
-//			scanner.process(mirrors, cam, world, globalcursectnum);
-//			mirrorCombined.set(cam.combined);
-//			mirrorView.set(cam.view);
-//			return;
 		} else {
 			short i = globalcursectnum;
 			globalcursectnum = engine.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
@@ -538,10 +544,8 @@ public class GDXRenderer implements GLRenderer {
 		inpreparemirror = false;
 	}
 
-	private ArrayList<GLSurface> halls = new ArrayList<GLSurface>();
-
 	private void prerender(ArrayList<VisibleSector> sectors) {
-		halls.clear();
+		bunchfirst.clear();
 		setFrustum(null);
 
 		for (int i = 0; i < sectors.size(); i++) {
@@ -549,36 +553,37 @@ public class GDXRenderer implements GLRenderer {
 
 			int sectnum = sec.index;
 			if ((sec.secflags & 1) != 0)
-				checkHOM(world.getFloor(sectnum));
+				checkMirror(world.getFloor(sectnum));
 
 			if ((sec.secflags & 2) != 0)
-				checkHOM(world.getCeiling(sectnum));
+				checkMirror(world.getCeiling(sectnum));
 
 			for (int w = 0; w < sec.walls.size; w++) {
 				int z = sec.walls.get(w);
 				int flags = sec.wallflags.get(w);
 
-				checkHOM(world.getWall(z, sectnum));
+				checkMirror(world.getWall(z, sectnum));
 				if ((flags & 1) != 0)
-					checkHOM(world.getLower(z, sectnum));
+					checkMirror(world.getLower(z, sectnum));
 				if ((flags & 2) != 0)
-					checkHOM(world.getUpper(z, sectnum));
-				checkHOM(world.getMaskedWall(z));
+					checkMirror(world.getUpper(z, sectnum));
+				checkMirror(world.getMaskedWall(z));
 			}
 		}
 
-		for (int i = 0; i < halls.size(); i++) {
-			drawSurf(halls.get(i), 0);
+		for (int i = 0; i < bunchfirst.size(); i++) {
+			drawSurf(bunchfirst.get(i), 0);
 		}
 	}
 
-	private void checkHOM(GLSurface surf) {
+	private void checkMirror(GLSurface surf) {
 		if (surf == null)
 			return;
 
 		int picnum = surf.picnum;
-		if (!engine.getTile(picnum).isLoaded() && engine.loadtile(picnum) == null)
-			halls.add(surf);
+		if (mirrorTextures[picnum]) {
+			bunchfirst.add(surf);
+		}
 	}
 
 	private void drawSkyPlanes() {
