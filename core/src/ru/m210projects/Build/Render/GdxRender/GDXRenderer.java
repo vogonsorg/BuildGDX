@@ -96,11 +96,11 @@ public class GDXRenderer implements GLRenderer {
 
 //  Setviewtotile bug (tekwar, blood)
 //  Textures reload custom episode
-//  Blood E1M1 sky visible bug
+//  Fullscreen change
+//  Engine fov change
 //	Overheadmap
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
-//  Engine fov change
 //  enable/ disable rgb shader
 //	Orpho renderer 8bit textures
 //	Hires + models
@@ -942,6 +942,8 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void preload() {
+		if(world != null)
+			world.dispose();
 		world = new WorldMesh(engine);
 		scanner.init();
 
@@ -991,6 +993,12 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void gltexinvalidateall(GLInvalidateFlag... flags) {
+		if(flags.length == 0) {
+			textureCache.invalidateall();
+//			clearskins(true); XXX
+			return;
+		}
+
 		for (int i = 0; i < flags.length; i++) {
 			switch (flags[i]) {
 			case Uninit:

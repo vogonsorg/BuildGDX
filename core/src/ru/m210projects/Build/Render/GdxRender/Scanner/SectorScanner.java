@@ -144,6 +144,16 @@ public abstract class SectorScanner {
 					int nextsectnum = wal.nextsector;
 					if (pFrustum.wallInFrustum(mesh.getPoints(Heinum.Max, sectnum, z))) {
 						gotwall[z >> 3] |= pow2char[z & 7];
+
+						if ((sector[sectnum].isParallaxFloor()
+								&& (nextsectnum == -1 || !sector[nextsectnum].isParallaxFloor()))
+								&& pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyLower, sectnum, z)))
+							wallflags[z] |= 8;
+						if ((sector[sectnum].isParallaxCeiling()
+								&& (nextsectnum == -1 || !sector[nextsectnum].isParallaxCeiling()))
+								&& pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyUpper, sectnum, z)))
+							wallflags[z] |= 16;
+
 						if (nextsectnum != -1) {
 							if (!checkWallRange(nextsectnum, wal.nextwall)) {
 								int theline = wal.nextwall;
@@ -277,9 +287,8 @@ public abstract class SectorScanner {
 				if (wal.isMasked() || wal.isOneWay())
 					maskwall[maskwallcnt++] = z;
 
-				// XXX Blood E1M1 bug - doesn't see sky on the second floor
-				if ((isParallaxFloor && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyLower, sectnum, z)))
-						|| (isParallaxCeiling && pFrustum.wallInFrustum(mesh.getPoints(Heinum.SkyUpper, sectnum, z)))) {
+				if ((wallflags[z] & (8 | 16)) != 0) {
+					wallflags[z] &= ~(8 | 16);
 
 					if (isParallaxCeiling) {
 						if (engine.getTile(sector[sectnum].ceilingpicnum).hasSize()) {

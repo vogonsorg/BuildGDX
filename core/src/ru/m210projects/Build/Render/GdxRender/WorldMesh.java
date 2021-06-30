@@ -881,4 +881,8 @@ public class WorldMesh {
 			}
 		}
 	}
+
+	public void dispose() {
+		mesh.dispose();
+	}
 }

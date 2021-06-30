@@ -268,9 +268,9 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		GLTile lastBinded = textureCache.getLastBinded();
 		if (textureCache.bind(pth)) {
-			System.err.println("Error! " + " " + pth.getPixelFormat());
-			if (lastBinded != null)
-				System.err.println(lastBinded.getPixelFormat());
+//			System.err.println("Error! " + " " + pth.getPixelFormat());
+//			if (lastBinded != null)
+//				System.err.println(lastBinded.getPixelFormat());
 		}
 
 		if (((method & 3) == 0))
