@@ -354,13 +354,7 @@ public abstract class Polymost implements GLRenderer {
 		if (pth == null)
 			return null;
 
-		if (textureCache.bind(pth)) {
-			gl.glActiveTexture(GL_TEXTURE0);
-			if (pth.getPixelFormat() != PixelFormat.Pal8)
-				texshader.end();
-			else
-				texshader.begin();
-		}
+		bind(pth);
 		setTextureParameters(pth, dapicnum, dapalnum, dashade, skybox, method);
 
 		return pth;
@@ -910,10 +904,10 @@ public abstract class Polymost implements GLRenderer {
 						up = ox * ngux + oy * nguy + nguo;
 						vp = ox * ngvx + oy * ngvy + ngvo;
 						r = 1.0 / dp;
-						if (texunits > GL_TEXTURE0) {
-							j = GL_TEXTURE0;
+						if (texunits > 0) {
+							j = 0;
 							while (j <= texunits)
-								gl.glMultiTexCoord2d(j++, (up * r - du0 + uoffs) * ox2, vp * r * oy2);
+								gl.glMultiTexCoord2d(GL_TEXTURE0 + j++, (up * r - du0 + uoffs) * ox2, vp * r * oy2);
 						} else
 							gl.glTexCoord2d((up * r - du0 + uoffs) * ox2, vp * r * oy2);
 						gl.glVertex3d((ox - ghalfx) * r * grhalfxdown10x, (ghoriz - oy) * r * grhalfxdown10,
@@ -935,10 +929,10 @@ public abstract class Polymost implements GLRenderer {
 				Polygon dpoly = drawpoly[i];
 
 				r = 1.0f / dpoly.dd;
-				if (texunits > GL_TEXTURE0) {
-					j = GL_TEXTURE0;
+				if (texunits > 0) {
+					j = 0;
 					while (j <= texunits)
-						gl.glMultiTexCoord2d(j++, dpoly.uu * r * ox2, dpoly.vv * r * oy2);
+						gl.glMultiTexCoord2d(GL_TEXTURE0 + j++, dpoly.uu * r * ox2, dpoly.vv * r * oy2);
 				} else
 					gl.glTexCoord2d(dpoly.uu * r * ox2, dpoly.vv * r * oy2);
 

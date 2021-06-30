@@ -29,6 +29,6 @@ public class GLFilter {
 		this.mag = mag;
 
 		this.mipmaps = (min.isMipMap() || mag.isMipMap());
-		this.retro = min == TextureFilter.Nearest && mag == TextureFilter.Nearest ;
+		this.retro = min == TextureFilter.Nearest && mag == TextureFilter.Nearest;
 	}
 }

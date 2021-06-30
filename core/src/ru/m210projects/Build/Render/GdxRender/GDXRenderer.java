@@ -195,7 +195,7 @@ public class GDXRenderer implements GLRenderer {
 //			fis.read(data);
 //			String frag = new String(data);
 
-			return new IndexedShader(WorldShader.vertex, WorldShader.fragment) { // IndexedShader.defaultFragment
+			return new IndexedShader(WorldShader.vertex, WorldShader.fragment) {
 				@Override
 				public void bindPalette() {
 					textureCache.getPalette().bind();
@@ -283,7 +283,7 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public RenderType getType() {
-		return RenderType.RenderGDX;
+		return RenderType.PolyGDX;
 	}
 
 	@Override
