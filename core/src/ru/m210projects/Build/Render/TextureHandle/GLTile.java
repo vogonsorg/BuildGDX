@@ -77,14 +77,15 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	protected int palnum;
 	protected GLTile next;
 
-	public GLTile(int width, int height) {
+	public GLTile(PixelFormat fmt, int width, int height) {
 		super(GL_TEXTURE_2D);
 		this.width = width;
 		this.height = height;
+		this.fmt = fmt;
 	}
 
 	public GLTile(TileData pic, int palnum, boolean useMipMaps) {
-		this(pic.getWidth(), pic.getHeight());
+		this(pic.getPixelFormat(), pic.getWidth(), pic.getHeight());
 		this.palnum = palnum;
 
 		alloc(pic);
@@ -93,7 +94,6 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 
 		setClamped(pic.isClamped());
 		setHasAlpha(pic.hasAlpha());
-		this.fmt = pic.getPixelFormat();
 
 		scalex = scaley = 1.0f;
 	}

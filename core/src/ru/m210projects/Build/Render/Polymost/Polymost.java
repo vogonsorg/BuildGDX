@@ -40,68 +40,6 @@ import static java.lang.Math.min;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
-import static ru.m210projects.Build.Engine.MAXSECTORS;
-import static ru.m210projects.Build.Engine.MAXSPRITES;
-import static ru.m210projects.Build.Engine.MAXSPRITESONSCREEN;
-import static ru.m210projects.Build.Engine.MAXSTATUS;
-import static ru.m210projects.Build.Engine.MAXTILES;
-import static ru.m210projects.Build.Engine.MAXWALLS;
-import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.automapping;
-import static ru.m210projects.Build.Engine.beforedrawrooms;
-import static ru.m210projects.Build.Engine.cosglobalang;
-import static ru.m210projects.Build.Engine.cosviewingrangeglobalang;
-import static ru.m210projects.Build.Engine.curpalette;
-import static ru.m210projects.Build.Engine.globalang;
-import static ru.m210projects.Build.Engine.globalcursectnum;
-import static ru.m210projects.Build.Engine.globalhoriz;
-import static ru.m210projects.Build.Engine.globalpal;
-import static ru.m210projects.Build.Engine.globalposx;
-import static ru.m210projects.Build.Engine.globalposy;
-import static ru.m210projects.Build.Engine.globalposz;
-import static ru.m210projects.Build.Engine.globalshade;
-import static ru.m210projects.Build.Engine.globalvisibility;
-import static ru.m210projects.Build.Engine.gotsector;
-import static ru.m210projects.Build.Engine.halfxdimen;
-import static ru.m210projects.Build.Engine.headspritesect;
-import static ru.m210projects.Build.Engine.inpreparemirror;
-import static ru.m210projects.Build.Engine.nextspritesect;
-import static ru.m210projects.Build.Engine.numsectors;
-import static ru.m210projects.Build.Engine.offscreenrendering;
-import static ru.m210projects.Build.Engine.palette;
-import static ru.m210projects.Build.Engine.palfadergb;
-import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Engine.parallaxyoffs;
-import static ru.m210projects.Build.Engine.picsiz;
-import static ru.m210projects.Build.Engine.pow2char;
-import static ru.m210projects.Build.Engine.pskybits;
-import static ru.m210projects.Build.Engine.sector;
-import static ru.m210projects.Build.Engine.setviewcnt;
-import static ru.m210projects.Build.Engine.show2dsector;
-import static ru.m210projects.Build.Engine.show2dsprite;
-import static ru.m210projects.Build.Engine.showinvisibility;
-import static ru.m210projects.Build.Engine.singlobalang;
-import static ru.m210projects.Build.Engine.sintable;
-import static ru.m210projects.Build.Engine.sinviewingrangeglobalang;
-import static ru.m210projects.Build.Engine.sprite;
-import static ru.m210projects.Build.Engine.spritesortcnt;
-import static ru.m210projects.Build.Engine.tsprite;
-import static ru.m210projects.Build.Engine.viewingrange;
-import static ru.m210projects.Build.Engine.wall;
-import static ru.m210projects.Build.Engine.windowx1;
-import static ru.m210projects.Build.Engine.windowx2;
-import static ru.m210projects.Build.Engine.windowy1;
-import static ru.m210projects.Build.Engine.windowy2;
-import static ru.m210projects.Build.Engine.xdim;
-import static ru.m210projects.Build.Engine.xdimen;
-import static ru.m210projects.Build.Engine.xdimenscale;
-import static ru.m210projects.Build.Engine.xdimscale;
-import static ru.m210projects.Build.Engine.xyaspect;
-import static ru.m210projects.Build.Engine.ydim;
-import static ru.m210projects.Build.Engine.ydimen;
-import static ru.m210projects.Build.Engine.yxaspect;
-import static ru.m210projects.Build.Engine.zeropskyoff;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Gameutils.isCorruptWall;
 import static ru.m210projects.Build.Loader.MDAnimation.mdpause;
@@ -170,7 +108,7 @@ import ru.m210projects.Build.Types.WALL;
 
 public abstract class Polymost implements GLRenderer {
 
-//	protected final Color polyColor = new Color();
+	protected final Color polyColor = new Color();
 	public Rendering rendering = Rendering.Nothing;
 	public GLFog globalfog;
 
@@ -301,93 +239,141 @@ public abstract class Polymost implements GLRenderer {
 	}
 
 	protected TextureManager newTextureManager(Engine engine) {
-		return new TextureManager(engine, ExpandTexture.Both) {
-			@Override
-			public void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method) {
-				if (tile.getPixelFormat() == PixelFormat.Pal8) {
-					if (!texshader.isBinded()) {
-						BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
-						texshader.begin();
-					}
-					texshader.setTextureParams(pal, shade);
+		return new TextureManager(engine, ExpandTexture.Both);
+	}
 
-					float alpha = 1.0f;
-					switch (method & 3) {
-					case 2:
-						alpha = TRANSLUSCENT1;
-						break;
-					case 3:
-						alpha = TRANSLUSCENT2;
-						break;
-					}
+	public void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method) {
+		if (tile.getPixelFormat() == PixelFormat.Pal8) {
+			if (!texshader.isBinded()) {
+				BuildGdx.gl.glActiveTexture(GL_TEXTURE0);
+				texshader.begin();
+			}
+			texshader.setTextureParams(pal, shade);
 
-					if (!engine.getTile(tilenum).isLoaded())
-						alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+			float alpha = 1.0f;
+			switch (method & 3) {
+			case 2:
+				alpha = TRANSLUSCENT1;
+				break;
+			case 3:
+				alpha = TRANSLUSCENT2;
+				break;
+			}
 
-					texshader.setDrawLastIndex((method & 3) == 0 || !alphaMode(method));
-					texshader.setTransparent(alpha);
-				} else {
-					// texture scale by parkar request
-					if (tile.isHighTile() && ((tile.getHiresXScale() != 1.0f) || (tile.getHiresYScale() != 1.0f))
-							&& Rendering.Skybox.getIndex() == 0) {
+			if (!engine.getTile(tilenum).isLoaded())
+				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+
+			texshader.setDrawLastIndex((method & 3) == 0 || !textureCache.alphaMode(method));
+			texshader.setTransparent(alpha);
+		} else {
+			// texture scale by parkar request
+			if (tile.isHighTile() && ((tile.getHiresXScale() != 1.0f) || (tile.getHiresYScale() != 1.0f))
+					&& Rendering.Skybox.getIndex() == 0) {
+				BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+				BuildGdx.gl.glLoadIdentity();
+				BuildGdx.gl.glScalef(tile.getHiresXScale(), tile.getHiresYScale(), 1.0f);
+				BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+			}
+
+			if (GLInfo.multisample != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0) {
+				if (Console.Geti("r_detailmapping") != 0) {
+					GLTile detail = textureCache.get(tile.getPixelFormat(), tilenum, DETAILPAL, 0, method);
+					if (detail != null) {
+						textureCache.bind(detail);
+						detail.setupTextureDetail();
+
 						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
 						BuildGdx.gl.glLoadIdentity();
-						BuildGdx.gl.glScalef(tile.getHiresXScale(), tile.getHiresYScale(), 1.0f);
+						if (detail.isHighTile() && (detail.getHiresXScale() != 1.0f)
+								|| (detail.getHiresYScale() != 1.0f))
+							BuildGdx.gl.glScalef(detail.getHiresXScale(), detail.getHiresYScale(), 1.0f);
 						BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
 					}
+				}
 
-					if (GLInfo.multisample != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0) {
-						if (Console.Geti("r_detailmapping") != 0) {
-							GLTile detail = get(tile.getPixelFormat(), tilenum, DETAILPAL, 0, clampingMode(method),
-									alphaMode(method));
-							if (detail != null) {
-								bind(detail);
-								detail.setupTextureDetail();
-
-								BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-								BuildGdx.gl.glLoadIdentity();
-								if (detail.isHighTile() && (detail.getHiresXScale() != 1.0f)
-										|| (detail.getHiresYScale() != 1.0f))
-									BuildGdx.gl.glScalef(detail.getHiresXScale(), detail.getHiresYScale(), 1.0f);
-								BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-							}
-						}
-
-						if (Console.Geti("r_glowmapping") != 0) {
-							GLTile glow = get(tile.getPixelFormat(), tilenum, GLOWPAL, 0, clampingMode(method),
-									alphaMode(method));
-							if (glow != null) {
-								bind(glow);
-								glow.setupTextureGlow();
-							}
-						}
+				if (Console.Geti("r_glowmapping") != 0) {
+					GLTile glow = textureCache.get(tile.getPixelFormat(), tilenum, GLOWPAL, 0, method);
+					if (glow != null) {
+						textureCache.bind(glow);
+						glow.setupTextureGlow();
 					}
-
-					Color c = getshadefactor(shade, method);
-					if (tile.isHighTile() && info != null) {
-						if (tile.getPal() != pal) {
-							// apply tinting for replaced textures
-
-							Palette p = info.getTints(pal);
-							c.r *= p.r / 255.0f;
-							c.g *= p.g / 255.0f;
-							c.b *= p.b / 255.0f;
-						}
-
-						Palette pdetail = info.getTints(MAXPALOOKUPS - 1);
-						if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-							c.r *= pdetail.r / 255.0f;
-							c.g *= pdetail.g / 255.0f;
-							c.b *= pdetail.b / 255.0f;
-						}
-					}
-
-					if (!engine.getTile(tilenum).isLoaded())
-						c.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-					tile.setColor(c.r, c.g, c.b, c.a);
 				}
 			}
-		};
+
+			Color c = getshadefactor(shade, method);
+			if (tile.isHighTile() && defs.texInfo != null) {
+				if (tile.getPal() != pal) {
+					// apply tinting for replaced textures
+
+					Palette p = defs.texInfo.getTints(pal);
+					c.r *= p.r / 255.0f;
+					c.g *= p.g / 255.0f;
+					c.b *= p.b / 255.0f;
+				}
+
+				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
+				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
+					c.r *= pdetail.r / 255.0f;
+					c.g *= pdetail.g / 255.0f;
+					c.b *= pdetail.b / 255.0f;
+				}
+			}
+
+			if (!engine.getTile(tilenum).isLoaded())
+				c.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+			tile.setColor(c.r, c.g, c.b, c.a);
+		}
+	}
+
+	public Color getshadefactor(int shade, int method) {
+		float fshade = min(max(shade * 1.04f, 0), numshades);
+		float f = (numshades - fshade) / numshades;
+
+		polyColor.r = polyColor.g = polyColor.b = f;
+
+		switch (method & 3) {
+		default:
+		case 0:
+		case 1:
+			polyColor.a = 1.0f;
+			break;
+		case 2:
+			polyColor.a = TRANSLUSCENT1;
+			break;
+		case 3:
+			polyColor.a = TRANSLUSCENT2;
+			break;
+		}
+
+		return polyColor;
+	}
+
+	protected GLTile bind(PixelFormat fmt, int dapicnum, int dapalnum, int dashade, int skybox, int method) {
+		GLTile pth = textureCache.get(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, dapicnum, dapalnum,
+				skybox, method);
+		if (pth == null)
+			return null;
+
+		if (textureCache.bind(pth)) {
+			gl.glActiveTexture(GL_TEXTURE0);
+			if (pth.getPixelFormat() != PixelFormat.Pal8)
+				texshader.end();
+			else
+				texshader.begin();
+		}
+		setTextureParameters(pth, dapicnum, dapalnum, dashade, skybox, method);
+
+		return pth;
+	}
+
+	protected void bind(GLTile tile) {
+		if (textureCache.bind(tile)) {
+			gl.glActiveTexture(GL_TEXTURE0);
+			if (tile.getPixelFormat() != PixelFormat.Pal8)
+				texshader.end();
+			else
+				texshader.begin();
+		}
 	}
 
 	@Override
@@ -417,7 +403,7 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		if (isChanged)
-			textureCache.unbind();
+			textureCache.uninit();
 
 		clearskins(false);
 	}
@@ -742,8 +728,8 @@ public abstract class Polymost implements GLRenderer {
 		if (skyclamphack != 0)
 			method |= 4;
 
-		GLTile pth = textureCache.bind(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, globalpicnum, globalpal,
-				globalshade, Rendering.Skybox.getIndex(), method);
+		GLTile pth = bind(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, globalpicnum, globalpal, globalshade,
+				Rendering.Skybox.getIndex(), method);
 		if (pth == null)
 			return;
 
@@ -964,7 +950,7 @@ public abstract class Polymost implements GLRenderer {
 				gl.glEnable(GL_TEXTURE_2D);
 		}
 
-		textureCache.unbind();
+		textureCache.deactivateEffects();
 
 		if (srepeat != 0)
 			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -3212,7 +3198,7 @@ public abstract class Polymost implements GLRenderer {
 			return;
 
 //		Console.Println("precached " + dapicnum + " " + dapalnum + " type " + datype);
-		textureCache.precache(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, dapicnum, dapalnum, datype == 1);
+		textureCache.precache(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, dapicnum, dapalnum, datype);
 
 		if (datype == 0 || defs == null)
 			return;
@@ -3472,7 +3458,7 @@ public abstract class Polymost implements GLRenderer {
 				if (frameTexture != null)
 					frameTexture.dispose();
 				else
-					frameTexture = new GLTile(size, size);
+					frameTexture = new GLTile(PixelFormat.Rgb, size, size);
 
 				frameTexture.bind();
 

@@ -565,12 +565,12 @@ public class Polymost2D extends OrphoRenderer {
 		else
 			gl.glEnable(GL_BLEND);
 
-		GLTile pth = textureCache.bind(parent.getTextureFormat(), globalpicnum, globalpal, globalshade, 0, method);
+		GLTile pth = parent.bind(parent.getTextureFormat(), globalpicnum, globalpal, globalshade, 0, method);
 		if (pth == null)
 			return;
 
-		textureCache.unbind(); // deactivate effects
-		textureCache.bind(pth);
+		textureCache.deactivateEffects(); // deactivate effects
+		parent.bind(pth);
 
 		globalx1 = mulscale(globalx1, xyaspect, 16);
 		globaly2 = mulscale(globaly2, xyaspect, 16);
@@ -843,7 +843,7 @@ public class Polymost2D extends OrphoRenderer {
 		int opal = globalpal;
 		globalpal = col;
 
-		textureCache.bind(atlas);
+		parent.bind(atlas);
 
 		setpolymost2dview();
 		gl.glDisable(GL_ALPHA_TEST);
@@ -852,7 +852,7 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
 
-		Color polyColor = textureCache.getshadefactor(shade, 0);
+		Color polyColor = parent.getshadefactor(shade, 0);
 		if (bit == Transparent.Bit1)
 			polyColor.a = TRANSLUSCENT1;
 		if (bit == Transparent.Bit2)
@@ -917,7 +917,7 @@ public class Polymost2D extends OrphoRenderer {
 
 		globalpal = opal;
 
-		textureCache.unbind();
+		textureCache.deactivateEffects();
 	}
 
 	@Override
@@ -1153,7 +1153,7 @@ public class Polymost2D extends OrphoRenderer {
 			}
 		}
 
-		GLTile pth = textureCache.bind(parent.getTextureFormat(), globalpicnum, globalpal, globalshade, 0, method);
+		GLTile pth = parent.bind(parent.getTextureFormat(), globalpicnum, globalpal, globalshade, 0, method);
 		if (pth == null) // hires texture not found
 			return;
 
@@ -1246,7 +1246,7 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glMatrixMode(GL_TEXTURE);
 		gl.glPopMatrix();
 
-		textureCache.unbind();
+		textureCache.deactivateEffects();
 	}
 
 	private void dorotatesprite3d(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat,

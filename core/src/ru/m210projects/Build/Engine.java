@@ -115,7 +115,7 @@ public abstract class Engine {
 	 * mdloader pragmas bithandler
 	 */
 
-	public static final String version = "20.081"; // XX. - year, XX - month, X - build
+	public static final String version = "21.071"; // XX. - year, XX - month, X - build
 
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -4039,7 +4039,8 @@ public abstract class Engine {
 		int numpal, firstpal, np;
 		int hp;
 
-		if (gl.getTextureManager().isUseShader(tilenume)) {
+		PixelFormat fmt = gl.getTextureManager().getFmt(tilenume);
+		if (fmt != null && fmt == PixelFormat.Pal8) {
 			numpal = 1;
 			firstpal = 0;
 		} else {

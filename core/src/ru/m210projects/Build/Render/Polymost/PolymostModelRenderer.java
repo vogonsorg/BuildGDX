@@ -249,8 +249,11 @@ public class PolymostModelRenderer {
 
 		dvoxphack[0] = 0;
 		dvoxphack[1] = 1.f / 256.f;
+		GLTile skin = m.getSkin(parent.getTextureFormat(), globalpal);
+		if (skin == null)
+			return 0;
 
-		GLTile skin = m.bindSkin(parent.getTextureFormat(), textureCache, globalpal, globalshade, polyColor.a);
+		parent.bind(skin);
 		if (skin.getPixelFormat() == PixelFormat.Pal8) {
 			parent.getShader().setTextureParams(globalpal, globalshade);
 			parent.getShader().setDrawLastIndex(true);

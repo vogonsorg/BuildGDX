@@ -20,14 +20,9 @@ import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
 import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
-import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
-import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
-import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.pSmallTextfont;
 import static ru.m210projects.Build.Engine.pTextfont;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
@@ -35,7 +30,6 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 
@@ -49,7 +43,7 @@ import ru.m210projects.Build.Script.TextureHDInfo;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.Tile;
 
-public abstract class TextureManager {
+public class TextureManager {
 
 	protected final Engine engine;
 	protected final GLTileArray cache;
@@ -57,8 +51,8 @@ public abstract class TextureManager {
 	protected GLTile bindedTile;
 	protected GLTile palette; // to shader
 	protected GLTile palookups[]; // to shader
-	protected int texunits = GL_TEXTURE0;
-	protected ExpandTexture expand = ExpandTexture.Both;
+	protected int texunits = 0;
+	protected final ExpandTexture expand;
 
 	public enum ExpandTexture {
 		Horizontal(1), Vertical(2), Both(1 | 2);
@@ -85,7 +79,22 @@ public abstract class TextureManager {
 		this.info = info;
 	}
 
-	protected GLTile get(PixelFormat fmt, int dapicnum, int dapalnum, int skybox, boolean clamping, boolean alpha) {
+	/**
+	 *
+	 * @param tilenum
+	 * @param pal
+	 * @param shade
+	 * @param skybox
+	 * @param method  0: solid, 1: masked(255 is transparent), 2: transluscent #1,
+	 *                3: transluscent #2, 4: it's a sprite, so wraparound isn't
+	 *                needed
+	 * @return GLTile
+	 */
+
+	public GLTile get(PixelFormat fmt, int dapicnum, int dapalnum, int skybox, int method) {
+		boolean clamping = clampingMode(method);
+		boolean alpha = alphaMode(method);
+
 		Hicreplctyp si = (GLSettings.useHighTile.get() && info != null) ? info.findTexture(dapicnum, dapalnum, skybox)
 				: null;
 
@@ -125,83 +134,38 @@ public abstract class TextureManager {
 			tile = allocTile(data, si, dapicnum, dapalnum, skybox, alpha, useMipMaps);
 		}
 
-		if (GLInfo.multisample != 0 && dapalnum >= (MAXPALOOKUPS - RESERVEDPALS)) {
-			BuildGdx.gl.glActiveTexture(++texunits);
-			BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-		}
+		if (dapalnum >= (MAXPALOOKUPS - RESERVEDPALS))
+			activateEffect();
 
 		return tile;
 	}
 
-	public GLTile bind(GLTile tile) {
-		if (bindedTile == tile)
-			return tile;
+	public PixelFormat getFmt(int dapicnum) {
+		GLTile tile = cache.get(dapicnum);
+		if (tile != null)
+			return tile.getPixelFormat();
+		return null;
+	}
 
-//		if (shader != null && tile.getPixelFormat() != PixelFormat.Pal8 && bindedTile != null
-//				&& bindedTile.getPixelFormat() == PixelFormat.Pal8) {
-//			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-//			shader.end();
-//		}
+	public boolean bind(GLTile tile) {
+		if (bindedTile == tile)
+			return false;
+
+		boolean res = (bindedTile == null
+				|| (tile.getPixelFormat() == PixelFormat.Pal8 && bindedTile.getPixelFormat() != PixelFormat.Pal8)
+				|| (tile.getPixelFormat() != PixelFormat.Pal8 && bindedTile.getPixelFormat() == PixelFormat.Pal8));
 
 		tile.bind();
-//		if (shader != null && tile.getPixelFormat() == PixelFormat.Pal8
-//				&& (bindedTile == null || bindedTile.getPixelFormat() != PixelFormat.Pal8)) {
-//			BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-//			shader.begin();
-//		}
-
 		bindedTile = tile;
-
-		return tile;
+		return res;
 	}
 
-	/**
-	 *
-	 * @param tilenum
-	 * @param pal
-	 * @param shade
-	 * @param skybox
-	 * @param method  0: solid, 1: masked(255 is transparent), 2: transluscent #1,
-	 *                3: transluscent #2, 4: it's a sprite, so wraparound isn't
-	 *                needed
-	 * @return GLTile
-	 */
-	public GLTile bind(PixelFormat fmt, int tilenum, int pal, int shade, int skybox, int method) {
-		GLTile tile = get(fmt, tilenum, pal, skybox, clampingMode(method), alphaMode(method));
-		if (tile == null)
-			return null;
-
-		bind(tile);
-		setTextureParameters(tile, tilenum, pal, shade, skybox, method);
-		return tile;
-	}
-
-	public abstract void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method);
-
-	public void precache(PixelFormat fmt, int dapicnum, int dapalnum, boolean clamped) {
-		get(fmt, dapicnum, dapalnum, 0, clamped, true);
+	public void precache(PixelFormat fmt, int dapicnum, int dapalnum, int method) {
+		get(fmt, dapicnum, dapalnum, 0, method);
 	}
 
 	public int getTextureUnits() {
 		return texunits;
-	}
-
-	public void unbind() {
-		if (GLInfo.multisample == 0)
-			return;
-
-		while (texunits >= GL_TEXTURE0) {
-			BuildGdx.gl.glActiveTexture(texunits);
-			BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-			BuildGdx.gl.glLoadIdentity();
-			BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-			if (texunits > GL_TEXTURE0) {
-				BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
-				BuildGdx.gl.glDisable(GL_TEXTURE_2D);
-			}
-			texunits--;
-		}
-		texunits = GL_TEXTURE0;
 	}
 
 	protected TileData loadPic(PixelFormat fmt, Hicreplctyp hicr, int dapicnum, int dapalnum, boolean clamping,
@@ -242,7 +206,7 @@ public abstract class TextureManager {
 			fn = hicr.filename;
 
 		if (!BuildGdx.cache.contains(fn, 0)) {
-			Console.Print("Hightile[" + dapic + "]: File \"" + fn + "\" not found");
+			Console.Println("Hightile[" + dapic + "]: File \"" + fn + "\" not found");
 			if (facen > 0)
 				hicr.skybox.ignore = 1;
 			else
@@ -251,31 +215,6 @@ public abstract class TextureManager {
 		}
 
 		return fn;
-	}
-
-	protected final Color polyColor = new Color();
-
-	public Color getshadefactor(int shade, int method) {
-		float fshade = min(max(shade * 1.04f, 0), numshades);
-		float f = (numshades - fshade) / numshades;
-
-		polyColor.r = polyColor.g = polyColor.b = f;
-
-		switch (method & 3) {
-		default:
-		case 0:
-		case 1:
-			polyColor.a = 1.0f;
-			break;
-		case 2:
-			polyColor.a = TRANSLUSCENT1;
-			break;
-		case 3:
-			polyColor.a = TRANSLUSCENT2;
-			break;
-		}
-
-		return polyColor;
 	}
 
 	public GLTile newTile(TileData pic, int palnum, boolean useMipMaps) {
@@ -351,6 +290,36 @@ public abstract class TextureManager {
 		// GLAtlas dispose
 		pTextfont.uninit();
 		pSmallTextfont.uninit();
+	}
+
+	public GLTile getLastBinded() {
+		return bindedTile;
+	}
+
+	public void activateEffect() {
+		if (GLInfo.multisample == 0)
+			return;
+
+		BuildGdx.gl.glActiveTexture(GL_TEXTURE0 + ++texunits);
+		BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+	}
+
+	public void deactivateEffects() {
+		if (GLInfo.multisample == 0)
+			return;
+
+		while (texunits >= 0) {
+			BuildGdx.gl.glActiveTexture(GL_TEXTURE0 + texunits);
+			BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+			BuildGdx.gl.glLoadIdentity();
+			BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+			if (texunits > 0) {
+				BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
+				BuildGdx.gl.glDisable(GL_TEXTURE_2D);
+			}
+			texunits--;
+		}
+		texunits = 0;
 	}
 
 	// Indexed texture params and methods
@@ -433,12 +402,10 @@ public abstract class TextureManager {
 				palookups[i] = null;
 			}
 		}
-
 	}
 
 	public void changePalette(byte[] pal) {
 		TileData dat = new PaletteData(pal);
-
 		if (palette != null)
 			palette.update(dat, false);
 		else
@@ -450,16 +417,5 @@ public abstract class TextureManager {
 	public void invalidatepalookup(int pal) {
 		if (palookups[pal] != null)
 			palookups[pal].setInvalidated(true);
-	}
-
-	public GLTile getLastBinded() {
-		return bindedTile;
-	}
-
-	public boolean isUseShader(int dapic) {
-		GLTile tile = cache.get(dapic);
-		if (tile != null && tile.getPixelFormat() == PixelFormat.Pal8)
-			return true;
-		return false;
 	}
 }

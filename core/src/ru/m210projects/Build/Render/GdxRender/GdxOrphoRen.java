@@ -38,7 +38,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
@@ -263,9 +262,16 @@ public class GdxOrphoRen extends OrphoRenderer {
 		if (pic.data == null)
 			engine.loadtile(picnum);
 
-		GLTile pth = textureCache.bind(PixelFormat.Rgba, picnum, dapalnum, dashade, 0, method); // XXX
+		GLTile pth = textureCache.get(PixelFormat.Rgba, picnum, dapalnum, 0, method); // XXX
 		if (pth == null)
 			return;
+
+		GLTile lastBinded = textureCache.getLastBinded();
+		if (textureCache.bind(pth)) {
+			System.err.println("Error! " + " " + pth.getPixelFormat());
+			if (lastBinded != null)
+				System.err.println(lastBinded.getPixelFormat());
+		}
 
 		if (((method & 3) == 0))
 			batch.disableBlending();

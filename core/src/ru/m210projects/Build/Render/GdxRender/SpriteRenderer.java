@@ -25,7 +25,6 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
-import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
@@ -35,7 +34,6 @@ public class SpriteRenderer {
 
 	private Mesh spriteMesh;
 	private Matrix4 transform;
-	private TextureManager textureCache;
 	private BuildCamera cam;
 	private SpriteComparator comp;
 	private GDXRenderer parent;
@@ -92,8 +90,7 @@ public class SpriteRenderer {
 		Arrays.sort(array, 0, len, comp);
 	}
 
-	public void begin(TextureManager textureCache, BuildCamera cam) {
-		this.textureCache = textureCache;
+	public void begin(BuildCamera cam) {
 		this.cam = cam;
 	}
 
@@ -248,7 +245,7 @@ public class SpriteRenderer {
 				method = 3 + 4;
 		}
 
-		GLTile tex = textureCache.bind(TileData.PixelFormat.Pal8, picnum, pal, shade, 0, method);
+		GLTile tex = parent.bind(TileData.PixelFormat.Pal8, picnum, pal, shade, 0, method);
 		if (tex == null)
 			return false;
 

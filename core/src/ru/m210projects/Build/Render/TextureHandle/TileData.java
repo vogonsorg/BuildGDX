@@ -16,7 +16,7 @@ import ru.m210projects.Build.Render.GLInfo;
 public abstract class TileData {
 
 	public enum PixelFormat {
-		Rgb(3), Rgba(4), Pal8(1); // , Pal8A(3);
+		Rgb(3), Rgba(4), Pal8(1), Bitmap(1);
 
 		private final int bytes;
 

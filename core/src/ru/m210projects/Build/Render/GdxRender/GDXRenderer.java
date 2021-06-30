@@ -342,7 +342,6 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	protected void renderDrunkEffect() { // TODO: to shader
-		drunk = true;
 		if (drunk) {
 			set2dview();
 
@@ -359,7 +358,7 @@ public class GDXRenderer implements GLRenderer {
 				if (frameTexture != null)
 					frameTexture.dispose();
 				else
-					frameTexture = new GLTile(size, size);
+					frameTexture = new GLTile(PixelFormat.Rgb, size, size);
 
 				frameTexture.bind();
 				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frameTexture.getWidth(), frameTexture.getHeight(), 0, GL_RGB,
@@ -422,7 +421,7 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	public void drawsprite(int i) {
-		sprR.begin(textureCache, cam);
+		sprR.begin(cam);
 		SPRITE tspr = scanner.getSprites()[i];
 		if (tspr != null) {
 			rendering = Rendering.Sprite.setIndex(i);
@@ -592,8 +591,8 @@ public class GDXRenderer implements GLRenderer {
 //		gl.glDisable(GL_DEPTH_TEST);
 
 		if (scanner.getSkyPicnum(Heinum.SkyUpper) != -1) {
-			textureCache.bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyUpper),
-					scanner.getSkyPal(Heinum.SkyUpper), 0, 0, 0);
+			bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyUpper), scanner.getSkyPal(Heinum.SkyUpper),
+					0, 0, 0);
 			transform.idt();
 			transform.translate(cam.position.x, cam.position.y, cam.position.z - 100);
 			transform.scale(cam.far, cam.far, 1.0f);
@@ -605,8 +604,8 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		if (scanner.getSkyPicnum(Heinum.SkyLower) != -1) {
-			textureCache.bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyLower),
-					scanner.getSkyPal(Heinum.SkyLower), 0, 0, 0);
+			bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyLower), scanner.getSkyPal(Heinum.SkyLower),
+					0, 0, 0);
 			transform.idt();
 			transform.translate(cam.position.x, cam.position.y, cam.position.z + 100);
 			transform.scale(cam.far, cam.far, 1.0f);
@@ -677,7 +676,7 @@ public class GDXRenderer implements GLRenderer {
 			engine.loadtile(picnum);
 
 		engine.setgotpic(picnum);
-		GLTile pth = textureCache.bind(TileData.PixelFormat.Pal8, picnum, palnum, 0, 0, method);
+		GLTile pth = bind(TileData.PixelFormat.Pal8, picnum, palnum, 0, 0, method);
 		if (pth != null) {
 			skyshader.begin();
 			gl.glActiveTexture(GL20.GL_TEXTURE1);
@@ -731,7 +730,7 @@ public class GDXRenderer implements GLRenderer {
 				method = 1; // invalid data, HOM
 
 			engine.setgotpic(picnum);
-			GLTile pth = textureCache.bind(PixelFormat.Pal8, picnum, surf.getPal(), surf.getShade(), 0, method);
+			GLTile pth = bind(PixelFormat.Pal8, picnum, surf.getPal(), surf.getShade(), 0, method);
 			if (pth != null) {
 				int combvis = globalvisibility;
 				int vis = surf.getVisibility();
@@ -908,37 +907,8 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public TextureManager getTextureManager() {
-		if (textureCache == null) {
-			textureCache = new TextureManager(engine, ExpandTexture.Vertical) {
-
-				@Override
-				public void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method) {
-					if (tile.getPixelFormat() == TileData.PixelFormat.Pal8) {
-						if (!texshader.isBinded()) {
-							BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
-							texshader.begin();
-						}
-						texshader.setTextureParams(pal, shade);
-
-						float alpha = 1.0f;
-						switch (method & 3) {
-						case 2:
-							alpha = TRANSLUSCENT1;
-							break;
-						case 3:
-							alpha = TRANSLUSCENT2;
-							break;
-						}
-
-						if (!engine.getTile(tilenum).isLoaded())
-							alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-
-						texshader.setDrawLastIndex((method & 3) == 0 || !textureCache.alphaMode(method));
-						texshader.setTransparent(alpha);
-					}
-				}
-			};
-		}
+		if (textureCache == null)
+			textureCache = new TextureManager(engine, ExpandTexture.Vertical);
 		return textureCache;
 	}
 
@@ -990,7 +960,7 @@ public class GDXRenderer implements GLRenderer {
 		if ((palookup[dapalnum] == null) && (dapalnum < (MAXPALOOKUPS - RESERVEDPALS)))
 			return;
 
-		textureCache.bind(TileData.PixelFormat.Pal8, dapicnum, dapalnum, 0, 0, (datype & 1) << 2); // XXX
+		textureCache.precache(TileData.PixelFormat.Pal8, dapicnum, dapalnum, datype);
 	}
 
 	@Override
@@ -1090,6 +1060,59 @@ public class GDXRenderer implements GLRenderer {
 				clipPlane[0].d);
 		texshader.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
 				clipPlane[1].d);
+	}
+
+	protected GLTile bind(PixelFormat fmt, int dapicnum, int dapalnum, int dashade, int skybox, int method) {
+		GLTile pth = textureCache.get(PixelFormat.Pal8, dapicnum, dapalnum, skybox, method);
+		if (pth == null)
+			return null;
+
+		if (textureCache.bind(pth)) {
+			gl.glActiveTexture(GL_TEXTURE0);
+			if (pth.getPixelFormat() != PixelFormat.Pal8)
+				texshader.end();
+			else
+				texshader.begin();
+		}
+		setTextureParameters(pth, dapicnum, dapalnum, dashade, skybox, method);
+
+		return pth;
+	}
+
+	public void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method) {
+		if (tile.getPixelFormat() == TileData.PixelFormat.Pal8) {
+			if (!texshader.isBinded()) {
+				gl.glActiveTexture(GL_TEXTURE0);
+				texshader.begin();
+			}
+			texshader.setTextureParams(pal, shade);
+
+			float alpha = 1.0f;
+			switch (method & 3) {
+			case 2:
+				alpha = TRANSLUSCENT1;
+				break;
+			case 3:
+				alpha = TRANSLUSCENT2;
+				break;
+			}
+
+			if (!engine.getTile(tilenum).isLoaded())
+				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+
+			texshader.setDrawLastIndex((method & 3) == 0 || !textureCache.alphaMode(method));
+			texshader.setTransparent(alpha);
+		}
+	}
+
+	protected void bind(GLTile tile) {
+		if (textureCache.bind(tile)) {
+			gl.glActiveTexture(GL_TEXTURE0);
+			if (tile.getPixelFormat() != PixelFormat.Pal8)
+				texshader.end();
+			else
+				texshader.begin();
+		}
 	}
 
 	@Override

@@ -19,7 +19,6 @@ import java.util.Iterator;
 
 import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
-import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
@@ -153,15 +152,14 @@ public class VOXModel extends Model {
 		return texid[dapal];
 	}
 
-	public GLTile bindSkin(PixelFormat fmt, TextureManager textureCache, int pal, int shade, float alpha) {
+	public GLTile getSkin(PixelFormat fmt, int pal) {
 		if (fmt == PixelFormat.Pal8)
 			pal = 0;
 
 		if (texid[pal] == null)
 			loadskin(fmt, pal);
 
-		GLTile tile = textureCache.bind(texid[pal]);
-		return tile;
+		return texid[pal];
 	}
 
 	@Override

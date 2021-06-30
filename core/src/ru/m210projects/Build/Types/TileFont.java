@@ -66,7 +66,13 @@ public class TileFont {
 	}
 
 	public GLTile getGL(TextureManager textureCache, PixelFormat fmt, int col) {
-		return textureCache.bind(fmt, (Integer) ptr, col, 0, 0, 0);
+		GLTile tile = textureCache.get(fmt, (Integer) ptr, col, 0, 0);
+		if (tile != null) {
+			textureCache.bind(tile);
+			return tile;
+		}
+
+		return null;
 	}
 
 	public void uninit() {
