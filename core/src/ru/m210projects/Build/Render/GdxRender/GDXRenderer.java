@@ -66,7 +66,6 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
-import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
@@ -96,9 +95,7 @@ public class GDXRenderer implements GLRenderer {
 //  DukeDC6 train wall update bug
 
 //  Setviewtotile bug (tekwar, blood)
-//  Textures reload custom episode
 //  Fullscreen change
-//  Engine fov change
 //	Overheadmap
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
@@ -116,7 +113,7 @@ public class GDXRenderer implements GLRenderer {
 	protected GL20 gl;
 	protected float defznear = 0.001f;
 	protected float defzfar = 1.0f;
-	protected int fov = 90;
+	protected float fov = 90;
 
 	protected float gtang = 0.0f;
 
@@ -1121,6 +1118,20 @@ public class GDXRenderer implements GLRenderer {
 				texshader.end();
 			else
 				texshader.begin();
+		}
+	}
+
+	public void setFieldOfView(final float fov) {
+		if (cam != null) {
+			cam.setFieldOfView(fov);
+		} else {
+			System.err.println("Null!");
+			BuildGdx.app.postRunnable(new Runnable() {
+				@Override
+				public void run() {
+					cam.setFieldOfView(fov);
+				}
+			});
 		}
 	}
 

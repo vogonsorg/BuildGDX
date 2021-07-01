@@ -18,13 +18,14 @@ public class BuildCamera extends PerspectiveCamera {
 
 	public final Frustum frustum;
 	public final float xscale, yscale;
+	private final Vector3 tmp = new Vector3();
 
 	private Vector3 projectorX = new Vector3();
 	private Vector3 projectorY = new Vector3();
 	private float halfwidth, halfheight, divhalfw, divhalfh;
 
-	public BuildCamera(int fov, int width, int height, final float xscale, final float yscale) {
-		this.fieldOfView = fov;
+	public BuildCamera(float fov, int width, int height, final float xscale, final float yscale) {
+		this.setFieldOfView(fov);
 		this.viewportWidth = width;
 		this.viewportHeight = height;
 
@@ -143,9 +144,19 @@ public class BuildCamera extends PerspectiveCamera {
 		return true;
 	}
 
+	public void setFieldOfView(float fov) {
+		float aspect = 4.0f / 3.0f;
+		this.fieldOfView = (float) Math.toDegrees((2 * Math.atan(Math.tan(Math.toRadians(fov / 2)) / aspect)));
+	}
+
 	@Override
 	public void update(boolean updateFrustum) {
-		super.update(false);
+		float aspect = viewportWidth / viewportHeight;
+		projection.setToProjection(Math.abs(near), Math.abs(far), fieldOfView, aspect);
+		view.setToLookAt(position, tmp.set(position).add(direction), up);
+		combined.set(projection);
+		Matrix4.mul(combined.val, view.val);
+
 		if (updateFrustum) {
 			invProjectionView.set(combined);
 			Matrix4.inv(invProjectionView.val);

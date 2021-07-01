@@ -61,6 +61,7 @@ import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.Renderer.RenderType;
+import ru.m210projects.Build.Render.GdxRender.GDXRenderer;
 import ru.m210projects.Build.Render.Software.Software;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
@@ -3447,6 +3448,10 @@ public abstract class Engine {
 		xyaspect = divscale(1, yxaspect, 32);
 		xdimenscale = scale(xdimen, yxaspect, 320);
 		xdimscale = scale(320, xyaspect, xdimen);
+
+		if (render.getType() == RenderType.PolyGDX) {
+			((GDXRenderer) render).setFieldOfView((float) Math.toDegrees(2 * Math.atan(fovFactor)));
+		}
 	}
 
 	public void setFov(int fov) {
@@ -3919,7 +3924,7 @@ public abstract class Engine {
 			PixmapIO.writePNG(new FileHandle(pci), capture);
 			userdir.addFile(pci);
 			capture.dispose();
-			return pci.getAbsolutePath();
+			return fn + a + b + c + d + ".png";
 		} catch (Throwable e) {
 			if (capture != null)
 				capture.dispose();
