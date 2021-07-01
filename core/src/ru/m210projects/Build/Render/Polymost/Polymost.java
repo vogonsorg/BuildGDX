@@ -361,7 +361,7 @@ public abstract class Polymost implements GLRenderer {
 	}
 
 	protected void bind(GLTile tile) {
-		if (textureCache.bind(tile)) {
+		if (textureCache.bind(tile) && texshader != null) {
 			gl.glActiveTexture(GL_TEXTURE0);
 			if (tile.getPixelFormat() != PixelFormat.Pal8)
 				texshader.end();

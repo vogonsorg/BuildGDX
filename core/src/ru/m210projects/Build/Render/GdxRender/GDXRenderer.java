@@ -66,6 +66,7 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
@@ -901,7 +902,7 @@ public class GDXRenderer implements GLRenderer {
 	public void setDefs(DefScript defs) {
 		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
 		if (this.defs != null)
-			gltexinvalidateall();
+			gltexinvalidateall(GLInvalidateFlag.Uninit, GLInvalidateFlag.All);
 		this.defs = defs;
 	}
 
@@ -942,7 +943,7 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void preload() {
-		if(world != null)
+		if (world != null)
 			world.dispose();
 		world = new WorldMesh(engine);
 		scanner.init();
@@ -993,7 +994,7 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void gltexinvalidateall(GLInvalidateFlag... flags) {
-		if(flags.length == 0) {
+		if (flags.length == 0) {
 			textureCache.invalidateall();
 //			clearskins(true); XXX
 			return;
