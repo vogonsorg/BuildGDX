@@ -54,7 +54,7 @@ public class WorldShader {
 			+ "\n" //
 			+ "uniform mat4 u_invProjectionView;\n" //
 			+ "uniform vec4 u_plane[2];\n" //
-			+ "uniform vec2 u_resolution;\n" //
+			+ "uniform vec4 u_viewport;\n" //
 			+ "uniform bool u_frustumClipping;\n" //
 			+ "\n" //
 			+ "float getpalookup(int dashade) {\n" //
@@ -65,7 +65,8 @@ public class WorldShader {
 			+ "\n" //
 			+ "vec4 getPos() {\n" //
 			+ "    vec4 ndc;\n" //
-			+ "    ndc.xy = (2.0 * gl_FragCoord.xy) / u_resolution.xy - 1.0;\n" //
+			+ "	   vec2 xy = gl_FragCoord.xy - vec2(u_viewport.xy);" //
+			+ "    ndc.xy = (2.0 * xy) / u_viewport.zw - 1.0;\n" //
 			+ "    ndc.z = (2.0 * gl_FragCoord.z) - 1.0;\n" //
 			+ "    ndc.w = 1.0;\n" //
 			+ "    \n" //
@@ -86,13 +87,13 @@ public class WorldShader {
 			+ "}\n" //
 			+ "\n" //
 			+ "void main() {  \n" //
-			+ "    if(u_alpha == 0.0 || (u_frustumClipping && !isvisible()))\n" //
+			+ "    if((u_frustumClipping && !isvisible()))\n" //
 			+ "        discard;\n" //
 			+ "\n" //
 			+ "    float fi = texture2D(u_texture, v_texCoords).r;\n" //
 			+ "    if(fi == 1.0) {\n" //
 			+ "        if(!u_draw255) {\n" //
-			+ "            gl_FragColor = vec4(0.0);\n" //
+			+ "            gl_FragColor = vec4(0.01);\n" //
 			+ "            return;\n" //
 			+ "        }\n" //
 			+ "        fi -= 0.5 / 256.0;\n" //

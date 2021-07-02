@@ -94,7 +94,7 @@ public class GDXRenderer implements GLRenderer {
 //	TODO:
 //  DukeDC6 train wall update bug
 
-//  Setviewtotile bug (tekwar, blood)
+//  Setviewtotile bug (tekwar)
 //  Fullscreen change
 //	Overheadmap
 //	Scansectors memory leak (WallFrustum)
@@ -193,6 +193,7 @@ public class GDXRenderer implements GLRenderer {
 //			fis.read(data);
 //			String frag = new String(data);
 
+			System.err.println("Allocate sahder");
 			return new IndexedShader(WorldShader.vertex, WorldShader.fragment) {
 				@Override
 				public void bindPalette() {
@@ -507,7 +508,6 @@ public class GDXRenderer implements GLRenderer {
 		rendering = Rendering.Nothing;
 		texshader.begin();
 		if (inpreparemirror) {
-			// inpreparemirror = false;
 			gl.glCullFace(GL_FRONT);
 			texshader.setUniformi("u_mirror", 1);
 		} else {
@@ -519,7 +519,7 @@ public class GDXRenderer implements GLRenderer {
 		texshader.setUniformMatrix("u_projTrans", cam.combined);
 		texshader.setUniformMatrix("u_modelView", cam.view);
 		texshader.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
-		texshader.setUniformf("u_resolution", xdim, ydim);
+		texshader.setUniformf("u_viewport", windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
 		texshader.setClip(0, 0, xdim, ydim);
 
 		prerender(sectors);
@@ -542,6 +542,9 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	private void prerender(ArrayList<VisibleSector> sectors) {
+		if (inpreparemirror)
+			return;
+
 		bunchfirst.clear();
 		setFrustum(null);
 
@@ -568,9 +571,8 @@ public class GDXRenderer implements GLRenderer {
 			}
 		}
 
-		for (int i = 0; i < bunchfirst.size(); i++) {
+		for (int i = 0; i < bunchfirst.size(); i++)
 			drawSurf(bunchfirst.get(i), 0);
-		}
 	}
 
 	private void checkMirror(GLSurface surf) {
@@ -691,7 +693,7 @@ public class GDXRenderer implements GLRenderer {
 			skyshader.setUniformMatrix("u_transform", transform);
 
 			if (!pic.isLoaded()) {
-				skyshader.setUniformf("u_alpha", 0.01f);
+				skyshader.setUniformf("u_alpha", 0.0f);
 				method = 1;
 			} else
 				skyshader.setUniformf("u_alpha", 1.0f);
@@ -1103,9 +1105,6 @@ public class GDXRenderer implements GLRenderer {
 				break;
 			}
 
-			if (!engine.getTile(tilenum).isLoaded())
-				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-
 			texshader.setDrawLastIndex((method & 3) == 0 || !textureCache.alphaMode(method));
 			texshader.setTransparent(alpha);
 		}
@@ -1125,7 +1124,6 @@ public class GDXRenderer implements GLRenderer {
 		if (cam != null) {
 			cam.setFieldOfView(fov);
 		} else {
-			System.err.println("Null!");
 			BuildGdx.app.postRunnable(new Runnable() {
 				@Override
 				public void run() {

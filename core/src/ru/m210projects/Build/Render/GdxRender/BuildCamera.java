@@ -1,6 +1,5 @@
 package ru.m210projects.Build.Render.GdxRender;
 
-import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.*;
 
 import java.util.ArrayList;
@@ -166,8 +165,8 @@ public class BuildCamera extends PerspectiveCamera {
 			projectorX.set(mat[Matrix4.M00], mat[Matrix4.M01], mat[Matrix4.M02]);
 			projectorY.set(-mat[Matrix4.M10], -mat[Matrix4.M11], -mat[Matrix4.M12]);
 
-			halfwidth = xdim / 2;
-			halfheight = ydim / 2;
+			halfwidth = viewportWidth / 2;
+			halfheight = viewportHeight / 2;
 
 			divhalfw = 1.0f / halfwidth;
 			divhalfh = 1.0f / halfheight;
@@ -195,7 +194,7 @@ public class BuildCamera extends PerspectiveCamera {
 
 	@Override
 	public Vector3 unproject(Vector3 screenCoords) {
-		float x = screenCoords.x, y = ydim - screenCoords.y;
+		float x = screenCoords.x, y = viewportHeight - screenCoords.y;
 		screenCoords.x = x * divhalfw - 1;
 		screenCoords.y = y * divhalfh - 1;
 		screenCoords.z = 1;

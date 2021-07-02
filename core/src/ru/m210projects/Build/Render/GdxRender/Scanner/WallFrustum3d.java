@@ -41,7 +41,7 @@ public class WallFrustum3d implements Poolable {
 		this.cam = cam;
 		for (int i = 0, j = 2; i < 4; i++)
 			planes[i].set(cam.frustum.planes[j++]);
-		setBounds(0, 0, xdim, ydim);
+		setBounds(0, 0, windowx2 + 1, windowy2 + 1);
 		return this;
 	}
 
@@ -219,9 +219,9 @@ public class WallFrustum3d implements Poolable {
 		bounds[1].y = (float) Math.ceil(bounds[1].y);
 
 		bounds[0].x = Math.max(bounds[0].x, 0);
-		bounds[1].x = Math.min(bounds[1].x, xdim);
+		bounds[1].x = Math.min(bounds[1].x, windowx2 + 1);
 		bounds[0].y = Math.max(bounds[0].y, 0);
-		bounds[1].y = Math.min(bounds[1].y, ydim);
+		bounds[1].y = Math.min(bounds[1].y, windowy2 + 1);
 
 		return bounds;
 	}
