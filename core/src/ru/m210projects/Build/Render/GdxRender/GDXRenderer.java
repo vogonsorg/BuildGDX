@@ -93,6 +93,7 @@ public class GDXRenderer implements GLRenderer {
 
 //	TODO:
 //  DukeDC6 train wall update bug
+//  small font rendering
 
 //  Setviewtotile bug (tekwar)
 //  Fullscreen change
@@ -537,8 +538,6 @@ public class GDXRenderer implements GLRenderer {
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
-
-		inpreparemirror = false;
 	}
 
 	private void prerender(ArrayList<VisibleSector> sectors) {
@@ -1147,5 +1146,6 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void completemirror() {
-		/* nothing */ }
+		inpreparemirror = false;
+	}
 }

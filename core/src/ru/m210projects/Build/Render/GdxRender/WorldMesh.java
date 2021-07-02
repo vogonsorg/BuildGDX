@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.FloatArray;
 
@@ -513,7 +514,6 @@ public class WorldMesh {
 
 	public GLSurface getWall(int wallnum, int sectnum) {
 		int hash = getWallHash(sectnum, wallnum);
-
 		if (wallhash[wallnum] != hash) {
 			wallhash[wallnum] = hash;
 
@@ -551,6 +551,22 @@ public class WorldMesh {
 
 			checkValidate();
 		}
+
+		int oldx = 2822; // XXX WTF???
+		int oldy = -1378;
+		int newx = 2823;
+		int newy = -1409;
+
+		long hash1 = 1;
+		final int prime = 31;
+		hash1 = prime * hash1 + oldx;
+		hash1 = prime * hash1 + oldy;
+
+		long hash2 = 1;
+		hash2 = prime * hash2 + newx;
+		hash2 = prime * hash2 + newy;
+
+		System.err.println(hash1 + " " + hash2);
 
 		return walls[wallnum];
 	}

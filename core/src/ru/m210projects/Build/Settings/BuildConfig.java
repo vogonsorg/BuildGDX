@@ -41,7 +41,7 @@ public abstract class BuildConfig extends IniFile {
 	public static final int MINFOV = 60;
 	public static final int MAXFOV = 140;
 
-	public final int cfgVersion = 1901; //year XX, num XX
+	public final int cfgVersion = 1901; // year XX, num XX
 	public boolean isInited;
 
 	public interface KeyType {
@@ -54,80 +54,70 @@ public abstract class BuildConfig extends IniFile {
 
 	}
 
-	public KeyType[] joymap = {
-		MenuKeys.Menu_Enter.setJoyNum(0),
-		MenuKeys.Menu_Cancel.setJoyNum(1),
-		MenuKeys.Menu_Up.setJoyNum(2),
-		MenuKeys.Menu_Down.setJoyNum(3),
-		MenuKeys.Menu_Left.setJoyNum(4),
-		MenuKeys.Menu_Right.setJoyNum(5),
-	};
+	public KeyType[] joymap = { MenuKeys.Menu_Enter.setJoyNum(0), MenuKeys.Menu_Cancel.setJoyNum(1),
+			MenuKeys.Menu_Up.setJoyNum(2), MenuKeys.Menu_Down.setJoyNum(3), MenuKeys.Menu_Left.setJoyNum(4),
+			MenuKeys.Menu_Right.setJoyNum(5), };
 
 	public enum MenuKeys implements KeyType {
-		Menu_Enter,
-		Menu_Cancel,
-		Menu_Up,
-		Menu_Down,
-		Menu_Left,
-		Menu_Right;
+		Menu_Enter, Menu_Cancel, Menu_Up, Menu_Down, Menu_Left, Menu_Right;
 
 		private int num = -1;
 		private int joynum = -1;
 
 		@Override
-		public int getNum() { return num; }
+		public int getNum() {
+			return num;
+		}
 
 		@Override
-		public String getName() { return name(); }
+		public String getName() {
+			return name();
+		}
 
 		@Override
-		public KeyType setNum(int num) { this.num = num; return this; }
+		public KeyType setNum(int num) {
+			this.num = num;
+			return this;
+		}
 
-		public int getJoyNum() { return joynum; }
+		public int getJoyNum() {
+			return joynum;
+		}
 
-		public KeyType setJoyNum(int num) { this.joynum = num; return this; }
+		public KeyType setJoyNum(int num) {
+			this.joynum = num;
+			return this;
+		}
 	}
 
 	public enum GameKeys implements KeyType {
 
-		Move_Forward,
-		Move_Backward,
-		Turn_Left,
-		Turn_Right,
-		Turn_Around,
-		Strafe,
-		Strafe_Left,
-		Strafe_Right,
-		Jump,
-		Crouch,
-		Run,
-		Open,
-		Weapon_Fire,
-		Next_Weapon,
-		Previous_Weapon,
-		Look_Up,
-		Look_Down,
-		Map_Toggle,
-		Enlarge_Screen,
-		Shrink_Screen,
-		Send_Message,
-		Mouse_Aiming,
-		Menu_Toggle,
-		Show_Console;
+		Move_Forward, Move_Backward, Turn_Left, Turn_Right, Turn_Around, Strafe, Strafe_Left, Strafe_Right, Jump,
+		Crouch, Run, Open, Weapon_Fire, Next_Weapon, Previous_Weapon, Look_Up, Look_Down, Map_Toggle, Enlarge_Screen,
+		Shrink_Screen, Send_Message, Mouse_Aiming, Menu_Toggle, Show_Console;
 
 		private int num = -1;
 		private String name;
 
 		@Override
-		public int getNum() { return num; }
+		public int getNum() {
+			return num;
+		}
 
-		public void setName(String name) { this.name = name; }
+		public void setName(String name) {
+			this.name = name;
+		}
 
 		@Override
-		public String getName() { return (name != null) ? name : name(); }
+		public String getName() {
+			return (name != null) ? name : name();
+		}
 
 		@Override
-		public KeyType setNum(int num) { this.num = num; return this; }
+		public KeyType setNum(int num) {
+			this.num = num;
+			return this;
+		}
 	}
 
 	public String path;
@@ -162,15 +152,15 @@ public abstract class BuildConfig extends IniFile {
 	public int[] mousekeys;
 	public int[] gpadkeys;
 
-	public  int gJoyMoveAxis = 0; //Stick1Y
-	public  int gJoyStrafeAxis = 1; //Stick1X
-	public  int gJoyLookAxis = 2; //Stick2Y
-	public  int gJoyTurnAxis = 3; //Stick2X
-	public  int gJoyTurnSpeed = 65536;
-	public  int gJoyLookSpeed = 65536;
-	public  int gJoyDeadZone = 6144;
-	public  boolean gJoyInvert = false;
-	public  int gJoyDevice = -1;
+	public int gJoyMoveAxis = 0; // Stick1Y
+	public int gJoyStrafeAxis = 1; // Stick1X
+	public int gJoyLookAxis = 2; // Stick2Y
+	public int gJoyTurnAxis = 3; // Stick2X
+	public int gJoyTurnSpeed = 65536;
+	public int gJoyLookSpeed = 65536;
+	public int gJoyDeadZone = 6144;
+	public boolean gJoyInvert = false;
+	public int gJoyDevice = -1;
 	public int[] gJoyMenukeys = new int[joymap.length];
 
 	public boolean useMouse = true;
@@ -223,11 +213,11 @@ public abstract class BuildConfig extends IniFile {
 
 		try {
 			RandomAccessFile raf = new RandomAccessFile(path + this.name, "r");
-			data = new byte[(int)raf.length()];
+			data = new byte[(int) raf.length()];
 			raf.read(data);
 			init(data);
 			raf.close();
-		} catch(FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			Console.Println("File not found: " + path + this.name, OSDTEXT_YELLOW);
 		} catch (IOException e) {
 			Console.Println("Read file error: " + e.getMessage(), OSDTEXT_YELLOW);
@@ -244,8 +234,7 @@ public abstract class BuildConfig extends IniFile {
 
 		LoadMain();
 
-		if(version != cfgVersion && data != null)
-		{
+		if (version != cfgVersion && data != null) {
 			try {
 				int index = name.lastIndexOf(".");
 				String cfgname = name.substring(0, index);
@@ -258,144 +247,164 @@ public abstract class BuildConfig extends IniFile {
 		}
 	}
 
-	public boolean isExist()
-	{
+	public boolean isExist() {
 		return data != null && version == cfgVersion;
 	}
 
-	public void LoadMain()
-	{
-		if(data != null)
-		{
-			if(set("Main")) {
+	public void LoadMain() {
+		if (data != null) {
+			if (set("Main")) {
 				version = GetKeyInt("ConfigVersion");
 				startup = GetKeyInt("Startup") == 1;
 				int check = GetKeyInt("CheckNewVersion");
-				if(check != -1) checkVersion = (check == 1);
+				if (check != -1)
+					checkVersion = (check == 1);
 				int afolder = GetKeyInt("AutoloadFolder");
-				if(afolder != -1) autoloadFolder = (afolder == 1);
+				if (afolder != -1)
+					autoloadFolder = (afolder == 1);
 				userfolder = GetKeyInt("UseHomeFolder") == 1;
 				String respath = GetKeyString("Path");
-				if(respath != null && !respath.isEmpty())
+				if (respath != null && !respath.isEmpty())
 					this.path = respath;
 				String bank = GetKeyString("SoundBank");
-				if(bank != null && !bank.isEmpty()) {
+				if (bank != null && !bank.isEmpty()) {
 					File fbank = new File(bank);
-					if(fbank.exists())
+					if (fbank.exists())
 						this.soundBank = fbank;
 				}
 			}
 
-			if(version != cfgVersion)
+			if (version != cfgVersion)
 				return;
 
-			if(set("ScreenSetup")) {
+			if (set("ScreenSetup")) {
 				String render = GetKeyString("Render");
-				if(render != null) {
-					if(render.equals(RenderType.Software.getName()))
-						renderType = RenderType.Software;
-					if(render.equals(RenderType.Polymost.getName()))
-						renderType = RenderType.Polymost;
+				if (render != null) {
+					RenderType ren = RenderType.valueOf(render);
+					if (ren != null)
+						renderType = ren;
 				}
 
 				int value = GetKeyInt("Fullscreen");
-				if(value != -1) fullscreen = value;
+				if (value != -1)
+					fullscreen = value;
 				value = GetKeyInt("ScreenWidth");
-				if(value != -1 && value >= 640) ScreenWidth = value;
+				if (value != -1 && value >= 640)
+					ScreenWidth = value;
 				value = GetKeyInt("ScreenHeight");
-				if(value != -1 && value >= 400) ScreenHeight = value;
+				if (value != -1 && value >= 400)
+					ScreenHeight = value;
 				borderless = GetKeyInt("BorderlessMode") == 1;
 				gVSync = GetKeyInt("VSync") == 1;
 				value = GetKeyInt("FPSLimit");
-				if(value != -1) fpslimit = value;
+				if (value != -1)
+					fpslimit = value;
 				value = GetKeyInt("GLFilterMode");
-				if(value != -1) glfilter = value;
+				if (value != -1)
+					glfilter = value;
 				value = GetKeyInt("GLAnisotropy");
-				if(value != -1) glanisotropy = value;
+				if (value != -1)
+					glanisotropy = value;
 				value = GetKeyInt("WideScreen");
-				if(value != -1) widescreen = value;
+				if (value != -1)
+					widescreen = value;
 				value = GetKeyInt("FieldOfView");
-				if(value != -1 && value >= MINFOV && value <= MAXFOV)
+				if (value != -1 && value >= MINFOV && value <= MAXFOV)
 					gFov = value;
 				value = GetKeyInt("Palette_Emulation");
-				if(value != -1)
+				if (value != -1)
 					paletteEmulation = value == 1;
 			}
 
-			if(set("SoundSetup")) {
+			if (set("SoundSetup")) {
 				noSound = GetKeyInt("NoSound") == 1;
 				muteMusic = GetKeyInt("NoMusic") == 1;
 				int snd = GetKeyInt("SoundDriver");
-				if(snd != -1) snddrv = snd;
+				if (snd != -1)
+					snddrv = snd;
 				int mid = GetKeyInt("MidiDriver");
-				if(mid != -1) middrv = mid;
+				if (mid != -1)
+					middrv = mid;
 				int mids = GetKeyInt("MidiSynth");
-				if(mids != -1) midiSynth = mids;
+				if (mids != -1)
+					midiSynth = mids;
 				int type = GetKeyInt("MusicType");
-				if(type != -1) musicType = type;
+				if (type != -1)
+					musicType = type;
 			}
 		}
 
 		isInited = false;
 	}
 
-	public void LoadCommon(char[] defkeys, char[] defclassickeys)
-	{
-		if(set("Main")) {
+	public void LoadCommon(char[] defkeys, char[] defclassickeys) {
+		if (set("Main")) {
 			int value = GetKeyInt("OSDTextScale");
-			if(value != -1) Console.setTextScale(value);
+			if (value != -1)
+				Console.setTextScale(value);
 
 			value = GetKeyInt("UseVoxels");
-			if(value != -1) BuildSettings.useVoxels.set(value == 1);
+			if (value != -1)
+				BuildSettings.useVoxels.set(value == 1);
 			value = GetKeyInt("UseModels");
-			if(value != -1) GLSettings.useModels.set(value == 1);
+			if (value != -1)
+				GLSettings.useModels.set(value == 1);
 			value = GetKeyInt("UseHightiles");
-			if(value != -1) GLSettings.useHighTile.set(value == 1);
+			if (value != -1)
+				GLSettings.useHighTile.set(value == 1);
 			value = GetKeyInt("UsePrecache");
-			if(value != -1) gPrecache = (value == 1);
+			if (value != -1)
+				gPrecache = (value == 1);
 
 			String name = GetKeyString("Player_name");
-			if(name != null) pName = name;
+			if (name != null)
+				pName = name;
 
 			String ip = GetKeyString("IP_Address");
-			if(ip != null) mAddress = ip;
+			if (ip != null)
+				mAddress = ip;
 			value = GetKeyInt("Port");
-			if(value != -1) mPort = value;
+			if (value != -1)
+				mPort = value;
 		}
 
-		if(set("ScreenSetup")) {
+		if (set("ScreenSetup")) {
 			gVSync = GetKeyInt("VSync") == 1;
 			int value = GetKeyInt("FpsScale");
-			if(value != -1) gFpsScale = value / 65536.0f;
+			if (value != -1)
+				gFpsScale = value / 65536.0f;
 
 			int gm = GetKeyInt("GLGamma");
-			if( gm != -1) GLSettings.gamma.set(gm);
+			if (gm != -1)
+				GLSettings.gamma.set(gm);
 //			int bg = GetKeyInt("GLBrightness");
 //			if( bg != -1) GLSettings.brightness.set(bg);
 //			int ct = GetKeyInt("GLContrast");
 //			if( ct != -1) GLSettings.contrast.set(ct);
 			value = GetKeyInt("PaletteGamma");
-			if(value != -1) BuildSettings.paletteGamma.set(value);
+			if (value != -1)
+				BuildSettings.paletteGamma.set(value);
 
 			gShowFPS = GetKeyInt("ShowFPS") == 1;
 		}
 
-		if(set("SoundSetup")) {
+		if (set("SoundSetup")) {
 			float value = GetKeyInt("SoundVolume") / 256.0f;
-			if(value >= 0 && value < 1.0)
+			if (value >= 0 && value < 1.0)
 				soundVolume = value;
 			int voices = GetKeyInt("MaxVoices");
-			if(voices >= 0 && voices <= 256)
+			if (voices >= 0 && voices <= 256)
 				maxvoices = voices;
 			int resampler = GetKeyInt("Resampler");
-			if(resampler != -1) resampler_num = resampler;
+			if (resampler != -1)
+				resampler_num = resampler;
 			value = GetKeyInt("MusicVolume") / 256.0f;
-			if(value >= 0 && value < 1.0)
+			if (value >= 0 && value < 1.0)
 				musicVolume = value;
 		}
 
-		if(set("KeyDefinitions")) {
-			for(int i = 0; i < keymap.length; i++) {
+		if (set("KeyDefinitions")) {
+			for (int i = 0; i < keymap.length; i++) {
 				primarykeys[i] = defkeys[i];
 				secondkeys[i] = 0;
 				mousekeys[i] = 0;
@@ -406,90 +415,109 @@ public abstract class BuildConfig extends IniFile {
 				String mouse = GetKeyString(keymap[i].getName(), 2);
 				String joystick = GetKeyString(keymap[i].getName(), 3);
 
-				if(primary != null)
+				if (primary != null)
 					primarykeys[i] = Keymap.valueOf(primary);
-				if(secondary != null)
+				if (secondary != null)
 					secondkeys[i] = Keymap.valueOf(secondary);
-				if(mouse != null)
+				if (mouse != null)
 					mousekeys[i] = Keymap.valueOf(mouse);
-				if(joystick != null)
+				if (joystick != null)
 					gpadkeys[i] = ButtonMap.valueOf(joystick);
 			}
-			if(primarykeys[GameKeys.Menu_Toggle.getNum()] == 0)
+			if (primarykeys[GameKeys.Menu_Toggle.getNum()] == 0)
 				primarykeys[GameKeys.Menu_Toggle.getNum()] = defclassickeys[GameKeys.Menu_Toggle.getNum()];
 
 			String left = GetKeyString("MouseDigitalAxes0_0");
-			if(left != null)
+			if (left != null)
 				mouseaxis[AXISLEFT] = getKeyIndex(left);
 			String right = GetKeyString("MouseDigitalAxes0_1");
-			if(right != null)
+			if (right != null)
 				mouseaxis[AXISRIGHT] = getKeyIndex(right);
 			String up = GetKeyString("MouseDigitalAxes1_0");
-			if(up != null)
+			if (up != null)
 				mouseaxis[AXISUP] = getKeyIndex(up);
 			String down = GetKeyString("MouseDigitalAxes1_1");
-			if(down != null)
+			if (down != null)
 				mouseaxis[AXISDOWN] = getKeyIndex(down);
 		}
 
-		if(set("JoyDefinitions")) {
-			for(int i = 0; i < joymap.length; i++) {
-				gJoyMenukeys[((MenuKeys)joymap[i]).getJoyNum()] = -1;
+		if (set("JoyDefinitions")) {
+			for (int i = 0; i < joymap.length; i++) {
+				gJoyMenukeys[((MenuKeys) joymap[i]).getJoyNum()] = -1;
 				String joymenu = GetKeyString(joymap[i].getName(), 0);
-				if(joymenu != null)
-					gJoyMenukeys[((MenuKeys)joymap[i]).getJoyNum()] = ButtonMap.valueOf(joymenu);
+				if (joymenu != null)
+					gJoyMenukeys[((MenuKeys) joymap[i]).getJoyNum()] = ButtonMap.valueOf(joymenu);
 			}
 		}
 
-		if(set("Controls")) {
+		if (set("Controls")) {
 			int value = GetKeyInt("UseMouse");
-			if(value != -1) useMouse = value == 1;
+			if (value != -1)
+				useMouse = value == 1;
 			value = GetKeyInt("UseMouseInMenu");
-			if(value != -1) menuMouse = value == 1;
+			if (value != -1)
+				menuMouse = value == 1;
 			value = GetKeyInt("MouseSensitivity");
-			if(value != -1) gSensitivity = value;
+			if (value != -1)
+				gSensitivity = value;
 			value = GetKeyInt("MouseAiming");
-			if(value != -1) gMouseAim = value == 1;
+			if (value != -1)
+				gMouseAim = value == 1;
 			value = GetKeyInt("MouseAimingFlipped");
-			if(value != -1) gInvertmouse = value == 1;
+			if (value != -1)
+				gInvertmouse = value == 1;
 			value = GetKeyInt("MouseTurnSpeed");
-			if(value != -1) gMouseTurnSpeed = value;
+			if (value != -1)
+				gMouseTurnSpeed = value;
 			value = GetKeyInt("MouseLookSpeed");
-			if(value != -1) gMouseLookSpeed = value;
+			if (value != -1)
+				gMouseLookSpeed = value;
 			value = GetKeyInt("MouseMoveSpeed");
-			if(value != -1) gMouseMoveSpeed = value;
+			if (value != -1)
+				gMouseMoveSpeed = value;
 			value = GetKeyInt("MouseStrafeSpeed");
-			if(value != -1) gMouseStrafeSpeed = value;
+			if (value != -1)
+				gMouseStrafeSpeed = value;
 			value = GetKeyInt("MouseCursor");
-			if(value != -1) gMouseCursor = value;
+			if (value != -1)
+				gMouseCursor = value;
 			value = GetKeyInt("MouseCursorSize");
-			if(value != -1) gMouseCursorSize = value;
+			if (value != -1)
+				gMouseCursorSize = value;
 			value = GetKeyInt("JoyDevice");
-			if (value != -1) gJoyDevice = value;
+			if (value != -1)
+				gJoyDevice = value;
 			value = GetKeyInt("JoyTurnAxis");
-			if(value != -1) gJoyTurnAxis = value;
+			if (value != -1)
+				gJoyTurnAxis = value;
 			value = GetKeyInt("JoyMoveAxis");
-			if(value != -1) gJoyMoveAxis = value;
+			if (value != -1)
+				gJoyMoveAxis = value;
 			value = GetKeyInt("JoyStrafeAxis");
-			if(value != -1) gJoyStrafeAxis = value;
+			if (value != -1)
+				gJoyStrafeAxis = value;
 			value = GetKeyInt("JoyLookAxis");
-			if(value != -1) gJoyLookAxis = value;
+			if (value != -1)
+				gJoyLookAxis = value;
 			value = GetKeyInt("JoyTurnSpeed");
-			if(value != -1) gJoyTurnSpeed = value;
+			if (value != -1)
+				gJoyTurnSpeed = value;
 			value = GetKeyInt("JoyLookSpeed");
-			if(value != -1) gJoyLookSpeed = value;
+			if (value != -1)
+				gJoyLookSpeed = value;
 			value = GetKeyInt("JoyInvertLook");
-			if(value != -1) gJoyInvert = value == 1;
+			if (value != -1)
+				gJoyInvert = value == 1;
 			value = GetKeyInt("JoyDeadZone");
-			if(value != -1) gJoyDeadZone = value;
+			if (value != -1)
+				gJoyDeadZone = value;
 		}
 	}
 
-	public void saveConfig(Compat compat, String path)
-	{
-		if(!isInited) { //has saving from launcher
+	public void saveConfig(Compat compat, String path) {
+		if (!isInited) { // has saving from launcher
 			FileResource fil = compat.open(cfgPath + name, Path.Absolute, Mode.Write);
-			if(fil != null) {
+			if (fil != null) {
 				SaveUninited(fil);
 				fil.close();
 			}
@@ -497,7 +525,7 @@ public abstract class BuildConfig extends IniFile {
 		}
 
 		FileResource fil = compat.open(cfgPath + name, Path.Absolute, Mode.Write);
-		if(fil != null) {
+		if (fil != null) {
 			SaveMain(fil, path);
 			SaveCommon(fil);
 			SaveConfig(fil);
@@ -505,28 +533,34 @@ public abstract class BuildConfig extends IniFile {
 		}
 	}
 
-	public void SaveCommon(FileResource fil)
-	{
+	public void SaveCommon(FileResource fil) {
 		saveString(fil, "[KeyDefinitions]\r\n");
-		for(int i = 0; i < keymap.length; i++) {
-			String line = keymap[i] + " = \"" + Keymap.toString(primarykeys[i]) +  "\", \"" + Keymap.toString(secondkeys[i]) +  "\", \"" + Keymap.toString(mousekeys[i]) +  "\", \"" + ButtonMap.buttonName(gpadkeys[i]) + "\"\r\n";
+		for (int i = 0; i < keymap.length; i++) {
+			String line = keymap[i] + " = \"" + Keymap.toString(primarykeys[i]) + "\", \""
+					+ Keymap.toString(secondkeys[i]) + "\", \"" + Keymap.toString(mousekeys[i]) + "\", \""
+					+ ButtonMap.buttonName(gpadkeys[i]) + "\"\r\n";
 			saveString(fil, line);
 		}
 		saveString(fil, ";\r\n");
-		saveString(fil, "MouseDigitalAxes0_0 " + ((mouseaxis[AXISLEFT] != -1)?("= " + keymap[mouseaxis[AXISLEFT]]):"= \"N/A\"") +"\r\n");
-		saveString(fil, "MouseDigitalAxes0_1 " + ((mouseaxis[AXISRIGHT] != -1)?("= " + keymap[mouseaxis[AXISRIGHT]]):"= \"N/A\"") +"\r\n");
-		saveString(fil, "MouseDigitalAxes1_0 " + ((mouseaxis[AXISUP] != -1)?("= " + keymap[mouseaxis[AXISUP]]):"= \"N/A\"") +"\r\n");
-		saveString(fil, "MouseDigitalAxes1_1 " + ((mouseaxis[AXISDOWN] != -1)?("= " + keymap[mouseaxis[AXISDOWN]]):"= \"N/A\"") +"\r\n");
+		saveString(fil, "MouseDigitalAxes0_0 "
+				+ ((mouseaxis[AXISLEFT] != -1) ? ("= " + keymap[mouseaxis[AXISLEFT]]) : "= \"N/A\"") + "\r\n");
+		saveString(fil, "MouseDigitalAxes0_1 "
+				+ ((mouseaxis[AXISRIGHT] != -1) ? ("= " + keymap[mouseaxis[AXISRIGHT]]) : "= \"N/A\"") + "\r\n");
+		saveString(fil, "MouseDigitalAxes1_0 "
+				+ ((mouseaxis[AXISUP] != -1) ? ("= " + keymap[mouseaxis[AXISUP]]) : "= \"N/A\"") + "\r\n");
+		saveString(fil, "MouseDigitalAxes1_1 "
+				+ ((mouseaxis[AXISDOWN] != -1) ? ("= " + keymap[mouseaxis[AXISDOWN]]) : "= \"N/A\"") + "\r\n");
 		saveString(fil, ";\r\n");
 		saveString(fil, "[JoyDefinitions]\r\n");
-		for(int i = 0; i < joymap.length; i++) {
-			String line = joymap[i] + " = \"" + ButtonMap.buttonName(gJoyMenukeys[((MenuKeys)joymap[i]).getJoyNum()]) + "\"\r\n";
+		for (int i = 0; i < joymap.length; i++) {
+			String line = joymap[i] + " = \"" + ButtonMap.buttonName(gJoyMenukeys[((MenuKeys) joymap[i]).getJoyNum()])
+					+ "\"\r\n";
 			saveString(fil, line);
 		}
 		saveString(fil, ";\r\n;\r\n");
 
 		saveString(fil, "[Controls]\r\n");
-			//Controls
+		// Controls
 
 		saveBoolean(fil, "UseMouse", useMouse);
 		saveBoolean(fil, "UseMouseInMenu", menuMouse);
@@ -551,8 +585,7 @@ public abstract class BuildConfig extends IniFile {
 		saveString(fil, ";\r\n;\r\n");
 	}
 
-	public void SaveMain(FileResource fil, String path)
-	{
+	public void SaveMain(FileResource fil, String path) {
 		saveString(fil, "[Main]\r\n");
 		saveInteger(fil, "ConfigVersion", cfgVersion);
 		saveBoolean(fil, "Startup", startup);
@@ -560,24 +593,25 @@ public abstract class BuildConfig extends IniFile {
 		saveBoolean(fil, "AutoloadFolder", autoloadFolder);
 		saveBoolean(fil, "UseHomeFolder", userfolder);
 		saveString(fil, "Path = ");
-			byte[] buf = path.getBytes(); //without this path can be distorted
-			fil.writeBytes(buf, buf.length);
+		byte[] buf = path.getBytes(); // without this path can be distorted
+		fil.writeBytes(buf, buf.length);
 
-		if(soundBank != null)
+		if (soundBank != null)
 			saveString(fil, "\r\nSoundBank = " + soundBank.getAbsolutePath() + "\r\n");
-		else saveString(fil, "\r\nSoundBank = \r\n");
+		else
+			saveString(fil, "\r\nSoundBank = \r\n");
 		saveInteger(fil, "OSDTextScale", Console.getTextScale());
 		saveBoolean(fil, "UseVoxels", BuildSettings.useVoxels.get());
 		saveBoolean(fil, "UseModels", GLSettings.useModels.get());
 		saveBoolean(fil, "UseHightiles", GLSettings.useHighTile.get());
 		saveBoolean(fil, "UsePrecache", gPrecache);
-		saveString(fil,  "Player_name", pName);
-		saveString(fil,  "IP_Address", mAddress);
+		saveString(fil, "Player_name", pName);
+		saveString(fil, "IP_Address", mAddress);
 		saveInteger(fil, "Port", mPort);
 		saveString(fil, ";\r\n;\r\n");
 		saveString(fil, "[ScreenSetup]\r\n");
-		//Screen Setup
-		saveString(fil,  "Render", renderType.getName());
+		// Screen Setup
+		saveString(fil, "Render", renderType.getName());
 		saveInteger(fil, "Fullscreen", fullscreen);
 		saveInteger(fil, "ScreenWidth", ScreenWidth);
 		saveInteger(fil, "ScreenHeight", ScreenHeight);
@@ -588,7 +622,7 @@ public abstract class BuildConfig extends IniFile {
 		saveInteger(fil, "GLAnisotropy", glanisotropy);
 		saveInteger(fil, "WideScreen", widescreen);
 		saveInteger(fil, "FieldOfView", gFov);
-		saveInteger(fil, "FpsScale", (int)(gFpsScale * 65536.0f));
+		saveInteger(fil, "FpsScale", (int) (gFpsScale * 65536.0f));
 		saveBoolean(fil, "Palette_Emulation", paletteEmulation);
 
 		saveInteger(fil, "GLGamma", GLSettings.gamma.get());
@@ -599,7 +633,7 @@ public abstract class BuildConfig extends IniFile {
 		saveString(fil, ";\r\n;\r\n");
 
 		saveString(fil, "[SoundSetup]\r\n");
-		//Sound Setup
+		// Sound Setup
 
 		saveBoolean(fil, "NoSound", noSound);
 		saveBoolean(fil, "NoMusic", muteMusic);
@@ -608,10 +642,10 @@ public abstract class BuildConfig extends IniFile {
 		saveInteger(fil, "MidiDriver", middrv);
 		saveInteger(fil, "MidiSynth", midiSynth);
 		saveInteger(fil, "MusicType", musicType);
-		saveInteger(fil, "SoundVolume", (int)(soundVolume * 256.0f));
+		saveInteger(fil, "SoundVolume", (int) (soundVolume * 256.0f));
 		saveInteger(fil, "MaxVoices", maxvoices);
 		saveInteger(fil, "Resampler", resampler_num);
-		saveInteger(fil, "MusicVolume", (int)(musicVolume * 256.0f));
+		saveInteger(fil, "MusicVolume", (int) (musicVolume * 256.0f));
 		saveString(fil, ";\r\n;\r\n");
 	}
 
@@ -619,26 +653,24 @@ public abstract class BuildConfig extends IniFile {
 
 	public abstract boolean InitConfig(boolean isDefault);
 
-	public void InitKeymap()
-	{
-		for(int i = 0; i < keymap.length; i++)
+	public void InitKeymap() {
+		for (int i = 0; i < keymap.length; i++)
 			keymap[i].setNum(i);
 	}
 
 	public abstract KeyType[] getKeyMap();
 
-	public void setKey(int index, int keyId)
-	{
-		if(primarykeys[index] == 0 && secondkeys[index] == 0)
+	public void setKey(int index, int keyId) {
+		if (primarykeys[index] == 0 && secondkeys[index] == 0)
 			primarykeys[index] = keyId;
-		else if(primarykeys[index] != 0 && secondkeys[index] == 0 ) {
-			if(keyId != primarykeys[index]) {
+		else if (primarykeys[index] != 0 && secondkeys[index] == 0) {
+			if (keyId != primarykeys[index]) {
 				secondkeys[index] = primarykeys[index];
 				primarykeys[index] = keyId;
-			} else secondkeys[index] = 0;
-		} else
-		{
-			if(keyId == primarykeys[index] || keyId == secondkeys[index]) {
+			} else
+				secondkeys[index] = 0;
+		} else {
+			if (keyId == primarykeys[index] || keyId == secondkeys[index]) {
 				primarykeys[index] = keyId;
 				secondkeys[index] = 0;
 			} else {
@@ -647,69 +679,62 @@ public abstract class BuildConfig extends IniFile {
 			}
 		}
 
-		for(int i = 0; i < primarykeys.length; i++)
-		{
-			if(i != index && keyId == primarykeys[i]) {
-				if(primarykeys[i] != 0 && secondkeys[i] != 0 ) {
+		for (int i = 0; i < primarykeys.length; i++) {
+			if (i != index && keyId == primarykeys[i]) {
+				if (primarykeys[i] != 0 && secondkeys[i] != 0) {
 					primarykeys[i] = secondkeys[i];
 					secondkeys[i] = 0;
-				} else primarykeys[i] = 0;
+				} else
+					primarykeys[i] = 0;
 			}
 		}
 
-		for(int i = 0; i < secondkeys.length; i++)
-		{
-			if(i != index && keyId == secondkeys[i]) {
+		for (int i = 0; i < secondkeys.length; i++) {
+			if (i != index && keyId == secondkeys[i]) {
 				secondkeys[i] = 0;
 			}
 		}
 	}
 
 	public void setButton(KeyType key, int button) {
-		if(key instanceof MenuKeys) {
+		if (key instanceof MenuKeys) {
 			MenuKeys mk = (MenuKeys) key;
 			gJoyMenukeys[mk.getJoyNum()] = button;
-		}
-		else gpadkeys[key.getNum()] = button;
+		} else
+			gpadkeys[key.getNum()] = button;
 	}
 
-	public int getKeyIndex(String keyname)
-	{
+	public int getKeyIndex(String keyname) {
 		keyname = keyname.replaceAll("[^a-zA-Z_-]", "");
-		for(int i = 0; i < keymap.length; i++)
-		{
-			if(keyname.equals(keymap[i].getName()))
+		for (int i = 0; i < keymap.length; i++) {
+			if (keyname.equals(keymap[i].getName()))
 				return i;
 		}
 		return -1;
 	}
 
-	public void saveBoolean(FileResource fil, String name, boolean var)
-	{
-		String line =  name + " = " + (var?1:0) +"\r\n";
+	public void saveBoolean(FileResource fil, String name, boolean var) {
+		String line = name + " = " + (var ? 1 : 0) + "\r\n";
 		fil.writeBytes(line.toCharArray(), line.length());
 	}
 
-	public void saveInteger(FileResource fil, String name, int var)
-	{
-		String line =  name + " = " + var +"\r\n";
+	public void saveInteger(FileResource fil, String name, int var) {
+		String line = name + " = " + var + "\r\n";
 		fil.writeBytes(line.toCharArray(), line.length());
 	}
 
-	public void saveString(FileResource fil, String text)
-	{
+	public void saveString(FileResource fil, String text) {
 		fil.writeBytes(text.toCharArray(), text.length());
 	}
 
-	public void saveString(FileResource fil, String name, String var)
-	{
-		String line =  name + " = " + var +"\r\n";
+	public void saveString(FileResource fil, String name, String var) {
+		String line = name + " = " + var + "\r\n";
 		fil.writeBytes(line.toCharArray(), line.length());
 	}
 
-	public void SaveUninited(FileResource fil)
-	{
-		if(data == null) return;
+	public void SaveUninited(FileResource fil) {
+		if (data == null)
+			return;
 
 		set("Main");
 		saveString(fil, "[Main]\r\n");
@@ -719,29 +744,30 @@ public abstract class BuildConfig extends IniFile {
 		saveBoolean(fil, "AutoloadFolder", autoloadFolder);
 		saveBoolean(fil, "UseHomeFolder", userfolder);
 		saveString(fil, "Path = ");
-		if(path != null) {
-			byte[] buf = path.getBytes(); //without this path can be distorted
+		if (path != null) {
+			byte[] buf = path.getBytes(); // without this path can be distorted
 			fil.writeBytes(buf, buf.length);
 		}
 
-		if(soundBank != null)
+		if (soundBank != null)
 			saveString(fil, "\r\nSoundBank = " + soundBank.getAbsolutePath() + "\r\n");
-		else saveString(fil, "\r\nSoundBank = \r\n");
+		else
+			saveString(fil, "\r\nSoundBank = \r\n");
 
 		saveInteger(fil, "OSDTextScale", GetKeyInt("OSDTextScale"));
 		saveBoolean(fil, "UseVoxels", GetKeyInt("UseVoxels") == 1);
 		saveBoolean(fil, "UseModels", GetKeyInt("UseModels") == 1);
 		saveBoolean(fil, "UseHightiles", GetKeyInt("UseHightiles") == 1);
 
-		saveString(fil,  "Player_name", GetKeyString("Player_name"));
-		saveString(fil,  "IP_Address", GetKeyString("IP_Address"));
+		saveString(fil, "Player_name", GetKeyString("Player_name"));
+		saveString(fil, "IP_Address", GetKeyString("IP_Address"));
 		saveInteger(fil, "Port", GetKeyInt("Port"));
 		saveString(fil, ";\r\n;\r\n");
 
 		set("ScreenSetup");
 		saveString(fil, "[ScreenSetup]\r\n");
-		//Screen Setup
-		saveString(fil,  "Render", renderType.getName());
+		// Screen Setup
+		saveString(fil, "Render", renderType.getName());
 		saveInteger(fil, "Fullscreen", fullscreen);
 		saveInteger(fil, "ScreenWidth", ScreenWidth);
 		saveInteger(fil, "ScreenHeight", ScreenHeight);
@@ -764,7 +790,7 @@ public abstract class BuildConfig extends IniFile {
 
 		set("SoundSetup");
 		saveString(fil, "[SoundSetup]\r\n");
-		//Sound Setup
+		// Sound Setup
 
 		saveBoolean(fil, "NoSound", GetKeyInt("NoSound") == 1);
 		saveBoolean(fil, "NoMusic", GetKeyInt("NoMusic") == 1);
@@ -781,8 +807,7 @@ public abstract class BuildConfig extends IniFile {
 
 		String gamePart = new String(data);
 		int index = gamePart.indexOf("[KeyDefinitions]");
-		if(index != -1)
-		{
+		if (index != -1) {
 			gamePart = gamePart.substring(index);
 			fil.writeBytes(gamePart.toCharArray(), gamePart.length());
 		}

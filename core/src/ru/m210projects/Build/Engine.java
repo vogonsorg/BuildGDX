@@ -1103,8 +1103,6 @@ public abstract class Engine {
 		globalhoriz = (dahoriz - 100);
 		pitch = (-getangle(160, (int) (dahoriz - 100))) / (2048.0f / 360.0f);
 
-		globalvisibility = scale(visibility << 2, xdimen, 1027);
-
 		globalcursectnum = dacursectnum;
 		totalclocklock = totalclock;
 

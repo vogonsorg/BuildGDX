@@ -12,7 +12,7 @@ import ru.m210projects.Build.Pattern.ScreenAdapters.GameAdapter;
 import ru.m210projects.Build.Pattern.ScreenAdapters.InitScreen;
 import ru.m210projects.Build.Pattern.ScreenAdapters.LoadingAdapter;
 
-public abstract class BuildEngine extends Engine {
+public class BuildEngine extends Engine {
 
 	protected int ticks;
 	protected long timerskipticks;
@@ -34,8 +34,7 @@ public abstract class BuildEngine extends Engine {
 		updatesmoothticks();
 	}
 
-	public int getsmoothratio()
-	{
+	public int getsmoothratio() {
 //		return ((totalclock - game.pNet.ototalclock + ticks) << 16) / ticks;
 //		return (int) (((System.nanoTime() - timernexttick) * 65536.0f) / (timerskipticks * 1000000.0f));
 		return (int) ((frametime += BuildGdx.graphics.getDeltaTime() * 1000.0f * 65536.0f) / timerskipticks);
@@ -44,11 +43,12 @@ public abstract class BuildEngine extends Engine {
 	@Override
 	public void faketimerhandler() {
 		BuildNet net = game.pNet;
-		if(net == null) return; //not initialized yet
+		if (net == null)
+			return; // not initialized yet
 
 		Screen current = game.getScreen();
 		if (!(current instanceof GameAdapter) && !(current instanceof LoadingAdapter)
-				&& !(current instanceof InitScreen) )
+				&& !(current instanceof InitScreen))
 			handleevents();
 
 //		if (totalclock < net.ototalclock + ticks || !net.ready2send)
@@ -65,8 +65,7 @@ public abstract class BuildEngine extends Engine {
 		GetInput(net);
 	}
 
-	public void updatesmoothticks()
-	{
+	public void updatesmoothticks() {
 		game.pInt.requestUpdating();
 		frametime = 0.0f;
 	}
@@ -77,39 +76,31 @@ public abstract class BuildEngine extends Engine {
 		wall[pointhighlight].x = dax;
 		wall[pointhighlight].y = day;
 
-		int cnt =  MAXWALLS;
-		short tempshort = pointhighlight;    //search points CCW
-		do
-		{
-			if (wall[tempshort].nextwall >= 0)
-			{
+		int cnt = MAXWALLS;
+		short tempshort = pointhighlight; // search points CCW
+		do {
+			if (wall[tempshort].nextwall >= 0) {
 				tempshort = wall[wall[tempshort].nextwall].point2;
 				game.pInt.setwallinterpolate(tempshort, wall[tempshort]);
 				wall[tempshort].x = dax;
 				wall[tempshort].y = day;
-			}
-			else
-			{
-				tempshort = pointhighlight;    //search points CW if not searched all the way around
-				do
-				{
-					if (wall[lastwall(tempshort)].nextwall >= 0)
-					{
+			} else {
+				tempshort = pointhighlight; // search points CW if not searched all the way around
+				do {
+					if (wall[lastwall(tempshort)].nextwall >= 0) {
 						tempshort = wall[lastwall(tempshort)].nextwall;
 						game.pInt.setwallinterpolate(tempshort, wall[tempshort]);
 						wall[tempshort].x = dax;
 						wall[tempshort].y = day;
-					}
-					else break;
+					} else
+						break;
 
 					cnt--;
-				}
-				while ((tempshort != pointhighlight) && (cnt > 0));
+				} while ((tempshort != pointhighlight) && (cnt > 0));
 				break;
 			}
 			cnt--;
-		}
-		while ((tempshort != pointhighlight) && (cnt > 0));
+		} while ((tempshort != pointhighlight) && (cnt > 0));
 	}
 
 	@Override
@@ -126,16 +117,15 @@ public abstract class BuildEngine extends Engine {
 			if (i != myconnectindex && net.gNetFifoHead[myconnectindex] - 200 > net.gNetFifoHead[i])
 				return;
 
-		if(!game.pMenu.gShowMenu && !Console.IsShown()) {
+		if (!game.pMenu.gShowMenu && !Console.IsShown()) {
 			game.pInput.ctrlMouseHandler();
 			game.pInput.ctrlJoyHandler();
 		}
 		game.pInput.ctrlGetInput(game.pNet.gInput);
 
-		if((net.gNetFifoHead[myconnectindex] & (net.MovesPerPacket - 1)) != 0)
-		{
-			net.gFifoInput[net.gNetFifoHead[myconnectindex] & 0xFF][myconnectindex].
-				Copy(net.gFifoInput[(net.gNetFifoHead[myconnectindex] - 1) & 0xFF][myconnectindex]);
+		if ((net.gNetFifoHead[myconnectindex] & (net.MovesPerPacket - 1)) != 0) {
+			net.gFifoInput[net.gNetFifoHead[myconnectindex] & 0xFF][myconnectindex]
+					.Copy(net.gFifoInput[(net.gNetFifoHead[myconnectindex] - 1) & 0xFF][myconnectindex]);
 			net.gNetFifoHead[myconnectindex]++;
 			return;
 		}
@@ -143,7 +133,7 @@ public abstract class BuildEngine extends Engine {
 		net.gFifoInput[net.gNetFifoHead[myconnectindex] & 0xFF][myconnectindex].Copy(net.gInput);
 		net.gNetFifoHead[myconnectindex]++;
 
-		if ( game.nNetMode == NetMode.Multiplayer && numplayers < 2) {
+		if (game.nNetMode == NetMode.Multiplayer && numplayers < 2) {
 			for (int i = connecthead; i >= 0; i = connectpoint2[i]) {
 				if (i != myconnectindex) {
 					net.ComputerInput(i);
