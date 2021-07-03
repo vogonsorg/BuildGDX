@@ -15,9 +15,9 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.FloatArray;
+import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Render.GdxRender.Tesselator.SurfaceInfo;
@@ -552,22 +552,6 @@ public class WorldMesh {
 			checkValidate();
 		}
 
-		int oldx = 2822; // XXX WTF???
-		int oldy = -1378;
-		int newx = 2823;
-		int newy = -1409;
-
-		long hash1 = 1;
-		final int prime = 31;
-		hash1 = prime * hash1 + oldx;
-		hash1 = prime * hash1 + oldy;
-
-		long hash2 = 1;
-		hash2 = prime * hash2 + newx;
-		hash2 = prime * hash2 + newy;
-
-		System.err.println(hash1 + " " + hash2);
-
 		return walls[wallnum];
 	}
 
@@ -653,13 +637,13 @@ public class WorldMesh {
 		final int endwall = sec.wallnum + startwall;
 		for (int z = startwall; z < endwall; z++) {
 			WALL wal = wall[z];
-			hash = prime * hash + wal.x;
-			hash = prime * hash + wal.y;
+			hash = prime * hash + NumberUtils.floatToIntBits(wal.x);
+			hash = prime * hash + NumberUtils.floatToIntBits(wal.y);
 		}
 
-		hash = prime * hash + sec.ceilingz;
+		hash = prime * hash + NumberUtils.floatToIntBits(sec.ceilingz);
 		hash = prime * hash + sec.ceilingstat;
-		hash = prime * hash + sec.ceilingheinum;
+		hash = prime * hash + NumberUtils.floatToIntBits(sec.ceilingheinum);
 		hash = prime * hash + sec.ceilingpicnum;
 		hash = prime * hash + sec.ceilingxpanning;
 		hash = prime * hash + sec.ceilingypanning;
@@ -676,13 +660,13 @@ public class WorldMesh {
 		final int endwall = sec.wallnum + startwall;
 		for (int z = startwall; z < endwall; z++) {
 			WALL wal = wall[z];
-			hash = prime * hash + wal.x;
-			hash = prime * hash + wal.y;
+			hash = prime * hash + NumberUtils.floatToIntBits(wal.x);
+			hash = prime * hash + NumberUtils.floatToIntBits(wal.y);
 		}
 
-		hash = prime * hash + sec.floorz;
+		hash = prime * hash + NumberUtils.floatToIntBits(sec.floorz);
 		hash = prime * hash + sec.floorstat;
-		hash = prime * hash + sec.floorheinum;
+		hash = prime * hash + NumberUtils.floatToIntBits(sec.floorheinum);
 		hash = prime * hash + sec.floorpicnum;
 		hash = prime * hash + sec.floorxpanning;
 		hash = prime * hash + sec.floorypanning;
@@ -697,10 +681,10 @@ public class WorldMesh {
 		int hash = 1;
 		final int prime = 31;
 
-		hash = prime * hash + wal.x;
-		hash = prime * hash + wal.y;
-		hash = prime * hash + wall[wal.point2].x;
-		hash = prime * hash + wall[wal.point2].y;
+		hash = prime * hash + NumberUtils.floatToIntBits(wal.x);
+		hash = prime * hash + NumberUtils.floatToIntBits(wal.y);
+		hash = prime * hash + NumberUtils.floatToIntBits(wall[wal.point2].x);
+		hash = prime * hash + NumberUtils.floatToIntBits(wall[wal.point2].y);
 		hash = prime * hash + wal.cstat;
 		hash = prime * hash + wal.xpanning;
 		hash = prime * hash + wal.ypanning;
@@ -719,32 +703,26 @@ public class WorldMesh {
 			hash = prime * hash + swal.picnum;
 		}
 
-		hash = prime * hash + sec.floorz;
-		hash = prime * hash + sec.floorheinum;
+		hash = prime * hash + NumberUtils.floatToIntBits(sec.floorz);
+		hash = prime * hash + NumberUtils.floatToIntBits(sec.floorheinum);
 		hash = prime * hash + (sec.isSlopedFloor() ? 1 : 0);
 		hash = prime * hash + (sec.isParallaxFloor() ? 1 : 0);
 
-		hash = prime * hash + sec.ceilingz;
-		hash = prime * hash + sec.ceilingheinum;
+		hash = prime * hash + NumberUtils.floatToIntBits(sec.ceilingz);
+		hash = prime * hash + NumberUtils.floatToIntBits(sec.ceilingheinum);
 		hash = prime * hash + (sec.isSlopedCeiling() ? 1 : 0);
 		hash = prime * hash + (sec.isParallaxCeiling() ? 1 : 0);
 
 		if (wal.nextsector != -1) {
 			final SECTOR nsec = sector[wal.nextsector];
-			final WALL swal = wall[wal.nextwall];
 
-			hash = prime * hash + swal.x; // TODO: Why does it need
-			hash = prime * hash + swal.y;
-			hash = prime * hash + wall[swal.point2].x;
-			hash = prime * hash + wall[swal.point2].y;
-
-			hash = prime * hash + nsec.floorz;
-			hash = prime * hash + nsec.floorheinum;
+			hash = prime * hash + NumberUtils.floatToIntBits(nsec.floorz);
+			hash = prime * hash + NumberUtils.floatToIntBits(nsec.floorheinum);
 			hash = prime * hash + (nsec.isSlopedFloor() ? 1 : 0);
 			hash = prime * hash + (nsec.isParallaxFloor() ? 1 : 0);
 
-			hash = prime * hash + nsec.ceilingz;
-			hash = prime * hash + nsec.ceilingheinum;
+			hash = prime * hash + NumberUtils.floatToIntBits(nsec.ceilingz);
+			hash = prime * hash + NumberUtils.floatToIntBits(nsec.ceilingheinum);
 			hash = prime * hash + (nsec.isSlopedCeiling() ? 1 : 0);
 			hash = prime * hash + (nsec.isParallaxCeiling() ? 1 : 0);
 		}

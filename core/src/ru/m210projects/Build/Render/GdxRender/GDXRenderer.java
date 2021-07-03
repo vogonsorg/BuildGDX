@@ -92,8 +92,10 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  DukeDC6 train wall update bug
 //  small font rendering
+//  mirror skies rendering
+//  Duke E2L4 wall update bug
+//  Duke E2L7 wall vis bug
 
 //  Setviewtotile bug (tekwar)
 //  Fullscreen change
