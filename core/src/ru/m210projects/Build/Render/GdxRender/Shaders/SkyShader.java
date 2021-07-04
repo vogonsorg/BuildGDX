@@ -6,12 +6,15 @@ public class SkyShader {
 			+ "\n" //
 			+ "uniform mat4 u_projTrans;\n" //
 			+ "uniform mat4 u_transform;\n" //
+			+ "uniform bool u_mirror;\n" //
 			+ "varying vec4 v_pos;\n" //
 			+ "\n" //
 			+ "void main()\n" //
 			+ "{\n" //
 			+ "    v_pos = u_transform * a_position;\n" //
 			+ "    gl_Position = u_projTrans * v_pos;\n" //
+			+ "    if(u_mirror)\n" //
+			+ "        gl_Position.x *= -1.0;\n" //
 			+ "};\n"; //
 
 	public static final String fragment = "uniform sampler2D u_sky;\n" //

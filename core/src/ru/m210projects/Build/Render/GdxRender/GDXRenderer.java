@@ -52,9 +52,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.Plane.PlaneSide;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
@@ -66,8 +70,10 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.GdxRender.Tesselator.Vertex;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
+import ru.m210projects.Build.Render.GdxRender.Scanner.PolygonClipper;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
 import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 import ru.m210projects.Build.Render.GdxRender.Shaders.SkyShader;
@@ -94,7 +100,6 @@ public class GDXRenderer implements GLRenderer {
 //	TODO:
 //  small font rendering
 //  mirror skies rendering
-//  Duke E2L4 wall update bug
 //  Duke E2L7 wall vis bug
 
 //  Setviewtotile bug (tekwar)
@@ -479,6 +484,12 @@ public class GDXRenderer implements GLRenderer {
 		}
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 
+//		if (shape == null) {
+//			shape = new ShapeRenderer();
+//			shape.setProjectionMatrix(shape.getProjectionMatrix().setToOrtho(0, xdim, ydim, 0, -1, 1));
+//		}
+//		shape.begin(ShapeType.Line);
+
 		gl.glDisable(GL_BLEND);
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_DEPTH_TEST);
@@ -647,6 +658,14 @@ public class GDXRenderer implements GLRenderer {
 			drawSurf(world.getWall(z, sectnum), flags);
 			drawSurf(world.getUpper(z, sectnum), flags);
 			drawSurf(world.getLower(z, sectnum), flags);
+
+//			if (wall[z].nextsector == -1)
+//				draw2dSurface(z, sectnum, Heinum.MaxWall);
+//			else {
+//				draw2dSurface(z, sectnum, Heinum.Portal);
+//				draw2dSurface(z, sectnum, Heinum.Upper);
+//				draw2dSurface(z, sectnum, Heinum.Lower);
+//			}
 		}
 	}
 
@@ -683,6 +702,10 @@ public class GDXRenderer implements GLRenderer {
 			gl.glActiveTexture(GL20.GL_TEXTURE1);
 			textureCache.getPalette().bind();
 			skyshader.setUniformi("u_palette", 1);
+			if (inpreparemirror)
+				skyshader.setUniformi("u_mirror", 1);
+			else
+				skyshader.setUniformi("u_mirror", 0);
 
 			gl.glActiveTexture(GL20.GL_TEXTURE2);
 			textureCache.getPalookup(palnum).bind();
@@ -771,6 +794,9 @@ public class GDXRenderer implements GLRenderer {
 		orphoRen.nextpage();
 
 		beforedrawrooms = 1;
+
+//		if (shape != null)
+//			shape.end();
 	}
 
 	@Override
@@ -1150,4 +1176,69 @@ public class GDXRenderer implements GLRenderer {
 	public void completemirror() {
 		inpreparemirror = false;
 	}
+
+	// Debug 2.5D renderer
+
+//	private boolean WallFacingCheck(WALL wal) {
+//		float x1 = wal.x - globalposx;
+//		float y1 = wal.y - globalposy;
+//		float x2 = wall[wal.point2].x - globalposx;
+//		float y2 = wall[wal.point2].y - globalposy;
+//
+//		return (x1 * y2 - y1 * x2) >= 0;
+//	}
+//
+//	private boolean NearPlaneCheck(BuildCamera cam, ArrayList<? extends Vector3> points) {
+//		Plane near = cam.frustum.planes[0];
+//		for (int i = 0; i < points.size(); i++) {
+//			if (near.testPoint(points.get(i)) == PlaneSide.Back)
+//				return true;
+//		}
+//		return false;
+//	}
+//
+//	private void projectToScreen(BuildCamera cam, ArrayList<Vertex> points) {
+//		for (int i = 0; i < points.size(); i++)
+//			cam.project(points.get(i));
+//	}
+//
+//	private ArrayList<Vertex> project(BuildCamera cam, int z, int sectnum, Heinum h) {
+//		WALL wal = wall[z];
+//		if (!WallFacingCheck(wal))
+//			return null;
+//
+//		ArrayList<Vertex> vertex = world.getPoints(h, sectnum, z);
+//		if (!cam.polyInCamera(vertex))
+//			return null;
+//
+//		if (NearPlaneCheck(cam, vertex)) {
+//			PolygonClipper cl = new PolygonClipper();
+//			vertex = cl.ClipPolygon(cam.frustum, vertex);
+//			if (vertex.size() < 3)
+//				return null;
+//		}
+//
+//		projectToScreen(cam, vertex);
+//		return vertex;
+//	}
+//
+//	public ShapeRenderer shape;
+//
+//	private void draw2dSurface(int z, int sectnum, Heinum heinum) {
+//		ArrayList<Vertex> coords = project(cam, z, (short) sectnum, heinum);
+//		if (coords != null) {
+//			if (heinum == Heinum.MaxWall)
+//				shape.setColor(0.8f, 0.8f, 0.8f, 1);
+//			else if (heinum == Heinum.Upper || heinum == Heinum.Lower)
+//				shape.setColor(0.8f, 0.8f, 0.0f, 1);
+//			else if (heinum == Heinum.Portal)
+//				shape.setColor(0.8f, 0, 0, 1);
+//
+//			for (int i = 0; i < coords.size(); i++) {
+//				int next = (i + 1) % coords.size();
+//				shape.line(coords.get(i).x, coords.get(i).y, coords.get(next).x, coords.get(next).y);
+//			}
+//		}
+//	}
+
 }
