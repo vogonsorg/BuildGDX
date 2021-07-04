@@ -703,6 +703,11 @@ public class WorldMesh {
 			hash = prime * hash + swal.picnum;
 		}
 
+		if (((sec.ceilingstat | sec.floorstat) & 2) != 0) {
+			hash = prime * hash + NumberUtils.floatToIntBits(wall[sec.wallptr].x);
+			hash = prime * hash + NumberUtils.floatToIntBits(wall[sec.wallptr].y);
+		}
+
 		hash = prime * hash + NumberUtils.floatToIntBits(sec.floorz);
 		hash = prime * hash + NumberUtils.floatToIntBits(sec.floorheinum);
 		hash = prime * hash + (sec.isSlopedFloor() ? 1 : 0);
@@ -725,6 +730,11 @@ public class WorldMesh {
 			hash = prime * hash + NumberUtils.floatToIntBits(nsec.ceilingheinum);
 			hash = prime * hash + (nsec.isSlopedCeiling() ? 1 : 0);
 			hash = prime * hash + (nsec.isParallaxCeiling() ? 1 : 0);
+
+			if (((nsec.ceilingstat | nsec.floorstat) & 2) != 0) {
+				hash = prime * hash + NumberUtils.floatToIntBits(wall[nsec.wallptr].x);
+				hash = prime * hash + NumberUtils.floatToIntBits(wall[nsec.wallptr].y);
+			}
 		}
 
 		return hash;
