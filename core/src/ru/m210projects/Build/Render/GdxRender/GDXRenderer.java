@@ -99,8 +99,8 @@ public class GDXRenderer implements GLRenderer {
 
 //	TODO:
 //  small font rendering
-//  mirror skies rendering
-//  Duke E2L7 wall vis bug
+//  Duke E2L7 wall vis bug (scanner bug)
+//  Duke E4L11 wall vis bug (scanner bug)
 
 //  Setviewtotile bug (tekwar)
 //  Fullscreen change

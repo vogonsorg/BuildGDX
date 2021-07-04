@@ -48,6 +48,7 @@ public class WorldShader {
 			+ "uniform int u_shade;\n" //
 			+ "uniform bool u_draw255;\n" //
 			+ "uniform float u_alpha;\n" //
+			+ "uniform bool u_drawSprite;\n" //
 			+ "\n" //
 			+ "varying float v_dist;\n" //
 			+ "varying vec2 v_texCoords;\n" //
@@ -93,6 +94,8 @@ public class WorldShader {
 			+ "    float fi = texture2D(u_texture, v_texCoords).r;\n" //
 			+ "    if(fi == 1.0) {\n" //
 			+ "        if(!u_draw255) {\n" //
+			+ "            if(u_drawSprite)\n" //
+			+ "               discard;\n" //
 			+ "            gl_FragColor = vec4(0.01);\n" //
 			+ "            return;\n" //
 			+ "        }\n" //
