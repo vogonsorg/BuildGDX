@@ -85,6 +85,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
@@ -164,7 +165,109 @@ public class GDXRenderer implements GLRenderer {
 			}
 		};
 
-		this.orphoRen = new GdxOrphoRen(engine, textureCache);
+		this.orphoRen = new GdxOrphoRen(engine, textureCache) {
+			@Override
+			public void drawmapview(int dax, int day, int zoome, int ang) { // TODO:
+				beforedrawrooms = 0;
+
+				Arrays.fill(gotsector, (byte) 0);
+
+				texshader.begin();
+				texshader.setUniformMatrix("u_projTrans", this.batch.projectionMatrix);
+
+				int sortnum = 0;
+				for (int s = 0; s < numsectors; s++) {
+					SECTOR sec = sector[s];
+
+					if (fullmap || (show2dsector[s >> 3] & pow2char[s & 7]) != 0) {
+						if (showflspr) {
+							// Collect floor sprites to draw
+							for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
+								if ((sprite[i].cstat & 48) == 32) {
+									if (sortnum >= MAXSPRITESONSCREEN)
+										break;
+
+									if ((sprite[i].cstat & (64 + 8)) == (64 + 8))
+										continue;
+
+									if (tsprite[sortnum] == null)
+										tsprite[sortnum] = new SPRITE();
+									tsprite[sortnum].set(sprite[i]);
+									tsprite[sortnum++].owner = (short) i;
+								}
+						}
+
+						if (showspr) {
+							for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
+								if ((show2dsprite[i >> 3] & pow2char[i & 7]) != 0) {
+									if (sortnum >= MAXSPRITESONSCREEN)
+										break;
+
+									if (tsprite[sortnum] == null)
+										tsprite[sortnum] = new SPRITE();
+									tsprite[sortnum].set(sprite[i]);
+									tsprite[sortnum++].owner = (short) i;
+								}
+						}
+
+						gotsector[s >> 3] |= pow2char[s & 7];
+						if (sec.isParallaxFloor())
+							continue;
+						globalpal = sec.floorpal;
+
+						int globalpicnum = sec.floorpicnum;
+						if (globalpicnum >= MAXTILES)
+							globalpicnum = 0;
+						engine.setgotpic(globalpicnum);
+						Tile pic = engine.getTile(globalpicnum);
+
+						if (!pic.hasSize())
+							continue;
+
+						if (pic.getType() != AnimType.None) {
+							globalpicnum += engine.animateoffs(globalpicnum, s);
+							pic = engine.getTile(globalpicnum);
+						}
+
+						if (!pic.isLoaded())
+							engine.loadtile(globalpicnum);
+
+						globalshade = max(min(sec.floorshade, numshades - 1), 0);
+
+						GLSurface surf = world.getFloor(s);
+						drawSurf(surf, 0);
+					}
+				}
+
+				if (showspr) {
+					// Sort sprite list
+					int gap = 1;
+					while (gap < sortnum)
+						gap = (gap << 1) + 1;
+					for (gap >>= 1; gap > 0; gap >>= 1)
+						for (int i = 0; i < sortnum - gap; i++)
+							for (int j = i; j >= 0; j -= gap) {
+								if (sprite[tsprite[j].owner].z <= sprite[tsprite[j + gap].owner].z)
+									break;
+
+								short tmp = tsprite[j].owner;
+								tsprite[j].owner = tsprite[j + gap].owner;
+								tsprite[j + gap].owner = tmp;
+							}
+
+					for (int s = sortnum - 1; s >= 0; s--) {
+						SPRITE spr = sprite[tsprite[s].owner];
+						if ((spr.cstat & 32768) == 0) {
+							if (spr.picnum >= MAXTILES)
+								spr.picnum = 0;
+
+							Tile pic = engine.getTile(spr.picnum);
+
+						}
+					}
+				}
+			}
+		};
 
 		Arrays.fill(mirrorTextures, false);
 		int[] mirrors = getMirrorTextures();
@@ -530,7 +633,7 @@ public class GDXRenderer implements GLRenderer {
 		texshader.setUniformMatrix("u_modelView", cam.view);
 		texshader.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
 		texshader.setUniformf("u_viewport", windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
-		texshader.setClip(0, 0, xdim, ydim);
+//		texshader.setClip(0, 0, xdim, ydim);
 
 		prerender(sectors);
 

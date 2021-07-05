@@ -7,8 +7,6 @@ import static ru.m210projects.Build.Engine.globalposy;
 import static ru.m210projects.Build.Engine.globalposz;
 import static ru.m210projects.Build.Engine.globalvisibility;
 import static ru.m210projects.Build.Engine.sector;
-import static ru.m210projects.Build.Engine.xdim;
-import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
@@ -263,7 +261,7 @@ public class SpriteRenderer {
 			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
 
 		parent.getTextureShader().setVisibility((int) (-vis / 64.0f));
-		parent.getTextureShader().setClip(0, 0, xdim, ydim);
+//		parent.getTextureShader().setClip(0, 0, xdim, ydim);
 
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;

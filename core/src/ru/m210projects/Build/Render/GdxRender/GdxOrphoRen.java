@@ -22,7 +22,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.curpalette;
@@ -51,7 +51,7 @@ import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.TileFont.FontType;
 
-public class GdxOrphoRen extends OrphoRenderer {
+public abstract class GdxOrphoRen extends OrphoRenderer {
 
 	protected final TextureManager textureCache;
 	protected final GdxBatch batch;
@@ -116,12 +116,6 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 	@Override
 	public void uninit() {
-	}
-
-	@Override
-	public void drawmapview(int dax, int day, int zoome, int ang) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -202,11 +196,22 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
+		float sx1 = x1 / 4096.0f;
+		float sy1 = ydim - y1 / 4096.0f;
+		float sx2 = x2 / 4096.0f;
+		float sy2 = ydim - y2 / 4096.0f;
+
+		if (sx1 < 0 && sx2 < 0 || sx1 > xdim && sx2 > xdim)
+			return;
+
+		if (sy1 < 0 && sy2 < 0 || sy1 > ydim && sy2 > ydim)
+			return;
+
 		col = palookup[0][col] & 0xFF;
 
 		shape.begin(ShapeType.Line);
 		shape.setColor(curpalette.getRed(col), curpalette.getGreen(col), curpalette.getBlue(col), 255);
-		shape.line(x1 / 4096.0f, ydim - y1 / 4096.0f, x2 / 4096.0f, ydim - y2 / 4096.0f);
+		shape.line(sx1, sy1, sx2, sy2);
 		shape.end();
 	}
 

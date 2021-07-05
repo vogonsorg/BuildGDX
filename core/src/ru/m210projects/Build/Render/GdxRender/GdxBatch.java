@@ -50,7 +50,7 @@ public class GdxBatch {
 
 	boolean drawing = false;
 
-	private final Matrix4 projectionMatrix = new Matrix4();
+	public final Matrix4 projectionMatrix = new Matrix4();
 
 	private boolean blendingDisabled = false;
 	private int blendSrcFunc = GL20.GL_SRC_ALPHA;

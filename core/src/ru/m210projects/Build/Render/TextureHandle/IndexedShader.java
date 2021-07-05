@@ -18,7 +18,6 @@ package ru.m210projects.Build.Render.TextureHandle;
 
 import static ru.m210projects.Build.Engine.*;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
@@ -38,10 +37,10 @@ public abstract class IndexedShader extends ShaderProgram {
 //			+ "uniform vec4 u_fogcolour;" //
 //			+ "uniform float u_fogstart;" //
 //			+ "uniform float u_fogend;" //
-			+ "uniform float u_cx1;" //
-			+ "uniform float u_cy1;" //
-			+ "uniform float u_cx2;" //
-			+ "uniform float u_cy2;" //
+//			+ "uniform float u_cx1;" //
+//			+ "uniform float u_cy1;" //
+//			+ "uniform float u_cx2;" //
+//			+ "uniform float u_cy2;" //
 			+ "varying float v_dist;" //
 			+ "varying vec2 v_texCoords;" //
 //			+ "float fog(float dist) {" //
@@ -57,9 +56,9 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ "}" //
 			+ "void main()" //
 			+ "{" //
-			+ "	if(gl_FragCoord.x < u_cx1 || gl_FragCoord.x > u_cx2" //
-			+ "		|| gl_FragCoord.y > u_cy1 || gl_FragCoord.y < u_cy2)" //
-			+ "		discard;" //
+//			+ "	if(gl_FragCoord.x < u_cx1 || gl_FragCoord.x > u_cx2" //
+//			+ "		|| gl_FragCoord.y > u_cy1 || gl_FragCoord.y < u_cy2)" //
+//			+ "		discard;" //
 			+ "	float fi = texture2D(u_texture, v_texCoords).r;" //
 			+ "	if(fi == 1.0)" //
 			+ "	{" //
@@ -92,17 +91,17 @@ public abstract class IndexedShader extends ShaderProgram {
 	private int shadeloc;
 	private int alphaloc;
 	private int draw255loc;
-	private int fogenableloc;
-	private int fogstartloc;
-	private int fogendloc;
-	private int fogcolourloc;
-	private int cx1loc;
-	private int cy1loc;
-	private int cx2loc;
-	private int cy2loc;
+//	private int fogenableloc;
+//	private int fogstartloc;
+//	private int fogendloc;
+//	private int fogcolourloc;
+//	private int cx1loc;
+//	private int cy1loc;
+//	private int cx2loc;
+//	private int cy2loc;
 
 	private boolean isBinded;
-	private boolean glfog = false; //
+//	private boolean glfog = false; //
 
 	public IndexedShader() throws Exception {
 		super(defaultVertex, defaultFragment);
@@ -125,18 +124,18 @@ public abstract class IndexedShader extends ShaderProgram {
 		this.shadeloc = getUniformLocation("u_shade");
 		this.alphaloc = getUniformLocation("u_alpha");
 		this.draw255loc = getUniformLocation("u_draw255");
-		this.fogenableloc = getUniformLocation("u_fogenable");
-		this.fogstartloc = getUniformLocation("u_fogstart");
-		this.fogendloc = getUniformLocation("u_fogend");
-		this.fogcolourloc = getUniformLocation("u_fogcolour");
-		this.cx1loc = getUniformLocation("u_cx1");
-		this.cy1loc = getUniformLocation("u_cy1");
-		this.cx2loc = getUniformLocation("u_cx2");
-		this.cy2loc = getUniformLocation("u_cy2");
+//		this.fogenableloc = getUniformLocation("u_fogenable");
+//		this.fogstartloc = getUniformLocation("u_fogstart");
+//		this.fogendloc = getUniformLocation("u_fogend");
+//		this.fogcolourloc = getUniformLocation("u_fogcolour");
+//		this.cx1loc = getUniformLocation("u_cx1");
+//		this.cy1loc = getUniformLocation("u_cy1");
+//		this.cx2loc = getUniformLocation("u_cx2");
+//		this.cy2loc = getUniformLocation("u_cy2");
 
-		begin();
-		setClip(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		end();
+//		begin();
+//		setClip(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//		end();
 	}
 
 	public abstract void bindPalette();
@@ -159,12 +158,12 @@ public abstract class IndexedShader extends ShaderProgram {
 		return isBinded;
 	}
 
-	public void setClip(float x1, float y1, float x2, float y2) {
-		setUniformf(cx1loc, x1);
-		setUniformf(cy1loc, ydim - y1);
-		setUniformf(cx2loc, x2);
-		setUniformf(cy2loc, ydim - y2);
-	}
+//	public void setClip(float x1, float y1, float x2, float y2) {
+//		setUniformf(cx1loc, x1);
+//		setUniformf(cy1loc, ydim - y1);
+//		setUniformf(cx2loc, x2);
+//		setUniformf(cy2loc, ydim - y2);
+//	}
 
 	public void setTextureParams(int pal, int shade) {
 		setUniformf(numshadesloc, numshades);
@@ -193,23 +192,23 @@ public abstract class IndexedShader extends ShaderProgram {
 		setUniformf(visibilityloc, vis / 64.0f);
 	}
 
-	public void setFogParams(boolean enable, float start, float end, float[] fogcolor) {
-		boolean binded = isBinded();
-		if (!binded)
-			begin();
-
-		if (!glfog) {
-			setUniformi(fogenableloc, -1);
-		} else {
-			setUniformi(fogenableloc, enable ? 1 : 0);
-			if (enable) {
-				setUniformf(fogstartloc, start);
-				setUniformf(fogendloc, end);
-				setUniform4fv(fogcolourloc, fogcolor, 0, 4);
-			}
-		}
-		if (!binded)
-			end();
-	}
+//	public void setFogParams(boolean enable, float start, float end, float[] fogcolor) {
+//		boolean binded = isBinded();
+//		if (!binded)
+//			begin();
+//
+//		if (!glfog) {
+//			setUniformi(fogenableloc, -1);
+//		} else {
+//			setUniformi(fogenableloc, enable ? 1 : 0);
+//			if (enable) {
+//				setUniformf(fogstartloc, start);
+//				setUniformf(fogendloc, end);
+//				setUniform4fv(fogcolourloc, fogcolor, 0, 4);
+//			}
+//		}
+//		if (!binded)
+//			end();
+//	}
 
 }
