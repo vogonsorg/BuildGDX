@@ -44,7 +44,7 @@ public interface GLRenderer extends Renderer {
 
 	public TextureManager getTextureManager();
 
-	public void enableShader(boolean enable);
+	public void enableIndexedShader(boolean enable);
 
 	public void palfade(HashMap<String, FadeEffect> fades);
 
@@ -55,8 +55,6 @@ public interface GLRenderer extends Renderer {
 	public void gltexapplyprops();
 
 	public void gltexinvalidateall(GLInvalidateFlag... flags);
-
-	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth);
 
 	public void setdrunk(float intensive);
 

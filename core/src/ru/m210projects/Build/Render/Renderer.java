@@ -67,6 +67,8 @@ public interface Renderer {
 
 	public void nextpage();
 
+	public void invalidatetile(int tilenume, int pal, int how);
+
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
 			int cy1, int cx2, int cy2);
 
@@ -82,6 +84,8 @@ public interface Renderer {
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 
 	public ByteBuffer getFrame(PixelFormat format, int xsiz, int ysiz);
+
+	public byte[] screencapture(int newwidth, int newheight);
 
 	public void drawline256(int x1, int y1, int x2, int y2, int col);
 

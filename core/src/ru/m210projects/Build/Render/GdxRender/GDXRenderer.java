@@ -39,6 +39,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
+import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
 
@@ -49,16 +50,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.Plane.PlaneSide;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
@@ -70,10 +68,8 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
-import ru.m210projects.Build.Render.GdxRender.Tesselator.Vertex;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
-import ru.m210projects.Build.Render.GdxRender.Scanner.PolygonClipper;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
 import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 import ru.m210projects.Build.Render.GdxRender.Shaders.SkyShader;
@@ -911,6 +907,50 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	@Override
+	public byte[] screencapture(int newwidth, int newheight) {
+		byte[] capture = new byte[newwidth * newheight];
+
+		int xf = divscale(xdim, newwidth, 16);
+		int yf = divscale(ydim, newheight, 16);
+
+		ByteBuffer frame = getFrame(PixelFormat.Rgb, xdim, -ydim);
+
+		int byteperpixel = 3;
+		if (BuildGdx.app.getType() == ApplicationType.Android)
+			byteperpixel = 4;
+
+		int base;
+		for (int fx, fy = 0; fy < newheight; fy++) {
+			base = mulscale(fy, yf, 16) * xdim;
+			for (fx = 0; fx < newwidth; fx++) {
+				int pos = base + mulscale(fx, xf, 16);
+				frame.position(byteperpixel * pos);
+				int r = (frame.get() & 0xFF) >> 2;
+				int g = (frame.get() & 0xFF) >> 2;
+				int b = (frame.get() & 0xFF) >> 2;
+
+				capture[newheight * fx + fy] = engine.getclosestcol(palette, r, g, b);
+			}
+		}
+
+		return capture;
+	}
+
+	protected byte getcol(ByteBuffer frame, int pos, FrameType format, int byteperpixel) {
+		switch (format) {
+		case Canvas:
+			frame.position(pos);
+			return frame.get();
+		default:
+			frame.position(byteperpixel * pos);
+			int r = (frame.get() & 0xFF) >> 2;
+			int g = (frame.get() & 0xFF) >> 2;
+			int b = (frame.get() & 0xFF) >> 2;
+			return engine.getclosestcol(palette, r, g, b);
+		}
+	}
+
+	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
 		set2dview();
 		orphoRen.drawline256(x1, y1, x2, y2, col);
@@ -940,7 +980,7 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	@Override
-	public void enableShader(boolean enable) {
+	public void enableIndexedShader(boolean enable) {
 		// TODO: 8bit / rgb switch
 	}
 
@@ -1051,9 +1091,50 @@ public class GDXRenderer implements GLRenderer {
 		}
 	}
 
+	//
+	// invalidatetile
+	// pal: pass -1 to invalidate all palettes for the tile, or >=0 for a particular
+	// palette
+	// how: pass -1 to invalidate all instances of the tile in texture memory, or a
+	// bitfield
+	// bit 0: opaque or masked (non-translucent) texture, using repeating
+	// bit 1: ignored
+	// bit 2: ignored (33% translucence, using repeating)
+	// bit 3: ignored (67% translucence, using repeating)
+	// bit 4: opaque or masked (non-translucent) texture, using clamping
+	// bit 5: ignored
+	// bit 6: ignored (33% translucence, using clamping)
+	// bit 7: ignored (67% translucence, using clamping)
+	// clamping is for sprites, repeating is for walls
+	//
+
 	@Override
-	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {
-		textureCache.invalidate(dapicnum, dapalnum, textureCache.clampingMode(dameth));
+	public void invalidatetile(int tilenume, int pal, int how) { // jfBuild
+		int numpal, firstpal, np;
+		int hp;
+
+		PixelFormat fmt = textureCache.getFmt(tilenume);
+		if (fmt != null && fmt == PixelFormat.Pal8) {
+			numpal = 1;
+			firstpal = 0;
+		} else {
+			if (pal < 0) {
+				numpal = MAXPALOOKUPS;
+				firstpal = 0;
+			} else {
+				numpal = 1;
+				firstpal = pal % MAXPALOOKUPS;
+			}
+		}
+
+		for (hp = 0; hp < 8; hp += 4) {
+			if ((how & pow2long[hp]) == 0)
+				continue;
+
+			for (np = firstpal; np < firstpal + numpal; np++) {
+				textureCache.invalidate(tilenume, np, textureCache.clampingMode(hp));
+			}
+		}
 	}
 
 	@Override

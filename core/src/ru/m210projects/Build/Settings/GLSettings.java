@@ -150,7 +150,7 @@ public class GLSettings extends BuildSettings {
 			public void execute(Boolean value) {
 				GLRenderer gl = engine.glrender();
 				if (gl != null)
-					gl.enableShader(value);
+					gl.enableIndexedShader(value);
 				cfg.paletteEmulation = value;
 			}
 		};

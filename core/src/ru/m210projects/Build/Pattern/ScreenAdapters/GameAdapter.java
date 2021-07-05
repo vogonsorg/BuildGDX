@@ -226,7 +226,7 @@ public abstract class GameAdapter extends ScreenAdapter {
 		gScreenCapture = new Runnable() {
 			@Override
 			public void run() {
-				captBuffer = pEngine.screencapture(width, height);
+				captBuffer = pEngine.getrender().screencapture(width, height);
 			}
 		};
 	}

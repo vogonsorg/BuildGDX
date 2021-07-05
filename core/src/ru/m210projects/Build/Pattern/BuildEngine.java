@@ -71,13 +71,13 @@ public class BuildEngine extends Engine {
 	}
 
 	@Override
-	public void dragpoint(short pointhighlight, int dax, int day) {
+	public void dragpoint(int pointhighlight, int dax, int day) {
 		game.pInt.setwallinterpolate(pointhighlight, wall[pointhighlight]);
 		wall[pointhighlight].x = dax;
 		wall[pointhighlight].y = day;
 
 		int cnt = MAXWALLS;
-		short tempshort = pointhighlight; // search points CCW
+		int tempshort = pointhighlight; // search points CCW
 		do {
 			if (wall[tempshort].nextwall >= 0) {
 				tempshort = wall[wall[tempshort].nextwall].point2;

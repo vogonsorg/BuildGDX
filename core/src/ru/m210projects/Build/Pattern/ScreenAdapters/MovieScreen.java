@@ -6,7 +6,6 @@ import static ru.m210projects.Build.Input.Keymap.ANYKEY;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.BuildFont;
-import ru.m210projects.Build.Pattern.ScreenAdapters.SkippableAdapter;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.GLRenderer.GLInvalidateFlag;
 import ru.m210projects.Build.Settings.BuildSettings;
@@ -108,8 +107,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 		if (kv >= kt) {
 			scale = (ydim / (float) pic.getWidth());
 			scale /= (ydim / (float) 200);
-		}
-		else {
+		} else {
 			scale = (xdim / (float) pic.getHeight());
 			scale /= ((4 * ydim) / (float) (3 * 320));
 		}
@@ -140,7 +138,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 		changepalette(mvfil.getPalette());
 
 		final GLRenderer gl = engine.glrender();
-		if(gl != null)
+		if (gl != null)
 			gl.gltexinvalidateall(GLInvalidateFlag.Palookup);
 
 		frame = 0;
@@ -183,7 +181,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 		for (int i = 0; i < 256; i++) {
 			int tile = GetFont().getTile(i);
 			if (tile >= 0)
-				engine.invalidatetile(tile, palnum, -1);
+				engine.getrender().invalidatetile(tile, palnum, -1);
 		}
 	}
 
@@ -200,7 +198,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 			if (mvtime >= tick) {
 				if (frame < mvfil.getFrames()) {
 					pic.data = DoDrawFrame(frame);
-					engine.invalidatetile(TILE_MOVIE, 0, -1); // JBF 20031228
+					engine.getrender().invalidatetile(TILE_MOVIE, 0, -1); // JBF 20031228
 
 					frame++;
 				} else
@@ -250,7 +248,7 @@ public abstract class MovieScreen extends SkippableAdapter {
 		if (mvfil != null) {
 			System.arraycopy(opalookup, 0, palookup[0], 0, opalookup.length);
 			final GLRenderer gl = engine.glrender();
-			if(gl != null)
+			if (gl != null)
 				gl.gltexinvalidateall(GLInvalidateFlag.Palookup);
 			mvfil.close();
 		}

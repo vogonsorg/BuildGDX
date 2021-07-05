@@ -376,7 +376,7 @@ public class DefScript {
 			if (tile.waloff == null)
 				continue;
 
-			engine.invalidatetile(i, -1, -1);
+			engine.getrender().invalidatetile(i, -1, -1);
 
 			pic.data = new byte[tile.waloff.length];
 			System.arraycopy(tile.waloff, 0, pic.data, 0, tile.waloff.length);

@@ -46,6 +46,7 @@ import static ru.m210projects.Build.Loader.MDAnimation.mdpause;
 import static ru.m210projects.Build.Loader.MDAnimation.mdtims;
 import static ru.m210projects.Build.Loader.MDAnimation.omdtims;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
+import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
@@ -65,6 +66,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.math.Vector2;
@@ -378,7 +380,7 @@ public abstract class Polymost implements GLRenderer {
 	}
 
 	@Override
-	public void enableShader(boolean enable) {
+	public void enableIndexedShader(boolean enable) {
 		boolean isChanged = false;
 		if (enable) {
 			if (texshader == null) {
@@ -410,9 +412,50 @@ public abstract class Polymost implements GLRenderer {
 		this.defs = defs;
 	}
 
+	//
+	// invalidatetile
+	// pal: pass -1 to invalidate all palettes for the tile, or >=0 for a particular
+	// palette
+	// how: pass -1 to invalidate all instances of the tile in texture memory, or a
+	// bitfield
+	// bit 0: opaque or masked (non-translucent) texture, using repeating
+	// bit 1: ignored
+	// bit 2: ignored (33% translucence, using repeating)
+	// bit 3: ignored (67% translucence, using repeating)
+	// bit 4: opaque or masked (non-translucent) texture, using clamping
+	// bit 5: ignored
+	// bit 6: ignored (33% translucence, using clamping)
+	// bit 7: ignored (67% translucence, using clamping)
+	// clamping is for sprites, repeating is for walls
+	//
+
 	@Override
-	public void gltexinvalidate(int dapicnum, int dapalnum, int dameth) {
-		textureCache.invalidate(dapicnum, dapalnum, textureCache.clampingMode(dameth));
+	public void invalidatetile(int tilenume, int pal, int how) {
+		int numpal, firstpal, np;
+		int hp;
+
+		PixelFormat fmt = textureCache.getFmt(tilenume);
+		if (fmt != null && fmt == PixelFormat.Pal8) {
+			numpal = 1;
+			firstpal = 0;
+		} else {
+			if (pal < 0) {
+				numpal = MAXPALOOKUPS;
+				firstpal = 0;
+			} else {
+				numpal = 1;
+				firstpal = pal % MAXPALOOKUPS;
+			}
+		}
+
+		for (hp = 0; hp < 8; hp += 4) {
+			if ((how & pow2long[hp]) == 0)
+				continue;
+
+			for (np = firstpal; np < firstpal + numpal; np++) {
+				textureCache.invalidate(tilenume, np, textureCache.clampingMode(hp));
+			}
+		}
 	}
 
 	// Make all textures "dirty" so they reload, but not re-allocate
@@ -512,7 +555,7 @@ public abstract class Polymost implements GLRenderer {
 		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
 		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-		enableShader(GLSettings.usePaletteShader.get());
+		enableIndexedShader(GLSettings.usePaletteShader.get());
 
 		orpho.init();
 		globalfog.init(textureCache);
@@ -3650,6 +3693,36 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		return null;
+	}
+
+	@Override
+	public byte[] screencapture(int dwidth, int dheigth) {
+		byte[] capture = new byte[dwidth * dheigth];
+
+		long xf = divscale(xdim, dwidth, 16);
+		long yf = divscale(ydim, dheigth, 16);
+
+		ByteBuffer frame = getFrame(PixelFormat.Rgb, xdim, -ydim);
+
+		int byteperpixel = 3;
+		if (BuildGdx.app.getType() == ApplicationType.Android)
+			byteperpixel = 4;
+
+		int base;
+		for (int fx, fy = 0; fy < dheigth; fy++) {
+			base = mulscale(fy, yf, 16) * xdim;
+			for (fx = 0; fx < dwidth; fx++) {
+				int pos = base + mulscale(fx, xf, 16);
+				frame.position(byteperpixel * pos);
+				int r = (frame.get() & 0xFF) >> 2;
+				int g = (frame.get() & 0xFF) >> 2;
+				int b = (frame.get() & 0xFF) >> 2;
+
+				capture[dheigth * fx + fy] = engine.getclosestcol(palette, r, g, b);
+			}
+		}
+
+		return capture;
 	}
 
 	public int nearwall(int i, int range) {

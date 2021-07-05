@@ -3642,6 +3642,25 @@ public abstract class Software implements Renderer {
 	}
 
 	@Override
+	public byte[] screencapture(int newwidth, int newheight) {
+		byte[] capture = new byte[newwidth * newheight];
+
+		int xf = divscale(xdim, newwidth, 16);
+		int yf = divscale(ydim, newheight, 16);
+
+		byte[] frameplace = a.getframeplace();
+		int base;
+		for (int fx, fy = 0; fy < newheight; fy++) {
+			base = mulscale(fy, yf, 16) * xdim;
+			for (fx = 0; fx < newwidth; fx++) {
+				capture[newheight * fx + fy] = frameplace[base + mulscale(fx, xf, 16)];
+			}
+		}
+
+		return capture;
+	}
+
+	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int c) {
 		orpho.drawline256(x1, y1, x2, y2, c);
 	}
@@ -4298,5 +4317,10 @@ public abstract class Software implements Renderer {
 	@Override
 	public void setDefs(DefScript defs) {
 		this.defs = defs;
+	}
+
+	@Override
+	public void invalidatetile(int tilenume, int pal, int how) {
+		/* nothing */
 	}
 }
