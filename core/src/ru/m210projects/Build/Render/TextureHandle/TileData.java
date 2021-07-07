@@ -66,17 +66,20 @@ public abstract class TileData {
 			FileResource raw = BuildGdx.compat.open(name + ".raw", Path.Absolute, Mode.Write);
 			raw.writeBytes(pixels, width * height);
 			raw.close();
+
+			System.out.println(raw.getPath() + " saved!");
 			return;
 		}
 
 		name += ".png";
-		Pixmap pixmap = new Pixmap(width, height, Format.RGB888);
+		Pixmap pixmap = new Pixmap(width, height,
+				getPixelFormat() == PixelFormat.Rgba ? Format.RGBA8888 : Format.RGB888);
 		float[] color = new float[4];
 		for (int i = 0; i < (width * height); i++) {
 			for (int c = 0; c < bytes; c++)
 				color[c] = (pixels.get((i * bytes) + c) & 0xFF) / 255.f;
 
-			pixmap.setColor(color[0], color[1], color[2], 1.0f);
+			pixmap.setColor(color[0], color[1], color[2], color[3]);
 			int row = (int) Math.floor(i / width);
 			int col = i % width;
 			pixmap.drawPixel(col, row);

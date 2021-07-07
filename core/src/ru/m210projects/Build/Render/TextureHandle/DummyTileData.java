@@ -1,6 +1,6 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
-import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
+import static com.badlogic.gdx.graphics.GL20.*;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 
 import java.nio.ByteBuffer;
@@ -12,11 +12,31 @@ public class DummyTileData extends TileData {
 
 	public final TextureBuffer data;
 	public final int width, height;
+	public final PixelFormat fmt;
+	public int format, internalformat;
 
-	public DummyTileData(int width, int height) {
+	public DummyTileData(PixelFormat fmt, int width, int height) {
 		this.width = width;
 		this.height = height;
-		this.data = new DirectTextureBuffer(width * height * 4);
+		this.fmt = fmt;
+		this.data = new DirectTextureBuffer(width * height * fmt.getLength());
+
+		switch (fmt) {
+		case Rgba:
+			format = GL_RGBA;
+			internalformat = GL_RGBA;
+			break;
+		case Rgb:
+			format = GL_RGB;
+			internalformat = GL_RGB;
+			break;
+		case Pal8:
+			format = GL_LUMINANCE;
+			internalformat = GL_LUMINANCE;
+			break;
+		case Bitmap:
+			break;
+		}
 	}
 
 	@Override
@@ -41,17 +61,17 @@ public class DummyTileData extends TileData {
 
 	@Override
 	public int getGLInternalFormat() {
-		return GL_RGBA;
+		return internalformat;
 	}
 
 	@Override
 	public int getGLFormat() {
-		return GL_RGBA;
+		return format;
 	}
 
 	@Override
 	public PixelFormat getPixelFormat() {
-		return PixelFormat.Rgba;
+		return fmt;
 	}
 
 	@Override

@@ -29,7 +29,7 @@ public class TileFont {
 	public abstract static class TileFontData extends DummyTileData {
 
 		public TileFontData(int width, int height) {
-			super(width, height);
+			super(PixelFormat.Rgba, width, height);
 			buildAtlas(data);
 		}
 

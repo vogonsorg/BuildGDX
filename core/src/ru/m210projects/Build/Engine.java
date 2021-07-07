@@ -1366,7 +1366,7 @@ public abstract class Engine {
 			DisplayMode m = null;
 			for (DisplayMode mode : BuildGdx.graphics.getDisplayModes()) {
 				if (mode.width == daxdim && mode.height == daydim)
-					if (m == null || m.refreshRate < BuildGdx.graphics.getDisplayMode().refreshRate) {
+					if (m == null || m.refreshRate < mode.refreshRate) {
 						m = mode;
 					}
 			}

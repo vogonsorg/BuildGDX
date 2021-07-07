@@ -327,7 +327,7 @@ public class TextureManager {
 	private abstract class ShaderData extends DummyTileData {
 
 		public ShaderData(byte[] buf, int w, int h, int bytes) {
-			super(w, h);
+			super(PixelFormat.Rgb, w, h);
 			data.clear();
 			data.putBytes(buf, 0, buf.length);
 		}
