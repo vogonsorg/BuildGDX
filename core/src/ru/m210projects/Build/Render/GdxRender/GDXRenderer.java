@@ -42,6 +42,7 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -57,6 +58,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
@@ -100,7 +102,6 @@ public class GDXRenderer implements GLRenderer {
 //  Duke E4L11 wall vis bug (scanner bug)
 
 //  Setviewtotile bug (tekwar)
-//  Fullscreen change
 //	Overheadmap
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
@@ -650,6 +651,39 @@ public class GDXRenderer implements GLRenderer {
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
+
+		float zoom = 1 / 30.0f;
+
+		cam.projection.setToOrtho(zoom * -xdim / 2, zoom * (xdim / 2), zoom * -(ydim / 2), zoom * ydim / 2, -cam.far,
+				cam.far);
+		cam.view.idt();
+		cam.view.scale(-1, 1, -1);
+		cam.combined.set(cam.projection);
+		Matrix4.mul(cam.combined.val, cam.view.val);
+
+		texshader.begin();
+		texshader.setUniformMatrix("u_projTrans", cam.combined);
+		texshader.setUniformMatrix("u_modelView", transform.idt());
+		texshader.setUniformi("u_drawSprite", 1);
+		setFrustum(null);
+
+		gl.glDisable(GL_DEPTH_TEST);
+		for (int i = numsectors - 1; i >= 0; i--) {
+			GLSurface flor = world.getFloor(i);
+			if (flor != null) {
+				transform.idt();
+				transform.rotate(0, 0, 1, (512 - cam.getAngle()) * buildAngleToDegrees);
+				transform.translate(-cam.position.x, -cam.position.y, -sector[i].floorz / 8192.0f);
+				texshader.setUniformMatrix("u_spriteTrans", transform);
+
+				bind(TileData.PixelFormat.Pal8, flor.picnum, flor.getPal(), flor.getShade(), 0, 0);
+				flor.render(texshader);
+			}
+		}
+		gl.glEnable(GL_DEPTH_TEST);
+		texshader.setUniformi("u_drawSprite", 0);
+		texshader.end();
+
 	}
 
 	private void prerender(ArrayList<VisibleSector> sectors) {

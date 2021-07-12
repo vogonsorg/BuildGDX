@@ -112,6 +112,7 @@ public abstract class GdxOrphoRen extends OrphoRenderer {
 
 	@Override
 	public void init() {
+		resize(xdim, ydim);
 	}
 
 	@Override
