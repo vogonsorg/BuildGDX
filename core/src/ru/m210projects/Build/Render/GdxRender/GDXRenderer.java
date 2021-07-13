@@ -653,16 +653,9 @@ public class GDXRenderer implements GLRenderer {
 		tsprite = scanner.getSprites();
 
 		float zoom = 1 / 30.0f;
-
-		cam.projection.setToOrtho(zoom * -xdim / 2, zoom * (xdim / 2), zoom * -(ydim / 2), zoom * ydim / 2, -cam.far,
-				cam.far);
-		cam.view.idt();
-		cam.view.scale(-1, 1, -1);
-		cam.combined.set(cam.projection);
-		Matrix4.mul(cam.combined.val, cam.view.val);
-
 		texshader.begin();
-		texshader.setUniformMatrix("u_projTrans", cam.combined);
+		texshader.setUniformMatrix("u_projTrans", transform.setToOrtho(zoom * xdim / 2, zoom * (-xdim / 2),
+				zoom * -(ydim / 2), zoom * ydim / 2, -cam.far, cam.far));
 		texshader.setUniformMatrix("u_modelView", transform.idt());
 		texshader.setUniformi("u_drawSprite", 1);
 		setFrustum(null);
@@ -673,7 +666,7 @@ public class GDXRenderer implements GLRenderer {
 			if (flor != null) {
 				transform.idt();
 				transform.rotate(0, 0, 1, (512 - cam.getAngle()) * buildAngleToDegrees);
-				transform.translate(-cam.position.x, -cam.position.y, -sector[i].floorz / 8192.0f);
+				transform.translate(-cam.position.x, -cam.position.y, -sector[i].floorz / cam.yscale);
 				texshader.setUniformMatrix("u_spriteTrans", transform);
 
 				bind(TileData.PixelFormat.Pal8, flor.picnum, flor.getPal(), flor.getShade(), 0, 0);
@@ -681,6 +674,11 @@ public class GDXRenderer implements GLRenderer {
 			}
 		}
 		gl.glEnable(GL_DEPTH_TEST);
+
+		transform.idt();
+		texshader.setUniformMatrix("u_projTrans", cam.combined);
+		texshader.setUniformMatrix("u_modelView", cam.view);
+
 		texshader.setUniformi("u_drawSprite", 0);
 		texshader.end();
 
