@@ -14,8 +14,7 @@ public class WorldShader {
 			+ "\n" //
 			+ "uniform mat4 u_modelView;\n" //
 			+ "uniform mat4 u_projTrans;\n" //
-			+ "uniform mat4 u_spriteTrans;\n" //
-			+ "uniform bool u_drawSprite;\n" //
+			+ "uniform mat4 u_transform;\n" //
 			+ "uniform bool u_mirror;\n" //
 			+ "\n" //
 			+ "varying LOWP float v_dist;\n" //
@@ -24,15 +23,8 @@ public class WorldShader {
 			+ "\n" //
 			+ "void main() {\n" //
 			+ "    v_texCoords = a_texCoord0;\n" //
-			+ "  \n" //
-			+ "    vec4 mv;\n" //
-			+ "    if(!u_drawSprite) {\n" //
-			+ "        mv = u_modelView * a_position;\n" //
-			+ "        gl_Position = u_projTrans * a_position;\n" //
-			+ "    } else {\n" //
-			+ "        mv = u_modelView * u_spriteTrans  * a_position;\n" //
-			+ "        gl_Position = u_projTrans * u_spriteTrans * a_position;\n" //
-			+ "    }\n" //
+			+ "    vec4 mv = u_modelView * u_transform  * a_position;\n" //
+			+ "    gl_Position = u_projTrans * u_transform * a_position;\n" //
 			+ "    if(u_mirror)\n" //
 			+ "        gl_Position.x *= -1.0;\n" //
 			+ "    v_dist = mv.z / mv.w;\n" //

@@ -58,7 +58,6 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Engine;
@@ -136,7 +135,7 @@ public class GDXRenderer implements GLRenderer {
 
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
-	private Matrix4 transform = new Matrix4();
+	protected Matrix4 transform = new Matrix4();
 	private boolean clearStatus = false;
 	private float glox1, gloy1, glox2, gloy2;
 	private boolean drunk;
@@ -166,109 +165,7 @@ public class GDXRenderer implements GLRenderer {
 			}
 		};
 
-		this.orphoRen = new GdxOrphoRen(engine, textureCache) {
-			@Override
-			public void drawmapview(int dax, int day, int zoome, int ang) { // TODO:
-				beforedrawrooms = 0;
-
-				Arrays.fill(gotsector, (byte) 0);
-
-				texshader.begin();
-				texshader.setUniformMatrix("u_projTrans", this.batch.projectionMatrix);
-
-				int sortnum = 0;
-				for (int s = 0; s < numsectors; s++) {
-					SECTOR sec = sector[s];
-
-					if (fullmap || (show2dsector[s >> 3] & pow2char[s & 7]) != 0) {
-						if (showflspr) {
-							// Collect floor sprites to draw
-							for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
-								if ((sprite[i].cstat & 48) == 32) {
-									if (sortnum >= MAXSPRITESONSCREEN)
-										break;
-
-									if ((sprite[i].cstat & (64 + 8)) == (64 + 8))
-										continue;
-
-									if (tsprite[sortnum] == null)
-										tsprite[sortnum] = new SPRITE();
-									tsprite[sortnum].set(sprite[i]);
-									tsprite[sortnum++].owner = (short) i;
-								}
-						}
-
-						if (showspr) {
-							for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
-								if ((show2dsprite[i >> 3] & pow2char[i & 7]) != 0) {
-									if (sortnum >= MAXSPRITESONSCREEN)
-										break;
-
-									if (tsprite[sortnum] == null)
-										tsprite[sortnum] = new SPRITE();
-									tsprite[sortnum].set(sprite[i]);
-									tsprite[sortnum++].owner = (short) i;
-								}
-						}
-
-						gotsector[s >> 3] |= pow2char[s & 7];
-						if (sec.isParallaxFloor())
-							continue;
-						globalpal = sec.floorpal;
-
-						int globalpicnum = sec.floorpicnum;
-						if (globalpicnum >= MAXTILES)
-							globalpicnum = 0;
-						engine.setgotpic(globalpicnum);
-						Tile pic = engine.getTile(globalpicnum);
-
-						if (!pic.hasSize())
-							continue;
-
-						if (pic.getType() != AnimType.None) {
-							globalpicnum += engine.animateoffs(globalpicnum, s);
-							pic = engine.getTile(globalpicnum);
-						}
-
-						if (!pic.isLoaded())
-							engine.loadtile(globalpicnum);
-
-						globalshade = max(min(sec.floorshade, numshades - 1), 0);
-
-						GLSurface surf = world.getFloor(s);
-						drawSurf(surf, 0);
-					}
-				}
-
-				if (showspr) {
-					// Sort sprite list
-					int gap = 1;
-					while (gap < sortnum)
-						gap = (gap << 1) + 1;
-					for (gap >>= 1; gap > 0; gap >>= 1)
-						for (int i = 0; i < sortnum - gap; i++)
-							for (int j = i; j >= 0; j -= gap) {
-								if (sprite[tsprite[j].owner].z <= sprite[tsprite[j + gap].owner].z)
-									break;
-
-								short tmp = tsprite[j].owner;
-								tsprite[j].owner = tsprite[j + gap].owner;
-								tsprite[j + gap].owner = tmp;
-							}
-
-					for (int s = sortnum - 1; s >= 0; s--) {
-						SPRITE spr = sprite[tsprite[s].owner];
-						if ((spr.cstat & 32768) == 0) {
-							if (spr.picnum >= MAXTILES)
-								spr.picnum = 0;
-
-							Tile pic = engine.getTile(spr.picnum);
-
-						}
-					}
-				}
-			}
-		};
+		this.orphoRen = new GdxOrphoRen(engine, this);
 
 		Arrays.fill(mirrorTextures, false);
 		int[] mirrors = getMirrorTextures();
@@ -407,7 +304,7 @@ public class GDXRenderer implements GLRenderer {
 		gl.glDepthFunc(GL20.GL_LESS);
 		gl.glDepthRangef(0.0001f, 0.99999f);
 
-		drawSurf(world.getMaskedWall(w), 0);
+		drawSurf(world.getMaskedWall(w), 0, transform.idt());
 
 		gl.glDepthFunc(GL20.GL_LESS);
 		gl.glDepthRangef(defznear, defzfar);
@@ -629,12 +526,10 @@ public class GDXRenderer implements GLRenderer {
 			texshader.setUniformi("u_mirror", 0);
 		}
 
-		texshader.setUniformi("u_drawSprite", 0);
 		texshader.setUniformMatrix("u_projTrans", cam.combined);
 		texshader.setUniformMatrix("u_modelView", cam.view);
 		texshader.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
 		texshader.setUniformf("u_viewport", windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
-//		texshader.setClip(0, 0, xdim, ydim);
 
 		prerender(sectors);
 
@@ -651,37 +546,6 @@ public class GDXRenderer implements GLRenderer {
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
-
-		float zoom = 1 / 30.0f;
-		texshader.begin();
-		texshader.setUniformMatrix("u_projTrans", transform.setToOrtho(zoom * xdim / 2, zoom * (-xdim / 2),
-				zoom * -(ydim / 2), zoom * ydim / 2, -cam.far, cam.far));
-		texshader.setUniformMatrix("u_modelView", transform.idt());
-		texshader.setUniformi("u_drawSprite", 1);
-		setFrustum(null);
-
-		gl.glDisable(GL_DEPTH_TEST);
-		for (int i = numsectors - 1; i >= 0; i--) {
-			GLSurface flor = world.getFloor(i);
-			if (flor != null) {
-				transform.idt();
-				transform.rotate(0, 0, 1, (512 - cam.getAngle()) * buildAngleToDegrees);
-				transform.translate(-cam.position.x, -cam.position.y, -sector[i].floorz / cam.yscale);
-				texshader.setUniformMatrix("u_spriteTrans", transform);
-
-				bind(TileData.PixelFormat.Pal8, flor.picnum, flor.getPal(), flor.getShade(), 0, 0);
-				flor.render(texshader);
-			}
-		}
-		gl.glEnable(GL_DEPTH_TEST);
-
-		transform.idt();
-		texshader.setUniformMatrix("u_projTrans", cam.combined);
-		texshader.setUniformMatrix("u_modelView", cam.view);
-
-		texshader.setUniformi("u_drawSprite", 0);
-		texshader.end();
-
 	}
 
 	private void prerender(ArrayList<VisibleSector> sectors) {
@@ -715,7 +579,7 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		for (int i = 0; i < bunchfirst.size(); i++)
-			drawSurf(bunchfirst.get(i), 0);
+			drawSurf(bunchfirst.get(i), 0, transform.idt());
 	}
 
 	private void checkMirror(GLSurface surf) {
@@ -736,8 +600,8 @@ public class GDXRenderer implements GLRenderer {
 		if (scanner.getSkyPicnum(Heinum.SkyUpper) != -1) {
 			bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyUpper), scanner.getSkyPal(Heinum.SkyUpper),
 					0, 0, 0);
-			transform.idt();
-			transform.translate(cam.position.x, cam.position.y, cam.position.z - 100);
+
+			transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100);
 			transform.scale(cam.far, cam.far, 1.0f);
 
 			skyshader.begin();
@@ -749,8 +613,8 @@ public class GDXRenderer implements GLRenderer {
 		if (scanner.getSkyPicnum(Heinum.SkyLower) != -1) {
 			bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyLower), scanner.getSkyPal(Heinum.SkyLower),
 					0, 0, 0);
-			transform.idt();
-			transform.translate(cam.position.x, cam.position.y, cam.position.z + 100);
+
+			transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100);
 			transform.scale(cam.far, cam.far, 1.0f);
 
 			skyshader.begin();
@@ -758,7 +622,6 @@ public class GDXRenderer implements GLRenderer {
 			world.getSkyPlane().render(skyshader);
 			skyshader.end();
 		}
-		transform.idt();
 
 		gl.glEnable(GL_CULL_FACE);
 		gl.glDepthMask(true);
@@ -772,31 +635,24 @@ public class GDXRenderer implements GLRenderer {
 		if (!inpreparemirror)
 			setFrustum(sec.clipPlane);
 
+		Matrix4 worldTrans = transform.idt();
 		if ((sec.secflags & 1) != 0) {
 			rendering = Rendering.Floor.setIndex(sectnum);
-			drawSurf(world.getFloor(sectnum), 0);
+			drawSurf(world.getFloor(sectnum), 0, worldTrans);
 		}
 
 		if ((sec.secflags & 2) != 0) {
 			rendering = Rendering.Ceiling.setIndex(sectnum);
-			drawSurf(world.getCeiling(sectnum), 0);
+			drawSurf(world.getCeiling(sectnum), 0, worldTrans);
 		}
 
 		for (int w = 0; w < sec.walls.size; w++) {
 			int flags = sec.wallflags.get(w);
 			int z = sec.walls.get(w);
 			rendering = Rendering.Wall.setIndex(z);
-			drawSurf(world.getWall(z, sectnum), flags);
-			drawSurf(world.getUpper(z, sectnum), flags);
-			drawSurf(world.getLower(z, sectnum), flags);
-
-//			if (wall[z].nextsector == -1)
-//				draw2dSurface(z, sectnum, Heinum.MaxWall);
-//			else {
-//				draw2dSurface(z, sectnum, Heinum.Portal);
-//				draw2dSurface(z, sectnum, Heinum.Upper);
-//				draw2dSurface(z, sectnum, Heinum.Lower);
-//			}
+			drawSurf(world.getWall(z, sectnum), flags, worldTrans);
+			drawSurf(world.getUpper(z, sectnum), flags, worldTrans);
+			drawSurf(world.getLower(z, sectnum), flags, worldTrans);
 		}
 	}
 
@@ -844,8 +700,8 @@ public class GDXRenderer implements GLRenderer {
 			gl.glActiveTexture(GL20.GL_TEXTURE0);
 
 			skyshader.setUniformf("u_camera", cam.position.x, cam.position.y, cam.position.z);
-			skyshader.setUniformMatrix("u_projTrans", cam.combined);
-			skyshader.setUniformMatrix("u_transform", transform);
+			skyshader.setUniformMatrix("u_projTrans", cam.combined); // TODO: to common set
+			skyshader.setUniformMatrix("u_transform", transform.idt());
 
 			if (!pic.isLoaded()) {
 				skyshader.setUniformf("u_alpha", 0.0f);
@@ -855,10 +711,8 @@ public class GDXRenderer implements GLRenderer {
 
 			if ((method & 3) == 0) {
 				gl.glDisable(GL_BLEND);
-//				gl.glDisable(GL_ALPHA_TEST);
 			} else {
 				gl.glEnable(GL_BLEND);
-//				gl.glEnable(GL_ALPHA_TEST);
 			}
 
 			surf.render(skyshader);
@@ -866,7 +720,7 @@ public class GDXRenderer implements GLRenderer {
 		}
 	}
 
-	private void drawSurf(GLSurface surf, int flags) {
+	protected void drawSurf(GLSurface surf, int flags, Matrix4 worldTransform) {
 		if (surf == null)
 			return;
 
@@ -892,6 +746,7 @@ public class GDXRenderer implements GLRenderer {
 				if (vis != 0)
 					combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
 				texshader.setVisibility((int) (-combvis / 64.0f));
+				texshader.setUniformMatrix("u_transform", worldTransform);
 
 				if ((method & 3) == 0) {
 					Gdx.gl.glDisable(GL_BLEND);
@@ -1288,7 +1143,7 @@ public class GDXRenderer implements GLRenderer {
 		return drunkIntensive;
 	}
 
-	private void setFrustum(Plane[] clipPlane) {
+	protected void setFrustum(Plane[] clipPlane) {
 		if (!texshader.isBinded())
 			texshader.begin();
 

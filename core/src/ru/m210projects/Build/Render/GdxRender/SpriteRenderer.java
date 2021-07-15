@@ -355,12 +355,8 @@ public class SpriteRenderer {
 		Gdx.gl.glDepthFunc(GL20.GL_LESS);
 		Gdx.gl.glDepthRangef(0.0f, 0.99999f);
 
-		parent.getTextureShader().setUniformi("u_drawSprite", 1);
-		parent.getTextureShader().setUniformMatrix("u_spriteTrans", transform);
-
+		parent.getTextureShader().setUniformMatrix("u_transform", transform);
 		spriteMesh.render(parent.getTextureShader(), GL_TRIANGLE_FAN, 0, 4);
-
-		parent.getTextureShader().setUniformi("u_drawSprite", 0);
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return true;

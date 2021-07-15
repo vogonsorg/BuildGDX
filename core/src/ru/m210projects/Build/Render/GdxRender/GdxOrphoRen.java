@@ -22,45 +22,75 @@ import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Pragmas.*;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
+import static ru.m210projects.Build.Engine.beforedrawrooms;
 import static ru.m210projects.Build.Engine.curpalette;
+import static ru.m210projects.Build.Engine.globalpal;
+import static ru.m210projects.Build.Engine.globalshade;
+import static ru.m210projects.Build.Engine.gotsector;
+import static ru.m210projects.Build.Engine.headspritesect;
+import static ru.m210projects.Build.Engine.nextspritesect;
+import static ru.m210projects.Build.Engine.numsectors;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.pSmallTextfont;
 import static ru.m210projects.Build.Engine.pTextfont;
 import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Engine.pow2char;
+import static ru.m210projects.Build.Engine.sector;
+import static ru.m210projects.Build.Engine.show2dsector;
+import static ru.m210projects.Build.Engine.show2dsprite;
+import static ru.m210projects.Build.Engine.sprite;
+import static ru.m210projects.Build.Engine.tsprite;
+import static ru.m210projects.Build.Engine.wall;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Gameutils.*;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
+import static ru.m210projects.Build.Net.Mmulti.connecthead;
+import static ru.m210projects.Build.Net.Mmulti.connectpoint2;
+
+import java.util.Arrays;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
+import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
+import ru.m210projects.Build.Types.SECTOR;
+import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.TileFont.FontType;
+import ru.m210projects.Build.Types.WALL;
 
-public abstract class GdxOrphoRen extends OrphoRenderer {
+public class GdxOrphoRen extends OrphoRenderer {
 
 	protected final TextureManager textureCache;
 	protected final GdxBatch batch;
 	protected final ShapeRenderer shape;
 	protected ShaderProgram bitmapShader;
+	protected GDXRenderer parent;
 
-	public GdxOrphoRen(Engine engine, TextureManager textureCache) {
+	public GdxOrphoRen(Engine engine, GDXRenderer parent) {
 		super(engine);
-		this.textureCache = textureCache;
+		this.textureCache = parent.textureCache;
+		this.parent = parent;
 
 		this.batch = new GdxBatch();
 		this.shape = new ShapeRenderer();
@@ -117,6 +147,353 @@ public abstract class GdxOrphoRen extends OrphoRenderer {
 
 	@Override
 	public void uninit() {
+	}
+
+	protected void drawoverheadline(WALL wal, int cposx, int cposy, float cos, float sin, int col) {
+		WALL wal2 = wall[wal.point2];
+
+		int ox = cposx - wal.x;
+		int oy = cposy - wal.y;
+		float x1 = ox * cos - oy * sin + xdim * 2048;
+		float y1 = ox * sin + oy * cos + ydim * 2048;
+
+		ox = cposx - wal2.x;
+		oy = cposy - wal2.y;
+
+		float x2 = ox * cos - oy * sin + xdim * 2048;
+		float y2 = ox * sin + oy * cos + ydim * 2048;
+
+		drawline256((int) x1, (int) y1, (int) x2, (int) y2, col);
+	}
+
+	@Override
+	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
+		float cos = (float) Math.cos((512 - cang) * buildAngleToRadians) * czoom / 4.0f;
+		float sin = (float) Math.sin((512 - cang) * buildAngleToRadians) * czoom / 4.0f;
+
+		for (int i = 0; i < numsectors; i++) {
+			if ((!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0) || !Gameutils.isValidSector(i))
+				continue;
+
+			SECTOR sec = sector[i];
+			if (!Gameutils.isValidWall(sec.wallptr) || sec.wallnum < 3)
+				continue;
+
+			int startwall = sec.wallptr;
+			for (int j = 0; j < sec.wallnum; j++, startwall++) {
+				WALL wal = wall[startwall];
+				if (!Gameutils.isValidWall(startwall) || !Gameutils.isValidWall(wal.point2))
+					continue;
+
+				if (showredwalls) {
+					if (wal.nextwall >= 0 && wal.nextwall <= startwall) {
+						if (Gameutils.isValidSector(wal.nextsector)) {
+							if (((sector[wal.nextsector].ceilingz != sec.ceilingz //
+									|| sector[wal.nextsector].floorz != sec.floorz //
+									|| ((wal.cstat | wall[wal.nextwall].cstat) & (16 + 32)) != 0))
+									|| (!fullmap
+											&& (show2dsector[wal.nextsector >> 3] & 1 << (wal.nextsector & 7)) == 0))
+								drawoverheadline(wal, cposx, cposy, cos, sin, redwallcol);
+						}
+					}
+				}
+
+				if (wal.nextwall >= 0)
+					continue;
+
+				Tile pic = engine.getTile(wal.picnum);
+				if (!pic.hasSize())
+					continue;
+
+				drawoverheadline(wal, cposx, cposy, cos, sin, whitewallcol);
+			}
+		}
+
+		// Draw sprites
+		for (int i = 0; i < numsectors; i++) {
+			if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
+				continue;
+
+			for (int j = headspritesect[i]; j >= 0; j = nextspritesect[j]) {
+
+			}
+		}
+
+//		int i, j, k, x1, y1, x2 = 0, y2 = 0, ox, oy;
+//		int z1, z2, startwall, endwall;
+//		int xvect, yvect, xvect2, yvect2;
+//
+//		WALL wal, wal2;
+//
+//		xvect = sintable[(-cang) & 2047] * czoom;
+//		yvect = sintable[(1536 - cang) & 2047] * czoom;
+//		xvect2 = mulscale(xvect, yxaspect, 16);
+//		yvect2 = mulscale(yvect, yxaspect, 16);
+//
+//		// Draw red lines
+//		for (i = 0; i < numsectors; i++) {
+//			if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
+//				continue;
+//
+//			startwall = sector[i].wallptr;
+//			endwall = sector[i].wallptr + sector[i].wallnum;
+//
+//			z1 = sector[i].ceilingz;
+//			z2 = sector[i].floorz;
+//
+//			if (startwall < 0 || endwall < 0)
+//				continue;
+//
+//			for (j = startwall; j < endwall; j++) {
+//				wal = wall[j];
+//				if (wal == null)
+//					continue;
+//				k = wal.nextwall;
+//				if (k < 0 || k > j)
+//					continue;
+//				if (wal.nextsector < 0)
+//					continue;
+//
+//				if (sector[wal.nextsector] != null
+//						&& ((sector[wal.nextsector].ceilingz != z1 || sector[wal.nextsector].floorz != z2
+//								|| (wall[wal.nextwall] != null
+//										&& ((wal.cstat | wall[wal.nextwall].cstat) & (16 + 32)) != 0)))
+//						&& showredwalls
+//						|| !fullmap && (show2dsector[wal.nextsector >> 3] & 1 << (wal.nextsector & 7)) == 0) {
+//					ox = wal.x - cposx;
+//					oy = wal.y - cposy;
+//					x1 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
+//					y1 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
+//
+//					wal2 = wall[wal.point2];
+//					ox = wal2.x - cposx;
+//					oy = wal2.y - cposy;
+//					x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
+//					y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
+//
+//					drawline256(x1, y1, x2, y2, redwallcol);
+//				}
+//			}
+//		}
+//
+//		// Draw sprites
+//		for (i = 0; i < numsectors; i++) {
+//			if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
+//				continue;
+//
+//			for (j = headspritesect[i]; j >= 0; j = nextspritesect[j]) {
+//
+//			}
+//
+//		}
+//
+//		// Draw white lines
+//		for (i = 0; i < numsectors; i++) {
+//
+//			if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
+//				continue;
+//
+//			startwall = sector[i].wallptr;
+//			endwall = sector[i].wallptr + sector[i].wallnum;
+//
+//			if (startwall < 0 || endwall < 0)
+//				continue;
+//
+//			k = -1;
+//			for (j = startwall; j < endwall; j++) {
+//				wal = wall[j];
+//				if (wal == null)
+//					continue;
+//				if (wal.nextwall >= 0)
+//					continue;
+//				Tile pic = engine.getTile(wal.picnum);
+//				if (!pic.hasSize())
+//					continue;
+//
+//				if (j == k) {
+//					x1 = x2;
+//					y1 = y2;
+//				} else {
+//					ox = wal.x - cposx;
+//					oy = wal.y - cposy;
+//					x1 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
+//					y1 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
+//				}
+//
+//				k = wal.point2;
+//				wal2 = wall[k];
+//				if (wal2 == null)
+//					continue;
+//
+//				ox = wal2.x - cposx;
+//				oy = wal2.y - cposy;
+//				x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
+//				y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
+//
+//				drawline256(x1, y1, x2, y2, whitewallcol);
+//			}
+//		}
+//
+		// draw player
+		for (int i = connecthead; i >= 0; i = connectpoint2[i]) {
+			if (plrsprites == null || plrsprites[i] == -1)
+				continue;
+
+			SPRITE pPlayer = sprite[plrsprites[i]];
+			if (!isValidSector(pPlayer.sectnum))
+				continue;
+
+			int ox = pPlayer.x - cposx;
+			int oy = pPlayer.y - cposy;
+
+			float dx = ox * cos - oy * sin;
+			float dy = ox * sin + oy * cos;
+
+			int dang = (pPlayer.ang - cang) & 0x7FF;
+			if (i == viewindex && !scrollmode) {
+				dx = 0;
+				dy = viewindex ^ i;
+				dang = 0;
+			}
+
+			if (i == viewindex || allplrs) {
+				int nZoom = mulscale(yxaspect,
+						czoom * (klabs((sector[pPlayer.sectnum].floorz - pPlayer.z) >> 8) + pPlayer.yrepeat), 16);
+				nZoom = BClipRange(nZoom, 22000, 0x20000);
+				int sx = (dx << 4) + (xdim << 15);
+				int sy = (dy << 4) + (ydim << 15);
+
+				rotatesprite(sx, sy, nZoom, (short) dang, pPlayer.picnum, pPlayer.shade, pPlayer.pal,
+						(pPlayer.cstat & 2) >> 1, wx1, wy1, wx2, wy2);
+			}
+		}
+	}
+
+	@Override
+	public void drawmapview(int dax, int day, int zoome, int ang) { // TODO:
+		beforedrawrooms = 0;
+
+		Arrays.fill(gotsector, (byte) 0);
+
+		ShaderProgram shader = parent.getTextureShader();
+		Matrix4 worldTrans = parent.transform;
+
+		float zoom = 32 / (float) zoome;
+		shader.begin();
+
+		shader.setUniformMatrix("u_projTrans", worldTrans.setToOrtho(zoom * xdim / 2, zoom * (-xdim / 2),
+				zoom * -(ydim / 2), zoom * ydim / 2, -parent.cam.far, parent.cam.far));
+		shader.setUniformMatrix("u_modelView", worldTrans.idt());
+		parent.setFrustum(null);
+
+		int sortnum = 0;
+		for (int s = 0; s < numsectors; s++) {
+			SECTOR sec = sector[s];
+
+			if (fullmap || (show2dsector[s >> 3] & pow2char[s & 7]) != 0) {
+				if (showflspr) {
+					// Collect floor sprites to draw
+					for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
+						if ((sprite[i].cstat & 48) == 32) {
+							if (sortnum >= MAXSPRITESONSCREEN)
+								break;
+
+							if ((sprite[i].cstat & (64 + 8)) == (64 + 8))
+								continue;
+
+							if (tsprite[sortnum] == null)
+								tsprite[sortnum] = new SPRITE();
+							tsprite[sortnum].set(sprite[i]);
+							tsprite[sortnum++].owner = (short) i;
+						}
+
+					// XXX
+				}
+
+				if (showspr) {
+					for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
+						if ((show2dsprite[i >> 3] & pow2char[i & 7]) != 0) {
+							if (sortnum >= MAXSPRITESONSCREEN)
+								break;
+
+							if (tsprite[sortnum] == null)
+								tsprite[sortnum] = new SPRITE();
+							tsprite[sortnum].set(sprite[i]);
+							tsprite[sortnum++].owner = (short) i;
+						}
+
+					// XXX
+				}
+
+				gotsector[s >> 3] |= pow2char[s & 7];
+				if (sec.isParallaxFloor())
+					continue;
+				globalpal = sec.floorpal;
+
+				int globalpicnum = sec.floorpicnum;
+				if (globalpicnum >= MAXTILES)
+					globalpicnum = 0;
+				engine.setgotpic(globalpicnum);
+				Tile pic = engine.getTile(globalpicnum);
+
+				if (!pic.hasSize())
+					continue;
+
+				if (pic.getType() != AnimType.None) {
+					globalpicnum += engine.animateoffs(globalpicnum, s);
+					pic = engine.getTile(globalpicnum);
+				}
+
+				if (!pic.isLoaded())
+					engine.loadtile(globalpicnum);
+
+				globalshade = max(min(sec.floorshade, numshades - 1), 0);
+
+				GLSurface flor = parent.world.getFloor(s);
+				if (flor != null) {
+					worldTrans.setToRotation(0, 0, 1, (512 - ang) * buildAngleToDegrees);
+					worldTrans.translate(-dax / parent.cam.xscale, -day / parent.cam.xscale,
+							-sector[s].floorz / parent.cam.yscale);
+					shader.setUniformMatrix("u_transform", worldTrans);
+
+					parent.drawSurf(flor, 0, worldTrans);
+				}
+
+			}
+		}
+
+		if (showspr) {
+			// Sort sprite list
+			int gap = 1;
+			while (gap < sortnum)
+				gap = (gap << 1) + 1;
+			for (gap >>= 1; gap > 0; gap >>= 1)
+				for (int i = 0; i < sortnum - gap; i++)
+					for (int j = i; j >= 0; j -= gap) {
+						if (sprite[tsprite[j].owner].z <= sprite[tsprite[j + gap].owner].z)
+							break;
+
+						short tmp = tsprite[j].owner;
+						tsprite[j].owner = tsprite[j + gap].owner;
+						tsprite[j + gap].owner = tmp;
+					}
+
+			for (int s = sortnum - 1; s >= 0; s--) {
+				SPRITE spr = sprite[tsprite[s].owner];
+				if ((spr.cstat & 32768) == 0) {
+					if (spr.picnum >= MAXTILES)
+						spr.picnum = 0;
+
+					Tile pic = engine.getTile(spr.picnum);
+
+				}
+			}
+		}
+
+		shader.setUniformMatrix("u_projTrans", parent.cam.combined);
+		shader.setUniformMatrix("u_modelView", parent.cam.view);
+
+		shader.end();
 	}
 
 	@Override
