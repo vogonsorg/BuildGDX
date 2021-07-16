@@ -101,11 +101,11 @@ public class GDXRenderer implements GLRenderer {
 //  Duke E4L11 wall vis bug (scanner bug)
 
 //  Setviewtotile bug (tekwar)
-//	Overheadmap
-//	Scansectors memory leak (WallFrustum)
-//	Maskwall sort
 //  enable/ disable rgb shader
 //	Orpho renderer 8bit textures
+
+//	Scansectors memory leak (WallFrustum)
+//	Maskwall sort
 //	Hires + models
 //	Skyboxes
 //	Sky texture
@@ -924,20 +924,6 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		return capture;
-	}
-
-	protected byte getcol(ByteBuffer frame, int pos, FrameType format, int byteperpixel) {
-		switch (format) {
-		case Canvas:
-			frame.position(pos);
-			return frame.get();
-		default:
-			frame.position(byteperpixel * pos);
-			int r = (frame.get() & 0xFF) >> 2;
-			int g = (frame.get() & 0xFF) >> 2;
-			int b = (frame.get() & 0xFF) >> 2;
-			return engine.getclosestcol(palette, r, g, b);
-		}
 	}
 
 	@Override

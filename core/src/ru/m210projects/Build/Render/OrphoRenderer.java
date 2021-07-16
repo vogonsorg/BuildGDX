@@ -22,7 +22,6 @@ import static ru.m210projects.Build.Engine.numsectors;
 import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.show2dsector;
 import static ru.m210projects.Build.Engine.sintable;
-import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.wall;
 import static ru.m210projects.Build.Engine.wx1;
 import static ru.m210projects.Build.Engine.wx2;
@@ -41,6 +40,7 @@ import static ru.m210projects.Build.Pragmas.mulscale;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Render.Renderer.Transparent;
+import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.TileFont;
@@ -58,15 +58,15 @@ public abstract class OrphoRenderer {
 
 	public abstract void uninit();
 
-	public abstract void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit, float scale);
+	public abstract void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
+			float scale);
 
 	public abstract void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale);
 
 	public abstract void drawline256(int x1, int y1, int x2, int y2, int col);
 
-	public abstract void rotatesprite(int sx, int sy, int z, int a, int picnum,
-			int dashade, int dapalnum, int dastat, int cx1, int cy1, int cx2,
-			int cy2);
+	public abstract void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat,
+			int cx1, int cy1, int cx2, int cy2);
 
 	public abstract void nextpage();
 
@@ -74,9 +74,8 @@ public abstract class OrphoRenderer {
 
 	// Overhead map settings
 
-	public boolean fullmap, showredwalls = true, showspr, showflspr, allplrs, scrollmode;
-	public int redwallcol = 31, whitewallcol = 31, sprcol, viewindex;
-	public int[] plrsprites;
+	public boolean fullmap, scrollmode;
+	public int viewindex;
 
 	protected int getclipmask(int a, int b, int c, int d) { // Ken did this
 		int bA = a < 0 ? 1 : 0;
@@ -88,23 +87,10 @@ public abstract class OrphoRenderer {
 		return (((d << 4) ^ 0xf0) | d);
 	}
 
-	public void initmap(int redwallcol, int whitewallcol, int sprcol, boolean showredwalls, boolean showspr,
-			boolean showflspr) {
-		this.redwallcol = redwallcol;
-		this.whitewallcol = whitewallcol;
-		this.sprcol = sprcol;
-		this.showspr = showspr;
-		this.showflspr = showflspr;
-		this.showredwalls = showredwalls;
-	}
-
-	public void setmapsettings(boolean fullmap, boolean allplrs, boolean scrollmode, int viewindex,
-			int[] plrsprites) {
+	public void setmapsettings(boolean fullmap, boolean scrollmode, int viewindex) {
 		this.fullmap = fullmap;
-		this.allplrs = allplrs;
 		this.scrollmode = scrollmode;
 		this.viewindex = viewindex;
-		this.plrsprites = plrsprites;
 	}
 
 	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
@@ -147,7 +133,7 @@ public abstract class OrphoRenderer {
 						&& ((sector[wal.nextsector].ceilingz != z1 || sector[wal.nextsector].floorz != z2
 								|| (wall[wal.nextwall] != null
 										&& ((wal.cstat | wall[wal.nextwall].cstat) & (16 + 32)) != 0)))
-						&& showredwalls
+						&& isShowRedWalls()
 						|| !fullmap && (show2dsector[wal.nextsector >> 3] & 1 << (wal.nextsector & 7)) == 0) {
 					ox = wal.x - cposx;
 					oy = wal.y - cposy;
@@ -160,7 +146,7 @@ public abstract class OrphoRenderer {
 					x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 					y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
-					drawline256(x1, y1, x2, y2, redwallcol);
+					drawline256(x1, y1, x2, y2, getWallColor(wal));
 				}
 			}
 		}
@@ -219,18 +205,14 @@ public abstract class OrphoRenderer {
 				x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 				y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
-				drawline256(x1, y1, x2, y2, whitewallcol);
+				drawline256(x1, y1, x2, y2, getWallColor(wal));
 			}
 		}
 
 		// draw player
 		for (i = connecthead; i >= 0; i = connectpoint2[i]) {
-			if (plrsprites == null || plrsprites[i] == -1)
-				continue;
-
-			SPRITE pPlayer = sprite[plrsprites[i]];
-
-			if(!isValidSector(pPlayer.sectnum))
+			SPRITE pPlayer = getPlayerSprite(i);
+			if (pPlayer == null || !isValidSector(pPlayer.sectnum))
 				continue;
 
 			ox = pPlayer.x - cposx;
@@ -246,17 +228,79 @@ public abstract class OrphoRenderer {
 				dang = 0;
 			}
 
-			if (i == viewindex || allplrs) {
+			if (i == viewindex || isShowAllPlayers()) {
 				int nZoom = mulscale(yxaspect,
 						czoom * (klabs((sector[pPlayer.sectnum].floorz - pPlayer.z) >> 8) + pPlayer.yrepeat), 16);
 				nZoom = BClipRange(nZoom, 22000, 0x20000);
 				int sx = (dx << 4) + (xdim << 15);
 				int sy = (dy << 4) + (ydim << 15);
 
-				rotatesprite(sx, sy, nZoom, (short) dang, pPlayer.picnum, pPlayer.shade, pPlayer.pal,
+				rotatesprite(sx, sy, nZoom, (short) dang, getPlayerPicnum(i), pPlayer.shade, pPlayer.pal,
 						(pPlayer.cstat & 2) >> 1, wx1, wy1, wx2, wy2);
 			}
 		}
 	}
 
+	public boolean isShowSprites() {
+		return false;
+	}
+
+	public boolean isShowFloorSprites() {
+		return false;
+	}
+
+	public boolean isShowWallSprites() {
+		return false;
+	}
+
+	public boolean isShowRedWalls() {
+		return true;
+	}
+
+	public boolean isShowAllPlayers() {
+		return false;
+	}
+
+	public boolean isSpriteVisible(SPRITE spr) {
+		return true;
+	}
+
+	public boolean isWallVisible(int w, int s) {
+		WALL wal = wall[w];
+		SECTOR sec = sector[s];
+		if (wal.nextsector != 0) // red wall
+			return (wal.nextwall <= w && ((sector[wal.nextsector].ceilingz != sec.ceilingz //
+					|| sector[wal.nextsector].floorz != sec.floorz //
+					|| ((wal.cstat | wall[wal.nextwall].cstat) & (16 + 32)) != 0)
+					|| (!fullmap && (show2dsector[wal.nextsector >> 3] & 1 << (wal.nextsector & 7)) == 0)));
+		return true;
+	}
+
+	public int getWallColor(WALL wal) {
+		if (wal.nextsector != 0) // red wall
+			return 31;
+		return 31; // white wall
+	}
+
+	public int getSpriteColor(SPRITE spr) {
+		switch (spr.cstat & 48) {
+		case 0:
+			return 31;
+		case 16:
+			return 31;
+		case 32:
+			return 31;
+		}
+
+		return 31;
+	}
+
+	public SPRITE getPlayerSprite(int player) {
+		return null;
+	}
+
+	public int getPlayerPicnum(int player) {
+		SPRITE spr = getPlayerSprite(player);
+		return spr != null ? spr.picnum : -1;
+	}
 }

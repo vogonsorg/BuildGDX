@@ -355,7 +355,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 						continue;
 				}
 
-				if (showflspr) {
+				if (isShowFloorSprites()) {
 					// Collect floor sprites to draw
 					for (i = headspritesect[s]; i >= 0; i = nextspritesect[i])
 						if ((sprite[i].cstat & 48) == 32) {
@@ -475,7 +475,7 @@ public class SoftwareOrpho extends OrphoRenderer {
 			}
 		}
 
-		if (showspr) {
+		if (isShowSprites()) {
 			// Sort sprite list
 			int gap = 1;
 			while (gap < sortnum)
