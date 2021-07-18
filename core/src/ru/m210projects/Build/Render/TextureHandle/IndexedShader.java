@@ -103,6 +103,10 @@ public abstract class IndexedShader extends ShaderProgram {
 	private boolean isBinded;
 //	private boolean glfog = false; //
 
+	private int lastPal, lastShade, lastVisibility;
+	private float lastAlpha;
+	private boolean drawLastIndex;
+
 	public IndexedShader() throws Exception {
 		super(defaultVertex, defaultFragment);
 		init();
@@ -174,22 +178,47 @@ public abstract class IndexedShader extends ShaderProgram {
 
 		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE2);
 		bindPalookup(pal);
+		this.lastPal = pal;
 		setUniformi(palookuploc, 2);
 
 		setUniformi(shadeloc, shade);
+		this.lastShade = shade;
 		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 	}
 
 	public void setTransparent(float alpha) {
 		setUniformf(alphaloc, alpha);
+		this.lastAlpha = alpha;
 	}
 
 	public void setDrawLastIndex(boolean enable) {
 		setUniformi(draw255loc, enable ? 1 : 0);
+		this.drawLastIndex = enable;
 	}
 
 	public void setVisibility(int vis) {
 		setUniformf(visibilityloc, vis / 64.0f);
+		this.lastVisibility = vis;
+	}
+
+	public int getPal() {
+		return lastPal;
+	}
+
+	public int getShade() {
+		return lastShade;
+	}
+
+	public int getVisibility() {
+		return lastVisibility;
+	}
+
+	public float getTransparent() {
+		return lastAlpha;
+	}
+
+	public boolean getDrawLastIndex() {
+		return drawLastIndex;
 	}
 
 //	public void setFogParams(boolean enable, float start, float end, float[] fogcolor) {

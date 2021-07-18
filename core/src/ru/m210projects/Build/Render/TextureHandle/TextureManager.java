@@ -131,7 +131,7 @@ public class TextureManager {
 			if (data == null)
 				return null;
 
-			tile = allocTile(data, si, dapicnum, dapalnum, skybox, alpha, useMipMaps);
+			tile = allocTile(data, si, dapicnum, fmt == PixelFormat.Pal8 ? 0 : dapalnum, skybox, alpha, useMipMaps);
 		}
 
 		if (dapalnum >= (MAXPALOOKUPS - RESERVEDPALS))

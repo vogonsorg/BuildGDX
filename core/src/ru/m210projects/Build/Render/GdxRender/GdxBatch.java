@@ -70,7 +70,7 @@ public class GdxBatch {
 	/**
 	 * Constructs a new GdxBatch with a size of 1000, one buffer, and the default
 	 * shader.
-	 * 
+	 *
 	 * @see GdxBatch#GdxBatch(int, ShaderProgram)
 	 */
 	public GdxBatch() {
@@ -87,7 +87,7 @@ public class GdxBatch {
 	 * uniforms for this default shader are different than the ones expect for
 	 * shaders set with {@link #setShader(ShaderProgram)}. See
 	 * {@link #createDefaultShader()}.
-	 * 
+	 *
 	 * @param size          The max number of sprites in a single batch. Max of
 	 *                      8191.
 	 * @param defaultShader The default shader to use. This is not owned by the
@@ -191,20 +191,51 @@ public class GdxBatch {
 	}
 
 	public void begin() {
+//		if (drawing)
+//			throw new IllegalStateException("GdxBatch.end must be called before begin.");
+//
+//		BuildGdx.gl20.glDepthMask(false);
+//		if (customShader != null)
+//			customShader.begin();
+//		else
+//			shader.begin();
+//		setupMatrices();
+//
+//		drawing = true;
+
 		if (drawing)
 			throw new IllegalStateException("GdxBatch.end must be called before begin.");
 
 		BuildGdx.gl20.glDepthMask(false);
-		if (customShader != null)
-			customShader.begin();
-		else
-			shader.begin();
-		setupMatrices();
+
+		shader.begin();
+		shader.setUniformMatrix("u_projTrans", projectionMatrix);
+		shader.setUniformi("u_texture", 0);
+//		shader.setUniformMatrix("u_modelView", new Matrix4());
+//		shader.setUniformMatrix("u_transform", new Matrix4());
+//		shader.setUniformi("u_frustumClipping", 0);
 
 		drawing = true;
 	}
 
 	public void end() {
+//		if (!drawing)
+//			throw new IllegalStateException("GdxBatch.begin must be called before end.");
+//		if (idx > 0)
+//			flush();
+//		lastTexture = null;
+//		drawing = false;
+//
+//		GL20 gl = BuildGdx.gl20;
+//		gl.glDepthMask(true);
+//		if (isBlendingEnabled())
+//			gl.glDisable(GL20.GL_BLEND);
+//
+//		if (customShader != null)
+//			customShader.end();
+//		else
+//			shader.end();
+
 		if (!drawing)
 			throw new IllegalStateException("GdxBatch.begin must be called before end.");
 		if (idx > 0)
@@ -216,11 +247,7 @@ public class GdxBatch {
 		gl.glDepthMask(true);
 		if (isBlendingEnabled())
 			gl.glDisable(GL20.GL_BLEND);
-
-		if (customShader != null)
-			customShader.end();
-		else
-			shader.end();
+		shader.end();
 	}
 
 	public void setColor(float r, float g, float b, float a) {

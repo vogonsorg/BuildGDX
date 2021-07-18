@@ -96,13 +96,12 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  small font rendering
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
+//	Mirror alphatest
 
 //  Setviewtotile bug (tekwar)
 //  enable/ disable rgb shader
-//	Orpho renderer 8bit textures
 
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
@@ -126,7 +125,7 @@ public class GDXRenderer implements GLRenderer {
 	protected SectorScanner scanner;
 	protected BuildCamera cam;
 	protected SpriteRenderer sprR;
-	protected GdxOrphoRen orphoRen;
+	protected GDXOrtho orphoRen; //GdxOrphoRen
 	protected DefScript defs;
 	protected ShaderProgram skyshader;
 	protected IndexedShader texshader;
@@ -165,7 +164,18 @@ public class GDXRenderer implements GLRenderer {
 			}
 		};
 
-		this.orphoRen = new GdxOrphoRen(engine, this);
+		this.skyshader = allocSkyShader();
+		this.fadeshader = new FadeShader() {
+			@Override
+			public void begin() {
+				super.begin();
+				currentShader = this;
+			}
+		};
+		this.texshader = allocIndexedShader();
+		this.textureCache.changePalette(curpalette.getBytes());
+
+		this.orphoRen = new GDXOrtho(engine, this);
 
 		Arrays.fill(mirrorTextures, false);
 		int[] mirrors = getMirrorTextures();
@@ -261,17 +271,6 @@ public class GDXRenderer implements GLRenderer {
 		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 		this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
-
-		this.skyshader = allocSkyShader();
-		this.fadeshader = new FadeShader() {
-			@Override
-			public void begin() {
-				super.begin();
-				currentShader = this;
-			}
-		};
-		this.texshader = allocIndexedShader();
-		this.textureCache.changePalette(curpalette.getBytes());
 
 		orphoRen.init();
 
@@ -407,13 +406,13 @@ public class GDXRenderer implements GLRenderer {
 			float x3 = x2 + (x4 - x1);
 			float y3 = y2 + (y4 - y1);
 
-			orphoRen.begin();
-			orphoRen.setColor(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
-			orphoRen.setTexture(frameTexture);
-			orphoRen.addVertex(x1, ydim - y1, 0, 0);
-			orphoRen.addVertex(x2, ydim - y2, 0, v);
-			orphoRen.addVertex(x3, ydim - y3, u, v);
-			orphoRen.addVertex(x4, ydim - y4, u, 0);
+			orphoRen.begin(); //XXX
+//			orphoRen.setColor(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
+//			orphoRen.setTexture(frameTexture);
+//			orphoRen.addVertex(x1, ydim - y1, 0, 0);
+//			orphoRen.addVertex(x2, ydim - y2, 0, v);
+//			orphoRen.addVertex(x3, ydim - y3, u, v);
+//			orphoRen.addVertex(x4, ydim - y4, u, 0);
 			orphoRen.end();
 
 			gl.glEnable(GL_DEPTH_TEST);
@@ -530,14 +529,12 @@ public class GDXRenderer implements GLRenderer {
 		texshader.setUniformMatrix("u_modelView", cam.view);
 		texshader.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
 		texshader.setUniformf("u_viewport", windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
+		setFrustum(null);
 
 		prerender(sectors);
 
 		for (int i = 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
-
-		setFrustum(null);
-
 		for (int i = 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
 		drawSkyPlanes();
@@ -578,8 +575,9 @@ public class GDXRenderer implements GLRenderer {
 			}
 		}
 
-		for (int i = 0; i < bunchfirst.size(); i++)
+		for (int i = 0; i < bunchfirst.size(); i++) {
 			drawSurf(bunchfirst.get(i), 0, transform.idt());
+		}
 	}
 
 	private void checkMirror(GLSurface surf) {
@@ -654,6 +652,8 @@ public class GDXRenderer implements GLRenderer {
 			drawSurf(world.getUpper(z, sectnum), flags, worldTrans);
 			drawSurf(world.getLower(z, sectnum), flags, worldTrans);
 		}
+
+		setFrustum(null);
 	}
 
 	public void drawSkySector(VisibleSector sec) {
@@ -1090,7 +1090,10 @@ public class GDXRenderer implements GLRenderer {
 		int hp;
 
 		PixelFormat fmt = textureCache.getFmt(tilenume);
-		if (fmt != null && fmt == PixelFormat.Pal8) {
+		if(fmt == null)
+			return;
+
+		if (fmt == PixelFormat.Pal8) {
 			numpal = 1;
 			firstpal = 0;
 		} else {
@@ -1134,11 +1137,11 @@ public class GDXRenderer implements GLRenderer {
 			texshader.begin();
 
 		if (clipPlane == null) {
-			texshader.setUniformi("u_frustumClipping", 0);
+			texshader.setUniformi("u_planeClipping", 0);
 			return;
 		}
 
-		texshader.setUniformi("u_frustumClipping", 1);
+		texshader.setUniformi("u_planeClipping", 1);
 //		texshader.setUniformf("u_plane[0]", clipPlane[0].normal.x, clipPlane[0].normal.y, clipPlane[0].normal.z,
 //				clipPlane[0].d);
 //		texshader.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,

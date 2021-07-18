@@ -40,7 +40,6 @@ public class WorldShader {
 			+ "uniform int u_shade;\n" //
 			+ "uniform bool u_draw255;\n" //
 			+ "uniform float u_alpha;\n" //
-			+ "uniform bool u_drawSprite;\n" //
 			+ "\n" //
 			+ "varying float v_dist;\n" //
 			+ "varying vec2 v_texCoords;\n" //
@@ -48,7 +47,7 @@ public class WorldShader {
 			+ "uniform mat4 u_invProjectionView;\n" //
 			+ "uniform vec4 u_plane[2];\n" //
 			+ "uniform vec4 u_viewport;\n" //
-			+ "uniform bool u_frustumClipping;\n" //
+			+ "uniform int u_planeClipping;\n" //
 			+ "\n" //
 			+ "float getpalookup(int dashade) {\n" //
 			+ "    float davis = v_dist * u_visibility;\n" //
@@ -80,13 +79,17 @@ public class WorldShader {
 			+ "}\n" //
 			+ "\n" //
 			+ "void main() {  \n" //
-			+ "    if((u_frustumClipping && !isvisible()))\n" //
+			+ "    if((u_planeClipping == 1 && !isvisible()))\n" //
 			+ "        discard;\n" //
+			+ "\n" //
+			+ "	   if(u_planeClipping == 2 && (gl_FragCoord.x < u_viewport.x || gl_FragCoord.x > u_viewport.z\n" //
+			+ "		 || gl_FragCoord.y < u_viewport.w || gl_FragCoord.y > u_viewport.y))" //
+			+ "		   discard;" //
 			+ "\n" //
 			+ "    float fi = texture2D(u_texture, v_texCoords).r;\n" //
 			+ "    if(fi == 1.0) {\n" //
 			+ "        if(!u_draw255) {\n" //
-			+ "            if(u_drawSprite)\n" //
+			+ "            if(u_alpha >= 0.5)\n" //
 			+ "               discard;\n" //
 			+ "            gl_FragColor = vec4(0.01);\n" //
 			+ "            return;\n" //

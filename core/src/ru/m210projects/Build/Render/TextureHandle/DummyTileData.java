@@ -35,6 +35,8 @@ public class DummyTileData extends TileData {
 			internalformat = GL_LUMINANCE;
 			break;
 		case Bitmap:
+			format = GL_ALPHA;
+			internalformat = GL_ALPHA;
 			break;
 		}
 	}
