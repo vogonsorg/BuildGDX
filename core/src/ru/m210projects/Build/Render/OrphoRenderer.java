@@ -22,6 +22,7 @@ import static ru.m210projects.Build.Engine.numsectors;
 import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.show2dsector;
 import static ru.m210projects.Build.Engine.sintable;
+import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.wall;
 import static ru.m210projects.Build.Engine.wx1;
 import static ru.m210projects.Build.Engine.wx2;
@@ -30,15 +31,14 @@ import static ru.m210projects.Build.Engine.wy2;
 import static ru.m210projects.Build.Engine.xdim;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Engine.yxaspect;
-import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Gameutils.isValidSector;
 import static ru.m210projects.Build.Net.Mmulti.connecthead;
 import static ru.m210projects.Build.Net.Mmulti.connectpoint2;
 import static ru.m210projects.Build.Pragmas.dmulscale;
-import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
@@ -47,6 +47,10 @@ import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
 public abstract class OrphoRenderer {
+
+	protected enum MapView {
+		Polygons, Lines
+	};
 
 	protected final Engine engine;
 
@@ -146,7 +150,7 @@ public abstract class OrphoRenderer {
 					x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 					y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
-					drawline256(x1, y1, x2, y2, getWallColor(wal));
+					drawline256(x1, y1, x2, y2, getWallColor(j));
 				}
 			}
 		}
@@ -205,16 +209,17 @@ public abstract class OrphoRenderer {
 				x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 				y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
-				drawline256(x1, y1, x2, y2, getWallColor(wal));
+				drawline256(x1, y1, x2, y2, getWallColor(j));
 			}
 		}
 
 		// draw player
 		for (i = connecthead; i >= 0; i = connectpoint2[i]) {
-			SPRITE pPlayer = getPlayerSprite(i);
-			if (pPlayer == null || !isValidSector(pPlayer.sectnum))
+			int spr = getPlayerSprite(i);
+			if (spr == -1 || !isValidSector(sprite[spr].sectnum))
 				continue;
 
+			SPRITE pPlayer = sprite[spr];
 			ox = pPlayer.x - cposx;
 			oy = pPlayer.y - cposy;
 
@@ -229,9 +234,7 @@ public abstract class OrphoRenderer {
 			}
 
 			if (i == viewindex || isShowAllPlayers()) {
-				int nZoom = mulscale(yxaspect,
-						czoom * (klabs((sector[pPlayer.sectnum].floorz - pPlayer.z) >> 8) + pPlayer.yrepeat), 16);
-				nZoom = BClipRange(nZoom, 22000, 0x20000);
+				int nZoom = getPlayerZoom(i, czoom);
 				int sx = (dx << 4) + (xdim << 15);
 				int sy = (dy << 4) + (ydim << 15);
 
@@ -241,15 +244,15 @@ public abstract class OrphoRenderer {
 		}
 	}
 
-	public boolean isShowSprites() {
+	public boolean isShowSprites(MapView view) {
 		return false;
 	}
 
-	public boolean isShowFloorSprites() {
+	public boolean isShowFloorSprites(MapView view) {
 		return false;
 	}
 
-	public boolean isShowWallSprites() {
+	public boolean isShowWallSprites(MapView view) {
 		return false;
 	}
 
@@ -261,7 +264,7 @@ public abstract class OrphoRenderer {
 		return false;
 	}
 
-	public boolean isSpriteVisible(SPRITE spr) {
+	public boolean isSpriteVisible(MapView view, int index) {
 		return true;
 	}
 
@@ -276,13 +279,15 @@ public abstract class OrphoRenderer {
 		return true;
 	}
 
-	public int getWallColor(WALL wal) {
-		if (wal.nextsector != 0) // red wall
+	public int getWallColor(int w) {
+		WALL wal = wall[w];
+		if (Gameutils.isValidSector(wal.nextsector)) // red wall
 			return 31;
 		return 31; // white wall
 	}
 
-	public int getSpriteColor(SPRITE spr) {
+	public int getSpriteColor(int s) {
+		SPRITE spr = sprite[s];
 		switch (spr.cstat & 48) {
 		case 0:
 			return 31;
@@ -295,12 +300,16 @@ public abstract class OrphoRenderer {
 		return 31;
 	}
 
-	public SPRITE getPlayerSprite(int player) {
-		return null;
+	public int getPlayerSprite(int player) {
+		return -1;
 	}
 
 	public int getPlayerPicnum(int player) {
-		SPRITE spr = getPlayerSprite(player);
-		return spr != null ? spr.picnum : -1;
+		int spr = getPlayerSprite(player);
+		return spr != -1 ? sprite[spr].picnum : -1;
+	}
+
+	public int getPlayerZoom(int player, int czoom) {
+		return czoom;
 	}
 }

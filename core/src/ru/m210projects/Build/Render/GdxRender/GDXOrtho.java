@@ -154,6 +154,8 @@ public class GDXOrtho extends OrphoRenderer {
 		linesMesh.dispose();
 		lineTile.dispose();
 		bitmapShader.dispose();
+		idx = 0;
+		drawing = false;
 	}
 
 	@Override
@@ -168,7 +170,7 @@ public class GDXOrtho extends OrphoRenderer {
 				return;
 		}
 
-		GLTile atlas = font.getGL(parent.textureCache, PixelFormat.Pal8, col);
+		GLTile atlas = font.getGL(parent.textureCache, parent.getTexFormat(), col);
 		if (atlas == null)
 			return;
 
@@ -312,7 +314,7 @@ public class GDXOrtho extends OrphoRenderer {
 		if (!pic.isLoaded())
 			engine.loadtile(picnum);
 
-		GLTile pth = parent.textureCache.get(PixelFormat.Pal8, picnum, dapalnum, 0, method);
+		GLTile pth = parent.textureCache.get(parent.getTexFormat(), picnum, dapalnum, 0, method);
 		if (pth == null)
 			return;
 		parent.textureCache.bind(pth);
@@ -362,6 +364,9 @@ public class GDXOrtho extends OrphoRenderer {
 	}
 
 	protected void drawoverheadline(WALL wal, int cposx, int cposy, float cos, float sin, int col) {
+		if (col < 0)
+			return;
+
 		WALL wal2 = wall[wal.point2];
 
 		int ox = cposx - wal.x;
@@ -400,7 +405,7 @@ public class GDXOrtho extends OrphoRenderer {
 				if (isShowRedWalls() && wal.nextwall >= 0) {
 					if (Gameutils.isValidSector(wal.nextsector)) {
 						if (isWallVisible(startwall, i))
-							drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(wal));
+							drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(startwall));
 					}
 				}
 
@@ -411,12 +416,12 @@ public class GDXOrtho extends OrphoRenderer {
 				if (!pic.hasSize())
 					continue;
 
-				drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(wal));
+				drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(startwall));
 			}
 		}
 
 		// Draw sprites
-		if (isShowSprites()) {
+		if (isShowSprites() || isShowFloorSprites() || isShowWallSprites()) {
 			for (int i = 0; i < numsectors; i++) {
 				if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
 					continue;
@@ -424,12 +429,12 @@ public class GDXOrtho extends OrphoRenderer {
 				for (int j = headspritesect[i]; j >= 0; j = nextspritesect[j]) {
 					SPRITE spr = sprite[j];
 
-					if ((spr.cstat & 0x8000) != 0 || spr.xrepeat == 0 || spr.yrepeat == 0 || !isSpriteVisible(spr))
+					if ((spr.cstat & 0x8000) != 0 || spr.xrepeat == 0 || spr.yrepeat == 0 || !isSpriteVisible(j))
 						continue;
 
 					switch (spr.cstat & 48) {
 					case 0:
-						if (((gotsector[i >> 3] & (1 << (i & 7))) > 0) && (czoom > 96)) {
+						if (isShowSprites() && ((gotsector[i >> 3] & (1 << (i & 7))) > 0) && (czoom > 96)) {
 							int ox = cposx - spr.x;
 							int oy = cposy - spr.y;
 							float dx = ox * cos - oy * sin;
@@ -470,7 +475,11 @@ public class GDXOrtho extends OrphoRenderer {
 							x2 = (int) (ox * cos - oy * sin) + (xdim << 11);
 							y2 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							drawline256(x1, y1, x2, y2, getSpriteColor(spr));
+							int col = getSpriteColor(j);
+							if (col < 0)
+								break;
+
+							drawline256(x1, y1, x2, y2, col);
 						}
 						break;
 					case 32:
@@ -521,7 +530,10 @@ public class GDXOrtho extends OrphoRenderer {
 							x4 = (int) (ox * cos - oy * sin) + (xdim << 11);
 							y4 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							int col = getSpriteColor(spr);
+							int col = getSpriteColor(j);
+							if (col < 0)
+								break;
+
 							drawline256(x1, y1, x2, y2, col);
 							drawline256(x2, y2, x3, y3, col);
 							drawline256(x3, y3, x4, y4, col);
@@ -535,10 +547,11 @@ public class GDXOrtho extends OrphoRenderer {
 
 		// draw player
 		for (int i = connecthead; i >= 0; i = connectpoint2[i]) {
-			SPRITE pPlayer = getPlayerSprite(i);
-			if (pPlayer == null || !isValidSector(pPlayer.sectnum))
+			int spr = getPlayerSprite(i);
+			if (spr == -1 || !isValidSector(sprite[spr].sectnum))
 				continue;
 
+			SPRITE pPlayer = sprite[spr];
 			int ox = cposx - pPlayer.x;
 			int oy = cposy - pPlayer.y;
 
@@ -553,8 +566,7 @@ public class GDXOrtho extends OrphoRenderer {
 			}
 
 			if (i == viewindex || isShowAllPlayers()) {
-				int nZoom = czoom * (klabs((sector[pPlayer.sectnum].floorz - pPlayer.z) >> 8) + pPlayer.yrepeat);
-				nZoom = BClipRange(nZoom, 22000, 0x20000);
+				int nZoom = getPlayerZoom(i, czoom);
 
 				int sx = (int) (dx + xdim * 2048);
 				int sy = (int) (dy + ydim * 2048);

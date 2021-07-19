@@ -91,7 +91,7 @@ public class WorldShader {
 			+ "        if(!u_draw255) {\n" //
 			+ "            if(u_alpha >= 0.5)\n" //
 			+ "               discard;\n" //
-			+ "            gl_FragColor = vec4(0.01);\n" //
+			+ "            gl_FragColor = vec4(0.0);\n" //
 			+ "            return;\n" //
 			+ "        }\n" //
 			+ "        fi -= 0.5 / 256.0;\n" //

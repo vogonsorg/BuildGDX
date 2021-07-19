@@ -163,7 +163,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 				if (isShowRedWalls() && wal.nextwall >= 0) {
 					if (Gameutils.isValidSector(wal.nextsector)) {
 						if (isWallVisible(startwall, i))
-							drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(wal));
+							drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(startwall));
 					}
 				}
 
@@ -174,7 +174,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 				if (!pic.hasSize())
 					continue;
 
-				drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(wal));
+				drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(startwall));
 			}
 		}
 
@@ -187,7 +187,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 				for (int j = headspritesect[i]; j >= 0; j = nextspritesect[j]) {
 					SPRITE spr = sprite[j];
 
-					if ((spr.cstat & 0x8000) != 0 || spr.xrepeat == 0 || spr.yrepeat == 0 || !isSpriteVisible(spr))
+					if ((spr.cstat & 0x8000) != 0 || spr.xrepeat == 0 || spr.yrepeat == 0 || !isSpriteVisible(j))
 						continue;
 
 					switch (spr.cstat & 48) {
@@ -233,7 +233,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 							x2 = (int) (ox * cos - oy * sin) + (xdim << 11);
 							y2 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							drawline256(x1, y1, x2, y2, getSpriteColor(spr));
+							drawline256(x1, y1, x2, y2, getSpriteColor(j));
 						}
 						break;
 					case 32:
@@ -284,7 +284,7 @@ public class GdxOrphoRen extends OrphoRenderer {
 							x4 = (int) (ox * cos - oy * sin) + (xdim << 11);
 							y4 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							int col = getSpriteColor(spr);
+							int col = getSpriteColor(j);
 							drawline256(x1, y1, x2, y2, col);
 							drawline256(x2, y2, x3, y3, col);
 							drawline256(x3, y3, x4, y4, col);
@@ -298,10 +298,11 @@ public class GdxOrphoRen extends OrphoRenderer {
 
 		// draw player
 		for (int i = connecthead; i >= 0; i = connectpoint2[i]) {
-			SPRITE pPlayer = getPlayerSprite(i);
-			if (pPlayer == null || !isValidSector(pPlayer.sectnum))
+			int spr = getPlayerSprite(i);
+			if (spr == -1 || !isValidSector(sprite[spr].sectnum))
 				continue;
 
+			SPRITE pPlayer = sprite[spr];
 			int ox = cposx - pPlayer.x;
 			int oy = cposy - pPlayer.y;
 

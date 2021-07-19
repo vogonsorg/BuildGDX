@@ -34,7 +34,6 @@ import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE0;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
-import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.*;
@@ -42,7 +41,6 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
-import static ru.m210projects.Build.Gameutils.*;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -86,7 +84,6 @@ import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
-import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
@@ -98,9 +95,6 @@ public class GDXRenderer implements GLRenderer {
 //	TODO:
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
-//	Mirror alphatest
-
-//  Setviewtotile bug (tekwar)
 //  enable/ disable rgb shader
 
 //	Scansectors memory leak (WallFrustum)
@@ -125,7 +119,7 @@ public class GDXRenderer implements GLRenderer {
 	protected SectorScanner scanner;
 	protected BuildCamera cam;
 	protected SpriteRenderer sprR;
-	protected GDXOrtho orphoRen; //GdxOrphoRen
+	protected GDXOrtho orphoRen; // GdxOrphoRen
 	protected DefScript defs;
 	protected ShaderProgram skyshader;
 	protected IndexedShader texshader;
@@ -175,7 +169,7 @@ public class GDXRenderer implements GLRenderer {
 		this.texshader = allocIndexedShader();
 		this.textureCache.changePalette(curpalette.getBytes());
 
-		this.orphoRen = new GDXOrtho(engine, this);
+		this.orphoRen = allocOrphoRenderer(engine);
 
 		Arrays.fill(mirrorTextures, false);
 		int[] mirrors = getMirrorTextures();
@@ -186,6 +180,10 @@ public class GDXRenderer implements GLRenderer {
 
 		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
 				+ " initialized", OSDTEXT_GOLD);
+	}
+
+	protected GDXOrtho allocOrphoRenderer(Engine engine) {
+		return new GDXOrtho(engine, this);
 	}
 
 	protected int[] getMirrorTextures() {
@@ -406,7 +404,7 @@ public class GDXRenderer implements GLRenderer {
 			float x3 = x2 + (x4 - x1);
 			float y3 = y2 + (y4 - y1);
 
-			orphoRen.begin(); //XXX
+			orphoRen.begin(); // XXX
 //			orphoRen.setColor(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
 //			orphoRen.setTexture(frameTexture);
 //			orphoRen.addVertex(x1, ydim - y1, 0, 0);
@@ -473,6 +471,9 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void drawrooms() {
+		if (orphoRen.isDrawing())
+			orphoRen.end();
+
 		if (!clearStatus) { // once at frame
 			gl.glClear(GL_COLOR_BUFFER_BIT);
 			gl.glClearColor(0.0f, 0.5f, 0.5f, 1);
@@ -596,8 +597,7 @@ public class GDXRenderer implements GLRenderer {
 //		gl.glDisable(GL_DEPTH_TEST);
 
 		if (scanner.getSkyPicnum(Heinum.SkyUpper) != -1) {
-			bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyUpper), scanner.getSkyPal(Heinum.SkyUpper),
-					0, 0, 0);
+			bind(getTexFormat(), scanner.getSkyPicnum(Heinum.SkyUpper), scanner.getSkyPal(Heinum.SkyUpper), 0, 0, 0);
 
 			transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100);
 			transform.scale(cam.far, cam.far, 1.0f);
@@ -609,8 +609,7 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		if (scanner.getSkyPicnum(Heinum.SkyLower) != -1) {
-			bind(TileData.PixelFormat.Pal8, scanner.getSkyPicnum(Heinum.SkyLower), scanner.getSkyPal(Heinum.SkyLower),
-					0, 0, 0);
+			bind(getTexFormat(), scanner.getSkyPicnum(Heinum.SkyLower), scanner.getSkyPal(Heinum.SkyLower), 0, 0, 0);
 
 			transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100);
 			transform.scale(cam.far, cam.far, 1.0f);
@@ -683,7 +682,7 @@ public class GDXRenderer implements GLRenderer {
 			engine.loadtile(picnum);
 
 		engine.setgotpic(picnum);
-		GLTile pth = bind(TileData.PixelFormat.Pal8, picnum, palnum, 0, 0, method);
+		GLTile pth = bind(getTexFormat(), picnum, palnum, 0, 0, method);
 		if (pth != null) {
 			skyshader.begin();
 			gl.glActiveTexture(GL20.GL_TEXTURE1);
@@ -735,11 +734,14 @@ public class GDXRenderer implements GLRenderer {
 				engine.loadtile(picnum);
 
 			int method = surf.getMethod();
-			if (!pic.isLoaded())
+			if (!pic.isLoaded()) {
+				if (inpreparemirror)
+					return;
 				method = 1; // invalid data, HOM
+			}
 
 			engine.setgotpic(picnum);
-			GLTile pth = bind(PixelFormat.Pal8, picnum, surf.getPal(), surf.getShade(), 0, method);
+			GLTile pth = bind(getTexFormat(), picnum, surf.getPal(), surf.getShade(), 0, method);
 			if (pth != null) {
 				int combvis = globalvisibility;
 				int vis = surf.getVisibility();
@@ -1005,7 +1007,7 @@ public class GDXRenderer implements GLRenderer {
 		if ((palookup[dapalnum] == null) && (dapalnum < (MAXPALOOKUPS - RESERVEDPALS)))
 			return;
 
-		textureCache.precache(TileData.PixelFormat.Pal8, dapicnum, dapalnum, datype);
+		textureCache.precache(getTexFormat(), dapicnum, dapalnum, datype);
 	}
 
 	@Override
@@ -1090,7 +1092,7 @@ public class GDXRenderer implements GLRenderer {
 		int hp;
 
 		PixelFormat fmt = textureCache.getFmt(tilenume);
-		if(fmt == null)
+		if (fmt == null)
 			return;
 
 		if (fmt == PixelFormat.Pal8) {
@@ -1158,7 +1160,7 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	protected GLTile bind(PixelFormat fmt, int dapicnum, int dapalnum, int dashade, int skybox, int method) {
-		GLTile pth = textureCache.get(PixelFormat.Pal8, dapicnum, dapalnum, skybox, method);
+		GLTile pth = textureCache.get(getTexFormat(), dapicnum, dapalnum, skybox, method);
 		if (pth == null)
 			return null;
 
@@ -1191,6 +1193,9 @@ public class GDXRenderer implements GLRenderer {
 				alpha = TRANSLUSCENT2;
 				break;
 			}
+
+			if (!engine.getTile(tilenum).isLoaded())
+				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 
 			texshader.setDrawLastIndex((method & 3) == 0 || !textureCache.alphaMode(method));
 			texshader.setTransparent(alpha);
