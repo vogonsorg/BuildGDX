@@ -53,7 +53,6 @@ import java.util.Arrays;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.GLTexture;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
@@ -88,8 +87,8 @@ public class GDXOrtho extends OrphoRenderer {
 	protected Mesh linesMesh;
 	protected final float[] vertices;
 	protected int idx = 0;
-	protected GLTexture lastTexture = null;
-	protected GLTexture lineTile = null;
+	protected GLTile lastTexture = null;
+	protected GLTile lineTile = null;
 	protected int lastType = GL20.GL_TRIANGLES;
 	protected float invTexWidth = 0, invTexHeight = 0;
 	protected boolean drawing = false;
@@ -356,7 +355,7 @@ public class GDXOrtho extends OrphoRenderer {
 		draw(pth, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
 	}
 
-	public void draw(GLTexture tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, int angle, int z,
+	public void draw(GLTile tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, int angle, int z,
 			int dastat, int cx1, int cy1, int cx2, int cy2) {
 		this.draw(tex, sx, sy, sizx, sizy, xoffset, yoffset, 0.0f, 0.0f, sizx, sizy, angle, z, dastat, cx1, cy1, cx2,
 				cy2);
@@ -411,7 +410,7 @@ public class GDXOrtho extends OrphoRenderer {
 				if (mapSettings.isShowRedWalls() && Gameutils.isValidWall(wal.nextwall)) {
 					if (Gameutils.isValidSector(wal.nextsector)) {
 						if (mapSettings.isWallVisible(walnum, i))
-							drawoverheadline(wal, cposx, cposy, cos, sin, mapSettings.getWallColor(walnum));
+							drawoverheadline(wal, cposx, cposy, cos, sin, mapSettings.getWallColor(walnum, i));
 					}
 				}
 
@@ -422,7 +421,7 @@ public class GDXOrtho extends OrphoRenderer {
 				if (!pic.hasSize())
 					continue;
 
-				drawoverheadline(wal, cposx, cposy, cos, sin, mapSettings.getWallColor(walnum));
+				drawoverheadline(wal, cposx, cposy, cos, sin, mapSettings.getWallColor(walnum, i));
 			}
 		}
 
@@ -731,6 +730,7 @@ public class GDXOrtho extends OrphoRenderer {
 			throw new IllegalStateException("GdxBatch.begin must be called before end.");
 		if (idx > 0)
 			flush();
+
 		lastTexture = null;
 		cx1 = 0;
 		cy1 = 0;
@@ -754,7 +754,7 @@ public class GDXOrtho extends OrphoRenderer {
 
 		int count;
 		Mesh mesh;
-		lastTexture.bind();
+		parent.textureCache.bind(lastTexture);
 		if (lastType == GL20.GL_LINES) {
 			int spritesInBatch = idx / 6;
 			count = spritesInBatch * 2;
@@ -782,9 +782,8 @@ public class GDXOrtho extends OrphoRenderer {
 
 	}
 
-	public void draw(GLTexture tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, float srcX,
-			float srcY, float srcWidth, float srcHeight, int angle, int z, int dastat, int cx1, int cy1, int cx2,
-			int cy2) {
+	public void draw(GLTile tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, float srcX, float srcY,
+			float srcWidth, float srcHeight, int angle, int z, int dastat, int cx1, int cy1, int cx2, int cy2) {
 		if (!drawing)
 			throw new IllegalStateException("GdxBatch.begin must be called before draw.");
 
@@ -934,7 +933,7 @@ public class GDXOrtho extends OrphoRenderer {
 		shader.setDrawLastIndex(drawLastIndex);
 	}
 
-	protected void switchTexture(GLTexture texture) {
+	protected void switchTexture(GLTile texture) {
 		if (texture == lastTexture)
 			return;
 

@@ -22,9 +22,9 @@ public interface IOverheadMapSettings {
 
 	public boolean isSpriteVisible(MapView view, int index);
 
-	public boolean isWallVisible(int w, int s);
+	public boolean isWallVisible(int w, int ses);
 
-	public int getWallColor(int w);
+	public int getWallColor(int w, int sec);
 
 	public int getSpriteColor(int s);
 

@@ -4,6 +4,10 @@ import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.show2dsector;
 import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.wall;
+import static ru.m210projects.Build.Engine.yxaspect;
+import static ru.m210projects.Build.Gameutils.BClipRange;
+import static ru.m210projects.Build.Pragmas.klabs;
+import static ru.m210projects.Build.Pragmas.mulscale;
 
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Types.SECTOR;
@@ -34,6 +38,9 @@ public class DefaultMapSettings implements IOverheadMapSettings {
 
 	@Override
 	public boolean isSpriteVisible(MapView view, int index) {
+		if (view == MapView.Polygons)
+			return false;
+
 		switch (sprite[index].cstat & 48) {
 		case 0:
 			return true;
@@ -58,7 +65,7 @@ public class DefaultMapSettings implements IOverheadMapSettings {
 	}
 
 	@Override
-	public int getWallColor(int w) {
+	public int getWallColor(int w, int sec) {
 		WALL wal = wall[w];
 		if (Gameutils.isValidSector(wal.nextsector)) // red wall
 			return 31;
@@ -93,7 +100,10 @@ public class DefaultMapSettings implements IOverheadMapSettings {
 
 	@Override
 	public int getPlayerZoom(int player, int czoom) {
-		return czoom;
+		SPRITE pPlayer = sprite[getPlayerSprite(player)];
+		int nZoom = mulscale(yxaspect,
+				czoom * (klabs((sector[pPlayer.sectnum].floorz - pPlayer.z) >> 8) + pPlayer.yrepeat), 16);
+		return nZoom = BClipRange(nZoom, 22000, 0x20000);
 	}
 
 	@Override

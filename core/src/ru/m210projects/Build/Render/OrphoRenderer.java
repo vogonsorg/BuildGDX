@@ -141,7 +141,7 @@ public abstract class OrphoRenderer {
 							x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 							y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
-							int col = mapSettings.getWallColor(j);
+							int col = mapSettings.getWallColor(j, i);
 							if (col < 0)
 								break;
 
@@ -331,7 +331,7 @@ public abstract class OrphoRenderer {
 				x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 				y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
-				int col = mapSettings.getWallColor(j);
+				int col = mapSettings.getWallColor(j, i);
 				if (col < 0)
 					break;
 

@@ -88,6 +88,7 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
+import ru.m210projects.Build.Types.Timer;
 import ru.m210projects.Build.Types.WALL;
 
 public class GDXRenderer implements GLRenderer {
@@ -206,7 +207,6 @@ public class GDXRenderer implements GLRenderer {
 //			fis.read(data);
 //			String frag = new String(data);
 
-			System.err.println("Allocate sahder");
 			return new IndexedShader(WorldShader.vertex, WorldShader.fragment) {
 				@Override
 				public void bindPalette() {
@@ -551,7 +551,6 @@ public class GDXRenderer implements GLRenderer {
 			return;
 
 		bunchfirst.clear();
-		setFrustum(null);
 
 		for (int i = 0; i < sectors.size(); i++) {
 			VisibleSector sec = sectors.get(i);
