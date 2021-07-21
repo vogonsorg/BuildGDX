@@ -108,7 +108,7 @@ import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-public abstract class Polymost implements GLRenderer {
+public class Polymost implements GLRenderer {
 
 	protected final Color polyColor = new Color();
 	public Rendering rendering = Rendering.Nothing;
@@ -197,7 +197,7 @@ public abstract class Polymost implements GLRenderer {
 	private byte[] h_xoffs = new byte[MAXTILES], h_yoffs = new byte[MAXTILES];
 
 	protected GL10 gl;
-	protected OrphoRenderer orpho;
+	protected OrphoRenderer ortho;
 	protected PolymostModelRenderer mdrenderer;
 	protected boolean isInited = false;
 
@@ -235,7 +235,7 @@ public abstract class Polymost implements GLRenderer {
 		Arrays.fill(spritewall, -1);
 		this.globalfog = new GLFog();
 
-		this.orpho = new Polymost2D(this);
+		this.ortho = allocOrphoRenderer();
 		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
 				+ " initialized", OSDTEXT_GOLD);
 	}
@@ -540,7 +540,7 @@ public abstract class Polymost implements GLRenderer {
 		textureCache.uninit();
 		clearskins(false);
 
-		orpho.uninit();
+		ortho.uninit();
 
 		//
 		// Cachefile_Free();
@@ -557,7 +557,7 @@ public abstract class Polymost implements GLRenderer {
 
 		enableIndexedShader(GLSettings.usePaletteShader.get());
 
-		orpho.init();
+		ortho.init();
 		globalfog.init(textureCache);
 
 		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -3937,14 +3937,21 @@ public abstract class Polymost implements GLRenderer {
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
 			int cy1, int cx2, int cy2) {
 		globalfog.disable();
-		orpho.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
+		ortho.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
 		globalfog.enable();
 	}
 
 	@Override
 	public void drawmapview(int dax, int day, int zoome, int ang) {
 		globalfog.disable();
-		orpho.drawmapview(dax, day, zoome, ang);
+		ortho.drawmapview(dax, day, zoome, ang);
+		globalfog.enable();
+	}
+
+	@Override
+	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
+		globalfog.disable();
+		ortho.drawoverheadmap(cposx, cposy, czoom, cang);
 		globalfog.enable();
 	}
 
@@ -3952,21 +3959,21 @@ public abstract class Polymost implements GLRenderer {
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
 		globalfog.disable();
-		orpho.printext(font, xpos, ypos, text, col, shade, bit, scale);
+		ortho.printext(font, xpos, ypos, text, col, shade, bit, scale);
 		globalfog.enable();
 	}
 
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
 		globalfog.disable();
-		orpho.printext(xpos, ypos, col, backcol, text, fontsize, scale);
+		ortho.printext(xpos, ypos, col, backcol, text, fontsize, scale);
 		globalfog.enable();
 	}
 
 	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int col) {
 		globalfog.disable();
-		orpho.drawline256(x1, y1, x2, y2, col);
+		ortho.drawline256(x1, y1, x2, y2, col);
 		globalfog.enable();
 	}
 
@@ -3988,6 +3995,10 @@ public abstract class Polymost implements GLRenderer {
 		}
 
 		return null;
+	}
+
+	protected Polymost2D allocOrphoRenderer() {
+		return new Polymost2D(this, null);
 	}
 
 	@Override

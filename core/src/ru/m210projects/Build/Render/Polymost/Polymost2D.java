@@ -88,6 +88,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Render.GLInfo;
+import ru.m210projects.Build.Render.IOverheadMapSettings;
+import ru.m210projects.Build.Render.IOverheadMapSettings.MapView;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
@@ -150,8 +152,8 @@ public class Polymost2D extends OrphoRenderer {
 
 	// Overhead map settings
 
-	public Polymost2D(Polymost parent) {
-		super(parent.engine);
+	public Polymost2D(Polymost parent, IOverheadMapSettings settings) {
+		super(parent.engine, settings);
 		this.parent = parent;
 		this.gl = parent.gl;
 		this.textureCache = parent.textureCache;
@@ -199,7 +201,7 @@ public class Polymost2D extends OrphoRenderer {
 		for (s = 0; s < numsectors; s++) {
 			sec = sector[s];
 
-			if (fullmap || (show2dsector[s >> 3] & pow2char[s & 7]) != 0) {
+			if (mapSettings.isFullMap() || (show2dsector[s >> 3] & pow2char[s & 7]) != 0) {
 				npoints = 0;
 				i = 0;
 				startwall = sec.wallptr;
@@ -231,13 +233,15 @@ public class Polymost2D extends OrphoRenderer {
 				bakx1 = (int) rx1[0];
 				baky1 = mulscale((int) ry1[0] - (ydim << 11), xyaspect, 16) + (ydim << 11);
 
-				if (isShowFloorSprites()) {
+				if (mapSettings.isShowFloorSprites(MapView.Polygons)) {
 					// Collect floor sprites to draw
 					for (i = headspritesect[s]; i >= 0; i = nextspritesect[i])
 						if ((sprite[i].cstat & 48) == 32) {
 							if (sortnum >= MAXSPRITESONSCREEN)
 								continue;
-							if ((sprite[i].cstat & (64 + 8)) == (64 + 8))
+
+							if ((sprite[i].cstat & (64 + 8)) == (64 + 8)
+									|| !mapSettings.isSpriteVisible(MapView.Polygons, i))
 								continue;
 
 							if (tsprite[sortnum] == null)
@@ -247,12 +251,13 @@ public class Polymost2D extends OrphoRenderer {
 						}
 				}
 
-				if (isShowSprites()) {
+				if (mapSettings.isShowSprites(MapView.Polygons)) {
 					for (i = headspritesect[s]; i >= 0; i = nextspritesect[i])
-
-
 						if ((show2dsprite[i >> 3] & pow2char[i & 7]) != 0) {
 							if (sortnum >= MAXSPRITESONSCREEN)
+								continue;
+
+							if (!mapSettings.isSpriteVisible(MapView.Polygons, i))
 								continue;
 
 							if (tsprite[sortnum] == null)
@@ -356,7 +361,7 @@ public class Polymost2D extends OrphoRenderer {
 			}
 		}
 
-		if (isShowSprites()) {
+		if (mapSettings.isShowSprites(MapView.Polygons)) {
 			// Sort sprite list
 			int gap = 1;
 			while (gap < sortnum)

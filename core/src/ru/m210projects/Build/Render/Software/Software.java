@@ -113,7 +113,7 @@ import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
 import ru.m210projects.Build.Types.WALL;
 
-public abstract class Software implements Renderer {
+public class Software implements Renderer {
 
 	public final int BITSOFPRECISION = 3;
 
@@ -213,14 +213,14 @@ public abstract class Software implements Renderer {
 	public boolean novoxmips = false;
 	public boolean isInited = false;
 
-	protected SoftwareOrpho orpho;
+	protected SoftwareOrpho ortho;
 
 	public Software(Engine engine) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
 			BuildGdx.app.setFrame(FrameType.Canvas);
 		this.engine = engine;
 
-		orpho = new SoftwareOrpho(this);
+		ortho = allocOrphoRenderer();
 	}
 
 	@Override
@@ -3558,7 +3558,7 @@ public abstract class Software implements Renderer {
 	@Override
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
 			int cy1, int cx2, int cy2) {
-		orpho.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
+		ortho.rotatesprite(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
 	}
 
 	protected void qinterpolatedown16short(short[] bufptr, int offset, int num, long val, long add) { // ...maybe the
@@ -3589,18 +3589,23 @@ public abstract class Software implements Renderer {
 
 	@Override
 	public void drawmapview(int dax, int day, int zoome, int ang) {
-		orpho.drawmapview(dax, day, zoome, ang);
+		ortho.drawmapview(dax, day, zoome, ang);
+	}
+
+	@Override
+	public void drawoverheadmap(int cposx, int cposy, int czoom, short cang) {
+		ortho.drawoverheadmap(cposx, cposy, czoom, cang);
 	}
 
 	@Override
 	public void printext(TileFont font, int xpos, int ypos, char[] text, int col, int shade, Transparent bit,
 			float scale) {
-		orpho.printext(font, xpos, ypos, text, col, shade, bit, scale);
+		ortho.printext(font, xpos, ypos, text, col, shade, bit, scale);
 	}
 
 	@Override
 	public void printext(int xpos, int ypos, int col, int backcol, char[] text, int fontsize, float scale) {
-		orpho.printext(xpos, ypos, col, backcol, text, fontsize, scale);
+		ortho.printext(xpos, ypos, col, backcol, text, fontsize, scale);
 	}
 
 	private ByteBuffer indexbuffer;
@@ -3662,7 +3667,7 @@ public abstract class Software implements Renderer {
 
 	@Override
 	public void drawline256(int x1, int y1, int x2, int y2, int c) {
-		orpho.drawline256(x1, y1, x2, y2, c);
+		ortho.drawline256(x1, y1, x2, y2, c);
 	}
 
 	public void dosetaspect() {
@@ -4299,6 +4304,10 @@ public abstract class Software implements Renderer {
 				globalx2 * r + globalypanning - yinc * (xr - xl), ylookup[yp] + xl + frameoffset);
 	}
 
+	protected SoftwareOrpho allocOrphoRenderer() {
+		return new SoftwareOrpho(this, null);
+	}
+
 	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c) {
 		while ((c--) > 0)
 			d[dptr++] = s[sptr--];
@@ -4323,4 +4332,5 @@ public abstract class Software implements Renderer {
 	public void invalidatetile(int tilenume, int pal, int how) {
 		/* nothing */
 	}
+
 }

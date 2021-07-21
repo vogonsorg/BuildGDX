@@ -38,14 +38,12 @@ import static ru.m210projects.Build.Engine.xdimenscale;
 import static ru.m210projects.Build.Engine.xyaspect;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Engine.yxaspect;
-import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Gameutils.buildAngleToDegrees;
 import static ru.m210projects.Build.Gameutils.buildAngleToRadians;
 import static ru.m210projects.Build.Gameutils.isValidSector;
 import static ru.m210projects.Build.Net.Mmulti.connecthead;
 import static ru.m210projects.Build.Net.Mmulti.connectpoint2;
 import static ru.m210projects.Build.Pragmas.dmulscale;
-import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 
@@ -64,9 +62,10 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.NumberUtils;
 
-import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Render.IOverheadMapSettings.MapView;
+import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
@@ -104,10 +103,21 @@ public class GDXOrtho extends OrphoRenderer {
 	protected ShaderProgram textureShader;
 	protected ShaderProgram bitmapShader;
 
-	public GDXOrtho(Engine engine, GDXRenderer parent) {
-		super(engine);
+	private final int maxSpriteCount = 128;
+
+	public GDXOrtho(GDXRenderer parent, IOverheadMapSettings settings) {
+		super(parent.engine, settings);
 		this.parent = parent;
-		int size = 128;
+
+		int size = maxSpriteCount;
+		int VERTEX_SIZE = 2 + 1 + 2;
+		int SPRITE_SIZE = 4 * VERTEX_SIZE;
+		this.vertices = new float[size * SPRITE_SIZE];
+	}
+
+	@Override
+	public void init() {
+		int size = maxSpriteCount;
 
 		this.mesh = new Mesh(false, size * 4, size * 6,
 				new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
@@ -119,10 +129,6 @@ public class GDXOrtho extends OrphoRenderer {
 				new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE));
 
 		resize(xdim, ydim);
-
-		int VERTEX_SIZE = 2 + 1 + 2;
-		int SPRITE_SIZE = 4 * VERTEX_SIZE;
-		this.vertices = new float[size * SPRITE_SIZE];
 
 		int len = size * 6;
 		short[] indices = new short[len];
@@ -141,11 +147,8 @@ public class GDXOrtho extends OrphoRenderer {
 		this.textureShader = parent.texshader;
 		this.bitmapShader = createBitmapShader();
 		this.shader = textureShader;
-	}
 
-	@Override
-	public void init() {
-		resize(xdim, ydim);
+		System.err.println("init");
 	}
 
 	@Override
@@ -156,6 +159,8 @@ public class GDXOrtho extends OrphoRenderer {
 		bitmapShader.dispose();
 		idx = 0;
 		drawing = false;
+
+		System.err.println("uninit");
 	}
 
 	@Override
@@ -389,23 +394,24 @@ public class GDXOrtho extends OrphoRenderer {
 		float sin = (float) Math.sin((512 - cang) * buildAngleToRadians) * czoom / 4.0f;
 
 		for (int i = 0; i < numsectors; i++) {
-			if ((!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0) || !Gameutils.isValidSector(i))
+			if ((!mapSettings.isFullMap() && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
+					|| !Gameutils.isValidSector(i))
 				continue;
 
 			SECTOR sec = sector[i];
 			if (!Gameutils.isValidWall(sec.wallptr) || sec.wallnum < 3)
 				continue;
 
-			int startwall = sec.wallptr;
-			for (int j = 0; j < sec.wallnum; j++, startwall++) {
-				if (!Gameutils.isValidWall(startwall) || !Gameutils.isValidWall(wall[startwall].point2))
+			int walnum = sec.wallptr;
+			for (int j = 0; j < sec.wallnum; j++, walnum++) {
+				if (!Gameutils.isValidWall(walnum) || !Gameutils.isValidWall(wall[walnum].point2))
 					continue;
 
-				WALL wal = wall[startwall];
-				if (isShowRedWalls() && wal.nextwall >= 0) {
+				WALL wal = wall[walnum];
+				if (mapSettings.isShowRedWalls() && Gameutils.isValidWall(wal.nextwall)) {
 					if (Gameutils.isValidSector(wal.nextsector)) {
-						if (isWallVisible(startwall, i))
-							drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(startwall));
+						if (mapSettings.isWallVisible(walnum, i))
+							drawoverheadline(wal, cposx, cposy, cos, sin, mapSettings.getWallColor(walnum));
 					}
 				}
 
@@ -416,25 +422,26 @@ public class GDXOrtho extends OrphoRenderer {
 				if (!pic.hasSize())
 					continue;
 
-				drawoverheadline(wal, cposx, cposy, cos, sin, getWallColor(startwall));
+				drawoverheadline(wal, cposx, cposy, cos, sin, mapSettings.getWallColor(walnum));
 			}
 		}
 
 		// Draw sprites
-		if (isShowSprites() || isShowFloorSprites() || isShowWallSprites()) {
+		if (mapSettings.isShowSprites(MapView.Lines)) {
 			for (int i = 0; i < numsectors; i++) {
-				if (!fullmap && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
+				if (!mapSettings.isFullMap() && (show2dsector[i >> 3] & (1 << (i & 7))) == 0)
 					continue;
 
 				for (int j = headspritesect[i]; j >= 0; j = nextspritesect[j]) {
 					SPRITE spr = sprite[j];
 
-					if ((spr.cstat & 0x8000) != 0 || spr.xrepeat == 0 || spr.yrepeat == 0 || !isSpriteVisible(j))
+					if ((spr.cstat & 0x8000) != 0 || spr.xrepeat == 0 || spr.yrepeat == 0
+							|| !mapSettings.isSpriteVisible(MapView.Lines, j))
 						continue;
 
 					switch (spr.cstat & 48) {
 					case 0:
-						if (isShowSprites() && ((gotsector[i >> 3] & (1 << (i & 7))) > 0) && (czoom > 96)) {
+						if (((gotsector[i >> 3] & (1 << (i & 7))) > 0) && (czoom > 96)) {
 							int ox = cposx - spr.x;
 							int oy = cposy - spr.y;
 							float dx = ox * cos - oy * sin;
@@ -448,97 +455,95 @@ public class GDXOrtho extends OrphoRenderer {
 									(spr.cstat & 2) >> 1, wx1, wy1, wx2, wy2);
 						}
 						break;
-					case 16:
-						if (isShowWallSprites()) {
-							Tile pic = engine.getTile(spr.picnum);
-							int x1 = spr.x;
-							int y1 = spr.y;
-							byte xoff = (byte) (pic.getOffsetX() + spr.xoffset);
-							if ((spr.cstat & 4) > 0)
-								xoff = (byte) -xoff;
+					case 16: {
+						Tile pic = engine.getTile(spr.picnum);
+						int x1 = spr.x;
+						int y1 = spr.y;
+						byte xoff = (byte) (pic.getOffsetX() + spr.xoffset);
+						if ((spr.cstat & 4) > 0)
+							xoff = (byte) -xoff;
 
-							int dax = sintable[spr.ang & 2047] * spr.xrepeat;
-							int day = sintable[(spr.ang + 1536) & 2047] * spr.xrepeat;
-							int k = (pic.getWidth() >> 1) + xoff;
-							x1 -= mulscale(dax, k, 16);
-							int x2 = x1 + mulscale(dax, pic.getWidth(), 16);
-							y1 -= mulscale(day, k, 16);
-							int y2 = y1 + mulscale(day, pic.getWidth(), 16);
+						int dax = sintable[spr.ang & 2047] * spr.xrepeat;
+						int day = sintable[(spr.ang + 1536) & 2047] * spr.xrepeat;
+						int k = (pic.getWidth() >> 1) + xoff;
+						x1 -= mulscale(dax, k, 16);
+						int x2 = x1 + mulscale(dax, pic.getWidth(), 16);
+						y1 -= mulscale(day, k, 16);
+						int y2 = y1 + mulscale(day, pic.getWidth(), 16);
 
-							int ox = cposx - x1;
-							int oy = cposy - y1;
-							x1 = (int) (ox * cos - oy * sin) + (xdim << 11);
-							y1 = (int) (ox * sin + oy * cos) + (ydim << 11);
+						int ox = cposx - x1;
+						int oy = cposy - y1;
+						x1 = (int) (ox * cos - oy * sin) + (xdim << 11);
+						y1 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							ox = cposx - x2;
-							oy = cposy - y2;
-							x2 = (int) (ox * cos - oy * sin) + (xdim << 11);
-							y2 = (int) (ox * sin + oy * cos) + (ydim << 11);
+						ox = cposx - x2;
+						oy = cposy - y2;
+						x2 = (int) (ox * cos - oy * sin) + (xdim << 11);
+						y2 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							int col = getSpriteColor(j);
-							if (col < 0)
-								break;
+						int col = mapSettings.getSpriteColor(j);
+						if (col < 0)
+							break;
 
-							drawline256(x1, y1, x2, y2, col);
-						}
+						drawline256(x1, y1, x2, y2, col);
+					}
 						break;
-					case 32:
-						if (isShowFloorSprites()) {
-							Tile pic = engine.getTile(spr.picnum);
-							byte xoff = (byte) (pic.getOffsetX() + spr.xoffset);
-							byte yoff = (byte) (pic.getOffsetY() + spr.yoffset);
-							if ((spr.cstat & 4) > 0)
-								xoff = (byte) -xoff;
-							if ((spr.cstat & 8) > 0)
-								yoff = (byte) -yoff;
+					case 32: {
+						Tile pic = engine.getTile(spr.picnum);
+						byte xoff = (byte) (pic.getOffsetX() + spr.xoffset);
+						byte yoff = (byte) (pic.getOffsetY() + spr.yoffset);
+						if ((spr.cstat & 4) > 0)
+							xoff = (byte) -xoff;
+						if ((spr.cstat & 8) > 0)
+							yoff = (byte) -yoff;
 
-							int cosang = sintable[(spr.ang + 512) & 2047];
-							int sinang = sintable[spr.ang & 2047];
+						int cosang = sintable[(spr.ang + 512) & 2047];
+						int sinang = sintable[spr.ang & 2047];
 
-							int dax = ((pic.getWidth() >> 1) + xoff) * spr.xrepeat;
-							int day = ((pic.getHeight() >> 1) + yoff) * spr.yrepeat;
-							int x1 = spr.x + dmulscale(sinang, dax, cosang, day, 16);
-							int y1 = spr.y + dmulscale(sinang, day, -cosang, dax, 16);
-							int l = pic.getWidth() * spr.xrepeat;
-							int x2 = x1 - mulscale(sinang, l, 16);
-							int y2 = y1 + mulscale(cosang, l, 16);
-							l = pic.getHeight() * spr.yrepeat;
-							int k = -mulscale(cosang, l, 16);
-							int x3 = x2 + k;
-							int x4 = x1 + k;
-							k = -mulscale(sinang, l, 16);
-							int y3 = y2 + k;
-							int y4 = y1 + k;
+						int dax = ((pic.getWidth() >> 1) + xoff) * spr.xrepeat;
+						int day = ((pic.getHeight() >> 1) + yoff) * spr.yrepeat;
+						int x1 = spr.x + dmulscale(sinang, dax, cosang, day, 16);
+						int y1 = spr.y + dmulscale(sinang, day, -cosang, dax, 16);
+						int l = pic.getWidth() * spr.xrepeat;
+						int x2 = x1 - mulscale(sinang, l, 16);
+						int y2 = y1 + mulscale(cosang, l, 16);
+						l = pic.getHeight() * spr.yrepeat;
+						int k = -mulscale(cosang, l, 16);
+						int x3 = x2 + k;
+						int x4 = x1 + k;
+						k = -mulscale(sinang, l, 16);
+						int y3 = y2 + k;
+						int y4 = y1 + k;
 
-							int ox = cposx - x1;
-							int oy = cposy - y1;
-							x1 = (int) (ox * cos - oy * sin) + (xdim << 11);
-							y1 = (int) (ox * sin + oy * cos) + (ydim << 11);
+						int ox = cposx - x1;
+						int oy = cposy - y1;
+						x1 = (int) (ox * cos - oy * sin) + (xdim << 11);
+						y1 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							ox = cposx - x2;
-							oy = cposy - y2;
-							x2 = (int) (ox * cos - oy * sin) + (xdim << 11);
-							y2 = (int) (ox * sin + oy * cos) + (ydim << 11);
+						ox = cposx - x2;
+						oy = cposy - y2;
+						x2 = (int) (ox * cos - oy * sin) + (xdim << 11);
+						y2 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							ox = cposx - x3;
-							oy = cposy - y3;
-							x3 = (int) (ox * cos - oy * sin) + (xdim << 11);
-							y3 = (int) (ox * sin + oy * cos) + (ydim << 11);
+						ox = cposx - x3;
+						oy = cposy - y3;
+						x3 = (int) (ox * cos - oy * sin) + (xdim << 11);
+						y3 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							ox = cposx - x4;
-							oy = cposy - y4;
-							x4 = (int) (ox * cos - oy * sin) + (xdim << 11);
-							y4 = (int) (ox * sin + oy * cos) + (ydim << 11);
+						ox = cposx - x4;
+						oy = cposy - y4;
+						x4 = (int) (ox * cos - oy * sin) + (xdim << 11);
+						y4 = (int) (ox * sin + oy * cos) + (ydim << 11);
 
-							int col = getSpriteColor(j);
-							if (col < 0)
-								break;
+						int col = mapSettings.getSpriteColor(j);
+						if (col < 0)
+							break;
 
-							drawline256(x1, y1, x2, y2, col);
-							drawline256(x2, y2, x3, y3, col);
-							drawline256(x3, y3, x4, y4, col);
-							drawline256(x4, y4, x1, y1, col);
-						}
+						drawline256(x1, y1, x2, y2, col);
+						drawline256(x2, y2, x3, y3, col);
+						drawline256(x3, y3, x4, y4, col);
+						drawline256(x4, y4, x1, y1, col);
+					}
 						break;
 					}
 				}
@@ -547,7 +552,7 @@ public class GDXOrtho extends OrphoRenderer {
 
 		// draw player
 		for (int i = connecthead; i >= 0; i = connectpoint2[i]) {
-			int spr = getPlayerSprite(i);
+			int spr = mapSettings.getPlayerSprite(i);
 			if (spr == -1 || !isValidSector(sprite[spr].sectnum))
 				continue;
 
@@ -559,20 +564,21 @@ public class GDXOrtho extends OrphoRenderer {
 			float dy = ox * sin + oy * cos;
 
 			int dang = (pPlayer.ang - cang) & 0x7FF;
-			if (i == viewindex && !scrollmode) {
+			int viewindex = mapSettings.getViewPlayer();
+			if (i == viewindex && !mapSettings.isScrollMode()) {
 				dx = 0;
 				dy = viewindex ^ i;
 				dang = 0;
 			}
 
-			if (i == viewindex || isShowAllPlayers()) {
-				int nZoom = getPlayerZoom(i, czoom);
+			if (i == viewindex || mapSettings.isShowAllPlayers()) {
+				int nZoom = mapSettings.getPlayerZoom(i, czoom);
 
 				int sx = (int) (dx + xdim * 2048);
 				int sy = (int) (dy + ydim * 2048);
 
-				rotatesprite(sx * 16, sy * 16, nZoom, (short) dang, getPlayerPicnum(i), pPlayer.shade, pPlayer.pal,
-						(pPlayer.cstat & 2) >> 1, wx1, wy1, wx2, wy2);
+				rotatesprite(sx * 16, sy * 16, nZoom, (short) dang, mapSettings.getPlayerPicnum(i), pPlayer.shade,
+						pPlayer.pal, (pPlayer.cstat & 2) >> 1, wx1, wy1, wx2, wy2);
 			}
 		}
 	}
@@ -599,15 +605,16 @@ public class GDXOrtho extends OrphoRenderer {
 		for (int s = 0; s < numsectors; s++) {
 			SECTOR sec = sector[s];
 
-			if (fullmap || (show2dsector[s >> 3] & pow2char[s & 7]) != 0) {
-				if (isShowFloorSprites()) {
+			if (mapSettings.isFullMap() || (show2dsector[s >> 3] & pow2char[s & 7]) != 0) {
+				if (mapSettings.isShowFloorSprites(MapView.Polygons)) {
 					// Collect floor sprites to draw
 					for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
 						if ((sprite[i].cstat & 48) == 32) {
 							if (sortnum >= MAXSPRITESONSCREEN)
 								break;
 
-							if ((sprite[i].cstat & (64 + 8)) == (64 + 8))
+							if ((sprite[i].cstat & (64 + 8)) == (64 + 8)
+									|| !mapSettings.isSpriteVisible(MapView.Polygons, i))
 								continue;
 
 							if (tsprite[sortnum] == null)
@@ -615,23 +622,22 @@ public class GDXOrtho extends OrphoRenderer {
 							tsprite[sortnum].set(sprite[i]);
 							tsprite[sortnum++].owner = (short) i;
 						}
-
-					// XXX
 				}
 
-				if (isShowSprites()) {
+				if (mapSettings.isShowSprites(MapView.Polygons)) {
 					for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
 						if ((show2dsprite[i >> 3] & pow2char[i & 7]) != 0) {
 							if (sortnum >= MAXSPRITESONSCREEN)
 								break;
+
+							if (!mapSettings.isSpriteVisible(MapView.Polygons, i))
+								continue;
 
 							if (tsprite[sortnum] == null)
 								tsprite[sortnum] = new SPRITE();
 							tsprite[sortnum].set(sprite[i]);
 							tsprite[sortnum++].owner = (short) i;
 						}
-
-					// XXX
 				}
 
 				gotsector[s >> 3] |= pow2char[s & 7];
@@ -670,7 +676,7 @@ public class GDXOrtho extends OrphoRenderer {
 			}
 		}
 
-		if (isShowSprites()) {
+		if (mapSettings.isShowSprites(MapView.Polygons)) {
 			// Sort sprite list
 			int gap = 1;
 			while (gap < sortnum)

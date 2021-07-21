@@ -169,7 +169,7 @@ public class GDXRenderer implements GLRenderer {
 		this.texshader = allocIndexedShader();
 		this.textureCache.changePalette(curpalette.getBytes());
 
-		this.orphoRen = allocOrphoRenderer(engine);
+		this.orphoRen = allocOrphoRenderer();
 
 		Arrays.fill(mirrorTextures, false);
 		int[] mirrors = getMirrorTextures();
@@ -182,8 +182,8 @@ public class GDXRenderer implements GLRenderer {
 				+ " initialized", OSDTEXT_GOLD);
 	}
 
-	protected GDXOrtho allocOrphoRenderer(Engine engine) {
-		return new GDXOrtho(engine, this);
+	protected GDXOrtho allocOrphoRenderer() {
+		return new GDXOrtho(this, null);
 	}
 
 	protected int[] getMirrorTextures() {
