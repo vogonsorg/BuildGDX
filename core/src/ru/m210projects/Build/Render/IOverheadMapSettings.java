@@ -14,7 +14,7 @@ public interface IOverheadMapSettings {
 
 	public boolean isShowSprites(MapView view);
 
-	public boolean isShowFloorSprites(MapView view);
+	public boolean isShowFloorSprites();
 
 	public boolean isShowRedWalls();
 
@@ -26,7 +26,15 @@ public interface IOverheadMapSettings {
 
 	public int getWallColor(int w, int sec);
 
+	public int getWallX(int w);
+
+	public int getWallY(int w);
+
 	public int getSpriteColor(int s);
+
+	public int getSpriteX(int spr);
+
+	public int getSpriteY(int spr);
 
 	public int getPlayerSprite(int player);
 

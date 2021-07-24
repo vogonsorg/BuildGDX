@@ -233,7 +233,7 @@ public class Polymost2D extends OrphoRenderer {
 				bakx1 = (int) rx1[0];
 				baky1 = mulscale((int) ry1[0] - (ydim << 11), xyaspect, 16) + (ydim << 11);
 
-				if (mapSettings.isShowFloorSprites(MapView.Polygons)) {
+				if (mapSettings.isShowFloorSprites()) {
 					// Collect floor sprites to draw
 					for (i = headspritesect[s]; i >= 0; i = nextspritesect[i])
 						if ((sprite[i].cstat & 48) == 32) {
@@ -361,7 +361,7 @@ public class Polymost2D extends OrphoRenderer {
 			}
 		}
 
-		if (mapSettings.isShowSprites(MapView.Polygons)) {
+		if (mapSettings.isShowSprites(MapView.Polygons) || mapSettings.isShowFloorSprites()) {
 			// Sort sprite list
 			int gap = 1;
 			while (gap < sortnum)

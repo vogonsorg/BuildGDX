@@ -99,7 +99,7 @@ public abstract class OrphoRenderer {
 		int startwall, endwall;
 		int xvect, yvect, xvect2, yvect2;
 
-		WALL wal, wal2;
+		WALL wal;
 
 		xvect = sintable[(-cang) & 2047] * czoom;
 		yvect = sintable[(1536 - cang) & 2047] * czoom;
@@ -130,20 +130,19 @@ public abstract class OrphoRenderer {
 				if (mapSettings.isShowRedWalls() && Gameutils.isValidWall(wal.nextwall)) {
 					if (Gameutils.isValidSector(wal.nextsector)) {
 						if (mapSettings.isWallVisible(j, i)) {
-							ox = wal.x - cposx;
-							oy = wal.y - cposy;
+							ox = mapSettings.getWallX(j) - cposx;
+							oy = mapSettings.getWallY(j) - cposy;
 							x1 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 							y1 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
-							wal2 = wall[wal.point2];
-							ox = wal2.x - cposx;
-							oy = wal2.y - cposy;
+							ox = mapSettings.getWallX(wal.point2) - cposx;
+							oy = mapSettings.getWallY(wal.point2) - cposy;
 							x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 							y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
 							int col = mapSettings.getWallColor(j, i);
 							if (col < 0)
-								break;
+								continue;
 
 							drawline256(x1, y1, x2, y2, col);
 						}
@@ -169,8 +168,8 @@ public abstract class OrphoRenderer {
 					case 0:
 						if (mapSettings.isShowSprites(MapView.Lines) && ((gotsector[i >> 3] & (1 << (i & 7))) > 0)
 								&& (czoom > 96)) {
-							ox = spr.x - cposx;
-							oy = spr.y - cposy;
+							ox = mapSettings.getSpriteX(j) - cposx;
+							oy = mapSettings.getSpriteY(j) - cposy;
 							x1 = dmulscale(ox, xvect, -oy, yvect, 16);
 							y1 = dmulscale(oy, xvect2, ox, yvect2, 16);
 							int daang = (spr.ang - cang) & 2047;
@@ -182,8 +181,8 @@ public abstract class OrphoRenderer {
 					case 16: {
 						Tile pic = engine.getTile(spr.picnum);
 
-						x1 = spr.x;
-						y1 = spr.y;
+						x1 = mapSettings.getSpriteX(j);
+						y1 = mapSettings.getSpriteY(j);
 						byte xoff = (byte) (pic.getOffsetX() + spr.xoffset);
 						if ((spr.cstat & 4) > 0)
 							xoff = (byte) -xoff;
@@ -235,8 +234,8 @@ public abstract class OrphoRenderer {
 
 						int dax = ((xspan >> 1) + xoff) * xrepeat;
 						int day = ((yspan >> 1) + yoff) * yrepeat;
-						x1 = spr.x + dmulscale(sinang, dax, cosang, day, 16);
-						y1 = spr.y + dmulscale(sinang, day, -cosang, dax, 16);
+						x1 = mapSettings.getSpriteX(j) + dmulscale(sinang, dax, cosang, day, 16);
+						y1 = mapSettings.getSpriteY(j) + dmulscale(sinang, day, -cosang, dax, 16);
 						int l = xspan * xrepeat;
 						x2 = x1 - mulscale(sinang, l, 16);
 						y2 = y1 + mulscale(cosang, l, 16);
@@ -315,25 +314,24 @@ public abstract class OrphoRenderer {
 					x1 = x2;
 					y1 = y2;
 				} else {
-					ox = wal.x - cposx;
-					oy = wal.y - cposy;
+					ox = mapSettings.getWallX(j) - cposx;
+					oy = mapSettings.getWallY(j) - cposy;
 					x1 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 					y1 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 				}
 
 				k = wal.point2;
-				wal2 = wall[k];
-				if (wal2 == null)
+				if (wall[k] == null)
 					continue;
 
-				ox = wal2.x - cposx;
-				oy = wal2.y - cposy;
+				ox = mapSettings.getWallX(k) - cposx;
+				oy = mapSettings.getWallY(k) - cposy;
 				x2 = dmulscale(ox, xvect, -oy, yvect, 16) + (xdim << 11);
 				y2 = dmulscale(oy, xvect2, ox, yvect2, 16) + (ydim << 11);
 
 				int col = mapSettings.getWallColor(j, i);
 				if (col < 0)
-					break;
+					continue;
 
 				drawline256(x1, y1, x2, y2, col);
 			}
@@ -346,8 +344,8 @@ public abstract class OrphoRenderer {
 				continue;
 
 			SPRITE pPlayer = sprite[spr];
-			ox = pPlayer.x - cposx;
-			oy = pPlayer.y - cposy;
+			ox = mapSettings.getSpriteX(spr) - cposx;
+			oy = mapSettings.getSpriteY(spr) - cposy;
 
 			int dx = mulscale(ox, xvect, 16) - mulscale(oy, yvect, 16);
 			int dy = mulscale(oy, xvect2, 16) + mulscale(ox, yvect2, 16);
@@ -361,12 +359,34 @@ public abstract class OrphoRenderer {
 			}
 
 			if (i == viewindex || mapSettings.isShowAllPlayers()) {
-				int nZoom = mapSettings.getPlayerZoom(i, czoom);
-				int sx = (dx << 4) + (xdim << 15);
-				int sy = (dy << 4) + (ydim << 15);
+				int picnum = mapSettings.getPlayerPicnum(i);
+				if (picnum == -1) { // draw it with lines
+					ox = (sintable[(pPlayer.ang + 512) & 2047] >> 7);
+					oy = (sintable[(pPlayer.ang) & 2047] >> 7);
+					x2 = 0;
+					y2 = -(mapSettings.getPlayerZoom(i, czoom) << 1);
 
-				rotatesprite(sx, sy, nZoom, (short) dang, mapSettings.getPlayerPicnum(i), pPlayer.shade, pPlayer.pal,
-						(pPlayer.cstat & 2) >> 1, windowx1, windowy1, windowx2, windowy2);
+					int x3 = mulscale(x2, yxaspect, 16);
+					int y3 = mulscale(y2, yxaspect, 16);
+
+					int col = mapSettings.getSpriteColor(spr);
+					if (col < 0)
+						continue;
+
+					drawline256(dx - x2 + (xdim << 11), dy - y3 + (ydim << 11), dx + x2 + (xdim << 11),
+							dy + y3 + (ydim << 11), col);
+					drawline256(dx - y2 + (xdim << 11), dy + x3 + (ydim << 11), dx + x2 + (xdim << 11),
+							dy + y3 + (ydim << 11), col);
+					drawline256(dx + y2 + (xdim << 11), dy - x3 + (ydim << 11), dx + x2 + (xdim << 11),
+							dy + y3 + (ydim << 11), col);
+				} else {
+					int nZoom = mapSettings.getPlayerZoom(i, czoom);
+					int sx = (dx << 4) + (xdim << 15);
+					int sy = (dy << 4) + (ydim << 15);
+
+					rotatesprite(sx, sy, nZoom, (short) dang, mapSettings.getPlayerPicnum(i), pPlayer.shade,
+							pPlayer.pal, (pPlayer.cstat & 2) >> 1, windowx1, windowy1, windowx2, windowy2);
+				}
 			}
 		}
 	}

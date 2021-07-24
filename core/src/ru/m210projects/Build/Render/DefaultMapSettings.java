@@ -22,7 +22,7 @@ public class DefaultMapSettings implements IOverheadMapSettings {
 	}
 
 	@Override
-	public boolean isShowFloorSprites(MapView view) {
+	public boolean isShowFloorSprites() { // in Polygon mode
 		return false;
 	}
 
@@ -47,7 +47,7 @@ public class DefaultMapSettings implements IOverheadMapSettings {
 		case 16: // wall sprites
 			return false;
 		case 32: // floor sprites
-			return isShowFloorSprites(view);
+			return false;
 		}
 		return true;
 	}
@@ -119,5 +119,25 @@ public class DefaultMapSettings implements IOverheadMapSettings {
 	@Override
 	public int getViewPlayer() {
 		return 0;
+	}
+
+	@Override
+	public int getSpriteX(int spr) {
+		return sprite[spr].x;
+	}
+
+	@Override
+	public int getSpriteY(int spr) {
+		return sprite[spr].y;
+	}
+
+	@Override
+	public int getWallX(int w) {
+		return wall[w].x;
+	}
+
+	@Override
+	public int getWallY(int w) {
+		return wall[w].y;
 	}
 }

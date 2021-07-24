@@ -100,6 +100,7 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
+import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -215,12 +216,12 @@ public class Software implements Renderer {
 
 	protected SoftwareOrpho ortho;
 
-	public Software(Engine engine) {
+	public Software(Engine engine, IOverheadMapSettings settings) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
 			BuildGdx.app.setFrame(FrameType.Canvas);
 		this.engine = engine;
 
-		ortho = allocOrphoRenderer();
+		ortho = allocOrphoRenderer(settings);
 	}
 
 	@Override
@@ -4304,8 +4305,8 @@ public class Software implements Renderer {
 				globalx2 * r + globalypanning - yinc * (xr - xl), ylookup[yp] + xl + frameoffset);
 	}
 
-	protected SoftwareOrpho allocOrphoRenderer() {
-		return new SoftwareOrpho(this, null);
+	protected SoftwareOrpho allocOrphoRenderer(IOverheadMapSettings settings) {
+		return new SoftwareOrpho(this, settings);
 	}
 
 	private void copybufreverse(byte[] s, int sptr, byte[] d, int dptr, int c) {

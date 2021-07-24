@@ -218,7 +218,13 @@ public class TextureManager {
 	}
 
 	public GLTile newTile(TileData pic, int palnum, boolean useMipMaps) {
-		return new GLTile(pic, palnum, useMipMaps);
+		return new GLTile(pic, palnum, useMipMaps) {
+			@Override
+			public void bind() {
+				super.bind();
+				bindedTile = this;
+			}
+		};
 	}
 
 	protected GLTile allocTile(TileData data, Hicreplctyp si, int dapicnum, int dapalnum, int skybox, boolean alpha,

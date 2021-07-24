@@ -86,6 +86,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLFog;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
@@ -205,7 +206,7 @@ public class Polymost implements GLRenderer {
 	protected IndexedShader texshader;
 	protected final Engine engine;
 
-	public Polymost(Engine engine) {
+	public Polymost(Engine engine, IOverheadMapSettings settings) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
 			BuildGdx.app.setFrame(FrameType.GL);
 		GLInfo.init();
@@ -235,7 +236,7 @@ public class Polymost implements GLRenderer {
 		Arrays.fill(spritewall, -1);
 		this.globalfog = new GLFog();
 
-		this.ortho = allocOrphoRenderer();
+		this.ortho = allocOrphoRenderer(settings);
 		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
 				+ " initialized", OSDTEXT_GOLD);
 	}
@@ -3997,8 +3998,8 @@ public class Polymost implements GLRenderer {
 		return null;
 	}
 
-	protected Polymost2D allocOrphoRenderer() {
-		return new Polymost2D(this, null);
+	protected Polymost2D allocOrphoRenderer(IOverheadMapSettings settings) {
+		return new Polymost2D(this, settings);
 	}
 
 	@Override

@@ -67,6 +67,7 @@ import ru.m210projects.Build.Loader.Model;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
+import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
@@ -94,15 +95,19 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  Duke E2L7 wall vis bug (scanner bug)
-//  Duke E4L11 wall vis bug (scanner bug)
 //  enable/ disable rgb shader
+//	TiledFont render (Tekwar)
+//  Drawpolymap with Tekwar mirror enable bug
+//	Drawpolymap draw sprites
+//	After switch renderer to polymost and back, ROR is broken
 
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
 //	Hires + models
 //	Skyboxes
 //	Sky texture
+//  Duke E2L7 wall vis bug (scanner bug)
+//  Duke E4L11 wall vis bug (scanner bug)
 
 	public Rendering rendering = Rendering.Nothing;
 
@@ -143,7 +148,7 @@ public class GDXRenderer implements GLRenderer {
 	private ArrayList<GLSurface> bunchfirst = new ArrayList<GLSurface>();
 	protected boolean[] mirrorTextures = new boolean[MAXTILES];
 
-	public GDXRenderer(Engine engine) {
+	public GDXRenderer(Engine engine, IOverheadMapSettings settings) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
 			BuildGdx.app.setFrame(FrameType.GL);
 		GLInfo.init();
@@ -170,7 +175,7 @@ public class GDXRenderer implements GLRenderer {
 		this.texshader = allocIndexedShader();
 		this.textureCache.changePalette(curpalette.getBytes());
 
-		this.orphoRen = allocOrphoRenderer();
+		this.orphoRen = allocOrphoRenderer(settings);
 
 		Arrays.fill(mirrorTextures, false);
 		int[] mirrors = getMirrorTextures();
@@ -183,8 +188,8 @@ public class GDXRenderer implements GLRenderer {
 				+ " initialized", OSDTEXT_GOLD);
 	}
 
-	protected GDXOrtho allocOrphoRenderer() {
-		return new GDXOrtho(this, null);
+	protected GDXOrtho allocOrphoRenderer(IOverheadMapSettings settings) {
+		return new GDXOrtho(this, settings);
 	}
 
 	protected int[] getMirrorTextures() {
