@@ -52,13 +52,6 @@ import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.Types.GL10.*;
-import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE_FILTER_HINT_NV;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 
 import java.nio.ByteBuffer;
@@ -66,6 +59,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
@@ -537,6 +531,16 @@ public class Polymost implements GLRenderer {
 			gcosang = gcosang2 = 16384 / 262144.0f;
 			gsinang = gsinang2 = 0.0f;
 		}
+
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDisable(GL_MULTISAMPLE);
+		gl.glDisable(GL_FOG);
+		gl.glMatrixMode(GL_PROJECTION);
+		gl.glLoadIdentity();
+		gl.glMatrixMode(GL_MODELVIEW);
+		gl.glLoadIdentity();
+		gl.glMatrixMode(GL_TEXTURE);
+		gl.glLoadIdentity();
 
 		textureCache.uninit();
 		clearskins(false);

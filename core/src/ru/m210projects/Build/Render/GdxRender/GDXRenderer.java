@@ -24,6 +24,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_CW;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
+import static com.badlogic.gdx.graphics.GL20.GL_GREATER;
 import static com.badlogic.gdx.graphics.GL20.GL_LESS;
 import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
@@ -41,6 +42,7 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -95,12 +97,13 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
+//	shader manager
 //  enable/ disable rgb shader
 //	TiledFont render (Tekwar)
 //  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
-//	After switch renderer to polymost and back, ROR is broken
 
+//	Shaders uninit
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
 //	Hires + models
@@ -130,7 +133,6 @@ public class GDXRenderer implements GLRenderer {
 	protected ShaderProgram skyshader;
 	protected IndexedShader texshader;
 	protected FadeShader fadeshader;
-	public static ShaderProgram currentShader;
 
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
@@ -151,31 +153,17 @@ public class GDXRenderer implements GLRenderer {
 	public GDXRenderer(Engine engine, IOverheadMapSettings settings) {
 		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
 			BuildGdx.app.setFrame(FrameType.GL);
-		GLInfo.init();
+
 		this.engine = engine;
 		this.textureCache = getTextureManager();
-
-		this.gl = BuildGdx.graphics.getGL20();
 		this.sprR = new SpriteRenderer(engine, this);
+		this.orphoRen = allocOrphoRenderer(settings);
 		this.scanner = new SectorScanner(engine) {
 			@Override
 			protected Matrix4 getSpriteMatrix(SPRITE tspr) {
 				return sprR.getMatrix(tspr);
 			}
 		};
-
-		this.skyshader = allocSkyShader();
-		this.fadeshader = new FadeShader() {
-			@Override
-			public void begin() {
-				super.begin();
-				currentShader = this;
-			}
-		};
-		this.texshader = allocIndexedShader();
-		this.textureCache.changePalette(curpalette.getBytes());
-
-		this.orphoRen = allocOrphoRenderer(settings);
 
 		Arrays.fill(mirrorTextures, false);
 		int[] mirrors = getMirrorTextures();
@@ -184,8 +172,44 @@ public class GDXRenderer implements GLRenderer {
 				mirrorTextures[mirrors[i]] = true;
 		}
 
+		System.err.println("create");
+	}
+
+	@Override
+	public void init() {
+		GLInfo.init();
+		this.gl = BuildGdx.graphics.getGL20();
+
+		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+		this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
+		this.skyshader = allocSkyShader();
+		this.fadeshader = new FadeShader() {
+			@Override
+			public void begin() {
+				super.begin();
+			}
+		};
+		this.texshader = allocIndexedShader();
+		this.textureCache.changePalette(curpalette.getBytes());
+
 		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
 				+ " initialized", OSDTEXT_GOLD);
+
+		orphoRen.init();
+
+		System.err.println("init");
+		isInited = true;
+	}
+
+	@Override
+	public void uninit() {
+		System.err.println("uninit");
+		orphoRen.uninit();
+
+		textureCache.uninit();
+		isInited = false;
 	}
 
 	protected GDXOrtho allocOrphoRenderer(IOverheadMapSettings settings) {
@@ -226,7 +250,7 @@ public class GDXRenderer implements GLRenderer {
 				@Override
 				public void begin() {
 					super.begin();
-					currentShader = this;
+//					currentShader = this;
 				}
 			};
 		} catch (Exception e) {
@@ -253,7 +277,7 @@ public class GDXRenderer implements GLRenderer {
 				@Override
 				public void begin() {
 					super.begin();
-					currentShader = this;
+//					currentShader = this;
 				}
 			};
 
@@ -266,25 +290,6 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		return null;
-	}
-
-	@Override
-	public void init() {
-		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-		this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
-
-		orphoRen.init();
-
-		isInited = true;
-	}
-
-	@Override
-	public void uninit() {
-		orphoRen.uninit();
-
-		textureCache.uninit();
 	}
 
 	@Override
@@ -476,6 +481,9 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void drawrooms() {
+		gl.glEnable(GL_ALPHA_TEST); // TODO: Why this makes bugs after Polymost?
+		BuildGdx.gl.glAlphaFunc(GL_GREATER, 0);
+
 		if (orphoRen.isDrawing())
 			orphoRen.end();
 
@@ -539,9 +547,9 @@ public class GDXRenderer implements GLRenderer {
 
 		prerender(sectors);
 
-		for (int i = 0; i < sectors.size(); i++)
+		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
-		for (int i = 0; i < sectors.size(); i++)
+		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
 		drawSkyPlanes();
 
@@ -739,8 +747,6 @@ public class GDXRenderer implements GLRenderer {
 
 			int method = surf.getMethod();
 			if (!pic.isLoaded()) {
-				if (inpreparemirror)
-					return;
 				method = 1; // invalid data, HOM
 			}
 

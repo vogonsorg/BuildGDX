@@ -13,14 +13,12 @@ package ru.m210projects.Build.Render.Polymost;
 import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
-import static com.badlogic.gdx.graphics.GL20.GL_FALSE;
 import static com.badlogic.gdx.graphics.GL20.GL_FLOAT;
 import static com.badlogic.gdx.graphics.GL20.GL_LINES;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_FAN;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_STRIP;
-import static com.badlogic.gdx.graphics.GL20.GL_TRUE;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
@@ -854,7 +852,7 @@ public class Polymost2D extends OrphoRenderer {
 
 		setpolymost2dview();
 		gl.glDisable(GL_ALPHA_TEST);
-		gl.glDepthMask(GL_FALSE); // disable writing to the z-buffer
+		gl.glDepthMask(false); // disable writing to the z-buffer
 
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_BLEND);
@@ -920,7 +918,7 @@ public class Polymost2D extends OrphoRenderer {
 
 		gl.glEnd();
 
-		gl.glDepthMask(GL_TRUE); // re-enable writing to the z-buffer
+		gl.glDepthMask(true); // re-enable writing to the z-buffer
 
 		globalpal = opal;
 

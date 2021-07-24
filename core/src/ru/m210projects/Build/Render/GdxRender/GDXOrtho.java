@@ -146,8 +146,6 @@ public class GDXOrtho extends OrphoRenderer {
 		this.textureShader = parent.texshader;
 		this.bitmapShader = createBitmapShader();
 		this.shader = textureShader;
-
-		System.err.println("init");
 	}
 
 	@Override
@@ -158,8 +156,6 @@ public class GDXOrtho extends OrphoRenderer {
 		bitmapShader.dispose();
 		idx = 0;
 		drawing = false;
-
-		System.err.println("uninit");
 	}
 
 	@Override
@@ -1043,7 +1039,6 @@ public class GDXOrtho extends OrphoRenderer {
 			@Override
 			public void begin() {
 				super.begin();
-				GDXRenderer.currentShader = this;
 			}
 		};
 		if (!shader.isCompiled())

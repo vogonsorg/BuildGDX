@@ -8,7 +8,6 @@ import static ru.m210projects.Build.Engine.globalposz;
 import static ru.m210projects.Build.Engine.globalvisibility;
 import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Pragmas.mulscale;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -249,11 +248,8 @@ public class SpriteRenderer {
 
 		if ((method & 3) == 0) {
 			BuildGdx.gl.glDisable(GL_BLEND);
-			BuildGdx.gl.glDisable(GL_ALPHA_TEST);
 		} else {
-//			BuildGdx.gl.glAlphaFunc(GL_GREATER, 0.0f); XXX
 			BuildGdx.gl.glEnable(GL_BLEND);
-			BuildGdx.gl.glEnable(GL_ALPHA_TEST);
 		}
 
 		int vis = globalvisibility;
