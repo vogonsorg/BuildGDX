@@ -102,4 +102,54 @@ public class WorldShader {
 			+ "    gl_FragColor = vec4(texture2D(u_palette, vec2(index, 0.0)).rgb, u_alpha);\n" //
 			+ "}"; //
 
+	public static final String fragmentRGB = "uniform sampler2D u_texture;\n" //
+			+ "uniform bool u_draw255;\n" //
+			+ "uniform float u_alpha;\n" //
+			+ "uniform vec4 u_color;\n" //
+			+ "\n" //
+			+ "varying float v_dist;\n" //
+			+ "varying vec2 v_texCoords;\n" //
+			+ "\n" //
+			+ "uniform mat4 u_invProjectionView;\n" //
+			+ "uniform vec4 u_plane[2];\n" //
+			+ "uniform vec4 u_viewport;\n" //
+			+ "uniform int u_planeClipping;\n" //
+			+ "\n" //
+			+ "vec4 getPos() {\n" //
+			+ "    vec4 ndc;\n" //
+			+ "	   vec2 xy = gl_FragCoord.xy - vec2(u_viewport.xy);" //
+			+ "    ndc.xy = (2.0 * xy) / u_viewport.zw - 1.0;\n" //
+			+ "    ndc.z = (2.0 * gl_FragCoord.z) - 1.0;\n" //
+			+ "    ndc.w = 1.0;\n" //
+			+ "    \n" //
+			+ "    vec4 worldCoords = u_invProjectionView * ndc;\n" //
+			+ "    worldCoords.xyz /= worldCoords.w;\n" //
+			+ "    worldCoords.xyz *= vec3(512.0, 512.0, 8192.0); // BuildEngine coords scale\n" //
+			+ "    worldCoords.w = 1.0;\n" //
+			+ "    return worldCoords;\n" //
+			+ "}\n" //
+			+ "\n" //
+			+ "bool isvisible() {\n" //
+			+ "    vec4 pos = getPos();\n" //
+			+ "    for(int i = 0; i < 2; i++) {\n" //
+			+ "        if(dot(u_plane[i], pos) < 0.0)\n" //
+			+ "            return false;\n" //
+			+ "    }\n" //
+			+ "    return true;\n" //
+			+ "}\n" //
+			+ "\n" //
+			+ "void main() {  \n" //
+			+ "    if((u_planeClipping == 1 && !isvisible()))\n" //
+			+ "        discard;\n" //
+			+ "\n" //
+			+ "	   if(u_planeClipping == 2 && (gl_FragCoord.x < u_viewport.x || gl_FragCoord.x > u_viewport.z\n" //
+			+ "		 || gl_FragCoord.y < u_viewport.w || gl_FragCoord.y > u_viewport.y))" //
+			+ "		   discard;" //
+			+ "\n" //
+			+ " 	float mv = v_dist;" // temporaly code
+			+ "     if(mv < 1000000.0)" //
+			+ "			discard;" //
+			+ "	   gl_FragColor = u_color * texture2D(u_texture, v_texCoords);\n" //
+			+ "}"; //
+
 }

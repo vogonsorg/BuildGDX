@@ -74,6 +74,7 @@ import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
 import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
+import ru.m210projects.Build.Render.GdxRender.Shaders.IndexedSkyShaderProgram;
 import ru.m210projects.Build.Render.GdxRender.Shaders.SkyShader;
 import ru.m210projects.Build.Render.GdxRender.Shaders.WorldShader;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
@@ -130,7 +131,7 @@ public class GDXRenderer implements GLRenderer {
 	protected SpriteRenderer sprR;
 	protected GDXOrtho orphoRen; // GdxOrphoRen
 	protected DefScript defs;
-	protected ShaderProgram skyshader;
+	protected IndexedSkyShaderProgram skyshader;
 	protected IndexedShader texshader;
 	protected FadeShader fadeshader;
 
@@ -226,16 +227,6 @@ public class GDXRenderer implements GLRenderer {
 
 	private IndexedShader allocIndexedShader() {
 		try {
-//			FileInputStream fis = new FileInputStream(new File("worldshader_vert.glsl"));
-//			byte[] data = new byte[fis.available()];
-//			fis.read(data);
-//			String vert = new String(data);
-//
-//			fis = new FileInputStream(new File("worldshader_frag.glsl"));
-//			data = new byte[fis.available()];
-//			fis.read(data);
-//			String frag = new String(data);
-
 			return new IndexedShader(WorldShader.vertex, WorldShader.fragment) {
 				@Override
 				public void bindPalette() {
@@ -260,30 +251,25 @@ public class GDXRenderer implements GLRenderer {
 		return null;
 	}
 
-	private ShaderProgram allocSkyShader() {
-//		FileInputStream fis = null;
+	private IndexedSkyShaderProgram allocSkyShader() {
 		try {
-//			fis = new FileInputStream(new File("skyshader_frag.glsl"));
-//			byte[] data = new byte[fis.available()];
-//			fis.read(data);
-//			String frag = new String(data);
-//
-//			fis = new FileInputStream(new File("skyshader_vert.glsl"));
-//			data = new byte[fis.available()];
-//			fis.read(data);
-//			String vert = new String(data);
-
-			ShaderProgram skyshader = new ShaderProgram(SkyShader.vertex, SkyShader.fragment) {
+			IndexedSkyShaderProgram skyshader = new IndexedSkyShaderProgram() {
 				@Override
 				public void begin() {
 					super.begin();
 //					currentShader = this;
 				}
+
+				@Override
+				public void bindPalette() {
+					textureCache.getPalette().bind();
+				}
+
+				@Override
+				public void bindPalookup(int pal) {
+					textureCache.getPalookup(pal).bind();
+				}
 			};
-
-			if (!skyshader.isCompiled())
-				System.err.println("Shader compile error: " + skyshader.getLog());
-
 			return skyshader;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -549,11 +535,15 @@ public class GDXRenderer implements GLRenderer {
 
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
+		texshader.end();
+
+		skyshader.begin();
+		skyshader.prepare(cam, transform.idt());
+		skyshader.mirror(inpreparemirror);
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
 		drawSkyPlanes();
-
-		texshader.end();
+		skyshader.end();
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
@@ -608,28 +598,51 @@ public class GDXRenderer implements GLRenderer {
 		gl.glDepthMask(false);
 //		gl.glDisable(GL_DEPTH_TEST);
 
-		if (scanner.getSkyPicnum(Heinum.SkyUpper) != -1) {
-			bind(getTexFormat(), scanner.getSkyPicnum(Heinum.SkyUpper), scanner.getSkyPal(Heinum.SkyUpper), 0, 0, 0);
+		int picnum;
+		if ((picnum = scanner.getSkyPicnum(Heinum.SkyUpper)) != -1) {
+			int pal = scanner.getSkyPal(Heinum.SkyUpper);
+			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
+			if (pth != null) {
+				textureCache.bind(pth);
 
-			transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100);
-			transform.scale(cam.far, cam.far, 1.0f);
+				float alpha = 1.0f;
+				Gdx.gl.glDisable(GL_BLEND);
+				if (!engine.getTile(picnum).isLoaded()) {
+					alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+					Gdx.gl.glEnable(GL_BLEND);
+				}
+				skyshader.setTransparent(alpha);
+				skyshader.setTextureParams(pal, 0);
 
-			skyshader.begin();
-			skyshader.setUniformMatrix("u_transform", transform);
-			world.getSkyPlane().render(skyshader);
-			skyshader.end();
+				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100);
+				transform.scale(cam.far, cam.far, 1.0f);
+				skyshader.transform(transform);
+
+				world.getSkyPlane().render(skyshader);
+			}
 		}
 
-		if (scanner.getSkyPicnum(Heinum.SkyLower) != -1) {
-			bind(getTexFormat(), scanner.getSkyPicnum(Heinum.SkyLower), scanner.getSkyPal(Heinum.SkyLower), 0, 0, 0);
+		if ((picnum = scanner.getSkyPicnum(Heinum.SkyLower)) != -1) {
+			int pal = scanner.getSkyPal(Heinum.SkyLower);
+			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
+			if (pth != null) {
+				textureCache.bind(pth);
 
-			transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100);
-			transform.scale(cam.far, cam.far, 1.0f);
+				float alpha = 1.0f;
+				Gdx.gl.glDisable(GL_BLEND);
+				if (!engine.getTile(picnum).isLoaded()) {
+					alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+					Gdx.gl.glEnable(GL_BLEND);
+				}
+				skyshader.setTransparent(alpha);
+				skyshader.setTextureParams(pal, 0);
 
-			skyshader.begin();
-			skyshader.setUniformMatrix("u_transform", transform);
-			world.getSkyPlane().render(skyshader);
-			skyshader.end();
+				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100);
+				transform.scale(cam.far, cam.far, 1.0f);
+				skyshader.transform(transform);
+
+				world.getSkyPlane().render(skyshader);
+			}
 		}
 
 		gl.glEnable(GL_CULL_FACE);
@@ -694,40 +707,14 @@ public class GDXRenderer implements GLRenderer {
 			engine.loadtile(picnum);
 
 		engine.setgotpic(picnum);
-		GLTile pth = bind(getTexFormat(), picnum, palnum, 0, 0, method);
+		GLTile pth = textureCache.get(getTexFormat(), picnum, palnum, 0, method);
 		if (pth != null) {
-			skyshader.begin();
-			gl.glActiveTexture(GL20.GL_TEXTURE1);
-			textureCache.getPalette().bind();
-			skyshader.setUniformi("u_palette", 1);
-			if (inpreparemirror)
-				skyshader.setUniformi("u_mirror", 1);
-			else
-				skyshader.setUniformi("u_mirror", 0);
-
-			gl.glActiveTexture(GL20.GL_TEXTURE2);
-			textureCache.getPalookup(palnum).bind();
-			skyshader.setUniformi("u_palookup", 2);
-			gl.glActiveTexture(GL20.GL_TEXTURE0);
-
-			skyshader.setUniformf("u_camera", cam.position.x, cam.position.y, cam.position.z);
-			skyshader.setUniformMatrix("u_projTrans", cam.combined); // TODO: to common set
-			skyshader.setUniformMatrix("u_transform", transform.idt());
-
-			if (!pic.isLoaded()) {
-				skyshader.setUniformf("u_alpha", 0.0f);
-				method = 1;
-			} else
-				skyshader.setUniformf("u_alpha", 1.0f);
-
-			if ((method & 3) == 0) {
-				gl.glDisable(GL_BLEND);
-			} else {
-				gl.glEnable(GL_BLEND);
-			}
+			textureCache.bind(pth);
+			skyshader.setTextureParams(palnum, 0);
+			skyshader.setTransparent(1);
+			gl.glDisable(GL_BLEND);
 
 			surf.render(skyshader);
-			skyshader.end();
 		}
 	}
 

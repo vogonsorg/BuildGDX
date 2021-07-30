@@ -22,7 +22,6 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
-import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
@@ -242,7 +241,7 @@ public class SpriteRenderer {
 				method = 3 + 4;
 		}
 
-		GLTile tex = parent.bind(TileData.PixelFormat.Pal8, picnum, pal, shade, 0, method);
+		GLTile tex = parent.bind(parent.getTexFormat(), picnum, pal, shade, 0, method);
 		if (tex == null)
 			return false;
 

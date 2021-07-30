@@ -63,26 +63,36 @@ public abstract class FadeEffect {
 		}
 	};
 
-	public static final Mesh mesh = new Mesh(true, 3, 0,
-			new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE)) {
-		@Override
-		public void render(ShaderProgram shader, int primitiveType) {
-			if (shader == null) {
-				FloatBuffer vertices = getVerticesBuffer();
-				BuildGdx.gl.glBegin(primitiveType);
-				for (int i = 0; i < 6; i += 2)
-					BuildGdx.gl.glVertex2f(vertices.get(i), vertices.get(i + 1));
-				BuildGdx.gl.glEnd();
-				return;
-			}
+	public static Mesh mesh;
 
-			super.render(shader, primitiveType);
-		}
-	}.setVertices(new float[] { -2.5f, 1.0f, 2.5f, 1.0f, 0.0f, -2.5f });
+	private static Mesh buildMesh() {
+		return new Mesh(true, 3, 0, new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE)) {
+			@Override
+			public void render(ShaderProgram shader, int primitiveType) {
+				if (shader == null) {
+					FloatBuffer vertices = getVerticesBuffer();
+					BuildGdx.gl.glBegin(primitiveType);
+					for (int i = 0; i < 6; i += 2)
+						BuildGdx.gl.glVertex2f(vertices.get(i), vertices.get(i + 1));
+					BuildGdx.gl.glEnd();
+					return;
+				}
+
+				super.render(shader, primitiveType);
+			}
+		}.setVertices(new float[] { -2.5f, 1.0f, 2.5f, 1.0f, 0.0f, -2.5f });
+	}
 
 	public FadeEffect(int sfactor, int dfactor) {
 		this.sfactor = sfactor;
 		this.dfactor = dfactor;
+	}
+
+	public static void uninit() {
+		if (mesh != null) {
+			mesh.dispose();
+			mesh = null;
+		}
 	}
 
 	public abstract void update(int intensive);
@@ -96,6 +106,10 @@ public abstract class FadeEffect {
 	}
 
 	public static void render(FadeShader shader) {
+		if (mesh == null) {
+			mesh = buildMesh();
+		}
+
 		mesh.render(shader, GL_TRIANGLES);
 	}
 

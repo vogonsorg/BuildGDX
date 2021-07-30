@@ -84,13 +84,13 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ " v_texCoords = gl_TexCoord[0].xy;" //
 			+ "}"; //
 
-	private int paletteloc;
-	private int numshadesloc;
-	private int visibilityloc;
-	private int palookuploc;
-	private int shadeloc;
-	private int alphaloc;
-	private int draw255loc;
+	protected int paletteloc;
+	protected int numshadesloc;
+	protected int visibilityloc;
+	protected int palookuploc;
+	protected int shadeloc;
+	protected int alphaloc;
+	protected int draw255loc;
 //	private int fogenableloc;
 //	private int fogstartloc;
 //	private int fogendloc;
@@ -100,12 +100,12 @@ public abstract class IndexedShader extends ShaderProgram {
 //	private int cx2loc;
 //	private int cy2loc;
 
-	private boolean isBinded;
+	protected boolean isBinded;
 //	private boolean glfog = false; //
 
-	private int lastPal, lastShade, lastVisibility;
-	private float lastAlpha;
-	private boolean drawLastIndex;
+	protected int lastPal, lastShade, lastVisibility;
+	protected float lastAlpha;
+	protected boolean drawLastIndex;
 
 	public IndexedShader() throws Exception {
 		super(defaultVertex, defaultFragment);
