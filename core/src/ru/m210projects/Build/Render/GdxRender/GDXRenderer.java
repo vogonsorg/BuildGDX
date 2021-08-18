@@ -413,9 +413,6 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void drawrooms() {
-		gl.glEnable(GL_ALPHA_TEST); // TODO: Why this makes bugs after Polymost?
-		BuildGdx.gl.glAlphaFunc(GL_GREATER, 0);
-
 		if (orphoRen.isDrawing())
 			orphoRen.end();
 
@@ -899,6 +896,9 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void palfade(HashMap<String, FadeEffect> fades) { // TODO: to shader?
+		if (orphoRen.isDrawing())
+			orphoRen.end();
+
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDisable(GL_TEXTURE_2D);
 

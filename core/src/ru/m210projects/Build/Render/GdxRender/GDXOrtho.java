@@ -691,7 +691,6 @@ public class GDXOrtho extends OrphoRenderer {
 					worldTrans.setToRotation(0, 0, 1, (512 - ang) * buildAngleToDegrees);
 					worldTrans.translate(-dax / parent.cam.xscale, -day / parent.cam.xscale,
 							-sector[s].floorz / parent.cam.yscale);
-					manager.transform(worldTrans); //TODO Delete
 					parent.drawSurf(flor, 0, worldTrans);
 				}
 			}
