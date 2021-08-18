@@ -116,6 +116,10 @@ public class GDXRenderer implements GLRenderer {
 //  Duke E4L11 wall vis bug (scanner bug)
 //  MDModel / Voxels has new GLTile (should be textureManager.newTile)
 
+	/*
+	 * XXX 21 Jul, 2021 2 commits getWallColor(int w, int s) - has twice fps
+	 */
+
 	public Rendering rendering = Rendering.Nothing;
 
 	protected TextureManager textureCache;
