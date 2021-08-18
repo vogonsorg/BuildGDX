@@ -473,12 +473,13 @@ public class GDXRenderer implements GLRenderer {
 
 		manager.bind(Shader.IndexedSkyShader);
 		manager.prepare(Shader.IndexedSkyShader, cam);
-		manager.transform(Shader.IndexedSkyShader, transform.idt());
 		manager.mirror(Shader.IndexedSkyShader, inpreparemirror);
 
+		drawSkyPlanes();
+		manager.transform(Shader.IndexedSkyShader, transform.idt());
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
-		drawSkyPlanes();
+
 		manager.unbind();
 
 		spritesortcnt = scanner.getSpriteCount();
@@ -1069,7 +1070,7 @@ public class GDXRenderer implements GLRenderer {
 			return null;
 
 		if (textureCache.bind(pth)) {
-			gl.glActiveTexture(GL_TEXTURE0);
+			//gl.glActiveTexture(GL_TEXTURE0);
 			manager.bind(pth.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		}
 		setTextureParameters(pth, dapicnum, dapalnum, dashade, skybox, method);
@@ -1098,7 +1099,7 @@ public class GDXRenderer implements GLRenderer {
 
 	protected void bind(GLTile tile) {
 		if (textureCache.bind(tile)) {
-			gl.glActiveTexture(GL_TEXTURE0);
+			//gl.glActiveTexture(GL_TEXTURE0);
 			manager.bind(tile.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		}
 	}
