@@ -3985,13 +3985,15 @@ public class Polymost implements GLRenderer {
 		try {
 			return new IndexedShader() {
 				@Override
-				public void bindPalette() {
-					textureCache.getPalette().bind();
+				public void bindPalette(int unit) {
+					BuildGdx.gl.glActiveTexture(unit);
+					textureCache.getPalette().bind(0);
 				}
 
 				@Override
-				public void bindPalookup(int pal) {
-					textureCache.getPalookup(pal).bind();
+				public void bindPalookup(int unit, int pal) {
+					BuildGdx.gl.glActiveTexture(unit);
+					textureCache.getPalookup(pal).bind(0);
 				}
 			};
 		} catch (Exception e) {

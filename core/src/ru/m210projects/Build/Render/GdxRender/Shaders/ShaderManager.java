@@ -77,12 +77,30 @@ public class ShaderManager {
 		Shader.RGBSkyShader.set(skyshader32);
 		texshader = allocIndexedShader(textureCache);
 		Shader.IndexedWorldShader.set(texshader);
-		texshader32 = null;
+		texshader32 = allocRgbShader();
 		Shader.RGBWorldShader.set(texshader32);
 		bitmapShader = allocBitmapShader();
 		Shader.BitmapShader.set(bitmapShader);
 		fadeshader = allocFadeShader();
 		Shader.FadeShader.set(fadeshader);
+	}
+
+	public void dispose() {
+		if(skyshader != null)
+			skyshader.dispose();
+		if(skyshader32 != null)
+			skyshader32.dispose();
+		if(texshader != null)
+			texshader.dispose();
+		if(texshader32 != null)
+			texshader32.dispose();
+		if(bitmapShader != null)
+			bitmapShader.dispose();
+		if(fadeshader != null)
+			fadeshader.dispose();
+
+		for (Shader sh : Shader.values())
+			sh.set(null);
 	}
 
 	public void mirror(boolean mirror) {
@@ -91,7 +109,7 @@ public class ShaderManager {
 			texshader.setUniformi(world_mirror, mirror ? 1 : 0);
 			break;
 		case RGBWorldShader:
-			// XXX
+			texshader32.setUniformi("u_mirror", mirror ? 1 : 0); //XXX
 			break;
 		case IndexedSkyShader:
 			skyshader.mirror(mirror);
@@ -107,7 +125,7 @@ public class ShaderManager {
 			texshader.setUniformi(world_mirror, mirror ? 1 : 0);
 			break;
 		case RGBWorldShader:
-			// XXX
+			texshader32.setUniformi("u_mirror", mirror ? 1 : 0);
 			break;
 		case IndexedSkyShader:
 			skyshader.mirror(mirror);
@@ -187,6 +205,9 @@ public class ShaderManager {
 		case IndexedWorldShader:
 			texshader.setUniformMatrix(world_transform, transform);
 			break;
+		case RGBWorldShader:
+			texshader32.setUniformMatrix("u_transform", transform); //XXX
+			break;
 		case IndexedSkyShader:
 			skyshader.transform(transform);
 			break;
@@ -201,6 +222,9 @@ public class ShaderManager {
 		switch (shader) {
 		case IndexedWorldShader:
 			texshader.setUniformMatrix(world_projTrans, projection);
+			break;
+		case RGBWorldShader:
+			texshader32.setUniformMatrix("u_projTrans", projection);
 			break;
 		case BitmapShader:
 			bitmapShader.setUniformMatrix("u_projTrans", projection); // XXX
@@ -217,6 +241,8 @@ public class ShaderManager {
 		case IndexedWorldShader:
 			texshader.setUniformMatrix(world_modelView, view);
 			break;
+		case RGBWorldShader:
+			break;
 		case BitmapShader:
 			break;
 		}
@@ -231,6 +257,9 @@ public class ShaderManager {
 		case IndexedWorldShader:
 			texshader.setUniformMatrix(world_transform, transform);
 			break;
+		case RGBWorldShader:
+			texshader32.setUniformMatrix("u_transform", transform);
+			break;
 		case IndexedSkyShader:
 			skyshader.transform(transform);
 			break;
@@ -238,7 +267,7 @@ public class ShaderManager {
 	}
 
 	public void textureParams8(Shader shader, int pal, int shade, float alpha, boolean lastIndex) {
-		check(shader); // IndexedShader TODO
+		check(shader);
 
 		switch (shader) {
 		case IndexedWorldShader:
@@ -337,7 +366,11 @@ public class ShaderManager {
 		if (sh != null) {
 			sh.begin();
 			currentShader = shader;
+			return sh;
 		}
+
+		currentShaderProgram = null;
+		currentShader = null;
 		return sh;
 	}
 
@@ -423,6 +456,25 @@ public class ShaderManager {
 			this.world_plane1 = shader.getUniformLocation("u_plane[1]");
 			this.world_transform = shader.getUniformLocation("u_transform");
 
+			return shader;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	public ShaderProgram allocRgbShader() {
+		try {
+			ShaderProgram shader = new ShaderProgram(WorldShader.vertex, WorldShader.fragmentRGB) {
+				@Override
+				public void begin() {
+					super.begin();
+					currentShaderProgram = this;
+				}
+			};
+			if (!shader.isCompiled())
+				throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
 			return shader;
 		} catch (Exception e) {
 			e.printStackTrace();

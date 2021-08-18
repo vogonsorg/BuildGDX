@@ -100,11 +100,11 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//	shader manager
 //  enable/ disable rgb shader
 //	TiledFont render (Tekwar)
 //  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
+//  Shader manager dispose
 
 //	Shaders uninit
 //	Scansectors memory leak (WallFrustum)
@@ -115,10 +115,7 @@ public class GDXRenderer implements GLRenderer {
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
 //  MDModel / Voxels has new GLTile (should be textureManager.newTile)
-
-	/*
-	 * XXX 21 Jul, 2021 2 commits getWallColor(int w, int s) - has twice fps
-	 */
+//  Blood E1M1 floor sprite invisible
 
 	public Rendering rendering = Rendering.Nothing;
 

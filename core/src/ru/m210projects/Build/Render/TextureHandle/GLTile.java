@@ -357,9 +357,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 
 	@Override
 	public void bind() {
-		if (glHandle != 0) {
-			BuildGdx.gl.glBindTexture(glTarget, glHandle);
-		}
+		BuildGdx.gl.glBindTexture(glTarget, glHandle);
 	}
 
 	@Override

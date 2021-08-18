@@ -182,7 +182,7 @@ public class GDXOrtho extends OrphoRenderer {
 		BuildGdx.gl.glDisable(GL_CULL_FACE);
 		BuildGdx.gl.glDisable(GL_DEPTH_TEST);
 		if (!isDrawing())
-			begin();
+			begin(Shader.BitmapShader);
 
 		setType(GL20.GL_TRIANGLES);
 		switchShader(Shader.BitmapShader);
@@ -239,7 +239,7 @@ public class GDXOrtho extends OrphoRenderer {
 		Gdx.gl.glDisable(GL_CULL_FACE);
 		Gdx.gl.glDisable(GL_DEPTH_TEST);
 		if (!isDrawing())
-			begin();
+			begin(Shader.BitmapShader);
 
 		setType(GL20.GL_LINES);
 		switchShader(Shader.BitmapShader);
@@ -339,10 +339,12 @@ public class GDXOrtho extends OrphoRenderer {
 
 		Gdx.gl.glDisable(GL_CULL_FACE);
 		Gdx.gl.glDisable(GL_DEPTH_TEST);
-		if (!isDrawing())
-			begin();
 
-		switchShader(Shader.IndexedWorldShader);
+		Shader shader = pth.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader;
+		if (!isDrawing())
+			begin(shader);
+
+		switchShader(shader);
 		setType(GL20.GL_TRIANGLES);
 		setViewport(cx1, cy1, cx2, cy2);
 		if (pth.getPixelFormat() != PixelFormat.Pal8) {
@@ -732,13 +734,13 @@ public class GDXOrtho extends OrphoRenderer {
 		projectionMatrix.setToOrtho(0, width - 1, height - 1, 0, 0, 1);
 	}
 
-	protected void begin() {
+	protected void begin(Shader shader) {
 		if (drawing)
 			throw new IllegalStateException("GdxBatch.end must be called before begin.");
 
 		BuildGdx.gl20.glDepthMask(false);
 
-		parent.manager.bind(Shader.IndexedWorldShader);
+		parent.manager.bind(shader);
 		setupMatrices();
 
 		drawing = true;
@@ -1003,7 +1005,7 @@ public class GDXOrtho extends OrphoRenderer {
 		if(parent.manager.getShader() != Shader.BitmapShader) {
 			parent.manager.projection(projectionMatrix).view(parent.transform.idt());
 			parent.manager.transform(parent.transform);
-			setViewport(0, 0, xdim, ydim);
+			setViewport(0, 0, xdim - 1, ydim - 1);
 		} else
 			parent.manager.projection(projectionMatrix);
 	}

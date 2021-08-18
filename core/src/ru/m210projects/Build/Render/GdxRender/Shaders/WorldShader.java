@@ -11,6 +11,7 @@ public class WorldShader {
 			+ "\n" //
 			+ "attribute vec4 a_position;\n" //
 			+ "attribute vec2 a_texCoord0;\n" //
+			+ "attribute vec4 a_color;\n" //
 			+ "\n" //
 			+ "uniform mat4 u_modelView;\n" //
 			+ "uniform mat4 u_projTrans;\n" //
@@ -20,9 +21,12 @@ public class WorldShader {
 			+ "varying LOWP float v_dist;\n" //
 			+ "varying vec3 v_pos;\n" //
 			+ "varying vec2 v_texCoords;\n" //
+			+ "varying vec4 v_color;\n" //
 			+ "\n" //
 			+ "void main() {\n" //
 			+ "    v_texCoords = a_texCoord0;\n" //
+			+ "    v_color = a_color;\n" //
+			+ "    v_color.a = v_color.a * (255.0/254.0);\n" //
 			+ "    vec4 mv = u_modelView * u_transform  * a_position;\n" //
 			+ "    gl_Position = u_projTrans * u_transform * a_position;\n" //
 			+ "    if(u_mirror)\n" //
@@ -103,12 +107,9 @@ public class WorldShader {
 			+ "}"; //
 
 	public static final String fragmentRGB = "uniform sampler2D u_texture;\n" //
-			+ "uniform bool u_draw255;\n" //
-			+ "uniform float u_alpha;\n" //
-			+ "uniform vec4 u_color;\n" //
-			+ "\n" //
 			+ "varying float v_dist;\n" //
 			+ "varying vec2 v_texCoords;\n" //
+			+ "varying vec4 v_color;\n" //
 			+ "\n" //
 			+ "uniform mat4 u_invProjectionView;\n" //
 			+ "uniform vec4 u_plane[2];\n" //
@@ -146,10 +147,7 @@ public class WorldShader {
 			+ "		 || gl_FragCoord.y < u_viewport.w || gl_FragCoord.y > u_viewport.y))" //
 			+ "		   discard;" //
 			+ "\n" //
-			+ " 	float mv = v_dist;" // temporaly code
-			+ "     if(mv < 1000000.0)" //
-			+ "			discard;" //
-			+ "	   gl_FragColor = u_color * texture2D(u_texture, v_texCoords);\n" //
+			+ "	   gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" //
 			+ "}"; //
 
 }
