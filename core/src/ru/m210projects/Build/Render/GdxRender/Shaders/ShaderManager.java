@@ -1,6 +1,5 @@
 package ru.m210projects.Build.Render.GdxRender.Shaders;
 
-import static ru.m210projects.Build.Engine.inpreparemirror;
 import static ru.m210projects.Build.Engine.windowx1;
 import static ru.m210projects.Build.Engine.windowx2;
 import static ru.m210projects.Build.Engine.windowy1;
@@ -11,6 +10,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GdxRender.BuildCamera;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
@@ -368,13 +368,15 @@ public class ShaderManager {
 				}
 
 				@Override
-				public void bindPalette() {
-					textureCache.getPalette().bind();
+				public void bindPalette(int unit) {
+					BuildGdx.gl.glActiveTexture(unit);
+					textureCache.getPalette().bind(0);
 				}
 
 				@Override
-				public void bindPalookup(int pal) {
-					textureCache.getPalookup(pal).bind();
+				public void bindPalookup(int unit, int pal) {
+					BuildGdx.gl.glActiveTexture(unit);
+					textureCache.getPalookup(pal).bind(0);
 				}
 			};
 
@@ -393,13 +395,15 @@ public class ShaderManager {
 		try {
 			IndexedShader shader = new IndexedShader(WorldShader.vertex, WorldShader.fragment) {
 				@Override
-				public void bindPalette() {
-					textureCache.getPalette().bind();
+				public void bindPalette(int unit) {
+					BuildGdx.gl.glActiveTexture(unit);
+					textureCache.getPalette().bind(0);
 				}
 
 				@Override
-				public void bindPalookup(int pal) {
-					textureCache.getPalookup(pal).bind();
+				public void bindPalookup(int unit, int pal) {
+					BuildGdx.gl.glActiveTexture(unit);
+					textureCache.getPalookup(pal).bind(0);
 				}
 
 				@Override

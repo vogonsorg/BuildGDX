@@ -52,12 +52,10 @@ public abstract class IndexedSkyShaderProgram extends IndexedShader {
 	public void setTextureParams(int pal, int shade) {
 		setUniformf(numshadesloc, numshades);
 
-		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE1);
-		bindPalette();
+		bindPalette(GL20.GL_TEXTURE1);
 		setUniformi(paletteloc, 1);
 
-		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE2);
-		bindPalookup(pal);
+		bindPalookup(GL20.GL_TEXTURE2, pal);
 		this.lastPal = pal;
 		setUniformi(palookuploc, 2);
 

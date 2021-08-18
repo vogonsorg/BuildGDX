@@ -142,9 +142,9 @@ public abstract class IndexedShader extends ShaderProgram {
 //		end();
 	}
 
-	public abstract void bindPalette();
+	public abstract void bindPalette(int unit);
 
-	public abstract void bindPalookup(int pal);
+	public abstract void bindPalookup(int unit, int pal);
 
 	@Override
 	public void begin() {
@@ -172,12 +172,10 @@ public abstract class IndexedShader extends ShaderProgram {
 	public void setTextureParams(int pal, int shade) {
 		setUniformf(numshadesloc, numshades);
 
-		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE1);
-		bindPalette();
+		bindPalette(GL20.GL_TEXTURE1);
 		setUniformi(paletteloc, 1);
 
-		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE2);
-		bindPalookup(pal);
+		bindPalookup(GL20.GL_TEXTURE2, pal);
 		this.lastPal = pal;
 		setUniformi(palookuploc, 2);
 

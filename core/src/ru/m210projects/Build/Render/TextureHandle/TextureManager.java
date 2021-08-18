@@ -223,15 +223,27 @@ public class TextureManager {
 				super.bind();
 				bindedTile = this;
 			}
+
+			@Override
+			public void bind(int unit) {
+				//BuildGdx.gl.glActiveTexture(unit);
+				BuildGdx.gl.glBindTexture(glTarget, glHandle);
+			}
 		};
 	}
 
 	public GLTile newTile(PixelFormat fmt, int width, int height) {
-		return new GLTile(PixelFormat.Rgb, width, height) {
+		return new GLTile(fmt, width, height) {
 			@Override
 			public void bind() {
 				super.bind();
 				bindedTile = this;
+			}
+
+			@Override
+			public void bind(int unit) {
+				//BuildGdx.gl.glActiveTexture(unit);
+				BuildGdx.gl.glBindTexture(glTarget, glHandle);
 			}
 		};
 	}
