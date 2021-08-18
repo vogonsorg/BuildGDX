@@ -71,7 +71,7 @@ public class WorldMesh {
 
 	public WorldMesh(Engine engine) {
 		this.engine = engine;
-		this.tess = new Tesselator(this, VertexAttribute.Position(), VertexAttribute.TexCoords(0));
+		this.tess = new Tesselator(this, VertexAttribute.Position(), VertexAttribute.ColorPacked(), VertexAttribute.TexCoords(0));
 
 		Timer.start();
 		FloatArray vertices = new FloatArray();
@@ -463,30 +463,13 @@ public class WorldMesh {
 	}
 
 	private GLSurface addSkyPlane(FloatArray vertices) {
-		float SIZEX = 1.0f / 2;
-		float SIZEY = 1.0f / 2;
-
-		float[] spr_vertices = { //
-				-SIZEX, SIZEY, 0, 1, 1, //
-				SIZEX, SIZEY, 0, 0, 1, //
-				SIZEX, -SIZEY, 0, 0, 0, //
-				-SIZEX, -SIZEY, 0, 1, 0, //
-		};
-
-		vertices.addAll(spr_vertices[0], spr_vertices[1], spr_vertices[2], spr_vertices[3], spr_vertices[4]); // 0
-		vertices.addAll(spr_vertices[5], spr_vertices[6], spr_vertices[7], spr_vertices[8], spr_vertices[9]); // 1
-		vertices.addAll(spr_vertices[10], spr_vertices[11], spr_vertices[12], spr_vertices[13], spr_vertices[14]); // 2
-
-		vertices.addAll(spr_vertices[0], spr_vertices[1], spr_vertices[2], spr_vertices[3], spr_vertices[4]); // 0
-		vertices.addAll(spr_vertices[10], spr_vertices[11], spr_vertices[12], spr_vertices[13], spr_vertices[14]); // 2
-		vertices.addAll(spr_vertices[15], spr_vertices[16], spr_vertices[17], spr_vertices[18], spr_vertices[19]); // 3
-
+		SurfaceInfo info = tess.getSurface(Type.Plane, 0, vertices);
 		GLSurface surf = new GLSurface(meshOffset);
-		surf.count = 6;
-		surf.limit = 6;
+		surf.count = info.getSize();
+		surf.limit = info.getLimit();
 		surf.type = Type.Sky;
+		surf.primitiveType = GL20.GL_TRIANGLE_FAN;
 		meshOffset += surf.limit;
-
 		return surf;
 	}
 
@@ -815,6 +798,7 @@ public class WorldMesh {
 		public int offset;
 		public int count, limit;
 		public int visflag = 0; // 1 - lower, 2 - upper, 4 - masked, 0 - white
+		public int primitiveType = GL20.GL_TRIANGLES;
 
 		public int picnum;
 		private Object ptr;
@@ -832,7 +816,7 @@ public class WorldMesh {
 		}
 
 		public void render(ShaderProgram shader) {
-			mesh.render(shader, GL20.GL_TRIANGLES, offset, count);
+			mesh.render(shader, primitiveType, offset, count);
 		}
 
 		public int getMethod() {

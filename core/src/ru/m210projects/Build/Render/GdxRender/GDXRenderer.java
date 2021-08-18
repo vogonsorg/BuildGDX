@@ -248,7 +248,7 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void drawmasks() {
-		manager.bind(Shader.IndexedWorldShader);
+		manager.bind(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 
 		int maskwallcnt = scanner.getMaskwallCount();
 		sprR.sort(scanner.getSprites(), spritesortcnt);
@@ -461,7 +461,7 @@ public class GDXRenderer implements GLRenderer {
 
 		rendering = Rendering.Nothing;
 
-		manager.bind(Shader.IndexedWorldShader);
+		manager.bind(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		if (inpreparemirror)
 			gl.glCullFace(GL_FRONT);
 		else
@@ -679,15 +679,15 @@ public class GDXRenderer implements GLRenderer {
 				if (vis != 0)
 					combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
 
-				//TODO: set FOG ?
-				((IndexedShader) manager.getProgram()).setVisibility((int) (-combvis / 64.0f));
+				if(pth.getPixelFormat() == PixelFormat.Pal8)
+					//TODO: set FOG ?
+					((IndexedShader) manager.getProgram()).setVisibility((int) (-combvis / 64.0f));
 				manager.transform(worldTransform);
 
-				if ((method & 3) == 0) {
+				if ((method & 3) == 0)
 					Gdx.gl.glDisable(GL_BLEND);
-				} else {
+				else
 					Gdx.gl.glEnable(GL_BLEND);
-				}
 
 				surf.render(manager.getProgram());
 			}
@@ -1099,6 +1099,8 @@ public class GDXRenderer implements GLRenderer {
 				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 
 			manager.textureParams8(pal, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
+		} else {
+			//XXX
 		}
 	}
 

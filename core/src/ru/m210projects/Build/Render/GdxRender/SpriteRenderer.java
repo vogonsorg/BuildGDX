@@ -14,24 +14,21 @@ import java.util.Comparator;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.math.Matrix4;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
-import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
 
 public class SpriteRenderer {
 
-	private Mesh spriteMesh;
 	private Matrix4 transform;
 	private BuildCamera cam;
 	private SpriteComparator comp;
@@ -63,22 +60,6 @@ public class SpriteRenderer {
 	}
 
 	public SpriteRenderer(Engine engine, GDXRenderer parent) {
-		float SIZEX = 0.5f;
-		float SIZEY = 1.0f;
-
-		float[] spr_vertices = { //
-				-SIZEX, 0, 0, 1, 1, //
-				SIZEX, 0, 0, 0, 1, //
-				SIZEX, 0, -SIZEY, 0, 0, //
-				-SIZEX, 0, -SIZEY, 1, 0, //
-		};//
-//		short[] indicies = { 0, 1, 2, 2, 3, 0 };
-
-		spriteMesh = new Mesh(true, spr_vertices.length / 5, 0, VertexAttribute.Position(),
-				VertexAttribute.TexCoords(0));
-		spriteMesh.setVertices(spr_vertices);
-//		spriteMesh.setIndices(indicies);
-
 		transform = new Matrix4();
 		comp = new SpriteComparator();
 		this.parent = parent;
@@ -121,11 +102,10 @@ public class SpriteRenderer {
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;
 
-		transform.idt();
 		float posx = tspr.x;
 		float posy = tspr.y;
 		float posz = tspr.z;
-		transform.translate(posx, posy, posz);
+		transform.setToTranslation(posx, posy, posz);
 
 		switch ((orientation >> 4) & 3) {
 		case 0: // Face sprite
@@ -140,8 +120,12 @@ public class SpriteRenderer {
 			transform.rotate(0, 0, 1, (int) Gameutils.AngleToDegrees(ang));
 			transform.translate((tspr.xrepeat * xoff) / 5.0f, 0, -(tspr.yrepeat * yoff) * 4.0f);
 
-			if ((orientation & 128) != 0)
-				transform.translate(0, 0, (tspr.yrepeat * tsizy) * 2.0f);
+			if ((orientation & 128) != 0) {
+				float zoffs = (tspr.yrepeat * tsizy) * 2.0f;
+				if ((tsizy & 1) != 0)
+					zoffs += (tspr.yrepeat * 2.0f); // Odd yspans
+				transform.translate(0, 0, zoffs);
+			}
 
 			if (yflip) {
 				transform.rotate(0, 1, 0, 180);
@@ -260,18 +244,17 @@ public class SpriteRenderer {
 		if (sector[tspr.sectnum].visibility != 0)
 			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
 
-		//TODO: set FOG ?
-		((IndexedShader) manager.getProgram()).setVisibility((int) (-vis / 64.0f));
+		// TODO: set FOG ?
+		if (tex.getPixelFormat() == PixelFormat.Pal8)
+			((IndexedShader) manager.getProgram()).setVisibility((int) (-vis / 64.0f));
 
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;
 
-		transform.idt();
-
 		float posx = tspr.x / cam.xscale;
 		float posy = tspr.y / cam.xscale;
 		float posz = tspr.z / cam.yscale;
-		transform.translate(posx, posy, posz);
+		transform.setToTranslation(posx, posy, posz);
 
 		switch ((orientation >> 4) & 3) {
 		case 0: // Face sprite
@@ -283,11 +266,16 @@ public class SpriteRenderer {
 			} else if (xflip)
 				xoff = -xoff;
 
+			transform.translate(0, 0, -(tspr.yrepeat * tex.getHeight() / 4096.0f));
 			transform.rotate(0, 0, 1, (int) Gameutils.AngleToDegrees(ang));
-			transform.translate((tspr.xrepeat * xoff) / 2560.0f, 0, -(tspr.yrepeat * yoff) / 2048.0f);
+			transform.translate((tspr.xrepeat * xoff) / 2560.0f, 0, -((yoff * tspr.yrepeat) << 2) / cam.yscale);
 
-			if ((orientation & 128) != 0)
-				transform.translate(0, 0, (tspr.yrepeat * tsizy) / 4096.0f);
+			if ((orientation & 128) != 0) {
+				float zoffs = ((tsizy * tspr.yrepeat) << 1);
+				if ((tsizy & 1) != 0)
+					zoffs += (tspr.yrepeat << 1); // Odd yspans
+				transform.translate(0, 0, zoffs / cam.yscale);
+			}
 
 			if (yflip) {
 				transform.rotate(0, 1, 0, 180);
@@ -314,6 +302,7 @@ public class SpriteRenderer {
 			} else if (xflip)
 				xoff = -xoff;
 
+			transform.translate(0, 0, -(tspr.yrepeat * tex.getHeight() / 4096.0f));
 			transform.rotate(0, 0, 1, wang);
 			transform.translate((tspr.xrepeat * xoff) / 2048.0f, 0, -(tspr.yrepeat * yoff) / 2048.0f);
 			if ((orientation & 128) != 0)
@@ -340,7 +329,8 @@ public class SpriteRenderer {
 
 			transform.rotate(0, 0, 1, (int) Gameutils.AngleToDegrees((tspr.ang + (xflip ? 512 : 1536)) & 0x7FF));
 			transform.rotate(1, 0, 0, xflip ? -90 : 90);
-			transform.translate(0, 0, (tspr.yrepeat * (2 * tex.getHeight() - tsizy)) / 4096.0f);
+			// transform.translate(0, 0, (tspr.yrepeat * (2 * tex.getHeight() - tsizy)) /
+			// 4096.0f);
 			transform.translate((tspr.xrepeat * xoff) / 2048.0f, 0, -(tspr.yrepeat * yoff) / 2048.0f);
 			transform.scale((tspr.xrepeat * tex.getWidth()) / 2048.0f, 0, (tspr.yrepeat * tex.getHeight()) / 2048.0f);
 			break;
@@ -355,8 +345,8 @@ public class SpriteRenderer {
 		Gdx.gl.glDepthFunc(GL20.GL_LESS);
 		Gdx.gl.glDepthRangef(0.0f, 0.99999f);
 
-		manager.transform(manager.getShader(), transform);
-		spriteMesh.render(manager.getProgram(), GL_TRIANGLE_FAN, 0, 4);
+		manager.transform(transform.rotate(1, 0, 0, 90));
+		parent.world.getSkyPlane().render(manager.getProgram());
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return true;

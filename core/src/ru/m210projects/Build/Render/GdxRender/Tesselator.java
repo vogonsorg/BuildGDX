@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.FloatArray;
+import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Render.GLInfo;
@@ -21,7 +22,7 @@ import ru.m210projects.Build.Types.WALL;
 public class Tesselator {
 
 	public enum Type {
-		Floor, Ceiling, Wall, Sky;
+		Floor, Ceiling, Wall, Sky, Plane;
 
 		private Heinum heinum;
 
@@ -68,8 +69,11 @@ public class Tesselator {
 		this.attributes = attributes;
 
 		int size = 0;
-		for (int i = 0; i < attributes.length; i++)
-			size += attributes[i].numComponents;
+		for (int i = 0; i < attributes.length; i++) {
+			if(!attributes[i].equals(VertexAttribute.ColorPacked()))
+				size += attributes[i].numComponents;
+			else size++;
+		}
 
 		this.vertexSize = size;
 		this.surf = new SurfaceInfo();
@@ -207,6 +211,73 @@ public class Tesselator {
 
 		int count = 0;
 		switch (type) {
+		case Plane: {
+			float SIZEX = 1.0f / 2;
+			float SIZEY = 1.0f / 2;
+			ArrayList<Vertex> pol = new ArrayList<Vertex>();
+			pol.add((Vertex) new Vertex(1, 1).set(-SIZEX, SIZEY, 0));
+			pol.add((Vertex) new Vertex(0, 1).set(SIZEX, SIZEY, 0));
+			pol.add((Vertex) new Vertex(0, 0).set(SIZEX, -SIZEY, 0));
+			pol.add((Vertex) new Vertex(1, 0).set(-SIZEX, -SIZEY, 0));
+
+			for (int v = 0; v < 4; v++) {
+				Vertex vx = pol.get(v);
+				for (int a = 0; a < attributes.length; a++) {
+					switch (attributes[a].usage) {
+					case Usage.Position:
+						vertices.addAll(vx.x, vx.y, vx.z);
+						break;
+					case Usage.TextureCoordinates:
+						vertices.addAll(vx.u, vx.v);
+						break;
+					case Usage.ColorUnpacked:
+						vertices.addAll(1, 1, 1, 1);
+						break;
+					case Usage.ColorPacked:
+						vertices.add(NumberUtils.intToFloatColor(-1));
+						break;
+					case Usage.Normal:
+						vertices.addAll(norm.x, norm.y, norm.z);
+						break;
+					}
+				}
+				count++;
+			}
+
+			/*
+			vertex[0] = pol.get(0);
+			for (int j = 2; j < pol.size(); j++) {
+				vertex[1] = pol.get(j - 1);
+				vertex[2] = pol.get(j);
+
+				for (int v = 0; v < 3; v++) {
+					Vertex vx = vertex[v];
+					for (int a = 0; a < attributes.length; a++) {
+						switch (attributes[a].usage) {
+						case Usage.Position:
+							vertices.addAll(vx.x, vx.y, vx.z);
+							break;
+						case Usage.TextureCoordinates:
+							vertices.addAll(vx.u, vx.v);
+							break;
+						case Usage.ColorUnpacked:
+							vertices.addAll(1, 1, 1, 1);
+							break;
+						case Usage.ColorPacked:
+							vertices.add(NumberUtils.intToFloatColor(-1));
+							break;
+						case Usage.Normal:
+							vertices.addAll(norm.x, norm.y, norm.z);
+							break;
+						}
+					}
+					count++;
+				}
+			}
+			*/
+
+			break;
+		}
 		case Floor:
 		case Ceiling: {
 			SECTOR sec = sector[num];
@@ -323,6 +394,9 @@ public class Tesselator {
 							case Usage.ColorUnpacked:
 								vertices.addAll(1, 1, 1, 1);
 								break;
+							case Usage.ColorPacked:
+								vertices.add(NumberUtils.intToFloatColor(-1));
+								break;
 							case Usage.Normal:
 								vertices.addAll(norm.x, norm.y, norm.z);
 								break;
@@ -407,6 +481,9 @@ public class Tesselator {
 							break;
 						case Usage.ColorUnpacked:
 							vertices.addAll(1, 1, 1, 1);
+							break;
+						case Usage.ColorPacked:
+							vertices.add(NumberUtils.intToFloatColor(-1));
 							break;
 						case Usage.Normal:
 							vertices.addAll(norm.x, norm.y, norm.z);

@@ -312,7 +312,11 @@ public class ShaderManager {
 			texshader.setUniformi(world_planeClipping, 0);
 			break;
 		case RGBWorldShader:
-			// XXX
+			//XXX
+			texshader32.setUniformMatrix("u_projTrans", cam.combined);
+			texshader32.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
+			texshader32.setUniformf("u_viewport", windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
+			texshader32.setUniformi("u_planeClipping", 0);
 			break;
 		case IndexedSkyShader:
 			skyshader.prepare(cam);
@@ -332,7 +336,11 @@ public class ShaderManager {
 			texshader.setUniformi(world_planeClipping, 0);
 			break;
 		case RGBWorldShader:
-			// XXX
+			//XXX
+			texshader32.setUniformMatrix("u_projTrans", cam.combined);
+			texshader32.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
+			texshader32.setUniformf("u_viewport", windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
+			texshader32.setUniformi("u_planeClipping", 0);
 			break;
 		case IndexedSkyShader:
 			skyshader.prepare(cam);
