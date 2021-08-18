@@ -99,9 +99,9 @@ public class GDXOrtho extends OrphoRenderer {
 	protected final GDXRenderer parent;
 	protected int cx1, cy1, cx2, cy2;
 
-	protected ShaderProgram shader;
-	protected ShaderProgram textureShader;
-	protected ShaderProgram bitmapShader;
+//	protected ShaderProgram shader;
+//	protected ShaderProgram textureShader;
+//	protected ShaderProgram bitmapShader;
 
 	private final int maxSpriteCount = 128;
 
@@ -144,10 +144,10 @@ public class GDXOrtho extends OrphoRenderer {
 		mesh.setIndices(indices);
 
 		this.lineTile = allocLineTile();
-		ShaderManager manager = parent.manager;
-		this.textureShader = manager.get(Shader.IndexedWorldShader);
-		this.bitmapShader = manager.get(Shader.BitmapShader);
-		this.shader = textureShader;
+//		ShaderManager manager = parent.manager;
+//		this.textureShader = manager.get(Shader.IndexedWorldShader);
+//		this.bitmapShader = manager.get(Shader.BitmapShader);
+//		this.shader = textureShader;
 	}
 
 	@Override
@@ -155,7 +155,7 @@ public class GDXOrtho extends OrphoRenderer {
 		mesh.dispose();
 		linesMesh.dispose();
 		lineTile.dispose();
-		bitmapShader.dispose();
+//		bitmapShader.dispose();
 		idx = 0;
 		drawing = false;
 	}
@@ -185,7 +185,7 @@ public class GDXOrtho extends OrphoRenderer {
 			begin();
 
 		setType(GL20.GL_TRIANGLES);
-		switchShader(bitmapShader);
+		switchShader(Shader.BitmapShader);
 		setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f, curpalette.getBlue(col) / 255.0f,
 				1.0f);
 		enableBlending();
@@ -242,7 +242,7 @@ public class GDXOrtho extends OrphoRenderer {
 			begin();
 
 		setType(GL20.GL_LINES);
-		switchShader(bitmapShader);
+		switchShader(Shader.BitmapShader);
 		switchTexture(lineTile);
 		setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f, curpalette.getBlue(col) / 255.0f,
 				1.0f);
@@ -342,7 +342,7 @@ public class GDXOrtho extends OrphoRenderer {
 		if (!isDrawing())
 			begin();
 
-		switchShader(textureShader);
+		switchShader(Shader.IndexedWorldShader);
 		setType(GL20.GL_TRIANGLES);
 		setViewport(cx1, cy1, cx2, cy2);
 		if (pth.getPixelFormat() != PixelFormat.Pal8) {
@@ -609,17 +609,16 @@ public class GDXOrtho extends OrphoRenderer {
 
 		Arrays.fill(gotsector, (byte) 0);
 
+		ShaderManager manager = parent.manager;
+		switchShader(Shader.IndexedWorldShader);
+
 		Matrix4 worldTrans = parent.transform;
 
 		worldTrans.setToOrtho(xdim / 2, (-xdim / 2), -(ydim / 2), ydim / 2, 0, 1);
 		worldTrans.scale(zoome / 32.0f, zoome / 32.0f, 0);
 
-		switchShader(textureShader);
-
-		shader.begin();
-		shader.setUniformMatrix("u_projTrans", worldTrans);
-		shader.setUniformMatrix("u_modelView", worldTrans.idt());
-		shader.setUniformi("u_planeClipping", 0);
+		manager.projection(worldTrans).view(worldTrans.idt());
+		manager.viewport(0, 0, 0, 0);
 
 		int showSprites = mapSettings.isShowFloorSprites() ? 1 : 0;
 		showSprites |= (mapSettings.isShowSprites(MapView.Polygons) ? 2 : 0);
@@ -692,8 +691,7 @@ public class GDXOrtho extends OrphoRenderer {
 					worldTrans.setToRotation(0, 0, 1, (512 - ang) * buildAngleToDegrees);
 					worldTrans.translate(-dax / parent.cam.xscale, -day / parent.cam.xscale,
 							-sector[s].floorz / parent.cam.yscale);
-					shader.setUniformMatrix("u_transform", worldTrans);
-
+					manager.transform(worldTrans); //TODO Delete
 					parent.drawSurf(flor, 0, worldTrans);
 				}
 			}
@@ -727,10 +725,8 @@ public class GDXOrtho extends OrphoRenderer {
 			}
 		}
 
-		shader.setUniformMatrix("u_projTrans", parent.cam.combined);
-		shader.setUniformMatrix("u_modelView", parent.cam.view);
-
-		shader.end();
+		manager.projection(parent.cam.combined).view(parent.cam.view);
+		manager.unbind();
 	}
 
 	protected void resize(int width, int height) {
@@ -743,7 +739,7 @@ public class GDXOrtho extends OrphoRenderer {
 
 		BuildGdx.gl20.glDepthMask(false);
 
-		shader.begin();
+		parent.manager.bind(Shader.IndexedWorldShader);
 		setupMatrices();
 
 		drawing = true;
@@ -769,7 +765,7 @@ public class GDXOrtho extends OrphoRenderer {
 		if (isBlendingEnabled())
 			gl.glDisable(GL20.GL_BLEND);
 
-		shader.end();
+		parent.manager.unbind();
 	}
 
 	protected void flush() {
@@ -802,7 +798,7 @@ public class GDXOrtho extends OrphoRenderer {
 			BuildGdx.gl20.glEnable(GL20.GL_BLEND);
 		}
 
-		mesh.render(shader, lastType, 0, count);
+		mesh.render(parent.manager.getProgram(), lastType, 0, count);
 		idx = 0;
 
 	}
@@ -947,15 +943,13 @@ public class GDXOrtho extends OrphoRenderer {
 	}
 
 	protected void switchTextureParams(int pal, int shade, float alpha, boolean drawLastIndex) {
-		IndexedShader shader = (IndexedShader) this.shader;
+		IndexedShader shader = (IndexedShader) parent.manager.getProgram();
 		if (shader.getDrawLastIndex() == drawLastIndex && shader.getPal() == pal && shader.getShade() == shade
 				&& shader.getTransparent() == alpha)
 			return;
 
 		flush();
-		shader.setTextureParams(pal, shade);
-		shader.setTransparent(alpha);
-		shader.setDrawLastIndex(drawLastIndex);
+		parent.manager.textureParams8(pal, shade, alpha, drawLastIndex);
 	}
 
 	protected void switchTexture(GLTile texture) {
@@ -995,29 +989,24 @@ public class GDXOrtho extends OrphoRenderer {
 		blendingDisabled = false;
 	}
 
-	protected void switchShader(ShaderProgram shader) {
-		if (shader == this.shader)
+	protected void switchShader(Shader shader) {
+		if (shader == parent.manager.getShader())
 			return;
 
-		if (isDrawing()) {
+		if (isDrawing())
 			flush();
-			this.shader.end();
-		}
-		this.shader = shader;
-		if (isDrawing()) {
-			shader.begin();
-			setupMatrices();
-		}
+
+		parent.manager.bind(shader);
+		setupMatrices();
 	}
 
 	private void setupMatrices() {
-		shader.setUniformMatrix("u_projTrans", projectionMatrix);
-		if (shader != bitmapShader) {
-			shader.setUniformMatrix("u_modelView", parent.transform.idt());
-			shader.setUniformMatrix("u_transform", parent.transform.idt());
-
+		if(parent.manager.getShader() != Shader.BitmapShader) {
+			parent.manager.projection(projectionMatrix).view(parent.transform.idt());
+			parent.manager.transform(parent.transform);
 			setViewport(0, 0, xdim, ydim);
-		}
+		} else
+			parent.manager.projection(projectionMatrix);
 	}
 
 	protected void setType(int type) {
@@ -1033,7 +1022,7 @@ public class GDXOrtho extends OrphoRenderer {
 		ByteBuffer b = data.getPixels();
 		b.put((byte) 255);
 		b.rewind();
-		return new GLTile(data, 0, false);
+		return parent.textureCache.newTile(data, 0, false);
 	}
 
 	protected void setViewport(int cx1, int cy1, int cx2, int cy2) {
@@ -1042,8 +1031,7 @@ public class GDXOrtho extends OrphoRenderer {
 
 		flush();
 
-		shader.setUniformi("u_planeClipping", 2);
-		shader.setUniformf("u_viewport", cx1, ydim - cy1, cx2 + 1, ydim - cy2 - 1);
+		parent.manager.viewport(cx1, cy1, cx2, cy2);
 
 		this.cx1 = cx1;
 		this.cx2 = cx2;

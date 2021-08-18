@@ -261,7 +261,7 @@ public class SpriteRenderer {
 			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
 
 		//TODO: set FOG ?
-		((IndexedShader) manager.currentShader).setVisibility((int) (-vis / 64.0f));
+		((IndexedShader) manager.getProgram()).setVisibility((int) (-vis / 64.0f));
 
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;
@@ -355,8 +355,8 @@ public class SpriteRenderer {
 		Gdx.gl.glDepthFunc(GL20.GL_LESS);
 		Gdx.gl.glDepthRangef(0.0f, 0.99999f);
 
-		manager.transform(Shader.IndexedWorldShader, transform);
-		spriteMesh.render(manager.currentShader, GL_TRIANGLE_FAN, 0, 4);
+		manager.transform(manager.getShader(), transform);
+		spriteMesh.render(manager.getProgram(), GL_TRIANGLE_FAN, 0, 4);
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return true;

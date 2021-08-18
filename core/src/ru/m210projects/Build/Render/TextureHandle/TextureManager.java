@@ -48,7 +48,7 @@ public class TextureManager {
 	protected final Engine engine;
 	protected final GLTileArray cache;
 	protected TextureHDInfo info;
-	protected GLTile bindedTile;
+	private GLTile bindedTile;
 	protected GLTile palette; // to shader
 	protected GLTile palookups[]; // to shader
 	protected int texunits = 0;
@@ -156,7 +156,6 @@ public class TextureManager {
 				|| (tile.getPixelFormat() != PixelFormat.Pal8 && bindedTile.getPixelFormat() == PixelFormat.Pal8));
 
 		tile.bind();
-		bindedTile = tile;
 		return res;
 	}
 
@@ -219,6 +218,16 @@ public class TextureManager {
 
 	public GLTile newTile(TileData pic, int palnum, boolean useMipMaps) {
 		return new GLTile(pic, palnum, useMipMaps) {
+			@Override
+			public void bind() {
+				super.bind();
+				bindedTile = this;
+			}
+		};
+	}
+
+	public GLTile newTile(PixelFormat fmt, int width, int height) {
+		return new GLTile(PixelFormat.Rgb, width, height) {
 			@Override
 			public void bind() {
 				super.bind();

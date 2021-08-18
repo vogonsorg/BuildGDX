@@ -3501,7 +3501,7 @@ public class Polymost implements GLRenderer {
 				if (frameTexture != null)
 					frameTexture.dispose();
 				else
-					frameTexture = new GLTile(PixelFormat.Rgb, size, size);
+					frameTexture = textureCache.newTile(PixelFormat.Rgb, size, size);
 
 				frameTexture.bind();
 

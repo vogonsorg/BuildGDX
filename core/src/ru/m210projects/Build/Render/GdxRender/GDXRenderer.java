@@ -114,6 +114,7 @@ public class GDXRenderer implements GLRenderer {
 //	Sky texture
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
+//  MDModel / Voxels has new GLTile (should be textureManager.newTile)
 
 	public Rendering rendering = Rendering.Nothing;
 
@@ -246,6 +247,8 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void drawmasks() {
+		manager.bind(Shader.IndexedWorldShader);
+
 		int maskwallcnt = scanner.getMaskwallCount();
 		sprR.sort(scanner.getSprites(), spritesortcnt);
 
@@ -459,24 +462,25 @@ public class GDXRenderer implements GLRenderer {
 		scanner.process(sectors, cam, world, globalcursectnum);
 
 		rendering = Rendering.Nothing;
+
 		manager.bind(Shader.IndexedWorldShader);
 		if (inpreparemirror)
 			gl.glCullFace(GL_FRONT);
 		else
 			gl.glCullFace(GL_BACK);
-		manager.mirror(Shader.IndexedWorldShader, inpreparemirror);
-		manager.prepare(Shader.IndexedWorldShader, cam);
+		manager.mirror(inpreparemirror);
+		manager.prepare(cam);
 
 		prerender(sectors);
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
 
 		manager.bind(Shader.IndexedSkyShader);
-		manager.prepare(Shader.IndexedSkyShader, cam);
-		manager.mirror(Shader.IndexedSkyShader, inpreparemirror);
+		manager.prepare(cam);
+		manager.mirror(inpreparemirror);
 
 		drawSkyPlanes();
-		manager.transform(Shader.IndexedSkyShader, transform.idt());
+		manager.transform(transform.idt());
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
 
@@ -550,10 +554,10 @@ public class GDXRenderer implements GLRenderer {
 
 				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100);
 				transform.scale(cam.far, cam.far, 1.0f);
-				manager.transform(Shader.IndexedSkyShader, transform);
-				manager.textureParams8(Shader.IndexedSkyShader, pal, 0, alpha, true);
+				manager.transform(transform);
+				manager.textureParams8(pal, 0, alpha, true);
 
-				world.getSkyPlane().render(manager.currentShader);
+				world.getSkyPlane().render(manager.getProgram());
 			}
 		}
 
@@ -572,10 +576,10 @@ public class GDXRenderer implements GLRenderer {
 
 				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100);
 				transform.scale(cam.far, cam.far, 1.0f);
-				manager.transform(Shader.IndexedSkyShader, transform);
-				manager.textureParams8(Shader.IndexedSkyShader, pal, 0, alpha, true);
+				manager.transform(transform);
+				manager.textureParams8(pal, 0, alpha, true);
 
-				world.getSkyPlane().render(manager.currentShader);
+				world.getSkyPlane().render(manager.getProgram());
 			}
 		}
 
@@ -588,7 +592,7 @@ public class GDXRenderer implements GLRenderer {
 		gotsector[sectnum >> 3] |= pow2char[sectnum & 7];
 
 		if (!inpreparemirror)
-			manager.frustum(Shader.IndexedWorldShader, sec.clipPlane);
+			manager.frustum(sec.clipPlane);
 
 		Matrix4 worldTrans = transform.idt();
 		if ((sec.secflags & 1) != 0) {
@@ -610,7 +614,7 @@ public class GDXRenderer implements GLRenderer {
 			drawSurf(world.getLower(z, sectnum), flags, worldTrans);
 		}
 
-		manager.frustum(Shader.IndexedWorldShader, null);
+		manager.frustum(null);
 	}
 
 	public void drawSkySector(VisibleSector sec) {
@@ -643,10 +647,10 @@ public class GDXRenderer implements GLRenderer {
 		GLTile pth = textureCache.get(getTexFormat(), picnum, palnum, 0, method);
 		if (pth != null) {
 			textureCache.bind(pth);
-			manager.textureParams8(Shader.IndexedSkyShader, palnum, 0, 1, (method & 3) == 0 || !textureCache.alphaMode(method));
+			manager.textureParams8(palnum, 0, 1, (method & 3) == 0 || !textureCache.alphaMode(method));
 			gl.glDisable(GL_BLEND);
 
-			surf.render(manager.currentShader);
+			surf.render(manager.getProgram());
 		}
 	}
 
@@ -678,8 +682,8 @@ public class GDXRenderer implements GLRenderer {
 					combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
 
 				//TODO: set FOG ?
-				((IndexedShader) manager.currentShader).setVisibility((int) (-combvis / 64.0f));
-				manager.transform(Shader.IndexedWorldShader, worldTransform);
+				((IndexedShader) manager.getProgram()).setVisibility((int) (-combvis / 64.0f));
+				manager.transform(worldTransform);
 
 				if ((method & 3) == 0) {
 					Gdx.gl.glDisable(GL_BLEND);
@@ -687,7 +691,7 @@ public class GDXRenderer implements GLRenderer {
 					Gdx.gl.glEnable(GL_BLEND);
 				}
 
-				surf.render(manager.currentShader);
+				surf.render(manager.getProgram());
 			}
 		}
 	}
@@ -1093,7 +1097,7 @@ public class GDXRenderer implements GLRenderer {
 			if (!engine.getTile(tilenum).isLoaded())
 				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 
-			manager.textureParams8(Shader.IndexedWorldShader, pal, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
+			manager.textureParams8(pal, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
 		}
 	}
 

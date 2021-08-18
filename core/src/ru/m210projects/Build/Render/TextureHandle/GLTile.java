@@ -77,7 +77,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	protected int palnum;
 	protected GLTile next;
 
-	public GLTile(PixelFormat fmt, int width, int height) {
+	protected GLTile(PixelFormat fmt, int width, int height) {
 		super(GL_TEXTURE_2D);
 		this.width = width;
 		this.height = height;
