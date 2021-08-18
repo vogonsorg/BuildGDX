@@ -1,5 +1,6 @@
 package ru.m210projects.Build.Render.GdxRender.Shaders;
 
+import static ru.m210projects.Build.Engine.inpreparemirror;
 import static ru.m210projects.Build.Engine.windowx1;
 import static ru.m210projects.Build.Engine.windowx2;
 import static ru.m210projects.Build.Engine.windowy1;
@@ -16,7 +17,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 
 public class ShaderManager {
 
-	protected ShaderProgram skyshader;
+	protected IndexedSkyShaderProgram skyshader;
 	protected IndexedShader texshader;
 	protected ShaderProgram skyshader32;
 	protected ShaderProgram texshader32;
@@ -37,36 +38,58 @@ public class ShaderManager {
 	private int world_transform;
 
 	public enum Shader {
-		IndexedWorldShader, RGBWorldShader, IndexedSkyShader, RGBSkyShader, BitmapShader, FadeShader
+		IndexedWorldShader, RGBWorldShader, IndexedSkyShader, RGBSkyShader, BitmapShader, FadeShader;
+
+		ShaderProgram shader;
+
+		public void set(ShaderProgram shader) {
+			this.shader = shader;
+		}
+
+		public ShaderProgram get() {
+			return shader;
+		}
 	}
 
 	public void init(TextureManager textureCache) {
-		skyshader = allocSkyShader();
+		skyshader = allocIndexedSkyShader(textureCache);
+		Shader.IndexedSkyShader.set(skyshader);
 		skyshader32 = null;
+		Shader.RGBSkyShader.set(skyshader32);
 		texshader = allocIndexedShader(textureCache);
+		Shader.IndexedWorldShader.set(texshader);
 		texshader32 = null;
+		Shader.RGBWorldShader.set(texshader32);
 		bitmapShader = allocBitmapShader();
+		Shader.BitmapShader.set(bitmapShader);
 		fadeshader = allocFadeShader();
+		Shader.FadeShader.set(fadeshader);
 	}
 
 	public void mirror(Shader shader, boolean mirror) {
-		if (shader == Shader.IndexedWorldShader) {
-			if (currentShader != texshader)
-				texshader.begin();
-			texshader.setUniformi(world_mirror, mirror ? 1 : 0);
-		} else if (shader == Shader.RGBWorldShader) {
-			if (currentShader != texshader32)
-				texshader32.begin();
+		ShaderProgram sh = shader.get();
+		if (currentShader != sh)
+			sh.begin();
 
+		switch (shader) {
+		case IndexedWorldShader:
+			texshader.setUniformi(world_mirror, mirror ? 1 : 0);
+			break;
+		case RGBWorldShader:
 			// XXX
+			break;
+		case IndexedSkyShader:
+			skyshader.mirror(mirror);
+			break;
 		}
 	}
 
 	public void frustum(Shader shader, Plane[] clipPlane) {
-		if (shader == Shader.IndexedWorldShader) {
-			if (currentShader != texshader)
-				texshader.begin();
+		ShaderProgram sh = shader.get();
+		if (currentShader != sh)
+			sh.begin();
 
+		if (shader == Shader.IndexedWorldShader) {
 			if (clipPlane == null) {
 				texshader.setUniformi(world_planeClipping, 0);
 				return;
@@ -75,34 +98,66 @@ public class ShaderManager {
 			texshader.setUniformi(world_planeClipping, 1);
 			texshader.setUniformf(world_plane0, clipPlane[0].normal.x, clipPlane[0].normal.y, clipPlane[0].normal.z,
 					clipPlane[0].d);
-			texshader.setUniformf(world_plane1, clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
+
+			//XXX world_plane1 doesn't find
+			texshader.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
 					clipPlane[1].d);
 		}
 	}
 
 	public void transform(Shader shader, Matrix4 transform) {
-		if (shader == Shader.IndexedWorldShader) {
-			if (currentShader != texshader)
-				texshader.begin();
+		ShaderProgram sh = shader.get();
+		if (currentShader != sh)
+			sh.begin();
 
+		switch (shader) {
+		case IndexedWorldShader:
 			texshader.setUniformMatrix(world_transform, transform);
+			break;
+		case IndexedSkyShader:
+			skyshader.transform(transform);
+			break;
+		}
+	}
+
+	public void textureParams8(Shader shader, int pal, int shade, float alpha, boolean lastIndex) {
+		ShaderProgram sh = shader.get();
+		if (currentShader != sh)
+			sh.begin();
+
+		switch (shader) {
+		case IndexedWorldShader:
+			texshader.setTextureParams(pal, shade);
+			texshader.setDrawLastIndex(lastIndex);
+			texshader.setTransparent(alpha);
+			break;
+		case IndexedSkyShader:
+			skyshader.setTextureParams(pal, shade);
+			skyshader.setDrawLastIndex(lastIndex);
+			skyshader.setTransparent(alpha);
+			break;
 		}
 	}
 
 	public void prepare(Shader shader, BuildCamera cam) {
-		if (shader == Shader.IndexedWorldShader) {
-			if (currentShader != texshader)
-				texshader.begin();
+		ShaderProgram sh = shader.get();
+		if (currentShader != sh)
+			sh.begin();
 
+		switch (shader) {
+		case IndexedWorldShader:
 			texshader.setUniformMatrix(world_projTrans, cam.combined);
 			texshader.setUniformMatrix(world_modelView, cam.view);
 			texshader.setUniformMatrix(world_invProjectionView, cam.invProjectionView);
 			texshader.setUniformf(world_viewport, windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
 			texshader.setUniformi(world_planeClipping, 0);
-		} else if (shader == Shader.RGBWorldShader) {
-			if (currentShader != texshader32)
-				texshader32.begin();
+			break;
+		case RGBWorldShader:
 			// XXX
+			break;
+		case IndexedSkyShader:
+			skyshader.prepare(cam);
+			break;
 		}
 	}
 
@@ -124,30 +179,14 @@ public class ShaderManager {
 		return null;
 	}
 
-	public void bind(Shader shader) {
+	public ShaderProgram bind(Shader shader) {
 		if (currentShader != null)
 			currentShader.end();
 
-		switch (shader) {
-		case IndexedWorldShader:
-			texshader.begin();
-			break;
-		case RGBWorldShader:
-			texshader32.begin();
-			break;
-		case IndexedSkyShader:
-			skyshader.begin();
-			break;
-		case RGBSkyShader:
-			skyshader32.begin();
-			break;
-		case BitmapShader:
-			bitmapShader.begin();
-			break;
-		case FadeShader:
-			fadeshader.begin();
-			break;
-		}
+		ShaderProgram sh = shader.get();
+		if(sh != null)
+			sh.begin();
+		return sh;
 	}
 
 	public void unbind() {
@@ -166,13 +205,23 @@ public class ShaderManager {
 		};
 	}
 
-	public ShaderProgram allocSkyShader() {
+	public IndexedSkyShaderProgram allocIndexedSkyShader(final TextureManager textureCache) {
 		try {
-			ShaderProgram skyshader = new ShaderProgram(SkyShader.vertex, SkyShader.fragment) {
+			IndexedSkyShaderProgram skyshader = new IndexedSkyShaderProgram() {
 				@Override
 				public void begin() {
 					super.begin();
 					currentShader = this;
+				}
+
+				@Override
+				public void bindPalette() {
+					textureCache.getPalette().bind();
+				}
+
+				@Override
+				public void bindPalookup(int pal) {
+					textureCache.getPalookup(pal).bind();
 				}
 			};
 
@@ -213,8 +262,8 @@ public class ShaderManager {
 			this.world_viewport = shader.getUniformLocation("u_viewport");
 			this.world_mirror = shader.getUniformLocation("u_mirror");
 			this.world_planeClipping = shader.getUniformLocation("u_planeClipping");
-			this.world_plane0 = shader.getUniformLocation("u_plane0");
-			this.world_plane1 = shader.getUniformLocation("u_plane1");
+			this.world_plane0 = shader.getUniformLocation("u_plane[0]");
+			this.world_plane1 = shader.getUniformLocation("u_plane[1]");
 			this.world_transform = shader.getUniformLocation("u_transform");
 
 			return shader;
@@ -236,5 +285,22 @@ public class ShaderManager {
 		if (!shader.isCompiled())
 			throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
 		return shader;
+	}
+
+	@Override
+	public String toString() {
+		String out = "Current shader: ";
+		Shader current = null;
+		for (Shader sh : Shader.values()) {
+			if (sh.get() == currentShader) {
+				current = sh;
+				break;
+			}
+		}
+		if (current != null)
+			out += current.name();
+		else
+			out += "NULL";
+		return out;
 	}
 }

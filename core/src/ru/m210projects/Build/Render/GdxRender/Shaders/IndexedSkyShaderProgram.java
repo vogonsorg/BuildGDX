@@ -35,10 +35,9 @@ public abstract class IndexedSkyShaderProgram extends IndexedShader {
 		this.mirrorloc = getUniformLocation("u_mirror");
 	}
 
-	public void prepare(BuildCamera cam, Matrix4 transform) {
+	public void prepare(BuildCamera cam) {
 		setUniformf(cameraloc, cam.position.x, cam.position.y, cam.position.z);
 		setUniformMatrix(projTransloc, cam.combined);
-		setUniformMatrix(transformloc, transform);
 	}
 
 	public void transform(Matrix4 transform) {

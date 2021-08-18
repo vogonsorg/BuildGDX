@@ -68,7 +68,8 @@ import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
-import ru.m210projects.Build.Render.GdxRender.Shaders.BitmapShader;
+import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
+import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
 import ru.m210projects.Build.Render.TextureHandle.DummyTileData;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
@@ -143,8 +144,9 @@ public class GDXOrtho extends OrphoRenderer {
 		mesh.setIndices(indices);
 
 		this.lineTile = allocLineTile();
-		this.textureShader = parent.texshader;
-		this.bitmapShader = createBitmapShader();
+		ShaderManager manager = parent.manager;
+		this.textureShader = manager.get(Shader.IndexedWorldShader);
+		this.bitmapShader = manager.get(Shader.BitmapShader);
 		this.shader = textureShader;
 	}
 
@@ -1032,18 +1034,6 @@ public class GDXOrtho extends OrphoRenderer {
 		b.put((byte) 255);
 		b.rewind();
 		return new GLTile(data, 0, false);
-	}
-
-	public ShaderProgram createBitmapShader() {
-		ShaderProgram shader = new ShaderProgram(BitmapShader.vertex, BitmapShader.fragment) {
-			@Override
-			public void begin() {
-				super.begin();
-			}
-		};
-		if (!shader.isCompiled())
-			throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
-		return shader;
 	}
 
 	protected void setViewport(int cx1, int cy1, int cx2, int cy2) {

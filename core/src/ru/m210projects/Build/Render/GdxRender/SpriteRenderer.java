@@ -21,7 +21,10 @@ import com.badlogic.gdx.math.Matrix4;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
+import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
@@ -204,6 +207,8 @@ public class SpriteRenderer {
 		if (tspr.owner < 0 || !Gameutils.isValidTile(tspr.picnum) || !Gameutils.isValidSector(tspr.sectnum))
 			return false;
 
+		ShaderManager manager = parent.manager;
+
 		int picnum = tspr.picnum;
 		int shade = tspr.shade;
 		int pal = tspr.pal & 0xFF;
@@ -255,8 +260,8 @@ public class SpriteRenderer {
 		if (sector[tspr.sectnum].visibility != 0)
 			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
 
-		parent.getTextureShader().setVisibility((int) (-vis / 64.0f));
-//		parent.getTextureShader().setClip(0, 0, xdim, ydim);
+		//TODO: set FOG ?
+		((IndexedShader) manager.currentShader).setVisibility((int) (-vis / 64.0f));
 
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;
@@ -350,8 +355,8 @@ public class SpriteRenderer {
 		Gdx.gl.glDepthFunc(GL20.GL_LESS);
 		Gdx.gl.glDepthRangef(0.0f, 0.99999f);
 
-		parent.getTextureShader().setUniformMatrix("u_transform", transform);
-		spriteMesh.render(parent.getTextureShader(), GL_TRIANGLE_FAN, 0, 4);
+		manager.transform(Shader.IndexedWorldShader, transform);
+		spriteMesh.render(manager.currentShader, GL_TRIANGLE_FAN, 0, 4);
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return true;
