@@ -215,6 +215,8 @@ public class GDXRenderer implements GLRenderer {
 		orphoRen.uninit();
 
 		textureCache.uninit();
+		if (world != null)
+			world.dispose();
 		isInited = false;
 	}
 
