@@ -230,7 +230,7 @@ public class SpriteRenderer {
 				method = 3 + 4;
 		}
 
-		GLTile tex = parent.bind(parent.getTexFormat(), picnum, pal, shade, 0, method);
+		GLTile tex = parent.bind(picnum, pal, shade, 0, method);
 		if (tex == null)
 			return false;
 

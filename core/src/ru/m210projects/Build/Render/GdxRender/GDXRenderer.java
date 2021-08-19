@@ -105,7 +105,7 @@ public class GDXRenderer implements GLRenderer {
 //	Drawpolymap draw sprites
 //  Shader manager dispose
 
-//	Shaders uninit
+//  Textures should switch shaders
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
 //	Hires + models
@@ -460,29 +460,23 @@ public class GDXRenderer implements GLRenderer {
 		scanner.process(sectors, cam, world, globalcursectnum);
 
 		rendering = Rendering.Nothing;
-
-		manager.bind(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		if (inpreparemirror)
 			gl.glCullFace(GL_FRONT);
 		else
 			gl.glCullFace(GL_BACK);
-		manager.mirror(inpreparemirror);
-		manager.prepare(cam);
+
+		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 
 		prerender(sectors);
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
+		manager.frustum(null);
 
-		manager.bind(Shader.IndexedSkyShader);
-		manager.prepare(cam);
-		manager.mirror(inpreparemirror);
-
+		rendering = Rendering.Skybox;
+		switchShader(Shader.IndexedSkyShader);
 		drawSkyPlanes();
-		manager.transform(transform.idt());
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
-
-		manager.unbind();
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
@@ -539,7 +533,7 @@ public class GDXRenderer implements GLRenderer {
 		int picnum;
 		if ((picnum = scanner.getSkyPicnum(Heinum.SkyUpper)) != -1) {
 			int pal = scanner.getSkyPal(Heinum.SkyUpper);
-			GLTile pth = textureCache.get(manager.getPixelFormat(), picnum, pal, 0, 0);
+			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
 			if (pth != null) {
 				textureCache.bind(pth);
 
@@ -561,7 +555,7 @@ public class GDXRenderer implements GLRenderer {
 
 		if ((picnum = scanner.getSkyPicnum(Heinum.SkyLower)) != -1) {
 			int pal = scanner.getSkyPal(Heinum.SkyLower);
-			GLTile pth = textureCache.get(manager.getPixelFormat(), picnum, pal, 0, 0);
+			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
 			if (pth != null) {
 				textureCache.bind(pth);
 
@@ -583,6 +577,8 @@ public class GDXRenderer implements GLRenderer {
 
 		gl.glDepthMask(true);
 		gl.glEnable(GL_CULL_FACE);
+
+		manager.transform(transform.idt()); //XXX
 	}
 
 	private void drawSector(VisibleSector sec) {
@@ -590,7 +586,7 @@ public class GDXRenderer implements GLRenderer {
 		gotsector[sectnum >> 3] |= pow2char[sectnum & 7];
 
 		if (!inpreparemirror)
-			manager.frustum(sec.clipPlane);
+			manager.frustum(sec.clipPlane); //XXX
 
 		Matrix4 worldTrans = transform.idt();
 		if ((sec.secflags & 1) != 0) {
@@ -611,8 +607,6 @@ public class GDXRenderer implements GLRenderer {
 			drawSurf(world.getUpper(z, sectnum), flags, worldTrans);
 			drawSurf(world.getLower(z, sectnum), flags, worldTrans);
 		}
-
-		manager.frustum(null);
 	}
 
 	public void drawSkySector(VisibleSector sec) {
@@ -642,7 +636,7 @@ public class GDXRenderer implements GLRenderer {
 			engine.loadtile(picnum);
 
 		engine.setgotpic(picnum);
-		GLTile pth = textureCache.get(manager.getPixelFormat(), picnum, palnum, 0, method);
+		GLTile pth = textureCache.get(getTexFormat(), picnum, palnum, 0, method);
 		if (pth != null) {
 			textureCache.bind(pth);
 			manager.textureParams8(palnum, 0, 1, (method & 3) == 0 || !textureCache.alphaMode(method));
@@ -672,7 +666,7 @@ public class GDXRenderer implements GLRenderer {
 			}
 
 			engine.setgotpic(picnum);
-			GLTile pth = bind(manager.getPixelFormat(), picnum, surf.getPal(), surf.getShade(), 0, method);
+			GLTile pth = bind(picnum, surf.getPal(), surf.getShade(), 0, method);
 			if (pth != null) {
 				int combvis = globalvisibility;
 				int vis = surf.getVisibility();
@@ -1069,8 +1063,8 @@ public class GDXRenderer implements GLRenderer {
 		return drunkIntensive;
 	}
 
-	protected GLTile bind(PixelFormat fmt, int dapicnum, int dapalnum, int dashade, int skybox, int method) {
-		GLTile pth = textureCache.get(fmt, dapicnum, dapalnum, skybox, method);
+	protected GLTile bind(int dapicnum, int dapalnum, int dashade, int skybox, int method) {
+		GLTile pth = textureCache.get(this.getTexFormat(), dapicnum, dapalnum, skybox, method);
 		if (pth == null)
 			return null;
 
@@ -1104,13 +1098,6 @@ public class GDXRenderer implements GLRenderer {
 		}
 	}
 
-//	protected void bind(GLTile tile) {
-//		if (textureCache.bind(tile)) {
-//			//gl.glActiveTexture(GL_TEXTURE0);
-//			manager.bind(tile.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
-//		}
-//	}
-
 	public void setFieldOfView(final float fov) {
 		if (cam != null) {
 			cam.setFieldOfView(fov);
@@ -1139,6 +1126,12 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void completemirror() {
 		inpreparemirror = false;
+	}
+
+	protected void switchShader(Shader shader) {
+		manager.bind(shader);
+		manager.mirror(inpreparemirror);
+		manager.prepare(cam);
 	}
 
 	// Debug 2.5D renderer
