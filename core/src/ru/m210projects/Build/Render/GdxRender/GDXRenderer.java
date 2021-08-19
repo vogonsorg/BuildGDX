@@ -1162,6 +1162,9 @@ public class GDXRenderer implements GLRenderer {
 
 	protected final GLTileArray skycache = new GLTileArray(MAXTILES);
 	protected GLTile getSkyTexture(PixelFormat fmt, int picnum, int palnum) {
+		if(!engine.getTile(picnum).hasSize())
+			return textureCache.get(getTexFormat(), picnum, palnum, 0, 0);
+
 		GLTile tile = skycache.get(picnum, palnum, false, 0);
 		if (tile != null && tile.getPixelFormat() == fmt) {
 			if (tile.isInvalidated()) {
