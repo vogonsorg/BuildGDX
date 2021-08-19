@@ -39,14 +39,14 @@ public class TileAtlas {
 
 	public TileAtlas(PixelFormat fmt, int gridWidth, int gridHeight, int numtiles) {
 		this(fmt, Math.min((1 << GLInfo.gltexmaxsize), getAtlasSize(numtiles)[0] * gridWidth),
-				Math.min((1 << GLInfo.gltexmaxsize), getAtlasSize(numtiles)[1] * gridHeight), gridWidth, gridHeight);
+				Math.min((1 << GLInfo.gltexmaxsize), getAtlasSize(numtiles)[1] * gridHeight), gridWidth, gridHeight, true);
 	}
 
-	public TileAtlas(PixelFormat fmt, int atlasWidth, int atlasHeight, int gridWidth, int gridHeight) {
+	public TileAtlas(PixelFormat fmt, int atlasWidth, int atlasHeight, int gridWidth, int gridHeight, boolean pow2) {
 		this.fmt = fmt;
 
-		this.atlasWidth = GLInfo.calcSize(atlasWidth);
-		this.atlasHeight = GLInfo.calcSize(atlasHeight);
+		this.atlasWidth = pow2 ? GLInfo.calcSize(atlasWidth) : atlasWidth;
+		this.atlasHeight = pow2 ? GLInfo.calcSize(atlasHeight) : atlasHeight;
 
 		this.gridWidth = gridWidth;
 		this.gridHeight = gridHeight;

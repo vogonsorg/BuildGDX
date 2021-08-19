@@ -80,9 +80,13 @@ import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
 import ru.m210projects.Build.Render.GdxRender.Shaders.SkyShader;
 import ru.m210projects.Build.Render.GdxRender.Shaders.WorldShader;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.GLTileArray;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
+import ru.m210projects.Build.Render.TextureHandle.IndexedTileData;
+import ru.m210projects.Build.Render.TextureHandle.RGBTileData;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager.ExpandTexture;
+import ru.m210projects.Build.Render.TextureHandle.TileAtlas;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
@@ -111,7 +115,6 @@ public class GDXRenderer implements GLRenderer {
 //	Maskwall sort
 //	Hires + models
 //	Skyboxes
-//	Sky texture
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
 //  MDModel / Voxels has new GLTile (should be textureManager.newTile)
@@ -487,7 +490,7 @@ public class GDXRenderer implements GLRenderer {
 			if (palookup[pal] == null)
 				pal = 0;
 
-			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
+			GLTile pth = getSkyTexture(getTexFormat(), picnum, pal); //textureCache.get(getTexFormat(), picnum, pal, 0, 0);
 			if (pth != null) {
 				textureCache.bind(pth);
 
@@ -514,7 +517,7 @@ public class GDXRenderer implements GLRenderer {
 			if (palookup[pal] == null)
 				pal = 0;
 
-			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
+			GLTile pth = getSkyTexture(getTexFormat(), picnum, pal); //textureCache.get(getTexFormat(), picnum, pal, 0, 0);
 			if (pth != null) {
 				textureCache.bind(pth);
 
@@ -598,7 +601,7 @@ public class GDXRenderer implements GLRenderer {
 		if (palookup[palnum] == null)
 			palnum = 0;
 
-		GLTile pth = textureCache.get(getTexFormat(), picnum, palnum, 0, method);
+		GLTile pth = getSkyTexture(getTexFormat(), picnum, palnum); //textureCache.get(getTexFormat(), picnum, palnum, 0, method);
 		if (pth != null) {
 			textureCache.bind(pth);
 			manager.textureParams8(palnum, shade, 1, (method & 3) == 0 || !textureCache.alphaMode(method));
@@ -1153,6 +1156,51 @@ public class GDXRenderer implements GLRenderer {
 		manager.bind(shader);
 		manager.mirror(inpreparemirror);
 		manager.prepare(cam);
+	}
+
+	protected final GLTileArray skycache = new GLTileArray(MAXTILES);
+	protected GLTile getSkyTexture(PixelFormat fmt, int picnum, int palnum) {
+		GLTile tile = skycache.get(picnum, palnum, false, 0);
+		if (tile != null && tile.getPixelFormat() == fmt) {
+			if (tile.isInvalidated()) {
+				tile.setInvalidated(false);
+
+				TileData data = loadPic(fmt, picnum, palnum);
+				tile.update(data, false);
+			}
+		} else {
+			if (tile != null)
+				skycache.dispose(picnum); // old texture
+
+			TileData data = loadPic(fmt, picnum, palnum);
+			if (data == null)
+				return null;
+
+			skycache.add(textureCache.newTile(data, fmt == PixelFormat.Pal8 ? 0 : palnum, false), picnum);
+		}
+
+		return tile;
+	}
+
+	protected TileData loadPic(PixelFormat fmt, int picnum, int palnum) {
+		short[] dapskyoff = zeropskyoff;
+		int dapskybits = pskybits;
+
+		if (dapskybits < 0)
+			dapskybits = 0;
+
+		Tile tile = engine.getTile(picnum);
+		TileAtlas sky = new TileAtlas(fmt, tile.getWidth() * (1 << dapskybits), tile.getHeight(), tile.getWidth(), tile.getHeight(), false);
+		for (int i = 0; i < (1 << dapskybits); i++) {
+			int pic = dapskyoff[i] + picnum;
+			TileData dat;
+			if (fmt == PixelFormat.Pal8)
+				dat = new IndexedTileData(engine.getTile(pic), false, false, 0);
+			else dat = new RGBTileData(engine.getTile(pic), palnum, false, false, 0);
+			sky.addTile(pic, dat);
+		}
+
+		return sky.atlas.get(0);
 	}
 
 	// Debug 2.5D renderer
