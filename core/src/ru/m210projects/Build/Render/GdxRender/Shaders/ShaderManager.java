@@ -12,8 +12,10 @@ import com.badlogic.gdx.math.Plane;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.GdxRender.BuildCamera;
+import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 
 public class ShaderManager {
@@ -57,6 +59,22 @@ public class ShaderManager {
 		return currentShader;
 	}
 
+	public PixelFormat getPixelFormat() {
+
+		switch (currentShader) {
+		case IndexedSkyShader:
+		case IndexedWorldShader:
+			return PixelFormat.Pal8;
+		case RGBWorldShader:
+		case RGBSkyShader:
+		case BitmapShader:
+		case FadeShader:
+			return PixelFormat.Rgba;
+		}
+
+		return null;
+	}
+
 	public ShaderProgram getProgram() {
 		return currentShaderProgram;
 	}
@@ -86,17 +104,17 @@ public class ShaderManager {
 	}
 
 	public void dispose() {
-		if(skyshader != null)
+		if (skyshader != null)
 			skyshader.dispose();
-		if(skyshader32 != null)
+		if (skyshader32 != null)
 			skyshader32.dispose();
-		if(texshader != null)
+		if (texshader != null)
 			texshader.dispose();
-		if(texshader32 != null)
+		if (texshader32 != null)
 			texshader32.dispose();
-		if(bitmapShader != null)
+		if (bitmapShader != null)
 			bitmapShader.dispose();
-		if(fadeshader != null)
+		if (fadeshader != null)
 			fadeshader.dispose();
 
 		for (Shader sh : Shader.values())
@@ -109,7 +127,7 @@ public class ShaderManager {
 			texshader.setUniformi(world_mirror, mirror ? 1 : 0);
 			break;
 		case RGBWorldShader:
-			texshader32.setUniformi("u_mirror", mirror ? 1 : 0); //XXX
+			texshader32.setUniformi("u_mirror", mirror ? 1 : 0); // XXX
 			break;
 		case IndexedSkyShader:
 			skyshader.mirror(mirror);
@@ -200,13 +218,15 @@ public class ShaderManager {
 
 	public ShaderManager transform(Matrix4 transform) {
 		Shader shader = this.getShader();
+		if(shader == null)
+			return this;
 
 		switch (shader) {
 		case IndexedWorldShader:
 			texshader.setUniformMatrix(world_transform, transform);
 			break;
 		case RGBWorldShader:
-			texshader32.setUniformMatrix("u_transform", transform); //XXX
+			texshader32.setUniformMatrix("u_transform", transform); // XXX
 			break;
 		case IndexedSkyShader:
 			skyshader.transform(transform);
@@ -312,7 +332,7 @@ public class ShaderManager {
 			texshader.setUniformi(world_planeClipping, 0);
 			break;
 		case RGBWorldShader:
-			//XXX
+			// XXX
 			texshader32.setUniformMatrix("u_projTrans", cam.combined);
 			texshader32.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
 			texshader32.setUniformf("u_viewport", windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
@@ -336,7 +356,7 @@ public class ShaderManager {
 			texshader.setUniformi(world_planeClipping, 0);
 			break;
 		case RGBWorldShader:
-			//XXX
+			// XXX
 			texshader32.setUniformMatrix("u_projTrans", cam.combined);
 			texshader32.setUniformMatrix("u_invProjectionView", cam.invProjectionView);
 			texshader32.setUniformf("u_viewport", windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);

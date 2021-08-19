@@ -100,7 +100,6 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  enable/ disable rgb shader
 //	TiledFont render (Tekwar)
 //  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
@@ -135,10 +134,9 @@ public class GDXRenderer implements GLRenderer {
 	protected SpriteRenderer sprR;
 	protected GDXOrtho orphoRen; // GdxOrphoRen
 	protected DefScript defs;
-	//protected IndexedSkyShaderProgram skyshader;
-	//protected IndexedShader texshader;
-	//protected FadeShader fadeshader;
+
 	protected ShaderManager manager;
+	protected boolean isUseIndexedTextures;
 
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
@@ -188,6 +186,8 @@ public class GDXRenderer implements GLRenderer {
 		GLInfo.init();
 		this.gl = BuildGdx.graphics.getGL20();
 
+		enableIndexedShader(GLSettings.usePaletteShader.get());
+
 		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
@@ -228,7 +228,7 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public PixelFormat getTexFormat() {
-		return PixelFormat.Pal8;
+		return isUseIndexedTextures ? PixelFormat.Pal8 : PixelFormat.Rgba;
 	}
 
 	@Override
@@ -539,7 +539,7 @@ public class GDXRenderer implements GLRenderer {
 		int picnum;
 		if ((picnum = scanner.getSkyPicnum(Heinum.SkyUpper)) != -1) {
 			int pal = scanner.getSkyPal(Heinum.SkyUpper);
-			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
+			GLTile pth = textureCache.get(manager.getPixelFormat(), picnum, pal, 0, 0);
 			if (pth != null) {
 				textureCache.bind(pth);
 
@@ -561,7 +561,7 @@ public class GDXRenderer implements GLRenderer {
 
 		if ((picnum = scanner.getSkyPicnum(Heinum.SkyLower)) != -1) {
 			int pal = scanner.getSkyPal(Heinum.SkyLower);
-			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
+			GLTile pth = textureCache.get(manager.getPixelFormat(), picnum, pal, 0, 0);
 			if (pth != null) {
 				textureCache.bind(pth);
 
@@ -642,7 +642,7 @@ public class GDXRenderer implements GLRenderer {
 			engine.loadtile(picnum);
 
 		engine.setgotpic(picnum);
-		GLTile pth = textureCache.get(getTexFormat(), picnum, palnum, 0, method);
+		GLTile pth = textureCache.get(manager.getPixelFormat(), picnum, palnum, 0, method);
 		if (pth != null) {
 			textureCache.bind(pth);
 			manager.textureParams8(palnum, 0, 1, (method & 3) == 0 || !textureCache.alphaMode(method));
@@ -672,7 +672,7 @@ public class GDXRenderer implements GLRenderer {
 			}
 
 			engine.setgotpic(picnum);
-			GLTile pth = bind(getTexFormat(), picnum, surf.getPal(), surf.getShade(), 0, method);
+			GLTile pth = bind(manager.getPixelFormat(), picnum, surf.getPal(), surf.getShade(), 0, method);
 			if (pth != null) {
 				int combvis = globalvisibility;
 				int vis = surf.getVisibility();
@@ -892,7 +892,7 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void enableIndexedShader(boolean enable) {
-		// TODO: 8bit / rgb switch
+		this.isUseIndexedTextures = enable;
 	}
 
 	@Override
@@ -1070,11 +1070,11 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	protected GLTile bind(PixelFormat fmt, int dapicnum, int dapalnum, int dashade, int skybox, int method) {
-		GLTile pth = textureCache.get(getTexFormat(), dapicnum, dapalnum, skybox, method);
+		GLTile pth = textureCache.get(fmt, dapicnum, dapalnum, skybox, method);
 		if (pth == null)
 			return null;
 
-		if (textureCache.bind(pth)) {
+		if (textureCache.bind(pth)) { //TODO: If the texture has nonexpected format shader should be switched
 			//gl.glActiveTexture(GL_TEXTURE0);
 			manager.bind(pth.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		}
@@ -1104,12 +1104,12 @@ public class GDXRenderer implements GLRenderer {
 		}
 	}
 
-	protected void bind(GLTile tile) {
-		if (textureCache.bind(tile)) {
-			//gl.glActiveTexture(GL_TEXTURE0);
-			manager.bind(tile.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
-		}
-	}
+//	protected void bind(GLTile tile) {
+//		if (textureCache.bind(tile)) {
+//			//gl.glActiveTexture(GL_TEXTURE0);
+//			manager.bind(tile.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
+//		}
+//	}
 
 	public void setFieldOfView(final float fov) {
 		if (cam != null) {
