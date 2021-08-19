@@ -2131,7 +2131,7 @@ public class Polymost implements GLRenderer {
 			pal = sec.ceilingpal;
 		}
 
-		calc_and_apply_skyfog(shade, sec.visibility, pal);
+		calc_and_apply_skyfog(shade, pal);
 
 		if (!GLSettings.useHighTile.get() || defs == null
 				|| defs.texInfo.findTexture(globalpicnum, globalpal, 1) == null)
@@ -3281,7 +3281,7 @@ public class Polymost implements GLRenderer {
 		globalfog.calc();
 	}
 
-	protected void calc_and_apply_skyfog(int shade, int vis, int pal) {
+	protected void calc_and_apply_skyfog(int shade, int pal) {
 		globalfog.shade = shade;
 		globalfog.combvis = 0;
 		globalfog.pal = pal;

@@ -20,9 +20,16 @@ public class SkyShader {
 	public static final String fragment = "uniform sampler2D u_sky;\n" //
 			+ "uniform sampler2D u_palette;\n" //
 			+ "uniform sampler2D u_palookup;\n" //
+			+ "uniform float u_numshades;\n" //
+			+ "uniform int u_shade;\n" //
 			+ "uniform float u_alpha;\n" //
 			+ "uniform vec3 u_camera;\n" //
 			+ "varying vec4 v_pos;\n" //
+			+ "\n" //
+			+ "float getpalookup(int dashade) {\n" //
+			+ "    float shade = (min(max(float(dashade), 0.0), u_numshades - 1.0));\n" //
+			+ "    return shade / 64.0;\n" //
+			+ "}\n" //
 			+ "\n" //
 			+ "void main()\n" //
 			+ "{\n" //
@@ -32,7 +39,7 @@ public class SkyShader {
 			+ "    uv = uv * 0.5 + 0.5;\n" //
 			+ "    float fi = texture2D(u_sky, uv).r;\n" //
 			+ "    if(fi == 1.0) fi -= 0.5 / 256.0;\n" //
-			+ "    float index = texture2D(u_palookup, vec2(fi, 1)).r;\n" //
+			+ "    float index = texture2D(u_palookup, vec2(fi, getpalookup(u_shade))).r;\n" //
 			+ "    if(index == 1.0) index -= 0.5 / 256.0;\n" //
 			+ "    gl_FragColor = vec4(texture2D(u_palette, vec2(index, 0.0)).rgb, u_alpha);\n" //
 			+ "};";

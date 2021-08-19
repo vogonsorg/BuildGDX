@@ -90,6 +90,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.GLSettings;
+import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
@@ -104,7 +105,6 @@ public class GDXRenderer implements GLRenderer {
 //  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
 //  Shader manager dispose
-//  Blood white skies (pal)
 
 //  Textures should switch shaders
 //	Scansectors memory leak (WallFrustum)
@@ -116,6 +116,7 @@ public class GDXRenderer implements GLRenderer {
 //  Duke E4L11 wall vis bug (scanner bug)
 //  MDModel / Voxels has new GLTile (should be textureManager.newTile)
 //  Blood E1M1 floor sprite invisible
+//  RGB shader fog
 
 	public Rendering rendering = Rendering.Nothing;
 
@@ -214,42 +215,74 @@ public class GDXRenderer implements GLRenderer {
 		isInited = false;
 	}
 
-	protected GDXOrtho allocOrphoRenderer(IOverheadMapSettings settings) {
-		return new GDXOrtho(this, settings);
-	}
-
-	protected int[] getMirrorTextures() {
-		return null;
-	}
-
 	@Override
-	public RenderType getType() {
-		return RenderType.PolyGDX;
-	}
+	public void drawrooms() {
+		if (orphoRen.isDrawing())
+			orphoRen.end();
 
-	@Override
-	public PixelFormat getTexFormat() {
-		return isUseIndexedTextures ? PixelFormat.Pal8 : PixelFormat.Rgba;
-	}
+		if (!clearStatus) { // once at frame
+			gl.glClear(GL_COLOR_BUFFER_BIT);
+			gl.glClearColor(0.0f, 0.5f, 0.5f, 1);
+			clearStatus = true;
+		}
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
 
-	@Override
-	public boolean isInited() {
-		return isInited;
-	}
+//		if (shape == null) {
+//			shape = new ShapeRenderer();
+//			shape.setProjectionMatrix(shape.getProjectionMatrix().setToOrtho(0, xdim, ydim, 0, -1, 1));
+//		}
+//		shape.begin(ShapeType.Line);
 
-	private void drawMask(int w) {
-		gl.glDepthFunc(GL20.GL_LESS);
-		gl.glDepthRangef(0.0001f, 0.99999f);
+		gl.glDisable(GL_BLEND);
+		gl.glEnable(GL_TEXTURE_2D);
+		gl.glEnable(GL_DEPTH_TEST);
 
-		drawSurf(world.getMaskedWall(w), 0, transform.idt());
-
-		gl.glDepthFunc(GL20.GL_LESS);
+		gl.glDepthFunc(GL_LESS);
 		gl.glDepthRangef(defznear, defzfar);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CW);
+		resizeglcheck();
+
+		cam.setPosition(globalposx, globalposy, globalposz);
+		cam.setDirection(globalang, globalhoriz, gtang);
+		cam.update(true);
+
+		globalvisibility = visibility << 2;
+		if (globalcursectnum >= MAXSECTORS) {
+			globalcursectnum -= MAXSECTORS;
+		} else {
+			short i = globalcursectnum;
+			globalcursectnum = engine.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
+			if (globalcursectnum < 0)
+				globalcursectnum = i;
+		}
+
+		sectors.clear();
+		scanner.clear();
+		scanner.process(sectors, cam, world, globalcursectnum);
+
+		rendering = Rendering.Nothing;
+		if (inpreparemirror)
+			gl.glCullFace(GL_FRONT);
+		else
+			gl.glCullFace(GL_BACK);
+
+		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
+		prerender(sectors);
+		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
+			drawSector(sectors.get(i));
+		manager.frustum(null); //XXX
+
+		drawbackground();
+
+		spritesortcnt = scanner.getSpriteCount();
+		tsprite = scanner.getSprites();
 	}
 
 	@Override
 	public void drawmasks() {
-		manager.bind(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
+		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 
 		int maskwallcnt = scanner.getMaskwallCount();
 		sprR.sort(scanner.getSprites(), spritesortcnt);
@@ -282,6 +315,16 @@ public class GDXRenderer implements GLRenderer {
 			drawmaskwall(--maskwallcnt);
 
 		renderDrunkEffect();
+	}
+
+	private void drawMask(int w) {
+		gl.glDepthFunc(GL20.GL_LESS);
+		gl.glDepthRangef(0.0001f, 0.99999f);
+
+		drawSurf(world.getMaskedWall(w), 0, transform.idt());
+
+		gl.glDepthFunc(GL20.GL_LESS);
+		gl.glDepthRangef(defznear, defzfar);
 	}
 
 	protected void renderDrunkEffect() { // TODO: to shader
@@ -380,107 +423,12 @@ public class GDXRenderer implements GLRenderer {
 		drawMask(scanner.getMaskwalls()[i]);
 	}
 
-	private boolean spritewallfront(SPRITE s, int w) {
-		if (s == null)
-			return false;
-
-		WALL wal = wall[w];
-		int x1 = wal.x;
-		int y1 = wal.y;
-		wal = wall[wal.point2];
-		return (dmulscale(wal.x - x1, s.y - y1, -(s.x - x1), wal.y - y1, 32) >= 0);
-	}
-
-	protected void set2dview() {
-		if (gloy1 != -1) {
-			gl.glViewport(0, 0, xdim, ydim);
-			orphoRen.resize(xdim, ydim);
-		}
-		gloy1 = -1;
-	}
-
-	protected void resizeglcheck() {
-		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
-			glox1 = windowx1;
-			gloy1 = windowy1;
-			glox2 = windowx2;
-			gloy2 = windowy2;
-
-			gl.glViewport(windowx1, ydim - (windowy2 + 1), windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
-
-			cam.viewportWidth = windowx2;
-			cam.viewportHeight = windowy2;
-		}
-	}
-
-	@Override
-	public void drawrooms() {
-		if (orphoRen.isDrawing())
-			orphoRen.end();
-
-		if (!clearStatus) { // once at frame
-			gl.glClear(GL_COLOR_BUFFER_BIT);
-			gl.glClearColor(0.0f, 0.5f, 0.5f, 1);
-			clearStatus = true;
-		}
-		gl.glClear(GL_DEPTH_BUFFER_BIT);
-
-//		if (shape == null) {
-//			shape = new ShapeRenderer();
-//			shape.setProjectionMatrix(shape.getProjectionMatrix().setToOrtho(0, xdim, ydim, 0, -1, 1));
-//		}
-//		shape.begin(ShapeType.Line);
-
-		gl.glDisable(GL_BLEND);
-		gl.glEnable(GL_TEXTURE_2D);
-		gl.glEnable(GL_DEPTH_TEST);
-
-		gl.glDepthFunc(GL_LESS);
-		gl.glDepthRangef(defznear, defzfar);
-
-		gl.glEnable(GL_CULL_FACE);
-		gl.glFrontFace(GL_CW);
-		resizeglcheck();
-
-		cam.setPosition(globalposx, globalposy, globalposz);
-		cam.setDirection(globalang, globalhoriz, gtang);
-		cam.update(true);
-
-		globalvisibility = visibility << 2;
-		if (globalcursectnum >= MAXSECTORS) {
-			globalcursectnum -= MAXSECTORS;
-		} else {
-			short i = globalcursectnum;
-			globalcursectnum = engine.updatesectorz(globalposx, globalposy, globalposz, globalcursectnum);
-			if (globalcursectnum < 0)
-				globalcursectnum = i;
-		}
-
-		sectors.clear();
-		scanner.clear();
-		scanner.process(sectors, cam, world, globalcursectnum);
-
-		rendering = Rendering.Nothing;
-		if (inpreparemirror)
-			gl.glCullFace(GL_FRONT);
-		else
-			gl.glCullFace(GL_BACK);
-
-		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
-
-		prerender(sectors);
-		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
-			drawSector(sectors.get(i));
-		manager.frustum(null);
-
+	protected void drawbackground() {
 		rendering = Rendering.Skybox;
 		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBSkyShader : Shader.IndexedSkyShader);
 		drawSkyPlanes();
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
-
-		spritesortcnt = scanner.getSpriteCount();
-		tsprite = scanner.getSprites();
 	}
 
 	private void prerender(ArrayList<VisibleSector> sectors) {
@@ -531,9 +479,14 @@ public class GDXRenderer implements GLRenderer {
 		gl.glDisable(GL_CULL_FACE);
 		gl.glDepthMask(false);
 
-		int picnum;
-		if ((picnum = scanner.getSkyPicnum(Heinum.SkyUpper)) != -1) {
-			int pal = scanner.getSkyPal(Heinum.SkyUpper);
+		SECTOR skysector;
+		if ((skysector = scanner.getLastSkySector(Heinum.SkyUpper)) != null) {
+			int pal = skysector.ceilingpal;
+			int shade = skysector.ceilingshade;
+			int picnum = skysector.ceilingpicnum;
+			if (palookup[pal] == null)
+				pal = 0;
+
 			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
 			if (pth != null) {
 				textureCache.bind(pth);
@@ -548,14 +501,19 @@ public class GDXRenderer implements GLRenderer {
 				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100);
 				transform.scale(cam.far, cam.far, 1.0f);
 				manager.transform(transform);
-				manager.textureParams8(pal, 0, alpha, true);
+				manager.textureParams8(pal, shade, alpha, true);
 
 				world.getSkyPlane().render(manager.getProgram());
 			}
 		}
 
-		if ((picnum = scanner.getSkyPicnum(Heinum.SkyLower)) != -1) {
-			int pal = scanner.getSkyPal(Heinum.SkyLower);
+		if ((skysector = scanner.getLastSkySector(Heinum.SkyLower)) != null) {
+			int pal = skysector.floorpal;
+			int shade = skysector.floorshade;
+			int picnum = skysector.floorpicnum;
+			if (palookup[pal] == null)
+				pal = 0;
+
 			GLTile pth = textureCache.get(getTexFormat(), picnum, pal, 0, 0);
 			if (pth != null) {
 				textureCache.bind(pth);
@@ -570,7 +528,7 @@ public class GDXRenderer implements GLRenderer {
 				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100);
 				transform.scale(cam.far, cam.far, 1.0f);
 				manager.transform(transform);
-				manager.textureParams8(pal, 0, alpha, true);
+				manager.textureParams8(pal, shade, alpha, true);
 
 				world.getSkyPlane().render(manager.getProgram());
 			}
@@ -615,17 +573,17 @@ public class GDXRenderer implements GLRenderer {
 			int z = sec.skywalls.get(w);
 			GLSurface ceil = world.getParallaxCeiling(z);
 			if (ceil != null) {
-				drawSky(ceil, ceil.picnum, ceil.getPal(), ceil.getMethod());
+				drawSky(ceil, ceil.picnum, ceil.getShade(), ceil.getPal(), ceil.getMethod());
 			}
 
 			GLSurface floor = world.getParallaxFloor(z);
 			if (floor != null) {
-				drawSky(floor, floor.picnum, floor.getPal(), floor.getMethod());
+				drawSky(floor, floor.picnum, floor.getShade(), floor.getPal(), floor.getMethod());
 			}
 		}
 	}
 
-	private void drawSky(GLSurface surf, int picnum, int palnum, int method) {
+	private void drawSky(GLSurface surf, int picnum, int shade, int palnum, int method) {
 		if (surf.count == 0)
 			return;
 
@@ -637,10 +595,13 @@ public class GDXRenderer implements GLRenderer {
 			engine.loadtile(picnum);
 
 		engine.setgotpic(picnum);
+		if (palookup[palnum] == null)
+			palnum = 0;
+
 		GLTile pth = textureCache.get(getTexFormat(), picnum, palnum, 0, method);
 		if (pth != null) {
 			textureCache.bind(pth);
-			manager.textureParams8(palnum, 0, 1, (method & 3) == 0 || !textureCache.alphaMode(method));
+			manager.textureParams8(palnum, shade, 1, (method & 3) == 0 || !textureCache.alphaMode(method));
 			gl.glDisable(GL_BLEND);
 
 			surf.render(manager.getProgram());
@@ -1065,6 +1026,9 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	protected GLTile bind(int dapicnum, int dapalnum, int dashade, int skybox, int method) {
+		if (palookup[dapalnum] == null)
+			dapalnum = 0;
+
 		GLTile pth = textureCache.get(this.getTexFormat(), dapicnum, dapalnum, skybox, method);
 		if (pth == null)
 			return null;
@@ -1127,6 +1091,62 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void completemirror() {
 		inpreparemirror = false;
+	}
+
+	private boolean spritewallfront(SPRITE s, int w) {
+		if (s == null)
+			return false;
+
+		WALL wal = wall[w];
+		int x1 = wal.x;
+		int y1 = wal.y;
+		wal = wall[wal.point2];
+		return (dmulscale(wal.x - x1, s.y - y1, -(s.x - x1), wal.y - y1, 32) >= 0);
+	}
+
+	protected void set2dview() {
+		if (gloy1 != -1) {
+			gl.glViewport(0, 0, xdim, ydim);
+			orphoRen.resize(xdim, ydim);
+		}
+		gloy1 = -1;
+	}
+
+	protected void resizeglcheck() {
+		if ((glox1 != windowx1) || (gloy1 != windowy1) || (glox2 != windowx2) || (gloy2 != windowy2)) {
+			glox1 = windowx1;
+			gloy1 = windowy1;
+			glox2 = windowx2;
+			gloy2 = windowy2;
+
+			gl.glViewport(windowx1, ydim - (windowy2 + 1), windowx2 - windowx1 + 1, windowy2 - windowy1 + 1);
+
+			cam.viewportWidth = windowx2;
+			cam.viewportHeight = windowy2;
+		}
+	}
+
+	protected GDXOrtho allocOrphoRenderer(IOverheadMapSettings settings) {
+		return new GDXOrtho(this, settings);
+	}
+
+	protected int[] getMirrorTextures() {
+		return null;
+	}
+
+	@Override
+	public RenderType getType() {
+		return RenderType.PolyGDX;
+	}
+
+	@Override
+	public PixelFormat getTexFormat() {
+		return isUseIndexedTextures ? PixelFormat.Pal8 : PixelFormat.Rgba;
+	}
+
+	@Override
+	public boolean isInited() {
+		return isInited;
 	}
 
 	protected void switchShader(Shader shader) {

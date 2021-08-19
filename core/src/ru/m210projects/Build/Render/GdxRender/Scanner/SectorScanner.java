@@ -28,6 +28,7 @@ import com.badlogic.gdx.math.Vector3;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Pragmas;
+import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Render.GdxRender.BuildCamera;
@@ -72,8 +73,8 @@ public abstract class SectorScanner {
 	public Integer[] maskwall = new Integer[MAXWALLS]; // XXX memory leak
 	public int maskwallcnt;
 
-	private int skyCeilingPic, skyCeilingPal;
-	private int skyFloorPic, skyFloorPal;
+
+	private SECTOR skyFloor, skyCeiling;
 
 	private PolygonClipper cl = new PolygonClipper();
 
@@ -112,7 +113,7 @@ public abstract class SectorScanner {
 		Gameutils.fill(wallflags, (byte) 0);
 		Arrays.fill(handled, null);
 
-		skyCeilingPic = skyCeilingPal = skyFloorPic = skyFloorPal = -1;
+		skyFloor = skyCeiling = null;
 
 		maskwallcnt = 0;
 		spritesortcnt = 0;
@@ -292,15 +293,13 @@ public abstract class SectorScanner {
 
 					if (isParallaxCeiling) {
 						if (engine.getTile(sector[sectnum].ceilingpicnum).hasSize()) {
-							skyCeilingPic = sector[sectnum].ceilingpicnum;
-							skyCeilingPal = sector[sectnum].ceilingpal;
+							skyCeiling = sector[sectnum];
 						}
 					}
 
 					if (isParallaxFloor) {
 						if (engine.getTile(sector[sectnum].floorpicnum).hasSize()) {
-							skyFloorPic = sector[sectnum].floorpicnum;
-							skyFloorPal = sector[sectnum].floorpal;
+							skyFloor = sector[sectnum];
 						}
 					}
 
@@ -330,16 +329,10 @@ public abstract class SectorScanner {
 		return;
 	}
 
-	public int getSkyPal(Heinum h) {
+	public SECTOR getLastSkySector(Heinum h) {
 		if (h == Heinum.SkyLower)
-			return skyFloorPal;
-		return skyCeilingPal;
-	}
-
-	public int getSkyPicnum(Heinum h) {
-		if (h == Heinum.SkyLower)
-			return skyFloorPic;
-		return skyCeilingPic;
+			return skyFloor;
+		return skyCeiling;
 	}
 
 	private boolean checkWallRange(int sectnum, int z) {

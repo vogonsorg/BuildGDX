@@ -27,6 +27,8 @@ public abstract class IndexedSkyShaderProgram extends IndexedShader {
 
 		this.paletteloc = getUniformLocation("u_palette");
 		this.palookuploc = getUniformLocation("u_palookup");
+		this.numshadesloc = getUniformLocation("u_numshades");
+		this.shadeloc = getUniformLocation("u_shade");
 		this.alphaloc = getUniformLocation("u_alpha");
 
 		this.cameraloc = getUniformLocation("u_camera");
@@ -58,6 +60,9 @@ public abstract class IndexedSkyShaderProgram extends IndexedShader {
 		bindPalookup(GL20.GL_TEXTURE2, pal);
 		this.lastPal = pal;
 		setUniformi(palookuploc, 2);
+
+		setUniformi(shadeloc, shade);
+		this.lastShade = shade;
 
 		BuildGdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
 	}
