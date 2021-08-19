@@ -266,7 +266,7 @@ public class SpriteRenderer {
 			} else if (xflip)
 				xoff = -xoff;
 
-			transform.translate(0, 0, -(tspr.yrepeat * tex.getHeight() / 4096.0f));
+			transform.translate(0, 0, (tspr.yrepeat * tex.getHeight() / (yflip ? 4096.0f : -4096.0f)));
 			transform.rotate(0, 0, 1, (int) Gameutils.AngleToDegrees(ang));
 			transform.translate((tspr.xrepeat * xoff) / 2560.0f, 0, -((yoff * tspr.yrepeat) << 2) / cam.yscale);
 
@@ -302,7 +302,7 @@ public class SpriteRenderer {
 			} else if (xflip)
 				xoff = -xoff;
 
-			transform.translate(0, 0, -(tspr.yrepeat * tex.getHeight() / 4096.0f));
+			transform.translate(0, 0, (tspr.yrepeat * tex.getHeight() / (yflip ? 4096.0f : -4096.0f)));
 			transform.rotate(0, 0, 1, wang);
 			transform.translate((tspr.xrepeat * xoff) / 2048.0f, 0, -(tspr.yrepeat * yoff) / 2048.0f);
 			if ((orientation & 128) != 0)
