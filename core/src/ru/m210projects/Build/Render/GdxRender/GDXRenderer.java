@@ -431,9 +431,9 @@ public class GDXRenderer implements GLRenderer {
 	protected void drawbackground() {
 		rendering = Rendering.Skybox;
 		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBSkyShader : Shader.IndexedSkyShader);
-		drawSkyPlanes();
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
+		drawSkyPlanes();
 	}
 
 	private void prerender(ArrayList<VisibleSector> sectors) {
@@ -606,9 +606,15 @@ public class GDXRenderer implements GLRenderer {
 		GLTile pth = getSkyTexture(getTexFormat(), picnum, palnum); //textureCache.get(getTexFormat(), picnum, palnum, 0, method);
 		if (pth != null) {
 			textureCache.bind(pth);
-			manager.textureParams8(palnum, shade, pic.isLoaded() ? 1.0f : 0.0f, (method & 3) == 0 || !textureCache.alphaMode(method));
-			gl.glEnable(GL_BLEND);
 
+			float alpha = 1.0f;
+			gl.glDisable(GL_BLEND);
+			if(!pic.isLoaded()) {
+				alpha = 0.01f;
+				gl.glEnable(GL_BLEND);
+			}
+
+			manager.textureParams8(palnum, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
 			surf.render(manager.getProgram());
 		}
 	}
@@ -674,7 +680,6 @@ public class GDXRenderer implements GLRenderer {
 		if (world != null)
 			world.nextpage();
 		orphoRen.nextpage();
-
 		beforedrawrooms = 1;
 
 //		if (shape != null)
