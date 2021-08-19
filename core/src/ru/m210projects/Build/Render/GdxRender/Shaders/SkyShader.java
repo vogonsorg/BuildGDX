@@ -36,4 +36,17 @@ public class SkyShader {
 			+ "    if(index == 1.0) index -= 0.5 / 256.0;\n" //
 			+ "    gl_FragColor = vec4(texture2D(u_palette, vec2(index, 0.0)).rgb, u_alpha);\n" //
 			+ "};";
+
+	public static final String fragmentRGB = "uniform sampler2D u_sky;\n" //
+			+ "uniform vec3 u_camera;\n" //
+			+ "varying vec4 v_pos;\n" //
+			+ "\n" //
+			+ "void main()\n" //
+			+ "{\n" //
+			+ "    vec4 pix = normalize(v_pos - vec4(u_camera, 1.0));\n" //
+			+ "    vec2 uv = vec2(atan(pix.y, pix.x), asin(pix.z) * 2.0);\n" //
+			+ "    uv /= 3.1415926;\n" //
+			+ "    uv = uv * 0.5 + 0.5;\n" //
+			+ "    gl_FragColor = texture2D(u_sky, uv);\n" //
+			+ "};";
 }

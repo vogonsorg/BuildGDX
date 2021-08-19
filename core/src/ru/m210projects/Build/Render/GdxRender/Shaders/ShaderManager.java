@@ -91,7 +91,7 @@ public class ShaderManager {
 	public void init(TextureManager textureCache) {
 		skyshader = allocIndexedSkyShader(textureCache);
 		Shader.IndexedSkyShader.set(skyshader);
-		skyshader32 = null;
+		skyshader32 = allocRgbSkyShader();
 		Shader.RGBSkyShader.set(skyshader32);
 		texshader = allocIndexedShader(textureCache);
 		Shader.IndexedWorldShader.set(texshader);
@@ -132,6 +132,9 @@ public class ShaderManager {
 		case IndexedSkyShader:
 			skyshader.mirror(mirror);
 			break;
+		case RGBSkyShader:
+			skyshader32.setUniformi("u_mirror", mirror ? 1 : 0); // XXX
+			break;
 		}
 	}
 
@@ -148,6 +151,9 @@ public class ShaderManager {
 		case IndexedSkyShader:
 			skyshader.mirror(mirror);
 			break;
+		case RGBSkyShader:
+			skyshader32.setUniformi("u_mirror", mirror ? 1 : 0); // XXX
+			break;
 		}
 	}
 
@@ -162,6 +168,14 @@ public class ShaderManager {
 
 			texshader.setUniformi(world_planeClipping, 2);
 			texshader.setUniformf(world_viewport, cx1, ydim - cy1, cx2 + 1, ydim - cy2 - 1);
+		} else if (shader == Shader.RGBWorldShader) { //XXX
+			if (cx1 == 0 && cy1 == 0 && cx2 == 0 && cy2 == 0) {
+				texshader32.setUniformi("u_planeClipping", 0);
+				return;
+			}
+
+			texshader32.setUniformi("u_planeClipping", 2);
+			texshader32.setUniformf("u_viewport", cx1, ydim - cy1, cx2 + 1, ydim - cy2 - 1);
 		}
 	}
 
@@ -176,6 +190,14 @@ public class ShaderManager {
 
 			texshader.setUniformi(world_planeClipping, 2);
 			texshader.setUniformf(world_viewport, cx1, ydim - cy1, cx2 + 1, ydim - cy2 - 1);
+		} else if (shader == Shader.RGBWorldShader) { //XXX
+			if (cx1 == 0 && cy1 == 0 && cx2 == 0 && cy2 == 0) {
+				texshader32.setUniformi("u_planeClipping", 0);
+				return;
+			}
+
+			texshader32.setUniformi("u_planeClipping", 2);
+			texshader32.setUniformf("u_viewport", cx1, ydim - cy1, cx2 + 1, ydim - cy2 - 1);
 		}
 	}
 
@@ -193,6 +215,17 @@ public class ShaderManager {
 
 			// XXX world_plane1 doesn't find
 			texshader.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
+					clipPlane[1].d);
+		} else if (shader == Shader.RGBWorldShader) { //XXX
+			if (clipPlane == null) {
+				texshader32.setUniformi("u_planeClipping", 0);
+				return;
+			}
+
+			texshader32.setUniformi("u_planeClipping", 1);
+			texshader32.setUniformf("u_plane[0]", clipPlane[0].normal.x, clipPlane[0].normal.y, clipPlane[0].normal.z,
+					clipPlane[0].d);
+			texshader32.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
 					clipPlane[1].d);
 		}
 	}
@@ -213,12 +246,23 @@ public class ShaderManager {
 			// XXX world_plane1 doesn't find
 			texshader.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
 					clipPlane[1].d);
+		} else if (shader == Shader.RGBWorldShader) { //XXX
+			if (clipPlane == null) {
+				texshader32.setUniformi("u_planeClipping", 0);
+				return;
+			}
+
+			texshader32.setUniformi("u_planeClipping", 1);
+			texshader32.setUniformf("u_plane[0]", clipPlane[0].normal.x, clipPlane[0].normal.y, clipPlane[0].normal.z,
+					clipPlane[0].d);
+			texshader32.setUniformf("u_plane[1]", clipPlane[1].normal.x, clipPlane[1].normal.y, clipPlane[1].normal.z,
+					clipPlane[1].d);
 		}
 	}
 
 	public ShaderManager transform(Matrix4 transform) {
 		Shader shader = this.getShader();
-		if(shader == null)
+		if (shader == null)
 			return this;
 
 		switch (shader) {
@@ -230,6 +274,9 @@ public class ShaderManager {
 			break;
 		case IndexedSkyShader:
 			skyshader.transform(transform);
+			break;
+		case RGBSkyShader:
+			skyshader32.setUniformMatrix("u_transform", transform); // XXX
 			break;
 		}
 
@@ -278,10 +325,13 @@ public class ShaderManager {
 			texshader.setUniformMatrix(world_transform, transform);
 			break;
 		case RGBWorldShader:
-			texshader32.setUniformMatrix("u_transform", transform);
+			texshader32.setUniformMatrix("u_transform", transform); // XXX
 			break;
 		case IndexedSkyShader:
 			skyshader.transform(transform);
+			break;
+		case RGBSkyShader:
+			skyshader32.setUniformMatrix("u_transform", transform); // XXX
 			break;
 		}
 	}
@@ -341,6 +391,10 @@ public class ShaderManager {
 		case IndexedSkyShader:
 			skyshader.prepare(cam);
 			break;
+		case RGBSkyShader:
+			skyshader32.setUniformf("u_camera", cam.position.x, cam.position.y, cam.position.z);
+			skyshader32.setUniformMatrix("u_projTrans", cam.combined); // XXX
+			break;
 		}
 	}
 
@@ -364,6 +418,10 @@ public class ShaderManager {
 			break;
 		case IndexedSkyShader:
 			skyshader.prepare(cam);
+			break;
+		case RGBSkyShader:
+			skyshader32.setUniformf("u_camera", cam.position.x, cam.position.y, cam.position.z);
+			skyshader32.setUniformMatrix("u_projTrans", cam.combined); // XXX
 			break;
 		}
 	}
@@ -445,6 +503,25 @@ public class ShaderManager {
 				System.err.println("Shader compile error: " + skyshader.getLog());
 
 			return skyshader;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	public ShaderProgram allocRgbSkyShader() {
+		try {
+			ShaderProgram shader = new ShaderProgram(SkyShader.vertex, SkyShader.fragmentRGB) {
+				@Override
+				public void begin() {
+					super.begin();
+					currentShaderProgram = this;
+				}
+			};
+			if (!shader.isCompiled())
+				throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
+			return shader;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

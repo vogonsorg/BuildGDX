@@ -104,6 +104,7 @@ public class GDXRenderer implements GLRenderer {
 //  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
 //  Shader manager dispose
+//  Blood white skies (pal)
 
 //  Textures should switch shaders
 //	Scansectors memory leak (WallFrustum)
@@ -473,7 +474,7 @@ public class GDXRenderer implements GLRenderer {
 		manager.frustum(null);
 
 		rendering = Rendering.Skybox;
-		switchShader(Shader.IndexedSkyShader);
+		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBSkyShader : Shader.IndexedSkyShader);
 		drawSkyPlanes();
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
