@@ -606,8 +606,8 @@ public class GDXRenderer implements GLRenderer {
 		GLTile pth = getSkyTexture(getTexFormat(), picnum, palnum); //textureCache.get(getTexFormat(), picnum, palnum, 0, method);
 		if (pth != null) {
 			textureCache.bind(pth);
-			manager.textureParams8(palnum, shade, 1, (method & 3) == 0 || !textureCache.alphaMode(method));
-			gl.glDisable(GL_BLEND);
+			manager.textureParams8(palnum, shade, pic.isLoaded() ? 1.0f : 0.0f, (method & 3) == 0 || !textureCache.alphaMode(method));
+			gl.glEnable(GL_BLEND);
 
 			surf.render(manager.getProgram());
 		}
