@@ -111,7 +111,6 @@ public class GDXRenderer implements GLRenderer {
 //  Shader manager dispose
 
 //	Blood drunk effect
-//  Textures should switch shaders
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
 //	Hires + models
@@ -276,7 +275,6 @@ public class GDXRenderer implements GLRenderer {
 		else
 			gl.glCullFace(GL_BACK);
 
-		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		prerender(sectors);
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
@@ -285,12 +283,12 @@ public class GDXRenderer implements GLRenderer {
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
+
+		manager.unbind();
 	}
 
 	@Override
 	public void drawmasks() {
-		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
-
 		int maskwallcnt = scanner.getMaskwallCount();
 		sprR.sort(scanner.getSprites(), spritesortcnt);
 
@@ -322,6 +320,7 @@ public class GDXRenderer implements GLRenderer {
 			drawmaskwall(--maskwallcnt);
 
 		renderDrunkEffect();
+		manager.unbind();
 	}
 
 	private void drawMask(int w) {
@@ -432,7 +431,6 @@ public class GDXRenderer implements GLRenderer {
 
 	protected void drawbackground() {
 		rendering = Rendering.Skybox;
-		switchShader(getTexFormat() != PixelFormat.Pal8 ? Shader.RGBSkyShader : Shader.IndexedSkyShader);
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
 		drawSkyPlanes();
@@ -491,54 +489,16 @@ public class GDXRenderer implements GLRenderer {
 			int pal = skysector.ceilingpal;
 			int shade = skysector.ceilingshade;
 			int picnum = skysector.ceilingpicnum;
-			if (palookup[pal] == null)
-				pal = 0;
 
-			GLTile pth = getSkyTexture(getTexFormat(), picnum, pal); //textureCache.get(getTexFormat(), picnum, pal, 0, 0);
-			if (pth != null) {
-				textureCache.bind(pth);
-
-				float alpha = 1.0f;
-				Gdx.gl.glDisable(GL_BLEND);
-				if (!engine.getTile(picnum).isLoaded()) {
-					alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-					Gdx.gl.glEnable(GL_BLEND);
-				}
-
-				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100).scale(cam.far, cam.far, 1.0f);
-				manager.transform(transform);
-				manager.frustum(null);
-				manager.textureParams8(pal, shade, alpha, true);
-
-				world.getQuad().render(manager.getProgram());
-			}
+			drawSky(world.getQuad(), picnum, shade, pal, 0, transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100).scale(cam.far, cam.far, 1.0f));
 		}
 
 		if ((skysector = scanner.getLastSkySector(Heinum.SkyLower)) != null) {
 			int pal = skysector.floorpal;
 			int shade = skysector.floorshade;
 			int picnum = skysector.floorpicnum;
-			if (palookup[pal] == null)
-				pal = 0;
 
-			GLTile pth = getSkyTexture(getTexFormat(), picnum, pal); //textureCache.get(getTexFormat(), picnum, pal, 0, 0);
-			if (pth != null) {
-				textureCache.bind(pth);
-
-				float alpha = 1.0f;
-				Gdx.gl.glDisable(GL_BLEND);
-				if (!engine.getTile(picnum).isLoaded()) {
-					alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-					Gdx.gl.glEnable(GL_BLEND);
-				}
-
-				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100).scale(cam.far, cam.far, 1.0f);
-				manager.transform(transform);
-				manager.frustum(null);
-				manager.textureParams8(pal, shade, alpha, true);
-
-				world.getQuad().render(manager.getProgram());
-			}
+			drawSky(world.getQuad(), picnum, shade, pal, 0, transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100).scale(cam.far, cam.far, 1.0f));
 		}
 
 		gl.glDepthMask(true);
@@ -574,17 +534,17 @@ public class GDXRenderer implements GLRenderer {
 			int z = sec.skywalls.get(w);
 			GLSurface ceil = world.getParallaxCeiling(z);
 			if (ceil != null) {
-				drawSky(ceil, ceil.picnum, ceil.getShade(), ceil.getPal(), ceil.getMethod());
+				drawSky(ceil, ceil.picnum, ceil.getShade(), ceil.getPal(), ceil.getMethod(), identity);
 			}
 
 			GLSurface floor = world.getParallaxFloor(z);
 			if (floor != null) {
-				drawSky(floor, floor.picnum, floor.getShade(), floor.getPal(), floor.getMethod());
+				drawSky(floor, floor.picnum, floor.getShade(), floor.getPal(), floor.getMethod(), identity);
 			}
 		}
 	}
 
-	private void drawSky(GLSurface surf, int picnum, int shade, int palnum, int method) {
+	private void drawSky(GLSurface surf, int picnum, int shade, int palnum, int method, Matrix4 worldTransform) {
 		if (surf.count == 0)
 			return;
 
@@ -595,24 +555,22 @@ public class GDXRenderer implements GLRenderer {
 		if (!pic.isLoaded())
 			engine.loadtile(picnum);
 
+		if (!pic.isLoaded())
+			method = 1; // invalid data, HOM
+
 		engine.setgotpic(picnum);
 		if (palookup[palnum] == null)
 			palnum = 0;
 
-		GLTile pth = getSkyTexture(getTexFormat(), picnum, palnum); //textureCache.get(getTexFormat(), picnum, palnum, 0, method);
+		GLTile pth = bindSky(picnum, palnum, shade, method);
 		if (pth != null) {
-			textureCache.bind(pth);
+			Gdx.gl.glDisable(GL_BLEND);
+			if ((method & 3) != 0)
+				Gdx.gl.glEnable(GL_BLEND);
 
-			float alpha = 1.0f;
-			gl.glDisable(GL_BLEND);
-			if(!pic.isLoaded()) {
-				alpha = 0.01f;
-				gl.glEnable(GL_BLEND);
-			}
-
-			manager.transform(identity);
+			manager.transform(worldTransform);
 			manager.frustum(null);
-			manager.textureParams8(palnum, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
+
 			surf.render(manager.getProgram());
 		}
 	}
@@ -685,6 +643,7 @@ public class GDXRenderer implements GLRenderer {
 		if (world != null)
 			world.nextpage();
 		orphoRen.nextpage();
+		manager.unbind();
 		beforedrawrooms = 1;
 
 //		if (shape != null)
@@ -1044,16 +1003,30 @@ public class GDXRenderer implements GLRenderer {
 		if (palookup[dapalnum] == null)
 			dapalnum = 0;
 
-		GLTile pth = textureCache.get(this.getTexFormat(), dapicnum, dapalnum, skybox, method);
+		GLTile pth = textureCache.get(getTexFormat(), dapicnum, dapalnum, skybox, method);
 		if (pth == null)
 			return null;
 
-		if (textureCache.bind(pth)) { //TODO: If the texture has nonexpected format shader should be switched
-			//gl.glActiveTexture(GL_TEXTURE0);
-			manager.bind(pth.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
+		if (textureCache.bind(pth) || manager.getShader() == null || isSkyShader() || manager.getPixelFormat() != manager.getPixelFormat()) {
+			switchShader(pth.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		}
 		setTextureParameters(pth, dapicnum, dapalnum, dashade, skybox, method);
 
+		return pth;
+	}
+
+	protected GLTile bindSky(int dapicnum, int dapalnum, int dashade, int method) {
+		if (palookup[dapalnum] == null)
+			dapalnum = 0;
+
+		GLTile pth = getSkyTexture(getTexFormat(), dapicnum, dapalnum);
+		if (pth == null)
+			return null;
+
+		if (textureCache.bind(pth) || manager.getShader() == null || !isSkyShader() || pth.getPixelFormat() != manager.getPixelFormat()) {
+			switchShader(pth.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBSkyShader : Shader.IndexedSkyShader);
+		}
+		setTextureParameters(pth, dapicnum, dapalnum, dashade, 0, 0);
 		return pth;
 	}
 
@@ -1216,6 +1189,10 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		return sky.atlas.get(0);
+	}
+
+	private boolean isSkyShader() {
+		return manager.getShader() == Shader.RGBSkyShader || manager.getShader() == Shader.IndexedSkyShader;
 	}
 
 	// Debug 2.5D renderer
