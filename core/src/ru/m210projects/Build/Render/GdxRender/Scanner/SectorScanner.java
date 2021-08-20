@@ -268,7 +268,6 @@ public abstract class SectorScanner {
 
 			boolean isParallaxCeiling = sector[sectnum].isParallaxCeiling();
 			boolean isParallaxFloor = sector[sectnum].isParallaxFloor();
-
 			int startwall = sector[sectnum].wallptr;
 			int endwall = sector[sectnum].wallnum + startwall;
 			for (int z = startwall; z < endwall; z++) {
@@ -310,8 +309,6 @@ public abstract class SectorScanner {
 				sec.wallflags.add(wallflags[z]);
 			}
 
-			startwall = sector[sectnum].wallptr;
-			endwall = sector[sectnum].wallnum + startwall;
 			byte secflags = 0;
 			if (!isParallaxFloor && isSectorVisible(pFrustum, cam.frustum.planes[0], true, sectnum))
 				secflags |= 1;

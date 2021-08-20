@@ -108,7 +108,8 @@ public class GDXRenderer implements GLRenderer {
 //	TiledFont render (Tekwar)
 //  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
-//  Shader manager dispose
+//  Sprite x jitter (SW trashcan)
+//	Sprite shade (SW)
 
 //	Blood drunk effect
 //	Scansectors memory leak (WallFrustum)
@@ -214,12 +215,13 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void uninit() {
 		System.err.println("uninit");
-		orphoRen.uninit();
-
-		textureCache.uninit();
+		isInited = false;
 		if (world != null)
 			world.dispose();
-		isInited = false;
+		orphoRen.uninit();
+		manager.dispose();
+		FadeEffect.uninit();
+		textureCache.uninit();
 	}
 
 	@Override
@@ -462,6 +464,12 @@ public class GDXRenderer implements GLRenderer {
 				if ((flags & 2) != 0)
 					checkMirror(world.getUpper(z, sectnum));
 				checkMirror(world.getMaskedWall(z));
+			}
+
+			for (int w = 0; w < sec.skywalls.size; w++) {
+				int z = sec.skywalls.get(w);
+				checkMirror(world.getParallaxCeiling(z));
+				checkMirror(world.getParallaxFloor(z));
 			}
 		}
 

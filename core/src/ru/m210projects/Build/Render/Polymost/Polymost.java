@@ -2168,6 +2168,8 @@ public class Polymost implements GLRenderer {
 
 		resizeglcheck();
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		//gl.glClear(GL_COLOR_BUFFER_BIT);
+		//gl.glClearColor(0.0f, 0.5f, 0.5f, 1);
 		gl.glDisable(GL_BLEND);
 		gl.glEnable(GL_TEXTURE_2D);
 		gl.glEnable(GL_DEPTH_TEST);
