@@ -29,7 +29,6 @@ import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.ksgn;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
-import static ru.m210projects.Build.Strhandler.Bitoa;
 import static ru.m210projects.Build.Strhandler.buildString;
 
 import java.io.File;
@@ -274,7 +273,7 @@ public abstract class Engine {
 	public static short[] headspritesect, headspritestat;
 	public static short[] prevspritesect, prevspritestat;
 	public static short[] nextspritesect, nextspritestat;
-	private final char[] fpsbuffer = new char[15];
+	private final char[] fpsbuffer = new char[32];
 	private long fpstime = 0;
 	private int fpsx, fpsy;
 
@@ -4062,9 +4061,10 @@ public abstract class Engine {
 	public void printfps(float scale) {
 		if (System.currentTimeMillis() - fpstime >= 1000) {
 			int fps = BuildGdx.graphics.getFramesPerSecond();
-			int rate = (int) (BuildGdx.graphics.getDeltaTime() * 1000);
+			float rate = BuildGdx.graphics.getDeltaTime() * 1000;
 			if (fps <= 9999 && rate <= 9999) {
-				int chars = Bitoa(rate, fpsbuffer);
+				int chars = buildString(fpsbuffer, 0, Double.toString(Math.round(rate * 100) / 100.0));
+//				int chars = Bitoa((int) rate, fpsbuffer);
 				chars = buildString(fpsbuffer, chars, "ms ", fps);
 				chars = buildString(fpsbuffer, chars, "fps");
 				fpsx = windowx2 - (int) ((chars << 3) * scale);

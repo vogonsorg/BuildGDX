@@ -22,7 +22,7 @@ import ru.m210projects.Build.Types.WALL;
 public class Tesselator {
 
 	public enum Type {
-		Floor, Ceiling, Wall, Sky, Plane;
+		Floor, Ceiling, Wall, Sky, Quad;
 
 		private Heinum heinum;
 
@@ -211,7 +211,7 @@ public class Tesselator {
 
 		int count = 0;
 		switch (type) {
-		case Plane: {
+		case Quad: {
 			float SIZEX = 1.0f / 2;
 			float SIZEY = 1.0f / 2;
 			ArrayList<Vertex> pol = new ArrayList<Vertex>();

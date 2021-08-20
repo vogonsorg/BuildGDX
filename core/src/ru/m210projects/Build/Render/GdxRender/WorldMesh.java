@@ -55,7 +55,7 @@ public class WorldMesh {
 	private GLSurface[] lower_skies = new GLSurface[MAXWALLS];
 	private GLSurface[] floors = new GLSurface[MAXSECTORS];
 	private GLSurface[] ceilings = new GLSurface[MAXSECTORS];
-	private GLSurface skyPlane;
+	private GLSurface quad;
 
 	private final int[] zofslope = new int[2];
 	private static final int CEILING1 = 0;
@@ -79,7 +79,7 @@ public class WorldMesh {
 		maxVertices = 0;
 		meshOffset = 0;
 
-		skyPlane = addSkyPlane(vertices);
+		quad = addQuad(vertices);
 
 		for (short s = 0; s < numsectors; s++) {
 			SECTOR sec = sector[s];
@@ -462,12 +462,12 @@ public class WorldMesh {
 		return surf;
 	}
 
-	private GLSurface addSkyPlane(FloatArray vertices) {
-		SurfaceInfo info = tess.getSurface(Type.Plane, 0, vertices);
+	private GLSurface addQuad(FloatArray vertices) {
+		SurfaceInfo info = tess.getSurface(Type.Quad, 0, vertices);
 		GLSurface surf = new GLSurface(meshOffset);
 		surf.count = info.getSize();
 		surf.limit = info.getLimit();
-		surf.type = Type.Sky;
+		surf.type = Type.Quad;
 		surf.primitiveType = GL20.GL_TRIANGLE_FAN;
 		meshOffset += surf.limit;
 		return surf;
@@ -569,8 +569,8 @@ public class WorldMesh {
 		return upper_skies[wallnum];
 	}
 
-	public GLSurface getSkyPlane() {
-		return skyPlane;
+	public GLSurface getQuad() {
+		return quad;
 	}
 
 	public GLSurface getFloor(int sectnum) {
@@ -872,5 +872,6 @@ public class WorldMesh {
 
 	public void dispose() {
 		mesh.dispose();
+		System.gc();
 	}
 }

@@ -608,13 +608,11 @@ public class GDXOrtho extends OrphoRenderer {
 
 		switchShader(parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 
-		Matrix4 worldTrans = parent.transform;
-
-		worldTrans.setToOrtho(xdim / 2, (-xdim / 2), -(ydim / 2), ydim / 2, 0, 1);
-		worldTrans.scale(zoome / 32.0f, zoome / 32.0f, 0);
-
-		manager.projection(worldTrans).view(worldTrans.idt());
-		manager.viewport(0, 0, 0, 0);
+		Matrix4 tmpMat = parent.transform; //Projection matrix
+		tmpMat.setToOrtho(xdim / 2, (-xdim / 2), -(ydim / 2), ydim / 2, 0, 1);
+		tmpMat.scale(zoome / 32.0f, zoome / 32.0f, 0);
+		manager.projection(tmpMat).view(parent.identity);
+		setViewport(0, 0, 0, 0);
 
 		int showSprites = mapSettings.isShowFloorSprites() ? 1 : 0;
 		showSprites |= (mapSettings.isShowSprites(MapView.Polygons) ? 2 : 0);
@@ -684,10 +682,10 @@ public class GDXOrtho extends OrphoRenderer {
 
 				GLSurface flor = parent.world.getFloor(s);
 				if (flor != null) {
-					worldTrans.setToRotation(0, 0, 1, (512 - ang) * buildAngleToDegrees);
-					worldTrans.translate(-dax / parent.cam.xscale, -day / parent.cam.xscale,
+					tmpMat.setToRotation(0, 0, 1, (512 - ang) * buildAngleToDegrees);
+					tmpMat.translate(-dax / parent.cam.xscale, -day / parent.cam.xscale,
 							-sector[s].floorz / parent.cam.yscale);
-					parent.drawSurf(flor, 0, worldTrans);
+					parent.drawSurf(flor, 0, tmpMat, null);
 				}
 			}
 		}
@@ -720,8 +718,13 @@ public class GDXOrtho extends OrphoRenderer {
 			}
 		}
 
+		setupMatrices();
+
+		/*
 		manager.projection(parent.cam.combined).view(parent.cam.view);
+		manager.transform(parent.identity);
 		manager.unbind();
+		*/
 	}
 
 	protected void resize(int width, int height) {
@@ -795,7 +798,6 @@ public class GDXOrtho extends OrphoRenderer {
 
 		mesh.render(manager.getProgram(), lastType, 0, count);
 		idx = 0;
-
 	}
 
 	public void draw(GLTile tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, float srcX, float srcY,
@@ -997,8 +999,8 @@ public class GDXOrtho extends OrphoRenderer {
 
 	private void setupMatrices() {
 		if (manager.getShader() != Shader.BitmapShader) {
-			manager.projection(projectionMatrix).view(parent.transform.idt());
-			manager.transform(parent.transform);
+			manager.projection(projectionMatrix).view(parent.identity);
+			manager.transform(parent.identity);
 			setViewport(0, 0, xdim - 1, ydim - 1);
 		} else
 			manager.projection(projectionMatrix);

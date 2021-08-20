@@ -346,7 +346,8 @@ public class SpriteRenderer {
 		Gdx.gl.glDepthRangef(0.0f, 0.99999f);
 
 		manager.transform(transform.rotate(1, 0, 0, 90));
-		parent.world.getSkyPlane().render(manager.getProgram());
+		manager.frustum(null);
+		parent.world.getQuad().render(manager.getProgram());
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return true;

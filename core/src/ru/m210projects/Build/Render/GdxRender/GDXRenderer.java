@@ -110,6 +110,7 @@ public class GDXRenderer implements GLRenderer {
 //	Drawpolymap draw sprites
 //  Shader manager dispose
 
+//	Blood drunk effect
 //  Textures should switch shaders
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort
@@ -146,6 +147,8 @@ public class GDXRenderer implements GLRenderer {
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
 	protected Matrix4 transform = new Matrix4();
+	protected Matrix4 identity = new Matrix4();
+
 	private boolean clearStatus = false;
 	private float glox1, gloy1, glox2, gloy2;
 	private boolean drunk;
@@ -200,8 +203,8 @@ public class GDXRenderer implements GLRenderer {
 		this.manager.init(textureCache);
 		this.textureCache.changePalette(curpalette.getBytes());
 
-		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
-				+ " initialized", OSDTEXT_GOLD);
+		Console.Println("Polygdx renderer is initialized" , OSDTEXT_GOLD);
+		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION), OSDTEXT_GOLD);
 
 		orphoRen.init();
 
@@ -277,7 +280,6 @@ public class GDXRenderer implements GLRenderer {
 		prerender(sectors);
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
-		manager.frustum(null); //XXX
 
 		drawbackground();
 
@@ -326,7 +328,7 @@ public class GDXRenderer implements GLRenderer {
 		gl.glDepthFunc(GL20.GL_LESS);
 		gl.glDepthRangef(0.0001f, 0.99999f);
 
-		drawSurf(world.getMaskedWall(w), 0, transform.idt());
+		drawSurf(world.getMaskedWall(w), 0, null, null);
 
 		gl.glDepthFunc(GL20.GL_LESS);
 		gl.glDepthRangef(defznear, defzfar);
@@ -466,7 +468,7 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		for (int i = 0; i < bunchfirst.size(); i++) {
-			drawSurf(bunchfirst.get(i), 0, transform.idt());
+			drawSurf(bunchfirst.get(i), 0, null, null);
 		}
 	}
 
@@ -503,12 +505,12 @@ public class GDXRenderer implements GLRenderer {
 					Gdx.gl.glEnable(GL_BLEND);
 				}
 
-				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100);
-				transform.scale(cam.far, cam.far, 1.0f);
+				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100).scale(cam.far, cam.far, 1.0f);
 				manager.transform(transform);
+				manager.frustum(null);
 				manager.textureParams8(pal, shade, alpha, true);
 
-				world.getSkyPlane().render(manager.getProgram());
+				world.getQuad().render(manager.getProgram());
 			}
 		}
 
@@ -530,46 +532,40 @@ public class GDXRenderer implements GLRenderer {
 					Gdx.gl.glEnable(GL_BLEND);
 				}
 
-				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100);
-				transform.scale(cam.far, cam.far, 1.0f);
+				transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100).scale(cam.far, cam.far, 1.0f);
 				manager.transform(transform);
+				manager.frustum(null);
 				manager.textureParams8(pal, shade, alpha, true);
 
-				world.getSkyPlane().render(manager.getProgram());
+				world.getQuad().render(manager.getProgram());
 			}
 		}
 
 		gl.glDepthMask(true);
 		gl.glEnable(GL_CULL_FACE);
-
-		manager.transform(transform.idt()); //XXX
 	}
 
 	private void drawSector(VisibleSector sec) {
 		int sectnum = sec.index;
 		gotsector[sectnum >> 3] |= pow2char[sectnum & 7];
 
-		if (!inpreparemirror)
-			manager.frustum(sec.clipPlane); //XXX
-
-		Matrix4 worldTrans = transform.idt();
 		if ((sec.secflags & 1) != 0) {
 			rendering = Rendering.Floor.setIndex(sectnum);
-			drawSurf(world.getFloor(sectnum), 0, worldTrans);
+			drawSurf(world.getFloor(sectnum), 0, null, sec.clipPlane);
 		}
 
 		if ((sec.secflags & 2) != 0) {
 			rendering = Rendering.Ceiling.setIndex(sectnum);
-			drawSurf(world.getCeiling(sectnum), 0, worldTrans);
+			drawSurf(world.getCeiling(sectnum), 0, null, sec.clipPlane);
 		}
 
 		for (int w = 0; w < sec.walls.size; w++) {
 			int flags = sec.wallflags.get(w);
 			int z = sec.walls.get(w);
 			rendering = Rendering.Wall.setIndex(z);
-			drawSurf(world.getWall(z, sectnum), flags, worldTrans);
-			drawSurf(world.getUpper(z, sectnum), flags, worldTrans);
-			drawSurf(world.getLower(z, sectnum), flags, worldTrans);
+			drawSurf(world.getWall(z, sectnum), flags, null, sec.clipPlane);
+			drawSurf(world.getUpper(z, sectnum), flags, null, sec.clipPlane);
+			drawSurf(world.getLower(z, sectnum), flags, null, sec.clipPlane);
 		}
 	}
 
@@ -614,12 +610,14 @@ public class GDXRenderer implements GLRenderer {
 				gl.glEnable(GL_BLEND);
 			}
 
+			manager.transform(identity);
+			manager.frustum(null);
 			manager.textureParams8(palnum, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
 			surf.render(manager.getProgram());
 		}
 	}
 
-	protected void drawSurf(GLSurface surf, int flags, Matrix4 worldTransform) {
+	protected void drawSurf(GLSurface surf, int flags, Matrix4 worldTransform, Plane[] clipPlane) {
 		if (surf == null)
 			return;
 
@@ -649,7 +647,14 @@ public class GDXRenderer implements GLRenderer {
 				if(pth.getPixelFormat() == PixelFormat.Pal8)
 					//TODO: set FOG ?
 					((IndexedShader) manager.getProgram()).setVisibility((int) (-combvis / 64.0f));
-				manager.transform(worldTransform);
+
+				if(worldTransform == null)
+					manager.transform(identity);
+				else manager.transform(worldTransform);
+
+				if (clipPlane != null && !inpreparemirror)
+					manager.frustum(clipPlane);
+				else manager.frustum(null);
 
 				if ((method & 3) == 0)
 					Gdx.gl.glDisable(GL_BLEND);
