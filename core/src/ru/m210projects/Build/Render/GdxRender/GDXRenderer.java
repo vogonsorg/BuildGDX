@@ -278,10 +278,9 @@ public class GDXRenderer implements GLRenderer {
 			gl.glCullFace(GL_BACK);
 
 		prerender(sectors);
+		drawbackground();
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSector(sectors.get(i));
-
-		drawbackground();
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
@@ -433,9 +432,10 @@ public class GDXRenderer implements GLRenderer {
 
 	protected void drawbackground() {
 		rendering = Rendering.Skybox;
+		drawSkyPlanes();
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
-		drawSkyPlanes();
+
 	}
 
 	private void prerender(ArrayList<VisibleSector> sectors) {
