@@ -159,6 +159,12 @@ public class TextureManager {
 		return res;
 	}
 
+	public void unbind() {
+		if(bindedTile != null)
+			bindedTile.unbind();
+		bindedTile = null;
+	}
+
 	public void precache(PixelFormat fmt, int dapicnum, int dapalnum, int method) {
 		get(fmt, dapicnum, dapalnum, 0, method);
 	}

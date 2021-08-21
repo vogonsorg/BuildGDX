@@ -38,12 +38,12 @@ public class TextFont extends TileFont {
 	@Override
 	public GLTile getGL(TextureManager textureCache, PixelFormat fmt, int col) {
 		if (atlas == null)
-			init();
+			init(textureCache);
 
 		return atlas;
 	}
 
-	private GLTile init() {
+	private GLTile init(TextureManager textureCache) {
 		// construct a 8-bit alpha-only texture for the font glyph matrix
 		TileFontData dat = new TileFontData(sizx, sizy) {
 			@Override
@@ -73,13 +73,7 @@ public class TextFont extends TileFont {
 			}
 		};
 
-		atlas = new GLTile(dat, 0, false) {
-			@Override
-			public void delete() {
-				super.delete();
-				atlas = null;
-			}
-		};
+		atlas = textureCache.newTile(dat, 0, false);
 		atlas.setupTextureFilter(glfiltermodes[0], 1);
 		return atlas;
 	}

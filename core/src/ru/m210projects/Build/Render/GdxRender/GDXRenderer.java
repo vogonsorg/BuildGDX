@@ -105,10 +105,9 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//	TiledFont render (Tekwar)
 //  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
-//  Sprite x jitter (SW trashcan)
+//  Sprite x jitter (SW trashcan, PS training lev)
 //	Sprite shade (SW)
 
 //	Blood drunk effect
@@ -279,8 +278,9 @@ public class GDXRenderer implements GLRenderer {
 
 		prerender(sectors);
 		drawbackground();
-		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
+		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++) {
 			drawSector(sectors.get(i));
+		}
 
 		spritesortcnt = scanner.getSpriteCount();
 		tsprite = scanner.getSprites();
@@ -652,6 +652,7 @@ public class GDXRenderer implements GLRenderer {
 			world.nextpage();
 		orphoRen.nextpage();
 		manager.unbind();
+		textureCache.unbind();
 		beforedrawrooms = 1;
 
 //		if (shape != null)
@@ -1015,7 +1016,8 @@ public class GDXRenderer implements GLRenderer {
 		if (pth == null)
 			return null;
 
-		if (textureCache.bind(pth) || manager.getShader() == null || isSkyShader() || manager.getPixelFormat() != manager.getPixelFormat()) {
+		textureCache.bind(pth);
+		if (manager.getShader() == null || isSkyShader() || pth.getPixelFormat() != manager.getPixelFormat()) {
 			switchShader(pth.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		}
 		setTextureParameters(pth, dapicnum, dapalnum, dashade, skybox, method);
@@ -1031,7 +1033,8 @@ public class GDXRenderer implements GLRenderer {
 		if (pth == null)
 			return null;
 
-		if (textureCache.bind(pth) || manager.getShader() == null || !isSkyShader() || pth.getPixelFormat() != manager.getPixelFormat()) {
+		textureCache.bind(pth);
+		if (manager.getShader() == null || !isSkyShader() || pth.getPixelFormat() != manager.getPixelFormat()) {
 			switchShader(pth.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBSkyShader : Shader.IndexedSkyShader);
 		}
 		setTextureParameters(pth, dapicnum, dapalnum, dashade, 0, 0);

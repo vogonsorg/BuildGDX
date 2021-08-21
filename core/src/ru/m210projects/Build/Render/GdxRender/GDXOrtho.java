@@ -176,13 +176,29 @@ public class GDXOrtho extends OrphoRenderer {
 
 		BuildGdx.gl.glDisable(GL_CULL_FACE);
 		BuildGdx.gl.glDisable(GL_DEPTH_TEST);
+		Shader shader = ((font.type == FontType.Tilemap)
+				? (atlas.getPixelFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader)
+				: Shader.BitmapShader);
 		if (!isDrawing())
-			begin(Shader.BitmapShader);
+			begin(shader);
 
 		setType(GL20.GL_TRIANGLES);
-		switchShader(Shader.BitmapShader);
-		setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f, curpalette.getBlue(col) / 255.0f,
-				1.0f);
+		switchShader(shader);
+		if (font.type == FontType.Tilemap) {
+			float alpha = 1.0f;
+			if (bit == Transparent.Bit1)
+				alpha = TRANSLUSCENT1;
+			if (bit == Transparent.Bit2)
+				alpha = TRANSLUSCENT2;
+
+			if (atlas.getPixelFormat() != PixelFormat.Pal8) {
+				float sh = (numshades - min(max(shade, 0), numshades)) / (float) numshades;
+				setColor(sh, sh, sh, alpha);
+			} else
+				switchTextureParams(col, shade, alpha, false);
+		} else
+			setColor(curpalette.getRed(col) / 255.0f, curpalette.getGreen(col) / 255.0f,
+					curpalette.getBlue(col) / 255.0f, 1.0f);
 		enableBlending();
 
 		int oxpos = xpos;
@@ -608,7 +624,7 @@ public class GDXOrtho extends OrphoRenderer {
 
 		switchShader(parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 
-		Matrix4 tmpMat = parent.transform; //Projection matrix
+		Matrix4 tmpMat = parent.transform; // Projection matrix
 		tmpMat.setToOrtho(xdim / 2, (-xdim / 2), -(ydim / 2), ydim / 2, 0, 1);
 		tmpMat.scale(zoome / 32.0f, zoome / 32.0f, 0);
 		manager.projection(tmpMat).view(parent.identity);
@@ -718,13 +734,7 @@ public class GDXOrtho extends OrphoRenderer {
 			}
 		}
 
-		setupMatrices();
-
-		/*
-		manager.projection(parent.cam.combined).view(parent.cam.view);
-		manager.transform(parent.identity);
 		manager.unbind();
-		*/
 	}
 
 	protected void resize(int width, int height) {
