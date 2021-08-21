@@ -17,7 +17,6 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
 import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
-import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
@@ -360,24 +359,9 @@ public class TextureManager {
 	private abstract class ShaderData extends DummyTileData {
 
 		public ShaderData(byte[] buf, int w, int h, int bytes) {
-			super(PixelFormat.Rgb, w, h);
+			super(bytes != 1 ? PixelFormat.Rgb : PixelFormat.Pal8, w, h);
 			data.clear();
 			data.putBytes(buf, 0, buf.length);
-		}
-
-		@Override
-		public int getGLInternalFormat() {
-			return GL_RGB;
-		}
-
-		@Override
-		public int getGLFormat() {
-			return GL_RGB;
-		}
-
-		@Override
-		public PixelFormat getPixelFormat() {
-			return PixelFormat.Rgb;
 		}
 
 		@Override
@@ -389,6 +373,12 @@ public class TextureManager {
 	private class PaletteData extends ShaderData {
 		public PaletteData(byte[] data) {
 			super(data, 256, 1, 3);
+		}
+
+
+		@Override
+		public PixelFormat getPixelFormat() {
+			return PixelFormat.Pal8;
 		}
 	}
 
