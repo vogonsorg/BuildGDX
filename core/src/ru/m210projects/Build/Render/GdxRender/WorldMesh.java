@@ -68,10 +68,12 @@ public class WorldMesh {
 
 	protected final float scalexy = 512.0f;
 	protected final float scalez = 8192.0f;
+	private int lastLimit = 0;
 
 	public WorldMesh(Engine engine) {
 		this.engine = engine;
-		this.tess = new Tesselator(this, VertexAttribute.Position(), VertexAttribute.ColorPacked(), VertexAttribute.TexCoords(0));
+		this.tess = new Tesselator(this, VertexAttribute.Position(), VertexAttribute.ColorPacked(),
+				VertexAttribute.TexCoords(0));
 
 		Timer.start();
 		FloatArray vertices = new FloatArray();
@@ -116,6 +118,8 @@ public class WorldMesh {
 		mesh = new Mesh(false, maxVertices, 0, tess.attributes);
 
 		mesh.setVertices(vertices.items, 0, maxVertices * tess.getVertexSize());
+
+		lastLimit = mesh.getVerticesBuffer().limit() * 4;
 	}
 
 	public ArrayList<Vertex> getPoints(Heinum heinum, int sectnum, int z) {
@@ -495,6 +499,20 @@ public class WorldMesh {
 		return surf;
 	}
 
+	private void updateVertices(final int targetOffset, final float[] source, final int sourceOffset, final int count) {
+		if (lastLimit < targetOffset * 4) {
+			System.err.println("Oh shit " + " " + lastLimit + " " + targetOffset * 4);
+			checkValidate();
+			try {
+				// I just need to update the limits
+				mesh.bind(null);
+			} catch (Exception e) {
+			}
+			lastLimit = mesh.getVerticesBuffer().limit() * 4;
+		}
+		mesh.updateVertices(targetOffset, source, sourceOffset, count);
+	}
+
 	public GLSurface getWall(int wallnum, int sectnum) {
 		int hash = getWallHash(sectnum, wallnum);
 		if (wallhash[wallnum] != hash) {
@@ -505,32 +523,32 @@ public class WorldMesh {
 			vertices.clear();
 			GLSurface surf = addMiddle(vertices, sectnum, wallnum);
 			if (surf != null)
-				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
+				updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 
 			vertices.clear();
 			surf = addUpper(vertices, sectnum, wallnum);
 			if (surf != null)
-				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
+				updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 
 			vertices.clear();
 			surf = addLower(vertices, sectnum, wallnum);
 			if (surf != null)
-				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
+				updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 
 			vertices.clear();
 			surf = addMaskedWall(vertices, sectnum, wallnum);
 			if (surf != null)
-				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
+				updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 
 			vertices.clear();
 			surf = addParallaxCeiling(vertices, sectnum, wallnum);
 			if (surf != null)
-				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
+				updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 
 			vertices.clear();
 			surf = addParallaxFloor(vertices, sectnum, wallnum);
 			if (surf != null)
-				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
+				updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 
 			checkValidate();
 		}
@@ -583,7 +601,7 @@ public class WorldMesh {
 			vertices.clear();
 			surf = addFloor(vertices, sectnum);
 			if (surf != null) {
-				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
+				updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 			}
 
 			checkValidate();
@@ -601,9 +619,8 @@ public class WorldMesh {
 			tess.setSector(sectnum, true);
 			vertices.clear();
 			surf = addCeiling(vertices, sectnum);
-			if (surf != null) {
-				mesh.updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
-			}
+			if (surf != null)
+				updateVertices(surf.offset * tess.getVertexSize(), vertices.items, 0, vertices.size);
 
 			checkValidate();
 		}
@@ -763,6 +780,7 @@ public class WorldMesh {
 
 	public void nextpage() {
 		tess.setSector(-1, false);
+		lastLimit = mesh.getVerticesBuffer().limit() * 4;
 	}
 
 	private void shiftFrom(GLSurface surf, int shift) {
@@ -775,7 +793,7 @@ public class WorldMesh {
 		mesh.getVertices(surf.offset * tess.getVertexSize(), newItems);
 		surf.offset += shift;
 		validateMesh = true;
-		mesh.updateVertices(surf.offset * tess.getVertexSize(), newItems, 0, newItems.length);
+		updateVertices(surf.offset * tess.getVertexSize(), newItems, 0, newItems.length);
 
 		surf = surf.next;
 		while (surf != null) {

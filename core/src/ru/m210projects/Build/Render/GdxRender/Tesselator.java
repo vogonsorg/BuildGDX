@@ -330,6 +330,10 @@ public class Tesselator {
 							case Usage.TextureCoordinates:
 								float uptr = vx.x;
 								float vptr = vx.y;
+								if(!pic.hasSize()) {
+									vertices.addAll(0.0f, 0.0f);
+									break;
+								}
 
 								// Texture Relativity
 								if ((type == Type.Floor) ? sec.isRelativeTexFloor() : sec.isRelativeTexCeiling()) {
