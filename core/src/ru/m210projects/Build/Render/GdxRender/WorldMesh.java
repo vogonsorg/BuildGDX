@@ -118,7 +118,8 @@ public class WorldMesh {
 		Timer.result("WorldMesh built in: ");
 		mesh = new Mesh(false, maxVertices, 0, tess.attributes);
 
-		mesh.setVertices(vertices.items, 0, maxVertices * tess.getVertexSize());
+		int size = Math.min(maxVertices * tess.getVertexSize(), vertices.items.length);
+		mesh.setVertices(vertices.items, 0, size);
 
 		this.meshBuffer = mesh.getVerticesBuffer();
 		lastLimit = meshBuffer.limit() * 4;
