@@ -193,6 +193,7 @@ public class SpriteRenderer {
 
 		ShaderManager manager = parent.manager;
 
+		float xspans;
 		int picnum = tspr.picnum;
 		int shade = tspr.shade;
 		int pal = tspr.pal & 0xFF;
@@ -258,17 +259,25 @@ public class SpriteRenderer {
 
 		switch ((orientation >> 4) & 3) {
 		case 0: // Face sprite
+
+			xspans = 2560.0f;
 			int ang = ((int) globalang - 512) & 0x7FF;
 			if (xflip ^ yflip) {
 				ang += 1024;
 				if (!xflip)
 					xoff = -xoff;
-			} else if (xflip)
+				if (yflip)
+					xspans = -xspans;
+			} else if (xflip) {
 				xoff = -xoff;
+				xspans = -xspans;
+			}
 
 			transform.translate(0, 0, (tspr.yrepeat * tex.getHeight() / (yflip ? 4096.0f : -4096.0f)));
 			transform.rotate(0, 0, 1, (int) Gameutils.AngleToDegrees(ang));
 			transform.translate((tspr.xrepeat * xoff) / 2560.0f, 0, -((yoff * tspr.yrepeat) << 2) / cam.yscale);
+			if ((tsizx & 1) == 0)
+				transform.translate((tspr.xrepeat >> 1) / xspans, 0, 0);
 
 			if ((orientation & 128) != 0) {
 				float zoffs = ((tsizy * tspr.yrepeat) << 1);
@@ -296,17 +305,24 @@ public class SpriteRenderer {
 				}
 			}
 
+			xspans = 2048.0f;
 			if (xflip ^ yflip) {
 				if (!xflip)
 					xoff = -xoff;
-			} else if (xflip)
+				if (yflip)
+					xspans = -xspans;
+			} else if (xflip) {
 				xoff = -xoff;
+				xspans = -xspans;
+			}
 
 			transform.translate(0, 0, (tspr.yrepeat * tex.getHeight() / (yflip ? 4096.0f : -4096.0f)));
 			transform.rotate(0, 0, 1, wang);
 			transform.translate((tspr.xrepeat * xoff) / 2048.0f, 0, -(tspr.yrepeat * yoff) / 2048.0f);
 			if ((orientation & 128) != 0)
 				transform.translate(0, 0, (tspr.yrepeat * tsizy) / 4096.0f);
+			if ((tsizx & 1) == 0)
+				transform.translate((tspr.xrepeat >> 1) / xspans, 0, 0);
 
 			if (yflip) {
 				transform.rotate(0, 1, 0, 180);
@@ -327,10 +343,20 @@ public class SpriteRenderer {
 					yflip = !yflip;
 			}
 
+			xspans = 2048.0f;
+			if (xflip ^ yflip) {
+				if (yflip)
+					xspans = -xspans;
+			} else if (xflip)
+				xspans = -xspans;
+
 			transform.rotate(0, 0, 1, (int) Gameutils.AngleToDegrees((tspr.ang + (xflip ? 512 : 1536)) & 0x7FF));
 			transform.rotate(1, 0, 0, xflip ? -90 : 90);
 			// transform.translate(0, 0, (tspr.yrepeat * (2 * tex.getHeight() - tsizy)) /
 			// 4096.0f);
+			if ((tsizx & 1) == 0)
+				transform.translate((tspr.xrepeat >> 1) / xspans, 0, 0);
+
 			transform.translate((tspr.xrepeat * xoff) / 2048.0f, 0, -(tspr.yrepeat * yoff) / 2048.0f);
 			transform.scale((tspr.xrepeat * tex.getWidth()) / 2048.0f, 0, (tspr.yrepeat * tex.getHeight()) / 2048.0f);
 			break;
