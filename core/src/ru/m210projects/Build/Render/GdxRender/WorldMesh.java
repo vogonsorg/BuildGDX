@@ -36,6 +36,7 @@ public class WorldMesh {
 	private int meshOffset;
 	protected GLSurface lastSurf;
 	private boolean validateMesh = false;
+	private FloatBuffer meshBuffer;
 
 	public enum Heinum {
 		MaxWall, Max, Lower, Upper, Portal, SkyLower, SkyUpper
@@ -119,7 +120,8 @@ public class WorldMesh {
 
 		mesh.setVertices(vertices.items, 0, maxVertices * tess.getVertexSize());
 
-		lastLimit = mesh.getVerticesBuffer().limit() * 4;
+		this.meshBuffer = mesh.getVerticesBuffer();
+		lastLimit = meshBuffer.limit() * 4;
 	}
 
 	public ArrayList<Vertex> getPoints(Heinum heinum, int sectnum, int z) {
@@ -508,7 +510,7 @@ public class WorldMesh {
 				mesh.bind(null);
 			} catch (Exception e) {
 			}
-			lastLimit = mesh.getVerticesBuffer().limit() * 4;
+			lastLimit = meshBuffer.limit() * 4;
 		}
 		mesh.updateVertices(targetOffset, source, sourceOffset, count);
 	}
@@ -558,7 +560,7 @@ public class WorldMesh {
 
 	protected void checkValidate() {
 		if (validateMesh) {
-			FloatBuffer buffer = mesh.getVerticesBuffer();
+			FloatBuffer buffer = meshBuffer;
 			int newLimit = (meshOffset + tess.getMaxVertices()) * tess.getVertexSize();
 			if (newLimit > buffer.capacity())
 				newLimit = buffer.capacity();
@@ -780,7 +782,8 @@ public class WorldMesh {
 
 	public void nextpage() {
 		tess.setSector(-1, false);
-		lastLimit = mesh.getVerticesBuffer().limit() * 4;
+		if(meshBuffer != null)
+			lastLimit = meshBuffer.limit() * 4;
 	}
 
 	private void shiftFrom(GLSurface surf, int shift) {
@@ -804,7 +807,7 @@ public class WorldMesh {
 
 	public Vector3[] getPositions(int offset, int count) {
 		Vector3[] out = new Vector3[count];
-		FloatBuffer buffer = mesh.getVerticesBuffer();
+		FloatBuffer buffer = meshBuffer;
 		for (int i = 0; i < count; i++) {
 			int offs = (offset + i) * tess.getVertexSize();
 			out[i] = new Vector3(buffer.get(offs++), buffer.get(offs++), buffer.get(offs++));
@@ -890,6 +893,7 @@ public class WorldMesh {
 
 	public void dispose() {
 		mesh.dispose();
+		meshBuffer = null;
 		System.gc();
 	}
 }

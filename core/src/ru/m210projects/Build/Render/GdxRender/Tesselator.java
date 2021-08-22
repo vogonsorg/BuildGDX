@@ -243,39 +243,6 @@ public class Tesselator {
 				}
 				count++;
 			}
-
-			/*
-			vertex[0] = pol.get(0);
-			for (int j = 2; j < pol.size(); j++) {
-				vertex[1] = pol.get(j - 1);
-				vertex[2] = pol.get(j);
-
-				for (int v = 0; v < 3; v++) {
-					Vertex vx = vertex[v];
-					for (int a = 0; a < attributes.length; a++) {
-						switch (attributes[a].usage) {
-						case Usage.Position:
-							vertices.addAll(vx.x, vx.y, vx.z);
-							break;
-						case Usage.TextureCoordinates:
-							vertices.addAll(vx.u, vx.v);
-							break;
-						case Usage.ColorUnpacked:
-							vertices.addAll(1, 1, 1, 1);
-							break;
-						case Usage.ColorPacked:
-							vertices.add(NumberUtils.intToFloatColor(-1));
-							break;
-						case Usage.Normal:
-							vertices.addAll(norm.x, norm.y, norm.z);
-							break;
-						}
-					}
-					count++;
-				}
-			}
-			*/
-
 			break;
 		}
 		case Floor:
@@ -439,19 +406,21 @@ public class Tesselator {
 				surf.obj = ptr;
 
 				Tile pic = engine.getTile(picnum);
-				uCoff = wal.xrepeat * 8.0f / pic.getWidth();
-				vCoff = -wal.yrepeat * 4.0f / GLInfo.calcSize(pic.getHeight());
-				uPanning = ptr.xpanning / (float) pic.getWidth();
-				vPanning = ptr.ypanning / 256.0f;
+				if(pic.hasSize()) {
+					uCoff = wal.xrepeat * 8.0f / pic.getWidth();
+					vCoff = -wal.yrepeat * 4.0f / GLInfo.calcSize(pic.getHeight());
+					uPanning = ptr.xpanning / (float) pic.getWidth();
+					vPanning = ptr.ypanning / 256.0f;
 
-				if (wal.isXFlip()) {
-					uCoff *= -1;
-					uPanning = (wal.xrepeat * 8.0f + ptr.xpanning) / pic.getWidth();
-				}
+					if (wal.isXFlip()) {
+						uCoff *= -1;
+						uPanning = (wal.xrepeat * 8.0f + ptr.xpanning) / pic.getWidth();
+					}
 
-				if (ptr.isYFlip()) {
-					vCoff *= -1;
-					vPanning *= -1;
+					if (ptr.isYFlip()) {
+						vCoff *= -1;
+						vPanning *= -1;
+					}
 				}
 			} else {
 				surf.picnum = heinum == Heinum.SkyLower ? sector[sectnum].floorpicnum : sector[sectnum].ceilingpicnum;
@@ -552,7 +521,6 @@ public class Tesselator {
 			align = wal.isBottomAligned() ? 1 : 0;
 
 		WALL ptr = wall[sector[s3].wallptr];
-
 		if (align == 0)
 			return engine.getceilzofslope((short) s3, ptr.x, ptr.y);
 		return engine.getflorzofslope((short) s3, ptr.x, ptr.y);
