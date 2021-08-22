@@ -132,6 +132,11 @@ public class DefaultMapSettings implements IOverheadMapSettings {
 	}
 
 	@Override
+	public int getSpritePicnum(int spr) {
+		return sprite[spr].picnum;
+	}
+
+	@Override
 	public int getWallX(int w) {
 		return wall[w].x;
 	}

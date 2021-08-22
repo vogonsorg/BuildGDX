@@ -105,9 +105,7 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//	Drawpolymap draw sprites
 //  Tekwar level1.map crash
-
 //	Blood drunk effect
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sort

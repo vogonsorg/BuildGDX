@@ -617,7 +617,7 @@ public class GDXOrtho extends OrphoRenderer {
 	}
 
 	@Override
-	public void drawmapview(int dax, int day, int zoome, int ang) { // TODO:
+	public void drawmapview(int dax, int day, int zoome, int ang) {
 		beforedrawrooms = 0;
 
 		Arrays.fill(gotsector, (byte) 0);
@@ -657,7 +657,10 @@ public class GDXOrtho extends OrphoRenderer {
 				}
 
 				if ((showSprites & 2) != 0) {
-					for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i])
+					for (int i = headspritesect[s]; i >= 0; i = nextspritesect[i]) {
+						if ((sprite[i].cstat & 48) == 32)
+							continue;
+
 						if ((show2dsprite[i >> 3] & pow2char[i & 7]) != 0) {
 							if (sortnum >= MAXSPRITESONSCREEN)
 								break;
@@ -665,11 +668,15 @@ public class GDXOrtho extends OrphoRenderer {
 							if (!mapSettings.isSpriteVisible(MapView.Polygons, i))
 								continue;
 
+							if(i == mapSettings.getPlayerSprite(mapSettings.getViewPlayer()))
+								continue;
+
 							if (tsprite[sortnum] == null)
 								tsprite[sortnum] = new SPRITE();
 							tsprite[sortnum].set(sprite[i]);
 							tsprite[sortnum++].owner = (short) i;
 						}
+					}
 				}
 
 				gotsector[s >> 3] |= pow2char[s & 7];
@@ -707,6 +714,9 @@ public class GDXOrtho extends OrphoRenderer {
 		}
 
 		if (showSprites != 0) {
+			float cos = (float) Math.cos((512 - ang) * buildAngleToRadians) * zoome / 4.0f;
+			float sin = (float) Math.sin((512 - ang) * buildAngleToRadians) * zoome / 4.0f;
+
 			// Sort sprite list
 			int gap = 1;
 			while (gap < sortnum)
@@ -723,17 +733,28 @@ public class GDXOrtho extends OrphoRenderer {
 					}
 
 			for (int s = sortnum - 1; s >= 0; s--) {
-				SPRITE spr = sprite[tsprite[s].owner];
+				int j = tsprite[s].owner;
+				SPRITE spr = sprite[j];
 				if ((spr.cstat & 32768) == 0) {
 					if (spr.picnum >= MAXTILES)
 						spr.picnum = 0;
 
-					Tile pic = engine.getTile(spr.picnum);
+					int ox = dax - mapSettings.getSpriteX(j);
+					int oy = day - mapSettings.getSpriteY(j);
+					float dx = ox * cos - oy * sin;
+					float dy = ox * sin + oy * cos;
+					int daang = (spr.ang - ang) & 0x7FF;
+					int nZoom = zoome * spr.yrepeat;
+					int sx = (int) (dx + xdim * 2048);
+					int sy = (int) (dy + ydim * 2048);
 
+					rotatesprite(sx * 16, sy * 16, nZoom, (short) daang, mapSettings.getSpritePicnum(j), spr.shade, spr.pal,
+							((spr.cstat & 2) >> 1) | 8, wx1, wy1, wx2, wy2);
 				}
 			}
 		}
 
+		flush();
 		manager.unbind();
 	}
 

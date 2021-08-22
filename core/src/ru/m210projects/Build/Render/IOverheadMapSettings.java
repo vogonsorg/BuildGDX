@@ -36,6 +36,8 @@ public interface IOverheadMapSettings {
 
 	public int getSpriteY(int spr);
 
+	public int getSpritePicnum(int spr);
+
 	public int getPlayerSprite(int player);
 
 	public int getPlayerPicnum(int player);
