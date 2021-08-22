@@ -105,9 +105,8 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
-//	Sprite shade (SW)
+//  Tekwar level1.map crash
 
 //	Blood drunk effect
 //	Scansectors memory leak (WallFrustum)
@@ -118,6 +117,7 @@ public class GDXRenderer implements GLRenderer {
 //  Duke E4L11 wall vis bug (scanner bug)
 //  Blood E1M1 floor sprite invisible
 //  RGB shader fog
+//  Пропадает небо при включенной RGB и Trilinear
 
 	public Rendering rendering = Rendering.Nothing;
 
@@ -200,8 +200,9 @@ public class GDXRenderer implements GLRenderer {
 		this.manager.init(textureCache);
 		this.textureCache.changePalette(curpalette.getBytes());
 
-		Console.Println("Polygdx renderer is initialized" , OSDTEXT_GOLD);
-		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION), OSDTEXT_GOLD);
+		Console.Println("Polygdx renderer is initialized", OSDTEXT_GOLD);
+		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION),
+				OSDTEXT_GOLD);
 
 		orphoRen.init();
 
@@ -226,9 +227,10 @@ public class GDXRenderer implements GLRenderer {
 		if (orphoRen.isDrawing())
 			orphoRen.end();
 
-		if (!clearStatus) { // once at frame
-			gl.glClear(GL_COLOR_BUFFER_BIT);
+		// Temporaly code (Tekwar issue)
+		else if (!clearStatus) { // once at frame
 			gl.glClearColor(0.0f, 0.5f, 0.5f, 1);
+			gl.glClear(GL_COLOR_BUFFER_BIT);
 			clearStatus = true;
 		}
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
@@ -496,7 +498,9 @@ public class GDXRenderer implements GLRenderer {
 			int shade = skysector.ceilingshade;
 			int picnum = skysector.ceilingpicnum;
 
-			drawSky(world.getQuad(), picnum, shade, pal, 0, transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100).scale(cam.far, cam.far, 1.0f));
+			drawSky(world.getQuad(), picnum, shade, pal, 0,
+					transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z - 100).scale(cam.far,
+							cam.far, 1.0f));
 		}
 
 		if ((skysector = scanner.getLastSkySector(Heinum.SkyLower)) != null) {
@@ -504,7 +508,9 @@ public class GDXRenderer implements GLRenderer {
 			int shade = skysector.floorshade;
 			int picnum = skysector.floorpicnum;
 
-			drawSky(world.getQuad(), picnum, shade, pal, 0, transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100).scale(cam.far, cam.far, 1.0f));
+			drawSky(world.getQuad(), picnum, shade, pal, 0,
+					transform.setToTranslation(cam.position.x, cam.position.y, cam.position.z + 100).scale(cam.far,
+							cam.far, 1.0f));
 		}
 
 		gl.glDepthMask(true);
@@ -608,17 +614,19 @@ public class GDXRenderer implements GLRenderer {
 				if (vis != 0)
 					combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
 
-				if(pth.getPixelFormat() == PixelFormat.Pal8)
-					//TODO: set FOG ?
+				if (pth.getPixelFormat() == PixelFormat.Pal8)
+					// TODO: set FOG ?
 					((IndexedShader) manager.getProgram()).setVisibility((int) (-combvis / 64.0f));
 
-				if(worldTransform == null)
+				if (worldTransform == null)
 					manager.transform(identity);
-				else manager.transform(worldTransform);
+				else
+					manager.transform(worldTransform);
 
 				if (clipPlane != null && !inpreparemirror)
 					manager.frustum(clipPlane);
-				else manager.frustum(null);
+				else
+					manager.frustum(null);
 
 				if ((method & 3) == 0)
 					Gdx.gl.glDisable(GL_BLEND);
@@ -1056,7 +1064,7 @@ public class GDXRenderer implements GLRenderer {
 
 			manager.textureParams8(pal, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
 		} else {
-			//XXX
+			// XXX
 		}
 	}
 
@@ -1153,8 +1161,9 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	protected final GLTileArray skycache = new GLTileArray(MAXTILES);
+
 	protected GLTile getSkyTexture(PixelFormat fmt, int picnum, int palnum) {
-		if(!engine.getTile(picnum).hasSize())
+		if (!engine.getTile(picnum).hasSize())
 			return textureCache.get(getTexFormat(), picnum, palnum, 0, 0);
 
 		GLTile tile = skycache.get(picnum, palnum, false, 0);
@@ -1187,13 +1196,15 @@ public class GDXRenderer implements GLRenderer {
 			dapskybits = 0;
 
 		Tile tile = engine.getTile(picnum);
-		TileAtlas sky = new TileAtlas(fmt, tile.getWidth() * (1 << dapskybits), tile.getHeight(), tile.getWidth(), tile.getHeight(), false);
+		TileAtlas sky = new TileAtlas(fmt, tile.getWidth() * (1 << dapskybits), tile.getHeight(), tile.getWidth(),
+				tile.getHeight(), false);
 		for (int i = 0; i < (1 << dapskybits); i++) {
 			int pic = dapskyoff[i] + picnum;
 			TileData dat;
 			if (fmt == PixelFormat.Pal8)
 				dat = new IndexedTileData(engine.getTile(pic), false, false, 0);
-			else dat = new RGBTileData(engine.getTile(pic), palnum, false, false, 0);
+			else
+				dat = new RGBTileData(engine.getTile(pic), palnum, false, false, 0);
 			sky.addTile(pic, dat);
 		}
 
