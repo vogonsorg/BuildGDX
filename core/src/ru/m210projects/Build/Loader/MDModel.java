@@ -30,6 +30,8 @@ import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.PixmapTileData;
+import ru.m210projects.Build.Render.TextureHandle.TextureManager;
+import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Script.ModelInfo.Spritesmooth;
@@ -242,7 +244,7 @@ public abstract class MDModel extends Model {
 		return 0;
 	}
 
-	public GLTile loadskin(DefScript defs, int number, int pal, int surf) {
+	public GLTile loadskin(TextureManager manager, DefScript defs, int number, int pal, int surf) {
 		String skinfile = null;
 		GLTile texidx = null;
 		GLTile[] texptr = null;
@@ -334,28 +336,13 @@ public abstract class MDModel extends Model {
 
 		texidx = null;
 
-		Resource res = BuildGdx.cache.open(skinfile, 0);
-		if (res == null) {
-			Console.Println("Skin " + skinfile + " not found.", OSDTEXT_YELLOW);
-			defs.mdInfo.removeModelInfo(this);
-			skinfile = null;
-			return null;
-		}
-
 //		startticks = System.currentTimeMillis();
-		try {
-			byte[] data = res.getBytes();
-			Pixmap pix = new Pixmap(data, 0, data.length);
-			texidx = new GLTile(new PixmapTileData(pix, true, 0), 0, true);
-			usesalpha = true;
-		} catch (Exception e) {
-			Console.Println("Couldn't load file: " + skinfile, OSDTEXT_YELLOW);
-			defs.mdInfo.removeModelInfo(this);
-			skinfile = null;
+		TileData dat = loadskin(defs, skinfile);
+		if(dat == null)
 			return null;
-		} finally {
-			res.close();
-		}
+
+		texidx = manager.newTile(dat, 0, true);
+		usesalpha = true;
 		texidx.setupTextureWrap(TextureWrap.Repeat);
 
 //		long etime = System.currentTimeMillis() - startticks;
@@ -363,6 +350,30 @@ public abstract class MDModel extends Model {
 //				+ "\"... " + etime + " ms");
 
 		texptr[idptr] = texidx;
+		return texidx;
+	}
+
+	public TileData loadskin(DefScript defs, String skinfile) {
+		PixmapTileData texidx = null;
+		Resource res = BuildGdx.cache.open(skinfile, 0);
+		if (res == null) {
+			Console.Println("Skin " + skinfile + " not found.", OSDTEXT_YELLOW);
+			defs.mdInfo.removeModelInfo(this);
+			return null;
+		}
+
+		try {
+			byte[] data = res.getBytes();
+			Pixmap pix = new Pixmap(data, 0, data.length);
+			texidx = new PixmapTileData(pix, true, 0);
+		} catch (Exception e) {
+			Console.Println("Couldn't load file: " + skinfile, OSDTEXT_YELLOW);
+			defs.mdInfo.removeModelInfo(this);
+			return null;
+		} finally {
+			res.close();
+		}
+
 		return texidx;
 	}
 

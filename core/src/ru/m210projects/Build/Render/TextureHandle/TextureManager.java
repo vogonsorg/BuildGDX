@@ -150,12 +150,8 @@ public class TextureManager {
 		if (bindedTile == tile)
 			return false;
 
-		boolean res = (bindedTile == null
-				|| (tile.getPixelFormat() == PixelFormat.Pal8 && bindedTile.getPixelFormat() != PixelFormat.Pal8)
-				|| (tile.getPixelFormat() != PixelFormat.Pal8 && bindedTile.getPixelFormat() == PixelFormat.Pal8));
-
 		tile.bind();
-		return res;
+		return true;
 	}
 
 	public void unbind() {

@@ -249,7 +249,7 @@ public class PolymostModelRenderer {
 
 		dvoxphack[0] = 0;
 		dvoxphack[1] = 1.f / 256.f;
-		GLTile skin = m.getSkin(parent.getTextureFormat(), globalpal);
+		GLTile skin = parent.getVoxelSkin(m, globalpal);
 		if (skin == null)
 			return 0;
 
@@ -473,11 +473,11 @@ public class PolymostModelRenderer {
 		modelPrepare(m, tspr, xoff, yoff);
 
 		int rendered = 0, skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-		GLTile texid = m.loadskin(defs, skinnum, globalpal, 0);
+		GLTile texid = m.loadskin(textureCache, defs, skinnum, globalpal, 0);
 		if (texid != null) {
 			textureCache.bind(texid);
 			if (Console.Geti("r_detailmapping") != 0)
-				texid = m.loadskin(defs, skinnum, DETAILPAL, 0);
+				texid = m.loadskin(textureCache, defs, skinnum, DETAILPAL, 0);
 			else
 				texid = null;
 
@@ -498,7 +498,7 @@ public class PolymostModelRenderer {
 			}
 
 			if (Console.Geti("r_glowmapping") != 0)
-				texid = m.loadskin(defs, skinnum, GLOWPAL, 0);
+				texid = m.loadskin(textureCache, defs, skinnum, GLOWPAL, 0);
 			else
 				texid = null;
 
@@ -628,12 +628,12 @@ public class PolymostModelRenderer {
 			m.verticesBuffer.flip();
 
 			skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-			GLTile texid = m.loadskin(defs, skinnum, globalpal, surfi);
+			GLTile texid = m.loadskin(textureCache, defs, skinnum, globalpal, surfi);
 			if (texid != null) {
 				textureCache.bind(texid);
 
 				if (Console.Geti("r_detailmapping") != 0)
-					texid = m.loadskin(defs, skinnum, DETAILPAL, surfi);
+					texid = m.loadskin(textureCache, defs, skinnum, DETAILPAL, surfi);
 				else
 					texid = null;
 
@@ -655,7 +655,7 @@ public class PolymostModelRenderer {
 				}
 
 				if (Console.Geti("r_glowmapping") != 0)
-					texid = m.loadskin(defs, skinnum, GLOWPAL, surfi);
+					texid = m.loadskin(textureCache, defs, skinnum, GLOWPAL, surfi);
 				else
 					texid = null;
 

@@ -11,7 +11,6 @@ import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static ru.m210projects.Build.Engine.curpalette;
 import static ru.m210projects.Build.Engine.palookup;
-import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -135,6 +134,11 @@ public class VOXModel extends Model {
 	public int is8bit;
 	public FloatBuffer uv;
 
+	public TileData loadskin(PixelFormat fmt, int dapal) {
+		return new VoxTileData(this, dapal, fmt == PixelFormat.Pal8);
+	}
+
+	/*
 	public GLTile loadskin(PixelFormat fmt, int dapal) {
 		if (palookup[dapal] == null || fmt == PixelFormat.Pal8)
 			dapal = 0;
@@ -151,15 +155,17 @@ public class VOXModel extends Model {
 
 		return texid[dapal];
 	}
+	*/
 
 	public GLTile getSkin(PixelFormat fmt, int pal) {
 		if (fmt == PixelFormat.Pal8)
 			pal = 0;
 
-		if (texid[pal] == null)
-			loadskin(fmt, pal);
-
 		return texid[pal];
+	}
+
+	public void setSkin(GLTile tile, int dapal) {
+		texid[dapal] = tile;
 	}
 
 	@Override

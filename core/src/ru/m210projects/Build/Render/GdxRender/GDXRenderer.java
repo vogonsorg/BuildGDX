@@ -107,7 +107,6 @@ public class GDXRenderer implements GLRenderer {
 //	TODO:
 //  Drawpolymap with Tekwar mirror enable bug
 //	Drawpolymap draw sprites
-//  Sprite x jitter (SW trashcan, PS training lev)
 //	Sprite shade (SW)
 
 //	Blood drunk effect
@@ -117,7 +116,6 @@ public class GDXRenderer implements GLRenderer {
 //	Skyboxes
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
-//  MDModel / Voxels has new GLTile (should be textureManager.newTile)
 //  Blood E1M1 floor sprite invisible
 //  RGB shader fog
 

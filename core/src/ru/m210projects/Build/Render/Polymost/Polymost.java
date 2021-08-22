@@ -85,6 +85,7 @@ import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager.ExpandTexture;
+import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
@@ -357,7 +358,13 @@ public class Polymost implements GLRenderer {
 	}
 
 	protected void bind(GLTile tile) {
-		if (textureCache.bind(tile) && texshader != null) {
+		GLTile bindedTile = textureCache.getLastBinded();
+		boolean res = tile != bindedTile && ((bindedTile == null
+				|| (tile.getPixelFormat() == PixelFormat.Pal8 && bindedTile.getPixelFormat() != PixelFormat.Pal8)
+				|| (tile.getPixelFormat() != PixelFormat.Pal8 && bindedTile.getPixelFormat() == PixelFormat.Pal8)));
+		textureCache.bind(tile);
+
+		if (res && texshader != null) {
 			gl.glActiveTexture(GL_TEXTURE0);
 			if (tile.getPixelFormat() != PixelFormat.Pal8)
 				texshader.end();
@@ -3250,8 +3257,9 @@ public class Polymost implements GLRenderer {
 
 		if (texshader != null && BuildSettings.useVoxels.get()) {
 			VOXModel vox = defs.mdInfo.getVoxModel(dapicnum);
-			if (vox != null)
-				vox.loadskin(PixelFormat.Pal8, dapalnum);
+			if (vox != null) {
+				getVoxelSkin(vox, dapalnum);
+			}
 		}
 
 		if (GLSettings.useModels.get()) {
@@ -3263,12 +3271,32 @@ public class Polymost implements GLRenderer {
 						int numsurfs = ((MD3Model) m).head.numSurfaces;
 						int skinnum = param.skinnum;
 						for (int surfi = 0; surfi < numsurfs; surfi++)
-							m.loadskin(defs, skinnum, dapalnum, surfi);
+							m.loadskin(textureCache, defs, skinnum, dapalnum, surfi);
 					} else
-						m.loadskin(defs, 0, dapalnum, 0);
+						m.loadskin(textureCache, defs, 0, dapalnum, 0);
 				}
 			}
 		}
+	}
+
+	protected GLTile getVoxelSkin(VOXModel vox, int dapal) {
+		PixelFormat fmt = getTextureFormat();
+		if (palookup[dapal] == null || fmt == PixelFormat.Pal8)
+			dapal = 0;
+
+		GLTile skin = vox.getSkin(fmt, dapal);
+		if (skin != null)
+			return skin;
+
+//		long startticks = System.currentTimeMillis();
+		TileData dat = vox.loadskin(fmt, dapal);
+		GLTile tex = textureCache.newTile(dat, dapal, false);
+		tex.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
+		tex.unsafeSetAnisotropicFilter(1, true);
+		vox.setSkin(tex, dapal);
+//		long etime = System.currentTimeMillis()-startticks;
+//		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
+		return tex;
 	}
 
 	protected void calc_and_apply_fog(int shade, int vis, int pal) {
