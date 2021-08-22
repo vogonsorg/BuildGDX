@@ -24,25 +24,20 @@ import static com.badlogic.gdx.graphics.GL20.GL_CW;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
-import static com.badlogic.gdx.graphics.GL20.GL_GREATER;
 import static com.badlogic.gdx.graphics.GL20.GL_LESS;
 import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
 import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE0;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -53,9 +48,6 @@ import java.util.Iterator;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -74,11 +66,8 @@ import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
 import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
-import ru.m210projects.Build.Render.GdxRender.Shaders.IndexedSkyShaderProgram;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
-import ru.m210projects.Build.Render.GdxRender.Shaders.SkyShader;
-import ru.m210projects.Build.Render.GdxRender.Shaders.WorldShader;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.GLTileArray;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
@@ -99,21 +88,24 @@ import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
 import ru.m210projects.Build.Types.TileFont;
-import ru.m210projects.Build.Types.Timer;
 import ru.m210projects.Build.Types.WALL;
 
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
+//  Polygdx switch to fullscreen crash
+//	SpriteRenderer common matrix4 method
+//  RRRA palookup doesn't apply at start
 //  Tekwar level1.map crash
-//	Blood drunk effect
 //	Scansectors memory leak (WallFrustum)
-//	Maskwall sort
+//	Maskwall sorts
+
 //	Hires + models
+//  Blood E1M1 floor sprite invisible
+//	Blood drunk effect
 //	Skyboxes
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
-//  Blood E1M1 floor sprite invisible
 //  RGB shader fog
 //  Пропадает небо при включенной RGB и Trilinear
 
