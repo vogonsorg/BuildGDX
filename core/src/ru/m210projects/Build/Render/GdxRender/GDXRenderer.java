@@ -93,13 +93,12 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  Polygdx switch to fullscreen crash
 //	SpriteRenderer common matrix4 method
 //  RRRA palookup doesn't apply at start
 //  Tekwar level1.map crash
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sorts
-//  Palette emulation textureManager uninit
+//	Gamma doesn't work
 
 //	Hires + models
 //  Blood E1M1 floor sprite invisible
@@ -108,7 +107,6 @@ public class GDXRenderer implements GLRenderer {
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
 //  RGB shader fog
-//  Пропадает небо при включенной RGB и Trilinear
 
 	public Rendering rendering = Rendering.Nothing;
 
@@ -214,7 +212,14 @@ public class GDXRenderer implements GLRenderer {
 		orphoRen.uninit();
 		manager.dispose();
 		FadeEffect.uninit();
+		texturesUninit();
+	}
+
+	private void texturesUninit() {
 		textureCache.uninit();
+		for (int i = MAXTILES - 1; i >= 0; i--) {
+			skycache.dispose(i);
+		}
 	}
 
 	@Override
@@ -807,7 +812,13 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void enableIndexedShader(boolean enable) {
-		this.isUseIndexedTextures = enable;
+		if (isUseIndexedTextures != enable) {
+			if (isInited)
+				texturesUninit();
+
+//			clearskins(false); XXX
+			this.isUseIndexedTextures = enable;
+		}
 	}
 
 	@Override
@@ -865,11 +876,14 @@ public class GDXRenderer implements GLRenderer {
 	public void gltexapplyprops() {
 		GLFilter filter = GLSettings.textureFilter.get();
 		textureCache.setFilter(filter);
+		int anisotropy = GLSettings.textureAnisotropy.get();
+		for (int i = MAXTILES - 1; i >= 0; i--) {
+			skycache.setFilter(i, filter, anisotropy);
+		}
 
 		if (defs == null)
 			return;
 
-		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			Model m = defs.mdInfo.getModel(i);
 			if (m != null) {
@@ -898,7 +912,7 @@ public class GDXRenderer implements GLRenderer {
 		for (int i = 0; i < flags.length; i++) {
 			switch (flags[i]) {
 			case Uninit:
-				textureCache.uninit();
+				texturesUninit();
 				break;
 			case SkinsOnly:
 //				clearskins(true); XXX
@@ -1137,22 +1151,24 @@ public class GDXRenderer implements GLRenderer {
 			return textureCache.get(getTexFormat(), picnum, palnum, 0, 0);
 
 		GLTile tile = skycache.get(picnum, palnum, false, 0);
-		if (tile != null && tile.getPixelFormat() == fmt) {
+		boolean useMipMaps = GLSettings.textureFilter.get().mipmaps;
+
+		if (tile != null /* && tile.getPixelFormat() == fmt */) {
 			if (tile.isInvalidated()) {
 				tile.setInvalidated(false);
 
 				TileData data = loadPic(fmt, picnum, palnum);
-				tile.update(data, false);
+				tile.update(data, useMipMaps);
 			}
 		} else {
-			if (tile != null)
-				skycache.dispose(picnum); // old texture
+//			if (tile != null)
+//				skycache.dispose(picnum); // old texture
 
 			TileData data = loadPic(fmt, picnum, palnum);
 			if (data == null)
 				return null;
 
-			skycache.add(textureCache.newTile(data, fmt == PixelFormat.Pal8 ? 0 : palnum, false), picnum);
+			skycache.add(textureCache.newTile(data, fmt == PixelFormat.Pal8 ? 0 : palnum, useMipMaps), picnum);
 		}
 
 		return tile;

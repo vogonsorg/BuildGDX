@@ -85,6 +85,7 @@ import static ru.m210projects.Build.Engine.ydimen;
 import static ru.m210projects.Build.Engine.yxaspect;
 import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
 import static ru.m210projects.Build.Loader.Voxels.Voxel.MAXVOXMIPS;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
@@ -100,6 +101,7 @@ import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.Renderer;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
@@ -266,6 +268,7 @@ public class Software implements Renderer {
 		a.fixtransluscence(transluc);
 		a.setpalookupaddress(palookup[globalpalwritten]);
 
+		Console.Println("Software renderer is initialized", OSDTEXT_GOLD);
 		isInited = true;
 	}
 

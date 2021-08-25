@@ -231,8 +231,6 @@ public class Polymost implements GLRenderer {
 		this.globalfog = new GLFog();
 
 		this.ortho = allocOrphoRenderer(settings);
-		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION)
-				+ " initialized", OSDTEXT_GOLD);
 	}
 
 	protected TextureManager newTextureManager(Engine engine) {
@@ -597,6 +595,10 @@ public class Polymost implements GLRenderer {
 			Console.Println("Your OpenGL implementation doesn't support Vertex Buffer Objects. Disabling...", 0);
 			r_vbos = 0;
 		}
+
+		Console.Println("Polymost renderer is initialized", OSDTEXT_GOLD);
+		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION),
+				OSDTEXT_GOLD);
 
 		isInited = true;
 	}
