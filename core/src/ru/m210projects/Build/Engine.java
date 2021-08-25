@@ -1357,9 +1357,12 @@ public abstract class Engine {
 
 		Console.ResizeDisplay(daxdim, daydim);
 
-//		if (render.isInited())
-//			render.uninit();
-//		render.init();
+		if (render instanceof Software) {
+			// Software renderer must be reinitialize when resolution is changed
+			if (render.isInited())
+				render.uninit();
+			render.init();
+		}
 
 		if (davidoption == 1) {
 			DisplayMode m = null;
