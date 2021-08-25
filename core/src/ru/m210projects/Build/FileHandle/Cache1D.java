@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import ru.m210projects.Build.FileHandle.Compat.Path;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 
@@ -28,8 +27,10 @@ import static ru.m210projects.Build.FileHandle.Group.*;
 
 public class Cache1D {
 
-	public enum PackageType { Grp, Rff, Zip, User, PackedGrp, PackedRff, PackedZip }
-	
+	public enum PackageType {
+		Grp, Rff, Zip, User, PackedGrp, PackedRff, PackedZip
+	}
+
 	private Compat compat;
 	private List<Group> groupfil = new ArrayList<Group>();
 
@@ -37,35 +38,29 @@ public class Cache1D {
 	private final int zipsign = 0x04034b50;
 	private final int rffsign = 0x1A464652;
 
-	public Cache1D(Compat compat)
-	{
+	public Cache1D(Compat compat) {
 		this.compat = compat;
 	}
-	
-	public List<Group> getGroupList()
-	{
+
+	public List<Group> getGroupList() {
 		List<Group> out = new ArrayList<Group>();
 		out.addAll(groupfil);
 		return out;
 	}
-	
-	public Group getGroup(String groupname)
-	{
-		for(Group gr : groupfil)
-		{
-			if(gr.name.equalsIgnoreCase(groupname))
+
+	public Group getGroup(String groupname) {
+		for (Group gr : groupfil) {
+			if (gr.name.equalsIgnoreCase(groupname))
 				return gr;
 		}
-		
+
 		return null;
 	}
-			
-	public Group add(String filename)
-	{
+
+	public Group add(String filename) {
 		Group res = isGroup(filename);
-		if(res != null)
-		{
-			if(res.numfiles != 0) {
+		if (res != null) {
+			if (res.numfiles != 0) {
 				Console.Println("Found " + res.numfiles + " files in " + filename + " archive");
 				groupfil.add(res);
 			}
@@ -74,123 +69,127 @@ public class Cache1D {
 
 		return null;
 	}
-	
-	public Group add(Group res)
-	{
-		if(res != null && res.numfiles != 0)
+
+	public Group add(Group res) {
+		if (res != null && res.numfiles != 0)
 			groupfil.add(res);
-		
+
 		return res;
 	}
-	
-	public UserGroup add(String name, boolean dynamic)
-	{
+
+	public UserGroup add(String name, boolean dynamic) {
 		UserGroup group = new UserGroup(compat);
-		
+
 		group.name = name;
 		group.type = PackageType.User;
-		if(dynamic)
-			group.flags |= ( DYNAMIC | REMOVABLE );
+		if (dynamic)
+			group.flags |= (DYNAMIC | REMOVABLE);
 		groupfil.add(group);
-		
+
 		return group;
 	}
-	
-	public Group add(Resource res, String name)
-	{
+
+	public Group add(Resource res, String name) {
 		Group out = null;
 
 		res.seek(0, Whence.Set);
-		switch(res.readInt())
-    	{
-    	case grpsign: //KenS
-    		byte[] tmp = new byte[8];
-    		res.read(tmp);
-			if(new String(tmp).compareTo("ilverman") == 0) {
+		switch (res.readInt()) {
+		case grpsign: // KenS
+			byte[] tmp = new byte[8];
+			res.read(tmp);
+			if (new String(tmp).compareTo("ilverman") == 0) {
 				try {
 					out = new GrpGroup(res, PackageType.PackedGrp);
 					out.name = name;
-				} catch (Exception e) { e.printStackTrace(); }
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
-    		break;
-    	case zipsign:
-    		try {
-	    		out = new PackedZipGroup(res);
+			break;
+		case zipsign:
+			try {
+				out = new PackedZipGroup(res);
 				out.name = name;
-    		} catch (Exception e) { e.printStackTrace(); }
-    		break;
-    	case rffsign:
-    		try {
-	    		out = new RffGroup(res, PackageType.PackedRff);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			break;
+		case rffsign:
+			try {
+				out = new RffGroup(res, PackageType.PackedRff);
 				out.name = name;
-    		} catch (Exception e) { e.printStackTrace(); }
-    		break;
-    	}
-		
-		if(out != null)
-		{
-			if(out.numfiles != 0) {
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			break;
+		}
+
+		if (out != null) {
+			if (out.numfiles != 0) {
 				Console.Println("Found " + out.numfiles + " files in " + out.name + " archive");
 				groupfil.add(out);
 			}
 		}
-		
+
 		return out;
 	}
-	
-	public Group add(GroupResource res, boolean removable)
-	{
+
+	public Group add(GroupResource res, boolean removable) {
 		Group out = null;
-		if(res.isClosed())
+		if (res.isClosed())
 			res.getParent().open(res);
-		
+
 		out = add(res, res.getParent().type + ":" + res.getFullName());
 		out.setFlags(true, removable);
-		
+
 		return out;
 	}
-		
-	public Group isGroup(String filename)
-	{
+
+	public Group isGroup(String filename) {
 		Group out = null;
 		FileResource handle = compat.open(filename);
-		if(handle != null && handle.size() > 4) {
-			switch(handle.readInt())
-	    	{
-	    	case grpsign: //KenS
-	    		byte[] tmp = new byte[8];
-	    		handle.read(tmp);
-				if(new String(tmp).compareTo("ilverman") == 0) {
+		if (handle != null && handle.size() > 4) {
+			switch (handle.readInt()) {
+			case grpsign: // KenS
+				byte[] tmp = new byte[8];
+				handle.read(tmp);
+				if (new String(tmp).compareTo("ilverman") == 0) {
 					try {
 						out = new GrpGroup(handle, PackageType.Grp);
 						out.name = filename;
-					} catch (Exception e) { e.printStackTrace(); }
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-	    		break;
-	    	case zipsign:
-	    		try {
-	    			handle.close();
-		    		out = new ZipGroup(Path.Game.getPath() + filename);
+				break;
+			case zipsign:
+				try {
+					String path = handle.getPath();
+					handle.close();
+					out = new ZipGroup(path);
 					out.name = filename;
-	    		} catch (Exception e) { e.printStackTrace(); }
-	    		break;
-	    	case rffsign:
-	    		try {
-		    		out = new RffGroup(handle, PackageType.Rff);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				break;
+			case rffsign:
+				try {
+					out = new RffGroup(handle, PackageType.Rff);
 					out.name = filename;
-	    		} catch (Exception e) { e.printStackTrace(); }
-	    		break;
-	    	default:
-	    		handle.close();
-	    		break;
-	    	}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				break;
+			default:
+				handle.close();
+				break;
+			}
 		}
-		
+
 		return out;
 	}
-	
-	public boolean remove(String filename)
-	{
+
+	public boolean remove(String filename) {
 		for (Iterator<Group> iterator = groupfil.iterator(); iterator.hasNext();) {
 			Group group = iterator.next();
 			if (group.name.equals(filename)) {
@@ -199,34 +198,31 @@ public class Cache1D {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
-	public boolean remove(Group group)
-	{
-		if(groupfil.remove(group)) {
+
+	public boolean remove(Group group) {
+		if (groupfil.remove(group)) {
 			group.dispose();
 			return true;
 		}
-		
+
 		return false;
 	}
-	
-	public void clearDynamicResources()
-	{
+
+	public void clearDynamicResources() {
 		for (Iterator<Group> iterator = groupfil.iterator(); iterator.hasNext();) {
 			Group group = iterator.next();
-			if ((group.flags & ( DYNAMIC | REMOVABLE ) ) == ( DYNAMIC | REMOVABLE ) ) {
+			if ((group.flags & (DYNAMIC | REMOVABLE)) == (DYNAMIC | REMOVABLE)) {
 				System.err.println("remove dynamic group: " + group.name);
 				group.dispose();
 				iterator.remove();
 			}
 		}
 	}
-	
-	public List<GroupResource> getDynamicResources()
-	{
+
+	public List<GroupResource> getDynamicResources() {
 		List<GroupResource> list = new ArrayList<GroupResource>();
 		for (Iterator<Group> iterator = groupfil.iterator(); iterator.hasNext();) {
 			Group group = iterator.next();
@@ -236,119 +232,105 @@ public class Cache1D {
 		}
 		return list;
 	}
-	
-	public boolean contains(String filename, int searchfirst)
-	{
-		switch(searchfirst)
-		{
-		case 0: //search in dynamic groups ang external files
-			//Search in dynamic groups first
-			for(int k = groupfil.size() - 1; k >= 0; k--)
-			{
+
+	public boolean contains(String filename, int searchfirst) {
+		switch (searchfirst) {
+		case 0: // search in dynamic groups ang external files
+			// Search in dynamic groups first
+			for (int k = groupfil.size() - 1; k >= 0; k--) {
 				Group group = groupfil.get(k);
 				if ((group.flags & DYNAMIC) != 0 && group.contains(filename))
 					return true;
 			}
 			if (compat.checkFile(filename) != null)
 				return true;
-		case -1: //search in groups
-			for(int k = groupfil.size() - 1; k >= 0; k--)
-			{
-				if(groupfil.get(k).contains(filename))
+		case -1: // search in groups
+			for (int k = groupfil.size() - 1; k >= 0; k--) {
+				if (groupfil.get(k).contains(filename))
 					return true;
 			}
 			break;
-		default: //search in the group with index
+		default: // search in the group with index
 			int index = searchfirst - 1;
-			if(index < groupfil.size() && groupfil.get(index).contains(filename))
+			if (index < groupfil.size() && groupfil.get(index).contains(filename))
 				return true;
 			break;
 		}
 
 		return false;
 	}
-	
-	public boolean contains(int fileid, String type)
-	{
-		for(int k = groupfil.size() - 1; k >= 0; k--)
-		{
-			if(groupfil.get(k).contains(fileid, type))
+
+	public boolean contains(int fileid, String type) {
+		for (int k = groupfil.size() - 1; k >= 0; k--) {
+			if (groupfil.get(k).contains(fileid, type))
 				return true;
 		}
-		
+
 		return false;
 	}
-	
-	public Resource open(String filename, int searchfirst)
-	{
+
+	public Resource open(String filename, int searchfirst) {
 		Resource res;
-		
-		switch(searchfirst)
-		{
-		case 0: //search in dynamic groups ang external files
-			
-			//Search in dynamic groups first
-			for(int k = groupfil.size() - 1; k >= 0; k--)
-			{
+
+		switch (searchfirst) {
+		case 0: // search in dynamic groups ang external files
+
+			// Search in dynamic groups first
+			for (int k = groupfil.size() - 1; k >= 0; k--) {
 				Group group = groupfil.get(k);
 				if ((group.flags & DYNAMIC) != 0) {
-					if((res = group.open(filename)) != null)
+					if ((res = group.open(filename)) != null)
 						return res;
 				}
 			}
-			
+
 			if ((res = compat.open(filename)) != null)
 				return res;
-		case -1: //search in groups
-			for(int k = groupfil.size() - 1; k >= 0; k--)
-			{
-				if((res = groupfil.get(k).open(filename)) != null)
+		case -1: // search in groups
+			for (int k = groupfil.size() - 1; k >= 0; k--) {
+				if ((res = groupfil.get(k).open(filename)) != null)
 					return res;
 			}
 			break;
-		default: //search in the group with index
+		default: // search in the group with index
 			int index = searchfirst - 1;
-			if(index < groupfil.size() && (res = groupfil.get(index).open(filename)) != null)
+			if (index < groupfil.size() && (res = groupfil.get(index).open(filename)) != null)
 				return res;
 			break;
 		}
 
 		return null;
 	}
-	
-	public Resource open(int fileid, String type)
-	{
+
+	public Resource open(int fileid, String type) {
 		Resource res;
-		for(int k = groupfil.size() - 1; k >= 0; k--)
-		{
-			if((res = groupfil.get(k).open(fileid, type)) != null)
+		for (int k = groupfil.size() - 1; k >= 0; k--) {
+			if ((res = groupfil.get(k).open(fileid, type)) != null)
 				return res;
 		}
-		
+
 		return null;
 	}
-	
-	public byte[] getBytes(String filename, int searchfirst)
-	{
+
+	public byte[] getBytes(String filename, int searchfirst) {
 		byte[] out = null;
 		Resource res = open(filename, searchfirst);
-		if(res != null) {
+		if (res != null) {
 			out = res.getBytes();
 			res.close();
 		}
-		
+
 		return out;
 	}
-	
-	public byte[] getBytes(int fileid, String type)
-	{
+
+	public byte[] getBytes(int fileid, String type) {
 		byte[] out = null;
 		Resource res = open(fileid, type);
-		if(res != null) {
+		if (res != null) {
 			out = res.getBytes();
 			res.close();
 		}
-		
+
 		return out;
 	}
 }

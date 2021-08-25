@@ -111,7 +111,7 @@ public class TextureManager {
 		}
 
 		boolean useMipMaps = GLSettings.textureFilter.get().mipmaps;
-		if (tile != null && tile.getPixelFormat() == fmt) {
+		if (tile != null /* && tile.getPixelFormat() == fmt */) {
 			if (tile.isInvalidated()) {
 				tile.setInvalidated(false);
 
@@ -119,8 +119,8 @@ public class TextureManager {
 				tile.update(data, useMipMaps);
 			}
 		} else {
-			if (tile != null)
-				cache.dispose(dapicnum); // old texture
+//			if (tile != null)
+//				cache.dispose(dapicnum); // old texture
 
 			if (si != null && dapalnum != 0 && info.findTexture(dapicnum, 0, skybox) == si
 					&& (tile = cache.get(dapicnum, 0, clamping, skybox)) != null)
@@ -155,7 +155,7 @@ public class TextureManager {
 	}
 
 	public void unbind() {
-		if(bindedTile != null)
+		if (bindedTile != null)
 			bindedTile.unbind();
 		bindedTile = null;
 	}
@@ -227,7 +227,7 @@ public class TextureManager {
 
 			@Override
 			public void bind(int unit) {
-				//BuildGdx.gl.glActiveTexture(unit);
+				// BuildGdx.gl.glActiveTexture(unit);
 				BuildGdx.gl.glBindTexture(glTarget, glHandle);
 			}
 		};
@@ -243,7 +243,7 @@ public class TextureManager {
 
 			@Override
 			public void bind(int unit) {
-				//BuildGdx.gl.glActiveTexture(unit);
+				// BuildGdx.gl.glActiveTexture(unit);
 				BuildGdx.gl.glBindTexture(glTarget, glHandle);
 			}
 		};
@@ -370,7 +370,6 @@ public class TextureManager {
 		public PaletteData(byte[] data) {
 			super(data, 256, 1, 3);
 		}
-
 
 		@Override
 		public PixelFormat getPixelFormat() {

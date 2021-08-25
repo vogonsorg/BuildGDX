@@ -99,6 +99,7 @@ public class GDXRenderer implements GLRenderer {
 //  Tekwar level1.map crash
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sorts
+//  Palette emulation textureManager uninit
 
 //	Hires + models
 //  Blood E1M1 floor sprite invisible
@@ -195,6 +196,10 @@ public class GDXRenderer implements GLRenderer {
 				OSDTEXT_GOLD);
 
 		orphoRen.init();
+
+		if (world != null && world.isInvalid()) {
+			world = new WorldMesh(engine);
+		}
 
 		System.err.println("init");
 		isInited = true;
@@ -326,83 +331,58 @@ public class GDXRenderer implements GLRenderer {
 
 	protected void renderDrunkEffect() { // TODO: to shader
 		/*
-		if (drunk) {
-			set2dview();
-
-			gl.glActiveTexture(GL_TEXTURE0);
-			boolean hasShader = texshader != null && texshader.isBinded();
-			if (hasShader)
-				texshader.end();
-
-			if (frameTexture == null || framew != xdim || frameh != ydim) {
-				int size = 1;
-				for (size = 1; size < Math.max(xdim, ydim); size <<= 1)
-					;
-
-				if (frameTexture != null)
-					frameTexture.dispose();
-				else
-					frameTexture = new GLTile(PixelFormat.Rgb, size, size);
-
-				frameTexture.bind();
-				gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frameTexture.getWidth(), frameTexture.getHeight(), 0, GL_RGB,
-						GL_UNSIGNED_BYTE, null);
-				frameTexture.unsafeSetFilter(TextureFilter.Linear, TextureFilter.Linear);
-				framew = xdim;
-				frameh = ydim;
-			}
-
-			textureCache.bind(frameTexture);
-			gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, frameTexture.getWidth(), frameTexture.getHeight());
-
-			gl.glDisable(GL_DEPTH_TEST);
-			gl.glDisable(GL_CULL_FACE);
-
-			float tiltang = (drunkIntensive * 360) / 2048f;
-			float tilt = min(max(tiltang, -MAXDRUNKANGLE), MAXDRUNKANGLE);
-			float u = (float) xdim / frameTexture.getWidth();
-			float v = (float) ydim / frameTexture.getHeight();
-
-			int originX = xdim / 2;
-			int originY = ydim / 2;
-			float width = xdim * 1.05f;
-			float height = ydim * 1.05f;
-
-			float xoffs = width / 2;
-			float yoffs = height / 2;
-
-			final float rotation = 360.0f * tiltang / 2048.0f;
-			final float cos = MathUtils.cosDeg(rotation);
-			final float sin = MathUtils.sinDeg(rotation);
-
-			float x1 = originX + (sin * yoffs - cos * xoffs);
-			float y1 = originY - xoffs * sin - yoffs * cos;
-
-			float x4 = x1 + width * cos;
-			float y4 = y1 + width * sin;
-
-			float x2 = x1 - height * sin;
-			float y2 = y1 + height * cos;
-
-			float x3 = x2 + (x4 - x1);
-			float y3 = y2 + (y4 - y1);
-
-			orphoRen.begin(); // XXX
-//			orphoRen.setColor(1, 1, 1, abs(tilt) / (2 * MAXDRUNKANGLE));
-//			orphoRen.setTexture(frameTexture);
-//			orphoRen.addVertex(x1, ydim - y1, 0, 0);
-//			orphoRen.addVertex(x2, ydim - y2, 0, v);
-//			orphoRen.addVertex(x3, ydim - y3, u, v);
-//			orphoRen.addVertex(x4, ydim - y4, u, 0);
-			orphoRen.end();
-
-			gl.glEnable(GL_DEPTH_TEST);
-			gl.glEnable(GL_CULL_FACE);
-
-			if (hasShader)
-				texshader.begin();
-		}
-		*/
+		 * if (drunk) { set2dview();
+		 * 
+		 * gl.glActiveTexture(GL_TEXTURE0); boolean hasShader = texshader != null &&
+		 * texshader.isBinded(); if (hasShader) texshader.end();
+		 * 
+		 * if (frameTexture == null || framew != xdim || frameh != ydim) { int size = 1;
+		 * for (size = 1; size < Math.max(xdim, ydim); size <<= 1) ;
+		 * 
+		 * if (frameTexture != null) frameTexture.dispose(); else frameTexture = new
+		 * GLTile(PixelFormat.Rgb, size, size);
+		 * 
+		 * frameTexture.bind(); gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+		 * frameTexture.getWidth(), frameTexture.getHeight(), 0, GL_RGB,
+		 * GL_UNSIGNED_BYTE, null); frameTexture.unsafeSetFilter(TextureFilter.Linear,
+		 * TextureFilter.Linear); framew = xdim; frameh = ydim; }
+		 * 
+		 * textureCache.bind(frameTexture); gl.glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0,
+		 * 0, 0, 0, frameTexture.getWidth(), frameTexture.getHeight());
+		 * 
+		 * gl.glDisable(GL_DEPTH_TEST); gl.glDisable(GL_CULL_FACE);
+		 * 
+		 * float tiltang = (drunkIntensive * 360) / 2048f; float tilt = min(max(tiltang,
+		 * -MAXDRUNKANGLE), MAXDRUNKANGLE); float u = (float) xdim /
+		 * frameTexture.getWidth(); float v = (float) ydim / frameTexture.getHeight();
+		 * 
+		 * int originX = xdim / 2; int originY = ydim / 2; float width = xdim * 1.05f;
+		 * float height = ydim * 1.05f;
+		 * 
+		 * float xoffs = width / 2; float yoffs = height / 2;
+		 * 
+		 * final float rotation = 360.0f * tiltang / 2048.0f; final float cos =
+		 * MathUtils.cosDeg(rotation); final float sin = MathUtils.sinDeg(rotation);
+		 * 
+		 * float x1 = originX + (sin * yoffs - cos * xoffs); float y1 = originY - xoffs
+		 * * sin - yoffs * cos;
+		 * 
+		 * float x4 = x1 + width * cos; float y4 = y1 + width * sin;
+		 * 
+		 * float x2 = x1 - height * sin; float y2 = y1 + height * cos;
+		 * 
+		 * float x3 = x2 + (x4 - x1); float y3 = y2 + (y4 - y1);
+		 * 
+		 * orphoRen.begin(); // XXX // orphoRen.setColor(1, 1, 1, abs(tilt) / (2 *
+		 * MAXDRUNKANGLE)); // orphoRen.setTexture(frameTexture); //
+		 * orphoRen.addVertex(x1, ydim - y1, 0, 0); // orphoRen.addVertex(x2, ydim - y2,
+		 * 0, v); // orphoRen.addVertex(x3, ydim - y3, u, v); // orphoRen.addVertex(x4,
+		 * ydim - y4, u, 0); orphoRen.end();
+		 * 
+		 * gl.glEnable(GL_DEPTH_TEST); gl.glEnable(GL_CULL_FACE);
+		 * 
+		 * if (hasShader) texshader.begin(); }
+		 */
 	}
 
 	public void drawsprite(int i) {

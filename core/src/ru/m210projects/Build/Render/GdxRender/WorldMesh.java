@@ -122,7 +122,8 @@ public class WorldMesh {
 		mesh.setVertices(vertices.items, 0, size);
 
 		this.meshBuffer = mesh.getVerticesBuffer();
-		lastLimit = meshBuffer.limit() * 4;
+		this.lastLimit = meshBuffer.limit() * 4;
+		this.validateMesh = false;
 	}
 
 	public ArrayList<Vertex> getPoints(Heinum heinum, int sectnum, int z) {
@@ -783,7 +784,7 @@ public class WorldMesh {
 
 	public void nextpage() {
 		tess.setSector(-1, false);
-		if(meshBuffer != null)
+		if (meshBuffer != null)
 			lastLimit = meshBuffer.limit() * 4;
 	}
 
@@ -892,9 +893,14 @@ public class WorldMesh {
 		}
 	}
 
+	public boolean isInvalid() {
+		return validateMesh;
+	}
+
 	public void dispose() {
 		mesh.dispose();
 		meshBuffer = null;
+		validateMesh = true;
 		System.gc();
 	}
 }

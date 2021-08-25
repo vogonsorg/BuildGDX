@@ -20,7 +20,6 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -53,7 +52,7 @@ public class FileResource implements Resource {
 
 	private RandomAccessFile raf;
 	private Mode mode;
-	private String ext;
+	private String ext, path;
 	private MappedByteBuffer fbuf;
 
 	protected FileResource open(File file, Mode mode) {
@@ -87,21 +86,22 @@ public class FileResource implements Resource {
 	private void handle(File file) {
 		String filename = toLowerCase(file.getName());
 		ext = filename.substring(filename.lastIndexOf('.') + 1);
+		path = file.getPath();
 	}
 
 	public String getPath() {
 		if (isClosed())
 			return null;
 
-		try {
-			Field path = raf.getClass().getDeclaredField("path");
-			path.setAccessible(true);
-			return (String) path.get(raf);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			Field path = raf.getClass().getDeclaredField("path");
+//			path.setAccessible(true);
+//			return (String) path.get(raf);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
-		return null;
+		return path;
 	}
 
 	public Mode getMode() {
@@ -125,6 +125,8 @@ public class FileResource implements Resource {
 			}
 			raf.close();
 			raf = null;
+			path = null;
+			ext = null;
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}

@@ -1357,9 +1357,9 @@ public abstract class Engine {
 
 		Console.ResizeDisplay(daxdim, daydim);
 
-		if (render.isInited())
-			render.uninit();
-		render.init();
+//		if (render.isInited())
+//			render.uninit();
+//		render.init();
 
 		if (davidoption == 1) {
 			DisplayMode m = null;
@@ -3449,7 +3449,8 @@ public abstract class Engine {
 		xdimscale = scale(320, xyaspect, xdimen);
 
 		if (render.getType() == RenderType.PolyGDX) {
-			((GDXRenderer) render).setFieldOfView(offscreenrendering ? 110 : (float) Math.toDegrees(2 * Math.atan(fovFactor)));
+			((GDXRenderer) render)
+					.setFieldOfView(offscreenrendering ? 110 : (float) Math.toDegrees(2 * Math.atan(fovFactor)));
 		}
 	}
 
@@ -3891,6 +3892,7 @@ public abstract class Engine {
 	public int setrendermode(Renderer render) { // gdxBuild
 		this.render = render;
 		render.setDefs(getDefs());
+		render.init();
 		return 0;
 	}
 
