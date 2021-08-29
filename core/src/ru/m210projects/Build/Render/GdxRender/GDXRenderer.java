@@ -93,10 +93,9 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  Desctop resolution after software renderer switch
+//  Desktop resolution after software renderer switch
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sorts
-//	Gamma doesn't work
 
 //	Hires + models
 //  Blood E1M1 floor sprite invisible

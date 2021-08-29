@@ -94,13 +94,13 @@ public abstract class MenuRendererSettings extends BuildMenuList {
 		BuildRenderParameters();
 		if (currentRenderer instanceof GLRenderer) {
 			BuildGLRenderParameters();
-			if (currentFormat == PixelFormat.Rgb) {
+//			if (currentFormat == PixelFormat.Rgb) {
 				this.addItem(GLGamma, true);
 //				this.addItem(GLBrightness, false);
 //				this.addItem(GLContrast, false);
 //				this.addItem(GLReset, false);
-			} else
-				this.addItem(palettedGamma, true);
+//			} else
+//				this.addItem(palettedGamma, true);
 
 			this.addItem(separator, false);
 

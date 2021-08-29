@@ -2662,9 +2662,9 @@ public class Polymost implements GLRenderer {
 		Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
 
 		if (sprext != null) {
-			tspr.x += sprext.xoff;
-			tspr.y += sprext.yoff;
-			tspr.z += sprext.zoff;
+//			tspr.x += sprext.xoff;
+//			tspr.y += sprext.yoff;
+//			tspr.z += sprext.zoff;
 		}
 
 		int posx = tspr.x;
@@ -2718,16 +2718,16 @@ public class Polymost implements GLRenderer {
 		rendering = Rendering.Sprite.setIndex(snum);
 		calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
-		if (sprext != null) {
-			if ((sprext.flags & SPREXT_AWAY1) != 0) {
-				posx += (sintable[(tspr.ang + 512) & 2047] >> 13);
-				posy += (sintable[(tspr.ang) & 2047] >> 13);
-
-			} else if ((sprext.flags & SPREXT_AWAY2) != 0) {
-				posx -= (sintable[(tspr.ang + 512) & 2047] >> 13);
-				posy -= (sintable[(tspr.ang) & 2047] >> 13);
-			}
-		}
+//		if (sprext != null) {
+//			if ((sprext.flags & SPREXT_AWAY1) != 0) {
+//				posx += (sintable[(tspr.ang + 512) & 2047] >> 13);
+//				posy += (sintable[(tspr.ang) & 2047] >> 13);
+//
+//			} else if ((sprext.flags & SPREXT_AWAY2) != 0) {
+//				posx -= (sintable[(tspr.ang + 512) & 2047] >> 13);
+//				posy -= (sintable[(tspr.ang) & 2047] >> 13);
+//			}
+//		}
 
 		oldsizx = tsizx = pic.getWidth();
 		oldsizy = tsizy = pic.getHeight();
@@ -3035,10 +3035,10 @@ public class Polymost implements GLRenderer {
 			if ((globalorientation & 8) > 0)
 				yoff = -yoff;
 
-			if (tspr.z < sector[tspr.sectnum].ceilingz)
-				tspr.z += ((tspr.owner) & 31);
-			if (tspr.z > sector[tspr.sectnum].floorz)
-				tspr.z -= ((tspr.owner) & 31);
+//			if (tspr.z < sector[tspr.sectnum].ceilingz)
+//				tspr.z += ((tspr.owner) & 31);
+//			if (tspr.z > sector[tspr.sectnum].floorz)
+//				tspr.z -= ((tspr.owner) & 31);
 
 			i = (tspr.ang & 2047);
 			c = (float) (sintable[(i + 512) & 2047] / 65536.0);

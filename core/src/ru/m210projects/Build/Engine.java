@@ -3543,9 +3543,14 @@ public abstract class Engine {
 			for (int i = 0; i < dapal.length; i++)
 				temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
 		} else {
-			System.arraycopy(dapal, 0, temppal, 0, dapal.length);
-			for (int i = 0; i < dapal.length; i++)
-				temppal[i] <<= 2;
+//			if (gl.getTexFormat() == PixelFormat.Rgb) { // Polymost
+				System.arraycopy(dapal, 0, temppal, 0, dapal.length);
+				for (int i = 0; i < dapal.length; i++)
+					temppal[i] <<= 2;
+//			} else {
+//				for (int i = 0; i < dapal.length; i++)
+//					temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
+//			}
 		}
 
 		if (changepalette(temppal)) {
@@ -3563,8 +3568,13 @@ public abstract class Engine {
 
 		curpalette.update(palette);
 		Arrays.fill(palcache, null);
-		render.changepalette(palette); // for shader
 
+		BuildGdx.app.postRunnable(new Runnable() {
+			@Override
+			public void run() {
+				render.changepalette(palette);
+			}
+		});
 		return true;
 	}
 
