@@ -96,14 +96,18 @@ public class GDXRenderer implements GLRenderer {
 //  Desktop resolution after software renderer switch
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sorts
+//  Skies panning
+//  Tekwar skies
+//  Shadow warrior sprite visible bug
+//	Sprite ZFighting
 
 //	Hires + models
+//  RGB shader fog
 //  Blood E1M1 floor sprite invisible
 //	Blood drunk effect
 //	Skyboxes
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
-//  RGB shader fog
 
 	public Rendering rendering = Rendering.Nothing;
 
