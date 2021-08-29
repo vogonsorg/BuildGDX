@@ -159,7 +159,7 @@ public class GDXRenderer implements GLRenderer {
 		this.scanner = new SectorScanner(engine) {
 			@Override
 			protected Matrix4 getSpriteMatrix(SPRITE tspr) {
-				return sprR.getMatrix(tspr);
+				return sprR.getMatrix(tspr, 1, 1);
 			}
 		};
 

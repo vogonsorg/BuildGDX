@@ -73,7 +73,6 @@ public abstract class SectorScanner {
 	public Integer[] maskwall = new Integer[MAXWALLS]; // XXX memory leak
 	public int maskwallcnt;
 
-
 	private SECTOR skyFloor, skyCeiling;
 
 	private PolygonClipper cl = new PolygonClipper();
@@ -361,14 +360,20 @@ public abstract class SectorScanner {
 	public boolean spriteInFrustum(WallFrustum3d frustum, SPRITE tspr) {
 		Vector3[] points = tmpVec;
 		float SIZEX = 0.5f;
-		float SIZEY = 1.0f;
+//		float SIZEY = 1.0f;
+		float SIZEY = 0.5f;
 
 		Matrix4 mat = getSpriteMatrix(tspr);
 		if (mat != null) {
-			points[0].set(SIZEX, 0, -SIZEY).mul(mat);
-			points[1].set(SIZEX, 0, 0).mul(mat);
-			points[2].set(-SIZEX, 0, 0).mul(mat);
-			points[3].set(-SIZEX, 0, -SIZEY).mul(mat);
+//			points[0].set(SIZEX, 0, -SIZEY).mul(mat);
+//			points[1].set(SIZEX, 0, 0).mul(mat);
+//			points[2].set(-SIZEX, 0, 0).mul(mat);
+//			points[3].set(-SIZEX, 0, -SIZEY).mul(mat);
+
+			points[0].set(-SIZEX, SIZEY, 0).mul(mat);
+			points[1].set(SIZEX, SIZEY, 0).mul(mat);
+			points[2].set(SIZEX, -SIZEY, 0).mul(mat);
+			points[3].set(-SIZEX, -SIZEY, 0).mul(mat);
 
 			WallFrustum3d n = frustum;
 			do {
