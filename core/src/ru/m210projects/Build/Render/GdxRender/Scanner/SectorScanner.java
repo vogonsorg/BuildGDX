@@ -66,7 +66,7 @@ public abstract class SectorScanner {
 	private WallFrustum3d[] skyviewport;
 	private byte[] gotwall;
 	private byte[] wallflags;
-	private Engine engine;
+	protected Engine engine;
 
 //	public SPRITE[] tsprite;
 //	public int spritesortcnt;

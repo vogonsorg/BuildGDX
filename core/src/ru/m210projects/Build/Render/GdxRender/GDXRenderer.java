@@ -93,7 +93,7 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//	SpriteRenderer common matrix4 method
+//  Desctop resolution after software renderer switch
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sorts
 //	Gamma doesn't work
@@ -159,7 +159,8 @@ public class GDXRenderer implements GLRenderer {
 		this.scanner = new SectorScanner(engine) {
 			@Override
 			protected Matrix4 getSpriteMatrix(SPRITE tspr) {
-				return sprR.getMatrix(tspr);
+				Tile pic = engine.getTile(tspr.picnum);
+				return sprR.getMatrix(tspr, pic.getWidth(), pic.getHeight());
 			}
 		};
 
