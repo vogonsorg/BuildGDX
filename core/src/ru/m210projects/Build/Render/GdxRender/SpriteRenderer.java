@@ -74,7 +74,7 @@ public class SpriteRenderer {
 		this.cam = cam;
 	}
 
-	public Matrix4 getMatrix(SPRITE tspr, float xscale, float yscale) {
+	public Matrix4 getMatrix(SPRITE tspr) {
 		int picnum = tspr.picnum;
 		int orientation = tspr.cstat;
 		int spritenum = tspr.owner;
@@ -185,14 +185,14 @@ public class SpriteRenderer {
 //		}
 
 		float xspans;
-		float posx = tspr.x / xscale;
-		float posy = tspr.y / xscale;
-		float posz = tspr.z / yscale;
+		float posx = tspr.x;
+		float posy = tspr.y;
+		float posz = tspr.z;
 		transform.setToTranslation(posx, posy, posz);
 
 		switch ((orientation >> 4) & 3) {
 		case 0: // Face sprite
-			xspans = 5.0f * xscale;
+			xspans = 5.0f;
 			int ang = ((int) globalang - 512) & 0x7FF;
 			if (xflip ^ yflip) {
 				ang += 1024;
@@ -205,8 +205,10 @@ public class SpriteRenderer {
 				xspans = -xspans;
 			}
 
+			transform.translate(0, 0, (tspr.yrepeat * pic.getHeight() * (yflip ? 2.0f : -2.0f)));
 			transform.rotate(0, 0, 1, (int) Gameutils.AngleToDegrees(ang));
-			transform.translate((tspr.xrepeat * xoff) / (5.0f * xscale), 0, -((yoff * tspr.yrepeat) << 2) / yscale);
+			transform.translate((tspr.xrepeat * xoff) / (5.0f), 0, -((yoff * tspr.yrepeat) << 2));
+
 			if ((tsizx & 1) == 0)
 				transform.translate((tspr.xrepeat >> 1) / xspans, 0, 0);
 
@@ -219,12 +221,11 @@ public class SpriteRenderer {
 
 			if (yflip) {
 				transform.rotate(0, 1, 0, 180);
-				transform.translate(0, 0, (tspr.yrepeat * pic.getHeight()) / (4.0f * xscale));
+				transform.translate(0, 0, (tspr.yrepeat * pic.getHeight()) * 4.0f);
 			} else
-				transform.translate(0, 0, (tspr.yrepeat * (pic.getHeight() - tsizy)) / (4.0f * xscale));
+				transform.translate(0, 0, (tspr.yrepeat * (pic.getHeight() - tsizy)) * 4.0f);
 
-			transform.scale((tspr.xrepeat * pic.getWidth()) / (5.0f * xscale), 0,
-					(tspr.yrepeat * pic.getHeight()) / (4.0f * xscale));
+			transform.scale((tspr.xrepeat * pic.getWidth()) / 5.0f, 0, 4 * tspr.yrepeat * pic.getHeight());
 			break;
 		case 1: // Wall sprite
 			if (yflip)
@@ -248,20 +249,22 @@ public class SpriteRenderer {
 				xspans = -xspans;
 			}
 
+			transform.translate(0, 0, (tspr.yrepeat * pic.getHeight() * (yflip ? 2.0f : -2.0f)));
 			transform.rotate(0, 0, 1, wang);
-			transform.translate((tspr.xrepeat * xoff) / 4.0f, 0, -(tspr.yrepeat * yoff) / 4.0f);
+			transform.translate((tspr.xrepeat * xoff) / 4.0f, 0, -(tspr.yrepeat * yoff) * 4.0f);
 			if ((orientation & 128) != 0)
-				transform.translate(0, 0, (tspr.yrepeat * tsizy) / 8.0f);
+				transform.translate(0, 0, (tspr.yrepeat * tsizy) * 2.0f);
+
 			if ((tsizx & 1) == 0)
 				transform.translate((tspr.xrepeat >> 1) / xspans, 0, 0);
 
 			if (yflip) {
 				transform.rotate(0, 1, 0, 180);
-				transform.translate(0, 0, (tspr.yrepeat * pic.getHeight()) / 4.0f);
+				transform.translate(0, 0, (tspr.yrepeat * pic.getHeight()) * 4.0f);
 			} else
-				transform.translate(0, 0, (tspr.yrepeat * (pic.getHeight() - tsizy)) / 4.0f);
+				transform.translate(0, 0, (tspr.yrepeat * (pic.getHeight() - tsizy)) * 4.0f);
 
-			transform.scale((tspr.xrepeat * pic.getWidth()) / 4.0f, 0, (tspr.yrepeat * pic.getHeight()) / 4.0f);
+			transform.scale((tspr.xrepeat * pic.getWidth()) / 4.0f, 0, (tspr.yrepeat * pic.getHeight()) * 4.0f);
 			break;
 		case 2: // Floor sprite
 			if (yflip)
