@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GdxRender.Tesselator.SurfaceInfo;
 import ru.m210projects.Build.Render.GdxRender.Tesselator.Type;
 import ru.m210projects.Build.Render.GdxRender.Tesselator.Vertex;
@@ -90,6 +91,9 @@ public class WorldMesh {
 				continue;
 
 			tess.setSector(s, true);
+
+			if (tess.zoids.size() == 0)
+				continue;
 
 			addFloor(vertices, s);
 			floorhash[s] = getFloorHash(s);
@@ -771,15 +775,24 @@ public class WorldMesh {
 //				System.err.println("new meshOffset: " + (meshOffset * tess.getVertexSize()) + " "
 //						+ mesh.getVerticesBuffer().limit() + " size: " + mesh.getVerticesBuffer().capacity());
 			return surf;
-		} else if (array[num].limit < count) {
-			int shift = count - array[num].limit;
-			shiftFrom(array[num].next, shift);
-			meshOffset += shift;
-			array[num].limit = count;
-		}
+		} else {
+			if (mesh == null) { // when initializing
+				Console.Println("Error: Unexpected behavior in mesh initialization, perhaps the map is corrupt",
+						Console.OSDTEXT_RED);
+				meshOffset += limit;
+				return null;
+			}
 
-		array[num].count = count;
-		return array[num];
+			if (array[num].limit < count) {
+				int shift = count - array[num].limit;
+				shiftFrom(array[num].next, shift);
+				meshOffset += shift;
+				array[num].limit = count;
+			}
+
+			array[num].count = count;
+			return array[num];
+		}
 	}
 
 	public void nextpage() {

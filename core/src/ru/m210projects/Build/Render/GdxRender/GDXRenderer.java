@@ -94,8 +94,6 @@ public class GDXRenderer implements GLRenderer {
 
 //	TODO:
 //	SpriteRenderer common matrix4 method
-//  RRRA palookup doesn't apply at start
-//  Tekwar level1.map crash
 //	Scansectors memory leak (WallFrustum)
 //	Maskwall sorts
 //	Gamma doesn't work

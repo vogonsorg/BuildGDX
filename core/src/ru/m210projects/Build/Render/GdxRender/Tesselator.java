@@ -70,9 +70,10 @@ public class Tesselator {
 
 		int size = 0;
 		for (int i = 0; i < attributes.length; i++) {
-			if(!attributes[i].equals(VertexAttribute.ColorPacked()))
+			if (!attributes[i].equals(VertexAttribute.ColorPacked()))
 				size += attributes[i].numComponents;
-			else size++;
+			else
+				size++;
 		}
 
 		this.vertexSize = size;
@@ -93,19 +94,19 @@ public class Tesselator {
 		return sectnum;
 	}
 
-	private List<Zoid_t> initZoids(final int sectnum) {
+	private void initZoids(final int sectnum) {
 		final SECTOR sec = sector[sectnum];
 		final int n = sec.wallnum;
-
-		if (n < 3)
-			return null;
-
-		float f, x0, y0, x1, y1, sy0, sy1;
-		int g, s, secn, ntrap, cury;
 
 		zoids.clear();
 		secy.clear();
 		pZoidsPool.reset();
+
+		if (n < 3)
+			return;
+
+		float f, x0, y0, x1, y1, sy0, sy1;
+		int g, s, secn, ntrap, cury;
 
 		int startwall = sec.wallptr;
 		int endwall = startwall + sec.wallnum - 1;
@@ -177,9 +178,13 @@ public class Tesselator {
 						trapx1.set(j + g, f);
 					}
 
+			if (ntrap < 2)
+				return;
+
 			for (i = 0; i < ntrap; i = j + 1) {
 				j = i + 1;
-				if ((trapx0.get(i + 1) <= trapx0.get(i)) && (trapx1.get(i + 1) <= trapx1.get(i)))
+
+				if ((trapx0.get(j) <= trapx0.get(i)) && (trapx1.get(j) <= trapx1.get(i)))
 					continue;
 				while ((j + 2 < ntrap) && (trapx0.get(j + 1) <= trapx0.get(j)) && (trapx1.get(j + 1) <= trapx1.get(j)))
 					j += 2;
@@ -196,8 +201,6 @@ public class Tesselator {
 				zoids.add(zoid);
 			}
 		}
-
-		return zoids;
 	}
 
 	public int getMaxVertices() {
@@ -297,7 +300,7 @@ public class Tesselator {
 							case Usage.TextureCoordinates:
 								float uptr = vx.x;
 								float vptr = vx.y;
-								if(!pic.hasSize()) {
+								if (!pic.hasSize()) {
 									vertices.addAll(0.0f, 0.0f);
 									break;
 								}
@@ -406,7 +409,7 @@ public class Tesselator {
 				surf.obj = ptr;
 
 				Tile pic = engine.getTile(picnum);
-				if(pic.hasSize()) {
+				if (pic.hasSize()) {
 					uCoff = wal.xrepeat * 8.0f / pic.getWidth();
 					vCoff = -wal.yrepeat * 4.0f / GLInfo.calcSize(pic.getHeight());
 					uPanning = ptr.xpanning / (float) pic.getWidth();
