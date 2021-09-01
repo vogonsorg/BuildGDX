@@ -178,8 +178,9 @@ public class Tesselator {
 						trapx1.set(j + g, f);
 					}
 
-			if (ntrap < 2)
-				return;
+			if (ntrap < 2) {
+				continue;
+			}
 
 			for (i = 0; i < ntrap; i = j + 1) {
 				j = i + 1;

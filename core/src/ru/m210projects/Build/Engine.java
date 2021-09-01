@@ -115,7 +115,7 @@ public abstract class Engine {
 	 * mdloader pragmas bithandler
 	 */
 
-	public static final String version = "21.071"; // XX. - year, XX - month, X - build
+	public static final String version = "21.091"; // XX. - year, XX - month, X - build
 
 	public static final byte CEIL = 0;
 	public static final byte FLOOR = 1;
@@ -3544,9 +3544,9 @@ public abstract class Engine {
 				temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
 		} else {
 //			if (gl.getTexFormat() == PixelFormat.Rgb) { // Polymost
-				System.arraycopy(dapal, 0, temppal, 0, dapal.length);
-				for (int i = 0; i < dapal.length; i++)
-					temppal[i] <<= 2;
+			System.arraycopy(dapal, 0, temppal, 0, dapal.length);
+			for (int i = 0; i < dapal.length; i++)
+				temppal[i] <<= 2;
 //			} else {
 //				for (int i = 0; i < dapal.length; i++)
 //					temppal[i] = britable[curbrightness][(dapal[i] & 0xFF) << 2];
