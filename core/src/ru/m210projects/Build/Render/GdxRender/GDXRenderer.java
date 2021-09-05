@@ -94,6 +94,7 @@ public class GDXRenderer implements GLRenderer {
 
 //	TODO:
 //  Desktop resolution after software renderer switch
+//  Polymost duke3d realms logo bug
 //  Skies panning
 //  Tekwar skies
 //	Hires + models
