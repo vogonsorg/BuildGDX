@@ -9,7 +9,6 @@ import static ru.m210projects.Build.Engine.globalvisibility;
 import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Pragmas.mulscale;
 
-import java.util.Arrays;
 import java.util.Comparator;
 
 import com.badlogic.gdx.Gdx;
@@ -23,6 +22,7 @@ import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
+import ru.m210projects.Build.Types.QuickSort;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
 import ru.m210projects.Build.Types.Tile.AnimType;
@@ -67,7 +67,7 @@ public class SpriteRenderer {
 	}
 
 	public void sort(SPRITE[] array, int len) {
-		Arrays.sort(array, 0, len, comp);
+		QuickSort.sort(array, len, comp);
 	}
 
 	public void begin(BuildCamera cam) {

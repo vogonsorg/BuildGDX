@@ -4,9 +4,11 @@ import static ru.m210projects.Build.Engine.*;
 
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector2;
+
+import ru.m210projects.Build.Render.GdxRender.Pool.Poolable;
 import ru.m210projects.Build.Types.WALL;
 
-public class WallFrustum2d {
+public class WallFrustum2d implements Poolable {
 
 	public enum FrustumStatus {
 		Inside, Outside, Expanded
@@ -446,5 +448,13 @@ public class WallFrustum2d {
 		sb.append(']');
 
 		return sb.toString();
+	}
+
+	@Override
+	public void reset() {
+		next = null;
+		handled = false;
+		isFullAngle = false;
+		sinA = 0.0f;
 	}
 }

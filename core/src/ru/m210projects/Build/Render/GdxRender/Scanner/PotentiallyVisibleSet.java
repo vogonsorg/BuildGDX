@@ -13,6 +13,7 @@ import java.util.Arrays;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Types.WALL;
 import ru.m210projects.Build.Render.GdxRender.BuildCamera;
+import ru.m210projects.Build.Render.GdxRender.Pool;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 
@@ -31,6 +32,13 @@ public class PotentiallyVisibleSet {
 	private RayCaster ray = new RayCaster();
 	protected SectorInfo info = new SectorInfo();
 
+	private Pool<WallFrustum2d> pWallFrustumPool = new Pool<WallFrustum2d>() {
+		@Override
+		protected WallFrustum2d newObject() {
+			return new WallFrustum2d();
+		}
+	};
+
 	public PotentiallyVisibleSet() {
 		portqueue = new WallFrustum2d[512];
 		queuemask = portqueue.length - 1;
@@ -48,11 +56,12 @@ public class PotentiallyVisibleSet {
 		Arrays.fill(gotviewport, null);
 		Gameutils.fill(gotwall, (byte) 0);
 		Gameutils.fill(handled, (byte) 0);
+		pWallFrustumPool.reset();
 
 		secindex = 0;
 		pqhead = pqtail = 0;
 
-		portqueue[(pqtail++) & queuemask] = new WallFrustum2d().set(sectnum); // XXX Leak
+		portqueue[(pqtail++) & queuemask] = pWallFrustumPool.obtain().set(sectnum);
 		WallFrustum2d pFrustum = portqueue[pqhead];
 		gotviewport[sectnum] = pFrustum;
 
@@ -92,7 +101,7 @@ public class PotentiallyVisibleSet {
 							continue;
 
 						if (nextsectnum != -1) {
-							WallFrustum2d wallFrustum = new WallFrustum2d().set(wal); // XXX Leak
+							WallFrustum2d wallFrustum = pWallFrustumPool.obtain().set(wal);
 							if (wallFrustum != null && wallFrustum.fieldOfViewClipping(pFrustum)) {
 								if (gotviewport[nextsectnum] == null) {
 									portqueue[(pqtail++) & queuemask] = wallFrustum;

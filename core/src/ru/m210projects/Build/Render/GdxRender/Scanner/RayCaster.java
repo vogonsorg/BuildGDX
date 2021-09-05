@@ -10,39 +10,44 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Plane;
 
 import ru.m210projects.Build.Gameutils;
+import ru.m210projects.Build.Render.GdxRender.Pool;
+import ru.m210projects.Build.Render.GdxRender.Pool.Poolable;
 import ru.m210projects.Build.Types.LinkedList;
 import ru.m210projects.Build.Types.LinkedList.Node;
+import ru.m210projects.Build.Types.RuntimeArray;
 import ru.m210projects.Build.Types.WALL;
 
 public class RayCaster {
 
 	protected List<Segment> segments = new ArrayList<Segment>(); // WALLS
-	protected LinkedList<EndPoint> endpoints = new LinkedList<EndPoint>(); // wall points (coordinates)
+	protected RuntimeArray<EndPoint> endpoints = new RuntimeArray<EndPoint>(); // wall points (coordinates)
 	protected LinkedList<Segment> open = new LinkedList<Segment>();
 	protected byte[] gotwall = new byte[MAXWALLS >> 3];
 	protected byte[] handled = new byte[MAXWALLS >> 3];
 	protected boolean globalcheck;
 
-//	public static List<Segment> vis_segments = new ArrayList<Segment>();
+	private Pool<Segment> pSegmentPool = new Pool<Segment>() {
+		@Override
+		protected Segment newObject() {
+			return new Segment();
+		}
+	};
 
-	public class EndPoint extends Node<EndPoint> {
+	private Pool<EndPoint> pEndpointPool = new Pool<EndPoint>() {
+		@Override
+		protected EndPoint newObject() {
+			return new EndPoint();
+		}
+	};
+
+	public class EndPoint {
 		public float x, y;
 		public boolean begin;
 		public Segment segment;
 		public float angle;
-
-		public EndPoint(float x, float y) {
-			this.x = x;
-			this.y = y;
-		}
-
-		@Override
-		public EndPoint getValue() {
-			return this;
-		}
 	}
 
-	public class Segment extends Node<Segment> { // WALL
+	public class Segment extends Node<Segment> implements Poolable { // WALL
 		public EndPoint p1, p2;
 		public int wallid;
 		public int index;
@@ -54,6 +59,13 @@ public class RayCaster {
 
 		public boolean isPortal() {
 			return wall[wallid].nextsector != -1;
+		}
+
+		@Override
+		public void reset() {
+			p1 = p2 = null;
+			next = prev = null;
+			wallid = index = 0;
 		}
 	}
 
@@ -84,6 +96,9 @@ public class RayCaster {
 		Gameutils.fill(gotwall, (byte) 0);
 		Gameutils.fill(handled, (byte) 0);
 		this.globalcheck = globalcheck;
+
+		this.pSegmentPool.reset();
+		this.pEndpointPool.reset();
 	}
 
 	public boolean wallfront(Segment a, Segment b) {
@@ -155,12 +170,10 @@ public class RayCaster {
 	}
 
 	public Segment addSegment(int id, float x1, float y1, float x2, float y2) {
-		EndPoint p1 = new EndPoint(0.0f, 0.0f);
-		EndPoint p2 = new EndPoint(0.0f, 0.0f);
+		EndPoint p1 = pEndpointPool.obtain();
+		EndPoint p2 = pEndpointPool.obtain();
+		Segment segment = pSegmentPool.obtain();
 
-		Segment segment = new Segment(); // XXX Leak
-
-//		vis_segments.add(segment);
 		p1.x = x1;
 		p1.y = y1;
 		p2.x = x2;
@@ -282,11 +295,14 @@ public class RayCaster {
 	}
 
 	protected void sweep() {
-		endpoints.sort(comparator); // Memory Leak!!! XXX
+		endpoints.sort(comparator);
+
 		open.clear();
 
 		for (int i = 0; i < 2; i++) {
-			for (EndPoint p : endpoints) {
+
+			for (int pi = 0; pi < endpoints.size(); pi++) {
+				EndPoint p = endpoints.get(pi);
 				Segment current_old = open.getFirst();
 
 				while (current_old != null && current_old.isPortal()) {

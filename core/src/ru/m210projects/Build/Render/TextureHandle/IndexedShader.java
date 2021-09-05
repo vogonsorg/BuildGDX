@@ -29,7 +29,7 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ "uniform sampler2D u_palette;" //
 			+ "uniform sampler2D u_palookup;" //
 			+ "uniform int u_shade;" //
-			+ "uniform float u_numshades;" //
+			+ "uniform int u_numshades;" //
 			+ "uniform float u_visibility;" //
 			+ "uniform float u_alpha;" //
 			+ "uniform int u_draw255;" //
@@ -51,7 +51,7 @@ public abstract class IndexedShader extends ShaderProgram {
 			+ "float getpalookup(int dashade) {" //
 			+ "	float davis = v_dist * u_visibility;" //
 //			+ "   if(u_fogenable != -1) davis = u_visibility / 64.0;" //
-			+ "	float shade = (min(max(float(dashade) + davis, 0.0), u_numshades - 1.0));" //
+			+ "	float shade = (min(max(float(dashade) + davis, 0.0), float(u_numshades - 1)));" //
 			+ "	return shade / 64.0;" //
 			+ "}" //
 			+ "void main()" //
@@ -170,7 +170,7 @@ public abstract class IndexedShader extends ShaderProgram {
 //	}
 
 	public void setTextureParams(int pal, int shade) {
-		setUniformf(numshadesloc, numshades);
+		setUniformi(numshadesloc, numshades);
 
 		bindPalette(GL20.GL_TEXTURE1);
 		setUniformi(paletteloc, 1);

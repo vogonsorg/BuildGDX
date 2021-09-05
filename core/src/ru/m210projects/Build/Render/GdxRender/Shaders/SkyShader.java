@@ -20,7 +20,7 @@ public class SkyShader {
 	public static final String fragment = "uniform sampler2D u_sky;\n" //
 			+ "uniform sampler2D u_palette;\n" //
 			+ "uniform sampler2D u_palookup;\n" //
-			+ "uniform float u_numshades;\n" //
+			+ "uniform int u_numshades;\n" //
 			+ "uniform int u_shade;\n" //
 			+ "uniform float u_alpha;\n" //
 			+ "uniform vec3 u_camera;\n" //
@@ -28,7 +28,7 @@ public class SkyShader {
 			+ "const float PI = 3.1415926538;\n" //
 			+ "\n" //
 			+ "float getpalookup(int dashade) {\n" //
-			+ "    float shade = (min(max(float(dashade), 0.0), u_numshades - 1.0));\n" //
+			+ "    float shade = (min(max(float(dashade), 0.0), float(u_numshades - 1)));\n" //
 			+ "    return shade / 64.0;\n" //
 			+ "}\n" //
 			+ "\n" //

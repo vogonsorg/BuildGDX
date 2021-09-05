@@ -28,6 +28,8 @@ import com.badlogic.gdx.math.Vector3;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Pragmas;
+import ru.m210projects.Build.Types.QuickSort;
+import ru.m210projects.Build.Types.QuickSort.IntComparator;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.WALL;
@@ -68,9 +70,7 @@ public abstract class SectorScanner {
 	private byte[] wallflags;
 	protected Engine engine;
 
-//	public SPRITE[] tsprite;
-//	public int spritesortcnt;
-	public Integer[] maskwall = new Integer[MAXWALLS]; // XXX memory leak
+	public int[] maskwall = new int[MAXWALLS];
 	public int maskwallcnt;
 
 	private SECTOR skyFloor, skyCeiling;
@@ -210,15 +210,10 @@ public abstract class SectorScanner {
 									}
 								}
 
-//								int len = length;
 								if ((sectnum == cursectnum || bNearPlaneClipped) && clip == null) {
 									points = cl.ClipPolygon(cam.frustum, points);
 									if (points.size() < 3)
 										continue;
-
-//									len = cl.getSize();
-//									if (len < 3)
-//										continue;
 								}
 
 								if (wal.isOneWay() && clip == null)
@@ -321,8 +316,75 @@ public abstract class SectorScanner {
 			sectors.add(sec);
 		} while (pqhead != pqtail);
 
-		// Arrays.sort(maskwall, 0, maskwallcnt, comp); // masks sort TODO
+		QuickSort.sort(maskwall, maskwallcnt, wallcomp);
 		return;
+	}
+
+	protected IntComparator wallcomp = new IntComparator() {
+		@Override
+		public int compare(int o1, int o2) {
+			if (!wallfront(wall[o1], wall[o2]))
+				return -1;
+			return 0;
+		}
+	};
+
+	protected boolean wallfront(WALL w1, WALL w2) {
+		WALL wp1 = wall[w1.point2];
+		float x11 = w1.x;
+		float y11 = w1.y;
+		float x21 = wp1.x;
+		float y21 = wp1.y;
+
+		WALL wp2 = wall[w2.point2];
+		float x12 = w2.x;
+		float y12 = w2.y;
+		float x22 = wp2.x;
+		float y22 = wp2.y;
+
+		float dx = x21 - x11;
+		float dy = y21 - y11;
+
+		final double f = 0.001;
+		final double invf = 1.0 - f;
+		double px = (x12 * invf) + (x22 * f);
+		double py = (y12 * invf) + (y22 * f);
+
+		double cross = dx * (py - y11) - dy * (px - x11);
+		boolean t1 = (cross < 0.00001); // p1(l2) vs. l1
+
+		px = (x22 * invf) + (x12 * f);
+		py = (y22 * invf) + (y12 * f);
+		double cross1 = dx * (py - y11) - dy * (px - x11);
+		boolean t2 = (cross1 < 0.00001); // p2(l2) vs. l1
+
+		if (t1 == t2) {
+			t1 = (dx * (globalposy - y11) - dy * (globalposx - x11) < 0.00001); // pos vs. l1
+			if (t2 == t1) {
+				return true;
+			}
+		}
+
+		dx = x22 - x12;
+		dy = y22 - y12;
+
+		px = (x11 * invf) + (x21 * f);
+		py = (y11 * invf) + (y21 * f);
+
+		double cross3 = dx * (py - y12) - dy * (px - x12);
+		t1 = (cross3 < 0.00001); // p1(l1) vs. l2
+
+		px = (x21 * invf) + (x11 * f);
+		py = (y21 * invf) + (y11 * f);
+		double cross4 = dx * (py - y12) - dy * (px - x12);
+		t2 = (cross4 < 0.00001); // p2(l1) vs. l2
+
+		if (t1 == t2) {
+			t1 = (dx * (globalposy - y12) - dy * (globalposx - x12) < 0.00001); // pos vs. l2
+			return t2 != t1;
+		}
+
+		return false;
 	}
 
 	public SECTOR getLastSkySector(Heinum h) {
@@ -360,16 +422,10 @@ public abstract class SectorScanner {
 	public boolean spriteInFrustum(WallFrustum3d frustum, SPRITE tspr) {
 		Vector3[] points = tmpVec;
 		float SIZEX = 0.5f;
-//		float SIZEY = 1.0f;
 		float SIZEY = 0.5f;
 
 		Matrix4 mat = getSpriteMatrix(tspr);
 		if (mat != null) {
-//			points[0].set(SIZEX, 0, -SIZEY).mul(mat);
-//			points[1].set(SIZEX, 0, 0).mul(mat);
-//			points[2].set(-SIZEX, 0, 0).mul(mat);
-//			points[3].set(-SIZEX, 0, -SIZEY).mul(mat);
-
 			points[0].set(-SIZEX, SIZEY, 0).mul(mat);
 			points[1].set(SIZEX, SIZEY, 0).mul(mat);
 			points[2].set(SIZEX, -SIZEY, 0).mul(mat);
@@ -468,7 +524,7 @@ public abstract class SectorScanner {
 		return maskwallcnt;
 	}
 
-	public Integer[] getMaskwalls() {
+	public int[] getMaskwalls() {
 		return maskwall;
 	}
 }

@@ -52,7 +52,7 @@ public abstract class IndexedSkyShaderProgram extends IndexedShader {
 
 	@Override
 	public void setTextureParams(int pal, int shade) {
-		setUniformf(numshadesloc, numshades);
+		setUniformi(numshadesloc, numshades);
 
 		bindPalette(GL20.GL_TEXTURE1);
 		setUniformi(paletteloc, 1);

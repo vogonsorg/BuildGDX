@@ -39,7 +39,7 @@ public class WorldShader {
 			+ "uniform sampler2D u_palette;\n" //
 			+ "uniform sampler2D u_palookup;\n" //
 			+ "\n" //
-			+ "uniform float u_numshades;\n" //
+			+ "uniform int u_numshades;\n" //
 			+ "uniform float u_visibility;\n" //
 			+ "uniform int u_shade;\n" //
 			+ "uniform bool u_draw255;\n" //
@@ -55,7 +55,7 @@ public class WorldShader {
 			+ "\n" //
 			+ "float getpalookup(int dashade) {\n" //
 			+ "    float davis = v_dist * u_visibility;\n" //
-			+ "    float shade = (min(max(float(dashade) + davis, 0.0), u_numshades - 1.0));\n" //
+			+ "    float shade = (min(max(float(dashade) + davis, 0.0), float(u_numshades - 1)));\n" //
 			+ "    return shade / 64.0;\n" //
 			+ "}\n" //
 			+ "\n" //

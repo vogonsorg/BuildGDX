@@ -94,8 +94,6 @@ public class GDXRenderer implements GLRenderer {
 
 //	TODO:
 //  Desktop resolution after software renderer switch
-//	Scansectors memory leak (WallFrustum)
-//	Maskwall sorts
 //  Skies panning
 //  Tekwar skies
 //  Shadow warrior sprite visible bug
@@ -292,11 +290,13 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void drawmasks() {
+		int[] maskwalls = scanner.getMaskwalls();
 		int maskwallcnt = scanner.getMaskwallCount();
+
 		sprR.sort(scanner.getSprites(), spritesortcnt);
 
 		while ((spritesortcnt > 0) && (maskwallcnt > 0)) { // While BOTH > 0
-			int j = scanner.getMaskwalls()[maskwallcnt - 1];
+			int j = maskwalls[maskwallcnt - 1];
 			if (!spritewallfront(scanner.getSprites()[spritesortcnt - 1], j))
 				drawsprite(--spritesortcnt);
 			else {
