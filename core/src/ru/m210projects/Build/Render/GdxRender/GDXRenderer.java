@@ -96,14 +96,15 @@ public class GDXRenderer implements GLRenderer {
 //  Desktop resolution after software renderer switch
 //  Skies panning
 //  Tekwar skies
-//  Shadow warrior sprite visible bug
-//	Sprite ZFighting
-
 //	Hires + models
 //  RGB shader fog
+
+//	Sprite ZFighting
+//	RRRA drunk mode fov change
 //  Blood E1M1 floor sprite invisible
 //	Blood drunk effect
 //	Skyboxes
+//  Shadow warrior sprite visible bug
 //  Duke E2L7 wall vis bug (scanner bug)
 //  Duke E4L11 wall vis bug (scanner bug)
 
