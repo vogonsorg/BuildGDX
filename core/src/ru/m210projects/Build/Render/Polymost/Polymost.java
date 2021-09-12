@@ -72,7 +72,7 @@ import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.MDModel;
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 import ru.m210projects.Build.Loader.MD3.MD3Model;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -81,6 +81,11 @@ import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
+import ru.m210projects.Build.Render.ModelHandle.GLModel;
+import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL10;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
@@ -480,11 +485,11 @@ public class Polymost implements GLRenderer {
 			return;
 
 		for (int i = MAXTILES - 1; i >= 0; i--) {
-			Model m = defs.mdInfo.getModel(i);
+			OldModel m = defs.mdInfo.getModel(i);
 			if (m != null && !bit8only)
 				m.clearSkins();
 
-			Model vox = defs.mdInfo.getVoxModel(i);
+			OldModel vox = defs.mdInfo.getVoxModel(i);
 			if (vox != null && !bit8only)
 				vox.clearSkins();
 		}
@@ -500,7 +505,7 @@ public class Polymost implements GLRenderer {
 
 		int anisotropy = GLSettings.textureAnisotropy.get();
 		for (int i = MAXTILES - 1; i >= 0; i--) {
-			Model m = defs.mdInfo.getModel(i);
+			OldModel m = defs.mdInfo.getModel(i);
 			if (m != null) {
 				Iterator<GLTile[]> it = m.getSkins();
 				while (it.hasNext()) {
@@ -2616,6 +2621,19 @@ public class Polymost implements GLRenderer {
 	private final Vector2[] dcoord = new Vector2[MAXSPRITES];
 	private final int[] spritewall = new int[MAXSPRITES];
 
+	private GLModel[] models = new GLModel[MAXTILES];
+
+	protected GLModel getModel(int picnum) {
+		VoxelData entry = defs != null ? defs.mdInfo.getVoxelData(picnum) : null;
+		if (entry != null) {
+			GLModel model = models[picnum];
+			if(model == null)
+				model = models[picnum] = new VoxelGL10(entry, 0, true);
+			return model;
+		}
+		return null;
+	}
+
 	private void drawsprite(int snum) {
 		float f, c, s, fx, fy, sx0, sy0, sx1, xp0, yp0, xp1, yp1, oxp0, oyp0, ryp0, ryp1;
 		float x0, y0, x1, y1, sc0, sf0, sc1, sf1, xv, yv, t0, t1;
@@ -2693,6 +2711,27 @@ public class Polymost implements GLRenderer {
 			}
 
 			if (BuildSettings.useVoxels.get()) {
+//				{
+//					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
+//					if (dist < 48000L * 48000L) {
+//						GLModel model = getModel(globalpicnum);
+//						if(model != null && model.getType() == Type.Voxel) {
+//							calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
+//
+//							if ((tspr.cstat & 48) != 48) {
+//								if (mdrenderer.voxdraw((GLVoxel) model, tspr) != 0)
+//									return;
+//								break; // else, render as flat sprite
+//							}
+//
+//							if ((tspr.cstat & 48) == 48) {
+//								mdrenderer.voxdraw((GLVoxel) model, tspr);
+//								return;
+//							}
+//						}
+//					}
+//				}
+
 				Tile2model entry = defs != null ? defs.mdInfo.getParams(globalpicnum) : null;
 				if (entry != null) {
 					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
@@ -3290,14 +3329,14 @@ public class Polymost implements GLRenderer {
 		if (skin != null)
 			return skin;
 
-//		long startticks = System.currentTimeMillis();
+//		long startticks = System.nanoTime();
 		TileData dat = vox.loadskin(fmt, dapal);
 		GLTile tex = textureCache.newTile(dat, dapal, false);
 		tex.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
 		tex.unsafeSetAnisotropicFilter(1, true);
 		vox.setSkin(tex, dapal);
-//		long etime = System.currentTimeMillis()-startticks;
-//		System.out.println("Load voxskin: p" + dapal +  "... " + etime + " ms");
+//		long etime = System.nanoTime() - startticks;
+//		System.out.println("Load voxskin: p" + dapal + "... " + (etime / 1000000.0f) + " ms");
 		return tex;
 	}
 

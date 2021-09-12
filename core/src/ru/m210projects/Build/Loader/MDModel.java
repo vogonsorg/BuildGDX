@@ -38,7 +38,7 @@ import ru.m210projects.Build.Script.ModelInfo.Spritesmooth;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
 
-public abstract class MDModel extends Model {
+public abstract class MDModel extends OldModel {
 	public MDSkinmap skinmap;
 	public int numskins, skinloaded; // set to 1+numofskin when a skin is loaded and the tex coords are modified,
 
@@ -320,7 +320,7 @@ public abstract class MDModel extends Model {
 		// possibly fetch an already loaded multitexture :_)
 		if (pal >= (MAXPALOOKUPS - RESERVEDPALS)) {
 			for (int i = MAXTILES - 1; i >= 0; i--) {
-				Model m = defs.mdInfo.getModel(i);
+				OldModel m = defs.mdInfo.getModel(i);
 				if (m == null || m.mdnum < 2)
 					continue;
 

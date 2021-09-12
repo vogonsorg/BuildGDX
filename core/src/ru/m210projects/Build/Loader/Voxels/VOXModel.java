@@ -16,14 +16,14 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Iterator;
 
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
 import ru.m210projects.Build.Render.Types.TextureBuffer;
 
-public class VOXModel extends Model {
+public class VOXModel extends OldModel {
 
 	public GLTile[] texid;
 

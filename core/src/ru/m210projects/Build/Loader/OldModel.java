@@ -14,7 +14,7 @@ import java.util.Iterator;
 
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
-public abstract class Model {
+public abstract class OldModel {
 
 	public static final int MD_ROTATE = 2;
 

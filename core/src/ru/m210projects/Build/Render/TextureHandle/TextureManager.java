@@ -116,7 +116,7 @@ public class TextureManager {
 				tile.setInvalidated(false);
 
 				TileData data = loadPic(fmt, si, dapicnum, dapalnum, clamping, alpha, skybox);
-				tile.update(data, useMipMaps);
+				tile.update(data, dapalnum, useMipMaps);
 			}
 		} else {
 //			if (tile != null)
@@ -401,7 +401,7 @@ public class TextureManager {
 			TileData dat = new LookupData(Engine.palookup[pal]);
 			if (palookups[pal] != null) {
 				palookups[pal].setInvalidated(false);
-				palookups[pal].update(dat, false);
+				palookups[pal].update(dat, 0, false);
 			} else
 				palookups[pal] = newTile(dat, 0, false);
 
@@ -425,7 +425,7 @@ public class TextureManager {
 	public void changePalette(byte[] pal) {
 		TileData dat = new PaletteData(pal);
 		if (palette != null)
-			palette.update(dat, false);
+			palette.update(dat, 0, false);
 		else
 			palette = newTile(dat, 0, false);
 

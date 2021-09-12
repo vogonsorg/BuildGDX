@@ -65,6 +65,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	};
 
 	protected int width, height;
+	private boolean isAllocated;
 //	private boolean isRequireShader;
 	protected PixelFormat fmt;
 	protected float anisotropicFilterLevel = 1.0f;
@@ -82,6 +83,9 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		this.width = width;
 		this.height = height;
 		this.fmt = fmt;
+		this.isAllocated = false;
+
+		scalex = scaley = 1.0f;
 	}
 
 	public GLTile(TileData pic, int palnum, boolean useMipMaps) {
@@ -112,6 +116,8 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 
 		setupTextureFilter(GLSettings.textureFilter.get(), GLSettings.textureAnisotropy.get());
 		setupTextureWrap(!pic.isClamped() ? TextureWrap.Repeat : TextureWrap.ClampToEdge);
+
+		this.isAllocated = true;
 	}
 
 	public PixelFormat getPixelFormat() {
@@ -122,7 +128,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		BuildGdx.gl.glColor4f(r, g, b, a); // GL30 exception
 	}
 
-	public void update(TileData pic, boolean useMipMaps) {
+	public void update(TileData pic, int pal, boolean useMipMaps) {
 		BuildGdx.gl.glBindTexture(glTarget, glHandle);
 
 		int width = pic.getWidth();
@@ -141,12 +147,21 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 			this.height = pic.getHeight();
 
 			alloc(pic);
-		} else
-			BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
-					GL_UNSIGNED_BYTE, pic.getPixels());
+		} else {
+			if (!isAllocated)
+				alloc(pic);
+			else
+				BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
+						GL_UNSIGNED_BYTE, pic.getPixels());
+		}
 
 		if (useMipMaps)
 			generateMipmap(pic, false);
+
+		setClamped(pic.isClamped());
+		setHasAlpha(pic.hasAlpha());
+
+		this.palnum = pal;
 
 		pic.dispose();
 	}

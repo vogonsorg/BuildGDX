@@ -20,7 +20,7 @@ import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.SPECULARPAL;
 import static ru.m210projects.Build.Engine.palette;
 import static ru.m210projects.Build.Gameutils.BClipRange;
-import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
+import static ru.m210projects.Build.Loader.OldModel.MD_ROTATE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 import static ru.m210projects.Build.Strhandler.toLowerCase;
@@ -44,7 +44,7 @@ import ru.m210projects.Build.FileHandle.FileUtils;
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Loader.MDModel;
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 import ru.m210projects.Build.Loader.MD2.MD2Loader;
 import ru.m210projects.Build.Loader.MD3.MD3Loader;
 import ru.m210projects.Build.Loader.Voxels.KVXLoader;
@@ -882,7 +882,7 @@ public class DefScript {
 				return BaseToken.Warning;
 			}
 
-			Model m = null;
+			OldModel m = null;
 			int sign = res.readInt();
 			res.seek(0, Whence.Set);
 			switch (sign) {

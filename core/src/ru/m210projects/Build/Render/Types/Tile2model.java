@@ -9,14 +9,14 @@
 
 package ru.m210projects.Build.Render.Types;
 
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.Script.ModelInfo.AnimationInfo;
 import ru.m210projects.Build.Script.ModelInfo.SkinInfo;
 
 public class Tile2model {
 	// maps build tiles to particular animation frames of a model
-	public Model 	model;
+	public OldModel 	model;
 	public Voxel	voxel;
 	public int     	skinnum;
     public int     	framenum;   // calculate the number from the name when declaring

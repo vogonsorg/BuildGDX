@@ -22,21 +22,22 @@ import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 
 import ru.m210projects.Build.Loader.MDModel;
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.Loader.Voxels.Voxel;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Tile2model;
 
 public class ModelInfo {
-	
+
     public class AnimationInfo
 	{
 		public final String framestart;
 		public final String frameend;
-		public final int fpssc; 
+		public final int fpssc;
 		public final int flags;
-		
+
 		public AnimationInfo(String framestart, String frameend, int fpssc, int flags)
 		{
 			this.framestart = framestart;
@@ -45,7 +46,7 @@ public class ModelInfo {
 			this.flags = flags;
 		}
 	}
-    
+
     public class SkinInfo
     {
     	public final String skinfn;
@@ -55,7 +56,7 @@ public class ModelInfo {
     	public final double param;
     	public final double specpower;
     	public final double specfactor;
-    	
+
     	public SkinInfo(String skinfn, int palnum, int skinnum, int surfnum, double param, double specpower, double specfactor)
     	{
     		this.skinfn = skinfn;
@@ -67,7 +68,7 @@ public class ModelInfo {
 			this.specfactor = specfactor;
     	}
     }
-    
+
 	private Tile2model[] cache = new Tile2model[MAXTILES];
 	private Hudtyp[][] hudInfo = new Hudtyp[2][MAXTILES];
 	public static class Spritesmooth {
@@ -88,14 +89,14 @@ public class ModelInfo {
 		for (int i = 0; i < spritesmooth.length; i++)
 			spritesmooth[i] = new Spritesmooth();
 	}
-	
+
 	public ModelInfo(ModelInfo src, boolean disposable)
 	{
 		for(int i = 0; i < cache.length; i++) {
 			if(src.cache[i] != null)
 				cache[i] = src.cache[i].clone(disposable);
 		}
-		for(int i = 0; i < 2; i++) 
+		for(int i = 0; i < 2; i++)
 			for(int j = 0; j < MAXTILES; j++) {
 				if(src.hudInfo[i] != null && src.hudInfo[i][j] != null)
 					hudInfo[i][j] = src.hudInfo[i][j].clone();
@@ -109,52 +110,52 @@ public class ModelInfo {
 		return spritesmooth[i];
 	}
 
-	public Model getModel(int picnum)
+	public OldModel getModel(int picnum)
 	{
 		if(cache[picnum] != null)
 			return cache[picnum].model;
-		
+
 		return null;
 	}
-	
+
 	public Voxel getVoxel(int picnum)
 	{
 		if(cache[picnum] != null)
 			return cache[picnum].voxel;
-		
+
 		return null;
 	}
-	
+
 	public VOXModel getVoxModel(int picnum)
 	{
 		if(cache[picnum] != null && cache[picnum].voxel != null)
 			return cache[picnum].voxel.model;
-		
+
 		return null;
 	}
-	
+
 	public Tile2model getParams(int picnum)
 	{
 		if(cache[picnum] != null)
 			return cache[picnum];
-		
+
 		return null;
 	}
-	
+
 	public Hudtyp getHudInfo(int picnum, int flags)
 	{
 		if(hudInfo[(flags>>2)&1] != null)
 			return hudInfo[(flags>>2)&1][picnum];
-		
+
 		return null;
 	}
-	
-	public int addModelInfo(Model md, int picnum, String framename, int skinnum, float smooth)
+
+	public int addModelInfo(OldModel md, int picnum, String framename, int skinnum, float smooth)
 	{
 		if (picnum >= MAXTILES) return(-2);
 	    if (framename == null) return(-3);
 	    if(md == null) return -1;
-	   
+
 	    int i = -3;
 	    switch(md.mdnum)
 	    {
@@ -166,7 +167,7 @@ public class ModelInfo {
 	    	i = ((MDModel)md).getFrameIndex(framename);
 	    	break;
 	    }
-	    
+
 	    if(cache[picnum] == null)
 	    	cache[picnum] = new Tile2model();
 	    //else flush(); //XXX
@@ -178,12 +179,29 @@ public class ModelInfo {
 
 	    return i;
 	}
-	
+
+	//XXX Temporaly
+	private VoxelData[] voxdatas = new VoxelData[MAXTILES];
+	public int addVoxelData(VoxelData dat, int picnum) {
+		if (picnum >= MAXTILES) return(-2);
+	    if(dat == null) return -1;
+
+	    voxdatas[picnum] = dat;
+	    return 0;
+	}
+
+	public VoxelData getVoxelData(int picnum) {
+		if(voxdatas[picnum] != null)
+			return voxdatas[picnum];
+
+		return null;
+	}
+
 	public int addVoxelInfo(Voxel md, int picnum)
 	{
 		if (picnum >= MAXTILES) return(-2);
 	    if(md == null) return -1;
-	    
+
 	    if(cache[picnum] == null)
 	    	cache[picnum] = new Tile2model();
 
@@ -191,12 +209,12 @@ public class ModelInfo {
 	    return 0;
 	}
 
-	public void removeModelInfo(Model md)
+	public void removeModelInfo(OldModel md)
 	{
 		for (int i=MAXTILES-1; i>=0; i--) {
 			if(cache[i] == null) continue;
-			
-	        if (cache[i].model == md || (cache[i].voxel != null && cache[i].voxel.model == md)) 
+
+	        if (cache[i].model == md || (cache[i].voxel != null && cache[i].voxel.model == md))
 	        {
 	        	cache[i].model = null;
 	            cache[i].voxel = null;
@@ -204,11 +222,11 @@ public class ModelInfo {
 	        }
 	    }
 	}
-	
+
 	public int addHudInfo(int tilex, double xadd, double yadd, double zadd, short angadd, int flags, int fov)
 	{
 	    if (tilex >= MAXTILES) return -2;
-	    
+
 	    if(hudInfo[(flags>>2)&1] == null || hudInfo[(flags>>2)&1][tilex] == null)
 	    	hudInfo[(flags>>2)&1][tilex] = new Hudtyp();
 
@@ -227,10 +245,10 @@ public class ModelInfo {
 	public void dispose() {
 		for (int i=MAXTILES-1; i>=0; i--) {
 			if(cache[i] == null) continue;
-			
-			if(!cache[i].disposable) 
+
+			if(!cache[i].disposable)
 				continue;
-			
+
 	        if (cache[i].model != null) {
 	            cache[i].model.free();
 	            cache[i].model = null;
@@ -240,7 +258,7 @@ public class ModelInfo {
 	        		cache[i].voxel.model.free();
 	            cache[i].voxel = null;
 	        }
-	        
+
 	        cache[i] = null;
 	    }
 	}

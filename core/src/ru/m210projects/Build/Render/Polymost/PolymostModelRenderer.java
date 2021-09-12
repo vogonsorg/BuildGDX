@@ -46,7 +46,7 @@ import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.xdimen;
-import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
+import static ru.m210projects.Build.Loader.OldModel.MD_ROTATE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.Render.Polymost.Polymost.r_vertexarrays;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
@@ -66,7 +66,7 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Loader.MDModel;
 import ru.m210projects.Build.Loader.MDSkinmap;
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 import ru.m210projects.Build.Loader.MD2.MD2Frame;
 import ru.m210projects.Build.Loader.MD2.MD2Model;
 import ru.m210projects.Build.Loader.MD3.MD3Model;
@@ -74,6 +74,7 @@ import ru.m210projects.Build.Loader.MD3.MD3Surface;
 import ru.m210projects.Build.Loader.MD3.MD3Vertice;
 import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
@@ -104,6 +105,167 @@ public class PolymostModelRenderer {
 		this.textureCache = parent.textureCache;
 		this.engine = parent.engine;
 		this.gl = parent.gl;
+	}
+
+	public int voxdraw(GLVoxel m, SPRITE tspr) {
+		float f, g;
+
+		if (m == null)
+			return 0;
+
+		if ((sprite[tspr.owner].cstat & 48) == 32)
+			return 0;
+
+		int globalorientation = parent.globalorientation;
+
+		boolean xflip = (globalorientation & 4) != 0;
+		boolean yflip = (globalorientation & 8) != 0;
+
+		dvoxm0.x = m.getScale();
+		dvoxm0.y = m.getScale();
+		dvoxm0.z = m.getScale();
+		modela0.x = modela0.y = modela0.z = 0;
+
+		f = (tspr.xrepeat) * (256.0f / 320.0f) / 64.0f;
+		if ((sprite[tspr.owner].cstat & 48) == 16)
+			f *= 1.25f;
+		if ((sprite[tspr.owner].cstat & 48) == 32)
+			f *= 1.25f;
+
+		dvoxm0.x *= f;
+		modela0.x *= f;
+		f = -f;
+		dvoxm0.y *= f;
+		modela0.y *= f;
+		f = (tspr.yrepeat) / 64.0f;
+		dvoxm0.z *= f;
+		modela0.z *= f;
+
+		float x0 = tspr.x;
+		float k0 = tspr.z;
+		float xoff = tspr.xoffset;
+		float yoff = tspr.yoffset;
+
+		xflip = (globalorientation & 4) != 0;
+		if (yflip = (globalorientation & 8) != 0)
+			yoff = -yoff;
+
+		if ((globalorientation & 128) == 0)
+			// k0 -= (engine.getTile(tspr.picnum).getHeight() * tspr.yrepeat) << 1; GDX this
+			// more correct, but disabled for compatible with eduke
+			k0 -= ((m.zsiz * tspr.yrepeat) << 1);
+
+		if (yflip && (globalorientation & 16) == 0)
+			k0 += ((engine.getTile(tspr.picnum).getHeight() * 0.5f) - m.zpiv) * tspr.yrepeat * 8.0f;
+
+		f = (65536.0f * 512.0f) / (xdimen * viewingrange);
+		g = 32.0f / (float) (xdimen * parent.gxyaspect);
+
+		// x0 += xoff * (tspr.xrepeat >> 2);
+		// k0 -= yoff * (tspr.yrepeat << 2);
+
+		dvoxm0.y *= f;
+		if ((sprite[tspr.owner].cstat & 48) == 32)
+			dvoxm0.y *= -1;
+		modela0.y = ((x0 - globalposx) / 1024.0f + modela0.y) * f;
+		dvoxm0.x *= -f;
+		if ((sprite[tspr.owner].cstat & 48) == 32)
+			dvoxm0.x *= -1;
+		if (xflip)
+			dvoxm0.x *= -1;
+		modela0.x = ((tspr.y - globalposy) / -1024.0f + modela0.x) * -f;
+		dvoxm0.z *= g;
+		if (yflip)
+			dvoxm0.z *= -1;
+		modela0.z = ((k0 - globalposz) / -16384.0f + modela0.z) * g;
+
+		if ((parent.grhalfxdown10x >= 0) ^ yflip ^ xflip)
+			gl.glFrontFace(GL_CW);
+		else
+			gl.glFrontFace(GL_CCW);
+
+		gl.glEnable(GL_CULL_FACE);
+		gl.glCullFace(GL_BACK);
+
+		gl.glEnable(GL_TEXTURE_2D);
+
+		polyColor.r = polyColor.g = polyColor.b = (numshades
+				- min(max((globalshade * parent.shadescale)/* + m.shadeoff */, 0), numshades)) / (numshades);
+
+		if (parent.defs != null) {
+			Palette p = parent.defs.texInfo.getTints(globalpal);
+			polyColor.r *= p.r / 255.0f;
+			polyColor.g *= p.g / 255.0f;
+			polyColor.b *= p.b / 255.0f;
+		}
+
+		if ((tspr.cstat & 2) != 0) {
+			if ((tspr.cstat & 512) == 0)
+				polyColor.a = TRANSLUSCENT1;
+			else
+				polyColor.a = TRANSLUSCENT2;
+		} else
+			polyColor.a = 1.0f;
+		if ((tspr.cstat & 2) != 0)
+			gl.glEnable(GL_BLEND);
+
+		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
+		boolean newmatrix = false;
+
+		// ------------ Matrix
+		if (!newmatrix)
+			md3_vox_calcmat_common(tspr, modela0, f, matrix);
+		else {
+			md3_vox_calcmat_common(tspr, modela0);
+		}
+
+		if (!newmatrix) {
+			matrix[0][3] = matrix[1][3] = matrix[2][3] = 0.f;
+			matrix[3][3] = 1.f;
+			gl.glLoadMatrixf(matrix);
+		}
+
+		gl.glScalef(dvoxm0.x / 64.0f, dvoxm0.z / 64.0f, dvoxm0.y / 64.0f);
+		gl.glTranslatef(-xoff, yoff, 0);
+
+		if (m.isRotating())
+			gl.glRotatef(totalclock % 360, 0, 1, 0);
+
+		// transform to Build coords
+		if ((tspr.cstat & 48) == 32) {
+			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
+			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
+			gl.glRotatef(90, -1.0f, 0.0f, 0.0f);
+			gl.glTranslatef(0, -m.ypiv, -m.zpiv);
+		} else {
+			gl.glRotatef(90, 1.0f, 0.0f, 0.0f);
+			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
+		}
+
+		GLTile skin = m.getSkin(parent.getTextureFormat(), globalpal);
+		if (skin == null) {
+			if ((skin = m.loadSkin(textureCache.newTile(parent.getTextureFormat(), m.getSkinWidth(), m.getSkinHeight()),
+					globalpal)) == null)
+				return 0;
+		}
+
+		parent.bind(skin);
+		if (skin.getPixelFormat() == PixelFormat.Pal8) {
+			parent.getShader().setTextureParams(globalpal, globalshade);
+			parent.getShader().setDrawLastIndex(true);
+			parent.getShader().setTransparent(polyColor.a);
+			parent.getShader().setVisibility((int) (parent.globalfog.combvis));
+		}
+
+		parent.globalfog.apply();
+		m.setColor(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+		m.render(parent.getShader());
+
+		// ------------
+		gl.glDisable(GL_CULL_FACE);
+		gl.glLoadIdentity();
+
+		return 1;
 	}
 
 	public int voxdraw(VOXModel m, SPRITE tspr) {
@@ -249,6 +411,7 @@ public class PolymostModelRenderer {
 
 		dvoxphack[0] = 0;
 		dvoxphack[1] = 1.f / 256.f;
+
 		GLTile skin = parent.getVoxelSkin(m, globalpal);
 		if (skin == null)
 			return 0;
@@ -262,6 +425,7 @@ public class PolymostModelRenderer {
 		}
 
 		parent.globalfog.apply();
+
 		if (r_vertexarrays != 0) {
 			gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 			gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -269,6 +433,8 @@ public class PolymostModelRenderer {
 			gl.glEnableClientState(GL_VERTEX_ARRAY);
 			gl.glVertexPointer(3, GL_FLOAT, 0, m.verticesBuffer);
 			gl.glDrawElements(GL_QUADS, 0, GL_UNSIGNED_SHORT, m.indicesBuffer);
+			gl.glDisableClientState(GL_VERTEX_ARRAY);
+			gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		} else {
 			gl.glBegin(GL_QUADS);
 			for (i = 0, fi = 0; i < m.qcnt; i++) {
@@ -293,11 +459,6 @@ public class PolymostModelRenderer {
 				}
 			}
 			gl.glEnd();
-		}
-
-		if (r_vertexarrays != 0) {
-			gl.glDisableClientState(GL_VERTEX_ARRAY);
-			gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
 
 		// ------------
@@ -732,7 +893,7 @@ public class PolymostModelRenderer {
 	}
 
 	public int mddraw(SPRITE tspr, int xoff, int yoff) {
-		Model vm = parent.defs != null ? parent.defs.mdInfo.getModel(tspr.picnum) : null;
+		OldModel vm = parent.defs != null ? parent.defs.mdInfo.getModel(tspr.picnum) : null;
 
 		if (vm == null)
 			return 0;

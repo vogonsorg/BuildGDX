@@ -57,7 +57,7 @@ import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
@@ -889,7 +889,7 @@ public class GDXRenderer implements GLRenderer {
 			return;
 
 		for (int i = MAXTILES - 1; i >= 0; i--) {
-			Model m = defs.mdInfo.getModel(i);
+			OldModel m = defs.mdInfo.getModel(i);
 			if (m != null) {
 				Iterator<GLTile[]> it = m.getSkins();
 				while (it.hasNext()) {
@@ -1162,7 +1162,7 @@ public class GDXRenderer implements GLRenderer {
 				tile.setInvalidated(false);
 
 				TileData data = loadPic(fmt, picnum, palnum);
-				tile.update(data, useMipMaps);
+				tile.update(data, palnum, useMipMaps);
 			}
 		} else {
 //			if (tile != null)

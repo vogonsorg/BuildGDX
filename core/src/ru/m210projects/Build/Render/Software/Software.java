@@ -83,7 +83,7 @@ import static ru.m210projects.Build.Engine.xyaspect;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Engine.ydimen;
 import static ru.m210projects.Build.Engine.yxaspect;
-import static ru.m210projects.Build.Loader.Model.MD_ROTATE;
+import static ru.m210projects.Build.Loader.OldModel.MD_ROTATE;
 import static ru.m210projects.Build.Loader.Voxels.Voxel.MAXVOXMIPS;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;

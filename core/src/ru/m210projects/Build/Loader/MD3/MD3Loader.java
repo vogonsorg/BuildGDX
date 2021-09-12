@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -31,7 +31,7 @@ public class MD3Loader {
 	private static int maxtris = 0;
 	private static int maxverts = 0;	
 	
-	public static Model load(Resource bb) {
+	public static OldModel load(Resource bb) {
 		MD3Header header = loadHeader(bb);
 		
 		if ((header.ident != 0x33504449) || (header.version != 15)) return null; //"IDP3"

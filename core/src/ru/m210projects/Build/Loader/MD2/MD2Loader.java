@@ -18,13 +18,13 @@ package ru.m210projects.Build.Loader.MD2;
 
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
-import ru.m210projects.Build.Loader.Model;
+import ru.m210projects.Build.Loader.OldModel;
 
 import com.badlogic.gdx.utils.BufferUtils;
 
 public class MD2Loader {	
 
-	public static Model load(Resource bb) {
+	public static OldModel load(Resource bb) {
 		MD2Header header = loadHeader(bb);
 		
 		if ((header.ident != 0x32504449) || (header.version != 8)) return null; //"IDP2"

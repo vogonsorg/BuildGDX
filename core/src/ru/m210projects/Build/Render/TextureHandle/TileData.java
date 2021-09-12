@@ -64,10 +64,11 @@ public abstract class TileData {
 		int bytes = getPixelFormat().getLength();
 		if (bytes == 1) {
 			FileResource raw = BuildGdx.compat.open(name + ".raw", Path.Absolute, Mode.Write);
+			String path = raw.getPath();
 			raw.writeBytes(pixels, width * height);
 			raw.close();
 
-			System.out.println(raw.getPath() + " saved!");
+			System.out.println(path + " saved!");
 			return;
 		}
 
