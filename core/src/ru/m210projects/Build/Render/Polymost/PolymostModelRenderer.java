@@ -104,6 +104,9 @@ public class PolymostModelRenderer {
 		this.parent = parent;
 		this.textureCache = parent.textureCache;
 		this.engine = parent.engine;
+	}
+
+	public void init() {
 		this.gl = parent.gl;
 	}
 

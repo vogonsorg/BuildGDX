@@ -116,7 +116,7 @@ public class TextureManager {
 				tile.setInvalidated(false);
 
 				TileData data = loadPic(fmt, si, dapicnum, dapalnum, clamping, alpha, skybox);
-				tile.update(data, dapalnum, useMipMaps);
+				tile.update(data, fmt == PixelFormat.Pal8 ? 0 : dapalnum, useMipMaps);
 			}
 		} else {
 //			if (tile != null)

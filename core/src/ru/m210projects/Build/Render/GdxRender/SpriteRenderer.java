@@ -1,12 +1,14 @@
 package ru.m210projects.Build.Render.GdxRender;
 
 import static com.badlogic.gdx.graphics.GL20.*;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Engine.globalang;
 import static ru.m210projects.Build.Engine.globalposx;
 import static ru.m210projects.Build.Engine.globalposy;
 import static ru.m210projects.Build.Engine.globalposz;
 import static ru.m210projects.Build.Engine.globalvisibility;
 import static ru.m210projects.Build.Engine.sector;
+import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 
 import java.util.Comparator;
@@ -35,27 +37,37 @@ public class SpriteRenderer {
 	private GDXRenderer parent;
 	private Engine engine;
 
+	private int spritesz[] = new int[MAXSPRITES];
+
 	public class SpriteComparator implements Comparator<SPRITE> {
 		@Override
 		public int compare(SPRITE o1, SPRITE o2) {
 			if (o1 == null || o2 == null)
 				return 0;
 
+			if(o1.owner == o2.owner)
+				return 0;
+
 			int len1 = getDist(o1);
 			int len2 = getDist(o2);
+			if(len1 != len2)
+				return len1 < len2 ? -1 : 1;
 
-			if (len1 < len2)
+			if ((o1.cstat & 2) != 0)
 				return -1;
-			if (len1 > len2)
+
+			if ((o2.cstat & 2) != 0)
 				return 1;
-			return 0;
+
+			return (o1.statnum <= o2.statnum) ? -1 : 0;
 		}
 
 		public int getDist(SPRITE spr) {
 			int dx1 = spr.x - globalposx;
 			int dy1 = spr.y - globalposy;
+			int dz1 = (spritesz[spr.owner] - globalposz) >> 4;
 
-			return dx1 * dx1 + dy1 * dy1;
+			return dx1 * dx1 + dy1 * dy1 + dz1 * dz1;
 		}
 	}
 
@@ -67,6 +79,25 @@ public class SpriteRenderer {
 	}
 
 	public void sort(SPRITE[] array, int len) {
+		for(int i = 0; i < len; i++) {
+			SPRITE spr = array[i];
+			int s = spr.owner;
+			spritesz[s] = spr.z;
+			if(!Gameutils.isValidTile(spr.picnum))
+				continue;
+
+			if ((spr.cstat & 48) != 32) {
+				Tile pic = engine.getTile(spr.picnum);
+				byte yoff = (byte) (pic.getOffsetY() + spr.yoffset);
+				spritesz[s] -= ((yoff * spr.yrepeat) << 2);
+				int yspan = (pic.getHeight() * spr.yrepeat << 2);
+				if ((spr.cstat & 128) == 0)
+					spritesz[s] -= (yspan >> 1);
+				if (klabs(spritesz[s] - globalposz) < (yspan >> 1))
+					spritesz[s] = globalposz;
+			}
+		}
+
 		QuickSort.sort(array, len, comp);
 	}
 

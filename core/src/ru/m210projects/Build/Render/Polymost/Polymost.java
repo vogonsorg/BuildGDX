@@ -264,6 +264,7 @@ public class Polymost implements GLRenderer {
 			enableIndexedShader(GLSettings.usePaletteShader.get());
 
 			ortho.init();
+			mdrenderer.init();
 			globalfog.init(textureCache);
 
 			gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

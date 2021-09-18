@@ -93,14 +93,12 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  RedneckGDX MVEvideo
 //  Skies panning
 //  Tekwar skies
 //	Hires + models
 //  RGB shader fog
 
 //	Sprite ZFighting
-//  Blood E1M1 floor sprite invisible
 //	Blood drunk effect
 //	Skyboxes
 //  Shadow warrior sprite visible bug
@@ -300,18 +298,18 @@ public class GDXRenderer implements GLRenderer {
 		int[] maskwalls = scanner.getMaskwalls();
 		int maskwallcnt = scanner.getMaskwallCount();
 
-		sprR.sort(scanner.getSprites(), spritesortcnt);
+		sprR.sort(tsprite, spritesortcnt);
 
 		while ((spritesortcnt > 0) && (maskwallcnt > 0)) { // While BOTH > 0
 			int j = maskwalls[maskwallcnt - 1];
-			if (!spritewallfront(scanner.getSprites()[spritesortcnt - 1], j))
+			if (!spritewallfront(tsprite[spritesortcnt - 1], j))
 				drawsprite(--spritesortcnt);
 			else {
 				// Check to see if any sprites behind the masked wall...
 				for (int i = spritesortcnt - 2; i >= 0; i--) {
-					if (!spritewallfront(scanner.getSprites()[i], j)) {
+					if (!spritewallfront(tsprite[i], j)) {
 						drawsprite(i);
-						scanner.getSprites()[i] = null;
+						tsprite[i] = null;
 					}
 				}
 				// finally safe to draw the masked wall
@@ -321,7 +319,7 @@ public class GDXRenderer implements GLRenderer {
 
 		while (spritesortcnt != 0) {
 			spritesortcnt--;
-			if (scanner.getSprites()[spritesortcnt] != null) {
+			if (tsprite[spritesortcnt] != null) {
 				drawsprite(spritesortcnt);
 			}
 		}
@@ -401,7 +399,7 @@ public class GDXRenderer implements GLRenderer {
 
 	public void drawsprite(int i) {
 		sprR.begin(cam);
-		SPRITE tspr = scanner.getSprites()[i];
+		SPRITE tspr = tsprite[i];
 		if (tspr != null) {
 			rendering = Rendering.Sprite.setIndex(i);
 			sprR.draw(tspr);
