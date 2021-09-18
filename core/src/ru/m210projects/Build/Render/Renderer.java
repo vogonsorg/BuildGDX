@@ -67,6 +67,8 @@ public interface Renderer {
 
 	public void nextpage();
 
+	public void setview(int x1, int y1, int x2, int y2);
+
 	public void invalidatetile(int tilenume, int pal, int how);
 
 	public void rotatesprite(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,

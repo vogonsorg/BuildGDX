@@ -4113,4 +4113,9 @@ public class Polymost implements GLRenderer {
 	@Override
 	public void completemirror() {
 		/* nothing */ }
+
+	@Override
+	public void setview(int x1, int y1, int x2, int y2) {
+		/* nothing */
+	}
 }

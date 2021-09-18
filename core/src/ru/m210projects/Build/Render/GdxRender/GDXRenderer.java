@@ -150,9 +150,6 @@ public class GDXRenderer implements GLRenderer {
 	protected boolean[] mirrorTextures = new boolean[MAXTILES];
 
 	public GDXRenderer(Engine engine, IOverheadMapSettings settings) {
-		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
-			BuildGdx.app.setFrame(FrameType.GL);
-
 		this.engine = engine;
 		this.textureCache = getTextureManager();
 		this.manager = new ShaderManager();
@@ -179,6 +176,9 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void init() {
+		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
+			BuildGdx.app.setFrame(FrameType.GL);
+
 		GLInfo.init();
 		this.gl = BuildGdx.graphics.getGL20();
 
@@ -642,6 +642,12 @@ public class GDXRenderer implements GLRenderer {
 
 //		if (shape != null)
 //			shape.end();
+	}
+
+	@Override
+	public void setview(int x1, int y1, int x2, int y2) {
+		orphoRen.resize(x2, y2);
+		gloy1 = -1;
 	}
 
 	@Override

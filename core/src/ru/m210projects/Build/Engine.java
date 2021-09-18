@@ -3440,8 +3440,7 @@ public abstract class Engine {
 
 		setaspect_new();
 
-		if (render.getType() == RenderType.Software)
-			((Software) render).updateview();
+		render.setview(x1, y1, x2, y2);
 	}
 
 	public void setaspect(int daxrange, int daaspect) { // jfBuild
@@ -3454,8 +3453,12 @@ public abstract class Engine {
 		xdimscale = scale(320, xyaspect, xdimen);
 
 		if (render.getType() == RenderType.PolyGDX) {
+			int w = 320;
+			if((4 * xdim / 5) == ydim)
+				w = 300;
+			float k = daxrange / (float) divscale(xdim * 240, ydim * w, 16);
 			((GDXRenderer) render)
-					.setFieldOfView(offscreenrendering ? 110 : (float) Math.toDegrees(2 * Math.atan(fovFactor)));
+					.setFieldOfView(offscreenrendering ? 110 : (float) Math.toDegrees(2 * Math.atan(k * fovFactor)));
 		}
 	}
 

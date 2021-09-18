@@ -300,6 +300,11 @@ public class Software implements Renderer {
 		}
 	}
 
+	@Override
+	public void setview(int x1, int y1, int x2, int y2) {
+		updateview();
+	}
+
 	public void setviewtotile(int tilenume, int xsiz, int ysiz) {
 		// DRAWROOMS TO TILE BACKUP&SET CODE
 		Tile pic = engine.getTile(tilenume);
