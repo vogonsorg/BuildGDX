@@ -210,6 +210,95 @@ public class Polymost implements GLRenderer {
 		this.ortho = allocOrphoRenderer(settings);
 	}
 
+	@Override
+	public boolean isInited() {
+		return isInited;
+	}
+
+	@Override
+	public void uninit() {
+		// Reset if this is -1 (meaning 1st texture call ever), or > 0 (textures
+		// in memory)
+		if (gltexcacnum < 0) {
+			gltexcacnum = 0;
+
+			// Hack for polymost_dorotatesprite calls before 1st polymost_drawrooms()
+			gcosang = gcosang2 = 16384 / 262144.0f;
+			gsinang = gsinang2 = 0.0f;
+		}
+
+		gl.glDisable(GL_ALPHA_TEST);
+		gl.glDisable(GL_MULTISAMPLE);
+		gl.glDisable(GL_FOG);
+		gl.glMatrixMode(GL_PROJECTION);
+		gl.glLoadIdentity();
+		gl.glMatrixMode(GL_MODELVIEW);
+		gl.glLoadIdentity();
+		gl.glMatrixMode(GL_TEXTURE);
+		gl.glLoadIdentity();
+
+		textureCache.uninit();
+		clearskins(false);
+
+		ortho.uninit();
+
+		//
+		// Cachefile_Free();
+		// polymost_cachesync();
+
+		isInited = false;
+	}
+
+	@Override
+	public void init() {
+		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
+			BuildGdx.app.setFrame(FrameType.GL);
+		this.gl = BuildGdx.graphics.getGL10();
+
+		GLInfo.init();
+		gl.glShadeModel(GL_SMOOTH); // GL_FLAT
+		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
+		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+		enableIndexedShader(GLSettings.usePaletteShader.get());
+
+		ortho.init();
+		globalfog.init(textureCache);
+
+		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+		if (glmultisample > 0 && GLInfo.multisample != 0) {
+			if (GLInfo.nvmultisamplehint != 0)
+				gl.glHint(GL_MULTISAMPLE_FILTER_HINT_NV, glnvmultisamplehint != 0 ? GL_NICEST : GL_FASTEST);
+			gl.glEnable(GL_MULTISAMPLE);
+		}
+
+		if ((GLInfo.multitex == 0 || GLInfo.envcombine == 0)) {
+			if (Console.Geti("r_detailmapping") != 0) {
+				Console.Println("Your OpenGL implementation doesn't support detail mapping. Disabling...", 0);
+				Console.Set("r_detailmapping", 0);
+			}
+
+			if (Console.Geti("r_glowmapping") != 0) {
+				Console.Println("Your OpenGL implementation doesn't support glow mapping. Disabling...", 0);
+				Console.Set("r_glowmapping", 0);
+			}
+		}
+
+		if (r_vbos != 0 && (GLInfo.vbos == 0)) {
+			Console.Println("Your OpenGL implementation doesn't support Vertex Buffer Objects. Disabling...", 0);
+			r_vbos = 0;
+		}
+
+		Console.Println("Polymost renderer is initialized", OSDTEXT_GOLD);
+		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION),
+				OSDTEXT_GOLD);
+
+		isInited = true;
+	}
+
 	protected TextureManager newTextureManager(Engine engine) {
 		return new TextureManager(engine, ExpandTexture.Both);
 	}
@@ -540,95 +629,6 @@ public class Polymost implements GLRenderer {
 
 	public int gltexcacnum = -1;
 	float glox1, gloy1, glox2, gloy2;
-
-	@Override
-	public boolean isInited() {
-		return isInited;
-	}
-
-	@Override
-	public void uninit() {
-		// Reset if this is -1 (meaning 1st texture call ever), or > 0 (textures
-		// in memory)
-		if (gltexcacnum < 0) {
-			gltexcacnum = 0;
-
-			// Hack for polymost_dorotatesprite calls before 1st polymost_drawrooms()
-			gcosang = gcosang2 = 16384 / 262144.0f;
-			gsinang = gsinang2 = 0.0f;
-		}
-
-		gl.glDisable(GL_ALPHA_TEST);
-		gl.glDisable(GL_MULTISAMPLE);
-		gl.glDisable(GL_FOG);
-		gl.glMatrixMode(GL_PROJECTION);
-		gl.glLoadIdentity();
-		gl.glMatrixMode(GL_MODELVIEW);
-		gl.glLoadIdentity();
-		gl.glMatrixMode(GL_TEXTURE);
-		gl.glLoadIdentity();
-
-		textureCache.uninit();
-		clearskins(false);
-
-		ortho.uninit();
-
-		//
-		// Cachefile_Free();
-		// polymost_cachesync();
-
-		isInited = false;
-	}
-
-	@Override
-	public void init() {
-		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
-			BuildGdx.app.setFrame(FrameType.GL);
-		this.gl = BuildGdx.graphics.getGL10();
-
-		GLInfo.init();
-		gl.glShadeModel(GL_SMOOTH); // GL_FLAT
-		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
-		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-
-		enableIndexedShader(GLSettings.usePaletteShader.get());
-
-		ortho.init();
-		globalfog.init(textureCache);
-
-		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-		if (glmultisample > 0 && GLInfo.multisample != 0) {
-			if (GLInfo.nvmultisamplehint != 0)
-				gl.glHint(GL_MULTISAMPLE_FILTER_HINT_NV, glnvmultisamplehint != 0 ? GL_NICEST : GL_FASTEST);
-			gl.glEnable(GL_MULTISAMPLE);
-		}
-
-		if ((GLInfo.multitex == 0 || GLInfo.envcombine == 0)) {
-			if (Console.Geti("r_detailmapping") != 0) {
-				Console.Println("Your OpenGL implementation doesn't support detail mapping. Disabling...", 0);
-				Console.Set("r_detailmapping", 0);
-			}
-
-			if (Console.Geti("r_glowmapping") != 0) {
-				Console.Println("Your OpenGL implementation doesn't support glow mapping. Disabling...", 0);
-				Console.Set("r_glowmapping", 0);
-			}
-		}
-
-		if (r_vbos != 0 && (GLInfo.vbos == 0)) {
-			Console.Println("Your OpenGL implementation doesn't support Vertex Buffer Objects. Disabling...", 0);
-			r_vbos = 0;
-		}
-
-		Console.Println("Polymost renderer is initialized", OSDTEXT_GOLD);
-		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION),
-				OSDTEXT_GOLD);
-
-		isInited = true;
-	}
 
 	public void resizeglcheck() // Ken Build method
 	{

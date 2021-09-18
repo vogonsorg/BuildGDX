@@ -51,7 +51,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 	protected MenuConteiner mResolution;
 	protected MenuConteiner mRenderer;
 	protected MenuButton mRenderSettings;
-	protected MenuSwitch mFullscreen;
+	private final MenuSwitch mFullscreen;
 	protected MenuButton mApplyChanges;
 	protected MenuResolutionList mSlot;
 	protected MenuScroller slider;
@@ -136,6 +136,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 								Console.Println("The render hasn't been changed!", Console.OSDTEXT_RED);
 								choosedRender = currentRender;
 								app.pEngine.setrendermode(app.getFactory().renderer(choosedRender));
+								mRenderer.open();
 							}
 						}
 						setMode(cfg);  //init new renderer is doing here
@@ -270,7 +271,6 @@ public abstract class MenuVideoMode extends BuildMenu {
 						isFullscreen = sw.value;
 					}
 				}, null, null) {
-
 			@Override
 			public void open() {
 				value = isFullscreen = (cfg.fullscreen == 1);

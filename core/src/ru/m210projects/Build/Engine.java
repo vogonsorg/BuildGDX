@@ -1345,7 +1345,10 @@ public abstract class Engine {
 		daxdim = max(320, daxdim);
 		daydim = max(200, daydim);
 
-		if (render.isInited() && ((davidoption == (BuildGdx.graphics.isFullscreen() ? 1 : 0)) && (BuildGdx.graphics.getWidth() == daxdim) && (BuildGdx.graphics.getHeight() == daydim)))
+		if (render.isInited()
+				&& ((davidoption == (BuildGdx.graphics.isFullscreen() ? 1 : 0))
+						&& (BuildGdx.graphics.getWidth() == daxdim) && (BuildGdx.graphics.getHeight() == daydim))
+				&& xdim == daxdim && ydim == daydim)
 			return true;
 
 		xdim = daxdim;
