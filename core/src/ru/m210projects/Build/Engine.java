@@ -300,7 +300,6 @@ public abstract class Engine {
 	public static Hitscan pHitInfo;
 	public static Neartag neartag;
 
-	public static int fullscreen;
 	public static int paletteloaded = 0;
 	public static int tablesloaded = 0;
 	protected static byte[][] britable; // JBF 20040207: full 8bit precision
@@ -1346,7 +1345,7 @@ public abstract class Engine {
 		daxdim = max(320, daxdim);
 		daydim = max(200, daydim);
 
-		if (render.isInited() && ((davidoption == fullscreen) && (xdim == daxdim) && (ydim == daydim)))
+		if (render.isInited() && ((davidoption == (BuildGdx.graphics.isFullscreen() ? 1 : 0)) && (BuildGdx.graphics.getWidth() == daxdim) && (BuildGdx.graphics.getHeight() == daydim)))
 			return true;
 
 		xdim = daxdim;

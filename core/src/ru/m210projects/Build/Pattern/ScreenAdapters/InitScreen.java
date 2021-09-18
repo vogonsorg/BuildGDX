@@ -16,7 +16,6 @@
 
 package ru.m210projects.Build.Pattern.ScreenAdapters;
 
-import static ru.m210projects.Build.Engine.fullscreen;
 import static ru.m210projects.Build.Net.Mmulti.uninitmultiplayer;
 
 import java.io.File;
@@ -172,7 +171,6 @@ public class InitScreen extends ScreenAdapter {
 
 		if (!engine.setgamemode(cfg.fullscreen, cfg.ScreenWidth, cfg.ScreenHeight))
 			cfg.fullscreen = 0;
-		fullscreen = cfg.fullscreen;
 
 		thread = new Thread(new Runnable() {
 			@Override
