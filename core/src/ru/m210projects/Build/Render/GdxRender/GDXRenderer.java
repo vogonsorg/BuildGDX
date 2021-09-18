@@ -93,8 +93,7 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  Desktop resolution after software renderer switch
-//  Polymost duke3d realms logo bug
+//  RedneckGDX MVEvideo
 //  Skies panning
 //  Tekwar skies
 //	Hires + models
