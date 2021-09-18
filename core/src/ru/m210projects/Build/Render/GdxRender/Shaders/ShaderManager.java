@@ -7,6 +7,7 @@ import static ru.m210projects.Build.Engine.windowy2;
 import static ru.m210projects.Build.Engine.ydim;
 
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Matrix3;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
 
@@ -40,6 +41,8 @@ public class ShaderManager {
 	private int world_plane0;
 	private int world_plane1;
 	private int world_transform;
+	private int world_texture_transform;
+	private int world32_texture_transform;
 
 	public enum Shader {
 		IndexedWorldShader, RGBWorldShader, IndexedSkyShader, RGBSkyShader, BitmapShader, FadeShader;
@@ -282,6 +285,23 @@ public class ShaderManager {
 			break;
 		case RGBSkyShader:
 			skyshader32.setUniformMatrix("u_transform", transform); // XXX
+			break;
+		}
+
+		return this;
+	}
+
+	public ShaderManager textureTransform(Matrix3 transform, int unit) {
+		Shader shader = this.getShader();
+		if (shader == null)
+			return this;
+
+		switch (shader) {
+		case IndexedWorldShader:
+			texshader.setUniformMatrix(world_texture_transform, transform);
+			break;
+		case RGBWorldShader:
+			texshader32.setUniformMatrix(world32_texture_transform, transform);
 			break;
 		}
 
@@ -565,6 +585,7 @@ public class ShaderManager {
 			this.world_plane0 = shader.getUniformLocation("u_plane[0]");
 			this.world_plane1 = shader.getUniformLocation("u_plane[1]");
 			this.world_transform = shader.getUniformLocation("u_transform");
+			this.world_texture_transform = shader.getUniformLocation("u_texture_transform");
 
 			return shader;
 		} catch (Exception e) {
@@ -585,6 +606,8 @@ public class ShaderManager {
 			};
 			if (!shader.isCompiled())
 				throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
+
+			this.world32_texture_transform = shader.getUniformLocation("u_texture_transform");
 			return shader;
 		} catch (Exception e) {
 			e.printStackTrace();

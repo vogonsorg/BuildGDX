@@ -30,6 +30,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
 import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
@@ -38,6 +39,7 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -48,6 +50,7 @@ import java.util.Iterator;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.math.Matrix3;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -62,6 +65,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
+import ru.m210projects.Build.Render.GLRenderer.Rendering;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
@@ -97,6 +101,7 @@ public class GDXRenderer implements GLRenderer {
 //  Tekwar skies
 //	Hires + models
 //  RGB shader fog
+//  Overheadmap sector visible check
 
 //	Sprite ZFighting
 //	Blood drunk effect
@@ -130,6 +135,7 @@ public class GDXRenderer implements GLRenderer {
 	private ByteBuffer pix32buffer;
 	private ByteBuffer pix8buffer;
 	protected Matrix4 transform = new Matrix4();
+	protected Matrix3 texture_transform = new Matrix3();
 	protected Matrix4 identity = new Matrix4();
 
 	private boolean clearStatus = false;
@@ -600,6 +606,13 @@ public class GDXRenderer implements GLRenderer {
 					// TODO: set FOG ?
 					((IndexedShader) manager.getProgram()).setVisibility((int) (-combvis / 64.0f));
 
+				if(pth.isHighTile()) {
+					int tsizy = 1;
+					for (; tsizy < pic.getHeight(); tsizy += tsizy);
+					texture_transform.scale(1.0f, (tsizy * pth.getYScale()) / pth.getHeight());
+					manager.textureTransform(texture_transform, 0);
+				}
+
 				if (worldTransform == null)
 					manager.transform(identity);
 				else
@@ -1045,6 +1058,7 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	public void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method) {
+		Tile tex = engine.getTile(tilenum);
 		if (tile.getPixelFormat() == TileData.PixelFormat.Pal8) {
 			float alpha = 1.0f;
 			switch (method & 3) {
@@ -1056,12 +1070,44 @@ public class GDXRenderer implements GLRenderer {
 				break;
 			}
 
-			if (!engine.getTile(tilenum).isLoaded())
+			if (!tex.isLoaded())
 				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 
+			manager.textureTransform(texture_transform.idt(), 0);
 			manager.textureParams8(pal, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
 		} else {
 			// XXX
+			// texture scale by parkar request
+			texture_transform.idt();
+			if (tile.isHighTile() && ((tile.getHiresXScale() != 1.0f) || (tile.getHiresYScale() != 1.0f))
+					&& Rendering.Skybox.getIndex() == 0) {
+				texture_transform.scale(tile.getHiresXScale(), tile.getHiresYScale());
+			}
+			manager.textureTransform(texture_transform, 0);
+
+			if (GLInfo.multisample != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0) {
+//				if (Console.Geti("r_detailmapping") != 0) {
+//					GLTile detail = textureCache.get(tile.getPixelFormat(), tilenum, DETAILPAL, 0, method);
+//					if (detail != null) {
+//						textureCache.bind(detail);
+//						//setupTextureDetail(detail); XXX
+//
+//						texture_transform.idt();
+//						if (detail.isHighTile() && (detail.getHiresXScale() != 1.0f)
+//								|| (detail.getHiresYScale() != 1.0f))
+//							texture_transform.scale(detail.getHiresXScale(), detail.getHiresYScale());
+//						manager.textureTransform(texture_transform, 1);
+//					}
+//				}
+//
+//				if (Console.Geti("r_glowmapping") != 0) {
+//					GLTile glow = textureCache.get(tile.getPixelFormat(), tilenum, GLOWPAL, 0, method);
+//					if (glow != null) {
+//						textureCache.bind(glow);
+//						//setupTextureGlow(glow); XXX
+//					}
+//				}
+			}
 		}
 	}
 

@@ -45,7 +45,7 @@ public class SpriteRenderer {
 			if (o1 == null || o2 == null)
 				return 0;
 
-			if(o1.owner == o2.owner)
+			if(o1.owner == o2.owner || o1.owner == -1 || o2.owner == -1)
 				return 0;
 
 			int len1 = getDist(o1);
@@ -82,6 +82,9 @@ public class SpriteRenderer {
 		for(int i = 0; i < len; i++) {
 			SPRITE spr = array[i];
 			int s = spr.owner;
+			if(s == -1)
+				continue;
+
 			spritesz[s] = spr.z;
 			if(!Gameutils.isValidTile(spr.picnum))
 				continue;
@@ -575,6 +578,14 @@ public class SpriteRenderer {
 		if (tex == null)
 			return false;
 
+		if (tex.isHighTile()) {
+			for (tsizy = 1; tsizy < tex.getHeight(); tsizy += tsizy);
+			tsizy /= tex.getYScale();
+		} else {
+			tsizx = tex.getWidth();
+			tsizy = tex.getHeight();
+		}
+
 		int vis = globalvisibility;
 		if (sector[tspr.sectnum].visibility != 0)
 			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
@@ -618,7 +629,7 @@ public class SpriteRenderer {
 		Gdx.gl.glDepthFunc(GL20.GL_LESS);
 		Gdx.gl.glDepthRangef(0.0f, 0.99999f);
 
-		Matrix4 mat = getMatrix(tspr, tex.getWidth(), tex.getHeight());
+		Matrix4 mat = getMatrix(tspr, tsizx, tsizy);
 		float invscalex = 1.0f / cam.xscale;
 		float invscaley = 1.0f / cam.yscale;
 

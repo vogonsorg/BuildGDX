@@ -16,6 +16,7 @@ public class WorldShader {
 			+ "uniform mat4 u_modelView;\n" //
 			+ "uniform mat4 u_projTrans;\n" //
 			+ "uniform mat4 u_transform;\n" //
+			+ "uniform mat3 u_texture_transform;\n" //
 			+ "uniform bool u_mirror;\n" //
 			+ "\n" //
 			+ "varying LOWP float v_dist;\n" //
@@ -24,7 +25,7 @@ public class WorldShader {
 			+ "varying vec4 v_color;\n" //
 			+ "\n" //
 			+ "void main() {\n" //
-			+ "    v_texCoords = a_texCoord0;\n" //
+			+ "    v_texCoords = vec2(u_texture_transform * vec3(a_texCoord0, 1.0));\n" //
 			+ "    v_color = a_color;\n" //
 			+ "    v_color.a = v_color.a * (255.0/254.0);\n" //
 			+ "    vec4 mv = u_modelView * u_transform  * a_position;\n" //

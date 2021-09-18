@@ -76,6 +76,9 @@ public abstract class TileData {
 		Pixmap pixmap = new Pixmap(width, height,
 				getPixelFormat() == PixelFormat.Rgba ? Format.RGBA8888 : Format.RGB888);
 		float[] color = new float[4];
+		if(bytes == 3)
+			color[3] = 1.0f;
+
 		for (int i = 0; i < (width * height); i++) {
 			for (int c = 0; c < bytes; c++)
 				color[c] = (pixels.get((i * bytes) + c) & 0xFF) / 255.f;

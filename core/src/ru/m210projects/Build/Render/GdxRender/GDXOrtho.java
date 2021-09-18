@@ -58,7 +58,9 @@ import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix3;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Gameutils;
@@ -66,6 +68,7 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.IOverheadMapSettings.MapView;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
+import ru.m210projects.Build.Render.GLRenderer.Rendering;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
@@ -332,7 +335,6 @@ public class GDXOrtho extends OrphoRenderer {
 			return;
 
 		pth.bind();
-
 		if (((method & 3) == 0))
 			disableBlending();
 		else
@@ -827,6 +829,7 @@ public class GDXOrtho extends OrphoRenderer {
 			BuildGdx.gl20.glEnable(GL20.GL_BLEND);
 		}
 
+		manager.textureTransform(parent.texture_transform.idt(), 0);
 		mesh.render(manager.getProgram(), lastType, 0, count);
 		idx = 0;
 	}
@@ -930,6 +933,24 @@ public class GDXOrtho extends OrphoRenderer {
 			y2 = y3 = y1 + height;
 		}
 
+		if(tex.isHighTile()) {
+			srcWidth = tex.getWidth();
+
+//			srcHeight = sizy;
+//			int yy = 1;
+//			for (; yy < sizy; yy += yy);
+//			invTexHeight = 1.0f / yy;
+
+//			srcWidth = tex.getWidth();
+//			for (sizy = 1; sizy < tex.getHeight(); sizy += sizy);
+//			srcHeight = sizy;
+//			invTexHeight = 1.0f / sizy;
+
+			for (sizy = 1; sizy < tex.getHeight(); sizy += sizy);
+			float scaley = (float) sizy / tex.getHeight();
+			srcHeight = tex.getHeight() / scaley;
+		}
+
 		float v, u = srcX * invTexWidth;
 		float v2, u2 = (srcX + srcWidth) * invTexWidth;
 		if ((dastat & 4) == 0) {
@@ -938,6 +959,13 @@ public class GDXOrtho extends OrphoRenderer {
 		} else {
 			v = (srcY + srcHeight) * invTexHeight;
 			v2 = srcY * invTexHeight;
+		}
+
+		if (tex.isHighTile() && ((tex.getHiresXScale() != 1.0f) || (tex.getHiresYScale() != 1.0f))) {
+			u *= tex.getHiresXScale();
+			v *= tex.getHiresYScale();
+			u2 *= tex.getHiresXScale();
+			v2 *= tex.getHiresYScale();
 		}
 
 		float color = this.color;
