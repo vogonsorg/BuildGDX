@@ -251,52 +251,56 @@ public class Polymost implements GLRenderer {
 
 	@Override
 	public void init() {
-		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
-			BuildGdx.app.setFrame(FrameType.GL);
-		this.gl = BuildGdx.graphics.getGL10();
+		try {
+			if (BuildGdx.graphics.getFrameType() != FrameType.GL)
+				BuildGdx.app.setFrame(FrameType.GL);
+			this.gl = BuildGdx.graphics.getGL10();
 
-		GLInfo.init();
-		gl.glShadeModel(GL_SMOOTH); // GL_FLAT
-		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
-		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+			GLInfo.init();
+			gl.glShadeModel(GL_SMOOTH); // GL_FLAT
+			gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
+			gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-		enableIndexedShader(GLSettings.usePaletteShader.get());
+			enableIndexedShader(GLSettings.usePaletteShader.get());
 
-		ortho.init();
-		globalfog.init(textureCache);
+			ortho.init();
+			globalfog.init(textureCache);
 
-		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-		if (glmultisample > 0 && GLInfo.multisample != 0) {
-			if (GLInfo.nvmultisamplehint != 0)
-				gl.glHint(GL_MULTISAMPLE_FILTER_HINT_NV, glnvmultisamplehint != 0 ? GL_NICEST : GL_FASTEST);
-			gl.glEnable(GL_MULTISAMPLE);
-		}
-
-		if ((GLInfo.multitex == 0 || GLInfo.envcombine == 0)) {
-			if (Console.Geti("r_detailmapping") != 0) {
-				Console.Println("Your OpenGL implementation doesn't support detail mapping. Disabling...", 0);
-				Console.Set("r_detailmapping", 0);
+			if (glmultisample > 0 && GLInfo.multisample != 0) {
+				if (GLInfo.nvmultisamplehint != 0)
+					gl.glHint(GL_MULTISAMPLE_FILTER_HINT_NV, glnvmultisamplehint != 0 ? GL_NICEST : GL_FASTEST);
+				gl.glEnable(GL_MULTISAMPLE);
 			}
 
-			if (Console.Geti("r_glowmapping") != 0) {
-				Console.Println("Your OpenGL implementation doesn't support glow mapping. Disabling...", 0);
-				Console.Set("r_glowmapping", 0);
+			if ((GLInfo.multitex == 0 || GLInfo.envcombine == 0)) {
+				if (Console.Geti("r_detailmapping") != 0) {
+					Console.Println("Your OpenGL implementation doesn't support detail mapping. Disabling...", 0);
+					Console.Set("r_detailmapping", 0);
+				}
+
+				if (Console.Geti("r_glowmapping") != 0) {
+					Console.Println("Your OpenGL implementation doesn't support glow mapping. Disabling...", 0);
+					Console.Set("r_glowmapping", 0);
+				}
 			}
+
+			if (r_vbos != 0 && (GLInfo.vbos == 0)) {
+				Console.Println("Your OpenGL implementation doesn't support Vertex Buffer Objects. Disabling...", 0);
+				r_vbos = 0;
+			}
+
+			Console.Println("Polymost renderer is initialized", OSDTEXT_GOLD);
+			Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION),
+					OSDTEXT_GOLD);
+
+			isInited = true;
+		} catch (Throwable t) {
+			isInited = false;
 		}
-
-		if (r_vbos != 0 && (GLInfo.vbos == 0)) {
-			Console.Println("Your OpenGL implementation doesn't support Vertex Buffer Objects. Disabling...", 0);
-			r_vbos = 0;
-		}
-
-		Console.Println("Polymost renderer is initialized", OSDTEXT_GOLD);
-		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION),
-				OSDTEXT_GOLD);
-
-		isInited = true;
 	}
 
 	protected TextureManager newTextureManager(Engine engine) {
@@ -2649,7 +2653,7 @@ public class Polymost implements GLRenderer {
 		VoxelData entry = defs != null ? defs.mdInfo.getVoxelData(picnum) : null;
 		if (entry != null) {
 			GLModel model = models[picnum];
-			if(model == null)
+			if (model == null)
 				model = models[picnum] = new VoxelGL10(entry, 0, true);
 			return model;
 		}

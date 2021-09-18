@@ -100,7 +100,6 @@ public class GDXRenderer implements GLRenderer {
 //  RGB shader fog
 
 //	Sprite ZFighting
-//	RRRA drunk mode fov change
 //  Blood E1M1 floor sprite invisible
 //	Blood drunk effect
 //	Skyboxes
@@ -175,33 +174,37 @@ public class GDXRenderer implements GLRenderer {
 
 	@Override
 	public void init() {
-		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
-			BuildGdx.app.setFrame(FrameType.GL);
+		try {
+			if (BuildGdx.graphics.getFrameType() != FrameType.GL)
+				BuildGdx.app.setFrame(FrameType.GL);
 
-		GLInfo.init();
-		this.gl = BuildGdx.graphics.getGL20();
+			GLInfo.init();
+			this.gl = BuildGdx.graphics.getGL20();
 
-		enableIndexedShader(GLSettings.usePaletteShader.get());
+			enableIndexedShader(GLSettings.usePaletteShader.get());
 
-		gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			gl.glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-		this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
-		this.manager.init(textureCache);
-		this.textureCache.changePalette(curpalette.getBytes());
+			this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
+			this.manager.init(textureCache);
+			this.textureCache.changePalette(curpalette.getBytes());
 
-		Console.Println("Polygdx renderer is initialized", OSDTEXT_GOLD);
-		Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION),
-				OSDTEXT_GOLD);
+			Console.Println("Polygdx renderer is initialized", OSDTEXT_GOLD);
+			Console.Println(BuildGdx.graphics.getGLVersion().getRendererString() + " " + gl.glGetString(GL_VERSION),
+					OSDTEXT_GOLD);
 
-		orphoRen.init();
+			orphoRen.init();
 
-		if (world != null && world.isInvalid()) {
-			world = new WorldMesh(engine);
+			if (world != null && world.isInvalid()) {
+				world = new WorldMesh(engine);
+			}
+
+			System.err.println("init");
+			isInited = true;
+		} catch (Throwable t) {
+			isInited = false;
 		}
-
-		System.err.println("init");
-		isInited = true;
 	}
 
 	@Override

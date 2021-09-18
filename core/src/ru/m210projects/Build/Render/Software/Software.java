@@ -230,48 +230,52 @@ public class Software implements Renderer {
 		if (xdim == 0 && ydim == 0)
 			return;
 
-		if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
-			BuildGdx.app.setFrame(FrameType.Canvas);
+		try {
+			if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
+				BuildGdx.app.setFrame(FrameType.Canvas);
 
-		bytesperline = xdim;
+			bytesperline = xdim;
 
-		int j = ydim * 4 * 4;
+			int j = ydim * 4 * 4;
 
-		lookups = new int[j << 1];
+			lookups = new int[j << 1];
 
-		horizlookup = 0;
-		horizlookup2 = j;
-		horizycent = ((ydim * 4) >> 1);
+			horizlookup = 0;
+			horizlookup2 = j;
+			horizycent = ((ydim * 4) >> 1);
 
-		// Force drawrooms to call dosetaspect & recalculate stuff
-		oxyaspect = oxdimen = oviewingrange = -1;
+			// Force drawrooms to call dosetaspect & recalculate stuff
+			oxyaspect = oxdimen = oviewingrange = -1;
 
-		globalpalwritten = 0;
+			globalpalwritten = 0;
 
-		changepalette(curpalette.getBytes());
+			changepalette(curpalette.getBytes());
 
-		j = 0;
-		for (int i = 0; i <= ydim; i++) {
-			ylookup[i] = j;
-			j += bytesperline;
+			j = 0;
+			for (int i = 0; i <= ydim; i++) {
+				ylookup[i] = j;
+				j += bytesperline;
+			}
+
+			for (int i = 0; i < 2048; i++)
+				reciptable[i] = divscale(2048, i + 2048, 30);
+
+			updateview();
+
+			for (int i = 1; i < 1024; i++)
+				lowrecip[i] = ((1 << 24) - 1) / i;
+
+			a = new Ac(xdim, ydim, reciptable);
+			a.setvlinebpl(bytesperline);
+
+			a.fixtransluscence(transluc);
+			a.setpalookupaddress(palookup[globalpalwritten]);
+
+			Console.Println("Software renderer is initialized", OSDTEXT_GOLD);
+			isInited = true;
+		} catch (Throwable t) {
+			isInited = false;
 		}
-
-		for (int i = 0; i < 2048; i++)
-			reciptable[i] = divscale(2048, i + 2048, 30);
-
-		updateview();
-
-		for (int i = 1; i < 1024; i++)
-			lowrecip[i] = ((1 << 24) - 1) / i;
-
-		a = new Ac(xdim, ydim, reciptable);
-		a.setvlinebpl(bytesperline);
-
-		a.fixtransluscence(transluc);
-		a.setpalookupaddress(palookup[globalpalwritten]);
-
-		Console.Println("Software renderer is initialized", OSDTEXT_GOLD);
-		isInited = true;
 	}
 
 	protected A getA() {
