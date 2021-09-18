@@ -188,6 +188,9 @@ public class GDXRenderer implements GLRenderer {
 
 			this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
 			this.manager.init(textureCache);
+			if(!this.manager.isInited())
+				return;
+
 			this.textureCache.changePalette(curpalette.getBytes());
 
 			Console.Println("Polygdx renderer is initialized", OSDTEXT_GOLD);

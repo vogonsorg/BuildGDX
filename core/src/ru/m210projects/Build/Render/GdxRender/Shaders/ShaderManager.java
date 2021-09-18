@@ -103,6 +103,11 @@ public class ShaderManager {
 		Shader.FadeShader.set(fadeshader);
 	}
 
+	public boolean isInited() {
+		return skyshader != null && skyshader32 != null && texshader != null &&
+				texshader32 != null && bitmapShader != null && fadeshader != null;
+	}
+
 	public void dispose() {
 		if (skyshader != null)
 			skyshader.dispose();
