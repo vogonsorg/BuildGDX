@@ -1,10 +1,5 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
-import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_REPLACE;
-import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_SRC_COLOR;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_MAX_ANISOTROPY_EXT;
 import static com.badlogic.gdx.graphics.GL20.GL_UNPACK_ALIGNMENT;
@@ -13,23 +8,6 @@ import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Render.GLInfo.gltexmaxsize;
 import static ru.m210projects.Build.Render.GLInfo.supportsGenerateMipmaps;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_INTERPOLATE_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MODULATE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND1_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND2_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_PREVIOUS_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_ALPHA_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE1_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE2_RGB_ARB;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV_MODE;
 
 import java.nio.ByteBuffer;
 
@@ -66,7 +44,6 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 
 	protected int width, height;
 	private boolean isAllocated;
-//	private boolean isRequireShader;
 	protected PixelFormat fmt;
 	protected float anisotropicFilterLevel = 1.0f;
 
@@ -85,7 +62,7 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		this.fmt = fmt;
 		this.isAllocated = false;
 
-		scalex = scaley = 1.0f;
+		this.scalex = this.scaley = 1.0f;
 	}
 
 	public GLTile(TileData pic, int palnum, boolean useMipMaps) {
@@ -99,14 +76,10 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		setClamped(pic.isClamped());
 		setHasAlpha(pic.hasAlpha());
 
-		scalex = scaley = 1.0f;
+		this.scalex = this.scaley = 1.0f;
 	}
 
 	protected void alloc(TileData pic) {
-//		this.isRequireShader = false;
-//		if (pic.getPixelFormat() == PixelFormat.Pal8 || pic.getPixelFormat() == PixelFormat.Pal8A)
-//			this.isRequireShader = true;
-
 		BuildGdx.gl.glBindTexture(glTarget, glHandle);
 
 		BuildGdx.gl.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -124,12 +97,8 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		return fmt;
 	}
 
-	public void setColor(float r, float g, float b, float a) {
-		BuildGdx.gl.glColor4f(r, g, b, a); // GL30 exception
-	}
-
 	public void update(TileData pic, int pal, boolean useMipMaps) {
-		BuildGdx.gl.glBindTexture(glTarget, glHandle);
+		this.bind();
 
 		int width = pic.getWidth();
 		int height = pic.getHeight();
@@ -311,51 +280,6 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		return anisotropicFilterLevel = level;
 	}
 
-	public void setupTextureGlow() {
-		if (!isGlowTexture())
-			return;
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
-
-		setupTextureWrap(TextureWrap.Repeat);
-	}
-
-	public void setupTextureDetail() {
-		if (!isDetailTexture())
-			return;
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
-
-		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
-
-		setupTextureWrap(TextureWrap.Repeat);
-	}
-
 	@Override
 	public int getWidth() {
 		return width;
@@ -465,10 +389,6 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		else
 			flags &= ~bit.getBit();
 	}
-
-//	public boolean isRequireShader() {
-//		return isRequireShader;
-//	}
 
 	@Override
 	public String toString() {

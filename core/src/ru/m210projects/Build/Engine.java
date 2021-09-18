@@ -3902,11 +3902,11 @@ public abstract class Engine {
 		return data;
 	}
 
-	public int setrendermode(Renderer render) { // gdxBuild
+	public boolean setrendermode(Renderer render) { // gdxBuild
 		this.render = render;
 		render.setDefs(getDefs());
 		render.init();
-		return 0;
+		return render.isInited();
 	}
 
 	public Renderer getrender() // gdxBuild

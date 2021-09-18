@@ -29,7 +29,7 @@ import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.BuildConfig.GameKeys;
 
 public abstract class MenuAdapter extends ScreenAdapter {
-	
+
 	protected BuildGame game;
 	protected MenuHandler menu;
 	protected Engine engine;
@@ -37,9 +37,9 @@ public abstract class MenuAdapter extends ScreenAdapter {
 	protected BuildMenu mainMenu;
 
 	public abstract void draw(float delta);
-	
+
 	public void process(float delta) { }
-	
+
 	public MenuAdapter(final BuildGame game, BuildMenu mainMenu)
 	{
 		this.game = game;
@@ -48,16 +48,19 @@ public abstract class MenuAdapter extends ScreenAdapter {
 		this.cfg = game.pCfg;
 		this.mainMenu = mainMenu;
 	}
-	
+
 	@Override
 	public void render(float delta) {
+		if(!engine.getrender().isInited())
+			return;
+
 		engine.clearview(0);
 		engine.sampletimer();
-		
+
 		draw(delta);
 
 		engine.handleevents();
-		
+
 		if (menu.gShowMenu) {
 			menu.mKeyHandler(game.pInput, delta);
 			menu.mDrawMenu();
@@ -73,10 +76,10 @@ public abstract class MenuAdapter extends ScreenAdapter {
 
 		engine.nextpage();
 	}
-	
+
 	@Override
 	public void pause () {
-		if (BuildGdx.graphics.getFrameType() == FrameType.GL) 
+		if (BuildGdx.graphics.getFrameType() == FrameType.GL)
 			BuildGdx.graphics.extra(Option.GLDefConfiguration);
 	}
 

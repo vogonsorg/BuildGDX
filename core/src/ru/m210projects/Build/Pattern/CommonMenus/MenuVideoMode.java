@@ -127,11 +127,16 @@ public abstract class MenuVideoMode extends BuildMenu {
 						currentMode = choosedMode;
 						if(currentRender != choosedRender) {
 							app.pEngine.getrender().uninit();
-							app.pEngine.setrendermode(app.getFactory().renderer(choosedRender));
-							app.updateColorCorrection();
-							Console.Println("The render has been changed to " + choosedRender.getName());
-							cfg.renderType = app.pEngine.getrender().getType();
-							currentRender = choosedRender;
+							if(app.pEngine.setrendermode(app.getFactory().renderer(choosedRender))) {
+								app.updateColorCorrection();
+								Console.Println("The render has been changed to " + choosedRender.getName());
+								cfg.renderType = app.pEngine.getrender().getType();
+								currentRender = choosedRender;
+							} else {
+								Console.Println("The render hasn't been changed!", Console.OSDTEXT_RED);
+								choosedRender = currentRender;
+								app.pEngine.setrendermode(app.getFactory().renderer(choosedRender));
+							}
 						}
 						setMode(cfg);  //init new renderer is doing here
 					}

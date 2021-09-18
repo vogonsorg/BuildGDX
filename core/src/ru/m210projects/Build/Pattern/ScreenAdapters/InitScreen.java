@@ -38,6 +38,7 @@ import ru.m210projects.Build.Pattern.BuildEngine;
 import ru.m210projects.Build.Pattern.BuildGame;
 import ru.m210projects.Build.Pattern.Tools.Interpolation;
 import ru.m210projects.Build.Pattern.Tools.SaveManager;
+import ru.m210projects.Build.Render.Renderer.RenderType;
 import ru.m210projects.Build.Settings.BuildConfig;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -164,7 +165,11 @@ public class InitScreen extends ScreenAdapter {
 		BuildSettings.init(engine, cfg);
 		GLSettings.init(engine, cfg);
 
-		engine.setrendermode(factory.renderer(cfg.renderType));
+		if(!engine.setrendermode(factory.renderer(cfg.renderType))) {
+			engine.setrendermode(factory.renderer(RenderType.Software));
+			cfg.renderType = RenderType.Software;
+		}
+
 		if (!engine.setgamemode(cfg.fullscreen, cfg.ScreenWidth, cfg.ScreenHeight))
 			cfg.fullscreen = 0;
 		fullscreen = cfg.fullscreen;

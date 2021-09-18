@@ -219,8 +219,7 @@ public class Software implements Renderer {
 	protected SoftwareOrpho ortho;
 
 	public Software(Engine engine, IOverheadMapSettings settings) {
-		if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
-			BuildGdx.app.setFrame(FrameType.Canvas);
+
 		this.engine = engine;
 
 		ortho = allocOrphoRenderer(settings);
@@ -230,6 +229,9 @@ public class Software implements Renderer {
 	public void init() {
 		if (xdim == 0 && ydim == 0)
 			return;
+
+		if (BuildGdx.graphics.getFrameType() != FrameType.Canvas)
+			BuildGdx.app.setFrame(FrameType.Canvas);
 
 		bytesperline = xdim;
 

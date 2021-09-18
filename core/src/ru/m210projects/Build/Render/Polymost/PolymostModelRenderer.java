@@ -646,7 +646,7 @@ public class PolymostModelRenderer {
 			if (texid != null) {
 				BuildGdx.gl.glActiveTexture(++texunits);
 				BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-				texid.setupTextureDetail();
+				parent.setupTextureDetail(texid);
 
 				MDSkinmap sk = m.getSkin(DETAILPAL, skinnum, 0);
 				if (sk != null) {
@@ -666,7 +666,7 @@ public class PolymostModelRenderer {
 			if (texid != null) {
 				BuildGdx.gl.glActiveTexture(++texunits);
 				BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-				texid.setupTextureGlow();
+				parent.setupTextureGlow(texid);
 			}
 
 			MD2Frame cframe = m.frames[m.cframe], nframe = m.frames[m.nframe];
@@ -803,7 +803,7 @@ public class PolymostModelRenderer {
 				if (texid != null) {
 					BuildGdx.gl.glActiveTexture(++texunits);
 					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-					texid.setupTextureDetail();
+					parent.setupTextureDetail(texid);
 
 					MDSkinmap sk = m.getSkin(DETAILPAL, skinnum, surfi);
 					if (sk != null) {
@@ -823,7 +823,7 @@ public class PolymostModelRenderer {
 				if (texid != null) {
 					BuildGdx.gl.glActiveTexture(++texunits);
 					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-					texid.setupTextureGlow();
+					parent.setupTextureGlow(texid);
 				}
 
 				parent.globalfog.apply();

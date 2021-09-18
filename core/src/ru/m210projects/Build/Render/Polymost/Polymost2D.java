@@ -153,7 +153,6 @@ public class Polymost2D extends OrphoRenderer {
 	public Polymost2D(Polymost parent, IOverheadMapSettings settings) {
 		super(parent.engine, settings);
 		this.parent = parent;
-		this.gl = parent.gl;
 		this.textureCache = parent.textureCache;
 
 		for (int i = 0; i < 4; i++)
@@ -1396,6 +1395,7 @@ public class Polymost2D extends OrphoRenderer {
 
 	@Override
 	public void init() {
+		this.gl = parent.gl;
 	}
 
 	@Override

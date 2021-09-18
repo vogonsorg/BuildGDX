@@ -226,6 +226,12 @@ public class TextureManager {
 			}
 
 			@Override
+			public void unbind() {
+				super.unbind();
+				bindedTile = null;
+			}
+
+			@Override
 			public void bind(int unit) {
 				// BuildGdx.gl.glActiveTexture(unit);
 				BuildGdx.gl.glBindTexture(glTarget, glHandle);
@@ -245,6 +251,12 @@ public class TextureManager {
 			public void bind(int unit) {
 				// BuildGdx.gl.glActiveTexture(unit);
 				BuildGdx.gl.glBindTexture(glTarget, glHandle);
+			}
+
+			@Override
+			public void unbind() {
+				super.unbind();
+				bindedTile = null;
 			}
 		};
 	}

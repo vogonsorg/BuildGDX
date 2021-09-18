@@ -12,25 +12,6 @@
 package ru.m210projects.Build.Render.Polymost;
 
 import static com.badlogic.gdx.graphics.GL20.*;
-import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
-import static com.badlogic.gdx.graphics.GL20.GL_CLAMP_TO_EDGE;
-import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
-import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
-import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
-import static com.badlogic.gdx.graphics.GL20.GL_FASTEST;
-import static com.badlogic.gdx.graphics.GL20.GL_GREATER;
-import static com.badlogic.gdx.graphics.GL20.GL_LEQUAL;
-import static com.badlogic.gdx.graphics.GL20.GL_NICEST;
-import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
-import static com.badlogic.gdx.graphics.GL20.GL_REPEAT;
-import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_S;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_T;
-import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_FAN;
-import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
-import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.cos;
@@ -62,6 +43,7 @@ import java.util.Iterator;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -206,19 +188,9 @@ public class Polymost implements GLRenderer {
 	protected final Engine engine;
 
 	public Polymost(Engine engine, IOverheadMapSettings settings) {
-		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
-			BuildGdx.app.setFrame(FrameType.GL);
-		GLInfo.init();
 		this.engine = engine;
 		this.textureCache = getTextureManager();
 
-//		if (GLSettings.usePaletteShader.get()) {
-//			this.texshader = allocIndexedShader();
-//			if (this.texshader == null)
-//				GLSettings.usePaletteShader.set(false);
-//		}
-
-		this.gl = BuildGdx.graphics.getGL10();
 		this.clipper = new PolyClipper(this);
 		this.mdrenderer = new PolymostModelRenderer(this);
 
@@ -280,7 +252,7 @@ public class Polymost implements GLRenderer {
 					GLTile detail = textureCache.get(tile.getPixelFormat(), tilenum, DETAILPAL, 0, method);
 					if (detail != null) {
 						textureCache.bind(detail);
-						detail.setupTextureDetail();
+						setupTextureDetail(detail);
 
 						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
 						BuildGdx.gl.glLoadIdentity();
@@ -295,7 +267,7 @@ public class Polymost implements GLRenderer {
 					GLTile glow = textureCache.get(tile.getPixelFormat(), tilenum, GLOWPAL, 0, method);
 					if (glow != null) {
 						textureCache.bind(glow);
-						glow.setupTextureGlow();
+						setupTextureGlow(glow);
 					}
 				}
 			}
@@ -321,7 +293,7 @@ public class Polymost implements GLRenderer {
 
 			if (!engine.getTile(tilenum).isLoaded())
 				c.a = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-			tile.setColor(c.r, c.g, c.b, c.a);
+			BuildGdx.gl.glColor4f(c.r, c.g, c.b, c.a); // GL30 exception
 		}
 	}
 
@@ -521,6 +493,51 @@ public class Polymost implements GLRenderer {
 		}
 	}
 
+	public void setupTextureGlow(GLTile tex) {
+		if (!tex.isGlowTexture())
+			return;
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_INTERPOLATE_ARB);
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB, GL_TEXTURE);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+
+		tex.setupTextureWrap(TextureWrap.Repeat);
+	}
+
+	public void setupTextureDetail(GLTile tex) {
+		if (!tex.isDetailTexture())
+			return;
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PREVIOUS_ARB);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS_ARB);
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+
+		BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 2.0f);
+
+		tex.setupTextureWrap(TextureWrap.Repeat);
+	}
+
 	public int gltexcacnum = -1;
 	float glox1, gloy1, glox2, gloy2;
 
@@ -565,6 +582,11 @@ public class Polymost implements GLRenderer {
 
 	@Override
 	public void init() {
+		if (BuildGdx.graphics.getFrameType() != FrameType.GL)
+			BuildGdx.app.setFrame(FrameType.GL);
+		this.gl = BuildGdx.graphics.getGL10();
+
+		GLInfo.init();
 		gl.glShadeModel(GL_SMOOTH); // GL_FLAT
 		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Use FASTEST for ortho!
 		gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
