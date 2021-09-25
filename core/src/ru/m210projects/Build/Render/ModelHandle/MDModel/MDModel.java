@@ -6,39 +6,31 @@
 * This file has been ported to Java by Alexander Makarov-[M210] (m210-2007@mail.ru)
 */
 
-package ru.m210projects.Build.Loader;
+package ru.m210projects.Build.Render.ModelHandle.MDModel;
 
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
-import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
-import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.timerticspersec;
 import static ru.m210projects.Build.Gameutils.BClipRange;
-import static ru.m210projects.Build.Loader.MDAnimation.MDANIM_ONESHOT;
-import static ru.m210projects.Build.Loader.MDAnimation.mdpause;
-import static ru.m210projects.Build.Loader.MDAnimation.mdtims;
-import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.MDANIM_ONESHOT;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpause;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
 
-import java.util.Iterator;
-
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture.TextureWrap;
-
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.Resource;
-import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.TextureHandle.GLTile;
-import ru.m210projects.Build.Render.TextureHandle.PixmapTileData;
-import ru.m210projects.Build.Render.TextureHandle.TextureManager;
-import ru.m210projects.Build.Render.TextureHandle.TileData;
+import ru.m210projects.Build.Render.ModelHandle.Model;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
-import ru.m210projects.Build.Script.ModelInfo.Spritesmooth;
+import ru.m210projects.Build.Script.ModelsInfo.Spritesmooth;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
 
-public abstract class MDModel extends OldModel {
+public abstract class MDModel extends Model {
+
+	public MDModel(String file, Type type) {
+		super(file, type);
+	}
+
 	public MDSkinmap skinmap;
 	public int numskins, skinloaded; // set to 1+numofskin when a skin is loaded and the tex coords are modified,
 
@@ -49,8 +41,18 @@ public abstract class MDModel extends OldModel {
 
 	public abstract int getFrameIndex(String framename);
 
-	public void updateanimation(DefScript defs, SPRITE tspr) {
+	protected String readString(Resource bb, int len) {
+		byte[] buf = new byte[len];
+		bb.read(buf);
 
+		for(int i = 0; i < buf.length; i++) {
+        	if(buf[i] == 0)
+        		return new String(buf, 0, i);
+		}
+		return new String(buf);
+	}
+
+	public void updateanimation(DefScript defs, SPRITE tspr) {
 		if (numframes < 2) {
 			interpol = 0;
 			return;
@@ -201,7 +203,7 @@ public abstract class MDModel extends OldModel {
 		if (palnum >= MAXPALOOKUPS)
 			return -3;
 
-		if (mdnum == 2)
+		if (type == Type.Md2)
 			surfnum = 0;
 
 		MDSkinmap sk = getSkin(palnum, skinnum, surfnum);
@@ -242,177 +244,5 @@ public abstract class MDModel extends OldModel {
 		animations = ma;
 
 		return 0;
-	}
-
-	public GLTile loadskin(TextureManager manager, DefScript defs, int number, int pal, int surf) {
-		String skinfile = null;
-		GLTile texidx = null;
-		GLTile[] texptr = null;
-		int idptr = -1;
-		MDSkinmap sk, skzero = null;
-//		long startticks;
-
-		if (mdnum == 2)
-			surf = 0;
-
-		if (pal >= MAXPALOOKUPS || defs == null)
-			return null;
-
-		for (sk = skinmap; sk != null; sk = sk.next) {
-			int i = -1;
-			if (sk.palette == pal && sk.skinnum == number && sk.surfnum == surf) {
-				skinfile = sk.fn;
-				idptr = defs.texInfo.getPaletteEffect(pal);
-				texptr = sk.texid;
-				if (texptr != null)
-					texidx = texptr[idptr];
-				// OSD_Printf("Using exact match skin (pal=%d,skinnum=%d,surfnum=%d)
-				// %s\n",pal,number,surf,skinfile);
-				break;
-			}
-			// If no match, give highest priority to number, then pal.. (Parkar's request,
-			// 02/27/2005)
-			else if ((sk.palette == 0) && (sk.skinnum == number) && (sk.surfnum == surf) && (i < 5)) {
-				i = 5;
-				skzero = sk;
-			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (sk.surfnum == surf) && (i < 4)) {
-				i = 4;
-				skzero = sk;
-			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (sk.surfnum == surf) && (i < 3)) {
-				i = 3;
-				skzero = sk;
-			} else if ((sk.palette == 0) && (sk.skinnum == number) && (i < 2)) {
-				i = 2;
-				skzero = sk;
-			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (i < 1)) {
-				i = 1;
-				skzero = sk;
-			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (i < 0)) {
-				i = 0;
-				skzero = sk;
-			}
-		}
-
-		if (sk == null) {
-			if (pal >= (MAXPALOOKUPS - RESERVEDPALS))
-				return null;
-
-			if (skzero != null) {
-				skinfile = skzero.fn;
-				idptr = defs.texInfo.getPaletteEffect(pal);
-				texptr = skzero.texid;
-				if (texptr != null)
-					texidx = texptr[idptr];
-				// OSD_Printf("Using def skin 0,0 as fallback, pal=%d\n", pal);
-			} else {
-				Console.Println("Couldn't load skin", OSDTEXT_YELLOW);
-				defs.mdInfo.removeModelInfo(this);
-				return null;
-			}
-		}
-
-		if (skinfile == null)
-			return null;
-
-		if (texidx != null)
-			return texidx;
-
-		// possibly fetch an already loaded multitexture :_)
-		if (pal >= (MAXPALOOKUPS - RESERVEDPALS)) {
-			for (int i = MAXTILES - 1; i >= 0; i--) {
-				OldModel m = defs.mdInfo.getModel(i);
-				if (m == null || m.mdnum < 2)
-					continue;
-
-				MDModel mi = (MDModel) m;
-				for (skzero = mi.skinmap; skzero != null; skzero = skzero.next)
-					if (skzero.fn.equalsIgnoreCase(sk.fn) && skzero.texid[defs.texInfo.getPaletteEffect(pal)] != null) {
-						int f = defs.texInfo.getPaletteEffect(pal);
-						sk.texid[f] = skzero.texid[f];
-						return sk.texid[f];
-					}
-			}
-		}
-
-		texidx = null;
-
-//		startticks = System.currentTimeMillis();
-		TileData dat = loadskin(defs, skinfile);
-		if(dat == null)
-			return null;
-
-		texidx = manager.newTile(dat, 0, true);
-		usesalpha = true;
-		texidx.setupTextureWrap(TextureWrap.Repeat);
-
-//		long etime = System.currentTimeMillis() - startticks;
-//		System.out.println("Load skin: p" + pal + "-e" + defs.texInfo.getPaletteEffect(pal) + " \"" + skinfile
-//				+ "\"... " + etime + " ms");
-
-		texptr[idptr] = texidx;
-		return texidx;
-	}
-
-	public TileData loadskin(DefScript defs, String skinfile) {
-		PixmapTileData texidx = null;
-		Resource res = BuildGdx.cache.open(skinfile, 0);
-		if (res == null) {
-			Console.Println("Skin " + skinfile + " not found.", OSDTEXT_YELLOW);
-			defs.mdInfo.removeModelInfo(this);
-			return null;
-		}
-
-		try {
-			byte[] data = res.getBytes();
-			Pixmap pix = new Pixmap(data, 0, data.length);
-			texidx = new PixmapTileData(pix, true, 0);
-		} catch (Exception e) {
-			Console.Println("Couldn't load file: " + skinfile, OSDTEXT_YELLOW);
-			defs.mdInfo.removeModelInfo(this);
-			return null;
-		} finally {
-			res.close();
-		}
-
-		return texidx;
-	}
-
-	@Override
-	public Iterator<GLTile[]> getSkins() {
-		Iterator<GLTile[]> it = new Iterator<GLTile[]>() {
-			private MDSkinmap current = skinmap;
-
-			@Override
-			public boolean hasNext() {
-				return current != null && current.next != null;
-			}
-
-			@Override
-			public GLTile[] next() {
-				MDSkinmap sk = current;
-				current = sk.next;
-				return sk.texid;
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
-		return it;
-	}
-
-	@Override
-	public void clearSkins() {
-		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
-			for (int j = 0; j < sk.texid.length; j++) {
-				GLTile tex = sk.texid[j];
-				if (tex == null)
-					continue;
-
-				tex.delete();
-				sk.texid[j] = null;
-			}
-		}
 	}
 }

@@ -23,7 +23,7 @@ public abstract class GLVoxel extends GLModel {
 	protected final Color color = new Color();
 
 	public GLVoxel() {
-		super(Type.Voxel);
+		super("", Type.Voxel);
 
 		this.texid = new GLTile[MAXPALOOKUPS];
 		this.scale = 1.0f;
@@ -46,14 +46,14 @@ public abstract class GLVoxel extends GLModel {
 		if (palookup[dapal] == null || dst.getPixelFormat() == PixelFormat.Pal8)
 			dapal = 0;
 
-//		long startticks = System.nanoTime();
-		TileData dat = new VoxelTileData(dst.getPixelFormat(), skinData, dapal);
+		long startticks = System.nanoTime();
+		TileData dat = new VoxelSkin(dst.getPixelFormat(), skinData, dapal);
 		dst.update(dat, dapal, false);
 		dst.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
 		dst.unsafeSetAnisotropicFilter(1, true);
 		texid[dapal] = dst;
-//		long etime = System.nanoTime() - startticks;
-//		System.out.println("Load voxskin: p" + dapal + "... " + (etime / 1000000.0f) + " ms");
+		long etime = System.nanoTime() - startticks;
+		System.out.println("Load voxskin: p" + dapal + "... " + (etime / 1000000.0f) + " ms");
 
 		return dst;
 	}

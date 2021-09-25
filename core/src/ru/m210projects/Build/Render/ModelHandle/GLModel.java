@@ -8,8 +8,8 @@ import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
 public abstract class GLModel extends Model {
 
-	public GLModel(Type type) {
-		super(type);
+	public GLModel(String filename, Type type) {
+		super(filename, type);
 	}
 
 	public abstract void render(ShaderProgram shader);

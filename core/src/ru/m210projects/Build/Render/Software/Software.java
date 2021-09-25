@@ -83,8 +83,6 @@ import static ru.m210projects.Build.Engine.xyaspect;
 import static ru.m210projects.Build.Engine.ydim;
 import static ru.m210projects.Build.Engine.ydimen;
 import static ru.m210projects.Build.Engine.yxaspect;
-import static ru.m210projects.Build.Loader.OldModel.MD_ROTATE;
-import static ru.m210projects.Build.Loader.Voxels.Voxel.MAXVOXMIPS;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
@@ -100,10 +98,11 @@ import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Architecture.BuildGraphics.Option;
-import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.Renderer;
+import ru.m210projects.Build.Render.ModelHandle.MDVoxel;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Render.Types.Tile2model;
@@ -119,6 +118,7 @@ import ru.m210projects.Build.Types.WALL;
 public class Software implements Renderer {
 
 	public final int BITSOFPRECISION = 3;
+	public static final int MAXVOXMIPS = 5;
 
 	protected A a;
 	protected Engine engine;
@@ -1041,7 +1041,7 @@ public class Software implements Renderer {
 			return;
 
 		int tilenum = tspr.picnum;
-		Voxel vtilenum = null;
+		MDVoxel vtilenum = null;
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
 
@@ -1056,14 +1056,11 @@ public class Software implements Renderer {
 		if ((tspr.xrepeat <= 0) || (tspr.yrepeat <= 0))
 			return;
 
-		int mflags = 0;
 		if (BuildSettings.useVoxels.get()) {
 			Tile2model entry = defs != null ? defs.mdInfo.getParams(tilenum) : null;
 			if (entry != null && entry.voxel != null) {
 				if ((sprite[tspr.owner].cstat & 48) != 32) {
 					vtilenum = entry.voxel;
-					if (vtilenum.getModel() != null)
-						mflags = vtilenum.getModel().flags;
 					cstat |= 48;
 				}
 			}
@@ -1960,12 +1957,12 @@ public class Software implements Renderer {
 			if (vtilenum == null)
 				break;
 
-			if (vtilenum.scale == 65536)
+			if (vtilenum.getScale() == 65536)
 				nyrepeat = ((tspr.yrepeat) << 16);
 			else
-				nyrepeat = tspr.yrepeat * vtilenum.scale;
-			xv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2560 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
-			yv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2048 + 1536) & 2047]) * (vtilenum.scale / 65536.0f));
+				nyrepeat = (long) (tspr.yrepeat * vtilenum.getScale());
+			xv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2560 + 1536) & 2047]) * (vtilenum.getScale() / 65536.0f));
+			yv = (int) ((tspr.xrepeat * sintable[(tspr.ang + 2048 + 1536) & 2047]) * (vtilenum.getScale() / 65536.0f));
 
 			tspr.x -= mulscale(xoff, xv, 16) / 1.25f;
 			tspr.y -= mulscale(xoff, yv, 16) / 1.25f;
@@ -1974,10 +1971,10 @@ public class Software implements Renderer {
 			if ((cstat & 128) == 0)
 				// tspr.z -= mulscale(tilesizy[tspr.picnum], nyrepeat, 15); // GDX this more
 				// correct, but disabled for compatible with eduke
-				tspr.z -= mulscale(vtilenum.zpiv[0], nyrepeat, 22);
+				tspr.z -= mulscale(vtilenum.getData().zpiv[0], nyrepeat, 22);
 
 			if ((cstat & 8) != 0 && (cstat & 16) != 0)
-				tspr.z += mulscale((pic.getHeight() / 2) - vtilenum.zpiv[0], nyrepeat, 36);
+				tspr.z += mulscale((pic.getHeight() / 2) - vtilenum.getData().zpiv[0], nyrepeat, 36);
 
 			globvis = globalvisibility;
 			globalorientation = cstat;
@@ -1985,7 +1982,7 @@ public class Software implements Renderer {
 				globvis = mulscale(globvis, (sec.visibility + 16) & 0xFF, 4);
 
 			i = tspr.ang + 1536;
-			if ((mflags & MD_ROTATE) != 0)
+			if (vtilenum.isRotating())
 				i -= (5 * totalclock) & 2047;
 
 			Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
@@ -2007,7 +2004,7 @@ public class Software implements Renderer {
 
 	}
 
-	private void voxdraw(SPRITE daspr, int dasprang, int daxscale, int dayscale, Voxel daindex, int[] daumost,
+	private void voxdraw(SPRITE daspr, int dasprang, int daxscale, int dayscale, MDVoxel daindex, int[] daumost,
 			int[] dadmost) {
 		int i, j, k, x, y, syoff, ggxstart, ggystart, nxoff;
 		int cosang, sinang, sprcosang, sprsinang, backx, backy, gxinc, gyinc;
@@ -2058,19 +2055,20 @@ public class Software implements Renderer {
 		} else
 			mip = 0;
 
-		Voxel davox = daindex;
+		VoxelData davox = daindex.getData();
+		int scale = (int) daindex.getScale();
 		if (davox == null)
 			return;
 
 		if (davox.data[mip] == null && mip > 0)
 			mip = 0;
 
-		if (davox.scale == 65536) {
+		if (scale == 65536) {
 			daxscale <<= (mip + 8);
 			dayscale <<= (mip + 8);
 		} else {
-			daxscale = mulscale(daxscale << mip, davox.scale, 8);
-			dayscale = mulscale(dayscale << mip, davox.scale, 8);
+			daxscale = mulscale(daxscale << mip, scale, 8);
+			dayscale = mulscale(dayscale << mip, scale, 8);
 		}
 
 		int odayscale = dayscale; // tspr.yrepeat

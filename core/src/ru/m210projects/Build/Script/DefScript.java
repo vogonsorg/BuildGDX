@@ -20,7 +20,6 @@ import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.SPECULARPAL;
 import static ru.m210projects.Build.Engine.palette;
 import static ru.m210projects.Build.Gameutils.BClipRange;
-import static ru.m210projects.Build.Loader.OldModel.MD_ROTATE;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_YELLOW;
 import static ru.m210projects.Build.Strhandler.toLowerCase;
@@ -43,21 +42,22 @@ import ru.m210projects.Build.FileHandle.FileEntry;
 import ru.m210projects.Build.FileHandle.FileUtils;
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
-import ru.m210projects.Build.Loader.MDModel;
-import ru.m210projects.Build.Loader.OldModel;
-import ru.m210projects.Build.Loader.MD2.MD2Loader;
-import ru.m210projects.Build.Loader.MD3.MD3Loader;
-import ru.m210projects.Build.Loader.Voxels.KVXLoader;
-import ru.m210projects.Build.Loader.Voxels.Voxel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildEngine;
+import ru.m210projects.Build.Render.ModelHandle.MDVoxel;
+import ru.m210projects.Build.Render.ModelHandle.Model;
+import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.MD2Model;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3Model;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Types.Tile;
 
 public class DefScript {
 
 	protected boolean disposable;
 	public final TextureHDInfo texInfo;
-	public final ModelInfo mdInfo;
+	public final ModelsInfo mdInfo;
 	public final AudioInfo audInfo;
 	public final MapHackInfo mapInfo;
 	protected final Engine engine;
@@ -116,7 +116,7 @@ public class DefScript {
 	public DefScript(DefScript src, FileEntry addon) {
 		this.disposable = true;
 		this.texInfo = new TextureHDInfo(src.texInfo);
-		this.mdInfo = new ModelInfo(src.mdInfo, src.disposable);
+		this.mdInfo = new ModelsInfo(src.mdInfo, src.disposable);
 		this.audInfo = new AudioInfo(src.audInfo);
 		this.mapInfo = createMapHackInfo(src.mapInfo);
 		this.engine = src.engine;
@@ -145,7 +145,7 @@ public class DefScript {
 	public DefScript(BuildEngine engine, boolean disposable) {
 		this.disposable = disposable;
 		texInfo = new TextureHDInfo();
-		mdInfo = new ModelInfo();
+		mdInfo = new ModelsInfo();
 		audInfo = new AudioInfo();
 		mapInfo = createMapHackInfo(null);
 
@@ -864,7 +864,7 @@ public class DefScript {
 			int modelend;
 			String modelfn;
 			double mdscale = 1.0, mzadd = 0.0, myoffset = 0.0;
-			int shadeoffs = 0, mdflags = 0;
+			int /*shadeoffs = 0,*/ mdflags = 0;
 			int model_ok = 1;
 
 			modelskin = lastmodelskin = 0;
@@ -882,25 +882,29 @@ public class DefScript {
 				return BaseToken.Warning;
 			}
 
-			OldModel m = null;
-			int sign = res.readInt();
-			res.seek(0, Whence.Set);
-			switch (sign) {
-			case 0x32504449: // IDP2
-				m = MD2Loader.load(res);
-				break;
-			case 0x33504449: // IDP3
-				m = MD3Loader.load(res);
-				break;
-			default:
-				if (res.getExtension().equals("kvx"))
-					m = KVXLoader.load(res).model;
-				break;
+			Model m = null;
+			try {
+				int sign = res.readInt();
+				res.seek(0, Whence.Set);
+				switch (sign) {
+				case 0x32504449: // IDP2
+					m = new MD2Model(res, modelfn);
+					break;
+				case 0x33504449: // IDP3
+					m = new MD3Model(res, modelfn);
+					break;
+				default:
+					if (res.getExtension().equals("kvx"))
+						m = new Model(modelfn, Type.Voxel);
+					break;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			res.close();
 
 			if (m == null) {
-				Console.Println("Warning: Failed loading MD2/MD3 model " + modelfn, OSDTEXT_YELLOW);
+				Console.Println("Warning: Failed loading model " + modelfn, OSDTEXT_YELLOW);
 				script.textptr = modelend + 1;
 				return BaseToken.Warning;
 			}
@@ -928,10 +932,10 @@ public class DefScript {
 					if (dvalue != null)
 						mdscale = dvalue;
 					break;
-				case SHADE:
-					if ((ivalue = script.getsymbol()) != null)
-						shadeoffs = ivalue;
-					break;
+//				case SHADE:
+//					if ((ivalue = script.getsymbol()) != null)
+//						shadeoffs = ivalue;
+//					break;
 				case ZADD:
 					if ((dvalue = script.getdouble()) != null)
 						mzadd = dvalue;
@@ -1081,7 +1085,7 @@ public class DefScript {
 						happy = 0;
 					}
 					model_ok &= happy;
-					if (happy == 0 || m.mdnum < 2)
+					if (happy == 0 || m.getType() == Type.Voxel)
 						break;
 
 					switch (((MDModel) m).setAnimation(startframe, endframe, (int) (dfps * (65536.0 * .001)), flags)) {
@@ -1184,7 +1188,7 @@ public class DefScript {
 //						break;
 					}
 
-					if (!BuildGdx.cache.contains(skinfn, 0) || m.mdnum < 2)
+					if (!BuildGdx.cache.contains(skinfn, 0) || m.getType() == Type.Voxel)
 						break;
 
 					switch (((MDModel) m).setSkin(skinfn, palnum, Math.max(0, modelskin), surfnum, param, specpower,
@@ -1308,7 +1312,7 @@ public class DefScript {
 				return BaseToken.Error;
 			}
 
-			m.setMisc((float) mdscale, shadeoffs, (float) mzadd, (float) myoffset, mdflags);
+			m.setMisc((float) mdscale, (float) mzadd, (float) myoffset, mdflags);
 
 			modelskin = lastmodelskin = 0;
 			seenframe = 0;
@@ -1546,14 +1550,22 @@ public class DefScript {
 				script.textptr = vmodelend + 1;
 				return BaseToken.Warning;
 			}
-			Voxel vox = KVXLoader.load(res);
+
+			MDVoxel vox = null;
+			try {
+				vox = new MDVoxel(new VoxelData(res));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			res.close();
+
 			if (vox == null) {
-				Console.Println("Warning: Failed loading MD2/MD3 model " + fn, OSDTEXT_YELLOW);
+				Console.Println("Warning: Failed loading voxel model " + fn, OSDTEXT_YELLOW);
 				script.textptr = vmodelend + 1;
 
 				return BaseToken.Warning;
 			}
+
 
 			while (script.textptr < vmodelend) {
 				Object tk = gettoken(script, voxeltokens);
@@ -1588,8 +1600,9 @@ public class DefScript {
 
 					if (check_tile_range("voxel", tile0, tile1, script, script.ltextptr))
 						break;
-					for (tilex = tile0; tilex <= tile1; tilex++)
+					for (tilex = tile0; tilex <= tile1; tilex++) {
 						mdInfo.addVoxelInfo(vox, tilex);
+					}
 					break; // last tile number (inclusive)
 				case SCALE:
 					if ((dvalue = script.getdouble()) != null)
@@ -1604,7 +1617,7 @@ public class DefScript {
 			}
 			script.skipbrace(vmodelend); // close bracke
 
-			vox.getModel().setMisc((float) vscale, 0, 0, 0, vrotate ? MD_ROTATE : 0);
+			vox.setMisc((float) vscale, 0, 0, vrotate ? Model.MD_ROTATE : 0);
 			return BaseToken.Ok;
 		}
 	}

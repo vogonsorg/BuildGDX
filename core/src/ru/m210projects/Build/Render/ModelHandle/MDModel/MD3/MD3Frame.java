@@ -14,23 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Loader.MD3;
+package ru.m210projects.Build.Render.ModelHandle.MDModel.MD3;
 
-public class MD3Vertice {
-	public short x, y, z, nlat, nlng;
-	
-	/*
-	surface.vertices.put((float)var1.getShort() / 64.0F); //x
-    surface.vertices.put((float)var1.getShort() / 64.0F); //y
-    surface.vertices.put((float)var1.getShort() / 64.0F); //z
-    double var15 = (double)(var1.get() & 255) * Math.PI * 2.0D / 255.0D; //nlat
-    double var17 = (double)(var1.get() & 255) * Math.PI * 2.0D / 255.0D; //nlng
-    
-    float var19 = (float)(Math.cos(var17) * Math.sin(var15));
-    float var21 = (float)(Math.sin(var17) * Math.sin(var15));
-    float var22 = (float)Math.cos(var15);
-    surface.normals.put(var19);
-    surface.normals.put(var21);
-    surface.normals.put(var22);
-	*/
+import com.badlogic.gdx.math.Vector3;
+
+public class MD3Frame{
+	public Vector3 min;
+    public Vector3 max;
+    public Vector3 origin;
+    public Float radius;
+    public String name;
 }

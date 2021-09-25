@@ -54,9 +54,9 @@ public class VoxelGL10 extends GLVoxel {
 			indices = BufferUtils.newShortBuffer(ia.length);
 
 			for(int i = 0; i < va.length; i += verSize) {
-				vertices.put(va[i]);
-				vertices.put(va[i + 1]);
-				vertices.put(va[i + 2]);
+				vertices.put(va[i] * 64.0f);
+				vertices.put(va[i + 1] * 64.0f);
+				vertices.put(va[i + 2] * 64.0f);
 				uv.put(va[i + 3]);
 				uv.put(va[i + 4]);
 			}
@@ -111,6 +111,7 @@ public class VoxelGL10 extends GLVoxel {
 						+ dvoxphack[(yy < (rec.getY(j) * 2)) ? 1 : 0];
 				float vertz = (rec.getZ(j)) - dvoxphack[(zz > (rec.getZ(j) * 2)) ? 1 : 0]
 						+ dvoxphack[(zz < (rec.getZ(j) * 2)) ? 1 : 0];
+
 				BuildGdx.gl.glVertex3d(vertx, verty, vertz);
 			}
 		}

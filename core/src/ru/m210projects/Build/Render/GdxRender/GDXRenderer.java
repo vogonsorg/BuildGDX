@@ -30,7 +30,6 @@ import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
 import static com.badlogic.gdx.graphics.GL20.GL_RGB;
 import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
 import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
@@ -39,7 +38,6 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
-import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -60,18 +58,20 @@ import ru.m210projects.Build.Gameutils;
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Loader.OldModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
-import ru.m210projects.Build.Render.GLRenderer.Rendering;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
 import ru.m210projects.Build.Render.GdxRender.Scanner.VisibleSector;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
+import ru.m210projects.Build.Render.ModelHandle.GLModel;
+import ru.m210projects.Build.Render.ModelHandle.ModelManager;
+import ru.m210projects.Build.Render.ModelHandle.ModelManager.ModelType;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.GLTileArray;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
@@ -85,7 +85,9 @@ import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
@@ -113,6 +115,7 @@ public class GDXRenderer implements GLRenderer {
 	public Rendering rendering = Rendering.Nothing;
 
 	protected TextureManager textureCache;
+	protected ModelManager modelManager;
 	protected final Engine engine;
 	protected boolean isInited = false;
 	protected GL20 gl;
@@ -126,6 +129,7 @@ public class GDXRenderer implements GLRenderer {
 	protected SectorScanner scanner;
 	protected BuildCamera cam;
 	protected SpriteRenderer sprR;
+	protected GDXModelRenderer mdR;
 	protected GDXOrtho orphoRen; // GdxOrphoRen
 	protected DefScript defs;
 
@@ -154,9 +158,11 @@ public class GDXRenderer implements GLRenderer {
 	public GDXRenderer(Engine engine, IOverheadMapSettings settings) {
 		this.engine = engine;
 		this.textureCache = getTextureManager();
+		this.modelManager = new ModelManager();
 		this.manager = new ShaderManager();
 
 		this.sprR = new SpriteRenderer(engine, this);
+		this.mdR = new GDXModelRenderer(engine, this);
 		this.orphoRen = allocOrphoRenderer(settings);
 		this.scanner = new SectorScanner(engine) {
 			@Override
@@ -224,6 +230,7 @@ public class GDXRenderer implements GLRenderer {
 		manager.dispose();
 		FadeEffect.uninit();
 		texturesUninit();
+		modelManager.dispose();
 	}
 
 	private void texturesUninit() {
@@ -404,12 +411,45 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	public void drawsprite(int i) {
-		sprR.begin(cam);
 		SPRITE tspr = tsprite[i];
-		if (tspr != null) {
-			rendering = Rendering.Sprite.setIndex(i);
-			sprR.draw(tspr);
+		if(tspr == null)
+			return;
+
+		Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
+		while (sprext == null || !sprext.isNotModel()) {
+			rendering = Rendering.Model.setIndex(i);
+			if (GLSettings.useModels.get()) {
+				GLModel md = modelManager.getModel(tspr.picnum);
+				if (md != null) {
+
+					break; // else, render as flat sprite
+				}
+			}
+
+			if (BuildSettings.useVoxels.get()) {
+				int dist = (tspr.x - globalposx) * (tspr.x - globalposx) + (tspr.y - globalposy) * (tspr.y - globalposy);
+				if (dist < 48000L * 48000L) {
+					GLVoxel vox = (GLVoxel) modelManager.getVoxel(tspr.picnum);
+					if(vox != null) {
+						if ((tspr.cstat & 48) != 48) {
+							if (mdR.voxdraw(vox, tspr) != 0)
+								return;
+							break; // else, render as flat sprite
+						}
+
+						if ((tspr.cstat & 48) == 48) {
+							mdR.voxdraw(vox, tspr);
+							return;
+						}
+					}
+				}
+			}
+			break;
 		}
+
+		rendering = Rendering.Sprite.setIndex(i);
+		sprR.begin(cam);
+		sprR.draw(tspr);
 		sprR.end();
 	}
 
@@ -824,6 +864,7 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void setDefs(DefScript defs) {
 		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
+		this.modelManager.setModelsInfo(defs != null ? defs.mdInfo : null, ModelType.GL20);
 		if (this.defs != null)
 			gltexinvalidateall(GLInvalidateFlag.Uninit, GLInvalidateFlag.All);
 		this.defs = defs;
@@ -842,8 +883,14 @@ public class GDXRenderer implements GLRenderer {
 			if (isInited)
 				texturesUninit();
 
-//			clearskins(false); XXX
+			clearskins(false);
 			this.isUseIndexedTextures = enable;
+		}
+	}
+
+	public void clearskins(boolean bit8only) {
+		for (int i = MAXTILES - 1; i >= 0; i--) {
+			modelManager.clearSkins(i, bit8only);
 		}
 	}
 
@@ -896,6 +943,24 @@ public class GDXRenderer implements GLRenderer {
 			return;
 
 		textureCache.precache(getTexFormat(), dapicnum, dapalnum, datype);
+
+		if (datype == 0 || defs == null)
+			return;
+
+		if(BuildSettings.useVoxels.get()) {
+			GLVoxel voxel = (GLVoxel) modelManager.getVoxel(dapicnum);
+			if(voxel != null) {
+				voxel.loadSkin(textureCache.newTile(getTexFormat(), voxel.getSkinWidth(), voxel.getSkinHeight()), dapalnum);
+			}
+		}
+
+		if (GLSettings.useModels.get()) {
+			GLModel model = modelManager.getModel(dapicnum);
+			if(model != null) {
+
+				//model.loadSkin(textureCache, defs, dapalnum);
+			}
+		}
 	}
 
 	@Override
@@ -907,31 +972,14 @@ public class GDXRenderer implements GLRenderer {
 			skycache.setFilter(i, filter, anisotropy);
 		}
 
-		if (defs == null)
-			return;
-
-		for (int i = MAXTILES - 1; i >= 0; i--) {
-			OldModel m = defs.mdInfo.getModel(i);
-			if (m != null) {
-				Iterator<GLTile[]> it = m.getSkins();
-				while (it.hasNext()) {
-					for (GLTile tex : it.next()) {
-						if (tex == null)
-							continue;
-
-						textureCache.bind(tex);
-						tex.setupTextureFilter(filter, anisotropy);
-					}
-				}
-			}
-		}
+		modelManager.setTextureFilter(filter, GLSettings.textureAnisotropy.get());
 	}
 
 	@Override
 	public void gltexinvalidateall(GLInvalidateFlag... flags) {
 		if (flags.length == 0) {
 			textureCache.invalidateall();
-//			clearskins(true); XXX
+			clearskins(true);
 			return;
 		}
 
@@ -941,7 +989,7 @@ public class GDXRenderer implements GLRenderer {
 				texturesUninit();
 				break;
 			case SkinsOnly:
-//				clearskins(true); XXX
+				clearskins(true);
 				break;
 			case TexturesOnly:
 			case IndexedTexturesOnly:

@@ -23,15 +23,15 @@ import static java.lang.Math.sqrt;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Gameutils.isCorruptWall;
-import static ru.m210projects.Build.Loader.MDAnimation.mdpause;
-import static ru.m210projects.Build.Loader.MDAnimation.mdtims;
-import static ru.m210projects.Build.Loader.MDAnimation.omdtims;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.klabs;
 import static ru.m210projects.Build.Pragmas.mulscale;
 import static ru.m210projects.Build.Pragmas.scale;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpause;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.omdtims;
 import static ru.m210projects.Build.Render.Types.GL10.*;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 
@@ -53,10 +53,6 @@ import ru.m210projects.Build.Engine.Point;
 import ru.m210projects.Build.Architecture.BuildApplication.Platform;
 import ru.m210projects.Build.Architecture.BuildFrame.FrameType;
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Loader.MDModel;
-import ru.m210projects.Build.Loader.OldModel;
-import ru.m210projects.Build.Loader.MD3.MD3Model;
-import ru.m210projects.Build.Loader.Voxels.VOXModel;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLFog;
 import ru.m210projects.Build.Render.GLInfo;
@@ -64,22 +60,19 @@ import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
-import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.ModelManager;
+import ru.m210projects.Build.Render.ModelHandle.ModelManager.ModelType;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
-import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
-import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL10;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager.ExpandTexture;
-import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Spriteext;
-import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -107,11 +100,6 @@ public class Polymost implements GLRenderer {
 	private int numscans, numbunches;
 	private boolean drunk;
 	private float drunkIntensive = 1.0f;
-
-	private final int SPREXT_NOTMD = 1;
-	private final int SPREXT_NOMDANIM = 2;
-	private final int SPREXT_AWAY1 = 4;
-	private final int SPREXT_AWAY2 = 8;
 
 	protected SPRITE[] tspriteptr = new SPRITE[MAXSPRITESONSCREEN + 1];
 
@@ -184,12 +172,14 @@ public class Polymost implements GLRenderer {
 	protected boolean isInited = false;
 
 	protected TextureManager textureCache;
+	protected ModelManager modelManager;
 	protected IndexedShader texshader;
 	protected final Engine engine;
 
 	public Polymost(Engine engine, IOverheadMapSettings settings) {
 		this.engine = engine;
 		this.textureCache = getTextureManager();
+		this.modelManager = new ModelManager();
 
 		this.clipper = new PolyClipper(this);
 		this.mdrenderer = new PolymostModelRenderer(this);
@@ -238,6 +228,7 @@ public class Polymost implements GLRenderer {
 		gl.glLoadIdentity();
 
 		textureCache.uninit();
+		modelManager.dispose();
 		clearskins(false);
 
 		ortho.uninit();
@@ -477,6 +468,7 @@ public class Polymost implements GLRenderer {
 	@Override
 	public void setDefs(DefScript defs) {
 		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
+		this.modelManager.setModelsInfo(defs != null ? defs.mdInfo : null, ModelType.GL10);
 		if (this.defs != null)
 			gltexinvalidateall(GLInvalidateFlag.Uninit, GLInvalidateFlag.All);
 		this.defs = defs;
@@ -547,17 +539,8 @@ public class Polymost implements GLRenderer {
 	}
 
 	public void clearskins(boolean bit8only) {
-		if (defs == null)
-			return;
-
 		for (int i = MAXTILES - 1; i >= 0; i--) {
-			OldModel m = defs.mdInfo.getModel(i);
-			if (m != null && !bit8only)
-				m.clearSkins();
-
-			OldModel vox = defs.mdInfo.getVoxModel(i);
-			if (vox != null && !bit8only)
-				vox.clearSkins();
+			modelManager.clearSkins(i, bit8only);
 		}
 	}
 
@@ -565,26 +548,7 @@ public class Polymost implements GLRenderer {
 	public void gltexapplyprops() {
 		GLFilter filter = GLSettings.textureFilter.get();
 		textureCache.setFilter(filter);
-
-		if (defs == null)
-			return;
-
-		int anisotropy = GLSettings.textureAnisotropy.get();
-		for (int i = MAXTILES - 1; i >= 0; i--) {
-			OldModel m = defs.mdInfo.getModel(i);
-			if (m != null) {
-				Iterator<GLTile[]> it = m.getSkins();
-				while (it.hasNext()) {
-					for (GLTile tex : it.next()) {
-						if (tex == null)
-							continue;
-
-						textureCache.bind(tex);
-						tex.setupTextureFilter(filter, anisotropy);
-					}
-				}
-			}
-		}
+		modelManager.setTextureFilter(filter, GLSettings.textureAnisotropy.get());
 	}
 
 	public void setupTextureGlow(GLTile tex) {
@@ -1663,8 +1627,7 @@ public class Polymost implements GLRenderer {
 						&& (spritesortcnt < MAXSPRITESONSCREEN)) {
 					xs = spr.x - globalposx;
 					ys = spr.y - globalposy;
-					if (((spr.cstat & 48) != 0) || (xs * gcosang + ys * gsinang > 0) || (GLSettings.useModels.get()
-							&& defs != null && defs.mdInfo.getModel(spr.picnum) != null)) {
+					if (((spr.cstat & 48) != 0) || (xs * gcosang + ys * gsinang > 0) || (GLSettings.useModels.get() && modelManager.getModel(spr.picnum) != null)) {
 						if ((spr.cstat & (64 + 48)) != (64 + 16) || dmulscale(sintable[(spr.ang + 512) & 2047], -xs,
 								sintable[spr.ang & 2047], -ys, 6) > 0) {
 							if (tsprite[spritesortcnt] == null)
@@ -2648,19 +2611,6 @@ public class Polymost implements GLRenderer {
 	private final Vector2[] dcoord = new Vector2[MAXSPRITES];
 	private final int[] spritewall = new int[MAXSPRITES];
 
-	private GLModel[] models = new GLModel[MAXTILES];
-
-	protected GLModel getModel(int picnum) {
-		VoxelData entry = defs != null ? defs.mdInfo.getVoxelData(picnum) : null;
-		if (entry != null) {
-			GLModel model = models[picnum];
-			if (model == null)
-				model = models[picnum] = new VoxelGL10(entry, 0, true);
-			return model;
-		}
-		return null;
-	}
-
 	private void drawsprite(int snum) {
 		float f, c, s, fx, fy, sx0, sy0, sx1, xp0, yp0, xp1, yp1, oxp0, oyp0, ryp0, ryp1;
 		float x0, y0, x1, y1, sc0, sf0, sc1, sf1, xv, yv, t0, t1;
@@ -2717,12 +2667,12 @@ public class Polymost implements GLRenderer {
 
 		int shade = (int) (globalshade / 1.5f);
 
-		while (sprext == null || (sprext.flags & SPREXT_NOTMD) == 0) {
+		while (sprext == null || !sprext.isNotModel()) {
 			rendering = Rendering.Model.setIndex(snum);
 
 			if (GLSettings.useModels.get()) {
-				Tile2model entry = defs != null ? defs.mdInfo.getParams(tspr.picnum) : null;
-				if (entry != null && entry.model != null && entry.framenum >= 0) {
+				GLModel md = modelManager.getModel(tspr.picnum);
+				if (md != null) {
 					calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
 					if (tspr.owner < 0 || tspr.owner >= MAXSPRITES /* || tspr.statnum == TSPR_MIRROR */ ) {
@@ -2738,41 +2688,20 @@ public class Polymost implements GLRenderer {
 			}
 
 			if (BuildSettings.useVoxels.get()) {
-//				{
-//					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
-//					if (dist < 48000L * 48000L) {
-//						GLModel model = getModel(globalpicnum);
-//						if(model != null && model.getType() == Type.Voxel) {
-//							calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
-//
-//							if ((tspr.cstat & 48) != 48) {
-//								if (mdrenderer.voxdraw((GLVoxel) model, tspr) != 0)
-//									return;
-//								break; // else, render as flat sprite
-//							}
-//
-//							if ((tspr.cstat & 48) == 48) {
-//								mdrenderer.voxdraw((GLVoxel) model, tspr);
-//								return;
-//							}
-//						}
-//					}
-//				}
-
-				Tile2model entry = defs != null ? defs.mdInfo.getParams(globalpicnum) : null;
-				if (entry != null) {
-					int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
-					if (dist < 48000L * 48000L && entry.voxel != null && entry.voxel.getModel() != null) {
+				int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
+				if (dist < 48000L * 48000L) {
+					GLVoxel vox = (GLVoxel) modelManager.getVoxel(globalpicnum);
+					if(vox != null) {
 						calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
 						if ((tspr.cstat & 48) != 48) {
-							if (mdrenderer.voxdraw(entry.voxel.getModel(), tspr) != 0)
+							if (mdrenderer.voxdraw(vox, tspr) != 0)
 								return;
 							break; // else, render as flat sprite
 						}
 
 						if ((tspr.cstat & 48) == 48) {
-							mdrenderer.voxdraw(entry.voxel.getModel(), tspr);
+							mdrenderer.voxdraw(vox, tspr);
 							return;
 						}
 					}
@@ -3323,48 +3252,20 @@ public class Polymost implements GLRenderer {
 		if (datype == 0 || defs == null)
 			return;
 
-		if (texshader != null && BuildSettings.useVoxels.get()) {
-			VOXModel vox = defs.mdInfo.getVoxModel(dapicnum);
-			if (vox != null) {
-				getVoxelSkin(vox, dapalnum);
+		if(BuildSettings.useVoxels.get()) {
+			GLVoxel voxel = (GLVoxel) modelManager.getVoxel(dapicnum);
+			if(voxel != null) {
+				voxel.loadSkin(textureCache.newTile(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, voxel.getSkinWidth(), voxel.getSkinHeight()), dapalnum);
 			}
 		}
 
 		if (GLSettings.useModels.get()) {
-			Tile2model param = defs.mdInfo.getParams(dapicnum);
-			if (param != null) {
-				MDModel m = (MDModel) param.model;
-				if (m != null) {
-					if (m.mdnum == 3) {
-						int numsurfs = ((MD3Model) m).head.numSurfaces;
-						int skinnum = param.skinnum;
-						for (int surfi = 0; surfi < numsurfs; surfi++)
-							m.loadskin(textureCache, defs, skinnum, dapalnum, surfi);
-					} else
-						m.loadskin(textureCache, defs, 0, dapalnum, 0);
-				}
+			GLModel model = modelManager.getModel(dapicnum);
+			if(model != null) {
+
+				//model.loadSkin(textureCache, defs, dapalnum);
 			}
 		}
-	}
-
-	protected GLTile getVoxelSkin(VOXModel vox, int dapal) {
-		PixelFormat fmt = getTextureFormat();
-		if (palookup[dapal] == null || fmt == PixelFormat.Pal8)
-			dapal = 0;
-
-		GLTile skin = vox.getSkin(fmt, dapal);
-		if (skin != null)
-			return skin;
-
-//		long startticks = System.nanoTime();
-		TileData dat = vox.loadskin(fmt, dapal);
-		GLTile tex = textureCache.newTile(dat, dapal, false);
-		tex.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
-		tex.unsafeSetAnisotropicFilter(1, true);
-		vox.setSkin(tex, dapal);
-//		long etime = System.nanoTime() - startticks;
-//		System.out.println("Load voxskin: p" + dapal + "... " + (etime / 1000000.0f) + " ms");
-		return tex;
 	}
 
 	protected void calc_and_apply_fog(int shade, int vis, int pal) {
@@ -3708,7 +3609,7 @@ public class Polymost implements GLRenderer {
 				if (sprext == null)
 					continue;
 
-				if ((mdpause != 0 && sprext.mdanimtims != 0) || ((sprext.flags & SPREXT_NOMDANIM) != 0))
+				if ((mdpause != 0 && sprext.mdanimtims != 0) || sprext.isAnimationDisabled())
 					sprext.mdanimtims += mdtims - omdtims;
 			}
 

@@ -352,7 +352,7 @@ public class VoxelBuilder {
 
 		int vertexOffset = vertices.size / 5;
 		for (i = 0; i < 4; i++) {
-			vertices.addAll(qptr.v[i].x, qptr.v[i].y, qptr.v[i].z);
+			vertices.addAll(qptr.v[i].x / 64.0f, qptr.v[i].y / 64.0f, qptr.v[i].z / 64.0f);
 			vertices.addAll(qptr.v[i].u / (float) mytexx, qptr.v[i].v / (float) mytexy);
 		}
 		indices.addAll((short) vertexOffset, (short) (vertexOffset + 1), (short) (vertexOffset + 2),

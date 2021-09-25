@@ -51,7 +51,7 @@ public abstract class MenuVideoMode extends BuildMenu {
 	protected MenuConteiner mResolution;
 	protected MenuConteiner mRenderer;
 	protected MenuButton mRenderSettings;
-	private final MenuSwitch mFullscreen;
+	protected MenuSwitch mFullscreen;
 	protected MenuButton mApplyChanges;
 	protected MenuResolutionList mSlot;
 	protected MenuScroller slider;

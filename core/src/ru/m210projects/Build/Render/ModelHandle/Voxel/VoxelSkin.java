@@ -6,9 +6,9 @@ import static ru.m210projects.Build.Engine.palookup;
 import ru.m210projects.Build.Render.TextureHandle.DummyTileData;
 import ru.m210projects.Build.Types.Tile;
 
-public class VoxelTileData extends DummyTileData {
+public class VoxelSkin extends DummyTileData {
 
-	public VoxelTileData(PixelFormat fmt, Tile tile, int dapal) {
+	public VoxelSkin(PixelFormat fmt, Tile tile, int dapal) {
 		super(fmt, tile.getWidth(), tile.getHeight());
 
 		if (fmt != PixelFormat.Pal8) {

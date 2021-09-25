@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Loader.MD3;
+package ru.m210projects.Build.Render.ModelHandle.MDModel.MD2;
 
-public class MD3Shader {
-	String name;
-	int index;
+public class MD2Frame {
+	public float[][] vertices;
+	public String name;
 }
