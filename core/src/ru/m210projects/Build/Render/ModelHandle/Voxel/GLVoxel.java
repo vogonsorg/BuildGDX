@@ -2,6 +2,7 @@ package ru.m210projects.Build.Render.ModelHandle.Voxel;
 
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
 
 import java.util.Iterator;
 
@@ -36,8 +37,7 @@ public abstract class GLVoxel implements GLModel {
 
 	@Override
 	public boolean isRotating() {
-		// TODO Auto-generated method stub
-		return false;
+		return (flags & MD_ROTATE) != 0;
 	}
 
 	@Override

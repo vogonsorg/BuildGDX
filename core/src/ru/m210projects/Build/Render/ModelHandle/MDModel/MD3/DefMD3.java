@@ -1,45 +1,28 @@
 package ru.m210projects.Build.Render.ModelHandle.MDModel.MD3;
 
-import com.badlogic.gdx.math.Vector3;
-
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
+import ru.m210projects.Build.Render.ModelHandle.DefMD;
 
-public class DefMD3 extends MDModel {
+public class DefMD3 extends DefMD {
 
 	public final MD3Header header;
-	public final MD3Frame[] frames;
 
-	public DefMD3(Resource res, String file) {
+	public DefMD3(Resource res, String file) throws Exception {
 		super(file, Type.Md3);
 
-		header = loadHeader(res);
+		this.header = loadHeader(res);
+		if ((header.ident != 0x33504449) || (header.version != 15))
+			throw new Exception(); //"IDP3"
 
 		res.seek(header.offsetFrames, Whence.Set);
-		this.frames = new MD3Frame[header.numFrames];
+		this.frames = new String[header.numFrames];
 		this.numframes = header.numFrames;
+
         for(int i = 0; i < header.numFrames; i++) {
-        	MD3Frame frame = new MD3Frame();
-        	frame.min = new Vector3(res.readFloat(), res.readFloat(), res.readFloat());
-        	frame.max = new Vector3(res.readFloat(), res.readFloat(), res.readFloat());
-        	frame.origin = new Vector3(res.readFloat(), res.readFloat(), res.readFloat());
-        	frame.radius = res.readFloat();
-        	frame.name = readString(res, 16);
-        	frames[i] = frame;
+        	res.seek(40, Whence.Current);
+        	frames[i] = readString(res, 16);
         }
-	}
-
-	@Override
-	public int getFrameIndex(String framename) {
-		for (int i = 0; i < numframes; i++) {
-			MD3Frame fr = frames[i];
-			if (fr != null && fr.name.equalsIgnoreCase(framename)) {
-				return i;
-			}
-		}
-
-		return (-3); // frame name invalid
 	}
 
 	protected MD3Header loadHeader (Resource res) {

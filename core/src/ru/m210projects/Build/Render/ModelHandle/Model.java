@@ -19,6 +19,10 @@ public class Model {
 		this.type = type;
 	}
 
+	public String getFilename() {
+		return filename;
+	}
+
 	public Type getType() {
 		return type;
 	}

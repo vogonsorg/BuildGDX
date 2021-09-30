@@ -20,9 +20,9 @@ import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 
+import ru.m210projects.Build.Render.ModelHandle.DefMD;
 import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Model;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Tile2model;
 
@@ -141,7 +141,7 @@ public class ModelsInfo {
 			if (framename == null)
 				return (-3);
 
-			i = ((MDModel) md).getFrameIndex(framename);
+			i = ((DefMD) md).getFrameIndex(framename);
 			break;
 		}
 

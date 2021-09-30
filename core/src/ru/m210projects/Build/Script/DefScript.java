@@ -44,6 +44,7 @@ import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildEngine;
+import ru.m210projects.Build.Render.ModelHandle.DefMD;
 import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Model;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
@@ -1088,7 +1089,7 @@ public class DefScript {
 					if (happy == 0 || m.getType() == Type.Voxel)
 						break;
 
-					switch (((MDModel) m).setAnimation(startframe, endframe, (int) (dfps * (65536.0 * .001)), flags)) {
+					switch (((DefMD) m).setAnimation(startframe, endframe, (int) (dfps * (65536.0 * .001)), flags)) {
 					case -2:
 						Console.Println("Invalid starting frame name on line " + script.filename + ":"
 								+ script.getlinum(animtokptr), OSDTEXT_RED);
@@ -1191,7 +1192,7 @@ public class DefScript {
 					if (!BuildGdx.cache.contains(skinfn, 0) || m.getType() == Type.Voxel)
 						break;
 
-					switch (((MDModel) m).setSkin(skinfn, palnum, Math.max(0, modelskin), surfnum, param, specpower,
+					switch (((DefMD) m).setSkin(skinfn, palnum, Math.max(0, modelskin), surfnum, param, specpower,
 							specfactor)) {
 					case -2:
 						Console.Println(

@@ -2,11 +2,10 @@ package ru.m210projects.Build.Render.ModelHandle.MDModel.MD2;
 
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
+import ru.m210projects.Build.Render.ModelHandle.DefMD;
 
-public class DefMD2 extends MDModel {
+public class DefMD2 extends DefMD {
 
-	public final MD2Frame[] frames;
 	public final MD2Header header;
 
 	public DefMD2(Resource res, String file) {
@@ -14,41 +13,14 @@ public class DefMD2 extends MDModel {
 
 		this.header = loadHeader(res);
 		res.seek(header.offsetFrames, Whence.Set);
-		this.frames = new MD2Frame[header.numFrames];
+		this.frames = new String[header.numFrames];
 		this.numframes = header.numFrames;
+
 		for (int i = 0; i < header.numFrames; i++) {
-			MD2Frame frame = new MD2Frame();
-			frame.vertices = new float[header.numVertices][3];
-
-			float scaleX = res.readFloat(), scaleY = res.readFloat(), scaleZ = res.readFloat();
-			float transX = res.readFloat(), transY = res.readFloat(), transZ = res.readFloat();
-			frame.name = readString(res, 16);
-
-			for (int j = 0; j < header.numVertices; j++) {
-				float x = (res.readByte() & 0xFF) * scaleX + transX;
-				float y = (res.readByte() & 0xFF) * scaleY + transY;
-				float z = (res.readByte() & 0xFF) * scaleZ + transZ;
-				res.readByte(); // normal index
-
-				frame.vertices[j][0] = x;
-				frame.vertices[j][1] = y;
-				frame.vertices[j][2] = z;
-			}
-
-			frames[i] = frame;
+			res.seek(6, Whence.Current);
+			frames[i] = readString(res, 16);
+			res.seek(header.numVertices * 4, Whence.Current);
 		}
-	}
-
-	@Override
-	public int getFrameIndex(String framename) {
-		for (int i = 0; i < numframes; i++) {
-			MD2Frame fr = frames[i];
-			if (fr != null && fr.name.equalsIgnoreCase(framename)) {
-				return i;
-			}
-		}
-
-		return (-3); // frame name invalid
 	}
 
 	protected MD2Header loadHeader(Resource res) {

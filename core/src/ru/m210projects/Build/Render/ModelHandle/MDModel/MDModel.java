@@ -8,7 +8,6 @@
 
 package ru.m210projects.Build.Render.ModelHandle.MDModel;
 
-import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 import static ru.m210projects.Build.Engine.timerticspersec;
@@ -17,39 +16,28 @@ import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.MDANI
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpause;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
 
-import ru.m210projects.Build.FileHandle.Resource;
-import ru.m210projects.Build.Render.ModelHandle.Model;
+import ru.m210projects.Build.Render.ModelHandle.DefMD;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Script.ModelsInfo.Spritesmooth;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
 
-public abstract class MDModel extends Model {
-
-	public MDModel(String file, Type type) {
-		super(file, type);
-	}
+public class MDModel {
 
 	public MDSkinmap skinmap;
-	public int numskins, skinloaded; // set to 1+numofskin when a skin is loaded and the tex coords are modified,
 
 	public int numframes, cframe, nframe, fpssc;
 	public boolean usesalpha;
 	public float oldtime, curtime, interpol;
 	public MDAnimation animations;
+	protected int flags;
 
-	public abstract int getFrameIndex(String framename);
-
-	protected String readString(Resource bb, int len) {
-		byte[] buf = new byte[len];
-		bb.read(buf);
-
-		for(int i = 0; i < buf.length; i++) {
-        	if(buf[i] == 0)
-        		return new String(buf, 0, i);
-		}
-		return new String(buf);
+	public MDModel(DefMD md) {
+		this.skinmap = md.getSkins();
+		this.animations = md.getAnimations();
+		this.numframes = md.getFrames();
+		this.flags = md.getFlags();
 	}
 
 	public void updateanimation(DefScript defs, SPRITE tspr) {
@@ -191,58 +179,4 @@ public abstract class MDModel extends Model {
 		return null;
 	}
 
-	private void addSkin(MDSkinmap sk) {
-		sk.next = skinmap;
-		skinmap = sk;
-	}
-
-	public int setSkin(String skinfn, int palnum, int skinnum, int surfnum, double param, double specpower,
-			double specfactor) {
-		if (skinfn == null)
-			return -2;
-		if (palnum >= MAXPALOOKUPS)
-			return -3;
-
-		if (type == Type.Md2)
-			surfnum = 0;
-
-		MDSkinmap sk = getSkin(palnum, skinnum, surfnum);
-		if (sk == null) // no replacement yet defined
-			addSkin(sk = new MDSkinmap());
-
-		sk.palette = palnum;
-		sk.skinnum = skinnum;
-		sk.surfnum = surfnum;
-		sk.param = (float) param;
-		sk.specpower = (float) specpower;
-		sk.specfactor = (float) specfactor;
-		sk.fn = skinfn;
-
-		return 0;
-	}
-
-	public int setAnimation(String framestart, String frameend, int fpssc, int flags) {
-		MDAnimation ma = new MDAnimation();
-		int i = 0;
-
-		// find index of start frame
-		i = getFrameIndex(framestart);
-		if (i == numframes)
-			return -2;
-		ma.startframe = i;
-
-		// find index of finish frame which must trail start frame
-		i = getFrameIndex(frameend);
-		if (i == numframes)
-			return -3;
-		ma.endframe = i;
-
-		ma.fpssc = fpssc;
-		ma.flags = flags;
-
-		ma.next = animations;
-		animations = ma;
-
-		return 0;
-	}
 }
