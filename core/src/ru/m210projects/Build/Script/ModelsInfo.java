@@ -20,7 +20,7 @@ import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 
-import ru.m210projects.Build.Render.ModelHandle.MDVoxel;
+import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Model;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.Types.Hudtyp;
@@ -104,7 +104,7 @@ public class ModelsInfo {
 		return null;
 	}
 
-	public MDVoxel getVoxel(int picnum) {
+	public DefVoxel getVoxel(int picnum) {
 		if (cache[picnum] != null)
 			return cache[picnum].voxel;
 
@@ -156,7 +156,7 @@ public class ModelsInfo {
 		return i;
 	}
 
-	public int addVoxelInfo(MDVoxel md, int picnum) {
+	public int addVoxelInfo(DefVoxel md, int picnum) {
 		if (picnum >= MAXTILES)
 			return (-2);
 		if (md == null)

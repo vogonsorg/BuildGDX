@@ -4,20 +4,23 @@ import java.util.Iterator;
 
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
+import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
-public abstract class GLModel extends Model {
+public interface GLModel {
 
-	public GLModel(String filename, Type type) {
-		super(filename, type);
-	}
+	public void render(ShaderProgram shader);
 
-	public abstract void render(ShaderProgram shader);
+	public void dispose();
 
-	public abstract void dispose();
+	public Iterator<GLTile[]> getSkins();
 
-	public abstract Iterator<GLTile[]> getSkins();
+	public void clearSkins();
 
-	public abstract void clearSkins();
+	public Type getType();
+
+	public boolean isRotating();
+
+	public float getScale();
 
 }

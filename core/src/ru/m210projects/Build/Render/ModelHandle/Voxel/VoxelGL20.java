@@ -8,8 +8,8 @@ public class VoxelGL20 extends GLVoxel {
 
 	private Mesh mesh;
 
-	public VoxelGL20(VoxelData vox, int voxmip) {
-		super();
+	public VoxelGL20(VoxelData vox, int voxmip, int flags) {
+		super(flags);
 
 		VoxelBuilder builder = new VoxelBuilder(vox, voxmip);
 		float[] vertices = builder.getVertices();

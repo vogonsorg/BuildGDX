@@ -101,7 +101,7 @@ import ru.m210projects.Build.Architecture.BuildGraphics.Option;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.Renderer;
-import ru.m210projects.Build.Render.ModelHandle.MDVoxel;
+import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -1041,7 +1041,7 @@ public class Software implements Renderer {
 			return;
 
 		int tilenum = tspr.picnum;
-		MDVoxel vtilenum = null;
+		DefVoxel vtilenum = null;
 		short spritenum = tspr.owner;
 		short cstat = tspr.cstat;
 
@@ -2004,7 +2004,7 @@ public class Software implements Renderer {
 
 	}
 
-	private void voxdraw(SPRITE daspr, int dasprang, int daxscale, int dayscale, MDVoxel daindex, int[] daumost,
+	private void voxdraw(SPRITE daspr, int dasprang, int daxscale, int dayscale, DefVoxel daindex, int[] daumost,
 			int[] dadmost) {
 		int i, j, k, x, y, syoff, ggxstart, ggystart, nxoff;
 		int cosang, sinang, sprcosang, sprsinang, backx, backy, gxinc, gyinc;

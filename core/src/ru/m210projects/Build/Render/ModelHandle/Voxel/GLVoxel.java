@@ -9,24 +9,40 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
+import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Types.Tile;
 
-public abstract class GLVoxel extends GLModel {
+public abstract class GLVoxel implements GLModel {
 
 	protected Tile skinData; // indexed texture data
 	protected GLTile[] texid;
 	public int xsiz, ysiz, zsiz;
 	public float xpiv, ypiv, zpiv;
 	protected final Color color = new Color();
+	protected int flags;
 
-	public GLVoxel() {
-		super("", Type.Voxel);
-
+	public GLVoxel(int flags) {
 		this.texid = new GLTile[MAXPALOOKUPS];
-		this.scale = 1.0f;
+		this.flags = flags;
+	}
+
+	@Override
+	public Type getType() {
+		return Type.Voxel;
+	}
+
+	@Override
+	public boolean isRotating() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public float getScale() {
+		return 1.0f;
 	}
 
 	public GLVoxel setColor(float r, float g, float b, float a) {

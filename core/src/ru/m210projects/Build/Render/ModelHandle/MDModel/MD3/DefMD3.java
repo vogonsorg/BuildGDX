@@ -6,18 +6,19 @@ import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 
-public class MD3Model extends MDModel {
+public class DefMD3 extends MDModel {
 
 	public final MD3Header header;
 	public final MD3Frame[] frames;
 
-	public MD3Model(Resource res, String file) {
+	public DefMD3(Resource res, String file) {
 		super(file, Type.Md3);
 
 		header = loadHeader(res);
 
 		res.seek(header.offsetFrames, Whence.Set);
-		frames = new MD3Frame[header.numFrames];
+		this.frames = new MD3Frame[header.numFrames];
+		this.numframes = header.numFrames;
         for(int i = 0; i < header.numFrames; i++) {
         	MD3Frame frame = new MD3Frame();
         	frame.min = new Vector3(res.readFloat(), res.readFloat(), res.readFloat());

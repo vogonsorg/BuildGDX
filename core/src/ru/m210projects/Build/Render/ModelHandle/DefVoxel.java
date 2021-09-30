@@ -2,10 +2,10 @@ package ru.m210projects.Build.Render.ModelHandle;
 
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 
-public class MDVoxel extends Model {
+public class DefVoxel extends Model {
 
 	protected VoxelData vox;
-	public MDVoxel(VoxelData vox) {
+	public DefVoxel(VoxelData vox) {
 		super(null, Type.Voxel);
 		this.vox = vox;
 		this.scale = 65536.0f;

@@ -44,12 +44,12 @@ import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildEngine;
-import ru.m210projects.Build.Render.ModelHandle.MDVoxel;
+import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Model;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.MD2Model;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3Model;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.DefMD2;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.DefMD3;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Types.Tile;
 
@@ -888,10 +888,10 @@ public class DefScript {
 				res.seek(0, Whence.Set);
 				switch (sign) {
 				case 0x32504449: // IDP2
-					m = new MD2Model(res, modelfn);
+					m = new DefMD2(res, modelfn);
 					break;
 				case 0x33504449: // IDP3
-					m = new MD3Model(res, modelfn);
+					m = new DefMD3(res, modelfn);
 					break;
 				default:
 					if (res.getExtension().equals("kvx"))
@@ -1551,9 +1551,9 @@ public class DefScript {
 				return BaseToken.Warning;
 			}
 
-			MDVoxel vox = null;
+			DefVoxel vox = null;
 			try {
-				vox = new MDVoxel(new VoxelData(res));
+				vox = new DefVoxel(new VoxelData(res));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

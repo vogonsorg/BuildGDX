@@ -2676,12 +2676,12 @@ public class Polymost implements GLRenderer {
 					calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
 					if (tspr.owner < 0 || tspr.owner >= MAXSPRITES /* || tspr.statnum == TSPR_MIRROR */ ) {
-						if (mdrenderer.mddraw(tspr, xoff, yoff) != 0)
+						if (mdrenderer.mddraw(md, tspr, xoff, yoff) != 0)
 							return;
 						break; // else, render as flat sprite
 					}
 
-					if (mdrenderer.mddraw(tspr, xoff, yoff) != 0)
+					if (mdrenderer.mddraw(md, tspr, xoff, yoff) != 0)
 						return;
 					break; // else, render as flat sprite
 				}

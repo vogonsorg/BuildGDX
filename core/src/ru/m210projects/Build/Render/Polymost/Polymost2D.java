@@ -1381,7 +1381,7 @@ public class Polymost2D extends OrphoRenderer {
 		}
 
 		parent.globalorientation = hudsprite.cstat;
-		parent.mdrenderer.mddraw(hudsprite, 0, 0);
+		parent.mdrenderer.mddraw(parent.modelManager.getModel(hudsprite.picnum), hudsprite, 0, 0);
 
 		viewingrange = oldviewingrange;
 		parent.gxyaspect = ogxyaspect;

@@ -1,9 +1,11 @@
 package ru.m210projects.Build.Render.ModelHandle;
 
 import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
 import java.util.Iterator;
 
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL10;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL20;
@@ -69,7 +71,17 @@ public class ModelManager {
 			return null;
 
 		Tile2model entry = mdInfo.getParams(tile);
+
+
 		if(entry != null && entry.model != null && entry.framenum >= 0) {
+			try {
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				Console.Println("Removing model of tile " + tile + " due to errors.", OSDTEXT_RED);
+				mdInfo.removeModelInfo(entry.model);
+			}
+
 			//XXX Load model
 		}
 
@@ -80,7 +92,7 @@ public class ModelManager {
 		if(mdInfo == null)
 			return null;
 
-		MDVoxel model = null;
+		DefVoxel model = null;
 		if((model = mdInfo.getVoxel(tile)) != null) {
 			if(models[tile] != null && models[tile].getType() == Type.Voxel)
 				return models[tile];
@@ -91,9 +103,9 @@ public class ModelManager {
 			GLModel out = null;
 			long startticks = System.nanoTime();
 			if(type == ModelType.GL10)
-				out = new VoxelGL10(model.getData(), 0, true);
+				out = new VoxelGL10(model.getData(), 0, model.getFlags(), true);
 			else if(type == ModelType.GL20)
-				out = new VoxelGL20(model.getData(), 0);
+				out = new VoxelGL20(model.getData(), 0, model.getFlags());
 
 			long etime = System.nanoTime() - startticks;
 			System.out.println("Load voxel model: " + tile + "... " + (etime / 1000000.0f) + " ms");

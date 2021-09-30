@@ -9,14 +9,14 @@
 
 package ru.m210projects.Build.Render.Types;
 
-import ru.m210projects.Build.Render.ModelHandle.MDVoxel;
+import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Model;
 
 public class Tile2model {
 	// maps build tiles to particular animation frames of a model
 
 	public Model model;
-	public MDVoxel voxel;
+	public DefVoxel voxel;
 	public int skinnum;
 	public int framenum; // calculate the number from the name when declaring
 	public float smoothduration;

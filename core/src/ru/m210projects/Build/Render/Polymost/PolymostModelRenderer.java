@@ -65,6 +65,9 @@ import com.badlogic.gdx.math.Vector3;
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.ModelHandle.GLModel;
+import ru.m210projects.Build.Render.ModelHandle.Model;
+import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
@@ -688,27 +691,21 @@ public class PolymostModelRenderer {
 //		return rendered;
 //	}
 
-	public int mddraw(SPRITE tspr, int xoff, int yoff) {
-//		OldModel vm = parent.defs != null ? parent.defs.mdInfo.getModel(tspr.picnum) : null;
-//
-//		if (vm == null)
-//			return 0;
-//
-//		try {
-//			if (vm.mdnum == 1) {
-//				return voxdraw((VOXModel) vm, tspr);
-//			}
-//			if (vm.mdnum == 2) {
-//				return md2draw((MD2Model) vm, tspr, xoff, yoff);
-//			}
-//			if (vm.mdnum == 3) {
-//				return md3draw((MD3Model) vm, tspr, xoff, yoff);
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			Console.Println("Removing model of sprite " + tspr.picnum + " due to errors.", OSDTEXT_RED);
-//			parent.defs.mdInfo.removeModelInfo(vm);
+	public int mddraw(GLModel vm, SPRITE tspr, int xoff, int yoff) {
+		if (vm == null)
+			return 0;
+
+		if (vm.getType() == Type.Voxel) {
+			return voxdraw((GLVoxel) vm, tspr);
+		}
+
+//		if (vm.getType() == Type.Md2) {
+//			return md2draw((DefMD2) vm, tspr, xoff, yoff);
 //		}
+//		if (vm.getType() == Type.Md3) {
+//			return md3draw((DefMD3) vm, tspr, xoff, yoff);
+//		}
+
 		return 0;
 	}
 

@@ -26,8 +26,8 @@ public class VoxelGL10 extends GLVoxel {
 	private FloatBuffer vertices;
 	private FloatBuffer uv;
 
-	public VoxelGL10(VoxelData vox, int voxmip, boolean isVertexArray) {
-		super();
+	public VoxelGL10(VoxelData vox, int voxmip, int flags, boolean isVertexArray) {
+		super(flags);
 
 		this.isVertexArray = isVertexArray;
 

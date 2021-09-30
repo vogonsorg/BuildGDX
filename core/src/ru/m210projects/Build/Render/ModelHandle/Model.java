@@ -23,6 +23,10 @@ public class Model {
 		return type;
 	}
 
+	public int getFlags() {
+		return flags;
+	}
+
 	public void setMisc(float scale, float zadd, float yoffset, int flags) {
 	    this.scale = scale;
 	    this.zadd = zadd;
