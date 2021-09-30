@@ -100,7 +100,6 @@ public class GDXRenderer implements GLRenderer {
 
 //	TODO:
 //  Precache all models loading
-//  Voxels / sprites invisible sometimes
 //  Skies panning
 //  Tekwar skies
 //	Hires + models
@@ -414,12 +413,13 @@ public class GDXRenderer implements GLRenderer {
 
 	public void drawsprite(int i) {
 		SPRITE tspr = tsprite[i];
-		if (tspr == null)
+		if (tspr == null || tspr.owner == -1)
 			return;
 
 		Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
 		while (sprext == null || !sprext.isNotModel()) {
 			rendering = Rendering.Model.setIndex(i);
+
 			if (GLSettings.useModels.get()) {
 				GLModel md = modelManager.getModel(tspr.picnum);
 				if (md != null) {
@@ -429,10 +429,15 @@ public class GDXRenderer implements GLRenderer {
 			}
 
 			if (BuildSettings.useVoxels.get()) {
+				int picnum = tspr.picnum;
+				if (engine.getTile(picnum).getType() != AnimType.None) {
+					picnum += engine.animateoffs(picnum, tspr.owner + 32768);
+				}
+
 				int dist = (tspr.x - globalposx) * (tspr.x - globalposx)
 						+ (tspr.y - globalposy) * (tspr.y - globalposy);
 				if (dist < 48000L * 48000L) {
-					GLVoxel vox = (GLVoxel) modelManager.getVoxel(tspr.picnum);
+					GLVoxel vox = (GLVoxel) modelManager.getVoxel(picnum);
 					if (vox != null) {
 						if ((tspr.cstat & 48) != 48) {
 							if (mdR.voxdraw(vox, tspr) != 0)
