@@ -50,6 +50,14 @@ public class GDXModelRenderer {
 		int orientation = tspr.cstat;
 		int spritenum = tspr.owner;
 
+		GLTile skin = m.getSkin(parent.getTexFormat(), pal);
+		if (skin == null) {
+			if ((skin = m.loadSkin(
+					parent.textureCache.newTile(parent.getTexFormat(), m.getSkinWidth(), m.getSkinHeight()),
+					pal)) == null)
+				return 0;
+		}
+
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;
 		float xoff = tspr.xoffset;
@@ -86,23 +94,14 @@ public class GDXModelRenderer {
 		transform.translate(-m.xpiv / 64.0f, -m.ypiv / 64.0f, -m.zpiv / 64.0f);
 
 		BuildGdx.gl.glEnable(GL_CULL_FACE);
-		BuildGdx.gl.glCullFace(GL_BACK);
-		if (!inpreparemirror ^ yflip ^ xflip)
-			BuildGdx.gl.glFrontFace(GL_CW);
-		else
+		if (yflip ^ xflip)
 			BuildGdx.gl.glFrontFace(GL_CCW);
+		else
+			BuildGdx.gl.glFrontFace(GL_CW);
 
 		BuildGdx.gl.glEnable(GL_TEXTURE_2D);
 		if ((tspr.cstat & 2) != 0)
 			BuildGdx.gl.glEnable(GL_BLEND);
-
-		GLTile skin = m.getSkin(parent.getTexFormat(), pal);
-		if (skin == null) {
-			if ((skin = m.loadSkin(
-					parent.textureCache.newTile(parent.getTexFormat(), m.getSkinWidth(), m.getSkinHeight()),
-					pal)) == null)
-				return 0;
-		}
 
 		skin.bind();
 		parent.switchShader(
@@ -113,6 +112,7 @@ public class GDXModelRenderer {
 		manager.frustum(null);
 		m.render(manager.getProgram());
 
+		BuildGdx.gl.glFrontFace(GL_CW);
 		return 1;
 	}
 

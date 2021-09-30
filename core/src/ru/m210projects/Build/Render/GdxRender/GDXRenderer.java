@@ -99,6 +99,8 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
+//  Precache all models loading
+//  Voxels / sprites invisible sometimes
 //  Skies panning
 //  Tekwar skies
 //	Hires + models
@@ -198,7 +200,7 @@ public class GDXRenderer implements GLRenderer {
 
 			this.cam = new BuildCamera(fov, xdim, ydim, 512, 8192);
 			this.manager.init(textureCache);
-			if(!this.manager.isInited())
+			if (!this.manager.isInited())
 				return;
 
 			this.textureCache.changePalette(curpalette.getBytes());
@@ -412,7 +414,7 @@ public class GDXRenderer implements GLRenderer {
 
 	public void drawsprite(int i) {
 		SPRITE tspr = tsprite[i];
-		if(tspr == null)
+		if (tspr == null)
 			return;
 
 		Spriteext sprext = defs.mapInfo.getSpriteInfo(tspr.owner);
@@ -427,10 +429,11 @@ public class GDXRenderer implements GLRenderer {
 			}
 
 			if (BuildSettings.useVoxels.get()) {
-				int dist = (tspr.x - globalposx) * (tspr.x - globalposx) + (tspr.y - globalposy) * (tspr.y - globalposy);
+				int dist = (tspr.x - globalposx) * (tspr.x - globalposx)
+						+ (tspr.y - globalposy) * (tspr.y - globalposy);
 				if (dist < 48000L * 48000L) {
 					GLVoxel vox = (GLVoxel) modelManager.getVoxel(tspr.picnum);
-					if(vox != null) {
+					if (vox != null) {
 						if ((tspr.cstat & 48) != 48) {
 							if (mdR.voxdraw(vox, tspr) != 0)
 								return;
@@ -646,9 +649,10 @@ public class GDXRenderer implements GLRenderer {
 					// TODO: set FOG ?
 					((IndexedShader) manager.getProgram()).setVisibility((int) (-combvis / 64.0f));
 
-				if(pth.isHighTile()) {
+				if (pth.isHighTile()) {
 					int tsizy = 1;
-					for (; tsizy < pic.getHeight(); tsizy += tsizy);
+					for (; tsizy < pic.getHeight(); tsizy += tsizy)
+						;
 					texture_transform.scale(1.0f, (tsizy * pth.getYScale()) / pth.getHeight());
 					manager.textureTransform(texture_transform, 0);
 				}
@@ -947,18 +951,19 @@ public class GDXRenderer implements GLRenderer {
 		if (datype == 0 || defs == null)
 			return;
 
-		if(BuildSettings.useVoxels.get()) {
+		if (BuildSettings.useVoxels.get()) {
 			GLVoxel voxel = (GLVoxel) modelManager.getVoxel(dapicnum);
-			if(voxel != null) {
-				voxel.loadSkin(textureCache.newTile(getTexFormat(), voxel.getSkinWidth(), voxel.getSkinHeight()), dapalnum);
+			if (voxel != null) {
+				voxel.loadSkin(textureCache.newTile(getTexFormat(), voxel.getSkinWidth(), voxel.getSkinHeight()),
+						dapalnum);
 			}
 		}
 
 		if (GLSettings.useModels.get()) {
 			GLModel model = modelManager.getModel(dapicnum);
-			if(model != null) {
+			if (model != null) {
 
-				//model.loadSkin(textureCache, defs, dapalnum);
+				// model.loadSkin(textureCache, defs, dapalnum);
 			}
 		}
 	}
