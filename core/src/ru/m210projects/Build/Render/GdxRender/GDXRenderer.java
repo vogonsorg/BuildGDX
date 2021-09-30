@@ -1111,7 +1111,6 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	public void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method) {
-		Tile tex = engine.getTile(tilenum);
 		if (tile.getPixelFormat() == TileData.PixelFormat.Pal8) {
 			float alpha = 1.0f;
 			switch (method & 3) {
@@ -1123,7 +1122,7 @@ public class GDXRenderer implements GLRenderer {
 				break;
 			}
 
-			if (!tex.isLoaded())
+			if (tilenum != -1 && !engine.getTile(tilenum).isLoaded())
 				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
 
 			manager.textureTransform(texture_transform.idt(), 0);

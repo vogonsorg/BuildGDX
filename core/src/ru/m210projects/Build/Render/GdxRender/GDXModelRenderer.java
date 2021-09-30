@@ -6,9 +6,12 @@ import static com.badlogic.gdx.graphics.GL20.GL_CCW;
 import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
 import static com.badlogic.gdx.graphics.GL20.GL_CW;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
+import static ru.m210projects.Build.Engine.globalvisibility;
 import static ru.m210projects.Build.Engine.inpreparemirror;
+import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.totalclock;
+import static ru.m210projects.Build.Pragmas.mulscale;
 
 import com.badlogic.gdx.math.Matrix4;
 
@@ -19,6 +22,7 @@ import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Types.SPRITE;
 
@@ -44,7 +48,6 @@ public class GDXModelRenderer {
 		ShaderManager manager = parent.manager;
 		BuildCamera cam = parent.cam;
 
-		int picnum = tspr.picnum;
 		int shade = tspr.shade;
 		int pal = tspr.pal & 0xFF;
 		int orientation = tspr.cstat;
@@ -98,15 +101,19 @@ public class GDXModelRenderer {
 			BuildGdx.gl.glFrontFace(GL_CCW);
 		else
 			BuildGdx.gl.glFrontFace(GL_CW);
-
-		BuildGdx.gl.glEnable(GL_TEXTURE_2D);
 		if ((tspr.cstat & 2) != 0)
 			BuildGdx.gl.glEnable(GL_BLEND);
 
 		skin.bind();
 		parent.switchShader(
 				parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
-		parent.setTextureParameters(skin, picnum, pal, shade, 0, tspr.cstat & 2);
+		parent.setTextureParameters(skin, -1, pal, shade, 0, tspr.cstat & 2);
+
+		int vis = globalvisibility;
+		if (sector[tspr.sectnum].visibility != 0)
+			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
+		if (skin.getPixelFormat() == PixelFormat.Pal8)
+			((IndexedShader) manager.getProgram()).setVisibility((int) (-vis / 64.0f));
 
 		manager.transform(transform);
 		manager.frustum(null);
