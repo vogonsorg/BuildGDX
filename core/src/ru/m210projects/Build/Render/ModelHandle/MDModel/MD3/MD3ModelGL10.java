@@ -1,11 +1,20 @@
 package ru.m210projects.Build.Render.ModelHandle.MDModel.MD3;
 
+import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
 import static com.badlogic.gdx.graphics.GL20.GL_FLOAT;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT;
+import static ru.m210projects.Build.Engine.DETAILPAL;
+import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
+import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
+import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
 import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
 
 import java.nio.FloatBuffer;
@@ -16,36 +25,38 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
-public class MD3ModelGL10 extends MDModel implements GLModel {
+public abstract class MD3ModelGL10 extends MDModel implements GLModel {
 
 	private ShortBuffer indices;
 	private FloatBuffer vertices;
-	private FloatBuffer uv;
 
-	// Current parameters
+	private final MD3Surface[] surfaces;
+	private final int numSurfaces;
+
 	private Vector3 cScale = new Vector3();
 	private Vector3 nScale = new Vector3();
-	private MD3Surface s;
-	private int texunits;
 
 	public MD3ModelGL10(DefMD3 md) {
 		super(md);
 
 		MD3Builder builder = new MD3Builder(md);
+
+		this.surfaces = builder.surfaces;
+		this.numSurfaces = builder.head.numSurfaces;
 	}
 
-	public MD3ModelGL10 setParameters(MD3Surface s, int texunits) {
-		this.s = s;
-		this.texunits = texunits;
+	public abstract GLTile getTexture(int pal, int skinnum, int surface);
 
-		return this;
-	}
+	public abstract void setupTextureDetail(GLTile detail);
+
+	public abstract void setupTextureGlow(GLTile detail);
 
 	public MD3ModelGL10 setScale(Vector3 cScale, Vector3 nScale) {
 		this.cScale.set(cScale);
@@ -55,41 +66,99 @@ public class MD3ModelGL10 extends MDModel implements GLModel {
 	}
 
 	@Override
-	public void render(ShaderProgram shader) {
-		vertices.clear();
-		for (int i = 0; i < s.numverts; i++) {
-			MD3Vertice v0 = s.xyzn[cframe * s.numverts + i];
-			MD3Vertice v1 = s.xyzn[nframe * s.numverts + i];
+	public boolean render(ShaderProgram shader, int pal, int shade, int skinnum, int visibility, float alpha) {
+		boolean isRendered = false;
 
-			vertices.put(v0.x * cScale.x + v1.x * nScale.x);
-			vertices.put(v0.z * cScale.z + v1.z * nScale.z);
-			vertices.put(v0.y * cScale.y + v1.y * nScale.y);
+		for (int surfi = 0; surfi < numSurfaces; surfi++) {
+			MD3Surface s = surfaces[surfi];
+
+			vertices.clear();
+			for (int i = 0; i < s.numverts; i++) {
+				MD3Vertice v0 = s.xyzn[cframe * s.numverts + i];
+				MD3Vertice v1 = s.xyzn[nframe * s.numverts + i];
+
+				vertices.put(v0.x * cScale.x + v1.x * nScale.x);
+				vertices.put(v0.z * cScale.z + v1.z * nScale.z);
+				vertices.put(v0.y * cScale.y + v1.y * nScale.y);
+			}
+			vertices.flip();
+
+			GLTile texid = getTexture(pal, skinnum, surfi);
+			if (texid != null) {
+				texid.bind();
+
+				if (Console.Geti("r_detailmapping") != 0)
+					texid = getTexture(DETAILPAL, skinnum, surfi);
+				else
+					texid = null;
+
+				int texunits = GL_TEXTURE0;
+				if (texid != null) {
+					BuildGdx.gl.glActiveTexture(++texunits);
+					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+					setupTextureDetail(texid);
+
+					MDSkinmap sk = getSkin(DETAILPAL, skinnum, surfi);
+					if (sk != null) {
+						float f = sk.param;
+						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+						BuildGdx.gl.glLoadIdentity();
+						BuildGdx.gl.glScalef(f, f, 1.0f);
+						BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+					}
+				}
+
+				if (Console.Geti("r_glowmapping") != 0)
+					texid = getTexture(GLOWPAL, skinnum, surfi);
+				else
+					texid = null;
+
+				if (texid != null) {
+					BuildGdx.gl.glActiveTexture(++texunits);
+					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+					setupTextureGlow(texid);
+				}
+
+				indices.clear();
+				for (int i = s.numtris - 1; i >= 0; i--)
+					for (int j = 0; j < 3; j++)
+						indices.put((short) s.tris[i][j]);
+				indices.flip();
+
+				int l = GL_TEXTURE0;
+				do {
+					BuildGdx.gl.glClientActiveTexture(l++);
+					BuildGdx.gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+					BuildGdx.gl.glTexCoordPointer(2, GL_FLOAT, 0, s.uv);
+				} while (l <= texunits);
+
+				BuildGdx.gl.glEnableClientState(GL_VERTEX_ARRAY);
+				BuildGdx.gl.glVertexPointer(3, GL_FLOAT, 0, vertices);
+				BuildGdx.gl.glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_SHORT, indices);
+
+				while (texunits > GL_TEXTURE0) {
+					BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+					BuildGdx.gl.glLoadIdentity();
+					BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+					BuildGdx.gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
+					BuildGdx.gl.glDisable(GL_TEXTURE_2D);
+
+					BuildGdx.gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+					BuildGdx.gl.glClientActiveTexture(texunits - 1);
+
+					BuildGdx.gl.glActiveTexture(--texunits);
+				}
+				BuildGdx.gl.glDisableClientState(GL_VERTEX_ARRAY);
+				isRendered = true;
+			} else
+				break;
 		}
-		vertices.flip();
 
-		indices.clear();
-		for (int i = s.numtris - 1; i >= 0; i--)
-			for (int j = 0; j < 3; j++)
-				indices.put((short) s.tris[i][j]);
-		indices.flip();
+		if (usesalpha)
+			BuildGdx.gl.glDisable(GL_ALPHA_TEST);
+		BuildGdx.gl.glDisable(GL_CULL_FACE);
 
-		int l = GL_TEXTURE0;
-		do {
-			BuildGdx.gl.glClientActiveTexture(l++);
-			BuildGdx.gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			BuildGdx.gl.glTexCoordPointer(2, GL_FLOAT, 0, uv);
-		} while (l <= texunits);
-
-		BuildGdx.gl.glEnableClientState(GL_VERTEX_ARRAY);
-		BuildGdx.gl.glVertexPointer(3, GL_FLOAT, 0, vertices);
-		BuildGdx.gl.glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_SHORT, indices);
-
-		while (texunits > GL_TEXTURE0) {
-			BuildGdx.gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			BuildGdx.gl.glClientActiveTexture(texunits - 1);
-			BuildGdx.gl.glActiveTexture(--texunits);
-		}
-		BuildGdx.gl.glDisableClientState(GL_VERTEX_ARRAY);
+		return isRendered;
 	}
 
 	@Override

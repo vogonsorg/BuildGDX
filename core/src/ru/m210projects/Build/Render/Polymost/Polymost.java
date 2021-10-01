@@ -61,7 +61,6 @@ import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.ModelManager;
-import ru.m210projects.Build.Render.ModelHandle.ModelManager.ModelType;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
@@ -179,7 +178,7 @@ public class Polymost implements GLRenderer {
 	public Polymost(Engine engine, IOverheadMapSettings settings) {
 		this.engine = engine;
 		this.textureCache = getTextureManager();
-		this.modelManager = new ModelManager();
+		this.modelManager = new PolymostModelManager(this);
 
 		this.clipper = new PolyClipper(this);
 		this.mdrenderer = new PolymostModelRenderer(this);
@@ -468,7 +467,7 @@ public class Polymost implements GLRenderer {
 	@Override
 	public void setDefs(DefScript defs) {
 		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
-		this.modelManager.setModelsInfo(defs != null ? defs.mdInfo : null, ModelType.GL10);
+		this.modelManager.setModelsInfo(defs != null ? defs.mdInfo : null);
 		if (this.defs != null)
 			gltexinvalidateall(GLInvalidateFlag.Uninit, GLInvalidateFlag.All);
 		this.defs = defs;
@@ -1627,7 +1626,8 @@ public class Polymost implements GLRenderer {
 						&& (spritesortcnt < MAXSPRITESONSCREEN)) {
 					xs = spr.x - globalposx;
 					ys = spr.y - globalposy;
-					if (((spr.cstat & 48) != 0) || (xs * gcosang + ys * gsinang > 0) || (GLSettings.useModels.get() && modelManager.getModel(spr.picnum) != null)) {
+					if (((spr.cstat & 48) != 0) || (xs * gcosang + ys * gsinang > 0)
+							|| (GLSettings.useModels.get() && modelManager.getModel(spr.picnum) != null)) {
 						if ((spr.cstat & (64 + 48)) != (64 + 16) || dmulscale(sintable[(spr.ang + 512) & 2047], -xs,
 								sintable[spr.ang & 2047], -ys, 6) > 0) {
 							if (tsprite[spritesortcnt] == null)
@@ -2691,7 +2691,7 @@ public class Polymost implements GLRenderer {
 				int dist = (posx - globalposx) * (posx - globalposx) + (posy - globalposy) * (posy - globalposy);
 				if (dist < 48000L * 48000L) {
 					GLVoxel vox = (GLVoxel) modelManager.getVoxel(globalpicnum);
-					if(vox != null) {
+					if (vox != null) {
 						calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
 						if ((tspr.cstat & 48) != 48) {
@@ -3252,18 +3252,18 @@ public class Polymost implements GLRenderer {
 		if (datype == 0 || defs == null)
 			return;
 
-		if(BuildSettings.useVoxels.get()) {
+		if (BuildSettings.useVoxels.get()) {
 			GLVoxel voxel = (GLVoxel) modelManager.getVoxel(dapicnum);
-			if(voxel != null) {
-				voxel.loadSkin(textureCache.newTile(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, voxel.getSkinWidth(), voxel.getSkinHeight()), dapalnum);
+			if (voxel != null) {
+				voxel.getSkin(dapalnum);
 			}
 		}
 
 		if (GLSettings.useModels.get()) {
 			GLModel model = modelManager.getModel(dapicnum);
-			if(model != null) {
+			if (model != null) {
 
-				//model.loadSkin(textureCache, defs, dapalnum);
+				// model.loadSkin(textureCache, defs, dapalnum);
 			}
 		}
 	}

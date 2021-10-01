@@ -188,26 +188,6 @@ public class PolymostModelRenderer {
 
 		gl.glEnable(GL_TEXTURE_2D);
 
-		polyColor.r = polyColor.g = polyColor.b = (numshades
-				- min(max((globalshade * parent.shadescale)/* + m.shadeoff */, 0), numshades)) / (numshades);
-
-		if (parent.defs != null) {
-			Palette p = parent.defs.texInfo.getTints(globalpal);
-			polyColor.r *= p.r / 255.0f;
-			polyColor.g *= p.g / 255.0f;
-			polyColor.b *= p.b / 255.0f;
-		}
-
-		if ((tspr.cstat & 2) != 0) {
-			if ((tspr.cstat & 512) == 0)
-				polyColor.a = TRANSLUSCENT1;
-			else
-				polyColor.a = TRANSLUSCENT2;
-		} else
-			polyColor.a = 1.0f;
-		if ((tspr.cstat & 2) != 0)
-			gl.glEnable(GL_BLEND);
-
 		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
 		boolean newmatrix = false;
 
@@ -241,30 +221,33 @@ public class PolymostModelRenderer {
 			gl.glTranslatef(-m.xpiv, -m.ypiv, -m.zpiv);
 		}
 
-		GLTile skin = m.getSkin(parent.getTextureFormat(), globalpal);
-		if (skin == null) {
-			if ((skin = m.loadSkin(textureCache.newTile(parent.getTextureFormat(), m.getSkinWidth(), m.getSkinHeight()),
-					globalpal)) == null)
-				return 0;
-		}
-
-		parent.bind(skin);
-		if (skin.getPixelFormat() == PixelFormat.Pal8) {
-			parent.getShader().setTextureParams(globalpal, globalshade);
-			parent.getShader().setDrawLastIndex(true);
-			parent.getShader().setTransparent(polyColor.a);
-			parent.getShader().setVisibility((int) (parent.globalfog.combvis));
-		}
-
 		parent.globalfog.apply();
+		polyColor.r = polyColor.g = polyColor.b = (numshades
+				- min(max((globalshade * parent.shadescale)/* + m.shadeoff */, 0), numshades)) / (numshades);
+
+		if (parent.defs != null) {
+			Palette p = parent.defs.texInfo.getTints(globalpal);
+			polyColor.r *= p.r / 255.0f;
+			polyColor.g *= p.g / 255.0f;
+			polyColor.b *= p.b / 255.0f;
+		}
+
+		if ((tspr.cstat & 2) != 0) {
+			if ((tspr.cstat & 512) == 0)
+				polyColor.a = TRANSLUSCENT1;
+			else
+				polyColor.a = TRANSLUSCENT2;
+		} else
+			polyColor.a = 1.0f;
 		m.setColor(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-		m.render(parent.getShader());
+		boolean rendered = m.render(parent.getShader(), globalpal, globalshade, 0, (int) (parent.globalfog.combvis),
+				(tspr.cstat & 2));
 
 		// ------------
 		gl.glDisable(GL_CULL_FACE);
 		gl.glLoadIdentity();
 
-		return 1;
+		return rendered ? 1 : 0;
 	}
 
 //	private void modelPrepare(MDModel m, SPRITE tspr, int xoff, int yoff) {

@@ -1,5 +1,6 @@
 package ru.m210projects.Build.Render.ModelHandle.Voxel;
 
+import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
 import static ru.m210projects.Build.Render.Types.GL10.GL_FLOAT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TRIANGLES;
 import static ru.m210projects.Build.Render.Types.GL10.GL_UNSIGNED_SHORT;
@@ -15,8 +16,9 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelBuilder.Rectangle;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
-public class VoxelGL10 extends GLVoxel {
+public abstract class VoxelGL10 extends GLVoxel {
 
 	protected Rectangle[] quad;
 	protected int qcnt, qfacind[];
@@ -42,7 +44,7 @@ public class VoxelGL10 extends GLVoxel {
 		this.ypiv = vox.ypiv[voxmip] / 256.0f;
 		this.zpiv = vox.zpiv[voxmip] / 256.0f;
 
-		if(isVertexArray) {
+		if (isVertexArray) {
 			float[] va = builder.getVertices();
 			short[] ia = builder.getIndices();
 
@@ -53,7 +55,7 @@ public class VoxelGL10 extends GLVoxel {
 			uv = BufferUtils.newFloatBuffer(size * 2);
 			indices = BufferUtils.newShortBuffer(ia.length);
 
-			for(int i = 0; i < va.length; i += verSize) {
+			for (int i = 0; i < va.length; i += verSize) {
 				vertices.put(va[i] * 64.0f);
 				vertices.put(va[i + 1] * 64.0f);
 				vertices.put(va[i + 2] * 64.0f);
@@ -72,7 +74,19 @@ public class VoxelGL10 extends GLVoxel {
 	}
 
 	@Override
-	public void render(ShaderProgram shader) {
+	public boolean render(ShaderProgram shader, int pal, int shade, int surfnum, int visibility, float alpha) {
+		GLTile skin = getSkin(pal);
+		if (skin == null)
+			return false;
+
+		if (alpha != 1.0f)
+			BuildGdx.gl.glEnable(GL_BLEND);
+		else
+			BuildGdx.gl.glDisable(GL_BLEND);
+
+		skin.bind();
+		setTextureParameters(skin, pal, shade, visibility, alpha);
+
 		if (isVertexArray) {
 			BuildGdx.gl.glColor4f(color.r, color.g, color.b, color.a);
 			BuildGdx.gl.glEnableClientState(GL_VERTEX_ARRAY);
@@ -84,7 +98,7 @@ public class VoxelGL10 extends GLVoxel {
 
 			BuildGdx.gl.glDisableClientState(GL_VERTEX_ARRAY);
 			BuildGdx.gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			return;
+			return true;
 		}
 
 		float ru = 1.0f / skinData.getWidth();
@@ -116,6 +130,8 @@ public class VoxelGL10 extends GLVoxel {
 			}
 		}
 		BuildGdx.gl.glEnd();
+
+		return true;
 	}
 
 	@Override

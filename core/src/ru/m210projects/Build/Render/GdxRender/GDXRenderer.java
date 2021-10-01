@@ -48,6 +48,7 @@ import java.util.Iterator;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix3;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
@@ -70,7 +71,6 @@ import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager.Shader;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.ModelManager;
-import ru.m210projects.Build.Render.ModelHandle.ModelManager.ModelType;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.GLTileArray;
@@ -159,7 +159,7 @@ public class GDXRenderer implements GLRenderer {
 	public GDXRenderer(Engine engine, IOverheadMapSettings settings) {
 		this.engine = engine;
 		this.textureCache = getTextureManager();
-		this.modelManager = new ModelManager();
+		this.modelManager = new GDXModelManager(this);
 		this.manager = new ShaderManager();
 
 		this.sprR = new SpriteRenderer(engine, this);
@@ -873,7 +873,7 @@ public class GDXRenderer implements GLRenderer {
 	@Override
 	public void setDefs(DefScript defs) {
 		this.textureCache.setTextureInfo(defs != null ? defs.texInfo : null);
-		this.modelManager.setModelsInfo(defs != null ? defs.mdInfo : null, ModelType.GL20);
+		this.modelManager.setModelsInfo(defs != null ? defs.mdInfo : null);
 		if (this.defs != null)
 			gltexinvalidateall(GLInvalidateFlag.Uninit, GLInvalidateFlag.All);
 		this.defs = defs;
@@ -959,8 +959,7 @@ public class GDXRenderer implements GLRenderer {
 		if (BuildSettings.useVoxels.get()) {
 			GLVoxel voxel = (GLVoxel) modelManager.getVoxel(dapicnum);
 			if (voxel != null) {
-				voxel.loadSkin(textureCache.newTile(getTexFormat(), voxel.getSkinWidth(), voxel.getSkinHeight()),
-						dapalnum);
+				voxel.getSkin(dapalnum);
 			}
 		}
 
@@ -1254,10 +1253,12 @@ public class GDXRenderer implements GLRenderer {
 		return isInited;
 	}
 
-	protected void switchShader(Shader shader) {
-		manager.bind(shader);
+	protected ShaderProgram switchShader(Shader shader) {
+		ShaderProgram out = manager.bind(shader);
 		manager.mirror(inpreparemirror);
 		manager.prepare(cam);
+
+		return out;
 	}
 
 	protected final GLTileArray skycache = new GLTileArray(MAXTILES);

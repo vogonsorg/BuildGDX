@@ -7,30 +7,21 @@ import java.util.Iterator;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.DefMD3;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3ModelGL10;
-import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL10;
-import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL20;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
+import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.Types.GLFilter;
-import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Script.ModelsInfo;
 
-public class ModelManager {
-
-	public enum ModelType {
-		GL10, GL20
-	};
+public abstract class ModelManager {
 
 	protected ModelsInfo mdInfo;
-	protected ModelType type;
 	protected GLModel[] models = new GLModel[MAXTILES];
 
-	public ModelManager setModelsInfo(ModelsInfo mdInfo, ModelType type) {
+	public ModelManager setModelsInfo(ModelsInfo mdInfo) {
 		this.dispose();
 
 		this.mdInfo = mdInfo;
-		this.type = type;
 		return this;
 	}
 
@@ -80,28 +71,11 @@ public class ModelManager {
 				return models[tile];
 
 			try {
-				GLModel out = null;
 				long startticks = System.nanoTime();
-				Type type = model.getType();
-
-				switch (type) {
-				case Md2:
-
-					break;
-				case Md3:
-					DefMD3 md3 = (DefMD3) model;
-					if (this.type == ModelType.GL10)
-						out = new MD3ModelGL10(md3);
-					else if (this.type == ModelType.GL20) {
-						// out = new VoxelGL20(model.getData(), 0, model.getFlags());
-					}
-					break;
-				default:
-					break;
-				}
-
+				GLModel out = allocateModel(model);
 				long etime = System.nanoTime() - startticks;
-				System.out.println("Load " + type + " model: " + tile + "... " + (etime / 1000000.0f) + " ms");
+				System.out
+						.println("Load " + model.getType() + " model: " + tile + "... " + (etime / 1000000.0f) + " ms");
 
 				return models[tile] = out;
 			} catch (Exception e) {
@@ -126,13 +100,8 @@ public class ModelManager {
 			if (models[tile] != null)
 				return null;
 
-			GLModel out = null;
 			long startticks = System.nanoTime();
-			if (type == ModelType.GL10)
-				out = new VoxelGL10(model.getData(), 0, model.getFlags(), true);
-			else if (type == ModelType.GL20)
-				out = new VoxelGL20(model.getData(), 0, model.getFlags());
-
+			GLModel out = allocateVoxel(model.getData(), 0, model.getFlags());
 			long etime = System.nanoTime() - startticks;
 			System.out.println("Load voxel model: " + tile + "... " + (etime / 1000000.0f) + " ms");
 
@@ -141,6 +110,10 @@ public class ModelManager {
 
 		return null;
 	}
+
+	public abstract GLVoxel allocateVoxel(VoxelData vox, int voxmip, int flags);
+
+	public abstract GLModel allocateModel(Model modelInfo);
 
 	public void dispose() {
 		for (int i = MAXTILES - 1; i >= 0; i--) {

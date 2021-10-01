@@ -1,19 +1,15 @@
 package ru.m210projects.Build.Render.ModelHandle.Voxel;
 
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
-import static ru.m210projects.Build.Engine.palookup;
 import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
 
 import java.util.Iterator;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
 
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
-import ru.m210projects.Build.Render.TextureHandle.TileData;
-import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Types.Tile;
 
 public abstract class GLVoxel implements GLModel {
@@ -29,6 +25,10 @@ public abstract class GLVoxel implements GLModel {
 		this.texid = new GLTile[MAXPALOOKUPS];
 		this.flags = flags;
 	}
+
+	public abstract GLTile getSkin(int pal);
+
+	public abstract void setTextureParameters(GLTile tile, int pal, int shade, int visibility, float alpha);
 
 	@Override
 	public Type getType() {
@@ -58,27 +58,27 @@ public abstract class GLVoxel implements GLModel {
 		return skinData.getHeight();
 	}
 
-	public GLTile loadSkin(GLTile dst, int dapal) {
-		if (palookup[dapal] == null || dst.getPixelFormat() == PixelFormat.Pal8)
-			dapal = 0;
-
-		long startticks = System.nanoTime();
-		TileData dat = new VoxelSkin(dst.getPixelFormat(), skinData, dapal);
-		dst.update(dat, dapal, false);
-		dst.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
-		dst.unsafeSetAnisotropicFilter(1, true);
-		texid[dapal] = dst;
-		long etime = System.nanoTime() - startticks;
-		System.out.println("Load voxskin: p" + dapal + "... " + (etime / 1000000.0f) + " ms");
-
-		return dst;
-	}
-
-	public GLTile getSkin(PixelFormat fmt, int pal) {
-		if (palookup[pal] == null || fmt == PixelFormat.Pal8)
-			return texid[0];
-		return texid[pal];
-	}
+//	public GLTile loadSkin(GLTile dst, int dapal) {
+//		if (palookup[dapal] == null || dst.getPixelFormat() == PixelFormat.Pal8)
+//			dapal = 0;
+//
+//		long startticks = System.nanoTime();
+//		TileData dat = new VoxelSkin(dst.getPixelFormat(), skinData, dapal);
+//		dst.update(dat, dapal, false);
+//		dst.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
+//		dst.unsafeSetAnisotropicFilter(1, true);
+//		texid[dapal] = dst;
+//		long etime = System.nanoTime() - startticks;
+//		System.out.println("Load voxskin: p" + dapal + "... " + (etime / 1000000.0f) + " ms");
+//
+//		return dst;
+//	}
+//
+//	public GLTile getSkin(PixelFormat fmt, int pal) {
+//		if (palookup[pal] == null || fmt == PixelFormat.Pal8)
+//			return texid[0];
+//		return texid[pal];
+//	}
 
 	@Override
 	public Iterator<GLTile[]> getSkins() {

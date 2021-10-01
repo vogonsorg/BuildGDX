@@ -1,10 +1,15 @@
 package ru.m210projects.Build.Render.ModelHandle.Voxel;
 
+import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
+
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
-public class VoxelGL20 extends GLVoxel {
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
+
+public abstract class VoxelGL20 extends GLVoxel {
 
 	private Mesh mesh;
 
@@ -32,8 +37,21 @@ public class VoxelGL20 extends GLVoxel {
 	}
 
 	@Override
-	public void render(ShaderProgram shader) {
+	public boolean render(ShaderProgram shader, int pal, int shade, int surfnum, int visibility, float alpha) {
+		GLTile skin = getSkin(pal);
+		if (skin == null)
+			return false;
+
+		if (alpha != 1.0f)
+			BuildGdx.gl.glEnable(GL_BLEND);
+		else
+			BuildGdx.gl.glDisable(GL_BLEND);
+
+		skin.bind();
+		setTextureParameters(skin, pal, shade, visibility, alpha);
+
 		mesh.render(shader, GL20.GL_TRIANGLES);
+		return true;
 	}
 
 	@Override

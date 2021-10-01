@@ -9,7 +9,7 @@ import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
 public interface GLModel {
 
-	public void render(ShaderProgram shader);
+	public boolean render(ShaderProgram shader, int pal, int shade, int surfnum, int visibility, float alpha);
 
 	public void dispose();
 
