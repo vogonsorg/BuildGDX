@@ -111,6 +111,19 @@ public class ModelsInfo {
 		return null;
 	}
 
+	public int getTile(Model model) {
+		for (int i = MAXTILES - 1; i >= 0; i--) {
+			if (cache[i] == null)
+				continue;
+
+			if (cache[i].model == model) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 	public Tile2model getParams(int picnum) {
 		if (cache[picnum] != null)
 			return cache[picnum];

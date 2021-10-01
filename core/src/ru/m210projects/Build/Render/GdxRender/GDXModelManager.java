@@ -43,7 +43,8 @@ public class GDXModelManager extends ModelManager {
 					dst.unsafeSetAnisotropicFilter(1, true);
 					texid[pal] = dst;
 					long etime = System.nanoTime() - startticks;
-					System.out.println("Load voxskin: p" + pal + "... " + (etime / 1000000.0f) + " ms");
+					System.out.println("Load voxskin: p" + pal + " for tile " + getTile(this) + "... "
+							+ (etime / 1000000.0f) + " ms");
 				}
 
 				return texid[pal];

@@ -123,4 +123,17 @@ public abstract class ModelManager {
 		}
 		mdInfo = null;
 	}
+
+	public int getTile(GLModel model) {
+		for (int i = MAXTILES - 1; i >= 0; i--) {
+			if (models[i] == null)
+				continue;
+
+			if (models[i] == model) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 }

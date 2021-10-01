@@ -241,7 +241,7 @@ public class PolymostModelRenderer {
 			polyColor.a = 1.0f;
 		m.setColor(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 		boolean rendered = m.render(parent.getShader(), globalpal, globalshade, 0, (int) (parent.globalfog.combvis),
-				(tspr.cstat & 2));
+				polyColor.a);
 
 		// ------------
 		gl.glDisable(GL_CULL_FACE);
