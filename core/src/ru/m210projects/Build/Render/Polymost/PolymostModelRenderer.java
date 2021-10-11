@@ -559,6 +559,7 @@ public class PolymostModelRenderer {
 		int effectnum = defs.texInfo.getPaletteEffect(globalpal);
 
 		parent.globalfog.apply();
+		m.setScale(cScale, nScale);
 		return m.render(null, globalpal, globalshade, skinnum, effectnum, globalvisibility, 1.0f);
 	}
 

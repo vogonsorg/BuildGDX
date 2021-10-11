@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
+import ru.m210projects.Build.CRC32;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
@@ -39,8 +40,8 @@ public abstract class MD3ModelGL10 extends MDModel {
 	private final MD3Surface[] surfaces;
 	private final int numSurfaces;
 
-	private Vector3 cScale = new Vector3();
-	private Vector3 nScale = new Vector3();
+	private Vector3 cScale = new Vector3(1, 1, 1);
+	private Vector3 nScale = new Vector3(1, 1, 1);
 
 	public MD3ModelGL10(DefMD3 md) {
 		super(md);
