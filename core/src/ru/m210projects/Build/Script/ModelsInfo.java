@@ -70,13 +70,23 @@ public class ModelsInfo {
 		public short mdsmooth;
 	}
 
+	public static class SpriteAnim {
+		public long mdanimtims;
+		public short mdanimcur;
+
+	}
+
 	private Tile2model[] cache = new Tile2model[MAXTILES];
 	private Hudtyp[][] hudInfo = new Hudtyp[2][MAXTILES];
 	private Spritesmooth[] spritesmooth = new Spritesmooth[MAXSPRITES + MAXUNIQHUDID];
+	private SpriteAnim[] spriteanim = new SpriteAnim[MAXSPRITES + MAXUNIQHUDID];
 
 	public ModelsInfo() {
 		for (int i = 0; i < spritesmooth.length; i++)
 			spritesmooth[i] = new Spritesmooth();
+
+		for (int i = 0; i < spriteanim.length; i++)
+			spriteanim[i] = new SpriteAnim();
 	}
 
 	public ModelsInfo(ModelsInfo src, boolean disposable) {
@@ -91,10 +101,17 @@ public class ModelsInfo {
 			}
 		for (int i = 0; i < spritesmooth.length; i++)
 			spritesmooth[i] = new Spritesmooth();
+
+		for (int i = 0; i < spriteanim.length; i++)
+			spriteanim[i] = new SpriteAnim();
 	}
 
 	public Spritesmooth getSmoothParams(int i) {
 		return spritesmooth[i];
+	}
+
+	public SpriteAnim getAnimParams(int i) {
+		return spriteanim[i];
 	}
 
 	public Model getModelInfo(int picnum) {

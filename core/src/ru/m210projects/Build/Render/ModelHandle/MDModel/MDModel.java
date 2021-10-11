@@ -19,14 +19,13 @@ import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpau
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
 import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.DefMD;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
-import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Script.ModelsInfo.SpriteAnim;
 import ru.m210projects.Build.Script.ModelsInfo.Spritesmooth;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
@@ -39,6 +38,9 @@ public abstract class MDModel implements GLModel {
 	public boolean usesalpha;
 	public float oldtime, curtime, interpol;
 	public MDAnimation animations;
+	public long mdanimtims;
+	public short mdanimcur;
+
 	protected int flags;
 	protected float yoffset, zadd, bscale;
 
@@ -89,9 +91,8 @@ public abstract class MDModel implements GLModel {
 		boolean smoothdurationp = (GLSettings.animSmoothing.get() && (defs.mdInfo.getParams(tile).smoothduration != 0));
 
 		Spritesmooth smooth = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mdInfo.getSmoothParams(tspr.owner) : null;
-		Spriteext sprext = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mapInfo.getSpriteInfo(tspr.owner) : null;
+		SpriteAnim sprext = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mdInfo.getAnimParams(tspr.owner) : null;
 
-		// BuildGdx.input.setCursorCatched(false);
 		MDAnimation anim;
 		for (anim = animations; anim != null && anim.startframe != cframe; anim = anim.next) {
 			/* do nothing */;

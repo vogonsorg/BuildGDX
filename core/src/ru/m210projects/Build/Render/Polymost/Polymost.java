@@ -73,6 +73,7 @@ import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Script.ModelsInfo.SpriteAnim;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SECTOR;
@@ -357,7 +358,7 @@ public class Polymost implements GLRenderer {
 			}
 
 			Color c = getshadefactor(shade, method);
-			if (tile.isHighTile() && defs.texInfo != null) {
+			if (defs != null && tile.isHighTile() && defs.texInfo != null) {
 				if (tile.getPal() != pal) {
 					// apply tinting for replaced textures
 
@@ -3606,14 +3607,18 @@ public class Polymost implements GLRenderer {
 
 		for (int i = 0; i < MAXSPRITES; i++) {
 			if (mdpause != 0) {
-				Spriteext sprext = defs.mapInfo.getSpriteInfo(i);
+				SpriteAnim sprext = defs.mdInfo.getAnimParams(i);
 				if (sprext == null)
 					continue;
 
-				if ((mdpause != 0 && sprext.mdanimtims != 0) || sprext.isAnimationDisabled())
+				boolean isAnimationDisabled = false;
+				Spriteext inf = defs.mapInfo.getSpriteInfo(i);
+				if (inf != null)
+					isAnimationDisabled = inf.isAnimationDisabled();
+
+				if ((mdpause != 0 && sprext.mdanimtims != 0) || isAnimationDisabled)
 					sprext.mdanimtims += mdtims - omdtims;
 			}
-
 		}
 
 		beforedrawrooms = 1;
