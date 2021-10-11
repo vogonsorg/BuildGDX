@@ -1,17 +1,30 @@
 package ru.m210projects.Build.Render.Polymost;
 
+import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
+import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.palookup;
 
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.Texture.TextureWrap;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.FileHandle.Resource;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.Model;
 import ru.m210projects.Build.Render.ModelHandle.ModelManager;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.DefMD3;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3ModelGL10;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL10;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelSkin;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.PixmapTileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 
@@ -63,7 +76,73 @@ public class PolymostModelManager extends ModelManager {
 
 	@Override
 	public GLModel allocateModel(Model modelInfo) {
-		// TODO Auto-generated method stub
+		switch (modelInfo.getType()) {
+		case Md3:
+			return new MD3ModelGL10((DefMD3) modelInfo) {
+
+				@Override
+				public void setupTextureDetail(GLTile detail) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void setupTextureGlow(GLTile detail) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public GLTile loadTexture(String skinfile, int palnum, int effectnum) {
+					// possibly fetch an already loaded multitexture :_)
+					if (palnum >= (MAXPALOOKUPS - RESERVEDPALS)) {
+						for (int i = MAXTILES - 1; i >= 0; i--) {
+							GLModel m = models[i];
+							if (m == null || !(m instanceof MDModel))
+								continue;
+
+							MDModel mi = (MDModel) m;
+							for (MDSkinmap skzero = mi.skinmap; skzero != null; skzero = skzero.next)
+								if (skzero.fn.equalsIgnoreCase(skinfile) && skzero.texid[effectnum] != null)
+									return skzero.texid[effectnum];
+						}
+					}
+
+					Resource res = BuildGdx.cache.open(skinfile, 0);
+					if (res == null) {
+						Console.Println("Skin " + skinfile + " not found.", Console.OSDTEXT_YELLOW);
+						return null;
+					}
+
+					GLTile texidx;
+//					startticks = System.currentTimeMillis();
+					try {
+						byte[] data = res.getBytes();
+						Pixmap pix = new Pixmap(data, 0, data.length);
+						texidx = new GLTile(new PixmapTileData(pix, true, 0), 0, true);
+						usesalpha = true;
+					} catch (Exception e) {
+						Console.Println("Couldn't load file: " + skinfile, Console.OSDTEXT_YELLOW);
+						return null;
+					} finally {
+						res.close();
+					}
+					texidx.setupTextureWrap(TextureWrap.Repeat);
+
+//					long etime = System.currentTimeMillis() - startticks;
+//					System.out.println("Load skin: p" + pal + "-e" + defs.texInfo.getPaletteEffect(pal) + " \"" + skinfile
+//							+ "\"... " + etime + " ms");
+
+					return texidx;
+				}
+
+			};
+		case Md2:
+			break;
+		default:
+			return null;
+		}
+
 		return null;
 	}
 

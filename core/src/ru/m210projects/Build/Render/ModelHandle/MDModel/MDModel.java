@@ -8,22 +8,30 @@
 
 package ru.m210projects.Build.Render.ModelHandle.MDModel;
 
+import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
+import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.timerticspersec;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.MDANIM_ONESHOT;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpause;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
+import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
 
+import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.DefMD;
+import ru.m210projects.Build.Render.ModelHandle.GLModel;
+import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Script.ModelsInfo.Spritesmooth;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SPRITE;
 
-public class MDModel {
+public abstract class MDModel implements GLModel {
 
 	public MDSkinmap skinmap;
 
@@ -32,12 +40,40 @@ public class MDModel {
 	public float oldtime, curtime, interpol;
 	public MDAnimation animations;
 	protected int flags;
+	protected float yoffset, zadd, bscale;
 
 	public MDModel(DefMD md) {
 		this.skinmap = md.getSkins();
 		this.animations = md.getAnimations();
 		this.numframes = md.getFrames();
 		this.flags = md.getFlags();
+		this.zadd = md.getYOffset(true);
+		this.yoffset = md.getYOffset(false);
+		this.bscale = md.getScale();
+	}
+
+	public abstract GLTile loadTexture(String skinfile, int palnum, int effectnum);
+
+	public float getYOffset(boolean yflipping) {
+		return !yflipping ? yoffset : zadd;
+	}
+
+	public float getBScale() {
+		return bscale;
+	}
+
+	public float getShadeOff() {
+		return 0;
+	}
+
+	@Override
+	public boolean isRotating() {
+		return (flags & MD_ROTATE) != 0;
+	}
+
+	@Override
+	public boolean isTintAffected() {
+		return (flags & 1) == 0;
 	}
 
 	public void updateanimation(DefScript defs, SPRITE tspr) {
@@ -55,6 +91,7 @@ public class MDModel {
 		Spritesmooth smooth = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mdInfo.getSmoothParams(tspr.owner) : null;
 		Spriteext sprext = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mapInfo.getSpriteInfo(tspr.owner) : null;
 
+		// BuildGdx.input.setCursorCatched(false);
 		MDAnimation anim;
 		for (anim = animations; anim != null && anim.startframe != cframe; anim = anim.next) {
 			/* do nothing */;
@@ -171,12 +208,83 @@ public class MDModel {
 		}
 	}
 
-	public MDSkinmap getSkin(int palnum, int skinnum, int surfnum) {
+	protected MDSkinmap getSkin(int palnum, int skinnum, int surfnum) {
 		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next)
 			if (sk.palette == palnum && skinnum == sk.skinnum && surfnum == sk.surfnum)
 				return sk;
 
 		return null;
+	}
+
+	public GLTile getSkin(final int pal, int skinnum, int surfnum, int effectnum) {
+		String skinfile = null;
+		GLTile texidx = null;
+		GLTile[] texptr = null;
+		MDSkinmap sk, skzero = null;
+
+		if (this.getType() == Type.Md2)
+			surfnum = 0;
+
+		if (pal >= MAXPALOOKUPS)
+			return null;
+
+		for (sk = skinmap; sk != null; sk = sk.next) {
+			int i = -1;
+			if (sk.palette == pal && sk.skinnum == skinnum && sk.surfnum == surfnum) {
+				skinfile = sk.fn;
+				texptr = sk.texid;
+				if (texptr != null)
+					texidx = texptr[effectnum];
+				// OSD_Printf("Using exact match skin (pal=%d,skinnum=%d,surfnum=%d)
+				// %s\n",pal,skinnum,surf,skinfile);
+				break;
+			}
+			// If no match, give highest priority to skinnum, then pal.. (Parkar's request,
+			// 02/27/2005)
+			else if ((sk.palette == 0) && (sk.skinnum == skinnum) && (sk.surfnum == surfnum) && (i < 5)) {
+				i = 5;
+				skzero = sk;
+			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (sk.surfnum == surfnum) && (i < 4)) {
+				i = 4;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (sk.surfnum == surfnum) && (i < 3)) {
+				i = 3;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == skinnum) && (i < 2)) {
+				i = 2;
+				skzero = sk;
+			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (i < 1)) {
+				i = 1;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (i < 0)) {
+				i = 0;
+				skzero = sk;
+			}
+		}
+
+		if (sk == null) {
+			if (pal >= (MAXPALOOKUPS - RESERVEDPALS))
+				return null;
+
+			if (skzero != null) {
+				skinfile = skzero.fn;
+				texptr = skzero.texid;
+				if (texptr != null)
+					texidx = texptr[effectnum];
+				// OSD_Printf("Using def skin 0,0 as fallback, pal=%d\n", pal);
+			} else {
+				Console.Println("Couldn't load skin", Console.OSDTEXT_YELLOW);
+				return null;
+			}
+		}
+
+		if (skinfile == null)
+			return null;
+
+		if (texidx != null)
+			return texidx;
+
+		return texptr[effectnum] = loadTexture(skinfile, pal, effectnum);
 	}
 
 }

@@ -26,7 +26,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_STRIP;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.DETAILPAL;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
@@ -70,6 +70,7 @@ import ru.m210projects.Build.Render.ModelHandle.Model;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3ModelGL10;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
@@ -240,7 +241,7 @@ public class PolymostModelRenderer {
 		} else
 			polyColor.a = 1.0f;
 		m.setColor(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-		boolean rendered = m.render(parent.getShader(), globalpal, globalshade, 0, (int) (parent.globalfog.combvis),
+		boolean rendered = m.render(parent.getShader(), globalpal, globalshade, 0, 0, (int) (parent.globalfog.combvis),
 				polyColor.a);
 
 		// ------------
@@ -250,164 +251,163 @@ public class PolymostModelRenderer {
 		return rendered ? 1 : 0;
 	}
 
-//	private void modelPrepare(MDModel m, SPRITE tspr, int xoff, int yoff) {
-//		Tile pic = engine.getTile(tspr.picnum);
-//		float f = m.interpol;
-//		float g = 1 - f;
-//
-//		if (m.mdnum == 2)
-//			cScale.set(m.scale, m.scale, m.scale);
-//		else
-//			cScale.set(m.scale, -m.scale, m.scale);
-//		cScale.scl(g, g, g);
-//
-//		if (m.mdnum == 2)
-//			nScale.set(m.scale, m.scale, m.scale);
-//		else
-//			nScale.set(m.scale, -m.scale, m.scale);
-//		nScale.scl(f, f, f);
-//
-//		int globalorientation = parent.globalorientation;
-//
-//		modela0.x = modela0.y = 0;
-//		modela0.z = ((globalorientation & 8) != 0 ? -m.zadd : m.zadd) * m.scale;
-//		float x0 = tspr.x;
-//		float k0 = tspr.z;
-//		if ((globalorientation & 128) != 0 && (globalorientation & 48) != 32)
-//			k0 += (pic.getHeight() * tspr.yrepeat) << 1;
-//
-//		// Parkar: Changed to use the same method as centeroriented sprites
-//		if ((globalorientation & 8) != 0) // y-flipping
-//		{
-//			yoff = -yoff;
-//			cScale.scl(1, -1, 1);
-//			nScale.scl(1, -1, 1);
-//			modela0.z = -modela0.z;
-//			k0 -= (pic.getHeight() * tspr.yrepeat) << 2;
-//		}
-//		if ((globalorientation & 4) != 0) // x-flipping
-//		{
-//			xoff = -xoff;
-//			cScale.scl(1, 1, -1);
-//			nScale.scl(1, 1, -1);
-//			modela0.y = -modela0.y;
-//		}
-//		x0 += xoff * (tspr.xrepeat >> 2);
-//		k0 -= ((yoff * tspr.yrepeat) << 2);
-//
-//		// yoffset differs from zadd in that it does not follow cstat&8 y-flipping
-//		modela0.z += m.yoffset * m.scale;
-//
-//		f = ((float) tspr.xrepeat) / 64 * m.bscale;
-//		cScale.scl(-f, f, f);
-//		nScale.scl(-f, f, f);
-//		modela0.scl(f, -f, (tspr.yrepeat) / 64.0f * m.bscale);
-//
-//		// floor aligned
-//		float k1 = tspr.y;
-//		if ((globalorientation & 48) == 32) {
-//			cScale.scl(1, -1, -1);
-//			nScale.scl(1, -1, -1);
-//			modela0.z = -modela0.z;
-//			modela0.y = -modela0.y;
-//			f = modela0.x;
-//			modela0.x = modela0.z;
-//			modela0.z = f;
-//			k1 += (pic.getHeight() * tspr.yrepeat) >> 3;
-//		}
-//
-//		f = (65536.0f * 512.0f) / (xdimen * viewingrange);
-//		g = (float) (32.0 / (xdimen * parent.gxyaspect));
-//		cScale.scl(f, -f, g);
-//		nScale.scl(f, -f, g);
-//
-//		modela0.y = ((x0 - globalposx) / 1024.0f + modela0.y) * f;
-//		modela0.x = ((k1 - globalposy) / 1024.0f + modela0.x) * f;
-//		modela0.z = ((k0 - globalposz) / -16384.0f + modela0.z) * g;
-//
-////    	md3_vox_calcmat_common(tspr, dvoxa0);
-//		md3_vox_calcmat_common(tspr, modela0, f, matrix);
-//
-//		// floor aligned
-//		if ((globalorientation & 48) == 32) {
-//			f = matrix[1][0];
-//			matrix[1][0] = matrix[2][0] * 16.0f;
-//			matrix[2][0] = -f * (1.0f / 16.0f);
-//			f = matrix[1][1];
-//			matrix[1][1] = matrix[2][1] * 16.0f;
-//			matrix[2][1] = -f * (1.0f / 16.0f);
-//			f = matrix[1][2];
-//			matrix[1][2] = matrix[2][2] * 16.0f;
-//			matrix[2][2] = -f * (1.0f / 16.0f);
-//		}
-//
-//		matrix[0][3] = matrix[1][3] = matrix[2][3] = 0.f;
-//		matrix[3][3] = 1.f;
-//
-//		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
-//		gl.glLoadMatrixf(matrix);
-//		gl.glRotatef(-90, 0.0f, 1.0f, 0.0f);
-//
-//		if ((m.flags & MD_ROTATE) != 0)
-//			gl.glRotatef(totalclock % 360, 0, 1, 0);
-//
-//		if ((parent.grhalfxdown10x >= 0) ^ ((globalorientation & 8) != 0) ^ ((globalorientation & 4) != 0))
-//			gl.glFrontFace(GL_CW);
-//		else
-//			gl.glFrontFace(GL_CCW);
-//		gl.glEnable(GL_CULL_FACE);
-//		if (m.mdnum == 2)
-//			gl.glCullFace(GL_FRONT);
-//		else
-//			gl.glCullFace(GL_BACK);
-//
-//		gl.glEnable(GL_TEXTURE_2D);
-//
-//		polyColor.r = polyColor.g = polyColor.b = (numshades
-//				- min(max((globalshade * parent.shadescale) + m.shadeoff, 0), numshades)) / (numshades);
-//
-//		DefScript defs = parent.defs;
-//
-//		if (defs != null) {
-//			if ((m.flags & 1) == 0
-//					|| (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal != 0)) {
-//				Palette p = defs.texInfo.getTints(globalpal);
-//				polyColor.r *= p.r / 255.0f;
-//				polyColor.g *= p.g / 255.0f;
-//				polyColor.b *= p.b / 255.0f;
-//
-//				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
-//				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
-//					polyColor.r *= pdetail.r / 255.0f;
-//					polyColor.g *= pdetail.g / 255.0f;
-//					polyColor.b *= pdetail.b / 255.0f;
-//				}
-//			}
-//		}
-//
-//		if ((tspr.cstat & 2) != 0) {
-//			if ((tspr.cstat & 512) == 0) {
-//				polyColor.a = TRANSLUSCENT1;
-//			} else {
-//				polyColor.a = TRANSLUSCENT2;
-//			}
-//		} else
-//			polyColor.a = 1.0f;
-//
-//		if (m.usesalpha) // Sprites with alpha in texture
-//		{
-//			float al = 0.0f;
-//			if (parent.alphahackarray[tspr.picnum] != 0)
-//				al = parent.alphahackarray[tspr.picnum];
-//			gl.glEnable(GL_BLEND);
-//			gl.glEnable(GL_ALPHA_TEST);
-//			gl.glAlphaFunc(GL_GREATER, al);
-//		} else if ((tspr.cstat & 2) != 0)
-//			gl.glEnable(GL_BLEND);
-//
-//		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-//	}
-//
+	private void modelPrepare(MDModel m, SPRITE tspr, int xoff, int yoff) {
+		Tile pic = engine.getTile(tspr.picnum);
+		float f = m.interpol;
+		float g = 1 - f;
+
+		if (m.getType() == Type.Md2)
+			cScale.set(m.getScale(), m.getScale(), m.getScale());
+		else
+			cScale.set(m.getScale(), -m.getScale(), m.getScale());
+		cScale.scl(g, g, g);
+
+		if (m.getType() == Type.Md2)
+			nScale.set(m.getScale(), m.getScale(), m.getScale());
+		else
+			nScale.set(m.getScale(), -m.getScale(), m.getScale());
+		nScale.scl(f, f, f);
+
+		int globalorientation = parent.globalorientation;
+
+		modela0.x = modela0.y = 0;
+		modela0.z = ((globalorientation & 8) != 0 ? -m.getYOffset(true) : m.getYOffset(true)) * m.getScale();
+		float x0 = tspr.x;
+		float k0 = tspr.z;
+		if ((globalorientation & 128) != 0 && (globalorientation & 48) != 32)
+			k0 += (pic.getHeight() * tspr.yrepeat) << 1;
+
+		// Parkar: Changed to use the same method as centeroriented sprites
+		if ((globalorientation & 8) != 0) // y-flipping
+		{
+			yoff = -yoff;
+			cScale.scl(1, -1, 1);
+			nScale.scl(1, -1, 1);
+			modela0.z = -modela0.z;
+			k0 -= (pic.getHeight() * tspr.yrepeat) << 2;
+		}
+		if ((globalorientation & 4) != 0) // x-flipping
+		{
+			xoff = -xoff;
+			cScale.scl(1, 1, -1);
+			nScale.scl(1, 1, -1);
+			modela0.y = -modela0.y;
+		}
+		x0 += xoff * (tspr.xrepeat >> 2);
+		k0 -= ((yoff * tspr.yrepeat) << 2);
+
+		// yoffset differs from zadd in that it does not follow cstat&8 y-flipping
+		modela0.z += m.getYOffset(false) * m.getScale();
+
+		f = ((float) tspr.xrepeat) / 64 * m.getBScale();
+		cScale.scl(-f, f, f);
+		nScale.scl(-f, f, f);
+		modela0.scl(f, -f, (tspr.yrepeat) / 64.0f * m.getBScale());
+
+		// floor aligned
+		float k1 = tspr.y;
+		if ((globalorientation & 48) == 32) {
+			cScale.scl(1, -1, -1);
+			nScale.scl(1, -1, -1);
+			modela0.z = -modela0.z;
+			modela0.y = -modela0.y;
+			f = modela0.x;
+			modela0.x = modela0.z;
+			modela0.z = f;
+			k1 += (pic.getHeight() * tspr.yrepeat) >> 3;
+		}
+
+		f = (65536.0f * 512.0f) / (xdimen * viewingrange);
+		g = (float) (32.0 / (xdimen * parent.gxyaspect));
+		cScale.scl(f, -f, g);
+		nScale.scl(f, -f, g);
+
+		modela0.y = ((x0 - globalposx) / 1024.0f + modela0.y) * f;
+		modela0.x = ((k1 - globalposy) / 1024.0f + modela0.x) * f;
+		modela0.z = ((k0 - globalposz) / -16384.0f + modela0.z) * g;
+
+//    	md3_vox_calcmat_common(tspr, dvoxa0);
+		md3_vox_calcmat_common(tspr, modela0, f, matrix);
+
+		// floor aligned
+		if ((globalorientation & 48) == 32) {
+			f = matrix[1][0];
+			matrix[1][0] = matrix[2][0] * 16.0f;
+			matrix[2][0] = -f * (1.0f / 16.0f);
+			f = matrix[1][1];
+			matrix[1][1] = matrix[2][1] * 16.0f;
+			matrix[2][1] = -f * (1.0f / 16.0f);
+			f = matrix[1][2];
+			matrix[1][2] = matrix[2][2] * 16.0f;
+			matrix[2][2] = -f * (1.0f / 16.0f);
+		}
+
+		matrix[0][3] = matrix[1][3] = matrix[2][3] = 0.f;
+		matrix[3][3] = 1.f;
+
+		gl.glMatrixMode(GL_MODELVIEW); // Let OpenGL (and perhaps hardware :) handle the matrix rotation
+		gl.glLoadMatrixf(matrix);
+		gl.glRotatef(-90, 0.0f, 1.0f, 0.0f);
+
+		if (m.isRotating())
+			gl.glRotatef(totalclock % 360, 0, 1, 0);
+
+		if ((parent.grhalfxdown10x >= 0) ^ ((globalorientation & 8) != 0) ^ ((globalorientation & 4) != 0))
+			gl.glFrontFace(GL_CW);
+		else
+			gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_CULL_FACE);
+		if (m.getType() == Type.Md2)
+			gl.glCullFace(GL_FRONT);
+		else
+			gl.glCullFace(GL_BACK);
+
+		gl.glEnable(GL_TEXTURE_2D);
+
+		polyColor.r = polyColor.g = polyColor.b = (numshades
+				- min(max((globalshade * parent.shadescale) + m.getShadeOff(), 0), numshades)) / (numshades);
+
+		DefScript defs = parent.defs;
+		if (defs != null) {
+			if (m.isTintAffected()
+					|| (!(tspr.owner >= MAXSPRITES) && sector[sprite[tspr.owner].sectnum].floorpal != 0)) {
+				Palette p = defs.texInfo.getTints(globalpal);
+				polyColor.r *= p.r / 255.0f;
+				polyColor.g *= p.g / 255.0f;
+				polyColor.b *= p.b / 255.0f;
+
+				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
+				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
+					polyColor.r *= pdetail.r / 255.0f;
+					polyColor.g *= pdetail.g / 255.0f;
+					polyColor.b *= pdetail.b / 255.0f;
+				}
+			}
+		}
+
+		if ((tspr.cstat & 2) != 0) {
+			if ((tspr.cstat & 512) == 0) {
+				polyColor.a = TRANSLUSCENT1;
+			} else {
+				polyColor.a = TRANSLUSCENT2;
+			}
+		} else
+			polyColor.a = 1.0f;
+
+		if (m.usesalpha) // Sprites with alpha in texture
+		{
+			float al = 0.0f;
+			if (parent.alphahackarray[tspr.picnum] != 0)
+				al = parent.alphahackarray[tspr.picnum];
+			gl.glEnable(GL_BLEND);
+			gl.glEnable(GL_ALPHA_TEST);
+			gl.glAlphaFunc(GL_GREATER, al);
+		} else if ((tspr.cstat & 2) != 0)
+			gl.glEnable(GL_BLEND);
+
+		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
+	}
+
 //	public int md2draw(MD2Model m, SPRITE tspr, int xoff, int yoff) {
 //		DefScript defs = parent.defs;
 //
@@ -546,133 +546,21 @@ public class PolymostModelRenderer {
 //		return rendered;
 //	}
 //
-//	public int md3draw(MD3Model m, SPRITE tspr, int xoff, int yoff) {
-//		DefScript defs = parent.defs;
-//
-//		m.updateanimation(defs, tspr);
-//
-//		modelPrepare(m, tspr, xoff, yoff);
-//		cScale.scl(1 / 64.0f);
-//		nScale.scl(1 / 64.0f);
-//
-//		int rendered = 0, skinnum = -1;
-//		for (int surfi = 0; surfi < m.head.numSurfaces; surfi++) {
-//			MD3Surface s = m.surfaces[surfi];
-//
-//			m.verticesBuffer.clear();
-//			for (int i = 0; i < s.numverts; i++) {
-//				MD3Vertice v0 = s.xyzn[m.cframe * s.numverts + i];
-//				MD3Vertice v1 = s.xyzn[m.nframe * s.numverts + i];
-//
-//				m.verticesBuffer.put(v0.x * cScale.x + v1.x * nScale.x);
-//				m.verticesBuffer.put(v0.z * cScale.z + v1.z * nScale.z);
-//				m.verticesBuffer.put(v0.y * cScale.y + v1.y * nScale.y);
-//			}
-//			m.verticesBuffer.flip();
-//
-//			skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-//			GLTile texid = m.loadskin(textureCache, defs, skinnum, globalpal, surfi);
-//			if (texid != null) {
-//				textureCache.bind(texid);
-//
-//				if (Console.Geti("r_detailmapping") != 0)
-//					texid = m.loadskin(textureCache, defs, skinnum, DETAILPAL, surfi);
-//				else
-//					texid = null;
-//
-//				int texunits = GL_TEXTURE0;
-//
-//				if (texid != null) {
-//					BuildGdx.gl.glActiveTexture(++texunits);
-//					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-//					parent.setupTextureDetail(texid);
-//
-//					MDSkinmap sk = m.getSkin(DETAILPAL, skinnum, surfi);
-//					if (sk != null) {
-//						float f = sk.param;
-//						gl.glMatrixMode(GL_TEXTURE);
-//						gl.glLoadIdentity();
-//						gl.glScalef(f, f, 1.0f);
-//						gl.glMatrixMode(GL_MODELVIEW);
-//					}
-//				}
-//
-//				if (Console.Geti("r_glowmapping") != 0)
-//					texid = m.loadskin(textureCache, defs, skinnum, GLOWPAL, surfi);
-//				else
-//					texid = null;
-//
-//				if (texid != null) {
-//					BuildGdx.gl.glActiveTexture(++texunits);
-//					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-//					parent.setupTextureGlow(texid);
-//				}
-//
-//				parent.globalfog.apply();
-//				if (r_vertexarrays != 0) {
-//					m.indicesBuffer.clear();
-//					for (int i = s.numtris - 1; i >= 0; i--)
-//						for (int j = 0; j < 3; j++)
-//							m.indicesBuffer.put((short) s.tris[i][j]);
-//					m.indicesBuffer.flip();
-//
-//					int l = GL_TEXTURE0;
-//					do {
-//						gl.glClientActiveTexture(l++);
-//						gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//						gl.glTexCoordPointer(2, GL_FLOAT, 0, s.uv);
-//					} while (l <= texunits);
-//
-//					gl.glEnableClientState(GL_VERTEX_ARRAY);
-//					gl.glVertexPointer(3, GL_FLOAT, 0, m.verticesBuffer);
-//					gl.glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_SHORT, m.indicesBuffer);
-//				} else {
-//					gl.glBegin(GL_TRIANGLES);
-//					for (int i = s.numtris - 1; i >= 0; i--)
-//						for (int j = 0; j < 3; j++) {
-//							int k = s.tris[i][j];
-//							if (texunits > GL_TEXTURE0) {
-//								int l = GL_TEXTURE0;
-//								while (l <= texunits)
-//									gl.glMultiTexCoord2d(l++, s.uv.get(2 * k), s.uv.get(2 * k + 1));
-//							} else
-//								gl.glTexCoord2f(s.uv.get(2 * k), s.uv.get(2 * k + 1));
-//
-//							float x = m.verticesBuffer.get(3 * k);
-//							float y = m.verticesBuffer.get(3 * k + 1);
-//							float z = m.verticesBuffer.get(3 * k + 2);
-//
-//							gl.glVertex3d(x, y, z);
-//						}
-//					gl.glEnd();
-//				}
-//
-//				while (texunits > GL_TEXTURE0) {
-//					gl.glMatrixMode(GL_TEXTURE);
-//					gl.glLoadIdentity();
-//					gl.glMatrixMode(GL_MODELVIEW);
-//					gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
-//					gl.glDisable(GL_TEXTURE_2D);
-//					if (r_vertexarrays != 0) {
-//						gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-//						gl.glClientActiveTexture(texunits - 1);
-//					}
-//					gl.glActiveTexture(--texunits);
-//				}
-//				if (r_vertexarrays != 0)
-//					gl.glDisableClientState(GL_VERTEX_ARRAY);
-//				rendered = 1;
-//			} else
-//				break;
-//		}
-//
-//		if (m.usesalpha)
-//			gl.glDisable(GL_ALPHA_TEST);
-//		gl.glDisable(GL_CULL_FACE);
-//		gl.glLoadIdentity();
-//
-//		return rendered;
-//	}
+	public boolean md3draw(MD3ModelGL10 m, SPRITE tspr, int xoff, int yoff) {
+		DefScript defs = parent.defs;
+
+		m.updateanimation(defs, tspr);
+
+		modelPrepare(m, tspr, xoff, yoff);
+		cScale.scl(1 / 64.0f);
+		nScale.scl(1 / 64.0f);
+
+		int skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
+		int effectnum = defs.texInfo.getPaletteEffect(globalpal);
+
+		parent.globalfog.apply();
+		return m.render(null, globalpal, globalshade, skinnum, effectnum, globalvisibility, 1.0f);
+	}
 
 	public int mddraw(GLModel vm, SPRITE tspr, int xoff, int yoff) {
 		if (vm == null)
@@ -685,9 +573,8 @@ public class PolymostModelRenderer {
 //		if (vm.getType() == Type.Md2) {
 //			return md2draw((DefMD2) vm, tspr, xoff, yoff);
 //		}
-//		if (vm.getType() == Type.Md3) {
-//			return md3draw((DefMD3) vm, tspr, xoff, yoff);
-//		}
+		if (vm.getType() == Type.Md3)
+			return md3draw((MD3ModelGL10) vm, tspr, xoff, yoff) ? 1 : 0;
 
 		return 0;
 	}

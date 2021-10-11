@@ -97,7 +97,7 @@ public class ModelsInfo {
 		return spritesmooth[i];
 	}
 
-	public Model getModel(int picnum) {
+	public Model getModelInfo(int picnum) {
 		if (cache[picnum] != null)
 			return cache[picnum].model;
 

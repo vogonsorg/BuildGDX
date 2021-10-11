@@ -41,6 +41,11 @@ public abstract class GLVoxel implements GLModel {
 	}
 
 	@Override
+	public boolean isTintAffected() {
+		return false;
+	}
+
+	@Override
 	public float getScale() {
 		return 1.0f;
 	}

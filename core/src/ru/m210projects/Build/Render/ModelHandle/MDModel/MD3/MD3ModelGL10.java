@@ -8,7 +8,6 @@ import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT;
 import static ru.m210projects.Build.Engine.DETAILPAL;
 import static ru.m210projects.Build.Engine.GLOWPAL;
-import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
@@ -23,16 +22,16 @@ import java.util.Iterator;
 
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
-public abstract class MD3ModelGL10 extends MDModel implements GLModel {
+public abstract class MD3ModelGL10 extends MDModel {
 
 	private ShortBuffer indices;
 	private FloatBuffer vertices;
@@ -50,9 +49,18 @@ public abstract class MD3ModelGL10 extends MDModel implements GLModel {
 
 		this.surfaces = builder.surfaces;
 		this.numSurfaces = builder.head.numSurfaces;
-	}
 
-	public abstract GLTile getTexture(int pal, int skinnum, int surface);
+		int maxtris = 0;
+		int maxverts = 0;
+		for (int i = 0; i < this.numSurfaces; i++) {
+			MD3Surface surf = surfaces[i];
+			maxtris = Math.max(maxtris, surf.numtris);
+			maxverts = Math.max(maxtris, surf.numverts);
+		}
+
+		this.indices = BufferUtils.newShortBuffer(maxtris * 3);
+		this.vertices = BufferUtils.newFloatBuffer(maxverts * 3);
+	}
 
 	public abstract void setupTextureDetail(GLTile detail);
 
@@ -66,7 +74,8 @@ public abstract class MD3ModelGL10 extends MDModel implements GLModel {
 	}
 
 	@Override
-	public boolean render(ShaderProgram shader, int pal, int shade, int skinnum, int visibility, float alpha) {
+	public boolean render(ShaderProgram shader, int pal, int shade, int skinnum, int effectnum, int visibility,
+			float alpha) {
 		boolean isRendered = false;
 
 		for (int surfi = 0; surfi < numSurfaces; surfi++) {
@@ -83,12 +92,12 @@ public abstract class MD3ModelGL10 extends MDModel implements GLModel {
 			}
 			vertices.flip();
 
-			GLTile texid = getTexture(pal, skinnum, surfi);
+			GLTile texid = getSkin(pal, skinnum, surfi, effectnum);
 			if (texid != null) {
 				texid.bind();
 
 				if (Console.Geti("r_detailmapping") != 0)
-					texid = getTexture(DETAILPAL, skinnum, surfi);
+					texid = getSkin(DETAILPAL, skinnum, surfi, effectnum);
 				else
 					texid = null;
 
@@ -109,7 +118,7 @@ public abstract class MD3ModelGL10 extends MDModel implements GLModel {
 				}
 
 				if (Console.Geti("r_glowmapping") != 0)
-					texid = getTexture(GLOWPAL, skinnum, surfi);
+					texid = getSkin(GLOWPAL, skinnum, surfi, effectnum);
 				else
 					texid = null;
 
@@ -203,11 +212,6 @@ public abstract class MD3ModelGL10 extends MDModel implements GLModel {
 				sk.texid[j] = null;
 			}
 		}
-	}
-
-	@Override
-	public boolean isRotating() {
-		return (flags & MD_ROTATE) != 0;
 	}
 
 	@Override

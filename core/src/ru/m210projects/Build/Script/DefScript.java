@@ -48,7 +48,6 @@ import ru.m210projects.Build.Render.ModelHandle.DefMD;
 import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Model;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.DefMD2;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.DefMD3;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
@@ -865,7 +864,7 @@ public class DefScript {
 			int modelend;
 			String modelfn;
 			double mdscale = 1.0, mzadd = 0.0, myoffset = 0.0;
-			int /*shadeoffs = 0,*/ mdflags = 0;
+			int /* shadeoffs = 0, */ mdflags = 0;
 			int model_ok = 1;
 
 			modelskin = lastmodelskin = 0;
@@ -1566,7 +1565,6 @@ public class DefScript {
 
 				return BaseToken.Warning;
 			}
-
 
 			while (script.textptr < vmodelend) {
 				Object tk = gettoken(script, voxeltokens);

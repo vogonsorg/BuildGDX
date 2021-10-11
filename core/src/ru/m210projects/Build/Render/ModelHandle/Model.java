@@ -4,7 +4,9 @@ public class Model {
 
 	public static final int MD_ROTATE = 2;
 
-	public enum Type { Voxel, Md2, Md3 }
+	public enum Type {
+		Voxel, Md2, Md3
+	}
 
 	protected final String filename;
 	protected final Type type;
@@ -32,10 +34,10 @@ public class Model {
 	}
 
 	public void setMisc(float scale, float zadd, float yoffset, int flags) {
-	    this.scale = scale;
-	    this.zadd = zadd;
-	    this.yoffset = yoffset;
-	    this.flags = flags;
+		this.scale = scale;
+		this.zadd = zadd;
+		this.yoffset = yoffset;
+		this.flags = flags;
 	}
 
 	public boolean isRotating() {
@@ -44,5 +46,9 @@ public class Model {
 
 	public float getScale() {
 		return scale;
+	}
+
+	public float getYOffset(boolean yflipping) {
+		return !yflipping ? yoffset : zadd;
 	}
 }

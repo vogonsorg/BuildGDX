@@ -61,12 +61,19 @@ public abstract class ModelManager {
 			models[tile].clearSkins();
 	}
 
+	public boolean hasModelInfo(int tile) {
+		if (mdInfo == null)
+			return false;
+
+		return mdInfo.getModelInfo(tile) != null;
+	}
+
 	public GLModel getModel(int tile) {
 		if (mdInfo == null)
 			return null;
 
 		Model model = null;
-		if ((model = mdInfo.getModel(tile)) != null && model.getType() != Type.Voxel) {
+		if ((model = mdInfo.getModelInfo(tile)) != null && model.getType() != Type.Voxel) {
 			if (models[tile] != null)
 				return models[tile];
 
@@ -77,12 +84,13 @@ public abstract class ModelManager {
 				System.out
 						.println("Load " + model.getType() + " model: " + tile + "... " + (etime / 1000000.0f) + " ms");
 
-				return models[tile] = out;
+				if (out != null)
+					return models[tile] = out;
 			} catch (Exception e) {
 				e.printStackTrace();
-				Console.Println("Removing model of tile " + tile + " due to errors.", OSDTEXT_RED);
-				mdInfo.removeModelInfo(model);
 			}
+			Console.Println("Removing model of tile " + tile + " due to errors.", OSDTEXT_RED);
+			mdInfo.removeModelInfo(model);
 		}
 
 		return null;
@@ -105,7 +113,12 @@ public abstract class ModelManager {
 			long etime = System.nanoTime() - startticks;
 			System.out.println("Load voxel model: " + tile + "... " + (etime / 1000000.0f) + " ms");
 
-			return models[tile] = out;
+			if (out != null)
+				return models[tile] = out;
+			else {
+				Console.Println("Removing voxel of tile " + tile + " due to errors.", OSDTEXT_RED);
+				mdInfo.removeModelInfo(model);
+			}
 		}
 
 		return null;

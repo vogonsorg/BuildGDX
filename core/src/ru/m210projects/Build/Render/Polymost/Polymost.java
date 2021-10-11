@@ -1627,7 +1627,7 @@ public class Polymost implements GLRenderer {
 					xs = spr.x - globalposx;
 					ys = spr.y - globalposy;
 					if (((spr.cstat & 48) != 0) || (xs * gcosang + ys * gsinang > 0)
-							|| (GLSettings.useModels.get() && modelManager.getModel(spr.picnum) != null)) {
+							|| (GLSettings.useModels.get() && modelManager.hasModelInfo(spr.picnum))) {
 						if ((spr.cstat & (64 + 48)) != (64 + 16) || dmulscale(sintable[(spr.ang + 512) & 2047], -xs,
 								sintable[spr.ang & 2047], -ys, 6) > 0) {
 							if (tsprite[spritesortcnt] == null)
@@ -3354,7 +3354,8 @@ public class Polymost implements GLRenderer {
 			ys = tspriteptr[i].y - globalposy;
 			yp = dmulscale(xs, cosviewingrangeglobalang, ys, sinviewingrangeglobalang, 6);
 
-			modelp = (GLSettings.useModels.get() && defs != null && defs.mdInfo.getModel(tspriteptr[i].picnum) != null);
+			modelp = (GLSettings.useModels.get() && defs != null
+					&& defs.mdInfo.getModelInfo(tspriteptr[i].picnum) != null);
 
 			if (yp > (4 << 8)) {
 				xp = dmulscale(ys, cosglobalang, -xs, singlobalang, 6);

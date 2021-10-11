@@ -28,11 +28,11 @@ public class MD3Builder {
 
 	public MD3Builder(DefMD3 md) {
 		Resource bb = BuildGdx.cache.open(md.getFilename(), 0);
-		MD3Header header = md.header;
+		this.head = md.header;
 
-		MD3Frame[] frames = loadFrames(header, bb);
-		HashMap<String, Matrix4>[] tags = loadTags(header, bb);
-		MD3Surface[] surfaces = loadSurfaces(header, bb);
+		MD3Frame[] frames = loadFrames(head, bb);
+		HashMap<String, Matrix4>[] tags = loadTags(head, bb);
+		MD3Surface[] surfaces = loadSurfaces(head, bb);
 
 		this.frames = frames;
 		this.tags = tags;

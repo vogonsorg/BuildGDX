@@ -60,16 +60,16 @@ public class Maphack extends Scriptfile {
 	public Maphack() { // new maphack
 		super("", new byte[0]);
 
-		spriteext = new Spriteext[MAXSPRITES];
-		for (int i = 0; i < MAXSPRITES; i++)
+		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID];
+		for (int i = 0; i < spriteext.length; i++)
 			spriteext[i] = new Spriteext();
 	}
 
 	public Maphack(String filename) {
 		super(filename, BuildGdx.cache.getBytes(filename, 0));
 
-		spriteext = new Spriteext[MAXSPRITES];
-		for (int i = 0; i < MAXSPRITES; i++)
+		spriteext = new Spriteext[MAXSPRITES + MAXUNIQHUDID];
+		for (int i = 0; i < spriteext.length; i++)
 			spriteext[i] = new Spriteext();
 
 		Integer value;
@@ -136,6 +136,8 @@ public class Maphack extends Scriptfile {
 	}
 
 	public Spriteext getSpriteInfo(int spriteid) {
+		if (spriteid < 0 || spriteid >= spriteext.length)
+			return null;
 		return spriteext[spriteid];
 	}
 
