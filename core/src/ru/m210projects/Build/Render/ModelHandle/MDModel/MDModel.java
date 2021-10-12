@@ -87,6 +87,7 @@ public abstract class MDModel implements GLModel {
 		int tile = tspr.picnum;
 
 		cframe = nframe = defs.mdInfo.getParams(tspr.picnum).framenum;
+		System.err.println("cframe " + cframe);
 
 		boolean smoothdurationp = (GLSettings.animSmoothing.get() && (defs.mdInfo.getParams(tile).smoothduration != 0));
 
