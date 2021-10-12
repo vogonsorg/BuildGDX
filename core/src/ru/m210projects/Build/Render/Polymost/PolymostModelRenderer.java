@@ -549,7 +549,7 @@ public class PolymostModelRenderer {
 	public boolean md3draw(MD3ModelGL10 m, SPRITE tspr, int xoff, int yoff) {
 		DefScript defs = parent.defs;
 
-		m.updateanimation(defs, tspr);
+		m.updateanimation(defs.mdInfo, tspr);
 
 		modelPrepare(m, tspr, xoff, yoff);
 		cScale.scl(1 / 64.0f);
@@ -561,7 +561,6 @@ public class PolymostModelRenderer {
 		parent.globalfog.apply();
 		m.setScale(cScale, nScale);
 
-		System.err.println(tspr.picnum);
 		return m.render(null, globalpal, globalshade, skinnum, effectnum, globalvisibility, 1.0f);
 	}
 

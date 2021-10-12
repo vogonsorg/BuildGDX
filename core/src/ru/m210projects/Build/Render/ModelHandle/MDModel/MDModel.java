@@ -24,7 +24,7 @@ import ru.m210projects.Build.Render.ModelHandle.DefMD;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
-import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Script.ModelsInfo;
 import ru.m210projects.Build.Script.ModelsInfo.SpriteAnim;
 import ru.m210projects.Build.Script.ModelsInfo.Spritesmooth;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -78,7 +78,7 @@ public abstract class MDModel implements GLModel {
 		return (flags & 1) == 0;
 	}
 
-	public void updateanimation(DefScript defs, SPRITE tspr) {
+	public void updateanimation(ModelsInfo mdInfo, SPRITE tspr) {
 		if (numframes < 2) {
 			interpol = 0;
 			return;
@@ -86,13 +86,11 @@ public abstract class MDModel implements GLModel {
 
 		int tile = tspr.picnum;
 
-		cframe = nframe = defs.mdInfo.getParams(tspr.picnum).framenum;
-		System.err.println("cframe " + cframe);
+		cframe = nframe = mdInfo.getParams(tspr.picnum).framenum;
+		boolean smoothdurationp = (GLSettings.animSmoothing.get() && (mdInfo.getParams(tile).smoothduration != 0));
 
-		boolean smoothdurationp = (GLSettings.animSmoothing.get() && (defs.mdInfo.getParams(tile).smoothduration != 0));
-
-		Spritesmooth smooth = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mdInfo.getSmoothParams(tspr.owner) : null;
-		SpriteAnim sprext = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? defs.mdInfo.getAnimParams(tspr.owner) : null;
+		Spritesmooth smooth = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? mdInfo.getSmoothParams(tspr.owner) : null;
+		SpriteAnim sprext = (tspr.owner < MAXSPRITES + MAXUNIQHUDID) ? mdInfo.getAnimParams(tspr.owner) : null;
 
 		MDAnimation anim;
 		for (anim = animations; anim != null && anim.startframe != cframe; anim = anim.next) {
@@ -139,11 +137,13 @@ public abstract class MDModel implements GLModel {
 
 			nframe = anim.startframe;
 			cframe = smooth.mdoldframe;
+
+			System.err.println("Set " + cframe);
 			smooth.mdsmooth = 1;
 			return;
 		}
 
-		int fps = (smooth.mdsmooth != 0) ? Math.round((1.0f / (defs.mdInfo.getParams(tile).smoothduration)) * 66.f)
+		int fps = (smooth.mdsmooth != 0) ? Math.round((1.0f / (mdInfo.getParams(tile).smoothduration)) * 66.f)
 				: anim.fpssc;
 
 		int i = (int) ((mdtims - sprext.mdanimtims) * ((fps * timerticspersec) / 120));

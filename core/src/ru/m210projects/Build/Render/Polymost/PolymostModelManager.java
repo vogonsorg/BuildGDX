@@ -1,9 +1,15 @@
 package ru.m210projects.Build.Render.Polymost;
 
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
+import static ru.m210projects.Build.Engine.DETAILPAL;
+import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
@@ -79,24 +85,6 @@ public class PolymostModelManager extends ModelManager {
 		switch (modelInfo.getType()) {
 		case Md3:
 			return new MD3ModelGL10((DefMD3) modelInfo) {
-
-				@Override
-				public void bindSkin(GLTile skin) {
-					parent.bind(skin);
-				}
-
-				@Override
-				public void setupTextureDetail(GLTile detail) {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void setupTextureGlow(GLTile detail) {
-					// TODO Auto-generated method stub
-
-				}
-
 				@Override
 				public GLTile loadTexture(String skinfile, int palnum, int effectnum) {
 					// possibly fetch an already loaded multitexture :_)
@@ -139,6 +127,49 @@ public class PolymostModelManager extends ModelManager {
 //							+ "\"... " + etime + " ms");
 
 					return texidx;
+				}
+
+				@Override
+				public int bindSkin(int pal, int skinnum, int surfnum, int effectnum) {
+					int texunits = -1;
+					GLTile texid = getSkin(pal, skinnum, surfnum, effectnum);
+					if (texid != null) {
+						parent.bind(texid);
+
+						if (Console.Geti("r_detailmapping") != 0)
+							texid = getSkin(DETAILPAL, skinnum, surfnum, effectnum);
+						else
+							texid = null;
+
+						texunits = GL_TEXTURE0;
+						if (texid != null) {
+							BuildGdx.gl.glActiveTexture(++texunits);
+							BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+							parent.setupTextureDetail(texid);
+
+							MDSkinmap sk = getSkin(DETAILPAL, skinnum, surfnum);
+							if (sk != null) {
+								float f = sk.param;
+								BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+								BuildGdx.gl.glLoadIdentity();
+								BuildGdx.gl.glScalef(f, f, 1.0f);
+								BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+							}
+						}
+
+						if (Console.Geti("r_glowmapping") != 0)
+							texid = getSkin(GLOWPAL, skinnum, surfnum, effectnum);
+						else
+							texid = null;
+
+						if (texid != null) {
+							BuildGdx.gl.glActiveTexture(++texunits);
+							BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+							parent.setupTextureGlow(texid);
+						}
+					}
+
+					return texunits;
 				}
 			};
 		case Md2:

@@ -6,8 +6,6 @@ import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT;
-import static ru.m210projects.Build.Engine.DETAILPAL;
-import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
@@ -25,7 +23,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
@@ -62,11 +59,7 @@ public abstract class MD3ModelGL10 extends MDModel {
 		this.vertices = BufferUtils.newFloatBuffer(maxverts * 3);
 	}
 
-	public abstract void bindSkin(GLTile skin);
-
-	public abstract void setupTextureDetail(GLTile detail);
-
-	public abstract void setupTextureGlow(GLTile glow);
+	public abstract int bindSkin(final int pal, int skinnum, int surfnum, int effectnum);
 
 	public MD3ModelGL10 setScale(Vector3 cScale, Vector3 nScale) {
 		this.cScale.set(cScale);
@@ -83,52 +76,24 @@ public abstract class MD3ModelGL10 extends MDModel {
 		for (int surfi = 0; surfi < numSurfaces; surfi++) {
 			MD3Surface s = surfaces[surfi];
 
-			vertices.clear();
-			for (int i = 0; i < s.numverts; i++) {
-				MD3Vertice v0 = s.xyzn[cframe][i];
-				MD3Vertice v1 = s.xyzn[nframe][i];
+			int texunits = bindSkin(pal, skinnum, surfi, effectnum);
+			if (texunits != -1) {
 
-				vertices.put(v0.x * cScale.x + v1.x * nScale.x);
-				vertices.put(v0.z * cScale.z + v1.z * nScale.z);
-				vertices.put(v0.y * cScale.y + v1.y * nScale.y);
-			}
-			vertices.flip();
-
-			GLTile texid = getSkin(pal, skinnum, surfi, effectnum);
-			if (texid != null) {
-				bindSkin(texid);
-
-				if (Console.Geti("r_detailmapping") != 0)
-					texid = getSkin(DETAILPAL, skinnum, surfi, effectnum);
-				else
-					texid = null;
-
-				int texunits = GL_TEXTURE0;
-				if (texid != null) {
-					BuildGdx.gl.glActiveTexture(++texunits);
-					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-					setupTextureDetail(texid);
-
-					MDSkinmap sk = getSkin(DETAILPAL, skinnum, surfi);
-					if (sk != null) {
-						float f = sk.param;
-						BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-						BuildGdx.gl.glLoadIdentity();
-						BuildGdx.gl.glScalef(f, f, 1.0f);
-						BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+				vertices.clear();
+				for (int i = 0; i < s.numverts; i++) {
+					if (cframe > s.xyzn.length) {
+						System.err.println("aaa " + cframe + " " + s.xyzn.length);
+						cframe = nframe = 0;
 					}
-				}
 
-				if (Console.Geti("r_glowmapping") != 0)
-					texid = getSkin(GLOWPAL, skinnum, surfi, effectnum);
-				else
-					texid = null;
+					MD3Vertice v0 = s.xyzn[cframe][i];
+					MD3Vertice v1 = s.xyzn[nframe][i];
 
-				if (texid != null) {
-					BuildGdx.gl.glActiveTexture(++texunits);
-					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-					setupTextureGlow(texid);
+					vertices.put(v0.x * cScale.x + v1.x * nScale.x);
+					vertices.put(v0.z * cScale.z + v1.z * nScale.z);
+					vertices.put(v0.y * cScale.y + v1.y * nScale.y);
 				}
+				vertices.flip();
 
 				indices.clear();
 				for (int i = s.numtris - 1; i >= 0; i--)
