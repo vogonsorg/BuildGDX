@@ -24,7 +24,6 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
-import ru.m210projects.Build.CRC32;
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
@@ -63,9 +62,11 @@ public abstract class MD3ModelGL10 extends MDModel {
 		this.vertices = BufferUtils.newFloatBuffer(maxverts * 3);
 	}
 
+	public abstract void bindSkin(GLTile skin);
+
 	public abstract void setupTextureDetail(GLTile detail);
 
-	public abstract void setupTextureGlow(GLTile detail);
+	public abstract void setupTextureGlow(GLTile glow);
 
 	public MD3ModelGL10 setScale(Vector3 cScale, Vector3 nScale) {
 		this.cScale.set(cScale);
@@ -95,7 +96,7 @@ public abstract class MD3ModelGL10 extends MDModel {
 
 			GLTile texid = getSkin(pal, skinnum, surfi, effectnum);
 			if (texid != null) {
-				texid.bind();
+				bindSkin(texid);
 
 				if (Console.Geti("r_detailmapping") != 0)
 					texid = getSkin(DETAILPAL, skinnum, surfi, effectnum);

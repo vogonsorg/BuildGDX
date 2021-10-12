@@ -560,6 +560,8 @@ public class PolymostModelRenderer {
 
 		parent.globalfog.apply();
 		m.setScale(cScale, nScale);
+
+		System.err.println(tspr.picnum);
 		return m.render(null, globalpal, globalshade, skinnum, effectnum, globalvisibility, 1.0f);
 	}
 

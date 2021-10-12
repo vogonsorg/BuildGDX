@@ -81,6 +81,11 @@ public class PolymostModelManager extends ModelManager {
 			return new MD3ModelGL10((DefMD3) modelInfo) {
 
 				@Override
+				public void bindSkin(GLTile skin) {
+					parent.bind(skin);
+				}
+
+				@Override
 				public void setupTextureDetail(GLTile detail) {
 					// TODO Auto-generated method stub
 
@@ -119,7 +124,7 @@ public class PolymostModelManager extends ModelManager {
 					try {
 						byte[] data = res.getBytes();
 						Pixmap pix = new Pixmap(data, 0, data.length);
-						texidx = new GLTile(new PixmapTileData(pix, true, 0), 0, true);
+						texidx = parent.textureCache.newTile(new PixmapTileData(pix, true, 0), 0, true);
 						usesalpha = true;
 					} catch (Exception e) {
 						Console.Println("Couldn't load file: " + skinfile, Console.OSDTEXT_YELLOW);
@@ -135,7 +140,6 @@ public class PolymostModelManager extends ModelManager {
 
 					return texidx;
 				}
-
 			};
 		case Md2:
 			break;
