@@ -74,8 +74,7 @@ public abstract class VoxelGL10 extends GLVoxel {
 	}
 
 	@Override
-	public boolean render(ShaderProgram shader, int pal, int shade, int surfnum, int effectnum, int visibility,
-			float alpha) {
+	public boolean render(ShaderProgram shader, int pal, int shade, int surfnum, int visibility, float alpha) {
 		GLTile skin = getSkin(pal);
 		if (skin == null)
 			return false;

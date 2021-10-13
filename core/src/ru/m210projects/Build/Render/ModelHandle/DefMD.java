@@ -44,9 +44,9 @@ public class DefMD extends Model {
 		byte[] buf = new byte[len];
 		bb.read(buf);
 
-		for(int i = 0; i < buf.length; i++) {
-        	if(buf[i] == 0)
-        		return new String(buf, 0, i);
+		for (int i = 0; i < buf.length; i++) {
+			if (buf[i] == 0)
+				return new String(buf, 0, i);
 		}
 		return new String(buf);
 	}

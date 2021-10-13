@@ -292,6 +292,9 @@ public class Polymost implements GLRenderer {
 			isInited = true;
 		} catch (Throwable t) {
 			isInited = false;
+			int a = 0;
+
+			Console.Println("Polymost renderer initialization error!", Console.OSDTEXT_RED);
 		}
 	}
 

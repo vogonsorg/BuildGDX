@@ -15,19 +15,11 @@ import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
 import static com.badlogic.gdx.graphics.GL20.GL_CCW;
 import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
 import static com.badlogic.gdx.graphics.GL20.GL_CW;
-import static com.badlogic.gdx.graphics.GL20.GL_FLOAT;
 import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 import static com.badlogic.gdx.graphics.GL20.GL_GREATER;
-import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
-import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
-import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_FAN;
-import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_STRIP;
-import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.*;
-import static ru.m210projects.Build.Engine.GLOWPAL;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
@@ -38,6 +30,7 @@ import static ru.m210projects.Build.Engine.globalposx;
 import static ru.m210projects.Build.Engine.globalposy;
 import static ru.m210projects.Build.Engine.globalposz;
 import static ru.m210projects.Build.Engine.globalshade;
+import static ru.m210projects.Build.Engine.globalvisibility;
 import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.pitch;
 import static ru.m210projects.Build.Engine.sector;
@@ -46,35 +39,19 @@ import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Engine.viewingrange;
 import static ru.m210projects.Build.Engine.xdimen;
-import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
-import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
-import static ru.m210projects.Build.Render.Polymost.Polymost.r_vertexarrays;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
-import static ru.m210projects.Build.Render.Types.GL10.GL_QUADS;
-import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
-import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
 import ru.m210projects.Build.Engine;
-import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
-import ru.m210projects.Build.Render.ModelHandle.Model;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3ModelGL10;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
-import ru.m210projects.Build.Render.TextureHandle.GLTile;
-import ru.m210projects.Build.Render.TextureHandle.TextureManager;
-import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Spriteext;
@@ -85,21 +62,18 @@ import ru.m210projects.Build.Types.Tile;
 public class PolymostModelRenderer {
 
 	private Polymost parent;
-	private final TextureManager textureCache;
 	private Engine engine;
 	private GL10 gl;
 	private final Color polyColor = new Color();
 	private final float[][] matrix = new float[4][4];
 
-	private final float dvoxphack[] = new float[2], dvoxclut[] = { 1, 1, 1, 1, 1, 1 };
-	private final Vector3 dvoxfp = new Vector3(), dvoxm0 = new Vector3(), modela0 = new Vector3();
+	private final Vector3 dvoxm0 = new Vector3(), modela0 = new Vector3();
 
 	private Vector3 cScale = new Vector3();
 	private Vector3 nScale = new Vector3();
 
 	public PolymostModelRenderer(Polymost parent) {
 		this.parent = parent;
-		this.textureCache = parent.textureCache;
 		this.engine = parent.engine;
 	}
 
@@ -241,7 +215,7 @@ public class PolymostModelRenderer {
 		} else
 			polyColor.a = 1.0f;
 		m.setColor(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-		boolean rendered = m.render(parent.getShader(), globalpal, globalshade, 0, 0, (int) (parent.globalfog.combvis),
+		boolean rendered = m.render(parent.getShader(), globalpal, globalshade, 0, (int) (parent.globalfog.combvis),
 				polyColor.a);
 
 		// ------------
@@ -545,7 +519,7 @@ public class PolymostModelRenderer {
 //
 //		return rendered;
 //	}
-//
+
 	public boolean md3draw(MD3ModelGL10 m, SPRITE tspr, int xoff, int yoff) {
 		DefScript defs = parent.defs;
 
@@ -556,12 +530,11 @@ public class PolymostModelRenderer {
 		nScale.scl(1 / 64.0f);
 
 		int skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-		int effectnum = defs.texInfo.getPaletteEffect(globalpal);
 
 		parent.globalfog.apply();
 		m.setScale(cScale, nScale);
 
-		return m.render(null, globalpal, globalshade, skinnum, effectnum, globalvisibility, 1.0f);
+		return m.render(null, globalpal, globalshade, skinnum, globalvisibility, 1.0f);
 	}
 
 	public int mddraw(GLModel vm, SPRITE tspr, int xoff, int yoff) {

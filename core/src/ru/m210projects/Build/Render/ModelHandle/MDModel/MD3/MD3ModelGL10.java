@@ -59,7 +59,7 @@ public abstract class MD3ModelGL10 extends MDModel {
 		this.vertices = BufferUtils.newFloatBuffer(maxverts * 3);
 	}
 
-	public abstract int bindSkin(final int pal, int skinnum, int surfnum, int effectnum);
+	public abstract int bindSkin(final int pal, int skinnum, int surfnum);
 
 	public MD3ModelGL10 setScale(Vector3 cScale, Vector3 nScale) {
 		this.cScale.set(cScale);
@@ -69,19 +69,18 @@ public abstract class MD3ModelGL10 extends MDModel {
 	}
 
 	@Override
-	public boolean render(ShaderProgram shader, int pal, int shade, int skinnum, int effectnum, int visibility,
-			float alpha) {
+	public boolean render(ShaderProgram shader, int pal, int shade, int skinnum, int visibility, float alpha) {
 		boolean isRendered = false;
 
 		for (int surfi = 0; surfi < numSurfaces; surfi++) {
 			MD3Surface s = surfaces[surfi];
 
-			int texunits = bindSkin(pal, skinnum, surfi, effectnum);
+			int texunits = bindSkin(pal, skinnum, surfi);
 			if (texunits != -1) {
 
 				vertices.clear();
 				for (int i = 0; i < s.numverts; i++) {
-					if (cframe > s.xyzn.length) {
+					if (cframe >= s.xyzn.length) {
 						System.err.println("aaa " + cframe + " " + s.xyzn.length);
 						cframe = nframe = 0;
 					}
@@ -133,6 +132,7 @@ public abstract class MD3ModelGL10 extends MDModel {
 		if (usesalpha)
 			BuildGdx.gl.glDisable(GL_ALPHA_TEST);
 		BuildGdx.gl.glDisable(GL_CULL_FACE);
+		BuildGdx.gl.glLoadIdentity();
 
 		return isRendered;
 	}

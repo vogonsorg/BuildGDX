@@ -445,7 +445,7 @@ public class DefScript {
 	};
 
 	public enum MapHackTokens {
-		FILE, MHK, MD4;
+		FILE, MHK, MD4, TITLE;
 	};
 
 	protected class MaphackToken implements Token {
@@ -455,6 +455,7 @@ public class DefScript {
 				put("mapfile", MapHackTokens.FILE);
 				put("mhkfile", MapHackTokens.MHK);
 				put("mapmd4", MapHackTokens.MD4);
+				put("maptitle", MapHackTokens.TITLE);
 			}
 		};
 
@@ -473,6 +474,9 @@ public class DefScript {
 
 				switch ((MapHackTokens) tk) {
 				default:
+					break;
+				case TITLE:
+					script.getstring(); // XXX
 					break;
 				case FILE:
 					file = getFile(script);
@@ -786,7 +790,8 @@ public class DefScript {
 
 	protected enum ModelTokens {
 		SCALE, SHADE, XADD, YADD, ZADD, FRAME, FRAME0, FRAME1, ANIM, SKIN, HUD, TILE, TILE0, TILE1, FPS, FLAGS, PAL,
-		FILE, SURF, ANGADD, HIDE, NOBOB, FLIPPED, NODEPTH
+		FILE, SURF, ANGADD, HIDE, NOBOB, FLIPPED, NODEPTH, DETAIL, NORMAL, SPECULAR, GLOW, SPECPOWER, SPECFACTOR, PARAM,
+		PARALLAXSCALE, PARALLAXBIAS, SMOOTHDURATION
 	}
 
 	protected class ModelToken implements Token {
@@ -801,7 +806,12 @@ public class DefScript {
 				put("frame", ModelTokens.FRAME);
 				put("anim", ModelTokens.ANIM);
 				put("skin", ModelTokens.SKIN);
+				put("detail", ModelTokens.DETAIL);
+				put("glow", ModelTokens.GLOW);
+				put("specular", ModelTokens.SPECULAR);
+				put("normal", ModelTokens.NORMAL);
 				put("hud", ModelTokens.HUD);
+				put("flags", ModelTokens.FLAGS);
 			}
 		};
 
@@ -813,6 +823,8 @@ public class DefScript {
 				put("tile", ModelTokens.TILE);
 				put("tile0", ModelTokens.TILE0);
 				put("tile1", ModelTokens.TILE1);
+				put("smoothduration", ModelTokens.SMOOTHDURATION);
+				put("pal", ModelTokens.PAL);
 			}
 		};
 
@@ -833,6 +845,11 @@ public class DefScript {
 				put("file", ModelTokens.FILE);
 				put("surf", ModelTokens.SURF);
 				put("surface", ModelTokens.SURF);
+
+				put("specpower", ModelTokens.SPECPOWER);
+				put("specfactor", ModelTokens.SPECFACTOR);
+				put("parallaxscale", ModelTokens.PARALLAXSCALE);
+				put("parallaxbias", ModelTokens.PARALLAXBIAS);
 			}
 		};
 
@@ -864,7 +881,7 @@ public class DefScript {
 			int modelend;
 			String modelfn;
 			double mdscale = 1.0, mzadd = 0.0, myoffset = 0.0;
-			int /* shadeoffs = 0, */ mdflags = 0;
+			int /* shadeoffs = 0, */ mdflags = 0, mdpal = 0;
 			int model_ok = 1;
 
 			modelskin = lastmodelskin = 0;
@@ -932,10 +949,11 @@ public class DefScript {
 					if (dvalue != null)
 						mdscale = dvalue;
 					break;
-//				case SHADE:
-//					if ((ivalue = script.getsymbol()) != null)
+				case SHADE: // XXX
+					if ((ivalue = script.getsymbol()) != null) {
 //						shadeoffs = ivalue;
-//					break;
+					}
+					break;
 				case ZADD:
 					if ((dvalue = script.getdouble()) != null)
 						mzadd = dvalue;
@@ -944,10 +962,10 @@ public class DefScript {
 //					if ((dvalue = script.getdouble()) != null)
 //						myoffset = dvalue;
 //					break;
-//				case FLAGS:
-//					if ((ivalue = script.getsymbol()) != null)
-//						mdflags = ivalue;
-//					break;
+				case FLAGS:
+					if ((ivalue = script.getsymbol()) != null)
+						mdflags = ivalue;
+					break;
 				case FRAME: {
 					int frametokptr = script.ltextptr;
 					int frameend, happy = 1;
@@ -974,6 +992,10 @@ public class DefScript {
 						switch ((ModelTokens) tk) {
 						default:
 							break;
+						case PAL:
+							if ((ivalue = script.getsymbol()) != null)
+								mdpal = ivalue;
+							break;
 						case FRAME:
 							framename = script.getstring();
 							break;
@@ -991,10 +1013,10 @@ public class DefScript {
 							if ((ivalue = script.getsymbol()) != null)
 								ltilenume = ivalue;
 							break; // last tile number (inclusive)
-//						case SMOOTHDURATION:
-//							if ((dvalue = script.getdouble()) != null)
-//								smoothduration = dvalue;
-//							break;
+						case SMOOTHDURATION:
+							if ((dvalue = script.getdouble()) != null)
+								smoothduration = dvalue;
+							break;
 						}
 					}
 					script.skipbrace(frameend); // close bracke
@@ -1005,8 +1027,8 @@ public class DefScript {
 					}
 
 					for (tilex = ftilenume; tilex <= ltilenume && happy != 0; tilex++) {
-						switch (mdInfo.addModelInfo(m, tilex, framename, Math.max(0, modelskin),
-								(float) smoothduration)) {
+						switch (mdInfo.addModelInfo(m, tilex, framename, Math.max(0, modelskin), (float) smoothduration,
+								mdpal)) {
 						case -1:
 							happy = 0;
 							break; // invalid model id!?
@@ -1103,10 +1125,10 @@ public class DefScript {
 				}
 					break;
 				case SKIN:
-//				case DETAIL:
-//				case GLOW:
-//				case SPECULAR:
-//				case NORMAL: {
+				case DETAIL:
+				case GLOW:
+				case SPECULAR:
+				case NORMAL:
 					int skintokptr = script.ltextptr;
 					int skinend;
 					String skinfn = null;
@@ -1135,18 +1157,25 @@ public class DefScript {
 						case PAL:
 							palnum = script.getsymbol();
 							break;
-//						case PARAM:
-//							if ((dvalue = script.getdouble()) != null)
-//								param = dvalue;
-//							break;
-//						case SPECPOWER:
-//							if ((dvalue = script.getdouble()) != null)
-//								specpower = dvalue;
-//							break;
-//						case SPECFACTOR:
-//							if ((dvalue = script.getdouble()) != null)
-//								specfactor = dvalue;
-//							break;
+						case PARAM:
+							if ((dvalue = script.getdouble()) != null)
+								param = dvalue;
+							break;
+						case PARALLAXSCALE:
+							script.getdouble(); // XXX
+							break;
+
+						case PARALLAXBIAS:
+							script.getdouble(); // XXX
+							break;
+						case SPECPOWER:
+							if ((dvalue = script.getdouble()) != null)
+								specpower = dvalue;
+							break;
+						case SPECFACTOR:
+							if ((dvalue = script.getdouble()) != null)
+								specfactor = dvalue;
+							break;
 						case FILE:
 							skinfn = getFile(script);
 							break; // skin filename
@@ -1173,19 +1202,19 @@ public class DefScript {
 					switch (token) {
 					default:
 						break;
-//					case DETAIL:
-//						palnum = DETAILPAL;
-//						param = 1.0f / param;
-//						break;
-//					case GLOW:
-//						palnum = GLOWPAL;
-//						break;
-//					case SPECULAR:
-//						palnum = SPECULARPAL;
-//						break;
-//					case NORMAL:
-//						palnum = NORMALPAL;
-//						break;
+					case DETAIL:
+						palnum = DETAILPAL;
+						param = 1.0f / param;
+						break;
+					case GLOW:
+						palnum = GLOWPAL;
+						break;
+					case SPECULAR:
+						palnum = SPECULARPAL;
+						break;
+					case NORMAL:
+						palnum = NORMALPAL;
+						break;
 					}
 
 					if (!BuildGdx.cache.contains(skinfn, 0) || m.getType() == Type.Voxel)
@@ -1323,7 +1352,7 @@ public class DefScript {
 
 	protected enum TextureTokens {
 		FILE, PAL, DETAIL, GLOW, SPECULAR, NORMAL, ALPHACUT, XSCALE, YSCALE, SPECPOWER, SPECFACTOR, NOCOMPRESS,
-		NODOWNSIZE
+		NODOWNSIZE, PARALLAXBIAS, PARALLAXSCALE
 	}
 
 	protected class TextureToken implements Token {
@@ -1345,10 +1374,10 @@ public class DefScript {
 				put("yscale", TextureTokens.YSCALE);
 				put("specpower", TextureTokens.SPECPOWER);
 				put("specularpower", TextureTokens.SPECPOWER);
-				put("parallaxscale", TextureTokens.SPECPOWER);
+				put("parallaxscale", TextureTokens.PARALLAXSCALE);
 				put("specfactor", TextureTokens.SPECFACTOR);
 				put("specularfactor", TextureTokens.SPECFACTOR);
-				put("parallaxbias", TextureTokens.SPECFACTOR);
+				put("parallaxbias", TextureTokens.PARALLAXBIAS);
 				put("nocompress", TextureTokens.NOCOMPRESS);
 				put("nodownsize", TextureTokens.NODOWNSIZE);
 			}
@@ -1440,6 +1469,15 @@ public class DefScript {
 							if ((dvalue = script.getdouble()) != null)
 								specfactor = dvalue;
 							break;
+
+						case PARALLAXSCALE:
+							script.getdouble(); // XXX
+							break;
+
+						case PARALLAXBIAS:
+							script.getdouble(); // XXX
+							break;
+
 						case NOCOMPRESS:
 							flags |= 1;
 							break;
@@ -1622,7 +1660,7 @@ public class DefScript {
 	}
 
 	public enum SkyboxTokens {
-		TILE, PAL, FRONT, RIGHT, BACK, LEFT, TOP, BOTTOM
+		TILE, PAL, FRONT, RIGHT, BACK, LEFT, TOP, BOTTOM, NOCOMPRESS, NODOWNSIZE
 	}
 
 	protected class SkyboxToken implements Token {
@@ -1654,8 +1692,8 @@ public class DefScript {
 				put("floor", SkyboxTokens.BOTTOM);
 				put("down", SkyboxTokens.BOTTOM);
 
-//				put("nocompress", TextureTokens.NOCOMPRESS);
-//				put("nodownsize", TextureTokens.NODOWNSIZE);
+				put("nocompress", SkyboxTokens.NOCOMPRESS);
+				put("nodownsize", SkyboxTokens.NODOWNSIZE);
 			}
 		};
 
@@ -1708,6 +1746,14 @@ public class DefScript {
 					case BOTTOM:
 						sfn[5] = getFile(script);
 						break;
+
+					case NOCOMPRESS: // XXX
+
+						break;
+					case NODOWNSIZE:
+
+						break;
+
 					default:
 						break;
 					}

@@ -30,6 +30,7 @@ import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL10;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelSkin;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
+import ru.m210projects.Build.Render.TextureHandle.Hicreplctyp;
 import ru.m210projects.Build.Render.TextureHandle.PixmapTileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
@@ -113,6 +114,8 @@ public class PolymostModelManager extends ModelManager {
 						byte[] data = res.getBytes();
 						Pixmap pix = new Pixmap(data, 0, data.length);
 						texidx = parent.textureCache.newTile(new PixmapTileData(pix, true, 0), 0, true);
+						if (palnum == DETAILPAL || palnum == GLOWPAL)
+							texidx.setHighTile(new Hicreplctyp(palnum));
 						usesalpha = true;
 					} catch (Exception e) {
 						Console.Println("Couldn't load file: " + skinfile, Console.OSDTEXT_YELLOW);
@@ -130,43 +133,38 @@ public class PolymostModelManager extends ModelManager {
 				}
 
 				@Override
-				public int bindSkin(int pal, int skinnum, int surfnum, int effectnum) {
+				public int bindSkin(int pal, int skinnum, int surfnum) {
+					int effectnum = parent.defs.texInfo.getPaletteEffect(pal);
+
 					int texunits = -1;
 					GLTile texid = getSkin(pal, skinnum, surfnum, effectnum);
 					if (texid != null) {
 						parent.bind(texid);
 
-						if (Console.Geti("r_detailmapping") != 0)
-							texid = getSkin(DETAILPAL, skinnum, surfnum, effectnum);
-						else
-							texid = null;
-
 						texunits = GL_TEXTURE0;
-						if (texid != null) {
-							BuildGdx.gl.glActiveTexture(++texunits);
-							BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-							parent.setupTextureDetail(texid);
-
-							MDSkinmap sk = getSkin(DETAILPAL, skinnum, surfnum);
-							if (sk != null) {
-								float f = sk.param;
-								BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-								BuildGdx.gl.glLoadIdentity();
-								BuildGdx.gl.glScalef(f, f, 1.0f);
-								BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-							}
-						}
-
-						if (Console.Geti("r_glowmapping") != 0)
-							texid = getSkin(GLOWPAL, skinnum, surfnum, effectnum);
-						else
-							texid = null;
-
-						if (texid != null) {
-							BuildGdx.gl.glActiveTexture(++texunits);
-							BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-							parent.setupTextureGlow(texid);
-						}
+//						if (Console.Geti("r_detailmapping") != 0) { XXX Doesn't work
+//							if ((texid = getSkin(DETAILPAL, skinnum, surfnum, effectnum)) != null) {
+//								BuildGdx.gl.glActiveTexture(++texunits);
+//								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+//								parent.setupTextureDetail(texid);
+//								MDSkinmap sk = getSkin(DETAILPAL, skinnum, surfnum);
+//								if (sk != null) {
+//									float f = sk.param;
+//									BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+//									BuildGdx.gl.glLoadIdentity();
+//									BuildGdx.gl.glScalef(f, f, 1.0f);
+//									BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+//								}
+//							}
+//						}
+//
+//						if (Console.Geti("r_glowmapping") != 0) {
+//							if ((texid = getSkin(GLOWPAL, skinnum, surfnum, effectnum)) != null) {
+//								BuildGdx.gl.glActiveTexture(++texunits);
+//								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+//								parent.setupTextureGlow(texid);
+//							}
+//						}
 					}
 
 					return texunits;

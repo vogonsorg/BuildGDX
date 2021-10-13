@@ -17,8 +17,11 @@ public class Tile2model {
 
 	public Model model;
 	public DefVoxel voxel;
+
+	public Tile2model next;
 	public int skinnum;
 	public int framenum; // calculate the number from the name when declaring
+	public int palette;
 	public float smoothduration;
 	public boolean disposable;
 
@@ -30,6 +33,9 @@ public class Tile2model {
 		out.skinnum = skinnum;
 		out.framenum = framenum;
 		out.smoothduration = smoothduration;
+		out.palette = palette;
+		if (next != null)
+			out.next = next.clone(disposable);
 		out.disposable = disposable;
 
 		return out;

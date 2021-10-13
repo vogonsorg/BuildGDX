@@ -155,7 +155,30 @@ public class ModelsInfo {
 		return null;
 	}
 
-	public int addModelInfo(Model md, int picnum, String framename, int skinnum, float smooth) {
+	protected Tile2model getCache(int picnum, int pal) {
+		if (cache[picnum] == null) {
+			cache[picnum] = new Tile2model();
+			cache[picnum].palette = pal;
+			return cache[picnum];
+		} else {
+			if (cache[picnum].palette == pal)
+				return cache[picnum];
+			else {
+				Tile2model n = cache[picnum];
+				while (n.next != null) {
+					n = n.next;
+					if (n.palette == pal)
+						return n;
+				}
+
+				Tile2model current = n.next = new Tile2model();
+				current.palette = pal;
+				return current;
+			}
+		}
+	}
+
+	public int addModelInfo(Model md, int picnum, String framename, int skinnum, float smooth, int pal) {
 		if (picnum >= MAXTILES)
 			return (-2);
 		if (md == null)
@@ -175,13 +198,11 @@ public class ModelsInfo {
 			break;
 		}
 
-		if (cache[picnum] == null)
-			cache[picnum] = new Tile2model();
-
-		cache[picnum].model = md;
-		cache[picnum].framenum = i;
-		cache[picnum].skinnum = skinnum;
-		cache[picnum].smoothduration = smooth;
+		Tile2model current = getCache(picnum, pal);
+		current.model = md;
+		current.framenum = i;
+		current.skinnum = skinnum;
+		current.smoothduration = smooth;
 
 		return i;
 	}

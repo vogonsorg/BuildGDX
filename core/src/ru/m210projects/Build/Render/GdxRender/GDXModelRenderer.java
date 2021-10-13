@@ -96,7 +96,7 @@ public class GDXModelRenderer {
 				parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		manager.transform(transform);
 		manager.frustum(null);
-		m.render(manager.getProgram(), pal, shade, 0, 0, vis, (tspr.cstat & 2));
+		m.render(manager.getProgram(), pal, shade, 0, vis, (tspr.cstat & 2));
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return 1;

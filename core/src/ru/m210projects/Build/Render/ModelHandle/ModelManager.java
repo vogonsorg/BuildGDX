@@ -1,8 +1,9 @@
 package ru.m210projects.Build.Render.ModelHandle;
 
-import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_RED;
 
+import java.util.HashMap;
 import java.util.Iterator;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
@@ -17,6 +18,7 @@ public abstract class ModelManager {
 
 	protected ModelsInfo mdInfo;
 	protected GLModel[] models = new GLModel[MAXTILES];
+	protected HashMap<Model, GLModel> tile2model = new HashMap<Model, GLModel>();
 
 	public ModelManager setModelsInfo(ModelsInfo mdInfo) {
 		this.dispose();
@@ -57,8 +59,9 @@ public abstract class ModelManager {
 	}
 
 	public void clearSkins(int tile, boolean bit8only) {
-		if (models[tile] != null && !bit8only)
-			models[tile].clearSkins();
+		GLModel model = models[tile];
+		if (model != null && !bit8only)
+			model.clearSkins();
 	}
 
 	public boolean hasModelInfo(int tile) {
@@ -74,8 +77,14 @@ public abstract class ModelManager {
 
 		Model model = null;
 		if ((model = mdInfo.getModelInfo(tile)) != null && model.getType() != Type.Voxel) {
-			if (models[tile] != null)
-				return models[tile];
+			GLModel glmodel = models[tile];
+			if (glmodel != null)
+				return glmodel;
+
+			if ((glmodel = tile2model.get(model)) != null) {
+				models[tile] = glmodel;
+				return glmodel;
+			}
 
 			try {
 				long startticks = System.nanoTime();
@@ -84,8 +93,10 @@ public abstract class ModelManager {
 				System.out
 						.println("Load " + model.getType() + " model: " + tile + "... " + (etime / 1000000.0f) + " ms");
 
-				if (out != null)
+				if (out != null) {
+					tile2model.put(model, out);
 					return models[tile] = out;
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -102,20 +113,27 @@ public abstract class ModelManager {
 
 		DefVoxel model = null;
 		if ((model = mdInfo.getVoxel(tile)) != null) {
-			if (models[tile] != null && models[tile].getType() == Type.Voxel)
-				return models[tile];
+			GLModel glmodel = models[tile];
+			if (glmodel != null && glmodel.getType() == Type.Voxel)
+				return glmodel;
 
-			if (models[tile] != null)
+			if (glmodel != null)
 				return null;
+
+			if ((glmodel = tile2model.get(model)) != null) {
+				models[tile] = glmodel;
+				return glmodel;
+			}
 
 			long startticks = System.nanoTime();
 			GLModel out = allocateVoxel(model.getData(), 0, model.getFlags());
 			long etime = System.nanoTime() - startticks;
 			System.out.println("Load voxel model: " + tile + "... " + (etime / 1000000.0f) + " ms");
 
-			if (out != null)
+			if (out != null) {
+				tile2model.put(model, out);
 				return models[tile] = out;
-			else {
+			} else {
 				Console.Println("Removing voxel of tile " + tile + " due to errors.", OSDTEXT_RED);
 				mdInfo.removeModelInfo(model);
 			}
@@ -130,19 +148,23 @@ public abstract class ModelManager {
 
 	public void dispose() {
 		for (int i = MAXTILES - 1; i >= 0; i--) {
-			if (models[i] != null)
-				models[i].dispose();
-			models[i] = null;
+			GLModel glmodel = models[i];
+			if (glmodel != null) {
+				glmodel.dispose();
+				models[i] = null;
+			}
 		}
+		tile2model.clear();
 		mdInfo = null;
 	}
 
-	public int getTile(GLModel model) {
+	protected int getTile(GLModel model) {
 		for (int i = MAXTILES - 1; i >= 0; i--) {
-			if (models[i] == null)
+			GLModel glmodel = models[i];
+			if (glmodel == null)
 				continue;
 
-			if (models[i] == model) {
+			if (glmodel == model) {
 				return i;
 			}
 		}
