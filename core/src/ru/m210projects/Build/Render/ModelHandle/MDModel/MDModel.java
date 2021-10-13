@@ -230,8 +230,8 @@ public abstract class MDModel implements GLModel {
 		if (pal >= MAXPALOOKUPS)
 			return null;
 
+		int i = -1;
 		for (sk = skinmap; sk != null; sk = sk.next) {
-			int i = -1;
 			if (sk.palette == pal && sk.skinnum == skinnum && sk.surfnum == surfnum) {
 				skinfile = sk.fn;
 				texptr = sk.texid;

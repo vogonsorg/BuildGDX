@@ -255,16 +255,17 @@ public class PolymostModelRenderer {
 		if ((globalorientation & 8) != 0) // y-flipping
 		{
 			yoff = -yoff;
-			cScale.scl(1, -1, 1);
-			nScale.scl(1, -1, 1);
+			cScale.scl(1, 1, -1);
+			nScale.scl(1, 1, -1);
 			modela0.z = -modela0.z;
 			k0 -= (pic.getHeight() * tspr.yrepeat) << 2;
 		}
+
 		if ((globalorientation & 4) != 0) // x-flipping
 		{
 			xoff = -xoff;
-			cScale.scl(1, 1, -1);
-			nScale.scl(1, 1, -1);
+			cScale.scl(1, -1, 1);
+			nScale.scl(1, -1, 1);
 			modela0.y = -modela0.y;
 		}
 		x0 += xoff * (tspr.xrepeat >> 2);
@@ -272,19 +273,18 @@ public class PolymostModelRenderer {
 
 		// yoffset differs from zadd in that it does not follow cstat&8 y-flipping
 		modela0.z += m.getYOffset(false) * m.getScale();
-
-		f = ((float) tspr.xrepeat) / 64 * m.getBScale();
-		cScale.scl(-f, f, f);
-		nScale.scl(-f, f, f);
-		modela0.scl(f, -f, (tspr.yrepeat) / 64.0f * m.getBScale());
+		f = (tspr.xrepeat) / 64.0f * m.getBScale();
+		float z = (tspr.yrepeat) / 64.0f * m.getBScale();
+		cScale.scl(-f, f, z);
+		nScale.scl(-f, f, z);
+		modela0.scl(f, -f, z);
 
 		// floor aligned
 		float k1 = tspr.y;
 		if ((globalorientation & 48) == 32) {
 			cScale.scl(1, -1, -1);
 			nScale.scl(1, -1, -1);
-			modela0.z = -modela0.z;
-			modela0.y = -modela0.y;
+			modela0.scl(1, -1, -1);
 			f = modela0.x;
 			modela0.x = modela0.z;
 			modela0.z = f;
@@ -292,7 +292,7 @@ public class PolymostModelRenderer {
 		}
 
 		f = (65536.0f * 512.0f) / (xdimen * viewingrange);
-		g = (float) (32.0 / (xdimen * parent.gxyaspect));
+		g = (float) (32.0f / (xdimen * parent.gxyaspect));
 		cScale.scl(f, -f, g);
 		nScale.scl(f, -f, g);
 

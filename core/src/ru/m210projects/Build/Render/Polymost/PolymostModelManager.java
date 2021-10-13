@@ -37,6 +37,16 @@ import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 
 public class PolymostModelManager extends ModelManager {
 
+	/*
+	 * HUD Weapon Xpos bug
+	 * Palette 1 frozen model doesn't work
+	 * Tint palette
+	 * Shrinker green rock
+	 * cframe/nframe crash
+	 * preload models
+	 * sprite model Z pos bug
+	 */
+
 	protected Polymost parent;
 
 	public PolymostModelManager(Polymost parent) {
@@ -142,29 +152,32 @@ public class PolymostModelManager extends ModelManager {
 						parent.bind(texid);
 
 						texunits = GL_TEXTURE0;
-//						if (Console.Geti("r_detailmapping") != 0) { XXX Doesn't work
-//							if ((texid = getSkin(DETAILPAL, skinnum, surfnum, effectnum)) != null) {
-//								BuildGdx.gl.glActiveTexture(++texunits);
-//								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-//								parent.setupTextureDetail(texid);
-//								MDSkinmap sk = getSkin(DETAILPAL, skinnum, surfnum);
-//								if (sk != null) {
-//									float f = sk.param;
-//									BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-//									BuildGdx.gl.glLoadIdentity();
-//									BuildGdx.gl.glScalef(f, f, 1.0f);
-//									BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-//								}
-//							}
-//						}
-//
-//						if (Console.Geti("r_glowmapping") != 0) {
-//							if ((texid = getSkin(GLOWPAL, skinnum, surfnum, effectnum)) != null) {
-//								BuildGdx.gl.glActiveTexture(++texunits);
-//								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-//								parent.setupTextureGlow(texid);
-//							}
-//						}
+						if (Console.Geti("r_detailmapping") != 0) {
+							if ((texid = getSkin(DETAILPAL, skinnum, surfnum, effectnum)) != null) {
+								BuildGdx.gl.glActiveTexture(++texunits);
+								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+								parent.bind(texid);
+								parent.setupTextureDetail(texid);
+								MDSkinmap sk = getSkin(DETAILPAL, skinnum, surfnum);
+								if (sk != null) {
+									float f = sk.param;
+									BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+									BuildGdx.gl.glLoadIdentity();
+									BuildGdx.gl.glScalef(f, f, 1.0f);
+									BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+								}
+							}
+						}
+
+						if (Console.Geti("r_glowmapping") != 0) {
+							if ((texid = getSkin(GLOWPAL, skinnum, surfnum, effectnum)) != null) {
+
+								BuildGdx.gl.glActiveTexture(++texunits);
+								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+								parent.bind(texid);
+								parent.setupTextureGlow(texid);
+							}
+						}
 					}
 
 					return texunits;

@@ -52,7 +52,7 @@ public abstract class MD3ModelGL10 extends MDModel {
 		for (int i = 0; i < this.numSurfaces; i++) {
 			MD3Surface surf = surfaces[i];
 			maxtris = Math.max(maxtris, surf.numtris);
-			maxverts = Math.max(maxtris, surf.numverts);
+			maxverts = Math.max(maxverts, surf.numverts);
 		}
 
 		this.indices = BufferUtils.newShortBuffer(maxtris * 3);
