@@ -84,7 +84,7 @@ public abstract class VoxelGL10 extends GLVoxel {
 		else
 			BuildGdx.gl.glDisable(GL_BLEND);
 
-		skin.bind();
+		skin.bind(); // TODO skinBind instead of setTextureParams
 		setTextureParameters(skin, pal, shade, visibility, alpha);
 
 		if (isVertexArray) {

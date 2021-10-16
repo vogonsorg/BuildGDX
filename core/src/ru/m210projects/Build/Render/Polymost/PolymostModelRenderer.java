@@ -225,7 +225,7 @@ public class PolymostModelRenderer {
 		return rendered ? 1 : 0;
 	}
 
-	private void modelPrepare(MDModel m, SPRITE tspr, int xoff, int yoff) {
+	private void modelPrepare(MDModel m, SPRITE tspr) {
 		Tile pic = engine.getTile(tspr.picnum);
 		float f = m.interpol;
 		float g = 1 - f;
@@ -245,7 +245,7 @@ public class PolymostModelRenderer {
 		int globalorientation = parent.globalorientation;
 
 		modela0.x = modela0.y = 0;
-		modela0.z = ((globalorientation & 8) != 0 ? -m.getYOffset(true) : m.getYOffset(true)) * m.getScale();
+		modela0.z = m.getYOffset(true) * m.getScale();
 		float x0 = tspr.x;
 		float k0 = tspr.z;
 		if ((globalorientation & 128) != 0 && (globalorientation & 48) != 32)
@@ -254,7 +254,7 @@ public class PolymostModelRenderer {
 		// Parkar: Changed to use the same method as centeroriented sprites
 		if ((globalorientation & 8) != 0) // y-flipping
 		{
-			yoff = -yoff;
+			// yoff = -yoff;
 			cScale.scl(1, 1, -1);
 			nScale.scl(1, 1, -1);
 			modela0.z = -modela0.z;
@@ -263,16 +263,19 @@ public class PolymostModelRenderer {
 
 		if ((globalorientation & 4) != 0) // x-flipping
 		{
-			xoff = -xoff;
+			// xoff = -xoff;
 			cScale.scl(1, -1, 1);
 			nScale.scl(1, -1, 1);
 			modela0.y = -modela0.y;
 		}
-		x0 += xoff * (tspr.xrepeat >> 2);
-		k0 -= ((yoff * tspr.yrepeat) << 2);
+//		x0 += xoff * (tspr.xrepeat >> 2);
+//		k0 -= ((yoff * tspr.yrepeat) << 2);
+		x0 += tspr.xrepeat >> 2;
+		k0 -= (tspr.yrepeat << 2);
 
 		// yoffset differs from zadd in that it does not follow cstat&8 y-flipping
 		modela0.z += m.getYOffset(false) * m.getScale();
+
 		f = (tspr.xrepeat) / 64.0f * m.getBScale();
 		float z = (tspr.yrepeat) / 64.0f * m.getBScale();
 		cScale.scl(-f, f, z);
@@ -520,12 +523,12 @@ public class PolymostModelRenderer {
 //		return rendered;
 //	}
 
-	public boolean md3draw(MD3ModelGL10 m, SPRITE tspr, int xoff, int yoff) {
+	public boolean md3draw(MD3ModelGL10 m, SPRITE tspr) {
 		DefScript defs = parent.defs;
 
 		m.updateanimation(defs.mdInfo, tspr);
 
-		modelPrepare(m, tspr, xoff, yoff);
+		modelPrepare(m, tspr);
 		cScale.scl(1 / 64.0f);
 		nScale.scl(1 / 64.0f);
 
@@ -549,7 +552,7 @@ public class PolymostModelRenderer {
 //			return md2draw((DefMD2) vm, tspr, xoff, yoff);
 //		}
 		if (vm.getType() == Type.Md3)
-			return md3draw((MD3ModelGL10) vm, tspr, xoff, yoff) ? 1 : 0;
+			return md3draw((MD3ModelGL10) vm, tspr) ? 1 : 0;
 
 		return 0;
 	}

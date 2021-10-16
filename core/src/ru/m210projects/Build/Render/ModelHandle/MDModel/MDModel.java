@@ -137,8 +137,9 @@ public abstract class MDModel implements GLModel {
 
 			nframe = anim.startframe;
 			cframe = smooth.mdoldframe;
+			if(cframe >= anim.endframe)
+				cframe = nframe; // old HUD sprite animation
 
-			System.err.println("Set " + cframe);
 			smooth.mdsmooth = 1;
 			return;
 		}

@@ -61,6 +61,7 @@ import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.ModelManager;
+import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;

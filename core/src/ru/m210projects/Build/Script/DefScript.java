@@ -426,6 +426,7 @@ public class DefScript {
 			put("model", new ModelToken());
 			put("voxel", new VoxelToken());
 			put("skybox", new SkyboxToken());
+			put("tint", new TintToken());
 
 			tok = new TextureToken();
 			put("tile", tok);
@@ -1835,6 +1836,87 @@ public class DefScript {
 			if ((f = script.getsymbol()) == null)
 				return BaseToken.Error;
 
+			Console.Println("Loading tint " + pal);
+			texInfo.setPaletteTint(pal.intValue(), r.intValue(), g.intValue(), b.intValue(), f.intValue());
+
+			return BaseToken.Ok;
+		}
+	}
+
+	protected enum TintTokens {
+		PAL, RED, GREEN, BLUE, FLAGS
+	}
+
+	protected class TintToken implements Token {
+
+		private final Map<String, TintTokens> tinttokens = new HashMap<String, TintTokens>() {
+			private static final long serialVersionUID = 1L;
+			{
+				put("pal", TintTokens.PAL);
+				put("red", TintTokens.RED);
+				put("green", TintTokens.GREEN);
+				put("blue", TintTokens.BLUE);
+				put("flags", TintTokens.FLAGS);
+			}
+		};
+
+		@Override
+		public BaseToken parse(Scriptfile script) {
+			Integer pal = -1, r = 255, g = 255, b = 255, f = 0;
+			Integer ivalue;
+			int send;
+
+			if ((send = script.getbraces()) == -1)
+				return BaseToken.Error;
+
+			while (script.textptr < send) {
+				try {
+					Object tk = gettoken(script, tinttokens);
+					if (tk instanceof BaseToken) {
+						int line = script.getlinum(script.ltextptr);
+						Console.Println(script.filename + " has unknown token \""
+								+ toLowerCase(script.textbuf.substring(script.ltextptr, script.textptr))
+								+ "\" on line: "
+								+ toLowerCase(script.textbuf.substring(getPtr(script, line), getPtr(script, line + 1))),
+								OSDTEXT_RED);
+						continue;
+					}
+
+					switch ((TintTokens) tk) {
+					case PAL:
+						if ((ivalue = script.getsymbol()) != null)
+							pal = ivalue;
+						break;
+					case RED:
+						if ((ivalue = script.getsymbol()) != null)
+							r = ivalue;
+						break;
+					case GREEN:
+						if ((ivalue = script.getsymbol()) != null)
+							g = ivalue;
+						break;
+					case BLUE:
+						if ((ivalue = script.getsymbol()) != null)
+							b = ivalue;
+						break;
+					case FLAGS:
+						if ((ivalue = script.getsymbol()) != null)
+							f = ivalue;
+						break;
+
+					default:
+						break;
+					}
+				} catch (Exception e) {
+				}
+			}
+			script.skipbrace(send); // close bracke
+			if(pal == -1) {
+				Console.Println("Tint palette is not found!", OSDTEXT_RED);
+				return BaseToken.Error;
+			}
+
+			Console.Println("Loading tint " + pal);
 			texInfo.setPaletteTint(pal.intValue(), r.intValue(), g.intValue(), b.intValue(), f.intValue());
 
 			return BaseToken.Ok;

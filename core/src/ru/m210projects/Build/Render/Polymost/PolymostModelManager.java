@@ -38,13 +38,10 @@ import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 public class PolymostModelManager extends ModelManager {
 
 	/*
-	 * HUD Weapon Xpos bug
+	 * HUD Weapon Xpos bug - FOV
 	 * Palette 1 frozen model doesn't work
-	 * Tint palette
-	 * Shrinker green rock
-	 * cframe/nframe crash
-	 * preload models
-	 * sprite model Z pos bug
+	 * Shrinker green rock - ?
+	 * Preload models
 	 */
 
 	protected Polymost parent;
@@ -82,6 +79,8 @@ public class PolymostModelManager extends ModelManager {
 			@Override
 			public void setTextureParameters(GLTile tile, int pal, int shade, int visibility, float alpha) {
 				if (tile.getPixelFormat() == PixelFormat.Pal8) {
+					if(!parent.getShader().isBinded())
+						parent.getShader().begin();
 					parent.getShader().setTextureParams(pal, shade);
 					parent.getShader().setDrawLastIndex(true);
 					parent.getShader().setTransparent(alpha);
@@ -171,7 +170,6 @@ public class PolymostModelManager extends ModelManager {
 
 						if (Console.Geti("r_glowmapping") != 0) {
 							if ((texid = getSkin(GLOWPAL, skinnum, surfnum, effectnum)) != null) {
-
 								BuildGdx.gl.glActiveTexture(++texunits);
 								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
 								parent.bind(texid);

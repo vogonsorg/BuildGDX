@@ -78,10 +78,10 @@ public abstract class ModelManager {
 		Model model = null;
 		if ((model = mdInfo.getModelInfo(tile)) != null && model.getType() != Type.Voxel) {
 			GLModel glmodel = models[tile];
-			if (glmodel != null)
+			if (glmodel != null && glmodel.getType() != Type.Voxel)
 				return glmodel;
 
-			if ((glmodel = tile2model.get(model)) != null) {
+			if ((glmodel = tile2model.get(model)) != null && glmodel.getType() != Type.Voxel) {
 				models[tile] = glmodel;
 				return glmodel;
 			}
@@ -117,10 +117,7 @@ public abstract class ModelManager {
 			if (glmodel != null && glmodel.getType() == Type.Voxel)
 				return glmodel;
 
-			if (glmodel != null)
-				return null;
-
-			if ((glmodel = tile2model.get(model)) != null) {
+			if ((glmodel = tile2model.get(model)) != null && glmodel.getType() == Type.Voxel) {
 				models[tile] = glmodel;
 				return glmodel;
 			}

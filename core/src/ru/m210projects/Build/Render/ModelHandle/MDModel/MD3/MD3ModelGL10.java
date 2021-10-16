@@ -80,11 +80,6 @@ public abstract class MD3ModelGL10 extends MDModel {
 
 				vertices.clear();
 				for (int i = 0; i < s.numverts; i++) {
-					if (cframe >= s.xyzn.length) {
-						System.err.println("aaa " + cframe + " " + s.xyzn.length);
-						cframe = nframe = 0;
-					}
-
 					MD3Vertice v0 = s.xyzn[cframe][i];
 					MD3Vertice v1 = s.xyzn[nframe][i];
 
