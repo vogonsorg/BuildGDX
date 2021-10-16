@@ -1356,16 +1356,21 @@ public class Polymost2D extends OrphoRenderer {
 
 		if ((dastat & 10) == 2) {
 			float ratioratio = (float) xdim / ydim;
-			parent.matrix[0][0] = ydimen * (ratioratio >= 1.6f ? 1.2f : 1);
+
+			float f = 1.0f;
+            if (hudInfo.fov != -1)
+                f = (float) (1.0/Math.tan((hudInfo.fov * 2.56) * ((0.5 * Math.PI) * (1.0/2048.0))));
+
+			parent.matrix[0][0] = f * ydimen * (ratioratio >= 1.6f ? 1.2f : 1);
 			parent.matrix[0][2] = 1.0f;
-			parent.matrix[1][1] = xdimen;
+			parent.matrix[1][1] = f * xdimen;
 			parent.matrix[1][2] = 1.0f;
 			parent.matrix[2][2] = 1.0f;
 			parent.matrix[2][3] = ydimen * (ratioratio >= 1.6f ? 1.2f : 1);
 			parent.matrix[3][2] = -1.0f;
 		} else {
 			parent.matrix[0][0] = parent.matrix[2][3] = 1.0f;
-			parent.matrix[1][1] = ((float) xdim) / ((float) ydim);
+			parent.matrix[1][1] = (float) xdim / ydim;
 			parent.matrix[2][2] = 1.0001f;
 			parent.matrix[3][2] = 1 - parent.matrix[2][2];
 		}

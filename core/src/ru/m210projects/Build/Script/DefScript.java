@@ -790,7 +790,7 @@ public class DefScript {
 
 	protected enum ModelTokens {
 		SCALE, SHADE, XADD, YADD, ZADD, FRAME, FRAME0, FRAME1, ANIM, SKIN, HUD, TILE, TILE0, TILE1, FPS, FLAGS, PAL,
-		FILE, SURF, ANGADD, HIDE, NOBOB, FLIPPED, NODEPTH, DETAIL, NORMAL, SPECULAR, GLOW, SPECPOWER, SPECFACTOR, PARAM,
+		FILE, SURF, ANGADD, FOV, HIDE, NOBOB, FLIPPED, NODEPTH, DETAIL, NORMAL, SPECULAR, GLOW, SPECPOWER, SPECFACTOR, PARAM,
 		PARALLAXSCALE, PARALLAXBIAS, SMOOTHDURATION
 	}
 
@@ -862,6 +862,7 @@ public class DefScript {
 				put("xadd", ModelTokens.XADD);
 				put("yadd", ModelTokens.YADD);
 				put("zadd", ModelTokens.ZADD);
+				put("fov", ModelTokens.FOV);
 				put("angadd", ModelTokens.ANGADD);
 				put("hide", ModelTokens.HIDE);
 				put("nobob", ModelTokens.NOBOB);
@@ -1291,10 +1292,10 @@ public class DefScript {
 							if ((dvalue = script.getdouble()) != null)
 								angadd = dvalue;
 							break;
-//						case FOV:
-//							if ((ivalue = script.getsymbol()) != null)
-//								fov = ivalue;
-//							break;
+						case FOV:
+							if ((ivalue = script.getsymbol()) != null)
+								fov = ivalue;
+							break;
 						case HIDE:
 							flags |= 1;
 							break;

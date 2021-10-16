@@ -7,22 +7,22 @@
 package ru.m210projects.Build.Render.Types;
 
 public class Hudtyp {
-	public float xadd, yadd, zadd; 
+	public float xadd, yadd, zadd;
 	public short angadd, flags, fov;
-	
-	public Hudtyp clone()
-	{
+
+	@Override
+	public Hudtyp clone() {
 		Hudtyp out = new Hudtyp();
-		
+
 		out.xadd = xadd;
 		out.yadd = yadd;
 		out.zadd = zadd;
-		
+
 		out.angadd = angadd;
 		out.flags = flags;
 		out.fov = fov;
-		
+
 		return out;
 	}
-	
+
 }
