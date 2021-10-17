@@ -2674,7 +2674,7 @@ public class Polymost implements GLRenderer {
 			rendering = Rendering.Model.setIndex(snum);
 
 			if (GLSettings.useModels.get()) {
-				GLModel md = modelManager.getModel(tspr.picnum);
+				GLModel md = modelManager.getModel(globalpicnum, globalpal);
 				if (md != null) {
 					calc_and_apply_fog(shade, sector[tspr.sectnum].visibility, sector[tspr.sectnum].floorpal);
 
@@ -3263,7 +3263,7 @@ public class Polymost implements GLRenderer {
 		}
 
 		if (GLSettings.useModels.get()) {
-			GLModel model = modelManager.getModel(dapicnum);
+			GLModel model = modelManager.getModel(dapicnum, dapalnum);
 			if (model != null) {
 
 				// model.loadSkin(textureCache, defs, dapalnum);

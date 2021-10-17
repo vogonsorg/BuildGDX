@@ -246,6 +246,7 @@ public class PolymostModelRenderer {
 
 		modela0.x = modela0.y = 0;
 		modela0.z = m.getYOffset(true) * m.getScale();
+
 		float x0 = tspr.x;
 		float k0 = tspr.z;
 		if ((globalorientation & 128) != 0 && (globalorientation & 48) != 32)
@@ -533,6 +534,8 @@ public class PolymostModelRenderer {
 		nScale.scl(1 / 64.0f);
 
 		int skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
+
+		System.err.println(skinnum);
 
 		parent.globalfog.apply();
 		m.setScale(cScale, nScale);

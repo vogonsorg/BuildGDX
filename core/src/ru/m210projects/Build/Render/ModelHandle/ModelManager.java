@@ -71,7 +71,7 @@ public abstract class ModelManager {
 		return mdInfo.getModelInfo(tile) != null;
 	}
 
-	public GLModel getModel(int tile) {
+	public GLModel getModel(int tile, int pal) {
 		if (mdInfo == null)
 			return null;
 

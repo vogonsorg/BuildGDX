@@ -1354,12 +1354,13 @@ public class Polymost2D extends OrphoRenderer {
 
 		gl.glMatrixMode(GL_PROJECTION);
 
+		float f = 1.0f;
+        if (hudInfo.fov != -1)
+            f = (float) (1.0/Math.tan((hudInfo.fov * 2.56) * ((0.5 * Math.PI) * (1.0/2048.0))));
+
+
 		if ((dastat & 10) == 2) {
 			float ratioratio = (float) xdim / ydim;
-
-			float f = 1.0f;
-            if (hudInfo.fov != -1)
-                f = (float) (1.0/Math.tan((hudInfo.fov * 2.56) * ((0.5 * Math.PI) * (1.0/2048.0))));
 
 			parent.matrix[0][0] = f * ydimen * (ratioratio >= 1.6f ? 1.2f : 1);
 			parent.matrix[0][2] = 1.0f;
@@ -1370,7 +1371,9 @@ public class Polymost2D extends OrphoRenderer {
 			parent.matrix[3][2] = -1.0f;
 		} else {
 			parent.matrix[0][0] = parent.matrix[2][3] = 1.0f;
+			parent.matrix[0][0] *= f;
 			parent.matrix[1][1] = (float) xdim / ydim;
+			parent.matrix[1][1] *= f;
 			parent.matrix[2][2] = 1.0001f;
 			parent.matrix[3][2] = 1 - parent.matrix[2][2];
 		}
@@ -1386,7 +1389,7 @@ public class Polymost2D extends OrphoRenderer {
 		}
 
 		parent.globalorientation = hudsprite.cstat;
-		parent.mdrenderer.mddraw(parent.modelManager.getModel(hudsprite.picnum), hudsprite, 0, 0);
+		parent.mdrenderer.mddraw(parent.modelManager.getModel(picnum, dapalnum), hudsprite, 0, 0);
 
 		viewingrange = oldviewingrange;
 		parent.gxyaspect = ogxyaspect;

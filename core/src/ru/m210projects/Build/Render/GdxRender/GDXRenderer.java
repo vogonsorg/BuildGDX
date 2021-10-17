@@ -421,7 +421,7 @@ public class GDXRenderer implements GLRenderer {
 			rendering = Rendering.Model.setIndex(i);
 
 			if (GLSettings.useModels.get()) {
-				GLModel md = modelManager.getModel(tspr.picnum);
+				GLModel md = modelManager.getModel(tspr.picnum, tspr.pal);
 				if (md != null) {
 
 					break; // else, render as flat sprite
@@ -964,7 +964,7 @@ public class GDXRenderer implements GLRenderer {
 		}
 
 		if (GLSettings.useModels.get()) {
-			GLModel model = modelManager.getModel(dapicnum);
+			GLModel model = modelManager.getModel(dapicnum, dapalnum);
 			if (model != null) {
 
 				// model.loadSkin(textureCache, defs, dapalnum);

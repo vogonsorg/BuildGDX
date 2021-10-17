@@ -38,7 +38,6 @@ import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 public class PolymostModelManager extends ModelManager {
 
 	/*
-	 * HUD Weapon Xpos bug - FOV
 	 * Palette 1 frozen model doesn't work
 	 * Shrinker green rock - ?
 	 * Preload models
