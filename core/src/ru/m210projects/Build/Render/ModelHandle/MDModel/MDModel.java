@@ -290,4 +290,11 @@ public abstract class MDModel implements GLModel {
 		return texptr[effectnum] = loadTexture(skinfile, pal, effectnum);
 	}
 
+	public void preloadSkins(int effectnum) {
+		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
+			if(sk.texid[effectnum] == null)
+				sk.texid[effectnum] = loadTexture(sk.fn, sk.palette, effectnum);
+		}
+	}
+
 }

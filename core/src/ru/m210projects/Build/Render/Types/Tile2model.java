@@ -19,7 +19,7 @@ public class Tile2model {
 	public DefVoxel voxel;
 
 	public Tile2model next;
-	public int skinnum;
+	public int skinnum; //another skin file for the same model with the same palette (normal, bloody)
 	public int framenum; // calculate the number from the name when declaring
 	public int palette;
 	public float smoothduration;

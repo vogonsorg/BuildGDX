@@ -61,7 +61,7 @@ import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.ModelManager;
-import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
@@ -891,8 +891,8 @@ public class Polymost implements GLRenderer {
 				oy = drawpoly[i].py;
 				f = (ox * ngux + oy * nguy + nguo) / (ox * ngdx + oy * ngdy + ngdo);
 
-				if (abs(f) > 2000)
-					f = 2000;
+//				if (abs(f) > 2000) - GDX 17.10.2021 "Polymost wall non2power textures hack protected" in 24 June 2020 - makes bugs with hires textures
+//					f = 2000;
 
 				if (i == 0) {
 					du0 = du1 = f;
@@ -1249,6 +1249,7 @@ public class Polymost implements GLRenderer {
 			// DRAW WALLS SECTION!
 
 			wallnum = thewall[z];
+
 			wal = wall[wallnum];
 			wal2 = wall[wal.point2];
 			nextsectnum = wal.nextsector;
@@ -3251,24 +3252,6 @@ public class Polymost implements GLRenderer {
 
 //		Console.Println("precached " + dapicnum + " " + dapalnum + " type " + datype);
 		textureCache.precache(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, dapicnum, dapalnum, datype);
-
-		if (datype == 0 || defs == null)
-			return;
-
-		if (BuildSettings.useVoxels.get()) {
-			GLVoxel voxel = (GLVoxel) modelManager.getVoxel(dapicnum);
-			if (voxel != null) {
-				voxel.getSkin(dapalnum);
-			}
-		}
-
-		if (GLSettings.useModels.get()) {
-			GLModel model = modelManager.getModel(dapicnum, dapalnum);
-			if (model != null) {
-
-				// model.loadSkin(textureCache, defs, dapalnum);
-			}
-		}
 	}
 
 	protected void calc_and_apply_fog(int shade, int vis, int pal) {
@@ -3814,6 +3797,13 @@ public class Polymost implements GLRenderer {
 	@Override
 	public void preload() {
 		System.err.println("Preload");
+
+		for (int i = MAXTILES - 1; i >= 0; i--) {
+			int pal = 0;
+			int effectnum = defs.texInfo.getPaletteEffect(pal);
+			modelManager.preload(i, pal, effectnum);
+		}
+
 		for (int i = 0; i < MAXSPRITES; i++) {
 			removeSpriteCorr(i);
 			SPRITE spr = sprite[i];

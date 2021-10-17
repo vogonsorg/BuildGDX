@@ -13,11 +13,14 @@ public class PixmapTileData extends TileData {
 	private int width, height;
 
 	public PixmapTileData(Pixmap pixmap, boolean clamped, int expflag) {
+		if (pixmap.getFormat() == Format.Alpha || pixmap.getFormat() == Format.Intensity
+				|| pixmap.getFormat() == Format.LuminanceAlpha)
+			pixmap = convert(pixmap);
+
 		this.pixmap = pixmap;
 		this.clamped = clamped;
-
-		width = pixmap.getWidth();
-		height = pixmap.getHeight();
+		this.width = pixmap.getWidth();
+		this.height = pixmap.getHeight();
 
 		int xsiz = width;
 		int ysiz = height;
@@ -42,6 +45,29 @@ public class PixmapTileData extends TileData {
 			pixmap.dispose();
 			this.pixmap = npix;
 		}
+	}
+
+	private Pixmap convert(Pixmap pixmap) {
+		int width = pixmap.getWidth();
+		int height = pixmap.getHeight();
+
+		Pixmap npix = new Pixmap(width, height, Format.RGBA8888);
+		ByteBuffer pixels = pixmap.getPixels();
+		boolean bytes2 = pixmap.getFormat() == Format.LuminanceAlpha;
+
+		for (int i = 0; i < (width * height); i++) {
+			float c = (pixels.get() & 0xFF) / 255.f;
+			float a = 1.0f;
+			if(bytes2)
+				a = (pixels.get() & 0xFF) / 255.f;
+			npix.setColor(c, c, c, a);
+			int row = (int) Math.floor(i / width);
+			int col = i % width;
+			npix.drawPixel(col, row);
+		}
+
+		pixmap.dispose();
+		return npix;
 	}
 
 	@Override

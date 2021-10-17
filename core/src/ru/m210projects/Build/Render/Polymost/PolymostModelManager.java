@@ -37,12 +37,6 @@ import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 
 public class PolymostModelManager extends ModelManager {
 
-	/*
-	 * Palette 1 frozen model doesn't work
-	 * Shrinker green rock - ?
-	 * Preload models
-	 */
-
 	protected Polymost parent;
 
 	public PolymostModelManager(Polymost parent) {
@@ -60,16 +54,16 @@ public class PolymostModelManager extends ModelManager {
 					pal = 0;
 
 				if (texid[pal] == null) {
-					long startticks = System.nanoTime();
+//					long startticks = System.nanoTime();
 					TileData dat = new VoxelSkin(fmt, skinData, pal);
 					GLTile dst = parent.textureCache.newTile(dat, pal, false);
 
 					dst.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
 					dst.unsafeSetAnisotropicFilter(1, true);
 					texid[pal] = dst;
-					long etime = System.nanoTime() - startticks;
-					System.out.println("Load voxskin: pal" + pal + " for tile " + getTile(this) + "... "
-							+ (etime / 1000000.0f) + " ms");
+//					long etime = System.nanoTime() - startticks;
+//					System.out.println("Load voxskin: pal" + pal + " for tile " + getTile(this) + "... "
+//							+ (etime / 1000000.0f) + " ms");
 				}
 
 				return texid[pal];
@@ -78,7 +72,7 @@ public class PolymostModelManager extends ModelManager {
 			@Override
 			public void setTextureParameters(GLTile tile, int pal, int shade, int visibility, float alpha) {
 				if (tile.getPixelFormat() == PixelFormat.Pal8) {
-					if(!parent.getShader().isBinded())
+					if (!parent.getShader().isBinded())
 						parent.getShader().begin();
 					parent.getShader().setTextureParams(pal, shade);
 					parent.getShader().setDrawLastIndex(true);
@@ -117,7 +111,7 @@ public class PolymostModelManager extends ModelManager {
 					}
 
 					GLTile texidx;
-//					startticks = System.currentTimeMillis();
+//					long startticks = System.currentTimeMillis();
 					try {
 						byte[] data = res.getBytes();
 						Pixmap pix = new Pixmap(data, 0, data.length);
@@ -134,8 +128,8 @@ public class PolymostModelManager extends ModelManager {
 					texidx.setupTextureWrap(TextureWrap.Repeat);
 
 //					long etime = System.currentTimeMillis() - startticks;
-//					System.out.println("Load skin: p" + pal + "-e" + defs.texInfo.getPaletteEffect(pal) + " \"" + skinfile
-//							+ "\"... " + etime + " ms");
+//					System.out.println(
+//							"Load skin: p" + palnum + "-e" + effectnum + " \"" + skinfile + "\"... " + etime + " ms");
 
 					return texidx;
 				}

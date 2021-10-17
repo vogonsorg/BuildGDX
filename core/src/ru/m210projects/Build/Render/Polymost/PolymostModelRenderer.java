@@ -535,8 +535,6 @@ public class PolymostModelRenderer {
 
 		int skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
 
-		System.err.println(skinnum);
-
 		parent.globalfog.apply();
 		m.setScale(cScale, nScale);
 

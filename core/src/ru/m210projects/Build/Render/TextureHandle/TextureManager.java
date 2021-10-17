@@ -263,6 +263,7 @@ public class TextureManager {
 
 	protected GLTile allocTile(TileData data, Hicreplctyp si, int dapicnum, int dapalnum, int skybox, boolean alpha,
 			boolean useMipMaps) {
+
 		GLTile tile = newTile(data, data.isHighTile() ? si.palnum : dapalnum, useMipMaps);
 		if (data.isHighTile()) {
 			tile.setHighTile(si);
