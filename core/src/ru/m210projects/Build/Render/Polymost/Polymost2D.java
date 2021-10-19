@@ -1355,9 +1355,8 @@ public class Polymost2D extends OrphoRenderer {
 		gl.glMatrixMode(GL_PROJECTION);
 
 		float f = 1.0f;
-        if (hudInfo.fov != -1)
-            f = (float) (1.0/Math.tan((hudInfo.fov * 2.56) * ((0.5 * Math.PI) * (1.0/2048.0))));
-
+		if (hudInfo.fov != -1)
+			f = (float) (1.0 / Math.tan((hudInfo.fov * 2.56) * ((0.5 * Math.PI) * (1.0 / 2048.0))));
 
 		if ((dastat & 10) == 2) {
 			float ratioratio = (float) xdim / ydim;

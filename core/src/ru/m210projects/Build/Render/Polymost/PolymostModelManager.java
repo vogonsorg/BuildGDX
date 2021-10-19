@@ -146,6 +146,8 @@ public class PolymostModelManager extends ModelManager {
 						texunits = GL_TEXTURE0;
 						if (Console.Geti("r_detailmapping") != 0) {
 							if ((texid = getSkin(DETAILPAL, skinnum, surfnum, effectnum)) != null) {
+								if (!texid.isDetailTexture())
+									System.err.println("Wtf detail!");
 								BuildGdx.gl.glActiveTexture(++texunits);
 								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
 								parent.bind(texid);
@@ -163,6 +165,9 @@ public class PolymostModelManager extends ModelManager {
 
 						if (Console.Geti("r_glowmapping") != 0) {
 							if ((texid = getSkin(GLOWPAL, skinnum, surfnum, effectnum)) != null) {
+								if (!texid.isGlowTexture())
+									System.err.println("Wtf glow!");
+
 								BuildGdx.gl.glActiveTexture(++texunits);
 								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
 								parent.bind(texid);
