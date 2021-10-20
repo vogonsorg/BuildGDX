@@ -54,7 +54,7 @@ public abstract class MDModel implements GLModel {
 		this.bscale = md.getScale();
 	}
 
-	public abstract GLTile loadTexture(String skinfile, int palnum, int effectnum);
+	public abstract GLTile loadTexture(String skinfile, int palnum);
 
 	public float getYOffset(boolean yflipping) {
 		return !yflipping ? yoffset : zadd;
@@ -137,7 +137,7 @@ public abstract class MDModel implements GLModel {
 
 			nframe = anim.startframe;
 			cframe = smooth.mdoldframe;
-			if(cframe >= anim.endframe)
+			if (cframe >= anim.endframe)
 				cframe = nframe; // old HUD sprite animation
 
 			smooth.mdsmooth = 1;
@@ -211,18 +211,9 @@ public abstract class MDModel implements GLModel {
 		}
 	}
 
-	protected MDSkinmap getSkin(int palnum, int skinnum, int surfnum) {
-		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next)
-			if (sk.palette == palnum && skinnum == sk.skinnum && surfnum == sk.surfnum)
-				return sk;
-
-		return null;
-	}
-
-	public GLTile getSkin(final int pal, int skinnum, int surfnum, int effectnum) {
+	public GLTile getSkin(final int pal, int skinnum, int surfnum) {
 		String skinfile = null;
-		GLTile texidx = null;
-		GLTile[] texptr = null;
+		GLTile texptr = null;
 		MDSkinmap sk, skzero = null;
 
 		if (this.getType() == Type.Md2)
@@ -236,8 +227,6 @@ public abstract class MDModel implements GLModel {
 			if (sk.palette == pal && sk.skinnum == skinnum && sk.surfnum == surfnum) {
 				skinfile = sk.fn;
 				texptr = sk.texid;
-				if (texptr != null)
-					texidx = texptr[effectnum];
 				// OSD_Printf("Using exact match skin (pal=%d,skinnum=%d,surfnum=%d)
 				// %s\n",pal,skinnum,surf,skinfile);
 				break;
@@ -270,10 +259,9 @@ public abstract class MDModel implements GLModel {
 				return null;
 
 			if (skzero != null) {
+				sk = skzero;
 				skinfile = skzero.fn;
 				texptr = skzero.texid;
-				if (texptr != null)
-					texidx = texptr[effectnum];
 				// OSD_Printf("Using def skin 0,0 as fallback, pal=%d\n", pal);
 			} else {
 				Console.Println("Couldn't load skin", Console.OSDTEXT_YELLOW);
@@ -284,16 +272,16 @@ public abstract class MDModel implements GLModel {
 		if (skinfile == null)
 			return null;
 
-		if (texidx != null)
-			return texidx;
+		if (texptr != null)
+			return texptr;
 
-		return texptr[effectnum] = loadTexture(skinfile, pal, effectnum);
+		return sk.texid = loadTexture(skinfile, pal);
 	}
 
-	public void preloadSkins(int effectnum) {
+	public void preloadSkins() {
 		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
-			if(sk.texid[effectnum] == null)
-				sk.texid[effectnum] = loadTexture(sk.fn, sk.palette, effectnum);
+			if (sk.texid == null)
+				sk.texid = loadTexture(sk.fn, sk.palette);
 		}
 	}
 

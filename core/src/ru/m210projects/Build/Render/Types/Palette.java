@@ -22,25 +22,24 @@ public class Palette {
 	public short b;
 	public byte f;
 
-	public Palette() { }
-	
-	public Palette(Palette src) { 
+	public Palette() {
+	}
+
+	public Palette(Palette src) {
 		this.r = src.r;
 		this.g = src.g;
 		this.b = src.b;
 		this.f = src.f;
 	}
-	
-	public Palette(int r, int g, int b, int f)
-	{
+
+	public Palette(int r, int g, int b, int f) {
 		this.r = (short) r;
 		this.g = (short) g;
 		this.b = (short) b;
 		this.f = (byte) f;
 	}
 
-	public void update(int r, int g, int b, int f)
-	{
+	public void update(int r, int g, int b, int f) {
 		this.r = (short) r;
 		this.g = (short) g;
 		this.b = (short) b;

@@ -3800,8 +3800,7 @@ public class Polymost implements GLRenderer {
 
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			int pal = 0;
-			int effectnum = defs.texInfo.getPaletteEffect(pal);
-			modelManager.preload(i, pal, effectnum);
+			modelManager.preload(i, pal);
 		}
 
 		for (int i = 0; i < MAXSPRITES; i++) {

@@ -13,7 +13,7 @@ public interface GLModel {
 
 	public void dispose();
 
-	public Iterator<GLTile[]> getSkins();
+	public Iterator<GLTile> getSkins();
 
 	public void clearSkins();
 

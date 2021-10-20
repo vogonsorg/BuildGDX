@@ -47,6 +47,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
 import ru.m210projects.Build.Engine;
+import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
@@ -552,8 +553,9 @@ public class PolymostModelRenderer {
 //		if (vm.getType() == Type.Md2) {
 //			return md2draw((DefMD2) vm, tspr, xoff, yoff);
 //		}
-		if (vm.getType() == Type.Md3)
+		if (vm.getType() == Type.Md3) {
 			return md3draw((MD3ModelGL10) vm, tspr) ? 1 : 0;
+		}
 
 		return 0;
 	}

@@ -791,8 +791,8 @@ public class DefScript {
 
 	protected enum ModelTokens {
 		SCALE, SHADE, XADD, YADD, ZADD, FRAME, FRAME0, FRAME1, ANIM, SKIN, HUD, TILE, TILE0, TILE1, FPS, FLAGS, PAL,
-		FILE, SURF, ANGADD, FOV, HIDE, NOBOB, FLIPPED, NODEPTH, DETAIL, NORMAL, SPECULAR, GLOW, SPECPOWER, SPECFACTOR, PARAM,
-		PARALLAXSCALE, PARALLAXBIAS, SMOOTHDURATION
+		FILE, SURF, ANGADD, FOV, HIDE, NOBOB, FLIPPED, NODEPTH, DETAIL, NORMAL, SPECULAR, GLOW, SPECPOWER, SPECFACTOR,
+		PARAM, PARALLAXSCALE, PARALLAXBIAS, SMOOTHDURATION
 	}
 
 	protected class ModelToken implements Token {
@@ -1911,7 +1911,7 @@ public class DefScript {
 				}
 			}
 			script.skipbrace(send); // close bracke
-			if(pal == -1) {
+			if (pal == -1) {
 				Console.Println("Tint palette is not found!", OSDTEXT_RED);
 				return BaseToken.Error;
 			}

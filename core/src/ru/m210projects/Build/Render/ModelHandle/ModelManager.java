@@ -31,7 +31,7 @@ public abstract class ModelManager {
 		return this;
 	}
 
-	public Iterator<GLTile[]> getSkins(int tile) {
+	public Iterator<GLTile> getSkins(int tile) {
 		GLModel model = models[tile];
 		if (model != null) {
 			return model.getSkins();
@@ -51,15 +51,11 @@ public abstract class ModelManager {
 			if (model == null || model.getType() == Type.Voxel)
 				continue;
 
-			Iterator<GLTile[]> sk = model.getSkins();
+			Iterator<GLTile> sk = model.getSkins();
 			while (sk.hasNext()) {
-				for (GLTile tex : sk.next()) {
-					if (tex == null)
-						continue;
-
-					tex.bind();
-					tex.setupTextureFilter(filter, anisotropy);
-				}
+				GLTile tex = sk.next();
+				tex.bind();
+				tex.setupTextureFilter(filter, anisotropy);
 			}
 		}
 	}
@@ -71,10 +67,10 @@ public abstract class ModelManager {
 			model.clearSkins();
 
 			Tile2model param = mdInfo.getParams(tile);
-			while(param.next != null) {
+			while (param.next != null) {
 				param = param.next;
 				model = tile2model.get(param.model);
-				if(model != null)
+				if (model != null)
 					model.clearSkins();
 			}
 		}
@@ -92,16 +88,16 @@ public abstract class ModelManager {
 			return null;
 
 		Tile2model param = mdInfo.getParams(tile);
-		if(param == null)
+		if (param == null)
 			return null;
 
 		Model model = null;
 		if ((model = param.model) != null && model.getType() != Type.Voxel) {
 
-			if(param.next != null && param.palette != pal) {
-				while(param.next != null) {
+			if (param.next != null && param.palette != pal) {
+				while (param.next != null) {
 					param = param.next;
-					if(param.palette == pal) {
+					if (param.palette == pal) {
 						model = param.model;
 
 						GLModel glmodel;
@@ -122,7 +118,7 @@ public abstract class ModelManager {
 			}
 
 			GLModel out = loadModel(model);
-			if(out != null)
+			if (out != null)
 				return models[tile] = out;
 			else {
 				Console.Println("Removing model of tile " + tile + " due to errors.", OSDTEXT_RED);
@@ -217,13 +213,13 @@ public abstract class ModelManager {
 		return tile2model.values().size();
 	}
 
-	public void preload(int picnum, int pal, int effectnum) {
-		if(!hasModelInfo(picnum))
+	public void preload(int picnum, int pal) {
+		if (!hasModelInfo(picnum))
 			return;
 
 		if (GLSettings.useModels.get()) {
 			GLModel model = getModel(picnum, pal);
-			if(model != null) {
+			if (model != null) {
 //				if(model.getType() == Type.Md3)
 //					((MDModel) model).preloadSkins(effectnum);
 				return;

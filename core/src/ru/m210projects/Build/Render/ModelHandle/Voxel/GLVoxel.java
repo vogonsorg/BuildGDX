@@ -3,6 +3,7 @@ package ru.m210projects.Build.Render.ModelHandle.Voxel;
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.badlogic.gdx.graphics.Color;
@@ -63,51 +64,15 @@ public abstract class GLVoxel implements GLModel {
 		return skinData.getHeight();
 	}
 
-//	public GLTile loadSkin(GLTile dst, int dapal) {
-//		if (palookup[dapal] == null || dst.getPixelFormat() == PixelFormat.Pal8)
-//			dapal = 0;
-//
-//		long startticks = System.nanoTime();
-//		TileData dat = new VoxelSkin(dst.getPixelFormat(), skinData, dapal);
-//		dst.update(dat, dapal, false);
-//		dst.unsafeSetFilter(TextureFilter.Nearest, TextureFilter.Nearest, true);
-//		dst.unsafeSetAnisotropicFilter(1, true);
-//		texid[dapal] = dst;
-//		long etime = System.nanoTime() - startticks;
-//		System.out.println("Load voxskin: p" + dapal + "... " + (etime / 1000000.0f) + " ms");
-//
-//		return dst;
-//	}
-//
-//	public GLTile getSkin(PixelFormat fmt, int pal) {
-//		if (palookup[pal] == null || fmt == PixelFormat.Pal8)
-//			return texid[0];
-//		return texid[pal];
-//	}
-
 	@Override
-	public Iterator<GLTile[]> getSkins() {
-		Iterator<GLTile[]> it = new Iterator<GLTile[]>() {
-			private GLTile[] current = texid;
-
-			@Override
-			public boolean hasNext() {
-				return current != null;
-			}
-
-			@Override
-			public GLTile[] next() {
-				GLTile[] out = current;
-				current = null;
-				return out;
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
-		return it;
+	public Iterator<GLTile> getSkins() {
+		ArrayList<GLTile> list = new ArrayList<GLTile>();
+		for (int i = 0; i < texid.length; i++) {
+			GLTile tex = texid[i];
+			if (tex != null)
+				list.add(tex);
+		}
+		return list.iterator();
 	}
 
 	@Override

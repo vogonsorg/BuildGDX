@@ -89,7 +89,7 @@ public class PolymostModelManager extends ModelManager {
 		case Md3:
 			return new MD3ModelGL10((DefMD3) modelInfo) {
 				@Override
-				public GLTile loadTexture(String skinfile, int palnum, int effectnum) {
+				public GLTile loadTexture(String skinfile, int palnum) {
 					// possibly fetch an already loaded multitexture :_)
 					if (palnum >= (MAXPALOOKUPS - RESERVEDPALS)) {
 						for (int i = MAXTILES - 1; i >= 0; i--) {
@@ -97,10 +97,9 @@ public class PolymostModelManager extends ModelManager {
 							if (m == null || !(m instanceof MDModel))
 								continue;
 
-							MDModel mi = (MDModel) m;
-							for (MDSkinmap skzero = mi.skinmap; skzero != null; skzero = skzero.next)
-								if (skzero.fn.equalsIgnoreCase(skinfile) && skzero.texid[effectnum] != null)
-									return skzero.texid[effectnum];
+							for (MDSkinmap sk = ((MDModel) m).skinmap; sk != null; sk = sk.next)
+								if (sk.fn.equalsIgnoreCase(skinfile) && sk.texid != null && sk.palette == palnum)
+									return sk.texid;
 						}
 					}
 
@@ -136,37 +135,36 @@ public class PolymostModelManager extends ModelManager {
 
 				@Override
 				public int bindSkin(int pal, int skinnum, int surfnum) {
-					int effectnum = parent.defs.texInfo.getPaletteEffect(pal);
-
 					int texunits = -1;
-					GLTile texid = getSkin(pal, skinnum, surfnum, effectnum);
+					GLTile texid = getSkin(pal, skinnum, surfnum);
 					if (texid != null) {
 						parent.bind(texid);
 
 						texunits = GL_TEXTURE0;
 						if (Console.Geti("r_detailmapping") != 0) {
-							if ((texid = getSkin(DETAILPAL, skinnum, surfnum, effectnum)) != null) {
+							if ((texid = getSkin(DETAILPAL, skinnum, surfnum)) != null) {
 								if (!texid.isDetailTexture())
 									System.err.println("Wtf detail!");
 								BuildGdx.gl.glActiveTexture(++texunits);
 								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
 								parent.bind(texid);
 								parent.setupTextureDetail(texid);
-								MDSkinmap sk = getSkin(DETAILPAL, skinnum, surfnum);
-								if (sk != null) {
-									float f = sk.param;
-									BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-									BuildGdx.gl.glLoadIdentity();
-									BuildGdx.gl.glScalef(f, f, 1.0f);
-									BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-								}
+
+								for (MDSkinmap sk = skinmap; sk != null; sk = sk.next)
+									if (sk.palette == DETAILPAL && skinnum == sk.skinnum && surfnum == sk.surfnum) {
+										float f = sk.param;
+										BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+										BuildGdx.gl.glLoadIdentity();
+										BuildGdx.gl.glScalef(f, f, 1.0f);
+										BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+									}
 							}
 						}
 
 						if (Console.Geti("r_glowmapping") != 0) {
-							if ((texid = getSkin(GLOWPAL, skinnum, surfnum, effectnum)) != null) {
+							if ((texid = getSkin(GLOWPAL, skinnum, surfnum)) != null) {
 								if (!texid.isGlowTexture())
-									System.err.println("Wtf glow!");
+									System.err.println("Wtf glow! " + surfnum);
 
 								BuildGdx.gl.glActiveTexture(++texunits);
 								BuildGdx.gl.glEnable(GL_TEXTURE_2D);

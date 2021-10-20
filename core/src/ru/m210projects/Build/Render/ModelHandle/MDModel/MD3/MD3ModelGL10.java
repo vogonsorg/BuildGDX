@@ -16,6 +16,7 @@ import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -138,40 +139,22 @@ public abstract class MD3ModelGL10 extends MDModel {
 	}
 
 	@Override
-	public Iterator<GLTile[]> getSkins() {
-		Iterator<GLTile[]> it = new Iterator<GLTile[]>() {
-			private MDSkinmap current = skinmap;
-
-			@Override
-			public boolean hasNext() {
-				return current != null && current.next != null;
+	public Iterator<GLTile> getSkins() {
+		ArrayList<GLTile> list = new ArrayList<GLTile>();
+		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
+			if (sk.texid != null) {
+				list.add(sk.texid);
 			}
-
-			@Override
-			public GLTile[] next() {
-				MDSkinmap sk = current;
-				current = sk.next;
-				return sk.texid;
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
-		return it;
+		}
+		return list.iterator();
 	}
 
 	@Override
 	public void clearSkins() {
 		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
-			for (int j = 0; j < sk.texid.length; j++) {
-				GLTile tex = sk.texid[j];
-				if (tex == null)
-					continue;
-
-				tex.delete();
-				sk.texid[j] = null;
+			if (sk.texid != null) {
+				sk.texid.delete();
+				sk.texid = null;
 			}
 		}
 	}
