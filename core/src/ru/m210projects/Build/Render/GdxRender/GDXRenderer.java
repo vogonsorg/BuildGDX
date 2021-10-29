@@ -63,6 +63,7 @@ import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.GLInfo;
 import ru.m210projects.Build.Render.GLRenderer;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
+import ru.m210projects.Build.Render.GLRenderer.GLPreloadFlag;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.Heinum;
 import ru.m210projects.Build.Render.GdxRender.Scanner.SectorScanner;
@@ -930,19 +931,33 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	@Override
-	public void preload() {
-		if (world != null)
-			world.dispose();
-		world = new WorldMesh(engine);
-		scanner.init();
+	public void preload(GLPreloadFlag... flags) {
+		System.err.println("Preload");
 
-		for (int i = 0; i < MAXSPRITES; i++) {
-			removeSpriteCorr(i);
-			SPRITE spr = sprite[i];
-			if (spr == null || ((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS)
-				continue;
+		for (int f = 0; f < flags.length; f++) {
+			switch (flags[f]) {
+			case Models:
+				for (int i = MAXTILES - 1; i >= 0; i--) {
+					int pal = 0;
+					modelManager.preload(i, pal, false);
+				}
+				break;
+			case Other:
+				if (world != null)
+					world.dispose();
+				world = new WorldMesh(engine);
+				scanner.init();
 
-			addSpriteCorr(i);
+				for (int i = 0; i < MAXSPRITES; i++) {
+					removeSpriteCorr(i);
+					SPRITE spr = sprite[i];
+					if (spr == null || ((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS)
+						continue;
+
+					addSpriteCorr(i);
+				}
+				break;
+			}
 		}
 	}
 
@@ -953,23 +968,10 @@ public class GDXRenderer implements GLRenderer {
 
 		textureCache.precache(getTexFormat(), dapicnum, dapalnum, datype);
 
-		if (datype == 0 || defs == null)
+		if (datype == 0)
 			return;
 
-		if (BuildSettings.useVoxels.get()) {
-			GLVoxel voxel = (GLVoxel) modelManager.getVoxel(dapicnum);
-			if (voxel != null) {
-				voxel.getSkin(dapalnum);
-			}
-		}
-
-		if (GLSettings.useModels.get()) {
-			GLModel model = modelManager.getModel(dapicnum, dapalnum);
-			if (model != null) {
-
-				// model.loadSkin(textureCache, defs, dapalnum);
-			}
-		}
+		modelManager.preload(dapicnum, dapalnum, true);
 	}
 
 	@Override

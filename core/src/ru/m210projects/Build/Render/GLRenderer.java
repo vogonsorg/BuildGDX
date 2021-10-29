@@ -38,6 +38,10 @@ public interface GLRenderer extends Renderer {
 		}
 	}
 
+	public enum GLPreloadFlag {
+		Models, Other
+	}
+
 	public enum GLInvalidateFlag {
 		Uninit, SkinsOnly, TexturesOnly, IndexedTexturesOnly, Palookup, All
 	}
@@ -48,7 +52,7 @@ public interface GLRenderer extends Renderer {
 
 	public void palfade(HashMap<String, FadeEffect> fades);
 
-	public void preload();
+	public void preload(GLPreloadFlag... flags);
 
 	public void precache(int dapicnum, int dapalnum, int datype);
 

@@ -9,6 +9,7 @@ import java.util.Iterator;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
@@ -213,22 +214,24 @@ public abstract class ModelManager {
 		return tile2model.values().size();
 	}
 
-	public void preload(int picnum, int pal) {
+	public void preload(int picnum, int pal, boolean skinPreload) {
 		if (!hasModelInfo(picnum))
 			return;
 
 		if (GLSettings.useModels.get()) {
 			GLModel model = getModel(picnum, pal);
-			if (model != null) {
-//				if(model.getType() == Type.Md3)
-//					((MDModel) model).preloadSkins(effectnum);
+			if (model != null && skinPreload) {
+				if(model instanceof MDModel) {
+					int skinnum = mdInfo.getParams(picnum).skinnum;
+					((MDModel) model).loadSkins(pal, skinnum);
+				}
 				return;
 			}
 		}
 
 		if (BuildSettings.useVoxels.get()) {
 			GLVoxel voxel = (GLVoxel) getVoxel(picnum);
-			if (voxel != null) {
+			if (voxel != null && skinPreload) {
 				voxel.getSkin(pal);
 			}
 		}

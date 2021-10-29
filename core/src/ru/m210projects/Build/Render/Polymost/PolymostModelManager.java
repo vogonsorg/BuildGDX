@@ -89,19 +89,10 @@ public class PolymostModelManager extends ModelManager {
 		case Md3:
 			return new MD3ModelGL10((DefMD3) modelInfo) {
 				@Override
-				public GLTile loadTexture(String skinfile, int palnum) {
-					// possibly fetch an already loaded multitexture :_)
-					if (palnum >= (MAXPALOOKUPS - RESERVEDPALS)) {
-						for (int i = MAXTILES - 1; i >= 0; i--) {
-							GLModel m = models[i];
-							if (m == null || !(m instanceof MDModel))
-								continue;
-
-							for (MDSkinmap sk = ((MDModel) m).skinmap; sk != null; sk = sk.next)
-								if (sk.fn.equalsIgnoreCase(skinfile) && sk.texid != null && sk.palette == palnum)
-									return sk.texid;
-						}
-					}
+				protected GLTile loadTexture(String skinfile, int palnum) {
+					GLTile texidx = findLoadedMultitexture(skinfile, palnum);
+					if(texidx != null)
+						return texidx;
 
 					Resource res = BuildGdx.cache.open(skinfile, 0);
 					if (res == null) {
@@ -109,8 +100,7 @@ public class PolymostModelManager extends ModelManager {
 						return null;
 					}
 
-					GLTile texidx;
-//					long startticks = System.currentTimeMillis();
+					long startticks = System.currentTimeMillis();
 					try {
 						byte[] data = res.getBytes();
 						Pixmap pix = new Pixmap(data, 0, data.length);
@@ -126,15 +116,15 @@ public class PolymostModelManager extends ModelManager {
 					}
 					texidx.setupTextureWrap(TextureWrap.Repeat);
 
-//					long etime = System.currentTimeMillis() - startticks;
-//					System.out.println(
-//							"Load skin: p" + palnum + "-e" + effectnum + " \"" + skinfile + "\"... " + etime + " ms");
+					long etime = System.currentTimeMillis() - startticks;
+					System.out.println(
+							"Load skin: p" + palnum + " \"" + skinfile + "\"... " + etime + " ms");
 
 					return texidx;
 				}
 
 				@Override
-				public int bindSkin(int pal, int skinnum, int surfnum) {
+				protected int bindSkin(int pal, int skinnum, int surfnum) {
 					int texunits = -1;
 					GLTile texid = getSkin(pal, skinnum, surfnum);
 					if (texid != null) {
@@ -181,6 +171,33 @@ public class PolymostModelManager extends ModelManager {
 			break;
 		default:
 			return null;
+		}
+
+		return null;
+	}
+
+	protected GLTile findLoadedMultitexture(String skinfile, int palnum) {
+		// possibly fetch an already loaded multitexture :_)
+		if (palnum >= (MAXPALOOKUPS - RESERVEDPALS)) {
+			for (int i = MAXTILES - 1; i >= 0; i--) {
+				GLModel m = models[i];
+				if (m == null || !(m instanceof MDModel))
+					continue;
+
+				for (MDSkinmap sk = ((MDModel) m).skinmap; sk != null; sk = sk.next)
+					if (sk.fn.equalsIgnoreCase(skinfile) && sk.texid != null) {
+						if(sk.palette != palnum) {
+							GLTile texidx = sk.texid.clone();
+							if (palnum == DETAILPAL || palnum == GLOWPAL) {
+								texidx.setHighTile(new Hicreplctyp(palnum));
+								texidx.update(null, palnum, true);
+								return texidx;
+							}
+						}
+
+						return sk.texid;
+					}
+			}
 		}
 
 		return null;

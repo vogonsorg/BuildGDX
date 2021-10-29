@@ -11,7 +11,28 @@
 
 package ru.m210projects.Build.Render.Polymost;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
+import static com.badlogic.gdx.graphics.GL20.GL_CLAMP_TO_EDGE;
+import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
+import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
+import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
+import static com.badlogic.gdx.graphics.GL20.GL_FASTEST;
+import static com.badlogic.gdx.graphics.GL20.GL_GREATER;
+import static com.badlogic.gdx.graphics.GL20.GL_LEQUAL;
+import static com.badlogic.gdx.graphics.GL20.GL_NICEST;
+import static com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA;
+import static com.badlogic.gdx.graphics.GL20.GL_PACK_ALIGNMENT;
+import static com.badlogic.gdx.graphics.GL20.GL_REPEAT;
+import static com.badlogic.gdx.graphics.GL20.GL_REPLACE;
+import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
+import static com.badlogic.gdx.graphics.GL20.GL_SRC_COLOR;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_S;
+import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_WRAP_T;
+import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLE_FAN;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
+import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.cos;
@@ -20,7 +41,76 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
-import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Engine.DETAILPAL;
+import static ru.m210projects.Build.Engine.GLOWPAL;
+import static ru.m210projects.Build.Engine.MAXDRUNKANGLE;
+import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
+import static ru.m210projects.Build.Engine.MAXSECTORS;
+import static ru.m210projects.Build.Engine.MAXSPRITES;
+import static ru.m210projects.Build.Engine.MAXSPRITESONSCREEN;
+import static ru.m210projects.Build.Engine.MAXSTATUS;
+import static ru.m210projects.Build.Engine.MAXTILES;
+import static ru.m210projects.Build.Engine.MAXWALLS;
+import static ru.m210projects.Build.Engine.RESERVEDPALS;
+import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
+import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
+import static ru.m210projects.Build.Engine.automapping;
+import static ru.m210projects.Build.Engine.beforedrawrooms;
+import static ru.m210projects.Build.Engine.cosglobalang;
+import static ru.m210projects.Build.Engine.cosviewingrangeglobalang;
+import static ru.m210projects.Build.Engine.curpalette;
+import static ru.m210projects.Build.Engine.globalang;
+import static ru.m210projects.Build.Engine.globalcursectnum;
+import static ru.m210projects.Build.Engine.globalhoriz;
+import static ru.m210projects.Build.Engine.globalpal;
+import static ru.m210projects.Build.Engine.globalposx;
+import static ru.m210projects.Build.Engine.globalposy;
+import static ru.m210projects.Build.Engine.globalposz;
+import static ru.m210projects.Build.Engine.globalshade;
+import static ru.m210projects.Build.Engine.globalvisibility;
+import static ru.m210projects.Build.Engine.gotsector;
+import static ru.m210projects.Build.Engine.halfxdimen;
+import static ru.m210projects.Build.Engine.headspritesect;
+import static ru.m210projects.Build.Engine.inpreparemirror;
+import static ru.m210projects.Build.Engine.nextspritesect;
+import static ru.m210projects.Build.Engine.numsectors;
+import static ru.m210projects.Build.Engine.numshades;
+import static ru.m210projects.Build.Engine.offscreenrendering;
+import static ru.m210projects.Build.Engine.palette;
+import static ru.m210projects.Build.Engine.palfadergb;
+import static ru.m210projects.Build.Engine.palookup;
+import static ru.m210projects.Build.Engine.parallaxyoffs;
+import static ru.m210projects.Build.Engine.picsiz;
+import static ru.m210projects.Build.Engine.pow2char;
+import static ru.m210projects.Build.Engine.pow2long;
+import static ru.m210projects.Build.Engine.pskybits;
+import static ru.m210projects.Build.Engine.sector;
+import static ru.m210projects.Build.Engine.setviewcnt;
+import static ru.m210projects.Build.Engine.show2dsector;
+import static ru.m210projects.Build.Engine.show2dsprite;
+import static ru.m210projects.Build.Engine.showinvisibility;
+import static ru.m210projects.Build.Engine.singlobalang;
+import static ru.m210projects.Build.Engine.sintable;
+import static ru.m210projects.Build.Engine.sinviewingrangeglobalang;
+import static ru.m210projects.Build.Engine.sprite;
+import static ru.m210projects.Build.Engine.spritesortcnt;
+import static ru.m210projects.Build.Engine.tsprite;
+import static ru.m210projects.Build.Engine.viewingrange;
+import static ru.m210projects.Build.Engine.visibility;
+import static ru.m210projects.Build.Engine.wall;
+import static ru.m210projects.Build.Engine.windowx1;
+import static ru.m210projects.Build.Engine.windowx2;
+import static ru.m210projects.Build.Engine.windowy1;
+import static ru.m210projects.Build.Engine.windowy2;
+import static ru.m210projects.Build.Engine.xdim;
+import static ru.m210projects.Build.Engine.xdimen;
+import static ru.m210projects.Build.Engine.xdimenscale;
+import static ru.m210projects.Build.Engine.xdimscale;
+import static ru.m210projects.Build.Engine.xyaspect;
+import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Engine.ydimen;
+import static ru.m210projects.Build.Engine.yxaspect;
+import static ru.m210projects.Build.Engine.zeropskyoff;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Gameutils.isCorruptWall;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
@@ -32,8 +122,33 @@ import static ru.m210projects.Build.Pragmas.scale;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpause;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.omdtims;
-import static ru.m210projects.Build.Render.Types.GL10.*;
+import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
+import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ALPHA_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_COMBINE_RGB_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_FOG;
+import static ru.m210projects.Build.Render.Types.GL10.GL_INTERPOLATE_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_LINE_SMOOTH_HINT;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MODULATE;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE;
+import static ru.m210projects.Build.Render.Types.GL10.GL_MULTISAMPLE_FILTER_HINT_NV;
+import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_ALPHA_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND0_RGB_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND1_RGB_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_OPERAND2_RGB_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_PERSPECTIVE_CORRECTION_HINT;
+import static ru.m210projects.Build.Render.Types.GL10.GL_PREVIOUS_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_PROJECTION;
+import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
+import static ru.m210projects.Build.Render.Types.GL10.GL_SMOOTH;
+import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_ALPHA_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE0_RGB_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE1_RGB_ARB;
+import static ru.m210projects.Build.Render.Types.GL10.GL_SOURCE2_RGB_ARB;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE0;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV;
+import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_ENV_MODE;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -61,7 +176,6 @@ import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
 import ru.m210projects.Build.Render.ModelHandle.ModelManager;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
@@ -3252,6 +3366,11 @@ public class Polymost implements GLRenderer {
 
 //		Console.Println("precached " + dapicnum + " " + dapalnum + " type " + datype);
 		textureCache.precache(texshader != null ? PixelFormat.Pal8 : PixelFormat.Rgba, dapicnum, dapalnum, datype);
+
+		if (datype == 0)
+			return;
+
+		modelManager.preload(dapicnum, dapalnum, true);
 	}
 
 	protected void calc_and_apply_fog(int shade, int vis, int pal) {
@@ -3795,21 +3914,28 @@ public class Polymost implements GLRenderer {
 	}
 
 	@Override
-	public void preload() {
+	public void preload(GLPreloadFlag... flags) {
 		System.err.println("Preload");
 
-		for (int i = MAXTILES - 1; i >= 0; i--) {
-			int pal = 0;
-			modelManager.preload(i, pal);
-		}
+		for (int f = 0; f < flags.length; f++) {
+			switch (flags[f]) {
+			case Models:
+				for (int i = MAXTILES - 1; i >= 0; i--) {
+					int pal = 0;
+					modelManager.preload(i, pal, false);
+				}
+				break;
+			case Other:
+				for (int i = 0; i < MAXSPRITES; i++) {
+					removeSpriteCorr(i);
+					SPRITE spr = sprite[i];
+					if (spr == null || ((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS)
+						continue;
 
-		for (int i = 0; i < MAXSPRITES; i++) {
-			removeSpriteCorr(i);
-			SPRITE spr = sprite[i];
-			if (spr == null || ((spr.cstat >> 4) & 3) != 1 || spr.statnum == MAXSTATUS)
-				continue;
-
-			addSpriteCorr(i);
+					addSpriteCorr(i);
+				}
+				break;
+			}
 		}
 	}
 

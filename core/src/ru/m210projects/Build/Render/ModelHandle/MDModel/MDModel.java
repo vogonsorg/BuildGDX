@@ -8,10 +8,8 @@
 
 package ru.m210projects.Build.Render.ModelHandle.MDModel;
 
-import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
-import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.timerticspersec;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.MDANIM_ONESHOT;
@@ -19,11 +17,8 @@ import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpau
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
 import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
 
-import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.DefMD;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
-import ru.m210projects.Build.Render.ModelHandle.Model.Type;
-import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Script.ModelsInfo;
 import ru.m210projects.Build.Script.ModelsInfo.SpriteAnim;
 import ru.m210projects.Build.Script.ModelsInfo.Spritesmooth;
@@ -54,7 +49,7 @@ public abstract class MDModel implements GLModel {
 		this.bscale = md.getScale();
 	}
 
-	public abstract GLTile loadTexture(String skinfile, int palnum);
+	public abstract void loadSkins(int pal, int skinnum);
 
 	public float getYOffset(boolean yflipping) {
 		return !yflipping ? yoffset : zadd;
@@ -210,79 +205,4 @@ public abstract class MDModel implements GLModel {
 				nframe = numframes - 1;
 		}
 	}
-
-	public GLTile getSkin(final int pal, int skinnum, int surfnum) {
-		String skinfile = null;
-		GLTile texptr = null;
-		MDSkinmap sk, skzero = null;
-
-		if (this.getType() == Type.Md2)
-			surfnum = 0;
-
-		if (pal >= MAXPALOOKUPS)
-			return null;
-
-		int i = -1;
-		for (sk = skinmap; sk != null; sk = sk.next) {
-			if (sk.palette == pal && sk.skinnum == skinnum && sk.surfnum == surfnum) {
-				skinfile = sk.fn;
-				texptr = sk.texid;
-				// OSD_Printf("Using exact match skin (pal=%d,skinnum=%d,surfnum=%d)
-				// %s\n",pal,skinnum,surf,skinfile);
-				break;
-			}
-			// If no match, give highest priority to skinnum, then pal.. (Parkar's request,
-			// 02/27/2005)
-			else if ((sk.palette == 0) && (sk.skinnum == skinnum) && (sk.surfnum == surfnum) && (i < 5)) {
-				i = 5;
-				skzero = sk;
-			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (sk.surfnum == surfnum) && (i < 4)) {
-				i = 4;
-				skzero = sk;
-			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (sk.surfnum == surfnum) && (i < 3)) {
-				i = 3;
-				skzero = sk;
-			} else if ((sk.palette == 0) && (sk.skinnum == skinnum) && (i < 2)) {
-				i = 2;
-				skzero = sk;
-			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (i < 1)) {
-				i = 1;
-				skzero = sk;
-			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (i < 0)) {
-				i = 0;
-				skzero = sk;
-			}
-		}
-
-		if (sk == null) {
-			if (pal >= (MAXPALOOKUPS - RESERVEDPALS))
-				return null;
-
-			if (skzero != null) {
-				sk = skzero;
-				skinfile = skzero.fn;
-				texptr = skzero.texid;
-				// OSD_Printf("Using def skin 0,0 as fallback, pal=%d\n", pal);
-			} else {
-				Console.Println("Couldn't load skin", Console.OSDTEXT_YELLOW);
-				return null;
-			}
-		}
-
-		if (skinfile == null)
-			return null;
-
-		if (texptr != null)
-			return texptr;
-
-		return sk.texid = loadTexture(skinfile, pal);
-	}
-
-	public void preloadSkins() {
-		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
-			if (sk.texid == null)
-				sk.texid = loadTexture(sk.fn, sk.palette);
-		}
-	}
-
 }

@@ -6,6 +6,8 @@ import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT;
+import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
+import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 import static ru.m210projects.Build.Render.Types.GL10.GL_MODELVIEW;
 import static ru.m210projects.Build.Render.Types.GL10.GL_RGB_SCALE;
@@ -24,6 +26,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
+import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.Model.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
@@ -60,13 +63,79 @@ public abstract class MD3ModelGL10 extends MDModel {
 		this.vertices = BufferUtils.newFloatBuffer(maxverts * 3);
 	}
 
-	public abstract int bindSkin(final int pal, int skinnum, int surfnum);
+	protected abstract GLTile loadTexture(String skinfile, int palnum);
+
+	protected abstract int bindSkin(final int pal, int skinnum, int surfnum);
 
 	public MD3ModelGL10 setScale(Vector3 cScale, Vector3 nScale) {
 		this.cScale.set(cScale);
 		this.nScale.set(nScale);
 
 		return this;
+	}
+
+	protected GLTile getSkin(final int pal, int skinnum, int surfnum) {
+		String skinfile = null;
+		GLTile texptr = null;
+		MDSkinmap sk, skzero = null;
+
+		if (pal >= MAXPALOOKUPS)
+			return null;
+
+		int i = -1;
+		for (sk = skinmap; sk != null; sk = sk.next) {
+			if (sk.palette == pal && sk.skinnum == skinnum && sk.surfnum == surfnum) {
+				skinfile = sk.fn;
+				texptr = sk.texid;
+//				Console.Println("Using exact match skin (pal=" + pal + ",skinnum=" + skinnum + ",surfnum=" + surfnum
+//						+ ") " + skinfile);
+				break;
+			}
+			// If no match, give highest priority to skinnum, then pal.. (Parkar's request,
+			// 02/27/2005)
+			else if ((sk.palette == 0) && (sk.skinnum == skinnum) && (sk.surfnum == surfnum) && (i < 5)) {
+				i = 5;
+				skzero = sk;
+			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (sk.surfnum == surfnum) && (i < 4)) {
+				i = 4;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (sk.surfnum == surfnum) && (i < 3)) {
+				i = 3;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == skinnum) && (i < 2)) {
+				i = 2;
+				skzero = sk;
+			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (i < 1)) {
+				i = 1;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (i < 0)) {
+				i = 0;
+				skzero = sk;
+			}
+		}
+
+		if (sk == null) {
+			if (pal >= (MAXPALOOKUPS - RESERVEDPALS))
+				return null;
+
+			if (skzero != null) {
+				sk = skzero;
+				skinfile = skzero.fn;
+				texptr = skzero.texid;
+//				Console.Println("Using def skin 0,0 as fallback, pal = " + pal, Console.OSDTEXT_YELLOW);
+			} else {
+				Console.Println("Couldn't load skin", Console.OSDTEXT_YELLOW);
+				return null;
+			}
+		}
+
+		if (skinfile == null)
+			return null;
+
+		if (texptr != null)
+			return texptr;
+
+		return sk.texid = loadTexture(skinfile, pal);
 	}
 
 	@Override
@@ -157,6 +226,13 @@ public abstract class MD3ModelGL10 extends MDModel {
 				sk.texid = null;
 			}
 		}
+	}
+
+	@Override
+	public void loadSkins(int pal, int skinnum) {
+		int numsurfs = numSurfaces;
+		for (int surfi = 0; surfi < numsurfs; surfi++)
+			getSkin(pal, skinnum, surfi);
 	}
 
 	@Override

@@ -65,6 +65,22 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 		this.scalex = this.scaley = 1.0f;
 	}
 
+	protected GLTile(GLTile src) {
+		super(src.glTarget, src.glHandle);
+		this.width = src.width;
+		this.height = src.height;
+		this.fmt = src.fmt;
+		this.isAllocated = src.isAllocated;
+		this.palnum = src.palnum;
+		this.anisotropicFilterLevel = src.anisotropicFilterLevel;
+		this.flags = src.flags;
+		this.skyface = src.skyface;
+		this.hicr = src.hicr;
+
+		this.scalex = src.scalex;
+		this.scaley = src.scaley;
+	}
+
 	public GLTile(TileData pic, int palnum, boolean useMipMaps) {
 		this(pic.getPixelFormat(), pic.getWidth(), pic.getHeight());
 		this.palnum = palnum;
@@ -100,39 +116,41 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 	public void update(TileData pic, int pal, boolean useMipMaps) {
 		this.bind();
 
-		int width = pic.getWidth();
-		int height = pic.getHeight();
-		if (pic instanceof PixmapTileData) {
-			width = ((PixmapTileData) pic).getTileWidth();
-			height = ((PixmapTileData) pic).getTileHeight();
-		}
+		if(pic != null) {
+			int width = pic.getWidth();
+			int height = pic.getHeight();
+			if (pic instanceof PixmapTileData) {
+				width = ((PixmapTileData) pic).getTileWidth();
+				height = ((PixmapTileData) pic).getTileHeight();
+			}
 
-		// Realloc, because the texture size isn't match
-		if ((getWidth() != width || getHeight() != height)) {
-			delete();
+			// Realloc, because the texture size isn't match
+			if ((getWidth() != width || getHeight() != height)) {
+				delete();
 
-			this.glHandle = BuildGdx.gl.glGenTexture();
-			this.width = pic.getWidth();
-			this.height = pic.getHeight();
+				this.glHandle = BuildGdx.gl.glGenTexture();
+				this.width = pic.getWidth();
+				this.height = pic.getHeight();
 
-			alloc(pic);
-		} else {
-			if (!isAllocated)
 				alloc(pic);
-			else
-				BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
-						GL_UNSIGNED_BYTE, pic.getPixels());
+			} else {
+				if (!isAllocated)
+					alloc(pic);
+				else
+					BuildGdx.gl.glTexSubImage2D(glTarget, 0, 0, 0, pic.getWidth(), pic.getHeight(), pic.getGLFormat(),
+							GL_UNSIGNED_BYTE, pic.getPixels());
+			}
+
+			if (useMipMaps)
+				generateMipmap(pic, false);
+
+			setClamped(pic.isClamped());
+			setHasAlpha(pic.hasAlpha());
+
+			pic.dispose();
 		}
-
-		if (useMipMaps)
-			generateMipmap(pic, false);
-
-		setClamped(pic.isClamped());
-		setHasAlpha(pic.hasAlpha());
 
 		this.palnum = pal;
-
-		pic.dispose();
 	}
 
 	protected int calcMipLevel(int xsiz, int ysiz, int maxsize) {
@@ -306,6 +324,11 @@ public class GLTile extends GLTexture implements Comparable<GLTile> {
 				BuildGdx.gl.glDeleteTexture(glHandle);
 			glHandle = 0;
 		}
+	}
+
+	@Override
+	public GLTile clone() {
+		return new GLTile(this);
 	}
 
 	public boolean isClamped() {
