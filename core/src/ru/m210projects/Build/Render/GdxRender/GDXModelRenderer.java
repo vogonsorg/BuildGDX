@@ -85,7 +85,7 @@ public class GDXModelRenderer {
 		transform.translate(-xoff / cam.xscale, yoff / cam.xscale, 0);
 		transform.rotate(0, 0, 1, (float) Gameutils.AngleToDegrees(tspr.ang) - 90.0f);
 		if (m.isRotating())
-			transform.rotate(0, 0, 1, totalclock % 360);
+			transform.rotate(0, 0, -1, totalclock % 360);
 		transform.translate(-m.xpiv / 64.0f, -m.ypiv / 64.0f, -m.zpiv / 64.0f);
 
 		BuildGdx.gl.glEnable(GL_CULL_FACE);

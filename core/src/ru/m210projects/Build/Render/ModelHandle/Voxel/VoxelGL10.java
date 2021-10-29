@@ -59,8 +59,8 @@ public abstract class VoxelGL10 extends GLVoxel {
 				vertices.put(va[i] * 64.0f);
 				vertices.put(va[i + 1] * 64.0f);
 				vertices.put(va[i + 2] * 64.0f);
-				uv.put(va[i + 3]);
 				uv.put(va[i + 4]);
+				uv.put(va[i + 5]);
 			}
 
 			vertices.flip();
