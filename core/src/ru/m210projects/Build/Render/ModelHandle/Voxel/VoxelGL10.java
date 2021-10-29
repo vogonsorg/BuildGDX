@@ -1,9 +1,9 @@
 package ru.m210projects.Build.Render.ModelHandle.Voxel;
 
 import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
-import static ru.m210projects.Build.Render.Types.GL10.GL_FLOAT;
-import static ru.m210projects.Build.Render.Types.GL10.GL_TRIANGLES;
-import static ru.m210projects.Build.Render.Types.GL10.GL_UNSIGNED_SHORT;
+import static com.badlogic.gdx.graphics.GL20.GL_FLOAT;
+import static com.badlogic.gdx.graphics.GL20.GL_TRIANGLES;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_SHORT;
 import static ru.m210projects.Build.Render.Types.GL10.GL_QUADS;
 import static ru.m210projects.Build.Render.Types.GL10.GL_TEXTURE_COORD_ARRAY;
 import static ru.m210projects.Build.Render.Types.GL10.GL_VERTEX_ARRAY;
@@ -74,7 +74,7 @@ public abstract class VoxelGL10 extends GLVoxel {
 	}
 
 	@Override
-	public boolean render(ShaderProgram shader, int pal, int shade, int surfnum, int visibility, float alpha) {
+	public boolean render(int pal, int shade, int surfnum, int visibility, float alpha) {
 		GLTile skin = getSkin(pal);
 		if (skin == null)
 			return false;
@@ -137,5 +137,11 @@ public abstract class VoxelGL10 extends GLVoxel {
 	@Override
 	public void dispose() {
 		clearSkins();
+	}
+
+	@Override
+	public ShaderProgram getShader() {
+		/* do nothing */
+		return null;
 	}
 }

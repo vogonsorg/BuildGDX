@@ -8,7 +8,7 @@ public class MD2Builder {
 
 	public final MD2Header header;
 	public MD2Triangle[] triangles;
-	public float[] texCoords;
+	public float[][] texCoords;
 	public MD2Frame[] frames;
 	public int[] glcmds;
 
@@ -79,17 +79,17 @@ public class MD2Builder {
 		return glcmds;
 	}
 
-	private float[] loadTexCoords(Resource bb) {
+	private float[][] loadTexCoords(Resource bb) {
 		bb.seek(header.offsetTexCoords, Whence.Set);
-		float[] texCoords = new float[header.numTexCoords * 2];
+		float[][] texCoords = new float[header.numTexCoords][2];
 		float width = header.skinWidth;
 		float height = header.skinHeight;
 
 		for (int i = 0; i < header.numTexCoords; i++) {
 			short u = bb.readShort();
 			short v = bb.readShort();
-			texCoords[2 * i] = (u / width);
-			texCoords[2 * i + 1] = (v / height);
+			texCoords[i][0] = (u / width);
+			texCoords[i][1] = (v / height);
 		}
 		return texCoords;
 	}

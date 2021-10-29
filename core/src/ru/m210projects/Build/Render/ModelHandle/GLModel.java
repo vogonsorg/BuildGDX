@@ -9,7 +9,9 @@ import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
 public interface GLModel {
 
-	public boolean render(ShaderProgram shader, int pal, int shade, int skinnum, int visibility, float alpha);
+	public boolean render(int pal, int shade, int skinnum, int visibility, float alpha);
+
+	public ShaderProgram getShader();
 
 	public void dispose();
 

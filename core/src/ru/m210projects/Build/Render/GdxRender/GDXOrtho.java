@@ -58,9 +58,7 @@ import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix3;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Gameutils;
@@ -68,7 +66,6 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.IOverheadMapSettings.MapView;
 import ru.m210projects.Build.Render.IOverheadMapSettings;
 import ru.m210projects.Build.Render.OrphoRenderer;
-import ru.m210projects.Build.Render.GLRenderer.Rendering;
 import ru.m210projects.Build.Render.Renderer.Transparent;
 import ru.m210projects.Build.Render.GdxRender.WorldMesh.GLSurface;
 import ru.m210projects.Build.Render.GdxRender.Shaders.ShaderManager;

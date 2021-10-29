@@ -56,7 +56,7 @@ public abstract class MD3ModelGL10 extends MDModel {
 	protected abstract int bindSkin(final int pal, int skinnum, int surfnum);
 
 	@Override
-	public boolean render(ShaderProgram shader, int pal, int shade, int skinnum, int visibility, float alpha) {
+	public boolean render(int pal, int shade, int skinnum, int visibility, float alpha) {
 		boolean isRendered = false;
 
 		for (int surfi = 0; surfi < numSurfaces; surfi++) {
@@ -142,4 +142,9 @@ public abstract class MD3ModelGL10 extends MDModel {
 		return Type.Md3;
 	}
 
+	@Override
+	public ShaderProgram getShader() {
+		/* do nothing */
+		return null;
+	}
 }

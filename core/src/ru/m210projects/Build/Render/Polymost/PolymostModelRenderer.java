@@ -214,7 +214,7 @@ public class PolymostModelRenderer {
 		} else
 			polyColor.a = 1.0f;
 		m.setColor(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
-		boolean rendered = m.render(parent.getShader(), globalpal, globalshade, 0, (int) (parent.globalfog.combvis),
+		boolean rendered = m.render(globalpal, globalshade, 0, (int) (parent.globalfog.combvis),
 				polyColor.a);
 
 		// ------------
@@ -397,7 +397,7 @@ public class PolymostModelRenderer {
 		parent.globalfog.apply();
 		m.setScale(cScale, nScale);
 
-		return m.render(null, globalpal, globalshade, skinnum, globalvisibility, 1.0f);
+		return m.render(globalpal, globalshade, skinnum, globalvisibility, 1.0f);
 	}
 
 	public int mddraw(GLModel vm, SPRITE tspr, int xoff, int yoff) {
@@ -407,9 +407,8 @@ public class PolymostModelRenderer {
 		if (vm.getType() == Type.Voxel)
 			return voxdraw((GLVoxel) vm, tspr);
 
-		if (vm.getType() == Type.Md2 || vm.getType() == Type.Md3) {
+		if (vm.getType() == Type.Md2 || vm.getType() == Type.Md3)
 			return mddraw((MDModel) vm, tspr) ? 1 : 0;
-		}
 
 		return 0;
 	}

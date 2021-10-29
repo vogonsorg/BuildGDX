@@ -425,6 +425,14 @@ public class GDXRenderer implements GLRenderer {
 				GLModel md = modelManager.getModel(tspr.picnum, tspr.pal);
 				if (md != null) {
 
+					if (tspr.owner < 0 || tspr.owner >= MAXSPRITES) {
+						if (mdR.mddraw(md, tspr) != 0)
+							return;
+						break; // else, render as flat sprite
+					}
+
+					if (mdR.mddraw(md, tspr) != 0)
+						return;
 					break; // else, render as flat sprite
 				}
 			}
@@ -1317,7 +1325,7 @@ public class GDXRenderer implements GLRenderer {
 		return sky.atlas.get(0);
 	}
 
-	private boolean isSkyShader() {
+	protected boolean isSkyShader() {
 		return manager.getShader() == Shader.RGBSkyShader || manager.getShader() == Shader.IndexedSkyShader;
 	}
 

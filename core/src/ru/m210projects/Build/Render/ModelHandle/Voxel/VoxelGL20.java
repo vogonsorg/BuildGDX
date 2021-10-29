@@ -4,7 +4,6 @@ import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
@@ -37,7 +36,7 @@ public abstract class VoxelGL20 extends GLVoxel {
 	}
 
 	@Override
-	public boolean render(ShaderProgram shader, int pal, int shade, int surfnum, int visibility, float alpha) {
+	public boolean render(int pal, int shade, int surfnum, int visibility, float alpha) {
 		GLTile skin = getSkin(pal);
 		if (skin == null)
 			return false;
@@ -50,7 +49,7 @@ public abstract class VoxelGL20 extends GLVoxel {
 		skin.bind();
 		setTextureParameters(skin, pal, shade, visibility, alpha);
 
-		mesh.render(shader, GL20.GL_TRIANGLES);
+		mesh.render(getShader(), GL20.GL_TRIANGLES);
 		return true;
 	}
 

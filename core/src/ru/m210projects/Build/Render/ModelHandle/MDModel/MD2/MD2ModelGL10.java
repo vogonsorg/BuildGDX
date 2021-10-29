@@ -55,14 +55,14 @@ public abstract class MD2ModelGL10 extends MDModel {
 		for (int i = 0; i < numTriangles; i++)
 			for (int j = 0; j < 3; j++) {
 				int idx = builder.triangles[i].texCoords[j];
-				uv.put(builder.texCoords[2 * idx]);
-				uv.put(builder.texCoords[2 * idx + 1]);
+				uv.put(builder.texCoords[idx][0]);
+				uv.put(builder.texCoords[idx][1]);
 			}
 		uv.flip();
 	}
 
 	@Override
-	public boolean render(ShaderProgram shader, int pal, int shade, int skinnum, int visibility, float alpha) {
+	public boolean render(int pal, int shade, int skinnum, int visibility, float alpha) {
 		boolean isRendered = false;
 
 		int texunits = bindSkin(pal, skinnum);
@@ -125,5 +125,11 @@ public abstract class MD2ModelGL10 extends MDModel {
 	@Override
 	public Type getType() {
 		return Type.Md2;
+	}
+
+	@Override
+	public ShaderProgram getShader() {
+		/* do nothing */
+		return null;
 	}
 }
