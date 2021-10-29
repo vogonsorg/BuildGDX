@@ -1117,20 +1117,20 @@ public class GDXRenderer implements GLRenderer {
 	}
 
 	public void setTextureParameters(GLTile tile, int tilenum, int pal, int shade, int skybox, int method) {
+		float alpha = 1.0f;
+		switch (method & 3) {
+		case 2:
+			alpha = TRANSLUSCENT1;
+			break;
+		case 3:
+			alpha = TRANSLUSCENT2;
+			break;
+		}
+
+		if (tilenum != -1 && !engine.getTile(tilenum).isLoaded())
+			alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
+
 		if (tile.getPixelFormat() == TileData.PixelFormat.Pal8) {
-			float alpha = 1.0f;
-			switch (method & 3) {
-			case 2:
-				alpha = TRANSLUSCENT1;
-				break;
-			case 3:
-				alpha = TRANSLUSCENT2;
-				break;
-			}
-
-			if (tilenum != -1 && !engine.getTile(tilenum).isLoaded())
-				alpha = 0.01f; // Hack to update Z-buffer for invalid mirror textures
-
 			manager.textureTransform(texture_transform.idt(), 0);
 			manager.textureParams8(pal, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
 		} else {
@@ -1142,6 +1142,7 @@ public class GDXRenderer implements GLRenderer {
 				texture_transform.scale(tile.getHiresXScale(), tile.getHiresYScale());
 			}
 			manager.textureTransform(texture_transform, 0);
+			manager.color(1.0f, 1.0f, 1.0f, alpha);
 
 			if (GLInfo.multisample != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0) {
 //				if (Console.Geti("r_detailmapping") != 0) {

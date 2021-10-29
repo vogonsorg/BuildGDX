@@ -56,6 +56,8 @@ public class GDXModelManager extends ModelManager {
 					parent.manager.textureTransform(parent.texture_transform.idt(), 0);
 					parent.manager.textureParams8(pal, shade, alpha, true);
 					((IndexedShader) parent.manager.getProgram()).setVisibility((int) (-visibility / 64.0f));
+				} else {
+					parent.manager.color(1.0f, 1.0f, 1.0f, alpha);
 				}
 			}
 		};

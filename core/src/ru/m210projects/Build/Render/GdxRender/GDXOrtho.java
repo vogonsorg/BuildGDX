@@ -829,6 +829,7 @@ public class GDXOrtho extends OrphoRenderer {
 			BuildGdx.gl20.glEnable(GL20.GL_BLEND);
 		}
 
+		manager.color(1.0f, 1.0f, 1.0f, 1.0f);
 		manager.textureTransform(parent.texture_transform.idt(), 0);
 		mesh.render(manager.getProgram(), lastType, 0, count);
 		idx = 0;

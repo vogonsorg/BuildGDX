@@ -115,6 +115,7 @@ public class WorldShader {
 			+ "uniform mat4 u_invProjectionView;\n" //
 			+ "uniform vec4 u_plane[2];\n" //
 			+ "uniform vec4 u_viewport;\n" //
+			+ "uniform vec4 u_color;\n" //
 			+ "uniform int u_planeClipping;\n" //
 			+ "\n" //
 			+ "vec4 getPos() {\n" //
@@ -148,7 +149,7 @@ public class WorldShader {
 			+ "		 || gl_FragCoord.y < u_viewport.w || gl_FragCoord.y > u_viewport.y))" //
 			+ "		   discard;" //
 			+ "\n" //
-			+ "	   gl_FragColor = v_color * texture2D(u_texture, v_texCoords);\n" //
+			+ "	   gl_FragColor = u_color * v_color * texture2D(u_texture, v_texCoords);\n" //
 			+ "}"; //
 
 }

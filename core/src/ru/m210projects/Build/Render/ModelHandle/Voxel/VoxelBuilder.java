@@ -9,6 +9,7 @@ import java.util.HashMap;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.FloatArray;
+import com.badlogic.gdx.utils.NumberUtils;
 import com.badlogic.gdx.utils.ShortArray;
 
 import ru.m210projects.Build.Types.Tile;
@@ -73,7 +74,7 @@ public class VoxelBuilder {
 		texture = new Tile().setWidth(mytexx).setHeight(mytexy);
 		texture.data = mytex;
 
-		this.vertexSize = 5;
+		this.vertexSize = 6;
 	}
 
 	public Tile getTexture() {
@@ -85,7 +86,7 @@ public class VoxelBuilder {
 	}
 
 	public VertexAttribute[] getAttributes() {
-		return new VertexAttribute[] { VertexAttribute.Position(), VertexAttribute.TexCoords(0) };
+		return new VertexAttribute[] { VertexAttribute.Position(), VertexAttribute.ColorPacked(), VertexAttribute.TexCoords(0) };
 	}
 
 	public float[] getVertices() {
@@ -350,9 +351,10 @@ public class VoxelBuilder {
 		if (qfacind[face] < 0)
 			qfacind[face] = qcnt;
 
-		int vertexOffset = vertices.size / 5;
+		int vertexOffset = vertices.size / 6;
 		for (i = 0; i < 4; i++) {
 			vertices.addAll(qptr.v[i].x / 64.0f, qptr.v[i].y / 64.0f, qptr.v[i].z / 64.0f);
+			vertices.add(NumberUtils.intToFloatColor(-1));
 			vertices.addAll(qptr.v[i].u / (float) mytexx, qptr.v[i].v / (float) mytexy);
 		}
 		indices.addAll((short) vertexOffset, (short) (vertexOffset + 1), (short) (vertexOffset + 2),

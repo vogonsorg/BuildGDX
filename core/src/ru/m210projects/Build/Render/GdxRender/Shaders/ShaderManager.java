@@ -43,6 +43,7 @@ public class ShaderManager {
 	private int world_transform;
 	private int world_texture_transform;
 	private int world32_texture_transform;
+	private int world32_color;
 
 	public enum Shader {
 		IndexedWorldShader, RGBWorldShader, IndexedSkyShader, RGBSkyShader, BitmapShader, FadeShader;
@@ -395,6 +396,26 @@ public class ShaderManager {
 		}
 	}
 
+	public void color(Shader shader, float r, float g, float b) {
+		check(shader);
+
+		switch (shader) {
+		case RGBWorldShader:
+			texshader32.setUniformf("u_color", r, g, b);
+			break;
+		}
+	}
+
+	public void color(float r, float g, float b, float a) {
+		Shader shader = this.getShader();
+
+		switch (shader) {
+		case RGBWorldShader:
+			texshader32.setUniformf("u_color", r, g, b, a);
+			break;
+		}
+	}
+
 	public void prepare(BuildCamera cam) {
 		Shader shader = this.getShader();
 
@@ -608,6 +629,7 @@ public class ShaderManager {
 				throw new IllegalArgumentException("Error compiling shader: " + shader.getLog());
 
 			this.world32_texture_transform = shader.getUniformLocation("u_texture_transform");
+			this.world32_color = shader.getUniformLocation("u_color");
 			return shader;
 		} catch (Exception e) {
 			e.printStackTrace();

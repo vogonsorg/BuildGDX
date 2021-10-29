@@ -3,6 +3,8 @@ package ru.m210projects.Build.Render.GdxRender;
 import static com.badlogic.gdx.graphics.GL20.GL_CCW;
 import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
 import static com.badlogic.gdx.graphics.GL20.GL_CW;
+import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
+import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.globalvisibility;
 import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.sprite;
@@ -96,7 +98,16 @@ public class GDXModelRenderer {
 				parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		manager.transform(transform);
 		manager.frustum(null);
-		m.render(manager.getProgram(), pal, shade, 0, vis, (tspr.cstat & 2));
+
+		float alpha = 1.0f;
+		if ((tspr.cstat & 2) != 0) {
+			if ((tspr.cstat & 512) == 0)
+				alpha = TRANSLUSCENT1;
+			else
+				alpha = TRANSLUSCENT2;
+		}
+
+		m.render(manager.getProgram(), pal, shade, 0, vis, alpha);
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return 1;
