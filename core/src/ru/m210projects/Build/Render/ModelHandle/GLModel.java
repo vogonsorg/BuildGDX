@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
-import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo.Type;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 
 public interface GLModel {

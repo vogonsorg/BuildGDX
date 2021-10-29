@@ -6,14 +6,14 @@ import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
 
-public class DefMD extends Model {
+public class MDInfo extends ModelInfo {
 
 	protected MDSkinmap skinmap;
 	protected MDAnimation animations;
 	protected String[] frames;
 	protected int numframes;
 
-	public DefMD(String file, Type type) {
+	public MDInfo(String file, Type type) {
 		super(file, type);
 	}
 

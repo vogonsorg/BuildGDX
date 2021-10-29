@@ -29,9 +29,6 @@ public abstract class TileData {
 		}
 	}
 
-//	private static final int TEX_MAX_SIZE = 1024;
-//	private static TextureBuffer tmp_buffer;
-
 	public abstract int getWidth();
 
 	public abstract int getHeight();
@@ -105,20 +102,4 @@ public abstract class TileData {
 		}
 		return size == 0 ? 1 : size;
 	}
-
-//	protected static TextureBuffer getTmpBuffer(int size) {
-//		if (tmp_buffer == null) {
-//			size = TEX_MAX_SIZE * TEX_MAX_SIZE * 4;
-//			try {
-//				if (BuildGdx.app.getPlatform() != Platform.Android)
-//					tmp_buffer = new FastTextureBuffer(size);
-//				else
-//					tmp_buffer = new AndroidTextureBuffer(size);
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				tmp_buffer = new DirectTextureBuffer(size);
-//			}
-//		}
-//		return tmp_buffer;
-//	}
 }

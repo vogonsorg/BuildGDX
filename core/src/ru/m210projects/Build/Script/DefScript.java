@@ -44,12 +44,12 @@ import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Pattern.BuildEngine;
-import ru.m210projects.Build.Render.ModelHandle.DefMD;
-import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
-import ru.m210projects.Build.Render.ModelHandle.Model;
-import ru.m210projects.Build.Render.ModelHandle.Model.Type;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.DefMD2;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.DefMD3;
+import ru.m210projects.Build.Render.ModelHandle.MDInfo;
+import ru.m210projects.Build.Render.ModelHandle.VoxelInfo;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo.Type;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.MD2Info;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3Info;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Types.Tile;
 
@@ -901,20 +901,20 @@ public class DefScript {
 				return BaseToken.Warning;
 			}
 
-			Model m = null;
+			ModelInfo m = null;
 			try {
 				int sign = res.readInt();
 				res.seek(0, Whence.Set);
 				switch (sign) {
 				case 0x32504449: // IDP2
-					m = new DefMD2(res, modelfn);
+					m = new MD2Info(res, modelfn);
 					break;
 				case 0x33504449: // IDP3
-					m = new DefMD3(res, modelfn);
+					m = new MD3Info(res, modelfn);
 					break;
 				default:
 					if (res.getExtension().equals("kvx"))
-						m = new Model(modelfn, Type.Voxel);
+						m = new ModelInfo(modelfn, Type.Voxel);
 					break;
 				}
 			} catch (Exception e) {
@@ -1112,7 +1112,7 @@ public class DefScript {
 					if (happy == 0 || m.getType() == Type.Voxel)
 						break;
 
-					switch (((DefMD) m).setAnimation(startframe, endframe, (int) (dfps * (65536.0 * .001)), flags)) {
+					switch (((MDInfo) m).setAnimation(startframe, endframe, (int) (dfps * (65536.0 * .001)), flags)) {
 					case -2:
 						Console.Println("Invalid starting frame name on line " + script.filename + ":"
 								+ script.getlinum(animtokptr), OSDTEXT_RED);
@@ -1222,7 +1222,7 @@ public class DefScript {
 					if (!BuildGdx.cache.contains(skinfn, 0) || m.getType() == Type.Voxel)
 						break;
 
-					switch (((DefMD) m).setSkin(skinfn, palnum, Math.max(0, modelskin), surfnum, param, specpower,
+					switch (((MDInfo) m).setSkin(skinfn, palnum, Math.max(0, modelskin), surfnum, param, specpower,
 							specfactor)) {
 					case -2:
 						Console.Println(
@@ -1591,9 +1591,9 @@ public class DefScript {
 				return BaseToken.Warning;
 			}
 
-			DefVoxel vox = null;
+			VoxelInfo vox = null;
 			try {
-				vox = new DefVoxel(new VoxelData(res));
+				vox = new VoxelInfo(new VoxelData(res));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1656,7 +1656,7 @@ public class DefScript {
 			}
 			script.skipbrace(vmodelend); // close bracke
 
-			vox.setMisc((float) vscale, 0, 0, vrotate ? Model.MD_ROTATE : 0);
+			vox.setMisc((float) vscale, 0, 0, vrotate ? ModelInfo.MD_ROTATE : 0);
 			return BaseToken.Ok;
 		}
 	}

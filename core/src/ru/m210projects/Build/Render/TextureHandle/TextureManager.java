@@ -370,7 +370,7 @@ public class TextureManager {
 		public ShaderData(byte[] buf, int w, int h, int bytes) {
 			super(bytes != 1 ? PixelFormat.Rgb : PixelFormat.Pal8, w, h);
 			data.clear();
-			data.putBytes(buf, 0, buf.length);
+			data.put(buf, 0, buf.length);
 		}
 
 		@Override

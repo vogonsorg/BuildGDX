@@ -1,5 +1,5 @@
 // This file is part of BuildGDX.
-// Copyright (C) 2017-2020  Alexander Makarov-[M210] (m210-2007@mail.ru)
+// Copyright (C) 2017-2018  Alexander Makarov-[M210] (m210-2007@mail.ru)
 //
 // BuildGDX is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,26 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with BuildGDX.  If not, see <http://www.gnu.org/licenses/>.
 
-package ru.m210projects.Build.Render.Types;
+package ru.m210projects.Build.Render.ModelHandle.MDModel.MD2;
 
-import java.nio.ByteBuffer;
-
-public interface TextureBuffer {
-	
-	public byte get(int i);
-	
-	public int getInt(int i);
-	
-	public void put(int offset, byte value);
-	
-	public void putInt(int offset, int value);
-	
-	public void putBytes(byte[] src, int srcPos, int length);
-	
-	public void fill(int offset, int length, byte value);
-	
-	public void clear();
-	
-	public ByteBuffer getBuffer();
-
+public class MD2Triangle {
+	public short[] vertices = new short[3];
+	public short[] texCoords = new short[3];
 }

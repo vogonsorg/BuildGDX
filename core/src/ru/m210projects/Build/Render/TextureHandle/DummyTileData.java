@@ -1,16 +1,17 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL20.GL_ALPHA;
+import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
+import static com.badlogic.gdx.graphics.GL20.GL_RGB;
+import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 
 import java.nio.ByteBuffer;
-
-import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
-import ru.m210projects.Build.Render.Types.TextureBuffer;
+import java.nio.ByteOrder;
 
 public class DummyTileData extends TileData {
 
-	public final TextureBuffer data;
+	public final ByteBuffer data;
 	public final int width, height;
 	public final PixelFormat fmt;
 	public int format, internalformat;
@@ -19,7 +20,7 @@ public class DummyTileData extends TileData {
 		this.width = width;
 		this.height = height;
 		this.fmt = fmt;
-		this.data = new DirectTextureBuffer(width * height * fmt.getLength());
+		this.data = ByteBuffer.allocateDirect(width * height * fmt.getLength()).order(ByteOrder.LITTLE_ENDIAN);
 
 		switch (fmt) {
 		case Rgba:
@@ -53,7 +54,8 @@ public class DummyTileData extends TileData {
 
 	@Override
 	public ByteBuffer getPixels() {
-		return data.getBuffer();
+		data.rewind();
+		return data;
 	}
 
 	@Override

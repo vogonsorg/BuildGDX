@@ -19,11 +19,13 @@ import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.OnSceenDisplay.Console;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
-import ru.m210projects.Build.Render.ModelHandle.Model;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo;
 import ru.m210projects.Build.Render.ModelHandle.ModelManager;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.DefMD3;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.MD2Info;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.MD2ModelGL10;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3Info;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3ModelGL10;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
@@ -84,96 +86,113 @@ public class PolymostModelManager extends ModelManager {
 	}
 
 	@Override
-	public GLModel allocateModel(Model modelInfo) {
+	public GLModel allocateModel(ModelInfo modelInfo) {
 		switch (modelInfo.getType()) {
 		case Md3:
-			return new MD3ModelGL10((DefMD3) modelInfo) {
+			return new MD3ModelGL10((MD3Info) modelInfo) {
 				@Override
 				protected GLTile loadTexture(String skinfile, int palnum) {
-					GLTile texidx = findLoadedMultitexture(skinfile, palnum);
-					if(texidx != null)
-						return texidx;
-
-					Resource res = BuildGdx.cache.open(skinfile, 0);
-					if (res == null) {
-						Console.Println("Skin " + skinfile + " not found.", Console.OSDTEXT_YELLOW);
-						return null;
-					}
-
-					long startticks = System.currentTimeMillis();
-					try {
-						byte[] data = res.getBytes();
-						Pixmap pix = new Pixmap(data, 0, data.length);
-						texidx = parent.textureCache.newTile(new PixmapTileData(pix, true, 0), 0, true);
-						if (palnum == DETAILPAL || palnum == GLOWPAL)
-							texidx.setHighTile(new Hicreplctyp(palnum));
-						usesalpha = true;
-					} catch (Exception e) {
-						Console.Println("Couldn't load file: " + skinfile, Console.OSDTEXT_YELLOW);
-						return null;
-					} finally {
-						res.close();
-					}
-					texidx.setupTextureWrap(TextureWrap.Repeat);
-
-					long etime = System.currentTimeMillis() - startticks;
-					System.out.println(
-							"Load skin: p" + palnum + " \"" + skinfile + "\"... " + etime + " ms");
-
-					return texidx;
+					return loadMDTexture(this, skinfile, palnum);
 				}
 
 				@Override
 				protected int bindSkin(int pal, int skinnum, int surfnum) {
-					int texunits = -1;
-					GLTile texid = getSkin(pal, skinnum, surfnum);
-					if (texid != null) {
-						parent.bind(texid);
-
-						texunits = GL_TEXTURE0;
-						if (Console.Geti("r_detailmapping") != 0) {
-							if ((texid = getSkin(DETAILPAL, skinnum, surfnum)) != null) {
-								if (!texid.isDetailTexture())
-									System.err.println("Wtf detail!");
-								BuildGdx.gl.glActiveTexture(++texunits);
-								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-								parent.bind(texid);
-								parent.setupTextureDetail(texid);
-
-								for (MDSkinmap sk = skinmap; sk != null; sk = sk.next)
-									if (sk.palette == DETAILPAL && skinnum == sk.skinnum && surfnum == sk.surfnum) {
-										float f = sk.param;
-										BuildGdx.gl.glMatrixMode(GL_TEXTURE);
-										BuildGdx.gl.glLoadIdentity();
-										BuildGdx.gl.glScalef(f, f, 1.0f);
-										BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
-									}
-							}
-						}
-
-						if (Console.Geti("r_glowmapping") != 0) {
-							if ((texid = getSkin(GLOWPAL, skinnum, surfnum)) != null) {
-								if (!texid.isGlowTexture())
-									System.err.println("Wtf glow! " + surfnum);
-
-								BuildGdx.gl.glActiveTexture(++texunits);
-								BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-								parent.bind(texid);
-								parent.setupTextureGlow(texid);
-							}
-						}
-					}
-
-					return texunits;
+					return bindMDSkin(this, pal, skinnum, surfnum);
 				}
 			};
 		case Md2:
-			break;
+			return new MD2ModelGL10((MD2Info) modelInfo) {
+				@Override
+				protected int bindSkin(int pal, int skinnum) {
+					return bindMDSkin(this, pal, skinnum, 0);
+				}
+
+				@Override
+				protected GLTile loadTexture(String skinfile, int palnum) {
+					return loadMDTexture(this, skinfile, palnum);
+				}
+
+			};
 		default:
 			return null;
 		}
+	}
 
-		return null;
+	protected GLTile loadMDTexture(MDModel m, String skinfile, int palnum) {
+		GLTile texidx = findLoadedMultitexture(skinfile, palnum);
+		if (texidx != null)
+			return texidx;
+
+		Resource res = BuildGdx.cache.open(skinfile, 0);
+		if (res == null) {
+			Console.Println("Skin " + skinfile + " not found.", Console.OSDTEXT_YELLOW);
+			return null;
+		}
+
+//		long startticks = System.currentTimeMillis();
+		try {
+			byte[] data = res.getBytes();
+			Pixmap pix = new Pixmap(data, 0, data.length);
+			texidx = parent.textureCache.newTile(new PixmapTileData(pix, true, 0), 0, true);
+			if (palnum == DETAILPAL || palnum == GLOWPAL)
+				texidx.setHighTile(new Hicreplctyp(palnum));
+			m.usesalpha = true;
+		} catch (Exception e) {
+			Console.Println("Couldn't load file: " + skinfile, Console.OSDTEXT_YELLOW);
+			return null;
+		} finally {
+			res.close();
+		}
+		texidx.setupTextureWrap(TextureWrap.Repeat);
+
+//		long etime = System.currentTimeMillis() - startticks;
+//		System.out.println(
+//				"Load skin: p" + palnum + " \"" + skinfile + "\"... " + etime + " ms");
+
+		return texidx;
+	}
+
+	protected int bindMDSkin(MDModel m, int pal, int skinnum, int surfnum) {
+		int texunits = -1;
+		GLTile texid = m.getSkin(pal, skinnum, surfnum);
+		if (texid != null) {
+			parent.bind(texid);
+
+			texunits = GL_TEXTURE0;
+			if (Console.Geti("r_detailmapping") != 0) {
+				if ((texid = m.getSkin(DETAILPAL, skinnum, surfnum)) != null) {
+					if (!texid.isDetailTexture())
+						System.err.println("Wtf detail!");
+					BuildGdx.gl.glActiveTexture(++texunits);
+					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+					parent.bind(texid);
+					parent.setupTextureDetail(texid);
+
+					for (MDSkinmap sk = m.skinmap; sk != null; sk = sk.next)
+						if (sk.palette == DETAILPAL && skinnum == sk.skinnum && surfnum == sk.surfnum) {
+							float f = sk.param;
+							BuildGdx.gl.glMatrixMode(GL_TEXTURE);
+							BuildGdx.gl.glLoadIdentity();
+							BuildGdx.gl.glScalef(f, f, 1.0f);
+							BuildGdx.gl.glMatrixMode(GL_MODELVIEW);
+						}
+				}
+			}
+
+			if (Console.Geti("r_glowmapping") != 0) {
+				if ((texid = m.getSkin(GLOWPAL, skinnum, surfnum)) != null) {
+					if (!texid.isGlowTexture())
+						System.err.println("Wtf glow! " + surfnum);
+
+					BuildGdx.gl.glActiveTexture(++texunits);
+					BuildGdx.gl.glEnable(GL_TEXTURE_2D);
+					parent.bind(texid);
+					parent.setupTextureGlow(texid);
+				}
+			}
+		}
+
+		return texunits;
 	}
 
 	protected GLTile findLoadedMultitexture(String skinfile, int palnum) {
@@ -186,7 +205,7 @@ public class PolymostModelManager extends ModelManager {
 
 				for (MDSkinmap sk = ((MDModel) m).skinmap; sk != null; sk = sk.next)
 					if (sk.fn.equalsIgnoreCase(skinfile) && sk.texid != null) {
-						if(sk.palette != palnum) {
+						if (sk.palette != palnum) {
 							GLTile texidx = sk.texid.clone();
 							if (palnum == DETAILPAL || palnum == GLOWPAL) {
 								texidx.setHighTile(new Hicreplctyp(palnum));

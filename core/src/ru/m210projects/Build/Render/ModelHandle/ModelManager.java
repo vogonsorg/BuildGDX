@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import ru.m210projects.Build.OnSceenDisplay.Console;
-import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
@@ -23,7 +23,7 @@ public abstract class ModelManager {
 
 	protected ModelsInfo mdInfo;
 	protected GLModel[] models = new GLModel[MAXTILES];
-	protected HashMap<Model, GLModel> tile2model = new HashMap<Model, GLModel>();
+	protected HashMap<ModelInfo, GLModel> tile2model = new HashMap<ModelInfo, GLModel>();
 
 	public ModelManager setModelsInfo(ModelsInfo mdInfo) {
 		this.dispose();
@@ -92,7 +92,7 @@ public abstract class ModelManager {
 		if (param == null)
 			return null;
 
-		Model model = null;
+		ModelInfo model = null;
 		if ((model = param.model) != null && model.getType() != Type.Voxel) {
 
 			if (param.next != null && param.palette != pal) {
@@ -130,7 +130,7 @@ public abstract class ModelManager {
 		return null;
 	}
 
-	protected GLModel loadModel(Model model) {
+	protected GLModel loadModel(ModelInfo model) {
 		try {
 //			long startticks = System.nanoTime();
 			GLModel out = allocateModel(model);
@@ -152,8 +152,8 @@ public abstract class ModelManager {
 		if (mdInfo == null)
 			return null;
 
-		DefVoxel model = null;
-		if ((model = mdInfo.getVoxel(tile)) != null) {
+		VoxelInfo model = null;
+		if ((model = mdInfo.getVoxelInfo(tile)) != null) {
 			GLModel glmodel = models[tile];
 			if (glmodel != null && glmodel.getType() == Type.Voxel)
 				return glmodel;
@@ -182,7 +182,7 @@ public abstract class ModelManager {
 
 	public abstract GLVoxel allocateVoxel(VoxelData vox, int voxmip, int flags);
 
-	public abstract GLModel allocateModel(Model modelInfo);
+	public abstract GLModel allocateModel(ModelInfo modelInfo);
 
 	public void dispose() {
 		Iterator<GLModel> it = tile2model.values().iterator();

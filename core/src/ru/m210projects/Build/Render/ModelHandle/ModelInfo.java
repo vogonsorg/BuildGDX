@@ -1,6 +1,6 @@
 package ru.m210projects.Build.Render.ModelHandle;
 
-public class Model {
+public class ModelInfo {
 
 	public static final int MD_ROTATE = 2;
 
@@ -16,7 +16,7 @@ public class Model {
 	// yoffset differs from zadd in that it does not follow cstat&8 y-flipping
 	protected float yoffset, zadd;
 
-	public Model(String filename, Type type) {
+	public ModelInfo(String filename, Type type) {
 		this.filename = filename;
 		this.type = type;
 	}

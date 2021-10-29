@@ -5,7 +5,7 @@ import static ru.m210projects.Build.Engine.*;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
-import ru.m210projects.Build.Render.ModelHandle.Model;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo;
 import ru.m210projects.Build.Render.ModelHandle.ModelManager;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
@@ -62,7 +62,7 @@ public class GDXModelManager extends ModelManager {
 	}
 
 	@Override
-	public GLModel allocateModel(Model modelInfo) {
+	public GLModel allocateModel(ModelInfo modelInfo) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -8,17 +8,26 @@
 
 package ru.m210projects.Build.Render.ModelHandle.MDModel;
 
+import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
 import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
+import static ru.m210projects.Build.Engine.RESERVEDPALS;
 import static ru.m210projects.Build.Engine.timerticspersec;
 import static ru.m210projects.Build.Gameutils.BClipRange;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.MDANIM_ONESHOT;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpause;
 import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
-import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
+import static ru.m210projects.Build.Render.ModelHandle.ModelInfo.MD_ROTATE;
 
-import ru.m210projects.Build.Render.ModelHandle.DefMD;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import com.badlogic.gdx.math.Vector3;
+
+import ru.m210projects.Build.OnSceenDisplay.Console;
+import ru.m210projects.Build.Render.ModelHandle.MDInfo;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
+import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Script.ModelsInfo;
 import ru.m210projects.Build.Script.ModelsInfo.SpriteAnim;
 import ru.m210projects.Build.Script.ModelsInfo.Spritesmooth;
@@ -39,7 +48,10 @@ public abstract class MDModel implements GLModel {
 	protected int flags;
 	protected float yoffset, zadd, bscale;
 
-	public MDModel(DefMD md) {
+	protected Vector3 cScale = new Vector3(1, 1, 1);
+	protected Vector3 nScale = new Vector3(1, 1, 1);
+
+	public MDModel(MDInfo md) {
 		this.skinmap = md.getSkins();
 		this.animations = md.getAnimations();
 		this.numframes = md.getFrames();
@@ -50,6 +62,79 @@ public abstract class MDModel implements GLModel {
 	}
 
 	public abstract void loadSkins(int pal, int skinnum);
+
+	protected abstract GLTile loadTexture(String skinfile, int palnum);
+
+	public GLTile getSkin(final int pal, int skinnum, int surfnum) {
+		String skinfile = null;
+		GLTile texptr = null;
+		MDSkinmap sk, skzero = null;
+
+		if (pal >= MAXPALOOKUPS)
+			return null;
+
+		int i = -1;
+		for (sk = skinmap; sk != null; sk = sk.next) {
+			if (sk.palette == pal && sk.skinnum == skinnum && sk.surfnum == surfnum) {
+				skinfile = sk.fn;
+				texptr = sk.texid;
+//				Console.Println("Using exact match skin (pal=" + pal + ",skinnum=" + skinnum + ",surfnum=" + surfnum
+//						+ ") " + skinfile);
+				break;
+			}
+			// If no match, give highest priority to skinnum, then pal.. (Parkar's request,
+			// 02/27/2005)
+			else if ((sk.palette == 0) && (sk.skinnum == skinnum) && (sk.surfnum == surfnum) && (i < 5)) {
+				i = 5;
+				skzero = sk;
+			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (sk.surfnum == surfnum) && (i < 4)) {
+				i = 4;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (sk.surfnum == surfnum) && (i < 3)) {
+				i = 3;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == skinnum) && (i < 2)) {
+				i = 2;
+				skzero = sk;
+			} else if ((sk.palette == pal) && (sk.skinnum == 0) && (i < 1)) {
+				i = 1;
+				skzero = sk;
+			} else if ((sk.palette == 0) && (sk.skinnum == 0) && (i < 0)) {
+				i = 0;
+				skzero = sk;
+			}
+		}
+
+		if (sk == null) {
+			if (pal >= (MAXPALOOKUPS - RESERVEDPALS))
+				return null;
+
+			if (skzero != null) {
+				sk = skzero;
+				skinfile = skzero.fn;
+				texptr = skzero.texid;
+//				Console.Println("Using def skin 0,0 as fallback, pal = " + pal, Console.OSDTEXT_YELLOW);
+			} else {
+				Console.Println("Couldn't load skin", Console.OSDTEXT_YELLOW);
+				return null;
+			}
+		}
+
+		if (skinfile == null)
+			return null;
+
+		if (texptr != null)
+			return texptr;
+
+		return sk.texid = loadTexture(skinfile, pal);
+	}
+
+	public MDModel setScale(Vector3 cScale, Vector3 nScale) {
+		this.cScale.set(cScale);
+		this.nScale.set(nScale);
+
+		return this;
+	}
 
 	public float getYOffset(boolean yflipping) {
 		return !yflipping ? yoffset : zadd;
@@ -204,5 +289,36 @@ public abstract class MDModel implements GLModel {
 			if (nframe >= numframes)
 				nframe = numframes - 1;
 		}
+	}
+
+	@Override
+	public void dispose() {
+		clearSkins();
+	}
+
+	@Override
+	public Iterator<GLTile> getSkins() {
+		ArrayList<GLTile> list = new ArrayList<GLTile>();
+		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
+			if (sk.texid != null) {
+				list.add(sk.texid);
+			}
+		}
+		return list.iterator();
+	}
+
+	@Override
+	public void clearSkins() {
+		for (MDSkinmap sk = skinmap; sk != null; sk = sk.next) {
+			if (sk.texid != null) {
+				sk.texid.delete();
+				sk.texid = null;
+			}
+		}
+	}
+
+	@Override
+	public float getScale() {
+		return 0.01f;
 	}
 }

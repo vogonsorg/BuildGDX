@@ -1,19 +1,21 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL20.GL_RGB;
+import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static java.lang.Math.min;
-import static ru.m210projects.Build.Engine.*;
+import static ru.m210projects.Build.Engine.curpalette;
+import static ru.m210projects.Build.Engine.palookup;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
-import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.Tile;
 
 public class RGBTileData extends TileData {
 
-	public final TextureBuffer data;
+	public final ByteBuffer data;
 	public final boolean hasalpha;
 	public final int width, height;
 	public final boolean clamped;
@@ -33,7 +35,7 @@ public class RGBTileData extends TileData {
 		if ((expflag & 2) != 0)
 			ysiz = calcSize(tsizy);
 
-		TextureBuffer buffer = new DirectTextureBuffer(data != null ? xsiz * ysiz * 4 : 4);
+		ByteBuffer buffer = ByteBuffer.allocateDirect(data != null ? xsiz * ysiz * 4 : 4).order(ByteOrder.LITTLE_ENDIAN);
 		boolean hasalpha = false;
 
 		if (data == null) {
@@ -106,8 +108,8 @@ public class RGBTileData extends TileData {
 
 	@Override
 	public ByteBuffer getPixels() {
-//		data.rewind();
-		return data.getBuffer();
+		data.rewind();
+		return data;
 	}
 
 	@Override
@@ -147,7 +149,7 @@ public class RGBTileData extends TileData {
 		return curpalette.getRGBA(dacol, (byte) 0xFF);
 	}
 
-	protected void fixtransparency(TextureBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2,
+	protected void fixtransparency(ByteBuffer dapic, int daxsiz, int daysiz, int daxsiz2, int daysiz2,
 			boolean clamping) {
 		int dox = daxsiz2 - 1;
 		int doy = daysiz2 - 1;

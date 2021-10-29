@@ -24,7 +24,7 @@ public class VoxelSkin extends DummyTileData {
 				}
 			}
 		} else
-			data.putBytes(tile.data, 0, width * height);
+			data.put(tile.data, 0, width * height);
 	}
 
 	@Override

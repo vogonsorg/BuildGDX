@@ -1,16 +1,18 @@
 package ru.m210projects.Build.Render.TextureHandle;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL20.GL_LUMINANCE;
+import static com.badlogic.gdx.graphics.GL20.GL_RGB;
+import static com.badlogic.gdx.graphics.GL20.GL_RGBA;
+import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-import ru.m210projects.Build.Render.Types.DirectTextureBuffer;
-import ru.m210projects.Build.Render.Types.TextureBuffer;
 import ru.m210projects.Build.Types.Tile;
 
 public class IndexedTileData extends TileData {
 
-	public final TextureBuffer data;
+	public final ByteBuffer data;
 	public final boolean hasalpha;
 	public final int width, height;
 	public final boolean clamped;
@@ -30,7 +32,7 @@ public class IndexedTileData extends TileData {
 		if ((expflag & 2) != 0)
 			ysiz = calcSize(tsizy);
 
-		TextureBuffer buffer = new DirectTextureBuffer(data != null ? xsiz * ysiz : 1);
+		ByteBuffer buffer = ByteBuffer.allocateDirect(data != null ? xsiz * ysiz : 1).order(ByteOrder.LITTLE_ENDIAN);
 
 		boolean hasalpha = false;
 		if (data == null) {
@@ -91,7 +93,8 @@ public class IndexedTileData extends TileData {
 
 	@Override
 	public ByteBuffer getPixels() {
-		return data.getBuffer();
+		data.rewind();
+		return data;
 	}
 
 	@Override

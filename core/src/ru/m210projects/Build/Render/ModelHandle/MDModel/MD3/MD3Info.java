@@ -2,13 +2,13 @@ package ru.m210projects.Build.Render.ModelHandle.MDModel.MD3;
 
 import ru.m210projects.Build.FileHandle.Resource;
 import ru.m210projects.Build.FileHandle.Resource.Whence;
-import ru.m210projects.Build.Render.ModelHandle.DefMD;
+import ru.m210projects.Build.Render.ModelHandle.MDInfo;
 
-public class DefMD3 extends DefMD {
+public class MD3Info extends MDInfo {
 
 	public final MD3Header header;
 
-	public DefMD3(Resource res, String file) throws Exception {
+	public MD3Info(Resource res, String file) throws Exception {
 		super(file, Type.Md3);
 
 		this.header = loadHeader(res);

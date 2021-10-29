@@ -9,14 +9,14 @@
 
 package ru.m210projects.Build.Render.Types;
 
-import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
-import ru.m210projects.Build.Render.ModelHandle.Model;
+import ru.m210projects.Build.Render.ModelHandle.VoxelInfo;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo;
 
 public class Tile2model {
 	// maps build tiles to particular animation frames of a model
 
-	public Model model;
-	public DefVoxel voxel;
+	public ModelInfo model;
+	public VoxelInfo voxel;
 
 	public Tile2model next;
 	public int skinnum; //another skin file for the same model with the same palette (normal, bloody)

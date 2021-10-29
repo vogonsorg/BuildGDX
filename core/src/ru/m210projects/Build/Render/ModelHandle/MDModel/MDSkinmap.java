@@ -14,9 +14,7 @@ public class MDSkinmap {
 	public int palette; // Build palette number
 	public int skinnum, surfnum; // Skin identifier, surface number
 
-	public GLTile texid; // = new GLTile[HICEFFECTMASK+1]; // OpenGL texture numbers for effect
-							// variations
-
+	public GLTile texid;
 	public String fn; // Skin filename
 	public MDSkinmap next;
 	public float param, specpower, specfactor;

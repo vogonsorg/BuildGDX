@@ -16,15 +16,16 @@
 
 package ru.m210projects.Build.Types;
 
-import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL20.GL_ALPHA;
 import static ru.m210projects.Build.Engine.pow2char;
 import static ru.m210projects.Build.Engine.textfont;
 import static ru.m210projects.Build.Settings.GLSettings.glfiltermodes;
 
+import java.nio.ByteBuffer;
+
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
-import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class TextFont extends TileFont {
 
@@ -47,7 +48,7 @@ public class TextFont extends TileFont {
 		// construct a 8-bit alpha-only texture for the font glyph matrix
 		TileFontData dat = new TileFontData(sizx, sizy) {
 			@Override
-			public TextureBuffer buildAtlas(TextureBuffer data) {
+			public ByteBuffer buildAtlas(ByteBuffer data) {
 				int tptr;
 
 				for (int h = 0; h < 256; h++) {

@@ -16,13 +16,13 @@
 
 package ru.m210projects.Build.Types;
 
+import java.nio.ByteBuffer;
 import java.util.HashSet;
 
 import ru.m210projects.Build.Render.TextureHandle.DummyTileData;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.TextureManager;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
-import ru.m210projects.Build.Render.Types.TextureBuffer;
 
 public class TileFont {
 
@@ -33,7 +33,7 @@ public class TileFont {
 			buildAtlas(data);
 		}
 
-		public abstract TextureBuffer buildAtlas(TextureBuffer data);
+		public abstract ByteBuffer buildAtlas(ByteBuffer data);
 	};
 
 	public static final HashSet<TileFont> managedFont = new HashSet<TileFont>();

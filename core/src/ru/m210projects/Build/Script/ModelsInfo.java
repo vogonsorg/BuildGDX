@@ -20,48 +20,13 @@ import static ru.m210projects.Build.Engine.MAXSPRITES;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.MAXUNIQHUDID;
 
-import ru.m210projects.Build.Render.ModelHandle.DefMD;
-import ru.m210projects.Build.Render.ModelHandle.DefVoxel;
-import ru.m210projects.Build.Render.ModelHandle.Model;
+import ru.m210projects.Build.Render.ModelHandle.MDInfo;
+import ru.m210projects.Build.Render.ModelHandle.VoxelInfo;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Tile2model;
 
 public class ModelsInfo {
-
-//	public class AnimationInfo {
-//		public final String framestart;
-//		public final String frameend;
-//		public final int fpssc;
-//		public final int flags;
-//
-//		public AnimationInfo(String framestart, String frameend, int fpssc, int flags) {
-//			this.framestart = framestart;
-//			this.frameend = frameend;
-//			this.fpssc = fpssc;
-//			this.flags = flags;
-//		}
-//	}
-//
-//	public class SkinInfo {
-//		public final String skinfn;
-//		public final int palnum;
-//		public final int skinnum;
-//		public final int surfnum;
-//		public final double param;
-//		public final double specpower;
-//		public final double specfactor;
-//
-//		public SkinInfo(String skinfn, int palnum, int skinnum, int surfnum, double param, double specpower,
-//				double specfactor) {
-//			this.skinfn = skinfn;
-//			this.palnum = palnum;
-//			this.skinnum = skinnum;
-//			this.surfnum = surfnum;
-//			this.param = param;
-//			this.specpower = specpower;
-//			this.specfactor = specfactor;
-//		}
-//	}
 
 	public static class Spritesmooth {
 		public float smoothduration;
@@ -114,21 +79,21 @@ public class ModelsInfo {
 		return spriteanim[i];
 	}
 
-	public Model getModelInfo(int picnum) {
+	public ModelInfo getModelInfo(int picnum) {
 		if (cache[picnum] != null)
 			return cache[picnum].model;
 
 		return null;
 	}
 
-	public DefVoxel getVoxel(int picnum) {
+	public VoxelInfo getVoxelInfo(int picnum) {
 		if (cache[picnum] != null)
 			return cache[picnum].voxel;
 
 		return null;
 	}
 
-	public int getTile(Model model) {
+	public int getTile(ModelInfo model) {
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			if (cache[i] == null)
 				continue;
@@ -178,7 +143,7 @@ public class ModelsInfo {
 		}
 	}
 
-	public int addModelInfo(Model md, int picnum, String framename, int skinnum, float smooth, int pal) {
+	public int addModelInfo(ModelInfo md, int picnum, String framename, int skinnum, float smooth, int pal) {
 		if (picnum >= MAXTILES)
 			return (-2);
 		if (md == null)
@@ -194,7 +159,7 @@ public class ModelsInfo {
 			if (framename == null)
 				return (-3);
 
-			i = ((DefMD) md).getFrameIndex(framename);
+			i = ((MDInfo) md).getFrameIndex(framename);
 			break;
 		}
 
@@ -207,7 +172,7 @@ public class ModelsInfo {
 		return i;
 	}
 
-	public int addVoxelInfo(DefVoxel md, int picnum) {
+	public int addVoxelInfo(VoxelInfo md, int picnum) {
 		if (picnum >= MAXTILES)
 			return (-2);
 		if (md == null)
@@ -220,7 +185,7 @@ public class ModelsInfo {
 		return 0;
 	}
 
-	public void removeModelInfo(Model md) {
+	public void removeModelInfo(ModelInfo md) {
 		for (int i = MAXTILES - 1; i >= 0; i--) {
 			if (cache[i] == null)
 				continue;

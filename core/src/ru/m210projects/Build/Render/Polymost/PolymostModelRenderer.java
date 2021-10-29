@@ -48,9 +48,8 @@ import com.badlogic.gdx.math.Vector3;
 
 import ru.m210projects.Build.Engine;
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
-import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3ModelGL10;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Palette;
@@ -386,152 +385,12 @@ public class PolymostModelRenderer {
 		gl.glColor4f(polyColor.r, polyColor.g, polyColor.b, polyColor.a);
 	}
 
-//	public int md2draw(MD2Model m, SPRITE tspr, int xoff, int yoff) {
-//		DefScript defs = parent.defs;
-//
-//		m.updateanimation(defs, tspr);
-//
-//		modelPrepare(m, tspr, xoff, yoff);
-//
-//		int rendered = 0, skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-//		GLTile texid = m.loadskin(textureCache, defs, skinnum, globalpal, 0);
-//		if (texid != null) {
-//			textureCache.bind(texid);
-//			if (Console.Geti("r_detailmapping") != 0)
-//				texid = m.loadskin(textureCache, defs, skinnum, DETAILPAL, 0);
-//			else
-//				texid = null;
-//
-//			int texunits = GL_TEXTURE0;
-//			if (texid != null) {
-//				BuildGdx.gl.glActiveTexture(++texunits);
-//				BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-//				parent.setupTextureDetail(texid);
-//
-//				MDSkinmap sk = m.getSkin(DETAILPAL, skinnum, 0);
-//				if (sk != null) {
-//					float f = sk.param;
-//					gl.glMatrixMode(GL_TEXTURE);
-//					gl.glLoadIdentity();
-//					gl.glScalef(f, f, 1.0f);
-//					gl.glMatrixMode(GL_MODELVIEW);
-//				}
-//			}
-//
-//			if (Console.Geti("r_glowmapping") != 0)
-//				texid = m.loadskin(textureCache, defs, skinnum, GLOWPAL, 0);
-//			else
-//				texid = null;
-//
-//			if (texid != null) {
-//				BuildGdx.gl.glActiveTexture(++texunits);
-//				BuildGdx.gl.glEnable(GL_TEXTURE_2D);
-//				parent.setupTextureGlow(texid);
-//			}
-//
-//			MD2Frame cframe = m.frames[m.cframe], nframe = m.frames[m.nframe];
-//
-//			parent.globalfog.apply();
-//			if (r_vertexarrays != 0) {
-//				m.verticesBuffer.clear();
-//				for (int i = 0; i < m.tris.length; i++) // -60fps, but it's need for animation
-//					for (int j = 0; j < 3; j++) {
-//						int idx = m.tris[i].vertices[j];
-//						float x = cframe.vertices[idx][0] * cScale.x + nframe.vertices[idx][0] * nScale.x;
-//						float y = cframe.vertices[idx][1] * cScale.y + nframe.vertices[idx][1] * nScale.y;
-//						float z = cframe.vertices[idx][2] * cScale.z + nframe.vertices[idx][2] * nScale.z;
-//						m.verticesBuffer.put(x);
-//						m.verticesBuffer.put(z);
-//						m.verticesBuffer.put(y);
-//					}
-//				m.verticesBuffer.flip();
-//
-//				int l = GL_TEXTURE0;
-//				do {
-//					gl.glClientActiveTexture(l++);
-//					gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//					gl.glTexCoordPointer(2, GL_FLOAT, 0, m.uv);
-//				} while (l <= texunits);
-//
-//				gl.glEnableClientState(GL_VERTEX_ARRAY);
-//				gl.glVertexPointer(3, GL_FLOAT, 0, m.verticesBuffer);
-//				gl.glDrawElements(GL_TRIANGLES, 0, GL_UNSIGNED_SHORT, m.indicesBuffer);
-//			} else {
-//				int c = 0, cmd;
-//				while ((cmd = m.glcmds[c++]) != 0) {
-//					if (cmd < 0) {
-//						gl.glBegin(GL_TRIANGLE_FAN);
-//						cmd = -cmd;
-//					} else
-//						gl.glBegin(GL_TRIANGLE_STRIP);
-//
-//					for ( /* nothing */; cmd > 0; cmd--, c += 3) {
-//						float s = Float.intBitsToFloat(m.glcmds[c + 0]);
-//						float t = Float.intBitsToFloat(m.glcmds[c + 1]);
-//
-//						float x = cframe.vertices[m.glcmds[c + 2]][0] * cScale.x
-//								+ nframe.vertices[m.glcmds[c + 2]][0] * nScale.x;
-//						float y = cframe.vertices[m.glcmds[c + 2]][1] * cScale.y
-//								+ nframe.vertices[m.glcmds[c + 2]][1] * nScale.y;
-//						float z = cframe.vertices[m.glcmds[c + 2]][2] * cScale.z
-//								+ nframe.vertices[m.glcmds[c + 2]][2] * nScale.z;
-//
-//						gl.glTexCoord2d(s, t);
-//						gl.glVertex3d(x, z, y);
-//					}
-//					gl.glEnd();
-//				}
-//
-////		    	gl.glBegin(GL_TRIANGLES);
-////		    	for( int i = 0; i < m.tris.length; i++)
-////		    	{
-////		    		for( int j = 0; j < 3; j++)
-////		    		{
-////		    			int vIdx = m.tris[i].vertices[j];
-////		    			float x = cframe.vertices[vIdx][0]*m0x + nframe.vertices[vIdx][0]*m1x;
-////		    			float y = cframe.vertices[vIdx][1]*m0y + nframe.vertices[vIdx][1]*m1y;
-////		    			float z = cframe.vertices[vIdx][2]*m0z + nframe.vertices[vIdx][2]*m1z;
-////
-////		    			int tIdx = m.tris[i].texCoords[j];
-////		    			gl.glTexCoord2d(m.uv.get(2 * tIdx), m.uv.get(2 * tIdx + 1)); //uv rewrited for drawelements
-////		    			gl.glVertex3d(x, z, y);
-////		    		}
-////		    	}
-////		    	gl.glEnd();
-//			}
-//
-//			while (texunits > GL_TEXTURE0) {
-//				gl.glMatrixMode(GL_TEXTURE);
-//				gl.glLoadIdentity();
-//				gl.glMatrixMode(GL_MODELVIEW);
-//				gl.glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, 1.0f);
-//				gl.glDisable(GL_TEXTURE_2D);
-//				if (r_vertexarrays != 0) {
-//					gl.glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-//					gl.glClientActiveTexture(texunits - 1);
-//				}
-//				gl.glActiveTexture(--texunits);
-//			}
-//			rendered = 1;
-//		}
-//
-//		if (m.usesalpha)
-//			gl.glDisable(GL_ALPHA_TEST);
-//		gl.glDisable(GL_CULL_FACE);
-////    	gl.glPopAttrib();
-//		gl.glLoadIdentity();
-//
-//		return rendered;
-//	}
-
-	public boolean md3draw(MD3ModelGL10 m, SPRITE tspr) {
+	public boolean mddraw(MDModel m, SPRITE tspr) {
 		DefScript defs = parent.defs;
 
 		m.updateanimation(defs.mdInfo, tspr);
 
 		modelPrepare(m, tspr);
-		cScale.scl(1 / 64.0f);
-		nScale.scl(1 / 64.0f);
 
 		int skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
 
@@ -545,15 +404,11 @@ public class PolymostModelRenderer {
 		if (vm == null)
 			return 0;
 
-		if (vm.getType() == Type.Voxel) {
+		if (vm.getType() == Type.Voxel)
 			return voxdraw((GLVoxel) vm, tspr);
-		}
 
-//		if (vm.getType() == Type.Md2) {
-//			return md2draw((DefMD2) vm, tspr, xoff, yoff);
-//		}
-		if (vm.getType() == Type.Md3) {
-			return md3draw((MD3ModelGL10) vm, tspr) ? 1 : 0;
+		if (vm.getType() == Type.Md2 || vm.getType() == Type.Md3) {
+			return mddraw((MDModel) vm, tspr) ? 1 : 0;
 		}
 
 		return 0;

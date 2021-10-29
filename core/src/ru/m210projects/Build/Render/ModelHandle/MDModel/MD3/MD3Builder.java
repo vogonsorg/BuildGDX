@@ -6,8 +6,6 @@ import java.util.HashMap;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
-import com.badlogic.gdx.utils.FloatArray;
-import com.badlogic.gdx.utils.ShortArray;
 
 import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.FileHandle.Resource;
@@ -15,18 +13,12 @@ import ru.m210projects.Build.FileHandle.Resource.Whence;
 
 public class MD3Builder {
 
-	private int maxtris = 0;
-	private int maxverts = 0;
-
 	public MD3Header head;
 	public MD3Frame[] frames;
 	public HashMap<String, Matrix4>[] tags;
 	public MD3Surface[] surfaces;
 
-	public FloatArray vertices;
-	public ShortArray indices;
-
-	public MD3Builder(DefMD3 md) {
+	public MD3Builder(MD3Info md) {
 		Resource bb = BuildGdx.cache.open(md.getFilename(), 0);
 		this.head = md.header;
 
@@ -37,8 +29,6 @@ public class MD3Builder {
 		this.frames = frames;
 		this.tags = tags;
 		this.surfaces = surfaces;
-		this.indices = new ShortArray(maxtris * 3);
-		this.vertices = new FloatArray(maxverts * 3);
 
 		bb.close();
 	}
@@ -114,8 +104,6 @@ public class MD3Builder {
 			surf.shaders = loadShaders(surf, offsetSurfaces, bb);
 			surf.uv = loadUVs(surf, offsetSurfaces, bb);
 			surf.xyzn = loadVertices(surf, offsetSurfaces, bb);
-			maxtris = Math.max(maxtris, surf.numtris);
-			maxverts = Math.max(maxtris, surf.numverts);
 			offsetSurfaces += surf.ofsend;
 
 			out[i] = surf;

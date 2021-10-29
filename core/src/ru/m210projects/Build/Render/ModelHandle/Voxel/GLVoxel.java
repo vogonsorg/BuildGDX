@@ -1,7 +1,7 @@
 package ru.m210projects.Build.Render.ModelHandle.Voxel;
 
 import static ru.m210projects.Build.Engine.MAXPALOOKUPS;
-import static ru.m210projects.Build.Render.ModelHandle.Model.MD_ROTATE;
+import static ru.m210projects.Build.Render.ModelHandle.ModelInfo.MD_ROTATE;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,7 +9,7 @@ import java.util.Iterator;
 import com.badlogic.gdx.graphics.Color;
 
 import ru.m210projects.Build.Render.ModelHandle.GLModel;
-import ru.m210projects.Build.Render.ModelHandle.Model.Type;
+import ru.m210projects.Build.Render.ModelHandle.ModelInfo.Type;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Types.Tile;
 
