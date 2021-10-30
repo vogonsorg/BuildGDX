@@ -55,6 +55,7 @@ public class GDXModelRenderer {
 
 		DefScript defs = parent.defs;
 		ShaderManager manager = parent.manager;
+
 		Matrix4 transport = prepareTransform(m, tspr);
 		if (m.getType() == Type.Voxel) {
 			GLVoxel vox = (GLVoxel) m;
@@ -76,6 +77,7 @@ public class GDXModelRenderer {
 				alpha = TRANSLUSCENT2;
 		}
 		manager.color(1.0f, 1.0f, 1.0f, alpha);
+		manager.textureTransform(parent.texture_transform.idt(), 0);
 
 		int vis = getVisibility(tspr);
 		m.render(tspr.pal & 0xFF, tspr.shade, defs.mdInfo.getParams(tspr.picnum).skinnum, vis, alpha);

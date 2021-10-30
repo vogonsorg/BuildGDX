@@ -426,12 +426,12 @@ public class GDXRenderer implements GLRenderer {
 				if (md != null) {
 
 					if (tspr.owner < 0 || tspr.owner >= MAXSPRITES) {
-						if (mdR.mddraw(md, tspr) != 0)
+						if (mdR.mddraw(md, tspr))
 							return;
 						break; // else, render as flat sprite
 					}
 
-					if (mdR.mddraw(md, tspr) != 0)
+					if (mdR.mddraw(md, tspr))
 						return;
 					break; // else, render as flat sprite
 				}
@@ -449,7 +449,7 @@ public class GDXRenderer implements GLRenderer {
 					GLVoxel vox = (GLVoxel) modelManager.getVoxel(picnum);
 					if (vox != null) {
 						if ((tspr.cstat & 48) != 48) {
-							if (mdR.mddraw(vox, tspr) != 0)
+							if (mdR.mddraw(vox, tspr))
 								return;
 							break; // else, render as flat sprite
 						}
