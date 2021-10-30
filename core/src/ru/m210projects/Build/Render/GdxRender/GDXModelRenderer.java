@@ -7,7 +7,6 @@ import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.globalvisibility;
 import static ru.m210projects.Build.Engine.sector;
-import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Pragmas.mulscale;
 
@@ -39,60 +38,34 @@ public class GDXModelRenderer {
 		this.engine = parent.engine;
 	}
 
-	public int mddraw(GLModel md, SPRITE tspr) {
-		if (md == null)
-			return 0;
-
-		if (md.getType() == Type.Voxel)
-			return voxdraw((GLVoxel) md, tspr) ? 1 : 0;
-
-		if (md.getType() == Type.Md2 || md.getType() == Type.Md3)
-			return mddraw((MDModel) md, tspr) ? 1 : 0;
-
-		return 0;
-	}
-
-	private boolean voxdraw(GLVoxel m, SPRITE tspr) {
-		boolean isFloorAligned = (tspr.cstat & 48) == 32;
-		if (isFloorAligned)
+	public boolean mddraw(GLModel m, SPRITE tspr) {
+		if (m == null)
 			return false;
 
-		parent.switchShader(
-				parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
+		boolean isFloorAligned = (tspr.cstat & 48) == 32;
+		if (m.getType() == Type.Voxel && isFloorAligned)
+			return false;
 
-		ShaderManager manager = parent.manager;
-		Matrix4 transport = prepare(m, tspr);
-		transform.translate(-m.xpiv / 64.0f, -m.ypiv / 64.0f, -m.zpiv / 64.0f);
-		if (isFloorAligned) {
-			transform.rotate(-1.0f, 0.0f, 0.0f, 90);
-			transform.translate(0, -m.ypiv / 64.0f, -m.zpiv / 64.0f);
-		}
-		manager.transform(transport);
-		manager.frustum(null);
+		// TODO: Bind skin here
 
-		float alpha = 1.0f;
-		if ((tspr.cstat & 2) != 0) {
-			if ((tspr.cstat & 512) == 0)
-				alpha = TRANSLUSCENT1;
-			else
-				alpha = TRANSLUSCENT2;
-		}
+		Shader shader = Shader.RGBWorldShader;
+		if(m.getType() == Type.Voxel && parent.getTexFormat() == PixelFormat.Pal8)
+			shader = Shader.IndexedWorldShader;
+		parent.switchShader(shader);
 
-		int vis = getVisibility(tspr);
-		m.render(tspr.pal & 0xFF, tspr.shade, 0, vis, alpha);
-
-		BuildGdx.gl.glFrontFace(GL_CW);
-		return true;
-	}
-
-	private boolean mddraw(MDModel m, SPRITE tspr) {
 		DefScript defs = parent.defs;
-		m.updateanimation(defs.mdInfo, tspr);
-
-		parent.switchShader(Shader.RGBWorldShader);
-
 		ShaderManager manager = parent.manager;
-		manager.transform(prepare(m, tspr));
+		Matrix4 transport = prepareTransform(m, tspr);
+		if (m.getType() == Type.Voxel) {
+			GLVoxel vox = (GLVoxel) m;
+			transform.translate(-vox.xpiv / 64.0f, -vox.ypiv / 64.0f, -vox.zpiv / 64.0f);
+			if (isFloorAligned) {
+				transform.rotate(-1.0f, 0.0f, 0.0f, 90);
+				transform.translate(0, -vox.ypiv / 64.0f, -vox.zpiv / 64.0f);
+			}
+		} else if (m instanceof MDModel)
+			((MDModel) m).updateanimation(defs.mdInfo, tspr);
+		manager.transform(transport);
 		manager.frustum(null);
 
 		float alpha = 1.0f;
@@ -118,7 +91,7 @@ public class GDXModelRenderer {
 		return vis;
 	}
 
-	private Matrix4 prepare(GLModel m, SPRITE tspr) {
+	private Matrix4 prepareTransform(GLModel m, SPRITE tspr) {
 		BuildCamera cam = parent.cam;
 
 		Tile pic = engine.getTile(tspr.picnum);
@@ -183,6 +156,65 @@ public class GDXModelRenderer {
 
 	// ---------------------------------------------------------------
 
+//	private boolean voxdraw(GLVoxel m, SPRITE tspr) {
+//		boolean isFloorAligned = (tspr.cstat & 48) == 32;
+//		if (isFloorAligned)
+//			return false;
+//
+//		parent.switchShader(
+//				parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
+//
+//		ShaderManager manager = parent.manager;
+//		Matrix4 transport = prepare(m, tspr);
+//		transform.translate(-m.xpiv / 64.0f, -m.ypiv / 64.0f, -m.zpiv / 64.0f);
+//		if (isFloorAligned) {
+//			transform.rotate(-1.0f, 0.0f, 0.0f, 90);
+//			transform.translate(0, -m.ypiv / 64.0f, -m.zpiv / 64.0f);
+//		}
+//		manager.transform(transport);
+//		manager.frustum(null);
+//
+//		float alpha = 1.0f;
+//		if ((tspr.cstat & 2) != 0) {
+//			if ((tspr.cstat & 512) == 0)
+//				alpha = TRANSLUSCENT1;
+//			else
+//				alpha = TRANSLUSCENT2;
+//		}
+//
+//		int vis = getVisibility(tspr);
+//		m.render(tspr.pal & 0xFF, tspr.shade, 0, vis, alpha);
+//
+//		BuildGdx.gl.glFrontFace(GL_CW);
+//		return true;
+//	}
+//
+//	private boolean mddraw(MDModel m, SPRITE tspr) {
+//		DefScript defs = parent.defs;
+//		m.updateanimation(defs.mdInfo, tspr);
+//
+//		parent.switchShader(Shader.RGBWorldShader);
+//
+//		ShaderManager manager = parent.manager;
+//		manager.transform(prepareTransform(m, tspr));
+//		manager.frustum(null);
+//
+//		float alpha = 1.0f;
+//		if ((tspr.cstat & 2) != 0) {
+//			if ((tspr.cstat & 512) == 0)
+//				alpha = TRANSLUSCENT1;
+//			else
+//				alpha = TRANSLUSCENT2;
+//		}
+//		manager.color(1.0f, 1.0f, 1.0f, alpha);
+//
+//		int vis = getVisibility(tspr);
+//		m.render(tspr.pal & 0xFF, tspr.shade, defs.mdInfo.getParams(tspr.picnum).skinnum, vis, alpha);
+//
+//		BuildGdx.gl.glFrontFace(GL_CW);
+//		return true;
+//	}
+//
 //	private void modelPrepare(MDModel m, SPRITE tspr) {
 //		ShaderManager manager = parent.manager;
 //		BuildCamera cam = parent.cam;
@@ -243,7 +275,7 @@ public class GDXModelRenderer {
 //
 //		manager.color(1.0f, 1.0f, 1.0f, alpha);
 //	}
-
+//
 //	public int voxdraw_old(GLVoxel m, SPRITE tspr) {
 //		if (m == null)
 //			return 0;
