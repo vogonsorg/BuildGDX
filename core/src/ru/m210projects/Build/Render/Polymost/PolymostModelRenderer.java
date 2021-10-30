@@ -119,8 +119,7 @@ public class PolymostModelRenderer {
 		float xoff = tspr.xoffset;
 		float yoff = tspr.yoffset;
 
-		xflip = (globalorientation & 4) != 0;
-		if (yflip = (globalorientation & 8) != 0)
+		if (yflip)
 			yoff = -yoff;
 
 		if ((globalorientation & 128) == 0)
@@ -228,23 +227,24 @@ public class PolymostModelRenderer {
 		Tile pic = engine.getTile(tspr.picnum);
 		float f = m.interpol;
 		float g = 1 - f;
+		float mscale = 0.01f;
 
 		if (m.getType() == Type.Md2)
-			cScale.set(m.getScale(), m.getScale(), m.getScale());
+			cScale.set(mscale, mscale, mscale);
 		else
-			cScale.set(m.getScale(), -m.getScale(), m.getScale());
+			cScale.set(mscale, -mscale, mscale);
 		cScale.scl(g, g, g);
 
 		if (m.getType() == Type.Md2)
-			nScale.set(m.getScale(), m.getScale(), m.getScale());
+			nScale.set(mscale, mscale, mscale);
 		else
-			nScale.set(m.getScale(), -m.getScale(), m.getScale());
+			nScale.set(mscale, -mscale, mscale);
 		nScale.scl(f, f, f);
 
 		int globalorientation = parent.globalorientation;
 
 		modela0.x = modela0.y = 0;
-		modela0.z = m.getYOffset(true) * m.getScale();
+		modela0.z = m.getYOffset(true) * mscale;
 
 		float posx = tspr.x;
 		float posz = tspr.z;
@@ -274,10 +274,10 @@ public class PolymostModelRenderer {
 		posz -= (tspr.yrepeat << 2);
 
 		// yoffset differs from zadd in that it does not follow cstat&8 y-flipping
-		modela0.z += m.getYOffset(false) * m.getScale();
+		modela0.z += m.getYOffset(false) * mscale;
 
-		f = (tspr.xrepeat) / 64.0f * m.getBScale();
-		float z = (tspr.yrepeat) / 64.0f * m.getBScale();
+		f = (tspr.xrepeat) / 64.0f * m.getScale();
+		float z = (tspr.yrepeat) / 64.0f * m.getScale();
 		cScale.scl(-f, f, z);
 		nScale.scl(-f, f, z);
 		modela0.scl(f, -f, z);

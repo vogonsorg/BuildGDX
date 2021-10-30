@@ -140,10 +140,6 @@ public abstract class MDModel implements GLModel {
 		return !yflipping ? yoffset : zadd;
 	}
 
-	public float getBScale() {
-		return bscale;
-	}
-
 	public float getShadeOff() {
 		return 0;
 	}
@@ -319,6 +315,6 @@ public abstract class MDModel implements GLModel {
 
 	@Override
 	public float getScale() {
-		return 0.01f;
+		return bscale;
 	}
 }

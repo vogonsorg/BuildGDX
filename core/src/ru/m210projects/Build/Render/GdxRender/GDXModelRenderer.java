@@ -49,18 +49,13 @@ public class GDXModelRenderer {
 		ShaderManager manager = parent.manager;
 		BuildCamera cam = parent.cam;
 
-		int shade = tspr.shade;
-		int pal = tspr.pal & 0xFF;
+		Tile pic = engine.getTile(tspr.picnum);
 		int orientation = tspr.cstat;
-		int spritenum = tspr.owner;
 
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;
 		float xoff = tspr.xoffset;
-		float yoff = tspr.yoffset;
-		if (yflip)
-			yoff = -yoff;
-
+		float yoff = yflip ? -tspr.yoffset : tspr.yoffset;
 		float posx = tspr.x;
 		float posy = tspr.y;
 		float posz = tspr.z;
@@ -68,22 +63,16 @@ public class GDXModelRenderer {
 		if ((orientation & 128) == 0)
 			posz -= ((m.zsiz * tspr.yrepeat) << 1);
 		if (yflip && (orientation & 16) == 0)
-			posz += ((engine.getTile(tspr.picnum).getHeight() * 0.5f) - m.zpiv) * tspr.yrepeat * 8.0f;
+			posz += ((pic.getHeight() * 0.5f) - m.zpiv) * tspr.yrepeat * 8.0f;
 
-		float sx = m.getScale();
-		float sy = m.getScale();
-		float sz = m.getScale();
-
-		float f = (tspr.xrepeat) * (256.0f / 320.0f) / 32.0f;
-		if ((sprite[spritenum].cstat & 48) == 16 || (sprite[spritenum].cstat & 48) == 32)
-			f *= 1.25f;
-		sx *= xflip ? -f : f;
-		sy *= f;
-		sz *= (tspr.yrepeat) / 32.0f;
+		float f = (tspr.xrepeat / 32.0f) * m.getScale();
+		if ((sprite[tspr.owner].cstat & 48) != 16 && (sprite[tspr.owner].cstat & 48) != 32)
+			f /= 1.25f;
+		float g = (tspr.yrepeat / 32.0f) * m.getScale();
 
 		transform.setToTranslation(posx / cam.xscale, posy / cam.xscale, posz / cam.yscale);
-		transform.scale(sx, sy, sz);
-		transform.translate(-xoff / cam.xscale, yoff / cam.xscale, 0);
+		transform.scale(xflip ? -f : f, f, yflip ? -g : g);
+		transform.translate(xoff / 64.0f, 0, -yoff / 64.0f);
 		transform.rotate(0, 0, 1, (float) Gameutils.AngleToDegrees(tspr.ang) - 90.0f);
 		if (m.isRotating())
 			transform.rotate(0, 0, -1, totalclock % 360);
@@ -112,7 +101,7 @@ public class GDXModelRenderer {
 				alpha = TRANSLUSCENT2;
 		}
 
-		m.render(pal, shade, 0, vis, alpha);
+		m.render(tspr.pal & 0xFF, tspr.shade, 0, vis, alpha);
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return 1;
@@ -140,12 +129,10 @@ public class GDXModelRenderer {
 
 		modelPrepare(m, tspr);
 
-		int shade = tspr.shade;
-		int pal = tspr.pal & 0xFF;
 		int vis = globalvisibility;
 		if (sector[tspr.sectnum].visibility != 0)
 			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
-		m.render(pal, shade, defs.mdInfo.getParams(tspr.picnum).skinnum, vis, 1.0f);
+		m.render(tspr.pal & 0xFF, tspr.shade, defs.mdInfo.getParams(tspr.picnum).skinnum, vis, 1.0f);
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return true;
@@ -162,26 +149,31 @@ public class GDXModelRenderer {
 		boolean yflip = (orientation & 8) != 0;
 		float xoff = tspr.xoffset;
 		float yoff = yflip ? -tspr.yoffset : tspr.yoffset;
-		float posx = tspr.x + (tspr.xrepeat >> 2);
+		float posx = tspr.x;
 		float posy = tspr.y;
-		float posz = tspr.z - (tspr.yrepeat << 2);
+		float posz = tspr.z;
 
 		if ((orientation & 128) != 0 && (orientation & 48) != 32)
 			posz += (pic.getHeight() * tspr.yrepeat) << 1;
+
 		if (yflip)
 			posz -= (pic.getHeight() * tspr.yrepeat) << 2;
 
-		float f = (tspr.xrepeat / 32.0f) * m.getBScale();
-		float g = (tspr.yrepeat / 32.0f) * m.getBScale();
+		float f = (tspr.xrepeat / 32.0f) * m.getScale();
+//		if ((sprite[tspr.owner].cstat & 48) != 16 && (sprite[tspr.owner].cstat & 48) != 32)
+//			f /= 1.25f;
+		float g = (tspr.yrepeat / 32.0f) * m.getScale();
+
 		transform.setToTranslation(posx / cam.xscale, posy / cam.xscale, posz / cam.yscale);
 		transform.translate(0, 0, -m.getYOffset(false) * g);
 		transform.scale(f, xflip ? -f : f, yflip ? -g : g);
-		transform.translate(-xoff, 0, -yoff - m.getYOffset(true));
-		transform.scale(0.01f, 0.01f, 0.01f);
-		transform.rotate(1, 0, 0, -90.0f);
-		transform.rotate(0, -1, 0, (float) Gameutils.AngleToDegrees(tspr.ang));
+		transform.translate((xoff / 64.0f), 0, (-yoff / 64.0f) - m.getYOffset(true));
+		transform.rotate(0, 0, 1, (float) Gameutils.AngleToDegrees(tspr.ang));
 		if (m.isRotating())
-			transform.rotate(0, 1, 0, totalclock % 360);
+			transform.rotate(0, 0, -1, totalclock % 360);
+
+		transform.rotate(1, 0, 0, -90.0f);
+		transform.scale(0.01f, 0.01f, 0.01f);
 
 		BuildGdx.gl.glEnable(GL_CULL_FACE);
 		if (yflip ^ xflip)
