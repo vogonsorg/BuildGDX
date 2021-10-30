@@ -54,6 +54,7 @@ public class GDXModelRenderer {
 
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;
+
 		float xoff = tspr.xoffset;
 		float yoff = yflip ? -tspr.yoffset : tspr.yoffset;
 		float posx = tspr.x;
@@ -66,14 +67,15 @@ public class GDXModelRenderer {
 			posz += ((pic.getHeight() * 0.5f) - m.zpiv) * tspr.yrepeat * 8.0f;
 
 		float f = (tspr.xrepeat / 32.0f) * m.getScale();
+		float g = (tspr.yrepeat / 32.0f) * m.getScale();
 		if ((sprite[tspr.owner].cstat & 48) != 16 && (sprite[tspr.owner].cstat & 48) != 32)
 			f /= 1.25f;
-		float g = (tspr.yrepeat / 32.0f) * m.getScale();
 
 		transform.setToTranslation(posx / cam.xscale, posy / cam.xscale, posz / cam.yscale);
-		transform.scale(xflip ? -f : f, f, yflip ? -g : g);
-		transform.translate(xoff / 64.0f, 0, -yoff / 64.0f);
+		transform.scale(f, f, yflip ? -g : g);
 		transform.rotate(0, 0, 1, (float) Gameutils.AngleToDegrees(tspr.ang) - 90.0f);
+		transform.scale(xflip ? -1.0f : 1.0f, 1.0f, 1.0f);
+		transform.translate(-xoff / 64.0f, 0, -yoff / 64.0f);
 		if (m.isRotating())
 			transform.rotate(0, 0, -1, totalclock % 360);
 		transform.translate(-m.xpiv / 64.0f, -m.ypiv / 64.0f, -m.zpiv / 64.0f);
@@ -160,20 +162,19 @@ public class GDXModelRenderer {
 			posz -= (pic.getHeight() * tspr.yrepeat) << 2;
 
 		float f = (tspr.xrepeat / 32.0f) * m.getScale();
-//		if ((sprite[tspr.owner].cstat & 48) != 16 && (sprite[tspr.owner].cstat & 48) != 32)
-//			f /= 1.25f;
+		if ((sprite[tspr.owner].cstat & 48) != 16 && (sprite[tspr.owner].cstat & 48) != 32)
+			f /= 1.25f;
 		float g = (tspr.yrepeat / 32.0f) * m.getScale();
 
 		transform.setToTranslation(posx / cam.xscale, posy / cam.xscale, posz / cam.yscale);
 		transform.translate(0, 0, -m.getYOffset(false) * g);
-		transform.scale(f, xflip ? -f : f, yflip ? -g : g);
+		transform.scale(f, f, yflip ? -g : g);
 		transform.translate((xoff / 64.0f), 0, (-yoff / 64.0f) - m.getYOffset(true));
 		transform.rotate(0, 0, 1, (float) Gameutils.AngleToDegrees(tspr.ang));
 		if (m.isRotating())
 			transform.rotate(0, 0, -1, totalclock % 360);
-
+		transform.scale(0.01f, xflip ? -0.01f : 0.01f, 0.01f);
 		transform.rotate(1, 0, 0, -90.0f);
-		transform.scale(0.01f, 0.01f, 0.01f);
 
 		BuildGdx.gl.glEnable(GL_CULL_FACE);
 		if (yflip ^ xflip)
