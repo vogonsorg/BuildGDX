@@ -164,7 +164,7 @@ public class GDXRenderer implements GLRenderer {
 		this.manager = new ShaderManager();
 
 		this.sprR = new SpriteRenderer(engine, this);
-		this.mdR = new GDXModelRenderer(engine, this);
+		this.mdR = new GDXModelRenderer(this);
 		this.orphoRen = allocOrphoRenderer(settings);
 		this.scanner = new SectorScanner(engine) {
 			@Override
@@ -449,13 +449,13 @@ public class GDXRenderer implements GLRenderer {
 					GLVoxel vox = (GLVoxel) modelManager.getVoxel(picnum);
 					if (vox != null) {
 						if ((tspr.cstat & 48) != 48) {
-							if (mdR.voxdraw(vox, tspr) != 0)
+							if (mdR.mddraw(vox, tspr) != 0)
 								return;
 							break; // else, render as flat sprite
 						}
 
 						if ((tspr.cstat & 48) == 48) {
-							mdR.voxdraw(vox, tspr);
+							mdR.mddraw(vox, tspr);
 							return;
 						}
 					}
