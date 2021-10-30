@@ -56,7 +56,7 @@ public abstract class MD3ModelGL10 extends MDModel {
 	protected abstract int bindSkin(final int pal, int skinnum, int surfnum);
 
 	@Override
-	public boolean render(int pal, int shade, int skinnum, int visibility, float alpha) {
+	public boolean render(int pal, int pad1, int skinnum, int pad2, float pad3) {
 		boolean isRendered = false;
 
 		for (int surfi = 0; surfi < numSurfaces; surfi++) {

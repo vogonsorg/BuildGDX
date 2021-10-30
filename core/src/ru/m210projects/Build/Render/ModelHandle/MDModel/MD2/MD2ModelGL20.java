@@ -65,7 +65,7 @@ public abstract class MD2ModelGL20 extends MDModel {
 	protected abstract int bindSkin(final int pal, int skinnum);
 
 	@Override
-	public boolean render(int pal, int shade, int skinnum, int visibility, float alpha) {
+	public boolean render(int pal, int pad1, int skinnum, int pad2, float pad3) {
 		boolean isRendered = false;
 
 		int texunits = bindSkin(pal, skinnum);
@@ -77,7 +77,6 @@ public abstract class MD2ModelGL20 extends MDModel {
 		if (usesalpha)
 			BuildGdx.gl.glDisable(GL_ALPHA_TEST);
 		BuildGdx.gl.glDisable(GL_CULL_FACE);
-		BuildGdx.gl.glLoadIdentity();
 
 		return isRendered;
 	}

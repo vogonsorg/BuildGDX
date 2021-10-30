@@ -62,7 +62,7 @@ public abstract class MD2ModelGL10 extends MDModel {
 	}
 
 	@Override
-	public boolean render(int pal, int shade, int skinnum, int visibility, float alpha) {
+	public boolean render(int pal, int pad1, int skinnum, int pad2, float pad3) {
 		boolean isRendered = false;
 
 		int texunits = bindSkin(pal, skinnum);

@@ -36,7 +36,7 @@ public abstract class VoxelGL20 extends GLVoxel {
 	}
 
 	@Override
-	public boolean render(int pal, int shade, int surfnum, int visibility, float alpha) {
+	public boolean render(int pal, int shade, int pad, int visibility, float alpha) {
 		GLTile skin = getSkin(pal);
 		if (skin == null)
 			return false;

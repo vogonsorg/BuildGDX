@@ -246,10 +246,10 @@ public class PolymostModelRenderer {
 		modela0.x = modela0.y = 0;
 		modela0.z = m.getYOffset(true) * m.getScale();
 
-		float x0 = tspr.x;
-		float k0 = tspr.z;
+		float posx = tspr.x;
+		float posz = tspr.z;
 		if ((globalorientation & 128) != 0 && (globalorientation & 48) != 32)
-			k0 += (pic.getHeight() * tspr.yrepeat) << 1;
+			posz += (pic.getHeight() * tspr.yrepeat) << 1;
 
 		// Parkar: Changed to use the same method as centeroriented sprites
 		if ((globalorientation & 8) != 0) // y-flipping
@@ -258,7 +258,7 @@ public class PolymostModelRenderer {
 			cScale.scl(1, 1, -1);
 			nScale.scl(1, 1, -1);
 			modela0.z = -modela0.z;
-			k0 -= (pic.getHeight() * tspr.yrepeat) << 2;
+			posz -= (pic.getHeight() * tspr.yrepeat) << 2;
 		}
 
 		if ((globalorientation & 4) != 0) // x-flipping
@@ -270,8 +270,8 @@ public class PolymostModelRenderer {
 		}
 //		x0 += xoff * (tspr.xrepeat >> 2);
 //		k0 -= ((yoff * tspr.yrepeat) << 2);
-		x0 += tspr.xrepeat >> 2;
-		k0 -= (tspr.yrepeat << 2);
+		posx += tspr.xrepeat >> 2;
+		posz -= (tspr.yrepeat << 2);
 
 		// yoffset differs from zadd in that it does not follow cstat&8 y-flipping
 		modela0.z += m.getYOffset(false) * m.getScale();
@@ -283,7 +283,7 @@ public class PolymostModelRenderer {
 		modela0.scl(f, -f, z);
 
 		// floor aligned
-		float k1 = tspr.y;
+		float posy = tspr.y;
 		if ((globalorientation & 48) == 32) {
 			cScale.scl(1, -1, -1);
 			nScale.scl(1, -1, -1);
@@ -291,7 +291,7 @@ public class PolymostModelRenderer {
 			f = modela0.x;
 			modela0.x = modela0.z;
 			modela0.z = f;
-			k1 += (pic.getHeight() * tspr.yrepeat) >> 3;
+			posy += (pic.getHeight() * tspr.yrepeat) >> 3;
 		}
 
 		f = (65536.0f * 512.0f) / (xdimen * viewingrange);
@@ -299,9 +299,9 @@ public class PolymostModelRenderer {
 		cScale.scl(f, -f, g);
 		nScale.scl(f, -f, g);
 
-		modela0.y = ((x0 - globalposx) / 1024.0f + modela0.y) * f;
-		modela0.x = ((k1 - globalposy) / 1024.0f + modela0.x) * f;
-		modela0.z = ((k0 - globalposz) / -16384.0f + modela0.z) * g;
+		modela0.y = ((posx - globalposx) / 1024.0f + modela0.y) * f;
+		modela0.x = ((posy - globalposy) / 1024.0f + modela0.x) * f;
+		modela0.z = ((posz - globalposz) / -16384.0f + modela0.z) * g;
 
 //    	md3_vox_calcmat_common(tspr, dvoxa0);
 		md3_vox_calcmat_common(tspr, modela0, f, matrix);

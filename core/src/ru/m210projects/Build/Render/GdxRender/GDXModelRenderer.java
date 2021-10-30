@@ -25,6 +25,7 @@ import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.SPRITE;
+import ru.m210projects.Build.Types.Tile;
 
 public class GDXModelRenderer {
 
@@ -131,41 +132,52 @@ public class GDXModelRenderer {
 	}
 
 	public boolean mddraw(MDModel m, SPRITE tspr) {
-		DefScript defs = parent.defs;
-
 		if (m == null)
 			return false;
 
-		if ((sprite[tspr.owner].cstat & 48) == 32)
-			return false;
-
+		DefScript defs = parent.defs;
 		m.updateanimation(defs.mdInfo, tspr);
 
-		ShaderManager manager = parent.manager;
-		BuildCamera cam = parent.cam;
+		modelPrepare(m, tspr);
 
 		int shade = tspr.shade;
 		int pal = tspr.pal & 0xFF;
+		int vis = globalvisibility;
+		if (sector[tspr.sectnum].visibility != 0)
+			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
+		m.render(pal, shade, defs.mdInfo.getParams(tspr.picnum).skinnum, vis, 1.0f);
+
+		BuildGdx.gl.glFrontFace(GL_CW);
+		return true;
+	}
+
+	private void modelPrepare(MDModel m, SPRITE tspr) {
+		ShaderManager manager = parent.manager;
+		BuildCamera cam = parent.cam;
+
+		Tile pic = engine.getTile(tspr.picnum);
 		int orientation = tspr.cstat;
 
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;
 		float xoff = tspr.xoffset;
-		float yoff = tspr.yoffset;
-		if (yflip)
-			yoff = -yoff;
-
-		float posx = tspr.x;
+		float yoff = yflip ? -tspr.yoffset : tspr.yoffset;
+		float posx = tspr.x + (tspr.xrepeat >> 2);
 		float posy = tspr.y;
-		float posz = tspr.z;
+		float posz = tspr.z - (tspr.yrepeat << 2);
 
-		float sx = 2 * m.getScale();
-		float sy = 2 * m.getScale();
-		float sz = 2 * m.getScale();
+		if ((orientation & 128) != 0 && (orientation & 48) != 32)
+			posz += (pic.getHeight() * tspr.yrepeat) << 1;
+		if (yflip)
+			posz -= (pic.getHeight() * tspr.yrepeat) << 2;
 
+		float f = (tspr.xrepeat / 32.0f) * m.getBScale();
+		float g = (tspr.yrepeat / 32.0f) * m.getBScale();
 		transform.setToTranslation(posx / cam.xscale, posy / cam.xscale, posz / cam.yscale);
-		transform.scale(sx, sy, sz);
-		transform.translate(-xoff / cam.xscale, yoff / cam.xscale, 0);
+		transform.translate(0, 0, -m.getYOffset(false) * g);
+		transform.scale(f, xflip ? -f : f, yflip ? -g : g);
+		transform.translate(-xoff, 0, -yoff - m.getYOffset(true));
+		transform.scale(0.01f, 0.01f, 0.01f);
 		transform.rotate(1, 0, 0, -90.0f);
 		transform.rotate(0, -1, 0, (float) Gameutils.AngleToDegrees(tspr.ang));
 		if (m.isRotating())
@@ -177,10 +189,8 @@ public class GDXModelRenderer {
 		else
 			BuildGdx.gl.glFrontFace(GL_CCW);
 
-		int vis = globalvisibility;
-		if (sector[tspr.sectnum].visibility != 0)
-			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
-
+		parent.switchShader(
+				parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 		manager.transform(transform);
 		manager.frustum(null);
 
@@ -192,11 +202,7 @@ public class GDXModelRenderer {
 				alpha = TRANSLUSCENT2;
 		}
 
-		int skinnum = defs.mdInfo.getParams(tspr.picnum).skinnum;
-		m.render(pal, shade, skinnum, vis, alpha);
-
-		BuildGdx.gl.glFrontFace(GL_CW);
-		return true;
+		manager.color(1.0f, 1.0f, 1.0f, alpha);
 	}
 
 }
