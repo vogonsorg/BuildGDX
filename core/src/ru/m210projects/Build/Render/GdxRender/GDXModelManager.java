@@ -24,6 +24,8 @@ import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDSkinmap;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.MD2Info;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MD2.MD2ModelGL20;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3Info;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MD3.MD3ModelGL20;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelData;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.VoxelGL20;
@@ -100,6 +102,23 @@ public class GDXModelManager extends ModelManager {
 				@Override
 				protected int bindSkin(int pal, int skinnum) {
 					return bindMDSkin(this, pal, skinnum, 0);
+				}
+
+				@Override
+				protected GLTile loadTexture(String skinfile, int palnum) {
+					return loadMDTexture(this, skinfile, palnum);
+				}
+			};
+		case Md3:
+			return new MD3ModelGL20((MD3Info) modelInfo) {
+				@Override
+				public ShaderProgram getShader() {
+					return parent.manager.getProgram();
+				}
+
+				@Override
+				protected int bindSkin(int pal, int skinnum, int surfnum) {
+					return bindMDSkin(this, pal, skinnum, surfnum);
 				}
 
 				@Override

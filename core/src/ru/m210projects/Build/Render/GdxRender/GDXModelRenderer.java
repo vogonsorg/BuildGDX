@@ -64,8 +64,12 @@ public class GDXModelRenderer {
 				transform.rotate(-1.0f, 0.0f, 0.0f, 90);
 				transform.translate(0, -vox.ypiv / 64.0f, -vox.zpiv / 64.0f);
 			}
-		} else if (m instanceof MDModel)
+		} else if (m instanceof MDModel) {
 			((MDModel) m).updateanimation(defs.mdInfo, tspr);
+			if (m.getType() == Type.Md3)
+				transform.scale(1 / 64.0f, 1 / 64.0f, 1 / 64.0f);
+		}
+
 		manager.transform(transport);
 		manager.frustum(null);
 
