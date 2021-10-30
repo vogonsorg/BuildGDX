@@ -3,6 +3,8 @@ package ru.m210projects.Build.Render.ModelHandle.MDModel.MD2;
 import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
 import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
 
+import java.nio.FloatBuffer;
+
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
@@ -19,6 +21,7 @@ public abstract class MD2ModelGL20 extends MDModel {
 	private Mesh mesh;
 	private MD2Frame[] frames;
 	private MD2Triangle[] tris;
+	private float oldinterpol;
 
 	public MD2ModelGL20(MD2Info md) {
 		super(md);
@@ -57,7 +60,7 @@ public abstract class MD2ModelGL20 extends MDModel {
 		short[] ia = indices.toArray();
 
 		int size = 6;
-		mesh = new Mesh(false, va.length / size, ia.length, VertexAttribute.Position(), VertexAttribute.ColorPacked(), VertexAttribute.TexCoords(0));
+		mesh = new Mesh(numframes < 2, va.length / size, ia.length, VertexAttribute.Position(), VertexAttribute.ColorPacked(), VertexAttribute.TexCoords(0));
 		mesh.setVertices(va);
 		mesh.setIndices(ia);
 	}
@@ -67,6 +70,28 @@ public abstract class MD2ModelGL20 extends MDModel {
 	@Override
 	public boolean render(int pal, int pad1, int skinnum, int pad2, float pad3) {
 		boolean isRendered = false;
+
+		if(numframes > 2 && interpol != oldinterpol) { // mesh update
+			int pos = 0;
+			oldinterpol = interpol;
+			float f = interpol;
+			float g = 1 - f;
+
+			FloatBuffer vertices = mesh.getVerticesBuffer();
+			MD2Frame cframe = frames[this.cframe], nframe = frames[this.nframe];
+			for (int i = 0; i < tris.length; i++) {
+				for (int j = 0; j < 3; j++) {
+					int idx = tris[i].vertices[j];
+					float x = cframe.vertices[idx][0] * g + nframe.vertices[idx][0] * f;
+					float y = cframe.vertices[idx][1] * g + nframe.vertices[idx][1] * f;
+					float z = cframe.vertices[idx][2] * g + nframe.vertices[idx][2] * f;
+					vertices.put(pos++, x);
+					vertices.put(pos++, z);
+					vertices.put(pos++, y);
+					pos += 3;
+				}
+			}
+		}
 
 		int texunits = bindSkin(pal, skinnum);
 		if (texunits != -1) {

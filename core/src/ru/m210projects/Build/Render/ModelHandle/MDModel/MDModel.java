@@ -40,10 +40,8 @@ public abstract class MDModel implements GLModel {
 
 	public int numframes, cframe, nframe, fpssc;
 	public boolean usesalpha;
-	public float oldtime, curtime, interpol;
+	public float interpol;
 	public MDAnimation animations;
-	public long mdanimtims;
-	public short mdanimcur;
 
 	protected int flags;
 	protected float yoffset, zadd, bscale;

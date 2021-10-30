@@ -38,6 +38,9 @@ import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
 import static ru.m210projects.Build.Pragmas.dmulscale;
 import static ru.m210projects.Build.Pragmas.mulscale;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdpause;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.mdtims;
+import static ru.m210projects.Build.Render.ModelHandle.MDModel.MDAnimation.omdtims;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -88,6 +91,7 @@ import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
+import ru.m210projects.Build.Script.ModelsInfo.SpriteAnim;
 import ru.m210projects.Build.Settings.BuildSettings;
 import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SECTOR;
@@ -712,6 +716,26 @@ public class GDXRenderer implements GLRenderer {
 		orphoRen.nextpage();
 		manager.unbind();
 		textureCache.unbind();
+
+		omdtims = mdtims;
+		mdtims = engine.getticks();
+
+		for (int i = 0; i < MAXSPRITES; i++) {
+			if (mdpause != 0) {
+				SpriteAnim sprext = defs.mdInfo.getAnimParams(i);
+				if (sprext == null)
+					continue;
+
+				boolean isAnimationDisabled = false;
+				Spriteext inf = defs.mapInfo.getSpriteInfo(i);
+				if (inf != null)
+					isAnimationDisabled = inf.isAnimationDisabled();
+
+				if ((mdpause != 0 && sprext.mdanimtims != 0) || isAnimationDisabled)
+					sprext.mdanimtims += mdtims - omdtims;
+			}
+		}
+
 		beforedrawrooms = 1;
 
 //		if (shape != null)
