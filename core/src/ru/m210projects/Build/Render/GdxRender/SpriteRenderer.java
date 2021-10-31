@@ -590,9 +590,9 @@ public class SpriteRenderer {
 		if (sector[tspr.sectnum].visibility != 0)
 			vis = mulscale(globalvisibility, (sector[tspr.sectnum].visibility + 16) & 0xFF, 4);
 
-		// TODO: set FOG ?
 		if (tex.getPixelFormat() == PixelFormat.Pal8)
 			((IndexedShader) manager.getProgram()).setVisibility((int) (-vis / 64.0f));
+		else parent.calcFog(pal, shade, vis);
 
 		boolean xflip = (orientation & 4) != 0;
 		boolean yflip = (orientation & 8) != 0;

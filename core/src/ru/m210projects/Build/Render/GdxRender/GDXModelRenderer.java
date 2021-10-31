@@ -1,11 +1,15 @@
 package ru.m210projects.Build.Render.GdxRender;
 
+import static com.badlogic.gdx.graphics.GL20.GL_BLEND;
 import static com.badlogic.gdx.graphics.GL20.GL_CCW;
 import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
 import static com.badlogic.gdx.graphics.GL20.GL_CW;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.globalvisibility;
+import static ru.m210projects.Build.Engine.numshades;
 import static ru.m210projects.Build.Engine.sector;
 import static ru.m210projects.Build.Engine.totalclock;
 import static ru.m210projects.Build.Pragmas.mulscale;
@@ -22,6 +26,8 @@ import ru.m210projects.Build.Render.ModelHandle.ModelInfo.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.Voxel.GLVoxel;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
+import ru.m210projects.Build.Render.Types.Palette;
+import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
@@ -46,10 +52,8 @@ public class GDXModelRenderer {
 		if (m.getType() == Type.Voxel && isFloorAligned)
 			return false;
 
-		// TODO: Bind skin here
-
 		Shader shader = Shader.RGBWorldShader;
-		if(m.getType() == Type.Voxel && parent.getTexFormat() == PixelFormat.Pal8)
+		if (m.getType() == Type.Voxel && parent.getTexFormat() == PixelFormat.Pal8)
 			shader = Shader.IndexedWorldShader;
 		parent.switchShader(shader);
 
@@ -67,24 +71,40 @@ public class GDXModelRenderer {
 		} else if (m instanceof MDModel) {
 			((MDModel) m).updateanimation(defs.mdInfo, tspr);
 			if (m.getType() == Type.Md3)
-				transform.scale(1 / 64.0f, 1 / 64.0f, 1 / 64.0f);
+				transform.scale(1 / 64.0f, 1 / 64.0f, -1 / 64.0f);
 		}
 
 		manager.transform(transport);
 		manager.frustum(null);
 
-		float alpha = 1.0f;
+		int shade = tspr.shade;
+		int pal = tspr.pal & 0xFF;
+
+		float r, g, b, alpha = 1.0f;
+		r = g = b = (numshades - min(max((shade), 0), numshades)) / (float) numshades;
+
+		if (parent.defs != null) {
+			Palette p = parent.defs.texInfo.getTints(pal);
+			r *= p.r / 255.0f;
+			g *= p.g / 255.0f;
+			b *= p.b / 255.0f;
+		}
+
 		if ((tspr.cstat & 2) != 0) {
 			if ((tspr.cstat & 512) == 0)
 				alpha = TRANSLUSCENT1;
 			else
 				alpha = TRANSLUSCENT2;
 		}
-		manager.color(1.0f, 1.0f, 1.0f, alpha);
-		manager.textureTransform(parent.texture_transform.idt(), 0);
 
+		manager.color(r, g, b, alpha);
+		manager.textureTransform(parent.texture_transform.idt(), 0);
 		int vis = getVisibility(tspr);
-		m.render(tspr.pal & 0xFF, tspr.shade, defs.mdInfo.getParams(tspr.picnum).skinnum, vis, alpha);
+		if (m.getType() != Type.Voxel)
+			parent.calcFog(pal, shade, vis);
+
+		BuildGdx.gl.glEnable(GL_BLEND);
+		m.render(pal, shade, defs.mdInfo.getParams(tspr.picnum).skinnum, vis, alpha);
 
 		BuildGdx.gl.glFrontFace(GL_CW);
 		return true;
@@ -140,7 +160,10 @@ public class GDXModelRenderer {
 			yoffset = md.getYOffset(true);
 		}
 		transform.scale(f, f, yflip ? -g : g);
-		transform.rotate(0, 0, 1, (float) Gameutils.AngleToDegrees(tspr.ang));
+
+		Spriteext sprext = parent.defs.mapInfo.getSpriteInfo(tspr.owner);
+		float ang = tspr.ang + (sprext != null ? sprext.angoff : 0);
+		transform.rotate(0, 0, 1, (float) Gameutils.AngleToDegrees(ang));
 		transform.scale(isFloorAligned ? -1.0f : 1.0f, xflip ^ isFloorAligned ? -1.0f : 1.0f, 1.0f);
 		if (m.getType() == Type.Voxel)
 			transform.rotate(0, 0, -1, 90.0f);
@@ -154,9 +177,9 @@ public class GDXModelRenderer {
 
 		BuildGdx.gl.glEnable(GL_CULL_FACE);
 		if (yflip ^ xflip)
-			BuildGdx.gl.glFrontFace(m.getType() == Type.Voxel ? GL_CCW : GL_CW);
+			BuildGdx.gl.glFrontFace(m.getType() != Type.Md2 ? GL_CCW : GL_CW);
 		else
-			BuildGdx.gl.glFrontFace(m.getType() == Type.Voxel ? GL_CW : GL_CCW);
+			BuildGdx.gl.glFrontFace(m.getType() != Type.Md2 ? GL_CW : GL_CCW);
 		return transform;
 	}
 

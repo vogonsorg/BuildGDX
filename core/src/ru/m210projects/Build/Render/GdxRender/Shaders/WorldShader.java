@@ -20,7 +20,6 @@ public class WorldShader {
 			+ "uniform bool u_mirror;\n" //
 			+ "\n" //
 			+ "varying LOWP float v_dist;\n" //
-			+ "varying vec3 v_pos;\n" //
 			+ "varying vec2 v_texCoords;\n" //
 			+ "varying vec4 v_color;\n" //
 			+ "\n" //
@@ -108,7 +107,6 @@ public class WorldShader {
 			+ "}"; //
 
 	public static final String fragmentRGB = "uniform sampler2D u_texture;\n" //
-			+ "varying float v_dist;\n" //
 			+ "varying vec2 v_texCoords;\n" //
 			+ "varying vec4 v_color;\n" //
 			+ "\n" //
@@ -117,7 +115,14 @@ public class WorldShader {
 			+ "uniform vec4 u_viewport;\n" //
 			+ "uniform vec4 u_color;\n" //
 			+ "uniform int u_planeClipping;\n" //
+			+ "uniform bool u_fogEnable;\n" //
+			+ "uniform float u_fogEnd;\n" //
+			+ "uniform float u_fogStart;\n" //
+			+ "uniform vec3 u_fogColor;\n" //
 			+ "\n" //
+			+ "float calcFog(float dist) { \n" //
+			+ "	   return clamp(1.0 - (u_fogEnd - dist) / (u_fogEnd - u_fogStart), 0.0, 1.0); \n" //
+			+ "} \n" //
 			+ "vec4 getPos() {\n" //
 			+ "    vec4 ndc;\n" //
 			+ "	   vec2 xy = gl_FragCoord.xy - vec2(u_viewport.xy);" //
@@ -149,7 +154,12 @@ public class WorldShader {
 			+ "		 || gl_FragCoord.y < u_viewport.w || gl_FragCoord.y > u_viewport.y))" //
 			+ "		   discard;" //
 			+ "\n" //
-			+ "	   gl_FragColor = u_color * v_color * texture2D(u_texture, v_texCoords);\n" //
+			+ "	   vec4 src = u_color * v_color * texture2D(u_texture, v_texCoords);\n" //
+			+ "	   if(u_fogEnable) {\n" //
+			+ "        gl_FragColor = mix(src, vec4(u_fogColor, 1.0), calcFog((gl_FragCoord.z / gl_FragCoord.w) / 64.0));\n" //
+			+ "        gl_FragColor.a = src.a;\n" //
+			+ "    }\n" //
+			+ "    else gl_FragColor = src;\n" //
 			+ "}"; //
 
 }

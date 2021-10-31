@@ -1,8 +1,5 @@
 package ru.m210projects.Build.Render.ModelHandle.MDModel.MD3;
 
-import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
-
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
@@ -11,9 +8,8 @@ import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.utils.NumberUtils;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
-import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 import ru.m210projects.Build.Render.ModelHandle.ModelInfo.Type;
+import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 
 public abstract class MD3ModelGL20 extends MDModel {
 
@@ -83,10 +79,6 @@ public abstract class MD3ModelGL20 extends MDModel {
 			} else
 				break;
 		}
-
-		if (usesalpha)
-			BuildGdx.gl.glDisable(GL_ALPHA_TEST);
-		BuildGdx.gl.glDisable(GL_CULL_FACE);
 
 		return isRendered;
 	}

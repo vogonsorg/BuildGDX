@@ -1055,6 +1055,8 @@ public class GDXOrtho extends OrphoRenderer {
 	}
 
 	private void setupMatrices() {
+		manager.mirror(false);
+		manager.fog(false, 0, 0, 0, 0, 0);
 		if (manager.getShader() != Shader.BitmapShader) {
 			manager.projection(projectionMatrix).view(parent.identity);
 			manager.transform(parent.identity);

@@ -33,6 +33,8 @@ import static com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA;
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 import static com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 import static com.badlogic.gdx.graphics.GL20.GL_VERSION;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.OnSceenDisplay.Console.OSDTEXT_GOLD;
 import static ru.m210projects.Build.Pragmas.divscale;
@@ -50,6 +52,7 @@ import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix3;
@@ -89,6 +92,7 @@ import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
 import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
+import ru.m210projects.Build.Render.Types.Palette;
 import ru.m210projects.Build.Render.Types.Spriteext;
 import ru.m210projects.Build.Script.DefScript;
 import ru.m210projects.Build.Script.ModelsInfo.SpriteAnim;
@@ -104,12 +108,11 @@ import ru.m210projects.Build.Types.WALL;
 public class GDXRenderer implements GLRenderer {
 
 //	TODO:
-//  Precache all models loading
 //  Skies panning
-//  Tekwar skies
-//	Hires + models
-//  RGB shader fog
+//  Tekwar skies bug
+//	Hires (Models) detail, glow
 //  Overheadmap sector visible check
+//  Overheadmap projection bug (Duke E1L3) - with Hires?
 
 //	Sprite ZFighting
 //	Blood drunk effect
@@ -160,6 +163,10 @@ public class GDXRenderer implements GLRenderer {
 	protected ArrayList<VisibleSector> sectors = new ArrayList<VisibleSector>();
 	private ArrayList<GLSurface> bunchfirst = new ArrayList<GLSurface>();
 	protected boolean[] mirrorTextures = new boolean[MAXTILES];
+
+	protected int FOGDISTCONST = 48;
+	protected final float FULLVIS_BEGIN = (float) 2.9e30;
+	protected final float FULLVIS_END = (float) 3.0e30;
 
 	public GDXRenderer(Engine engine, IOverheadMapSettings settings) {
 		this.engine = engine;
@@ -629,6 +636,7 @@ public class GDXRenderer implements GLRenderer {
 			if ((method & 3) != 0)
 				Gdx.gl.glEnable(GL_BLEND);
 
+			manager.fog(false, 0, 0, 0, 0, 0);
 			manager.transform(worldTransform);
 			manager.frustum(null);
 
@@ -664,8 +672,10 @@ public class GDXRenderer implements GLRenderer {
 					combvis = mulscale(globalvisibility, (vis + 16) & 0xFF, 4);
 
 				if (pth.getPixelFormat() == PixelFormat.Pal8)
-					// TODO: set FOG ?
 					((IndexedShader) manager.getProgram()).setVisibility((int) (-combvis / 64.0f));
+				else {
+					calcFog(surf.getPal(), surf.getShade(), combvis);
+				}
 
 				if (pth.isHighTile()) {
 					int tsizy = 1;
@@ -693,6 +703,26 @@ public class GDXRenderer implements GLRenderer {
 				surf.render(manager.getProgram());
 			}
 		}
+	}
+
+	protected void calcFog(int pal, int shade, float combvis) {
+		float start = FULLVIS_BEGIN;
+		float end = FULLVIS_END;
+		if (combvis != 0) {
+			if (shade >= numshades - 1) {
+				start = -1;
+				end = 0.001f;
+			} else {
+				start = (shade > 0) ? 0 : -(FOGDISTCONST * shade) / combvis;
+				end = (FOGDISTCONST * (numshades - 1 - shade)) / combvis;
+			}
+		}
+
+		float r = (palookupfog[pal][0] / 63.f);
+		float g = (palookupfog[pal][1] / 63.f);
+		float b = (palookupfog[pal][2] / 63.f);
+
+		manager.fog(true, start, end, r, g, b);
 	}
 
 	@Override
@@ -1166,15 +1196,12 @@ public class GDXRenderer implements GLRenderer {
 			manager.textureTransform(texture_transform.idt(), 0);
 			manager.textureParams8(pal, shade, alpha, (method & 3) == 0 || !textureCache.alphaMode(method));
 		} else {
-			// XXX
-			// texture scale by parkar request
 			texture_transform.idt();
 			if (tile.isHighTile() && ((tile.getHiresXScale() != 1.0f) || (tile.getHiresYScale() != 1.0f))
 					&& Rendering.Skybox.getIndex() == 0) {
 				texture_transform.scale(tile.getHiresXScale(), tile.getHiresYScale());
 			}
 			manager.textureTransform(texture_transform, 0);
-			manager.color(1.0f, 1.0f, 1.0f, alpha);
 
 			if (GLInfo.multisample != 0 && GLSettings.useHighTile.get() && Rendering.Skybox.getIndex() == 0) {
 //				if (Console.Geti("r_detailmapping") != 0) {
@@ -1199,6 +1226,30 @@ public class GDXRenderer implements GLRenderer {
 //					}
 //				}
 			}
+
+			float r, b, g;
+			float fshade = min(max(shade * 1.04f, 0), numshades);
+			r = g = b = (numshades - fshade) / numshades;
+
+			if (defs != null && tile.isHighTile() && defs.texInfo != null) {
+				if (tile.getPal() != pal) {
+					// apply tinting for replaced textures
+
+					Palette p = defs.texInfo.getTints(pal);
+					r *= p.r / 255.0f;
+					g *= p.g / 255.0f;
+					b *= p.b / 255.0f;
+				}
+
+				Palette pdetail = defs.texInfo.getTints(MAXPALOOKUPS - 1);
+				if (pdetail.r != 255 || pdetail.g != 255 || pdetail.b != 255) {
+					r *= pdetail.r / 255.0f;
+					g *= pdetail.g / 255.0f;
+					b *= pdetail.b / 255.0f;
+				}
+			}
+
+			manager.color(r, g, b, alpha);
 		}
 	}
 
@@ -1292,6 +1343,7 @@ public class GDXRenderer implements GLRenderer {
 		ShaderProgram out = manager.bind(shader);
 		manager.mirror(inpreparemirror);
 		manager.prepare(cam);
+		// TODO: add texture transform here
 
 		return out;
 	}

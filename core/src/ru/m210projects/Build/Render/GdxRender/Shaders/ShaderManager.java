@@ -6,6 +6,7 @@ import static ru.m210projects.Build.Engine.windowy1;
 import static ru.m210projects.Build.Engine.windowy2;
 import static ru.m210projects.Build.Engine.ydim;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix3;
 import com.badlogic.gdx.math.Matrix4;
@@ -128,6 +129,17 @@ public class ShaderManager {
 
 		for (Shader sh : Shader.values())
 			sh.set(null);
+	}
+
+	public void fog(boolean enable, float start, float end, float r, float g, float b) {
+		switch (getShader()) {
+		case RGBWorldShader:
+			texshader32.setUniformi("u_fogEnable", enable ? 1 : 0);
+			texshader32.setUniformf("u_fogStart", start);
+			texshader32.setUniformf("u_fogEnd", end);
+			texshader32.setUniformf("u_fogColor", r, g, b);
+			break;
+		}
 	}
 
 	public void mirror(boolean mirror) {

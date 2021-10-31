@@ -1,8 +1,5 @@
 package ru.m210projects.Build.Render.ModelHandle.MDModel.MD2;
 
-import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
-import static ru.m210projects.Build.Render.Types.GL10.GL_ALPHA_TEST;
-
 import java.nio.FloatBuffer;
 
 import com.badlogic.gdx.graphics.GL20;
@@ -12,7 +9,6 @@ import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.NumberUtils;
 import com.badlogic.gdx.utils.ShortArray;
 
-import ru.m210projects.Build.Architecture.BuildGdx;
 import ru.m210projects.Build.Render.ModelHandle.ModelInfo.Type;
 import ru.m210projects.Build.Render.ModelHandle.MDModel.MDModel;
 
@@ -98,10 +94,6 @@ public abstract class MD2ModelGL20 extends MDModel {
 			mesh.render(getShader(), GL20.GL_TRIANGLES);
 			isRendered = true;
 		}
-
-		if (usesalpha)
-			BuildGdx.gl.glDisable(GL_ALPHA_TEST);
-		BuildGdx.gl.glDisable(GL_CULL_FACE);
 
 		return isRendered;
 	}
