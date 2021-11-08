@@ -1,16 +1,22 @@
 package ru.m210projects.Build.Render.GdxRender;
 
 import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
+import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static ru.m210projects.Build.Engine.*;
 import static ru.m210projects.Build.Engine.MAXSPRITESONSCREEN;
 import static ru.m210projects.Build.Engine.MAXTILES;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT1;
 import static ru.m210projects.Build.Engine.TRANSLUSCENT2;
 import static ru.m210projects.Build.Engine.beforedrawrooms;
 import static ru.m210projects.Build.Engine.curpalette;
+import static ru.m210projects.Build.Engine.globalang;
 import static ru.m210projects.Build.Engine.globalpal;
+import static ru.m210projects.Build.Engine.globalposx;
+import static ru.m210projects.Build.Engine.globalposy;
+import static ru.m210projects.Build.Engine.globalposz;
 import static ru.m210projects.Build.Engine.globalshade;
 import static ru.m210projects.Build.Engine.gotsector;
 import static ru.m210projects.Build.Engine.headspritesect;
@@ -28,6 +34,10 @@ import static ru.m210projects.Build.Engine.sintable;
 import static ru.m210projects.Build.Engine.sprite;
 import static ru.m210projects.Build.Engine.tsprite;
 import static ru.m210projects.Build.Engine.wall;
+import static ru.m210projects.Build.Engine.windowx1;
+import static ru.m210projects.Build.Engine.windowx2;
+import static ru.m210projects.Build.Engine.windowy1;
+import static ru.m210projects.Build.Engine.windowy2;
 import static ru.m210projects.Build.Engine.wx1;
 import static ru.m210projects.Build.Engine.wx2;
 import static ru.m210projects.Build.Engine.wy1;
@@ -37,7 +47,9 @@ import static ru.m210projects.Build.Engine.xdimen;
 import static ru.m210projects.Build.Engine.xdimenscale;
 import static ru.m210projects.Build.Engine.xyaspect;
 import static ru.m210projects.Build.Engine.ydim;
+import static ru.m210projects.Build.Engine.ydimen;
 import static ru.m210projects.Build.Engine.yxaspect;
+import static ru.m210projects.Build.Gameutils.AngleToRadians;
 import static ru.m210projects.Build.Gameutils.buildAngleToDegrees;
 import static ru.m210projects.Build.Gameutils.buildAngleToRadians;
 import static ru.m210projects.Build.Gameutils.isValidSector;
@@ -59,6 +71,8 @@ import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.NumberUtils;
 
 import ru.m210projects.Build.Gameutils;
@@ -74,6 +88,9 @@ import ru.m210projects.Build.Render.TextureHandle.DummyTileData;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
+import ru.m210projects.Build.Render.Types.Hudtyp;
+import ru.m210projects.Build.Render.Types.Tile2model;
+import ru.m210projects.Build.Settings.GLSettings;
 import ru.m210projects.Build.Types.SECTOR;
 import ru.m210projects.Build.Types.SPRITE;
 import ru.m210projects.Build.Types.Tile;
@@ -100,6 +117,7 @@ public class GDXOrtho extends OrphoRenderer {
 	protected int cx1, cy1, cx2, cy2;
 
 	protected ShaderManager manager;
+	private SPRITE hudsprite;
 
 	private final int maxSpriteCount = 128;
 
@@ -286,6 +304,15 @@ public class GDXOrtho extends OrphoRenderer {
 		if (z <= 16)
 			return;
 
+		if (GLSettings.useModels.get() && parent.defs != null && parent.defs.mdInfo.getHudInfo(picnum, dastat) != null
+				&& parent.defs.mdInfo.getHudInfo(picnum, dastat).angadd != 0) {
+			Tile2model entry = parent.defs != null ? parent.defs.mdInfo.getParams(picnum) : null;
+			if (entry != null && entry.model != null && entry.framenum >= 0) {
+				dorotatesprite3d(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
+				return;
+			}
+		}
+
 		if (engine.getTile(picnum).getType() != AnimType.None)
 			picnum += engine.animateoffs(picnum, 0xC000);
 
@@ -364,6 +391,105 @@ public class GDXOrtho extends OrphoRenderer {
 			switchTextureParams(dapalnum, dashade, alpha, blendingDisabled || (method & 256) != 0);
 
 		draw(pth, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
+	}
+
+	public void dorotatesprite3d(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
+			int cy1, int cx2, int cy2) {
+
+		Hudtyp hudInfo = null;
+		if (parent.defs == null
+				|| ((hudInfo = parent.defs.mdInfo.getHudInfo(picnum, dastat)) != null && (hudInfo.flags & 1) != 0))
+			return; // "HIDE" is specified in DEF
+
+		float yaw = (float) AngleToRadians(globalang);
+		float gcosang = MathUtils.cos(yaw);
+		float gsinang = MathUtils.sin(yaw);
+
+		float x1 = hudInfo.xadd;
+		float y1 = hudInfo.yadd;
+		float z1 = hudInfo.zadd;
+
+		if ((hudInfo.flags & 2) == 0) { // "NOBOB" is specified in DEF
+			float fx = sx * (1.0f / 65536.0f);
+			float fy = sy * (1.0f / 65536.0f);
+
+			if ((dastat & 16) != 0) {
+				Tile pic = engine.getTile(picnum);
+
+				int xsiz = pic.getWidth();
+				int ysiz = pic.getHeight();
+				int xoff = pic.getOffsetX() + (xsiz >> 1);
+				int yoff = pic.getOffsetY() + (ysiz >> 1);
+
+				float d = z / (65536.0f * 16384.0f);
+				float cosang, sinang;
+				float cosang2 = cosang = sintable[(a + 512) & 2047] * d;
+				float sinang2 = sinang = sintable[a & 2047] * d;
+				if ((dastat & 2) != 0 || ((dastat & 8) == 0)) { // Don't aspect unscaled perms
+					d = xyaspect / 65536.0f;
+					cosang2 *= d;
+					sinang2 *= d;
+				}
+
+				fx += -xoff * cosang2 + yoff * sinang2;
+				fy += -xoff * sinang - yoff * cosang;
+			}
+
+			if ((dastat & 2) == 0) {
+				x1 += fx / (xdim << 15) - 1.0f; // -1: left of screen, +1: right of screen
+				y1 += fy / (ydim << 15) - 1.0f; // -1: top of screen, +1: bottom of screen
+			} else {
+				x1 += fx / 160.0f - 1.0f; // -1: left of screen, +1: right of screen
+				y1 += fy / 100.0f - 1.0f; // -1: top of screen, +1: bottom of screen
+			}
+		}
+
+		if ((dastat & 4) != 0) {
+			x1 = -x1;
+			y1 = -y1;
+		}
+
+		if (hudsprite == null)
+			hudsprite = new SPRITE();
+		hudsprite.reset((byte) 0);
+
+		hudsprite.ang = (short) (hudInfo.angadd + globalang);
+		hudsprite.xrepeat = hudsprite.yrepeat = 32;
+
+		hudsprite.x = (int) ((gcosang * z1 - gsinang * x1) * 1024.0f + globalposx);
+		hudsprite.y = (int) ((gsinang * z1 + gcosang * x1) * 1024.0f + globalposy);
+		hudsprite.z = (int) (globalposz + y1 * 16384.0f * 0.8f);
+
+		hudsprite.picnum = (short) picnum;
+		hudsprite.shade = (byte) dashade;
+		hudsprite.pal = (short) dapalnum;
+		hudsprite.owner = (short) MAXSPRITES;
+		hudsprite.cstat = (short) ((dastat & 1) + ((dastat & 32) << 4) + ((dastat & 4) << 1));
+
+		if ((dastat & 10) == 2)
+			parent.resizeglcheck();
+		else
+			parent.set2dview();
+
+		if ((hudInfo.flags & 8) != 0) // NODEPTH flag
+			BuildGdx.gl.glDisable(GL_DEPTH_TEST);
+		else {
+			BuildGdx.gl.glEnable(GL_DEPTH_TEST);
+			BuildGdx.gl.glClear(GL_DEPTH_BUFFER_BIT);
+		}
+
+		BuildCamera cam = parent.cam;
+
+		float aspect = xdim / (float) ydim;
+		float f = 1.0f;
+		if (hudInfo.fov != -1)
+			f = hudInfo.fov / 350.0f;
+		cam.projection.setToProjection(cam.near, cam.far, 70 * f, aspect);
+		cam.view.setToLookAt(cam.direction.set(gcosang, gsinang, 0), cam.up).translate(-cam.position.x, -cam.position.y, -cam.position.z);
+		cam.combined.set(cam.projection);
+		Matrix4.mul(cam.combined.val, cam.view.val);
+
+		parent.mdR.mddraw(parent.modelManager.getModel(picnum, dapalnum), hudsprite);
 	}
 
 	public void draw(GLTile tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, int angle, int z,

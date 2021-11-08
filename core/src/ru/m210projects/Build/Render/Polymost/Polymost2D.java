@@ -83,6 +83,7 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import ru.m210projects.Build.Render.GLInfo;
@@ -1326,18 +1327,21 @@ public class Polymost2D extends OrphoRenderer {
 				y1 += fy / 100.0 - 1.0; // -1: top of screen, +1: bottom of screen
 			}
 		}
-		hudsprite.ang = (short) (hudInfo.angadd + globalang);
 
 		if ((dastat & 4) != 0) {
 			x1 = -x1;
 			y1 = -y1;
 		}
 
+		hudsprite.ang = (short) (hudInfo.angadd + globalang);
 		hudsprite.xrepeat = hudsprite.yrepeat = 32;
 
-		hudsprite.x = (int) (((double) parent.gcosang * z1 - (double) parent.gsinang * x1) * 16384.0 + globalposx);
-		hudsprite.y = (int) (((double) parent.gsinang * z1 + (double) parent.gcosang * x1) * 16384.0 + globalposy);
-		hudsprite.z = (int) (globalposz + y1 * 16384.0 * 0.8);
+		float cos = parent.gcosang * 16.0f;
+		float sin = parent.gsinang * 16.0f;
+
+		hudsprite.x = (int) ((cos * z1 - sin * x1) * 1024.0f + globalposx);
+		hudsprite.y = (int) ((sin * z1 + cos * x1) * 1024.0f + globalposy);
+		hudsprite.z = (int) (globalposz + y1 * 16384.0f * 0.8f);
 
 		hudsprite.picnum = (short) picnum;
 		hudsprite.shade = (byte) dashade;

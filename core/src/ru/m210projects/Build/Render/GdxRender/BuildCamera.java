@@ -1,6 +1,8 @@
 package ru.m210projects.Build.Render.GdxRender;
 
-import static ru.m210projects.Build.Gameutils.*;
+import static ru.m210projects.Build.Gameutils.AngleToRadians;
+import static ru.m210projects.Build.Gameutils.BClampAngle;
+import static ru.m210projects.Build.Gameutils.radiansToBuildAngle;
 
 import java.util.ArrayList;
 
@@ -9,9 +11,8 @@ import com.badlogic.gdx.math.Frustum;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
-import com.badlogic.gdx.math.Vector3;
-
 import com.badlogic.gdx.math.Plane.PlaneSide;
+import com.badlogic.gdx.math.Vector3;
 
 public class BuildCamera extends PerspectiveCamera {
 
