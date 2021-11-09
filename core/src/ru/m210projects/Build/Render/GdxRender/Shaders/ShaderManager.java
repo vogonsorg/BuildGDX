@@ -142,6 +142,19 @@ public class ShaderManager {
 		}
 	}
 
+	public void fog(Shader shader, boolean enable, float start, float end, float r, float g, float b) {
+		check(shader);
+
+		switch (shader) {
+		case RGBWorldShader:
+			texshader32.setUniformi("u_fogEnable", enable ? 1 : 0);
+			texshader32.setUniformf("u_fogStart", start);
+			texshader32.setUniformf("u_fogEnd", end);
+			texshader32.setUniformf("u_fogColor", r, g, b);
+			break;
+		}
+	}
+
 	public void mirror(boolean mirror) {
 		switch (getShader()) {
 		case IndexedWorldShader:
@@ -516,6 +529,19 @@ public class ShaderManager {
 		currentShaderProgram = null;
 		currentShader = null;
 		return sh;
+	}
+
+	public void reset() {
+
+		for (Shader sh : Shader.values()) {
+			this.textureParams8(sh, 0, 0, 0, false);
+			this.fog(sh, false, 0, 0, 0, 0, 0);
+			this.viewport(sh, 0, 0, 0, 0);
+			this.color(sh, 0,0,0);
+			this.mirror(sh, false);
+		}
+
+		unbind();
 	}
 
 	public void unbind() {

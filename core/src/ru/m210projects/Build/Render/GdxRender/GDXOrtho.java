@@ -1,6 +1,7 @@
 package ru.m210projects.Build.Render.GdxRender;
 
-import static com.badlogic.gdx.graphics.GL20.GL_CULL_FACE;
+import static com.badlogic.gdx.graphics.GL20.*;
+import static com.badlogic.gdx.graphics.GL20.GL_CW;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_BUFFER_BIT;
 import static com.badlogic.gdx.graphics.GL20.GL_DEPTH_TEST;
 import static java.lang.Math.max;
@@ -88,6 +89,7 @@ import ru.m210projects.Build.Render.TextureHandle.DummyTileData;
 import ru.m210projects.Build.Render.TextureHandle.GLTile;
 import ru.m210projects.Build.Render.TextureHandle.IndexedShader;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
+import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.Hudtyp;
 import ru.m210projects.Build.Render.Types.Tile2model;
 import ru.m210projects.Build.Settings.GLSettings;
@@ -308,8 +310,8 @@ public class GDXOrtho extends OrphoRenderer {
 				&& parent.defs.mdInfo.getHudInfo(picnum, dastat).angadd != 0) {
 			Tile2model entry = parent.defs != null ? parent.defs.mdInfo.getParams(picnum) : null;
 			if (entry != null && entry.model != null && entry.framenum >= 0) {
-				dorotatesprite3d(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2);
-				return;
+				if(dorotatesprite3d(sx, sy, z, a, picnum, dashade, dapalnum, dastat, cx1, cy1, cx2, cy2))
+					return;
 			}
 		}
 
@@ -393,13 +395,16 @@ public class GDXOrtho extends OrphoRenderer {
 		draw(pth, sx, sy, xsiz, ysiz, xoff, yoff, a, z, dastat, cx1, cy1, cx2, cy2);
 	}
 
-	public void dorotatesprite3d(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
+	public boolean dorotatesprite3d(int sx, int sy, int z, int a, int picnum, int dashade, int dapalnum, int dastat, int cx1,
 			int cy1, int cx2, int cy2) {
 
 		Hudtyp hudInfo = null;
 		if (parent.defs == null
 				|| ((hudInfo = parent.defs.mdInfo.getHudInfo(picnum, dastat)) != null && (hudInfo.flags & 1) != 0))
-			return; // "HIDE" is specified in DEF
+			return true; // "HIDE" is specified in DEF
+
+		if (isDrawing())
+			end();
 
 		float yaw = (float) AngleToRadians(globalang);
 		float gcosang = MathUtils.cos(yaw);
@@ -456,15 +461,15 @@ public class GDXOrtho extends OrphoRenderer {
 		hudsprite.ang = (short) (hudInfo.angadd + globalang);
 		hudsprite.xrepeat = hudsprite.yrepeat = 32;
 
-		hudsprite.x = (int) ((gcosang * z1 - gsinang * x1) * 1024.0f + globalposx);
-		hudsprite.y = (int) ((gsinang * z1 + gcosang * x1) * 1024.0f + globalposy);
+		hudsprite.x = (int) ((gcosang * z1 - gsinang * x1) * 800.0f + globalposx);
+		hudsprite.y = (int) ((gsinang * z1 + gcosang * x1) * 800.0f + globalposy);
 		hudsprite.z = (int) (globalposz + y1 * 16384.0f * 0.8f);
 
 		hudsprite.picnum = (short) picnum;
 		hudsprite.shade = (byte) dashade;
 		hudsprite.pal = (short) dapalnum;
 		hudsprite.owner = (short) MAXSPRITES;
-		hudsprite.cstat = (short) ((dastat & 1) + ((dastat & 32) << 4) + ((dastat & 4) << 1));
+		hudsprite.cstat = (short) ((dastat & 1) + ((dastat & 32) << 4) + (dastat & 4) << 1);
 
 		if ((dastat & 10) == 2)
 			parent.resizeglcheck();
@@ -480,16 +485,16 @@ public class GDXOrtho extends OrphoRenderer {
 
 		BuildCamera cam = parent.cam;
 
-		float aspect = xdim / (float) ydim;
+		float aspect = xdim / (float) (ydim);
 		float f = 1.0f;
 		if (hudInfo.fov != -1)
-			f = hudInfo.fov / 350.0f;
-		cam.projection.setToProjection(cam.near, cam.far, 70 * f, aspect);
-		cam.view.setToLookAt(cam.direction.set(gcosang, gsinang, 0), cam.up).translate(-cam.position.x, -cam.position.y, -cam.position.z);
+			f = hudInfo.fov / 420.0f;
+		cam.projection.setToProjection(cam.near, cam.far, 90 * f, aspect);
+		cam.view.setToLookAt(cam.direction.set(gcosang, gsinang, 0), cam.up.set(0,0,(dastat & 4) != 0 ? 1 : -1)).translate(-cam.position.x, -cam.position.y, -cam.position.z);
 		cam.combined.set(cam.projection);
 		Matrix4.mul(cam.combined.val, cam.view.val);
 
-		parent.mdR.mddraw(parent.modelManager.getModel(picnum, dapalnum), hudsprite);
+		return parent.mdR.mddraw(parent.modelManager.getModel(picnum, dapalnum), hudsprite);
 	}
 
 	public void draw(GLTile tex, int sx, int sy, int sizx, int sizy, int xoffset, int yoffset, int angle, int z,
@@ -747,13 +752,23 @@ public class GDXOrtho extends OrphoRenderer {
 
 		Arrays.fill(gotsector, (byte) 0);
 
-		switchShader(parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
+		if (isDrawing())
+			end();
+
+//		switchShader(parent.getTexFormat() != PixelFormat.Pal8 ? Shader.RGBWorldShader : Shader.IndexedWorldShader);
 
 		Matrix4 tmpMat = parent.transform; // Projection matrix
-		tmpMat.setToOrtho(xdim / 2, (-xdim / 2), -(ydim / 2), ydim / 2, 0, 1);
-		tmpMat.scale(zoome / 32.0f, zoome / 32.0f, 0);
-		manager.projection(tmpMat).view(parent.identity);
-		setViewport(0, 0, 0, 0);
+//		tmpMat.setToOrtho(xdim / 2, (-xdim / 2), -(ydim / 2), ydim / 2, 0, 1);
+//		tmpMat.scale(zoome / 32.0f, zoome / 32.0f, 0);
+//		manager.projection(tmpMat).view(parent.identity);
+//		setViewport(0, 0, 0, 0);
+
+		BuildCamera cam = parent.cam;
+		cam.projection.setToOrtho(xdim / 2, (-xdim / 2), -(ydim / 2), ydim / 2, 0, 1);
+		cam.projection.scale(zoome / 32.0f, zoome / 32.0f, 0);
+		cam.view.set(parent.identity);
+		cam.combined.set(cam.projection);
+		Matrix4.mul(cam.combined.val, cam.view.val);
 
 		int showSprites = mapSettings.isShowFloorSprites() ? 1 : 0;
 		showSprites |= (mapSettings.isShowSprites(MapView.Polygons) ? 2 : 0);
@@ -1186,7 +1201,10 @@ public class GDXOrtho extends OrphoRenderer {
 		if (manager.getShader() != Shader.BitmapShader) {
 			manager.projection(projectionMatrix).view(parent.identity);
 			manager.transform(parent.identity);
-			setViewport(0, 0, xdim - 1, ydim - 1);
+			manager.viewport(0, 0, xdim - 1, ydim - 1);
+			cx1 = cy1 = 0;
+			cx2 = xdim - 1;
+			cy2 = ydim - 1;
 		} else
 			manager.projection(projectionMatrix);
 	}

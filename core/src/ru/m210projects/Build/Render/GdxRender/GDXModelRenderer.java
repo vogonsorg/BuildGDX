@@ -107,6 +107,7 @@ public class GDXModelRenderer {
 		m.render(pal, shade, defs.mdInfo.getParams(tspr.picnum).skinnum, vis, alpha);
 
 		BuildGdx.gl.glFrontFace(GL_CW);
+
 		return true;
 	}
 

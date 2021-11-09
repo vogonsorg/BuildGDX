@@ -90,6 +90,7 @@ import ru.m210projects.Build.Render.TextureHandle.TileAtlas;
 import ru.m210projects.Build.Render.TextureHandle.TileData;
 import ru.m210projects.Build.Render.TextureHandle.TileData.PixelFormat;
 import ru.m210projects.Build.Render.Types.FadeEffect;
+import ru.m210projects.Build.Render.Types.GL10;
 import ru.m210projects.Build.Render.Types.FadeEffect.FadeShader;
 import ru.m210projects.Build.Render.Types.GLFilter;
 import ru.m210projects.Build.Render.Types.Palette;
@@ -110,9 +111,10 @@ public class GDXRenderer implements GLRenderer {
 //	TODO:
 //  Skies panning
 //  Tekwar skies bug
-//	Hires (Models) detail, glow
+//	Hires detail, glow
 //  Overheadmap sector visible check
-//  Overheadmap projection bug (Duke E1L3) - with Hires?
+//  Hires sprite alpha
+//  Duke E2L2 model invisible
 
 //	Sprite ZFighting
 //	Blood drunk effect
@@ -435,7 +437,6 @@ public class GDXRenderer implements GLRenderer {
 			if (GLSettings.useModels.get()) {
 				GLModel md = modelManager.getModel(tspr.picnum, tspr.pal);
 				if (md != null) {
-
 					if (tspr.owner < 0 || tspr.owner >= MAXSPRITES) {
 						if (mdR.mddraw(md, tspr))
 							return;
@@ -491,7 +492,6 @@ public class GDXRenderer implements GLRenderer {
 		drawSkyPlanes();
 		for (int i = inpreparemirror ? 1 : 0; i < sectors.size(); i++)
 			drawSkySector(sectors.get(i));
-
 	}
 
 	private void prerender(ArrayList<VisibleSector> sectors) {
@@ -744,7 +744,7 @@ public class GDXRenderer implements GLRenderer {
 		if (world != null)
 			world.nextpage();
 		orphoRen.nextpage();
-		manager.unbind();
+		manager.reset();
 		textureCache.unbind();
 
 		omdtims = mdtims;

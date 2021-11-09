@@ -215,7 +215,10 @@ public class RayCaster {
 	}
 
 	public float atan2(float dx, float dy) {
-		dx /= (float) Math.sqrt(dx * dx + dy * dy);
+		float len = (float) Math.sqrt(dx * dx + dy * dy);
+		if(len == 0)
+			return 0;
+		dx /= len;
 		if (dy >= 0)
 			return dx;
 		if (dx >= 0)
